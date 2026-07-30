@@ -84,7 +84,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
 
         if (__DEV__) {
             expect(warnSpy).toHaveBeenCalledWith(
-                '[cleanupAndNavigateAfterExpenseCreate] shouldNavigate=false but span is active. ' + 'Caller must own span lifecycle — miss this and span hangs 60s until dropped.',
+                '[cleanupAndNavigateAfterExpenseCreate] shouldNavigate=false but span is active. Caller must own span lifecycle — miss this and span hangs 60s until dropped.',
             );
         } else {
             expect(warnSpy).not.toHaveBeenCalled();
@@ -241,6 +241,28 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             hasMultipleTransactions: false,
             shouldAddPendingNewTransactionIDs: false,
             shouldNavigate: true,
+        });
+    });
+
+    it('should pass isInvoice, isFromGlobalCreate, and transactionID through to navigateAfterExpenseCreate when shouldNavigate is false', () => {
+        cleanupAndNavigateAfterExpenseCreate({
+            action: CONST.IOU.ACTION.CREATE,
+            report: chatReport,
+            draftTransactionIDs: [],
+            transactionID: 'txn-42',
+            isFromGlobalCreate: true,
+            isInvoice: true,
+            shouldNavigate: false,
+        });
+
+        expect(navigateAfterExpenseCreate).toHaveBeenCalledWith({
+            activeReportID: 'chat-1',
+            transactionID: 'txn-42',
+            isFromGlobalCreate: true,
+            isInvoice: true,
+            hasMultipleTransactions: false,
+            shouldAddPendingNewTransactionIDs: false,
+            shouldNavigate: false,
         });
     });
 
