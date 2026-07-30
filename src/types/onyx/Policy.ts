@@ -3266,4 +3266,7 @@ export type {
     DualEntryConnectionsConfig,
     DualEntryCompany,
     DualEntryCoding,
+    DualEntryExportDate,
+    DualEntryVendor,
+    DualEntryAccount,
 };
