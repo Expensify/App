@@ -56,6 +56,7 @@ function navigateToPendingDeepLinkAfterOnboarding(conciergeReportID?: string) {
         return false;
     }
 
+    setDisableDismissOnEscape(false);
     Navigation.navigate(pendingDeepLinkRoute);
     return true;
 }
@@ -171,6 +172,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     dismissOnboardingModalBeforeExit();
     const pendingDeepLinkRoute = getPendingDeepLinkRouteAfterOnboarding(conciergeReportID);
     if (pendingDeepLinkRoute) {
+        setDisableDismissOnEscape(false);
         Navigation.navigate(pendingDeepLinkRoute, options?.afterTransition ? {afterTransition: options.afterTransition} : undefined);
         return;
     }
@@ -220,6 +222,7 @@ function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: s
     dismissOnboardingModalBeforeExit();
     const pendingDeepLinkRoute = shouldHonorPendingDeepLink ? getPendingDeepLinkRouteAfterOnboarding(conciergeReportID) : undefined;
     if (shouldHonorPendingDeepLink && pendingDeepLinkRoute) {
+        setDisableDismissOnEscape(false);
         Navigation.navigate(pendingDeepLinkRoute);
         return;
     }
