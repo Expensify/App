@@ -125,7 +125,7 @@ describe('navigateAfterOnboarding', () => {
         mockIsReportRevealedInTopmostSplitNavigator.mockReturnValue(false);
 
         navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
-        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
     });
 
     it('should not navigate to last accessed report if it is a concierge chat on small screens', async () => {
