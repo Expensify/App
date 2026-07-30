@@ -134,6 +134,7 @@ function SubmitDetailsPage({
     const [pendingNavigationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(pendingNavigationReportID)}`);
     const hasStartedPendingNavigation = useRef(false);
     const formHasBeenSubmitted = useRef(false);
+    const hasCalledReveal = useRef(false);
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
@@ -293,7 +294,7 @@ function SubmitDetailsPage({
             : undefined;
 
     const {reveal: revealPreMountDestination, cleanupPreMount} = usePreMountDestination(preMountDestinationRoute, {
-        shouldPreservePreInsertedRouteOnUnmount: () => formHasBeenSubmitted.current,
+        shouldPreservePreInsertedRouteOnUnmount: () => hasCalledReveal.current,
     });
 
     // Once the optimistically created destination report lands in Onyx, reveal it directly over the modal —
@@ -435,6 +436,7 @@ function SubmitDetailsPage({
 
         if (preMountDestinationRoute) {
             runExpenseCreateAndCleanup(false);
+            hasCalledReveal.current = true;
             revealPreMountDestination(() => setIsConfirming(false));
             return;
         }
