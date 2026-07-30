@@ -16,7 +16,7 @@ import type {ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCom
 import type {WriteReadyBarrier} from './writeWhenReady';
 
 import {buildLogParams, prepareRequest, processRequest} from './makeRequest';
-import {READ_COMMANDS} from './types';
+import {READ_COMMANDS, READS_SENT_DURING_WRITES} from './types';
 import baseWrite from './write';
 import {createTransitionBarrier, writeWhenReady} from './writeWhenReady';
 
@@ -140,8 +140,9 @@ function read<TCommand extends ReadCommand, TKey extends OnyxKey>(command: TComm
 
     // Apply optimistic updates of read requests immediately
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.READ, apiCommandParameters, onyxData);
-    // Sign in with shortLivedAuthToken command shouldn't be blocked by write commands
-    if (command === READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN || command === READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN) {
+    // Sign in with shortLivedAuthToken commands shouldn't be blocked by write commands, and neither should READS_SENT_DURING_WRITES.
+    // Unlike the sign in commands, those hold their Onyx updates until the writes have applied theirs (see applyHTTPSOnyxUpdates).
+    if (command === READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN || command === READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN || READS_SENT_DURING_WRITES.has(command)) {
         processRequest(request, CONST.API_REQUEST_TYPE.READ);
         return;
     }

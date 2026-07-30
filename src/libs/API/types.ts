@@ -1445,6 +1445,13 @@ const READ_COMMANDS = {
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
 
+/**
+ * READ commands sent immediately instead of waiting for the sequential queue, so a slow write like OpenApp doesn't hold them up.
+ * Their Onyx updates are still held until the queue is idle (see applyHTTPSOnyxUpdates), so the data lands no earlier — the read
+ * just stops occupying the network while it waits.
+ */
+const READS_SENT_DURING_WRITES: ReadonlySet<string> = new Set<ReadCommand>([READ_COMMANDS.SEARCH_FOR_TODOS]);
+
 type ReadCommandParameters = {
     [READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE]: null;
     [READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE]: Parameters.ConnectPolicyToAccountingIntegrationParams;
@@ -1647,7 +1654,7 @@ type SideEffectRequestCommandParameters = {
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;
 
-export {WRITE_COMMANDS, READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, AUTHENTICATION_COMMAND};
+export {WRITE_COMMANDS, READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, AUTHENTICATION_COMMAND, READS_SENT_DURING_WRITES};
 
 type ApiCommand = WriteCommand | ReadCommand | SideEffectRequestCommand;
 type CommandOfType<TRequestType extends ApiRequestType> = TRequestType extends typeof CONST.API_REQUEST_TYPE.WRITE
