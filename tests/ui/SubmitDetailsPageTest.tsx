@@ -229,6 +229,7 @@ function resetNavigationMocksForSubmitDetailsPageTests() {
     jest.mocked(Navigation.getIsFullscreenPreInsertedUnderRHP).mockReturnValue(false);
     jest.mocked(Navigation.preInsertFullscreenUnderRHP).mockImplementation(() => {
         jest.mocked(Navigation.getIsFullscreenPreInsertedUnderRHP).mockReturnValue(true);
+        jest.mocked(Navigation.getTopmostReportId).mockReturnValue(SHARED_REPORT_ID);
     });
     jest.mocked(Navigation.revealRouteBeforeDismissingModal).mockImplementation((_route: unknown, options?: {afterTransition?: () => void}) => {
         options?.afterTransition?.();
