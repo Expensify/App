@@ -139,17 +139,27 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
         setDraftRequireFieldsRule(preservedSettings);
     };
 
-    let emptyState: React.ReactNode;
+    let content: React.ReactNode;
     if (!areCategoriesEnabled) {
-        emptyState = <RuleCategoriesDisabledEmptyState policyID={policyID} />;
+        content = <RuleCategoriesDisabledEmptyState policyID={policyID} />;
     } else if (arePolicyCategoriesLoading) {
-        emptyState = (
+        content = (
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     reasonAttributes={{context: 'RequireFieldsRuleCategoryPageBase'}}
                 />
             </View>
+        );
+    } else {
+        content = (
+            <RuleSelectionBase.Picker
+                selectedItem={selectedCategoryItem}
+                items={categoryItems}
+                onSave={onSave}
+                backToRoute={backToRoute}
+                allowNoneOption={false}
+            />
         );
     }
 
@@ -164,14 +174,10 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
             <RuleSelectionBase
                 titleKey="common.category"
                 testID="RequireFieldsRuleCategoryPage"
-                selectedItem={selectedCategoryItem}
-                items={categoryItems}
-                onSave={onSave}
                 onBack={() => Navigation.goBack(backToRoute())}
-                backToRoute={backToRoute}
-                allowNoneOption={false}
-                emptyState={emptyState}
-            />
+            >
+                {content}
+            </RuleSelectionBase>
         </AccessOrNotFoundWrapper>
     );
 }

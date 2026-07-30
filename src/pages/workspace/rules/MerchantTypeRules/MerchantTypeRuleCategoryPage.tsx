@@ -60,12 +60,15 @@ function MerchantTypeRuleCategoryPage({route}: MerchantTypeRuleCategoryPageProps
             <RuleSelectionBase
                 titleKey="common.category"
                 testID="MerchantTypeRuleCategoryPage"
-                selectedItem={selectedCategoryItem}
-                items={categoryItems}
-                onSave={onSave}
                 onBack={() => Navigation.goBack(backToRoute)}
-                backToRoute={backToRoute}
-            />
+            >
+                <RuleSelectionBase.Picker
+                    selectedItem={selectedCategoryItem}
+                    items={categoryItems}
+                    onSave={onSave}
+                    backToRoute={backToRoute}
+                />
+            </RuleSelectionBase>
         </AccessOrNotFoundWrapper>
     );
 }
