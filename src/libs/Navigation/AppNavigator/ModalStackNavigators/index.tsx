@@ -94,9 +94,6 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
         animationTypeForReplace: 'push',
     },
-    [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
-        animationTypeForReplace: 'push',
-    },
     [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: {
         animationTypeForReplace: 'push',
     },
@@ -234,17 +231,14 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
 const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParamList>({
     [SCREENS.TRAVEL.MY_TRIPS]: () => require<ReactComponentModule>('../../../../pages/Travel/MyTripsPage').default,
     [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: () => require<ReactComponentModule>('../../../../pages/Travel/TravelDotLinkWebview').default,
-    [SCREENS.TRAVEL.DYNAMIC_TCS]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicTravelTerms').default,
     [SCREENS.TRAVEL.DYNAMIC_UPGRADE]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicTravelUpgrade').default,
     [SCREENS.TRAVEL.TRIP_SUMMARY]: () => require<ReactComponentModule>('../../../../pages/Travel/TripSummaryPage').default,
     [SCREENS.TRAVEL.TRIP_DETAILS]: () => require<ReactComponentModule>('../../../../pages/Travel/TripDetailsPage').default,
-    [SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicDomainSelectorPage').default,
     [SCREENS.TRAVEL.DYNAMIC_DOMAIN_PERMISSION_INFO]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicDomainPermissionInfoPage').default,
     [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicPublicDomainErrorPage').default,
     [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/Travel/WorkspaceConfirmationForTravelPage').default,
-    [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/Travel/WorkspaceAddressForTravelPage').default,
-    [SCREENS.TRAVEL.LEGAL_ENTITY_TAX_ID]: () => require<ReactComponentModule>('../../../../pages/Travel/TravelLegalEntityTaxIDPage').default,
     [SCREENS.TRAVEL.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Travel/VerifyAccountPage').default,
+    [SCREENS.TRAVEL.ENABLE]: () => require<ReactComponentModule>('../../../../pages/Travel/EnableTravel').default,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
@@ -451,6 +445,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_SPREADSHEET]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ImportTransactionsSpreadsheetPage').default,
     [SCREENS.SETTINGS.WALLET.TRANSACTIONS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TransactionsImportedPage').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/Wallet/EnablePayments').default,
+    [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/shared/WalletConfirmMagicCodePage').default,
     [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/UnshareBankAccount/UnshareBankAccount').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsBusinessPage').default,
@@ -516,8 +511,11 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionPlan/DynamicSubscriptionPlanDowngradeBlockedPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE]: () => require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspaceInvitePage').default,
     [SCREENS.WORKSPACE.MEMBERS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportMembersPage').default,
+    [SCREENS.WORKSPACE.WORKFLOWS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/ImportWorkflowsPage').default,
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportedMembersPage').default,
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportedMembersConfirmationPage').default,
+    [SCREENS.WORKSPACE.WORKFLOWS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportedMembersPage').default,
+    [SCREENS.WORKSPACE.WORKFLOWS_IMPORTED_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportedMembersConfirmationPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsCreatePage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM]: () =>
@@ -1175,15 +1173,15 @@ const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNav
 });
 
 const TransactionDuplicateStackNavigator = createModalStackNavigator<TransactionDuplicateNavigatorParamList>({
-    [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/Review').default,
-    [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewMerchant').default,
-    [SCREENS.TRANSACTION_DUPLICATE.CATEGORY]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewCategory').default,
-    [SCREENS.TRANSACTION_DUPLICATE.TAG]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewTag').default,
-    [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewDescription').default,
-    [SCREENS.TRANSACTION_DUPLICATE.TAX_CODE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewTaxCode').default,
-    [SCREENS.TRANSACTION_DUPLICATE.BILLABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewBillable').default,
-    [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewReimbursable').default,
-    [SCREENS.TRANSACTION_DUPLICATE.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/Confirmation').default,
+    [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicReviewPage').default,
+    [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicReviewMerchantPage').default,
+    [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicReviewCategoryPage').default,
+    [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicReviewTagPage').default,
+    [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicReviewDescriptionPage').default,
+    [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicReviewTaxCodePage').default,
+    [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicReviewBillablePage').default,
+    [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicReviewReimbursablePage').default,
+    [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/DynamicConfirmationPage').default,
 });
 
 const MergeTransactionStackNavigator = createModalStackNavigator<MergeTransactionNavigatorParamList>({

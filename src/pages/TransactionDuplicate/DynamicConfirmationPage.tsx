@@ -1,0 +1,228 @@
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/ButtonComposed';
+import FixedFooter from '@components/FixedFooter';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
+import Text from '@components/Text';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsByID from '@hooks/useTransactionsByID';
+import useTransactionThreadReportIDs from '@hooks/useTransactionThreadReportIDs';
+
+import {mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
+import {setDeleteTransactionNavigateBackUrl} from '@libs/actions/Report';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
+import * as ReportUtils from '@src/libs/ReportUtils';
+import {generateReportID} from '@src/libs/ReportUtils';
+import * as TransactionUtils from '@src/libs/TransactionUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+
+function DynamicConfirmationPage() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CONFIRMATION>>();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION.path);
+    const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
+    const [duplicatedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(reviewDuplicates?.transactionID)}`);
+    const newTransaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction), [duplicatedTransaction, reviewDuplicates]);
+    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
+    const transactionID = TransactionUtils.getTransactionID(report);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [duplicatedTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newTransaction?.reportID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newTransaction?.reportID}`);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const reportAction = Object.values(reportActions ?? {}).find(
+        (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
+    );
+    const {superWideRHPRouteKeys} = useWideRHPState();
+    const isSuperWideRHPDisplayed = superWideRHPRouteKeys.length > 0;
+
+    const [duplicates] = useTransactionsByID(reviewDuplicates?.duplicates);
+    const transactionsMergeParams = useMemo(
+        () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),
+        [duplicates, reviewDuplicates, newTransaction],
+    );
+    const transactionThreadReportIDMap = useTransactionThreadReportIDs(transactionsMergeParams.transactionIDList);
+    const reviewDuplicatesTaxCode = reviewDuplicates?.taxCode;
+    const reviewDuplicatesTaxAmount = reviewDuplicates?.taxAmount;
+    const duplicatedTransactionTaxCode = duplicatedTransaction?.taxCode;
+    const taxRates = duplicatedTransactionPolicy?.taxRates?.taxes;
+    const taxData = useMemo(() => {
+        const taxCode = reviewDuplicatesTaxCode ?? '';
+        const taxRate = taxCode ? taxRates?.[taxCode] : undefined;
+        // Preserve taxAmount and taxValue if taxCode is deleted or remains unchanged compared to duplicatedTransaction?.taxCode.
+        if (!taxRate || (taxCode && duplicatedTransactionTaxCode === taxCode) || reviewDuplicatesTaxAmount === undefined) {
+            return;
+        }
+
+        return {
+            taxAmount: -reviewDuplicatesTaxAmount,
+            taxValue: taxRate?.value,
+            taxCode,
+        };
+    }, [reviewDuplicatesTaxCode, reviewDuplicatesTaxAmount, taxRates, duplicatedTransactionTaxCode]);
+    const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserLogin = currentUserPersonalDetails?.login;
+    const childReportID = reportAction?.childReportID;
+
+    const handleMergeDuplicates = useCallback(() => {
+        const transactionThreadReportID = childReportID ?? generateReportID();
+        const mergeParams = !childReportID ? {...transactionsMergeParams, transactionThreadReportID} : transactionsMergeParams;
+        // Suppress the NotFound guard for the discarded thread the server tears down on merge.
+        const keptReportRoute = ROUTES.REPORT_WITH_ID.getRoute(mergeParams.reportID);
+        setDeleteTransactionNavigateBackUrl(keptReportRoute);
+        mergeDuplicates({...mergeParams, ...taxData, currentUserAccountID, currentUserLogin: currentUserLogin ?? '', allTransactionViolations, allReportActionsList: allReportActions});
+        if (isSuperWideRHPDisplayed) {
+            Navigation.dismissToSuperWideRHP();
+            return;
+        }
+        // From Search, dismiss back to the results (backTo is always set here, so it can't detect Search).
+        if (isSearchTopmostFullScreenRoute()) {
+            Navigation.dismissModal();
+            return;
+        }
+        // From the discarded thread: pop the modal entries, then replace the dead thread with the kept report.
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(keptReportRoute, {forceReplace: true}),
+        });
+    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed, allTransactionViolations, allReportActions]);
+
+    const handleResolveDuplicates = useCallback(() => {
+        resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap, allTransactionViolations, allReportActionsList: allReportActions});
+        Navigation.dismissToSuperWideRHP();
+    }, [transactionsMergeParams, taxData, transactionThreadReportIDMap, allTransactionViolations, allReportActions]);
+
+    const contextMenuStateValue = useMemo(
+        () => ({
+            transactionThreadReport: report,
+            action: reportAction,
+            report,
+            anchor: null,
+            isDisabled: false,
+        }),
+        [report, reportAction],
+    );
+
+    const contextMenuActionsValue = useMemo(
+        () => ({
+            checkIfContextMenuActive: () => {},
+            onShowContextMenu: () => {},
+        }),
+        [],
+    );
+
+    const doesTransactionBelongToReport = reviewDuplicates?.transactionID === transactionID || (transactionID && reviewDuplicates?.duplicates.includes(transactionID));
+
+    const isDismissingRef = useRef(false);
+
+    const shouldShowNotFoundPage =
+        isEmptyObject(report) ||
+        (!ReportUtils.isValidReport(report) && !isDismissingRef.current) ||
+        ReportUtils.isReportNotFound(report) ||
+        (reviewDuplicatesResult.status === 'loaded' && (!newTransaction?.transactionID || !doesTransactionBelongToReport));
+
+    if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult) || !newTransaction?.transactionID) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'TransactionDuplicate.Confirmation',
+            isLoadingReviewDuplicates: isLoadingOnyxValue(reviewDuplicatesResult),
+            isLoadingReport: isLoadingOnyxValue(reportResult),
+            hasNewTransaction: !!newTransaction?.transactionID,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    }
+
+    return (
+        <ScreenWrapper
+            testID="DynamicConfirmationPage"
+            shouldShowOfflineIndicator
+        >
+            <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
+                <View style={[styles.flex1]}>
+                    <HeaderWithBackButton
+                        title={translate('iou.reviewDuplicates')}
+                        onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
+                    />
+                    <ScrollView>
+                        <View style={[styles.ph5, styles.pb8]}>
+                            <Text
+                                family="EXP_NEW_KANSAS_MEDIUM"
+                                fontSize={variables.fontSizeLarge}
+                                style={styles.pb5}
+                            >
+                                {translate('violations.confirmDetails')}
+                            </Text>
+                            <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
+                        </View>
+                        {/* We need that provider here because MoneyRequestView component requires that */}
+                        <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
+                            <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
+                                <MoneyRequestView
+                                    transactionThreadReport={report}
+                                    parentReportID={report?.parentReportID}
+                                    expensePolicy={policy}
+                                    shouldShowAnimatedBackground={false}
+                                    readonly
+                                    updatedTransaction={newTransaction as OnyxEntry<Transaction>}
+                                    isFromReviewDuplicates
+                                />
+                            </ShowContextMenuActionsContext.Provider>
+                        </ShowContextMenuStateContext.Provider>
+                    </ScrollView>
+                    <FixedFooter style={styles.mtAuto}>
+                        <Button
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            onPress={() => {
+                                isDismissingRef.current = true;
+                                if (!isReportOwner) {
+                                    handleResolveDuplicates();
+                                    return;
+                                }
+                                handleMergeDuplicates();
+                            }}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                        >
+                            <Button.Text>{translate('common.confirm')}</Button.Text>
+                        </Button>
+                    </FixedFooter>
+                </View>
+            </FullPageNotFoundView>
+        </ScreenWrapper>
+    );
+}
+
+export default DynamicConfirmationPage;

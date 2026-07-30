@@ -22,7 +22,9 @@ import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
+import {shouldUseTableSemantics} from './tableAccessibility';
 import TableContext from './TableContext';
+import TableSemanticContainer from './TableSemanticContainer';
 
 /**
  * Builds the Proxy exposed through the Table's ref, forwarding to `tableMethods` first and
@@ -227,7 +229,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         methods: selectionMethods,
         mobileSelectionModalRowKey,
         middleware: selectionMiddleware,
-    } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, selectedKeys, onRowSelectionChange, shouldEnableSelectionInNarrowPaneModal});
+    } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, activeSearchString, selectedKeys, onRowSelectionChange, shouldEnableSelectionInNarrowPaneModal});
     const selectionData = selectionMiddleware(sortedData);
 
     const {methods: highlightingMethods, middleware: highlightMiddleware} = useHighlighting<DataType>();
@@ -272,6 +274,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         filterConfig: filters,
         activeFilters: currentFilters,
         activeSorting,
+        initialSortColumn,
+        narrowLayoutSortColumn,
         activeSearchString,
         tableMethods,
         hasActiveFilters,
@@ -284,9 +288,22 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         onSearchStringChange,
     };
 
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+
+    // The selection checkbox renders as an extra leading column when selection is enabled (always visible in the wide
+    // web layout where semantics apply), so it has to be counted alongside the configured data columns.
+    const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
+
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
-            {children}
+            <TableSemanticContainer
+                isEnabled={isTableSemanticsEnabled}
+                title={title}
+                rowCount={processedData.length}
+                columnCount={semanticColumnCount}
+            >
+                {children}
+            </TableSemanticContainer>
 
             <Modal
                 shouldPreventScrollOnFocus
