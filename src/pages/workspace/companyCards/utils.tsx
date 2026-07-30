@@ -3,7 +3,8 @@ import type {SelectorType} from '@components/SelectionScreen';
 
 import {sortDefaultToTop} from '@libs/ListUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import type {NavigationPartialRoute} from '@libs/Navigation/types';
+import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 
 import type {ThemeStyles} from '@styles/index';
@@ -437,7 +438,12 @@ function getExportMenuItem(
  * Builds a back path to company card details using Members when the existing details
  * entry has accountID, otherwise Company Cards, so goBack can match the stack entry.
  */
-function getCompanyCardDetailsBackPath(policyID: string, feed: CompanyCardFeedWithDomainID, cardID: string, settingsNavigatorState: {routes: NavigationPartialRoute[]}): Route {
+function getCompanyCardDetailsBackPath(
+    policyID: string,
+    feed: CompanyCardFeedWithDomainID,
+    cardID: string,
+    settingsNavigatorState: PlatformStackNavigationState<SettingsNavigatorParamList>,
+): Route {
     const detailsRoute = settingsNavigatorState.routes.findLast((route) => route.name === SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS);
     const detailsParams = detailsRoute?.params as {accountID?: string | number; feed?: CompanyCardFeedWithDomainID; cardID?: string} | undefined;
     const accountIDParam = detailsParams?.accountID;
