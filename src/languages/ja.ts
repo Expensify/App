@@ -1096,7 +1096,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpend: {
             title: 'あなたの支出',
             awaitingApproval: '承認待ち',
-            repaidLast30Days: '過去30日間に返済済み',
+            repaidLast30Days: '過去30日間の返済',
             recentTransactions: ({lastFour}: {lastFour: string}) => `最近の取引 • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `さらに${count}件表示`,
@@ -1181,6 +1181,7 @@ const translations: TranslationDeepObject<typeof en> = {
             'アップロードしたファイルは空であるか、無効なデータが含まれています。再度アップロードする前に、ファイルの形式が正しく、必要な情報が含まれていることを確認してください。',
         importSpreadsheetLibraryError: 'スプレッドシートモジュールの読み込みに失敗しました。インターネット接続を確認して、もう一度お試しください。',
         importSpreadsheet: 'スプレッドシートをインポート',
+        importWorkflows: 'ワークフローをインポート',
         downloadCSV: 'CSV をダウンロード',
         importMemberConfirmation: () => ({
             one: `このアップロードの一部として追加される新しいワークスペースメンバーの詳細を、以下で確認してください。既存のメンバーにはロールの更新や招待メッセージは送信されません。`,
@@ -4302,7 +4303,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         toLearnMore: '詳しくはこちらをご覧ください。',
         termsAndConditions: {
             header: '続ける前に…',
-            title: '利用規約',
+            title: '利用規約を確認する',
             label: '利用規約と条件に同意します',
             subtitle: `Expensify Travel の<a href="${CONST.TRAVEL_TERMS_URL}">利用規約</a>に同意してください。`,
             error: '続行するには、Expensify Travel の利用規約に同意する必要があります',
@@ -4375,11 +4376,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         departs: '出発日時',
         errorMessage: '問題が発生しました。後でもう一度お試しください。',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>出張を予約するには、<a href="${phoneErrorMethodsRoute}">勤務先メールアドレスを主なログインとして追加</a>してください。</rbr>`,
-        domainSelector: {
-            title: 'ドメイン',
-            subtitle: 'Expensify Travel のセットアップ用ドメインを選択してください。',
-            recommended: 'おすすめ',
-        },
+        domainSelector: {headline: 'どのドメインを設定しますか？', title: 'ドメイン', subtitle: 'Expensify Travel のセットアップ用ドメインを選択してください。', recommended: 'おすすめ'},
+        workspaceAddress: {headline: '会社の住所は何ですか？'},
         domainPermissionInfo: {
             title: 'ドメイン',
             restriction: (domain: string) =>
@@ -4434,6 +4432,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         nightIn: '宿泊数',
         nightsIn: '泊（滞在先）',
         taxID: {
+            headline: 'あなたの事業の納税者番号は何ですか？',
             title: '納税者番号',
             subtitle: '現地通貨での出張費の請求を設定できるように、法人の納税者番号を入力してください。',
             inputLabel: '法人納税者番号',
@@ -5783,13 +5782,14 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             assign: '割り当て',
             assignCard: 'カードを割り当てる',
-            findCard: 'カードを探す',
+            findCompanyCard: '会社カードを探す',
             cardNumber: 'カード番号',
             commercialFeed: '商用フィード',
             feedName: (feedName: string) => `${feedName}カード`,
             directFeed: 'ダイレクトフィード',
             whoNeedsCardAssigned: '誰にカードを割り当てる必要がありますか？',
             chooseTheCardholder: 'カード名義人を選択',
+            pleaseSelectACardholder: '続行するにはカード名義人を選択してください',
             chooseCard: 'カードを選択',
             chooseCardFor: (assignee: string) =>
                 `<strong>${assignee}</strong> に割り当てるカードを選択してください。お探しのカードが見つかりませんか？<concierge-link>お知らせください。</concierge-link>`,
@@ -6104,8 +6104,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 transactionStartDate: '取引開始日',
                 updateCard: 'カードを更新',
                 unassignCard: 'カードの割り当てを解除',
+                unassignCards: 'カードの割り当てを解除',
                 unassign: '割り当てを解除',
                 unassignCardDescription: 'このカードの割り当てを解除すると、未送信の取引はすべて削除されます。',
+                unassignCardsDescription: '割り当てを解除すると、選択したカードの未送信の取引はすべて削除されます。',
                 removeCard: 'カードを削除',
                 remove: '削除',
                 removeCardDescription: 'このカードを削除すると、未送信のすべての取引が削除されます。',
@@ -8541,6 +8543,12 @@ ${reportName}`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `「${mccGroupName}」のデフォルト支出カテゴリーを「${newCategory}」に変更しました（以前は「${oldCategory}」）`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の法人カード購入要件`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `エージェントルール「${title}」を追加しました：${prompt}` : `エージェントルールを追加しました：${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) =>
+                title ? `エージェントルール「${title}」を次の内容に更新しました：${prompt}` : `エージェントルールを次の内容に更新しました：${prompt}`,
+            deleted: ({title}: {title: string}) => (title ? `エージェントルール「${title}」を削除しました` : 'エージェントルールを削除しました'),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'ブロック済み', allow: '許可済み'},
             amountOperator: {
@@ -10154,7 +10162,7 @@ ${reportName}`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
-        accountSwitcher: '<tooltip>ここから<strong>Copilot アカウント</strong>にアクセスできます</tooltip>',
+        accountSwitcher: '<tooltip>他のアカウントにコパイロットとして入ることができるようになりました！</tooltip>',
         outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',
