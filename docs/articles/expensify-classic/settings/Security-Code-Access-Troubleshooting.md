@@ -1,9 +1,9 @@
 ---
-title: Troubleshooting Missing Magic Code Emails
-description: Dedicated guide for resolving Magic Code login email delivery issues and accessing your Expensify account.
-keywords: [magic code not received, login email missing, cannot sign in, expensify email blocked, expensify login help, email deliverability, magic code troubleshooting, account access]
+title: Troubleshooting Missing Security Code Emails
+description: Dedicated guide for resolving Security Code login email delivery issues and accessing your Expensify account.
+keywords: [security code not received, login email missing, cannot sign in, expensify email blocked, expensify login help, email deliverability, security code troubleshooting, account access]
 ---
-Magic Code emails are critical for logging into your Expensify account. If you're not receiving these emails, this guide provides step-by-step troubleshooting to help you regain access.
+Security Code emails are critical for logging into your Expensify account. If you're not receiving these emails, this guide provides step-by-step troubleshooting to help you regain access.
 
 ---
 
@@ -13,7 +13,7 @@ Magic Code emails are critical for logging into your Expensify account. If you'r
 
 ## 1. Wait and Check Basic Locations
 
-- **Wait up to 10 minutes** - Magic Codes may be delayed due to email processing
+- **Wait up to 10 minutes** - Security Codes may be delayed due to email processing
 - **Check your spam/junk folder** - Look specifically for emails from "expensify.com"
 - **Search your entire inbox** for "Expensify" to find filtered messages
 - **Check your trash/deleted items** folder
@@ -26,7 +26,7 @@ Magic Code emails are critical for logging into your Expensify account. If you'r
 
 ## 3. Try Resending
 
-- **Click "Resend Magic Code"** on the login screen
+- **Click "Resend Security Code"** on the login screen
 - **Wait 2-3 minutes** between resend attempts
 - **Limit to 3 attempts** before trying other solutions
 
@@ -107,15 +107,15 @@ If you can access your account through alternate means:
 
 # FAQ
 
-## How long should I wait for a Magic Code?
+## How long should I wait for a Security Code?
 
 - **Normal delivery:** 1-3 minutes
 - **Acceptable delay:** Up to 10 minutes
 - **Contact support if:** No email after 10+ minutes
 
-## Can I log in without a Magic Code?
+## Can I log in without a Security Code?
 
-Magic Codes are required for security. However, you may be able to use:
+Security Codes are required for security. However, you may be able to use:
 - **Alternate email addresses** configured on your account
 - **Phone verification** if enabled
 - **SSO login** if your company uses single sign-on
@@ -129,7 +129,7 @@ This usually indicates:
 
 **Solution:** Work with your IT team to implement permanent allowlisting rather than temporary unblocks.
 
-## Why do Magic Codes work sometimes but not others?
+## Why do Security Codes work sometimes but not others?
 
 **Common causes:**
 - **Email server load** causing intermittent delays
@@ -156,14 +156,14 @@ To resolve it:
 - Enter the newest code you received.
 - If the issue continues, request a new code and try again.
 
-## Why did my Magic Code expire?
+## Why did my Security Code expire?
 
-Magic Codes expire automatically for security reasons. Requesting a new code immediately invalidates any previous code that was sent.
+Security Codes expire automatically for security reasons. Requesting a new code immediately invalidates any previous code that was sent.
 
-Always use the most recent Magic Code email you received.
+Always use the most recent Security Code email you received.
 
-## Can I set a password instead of using a Magic Code? 
+## Can I set a password instead of using a Security Code? 
 
 No. Expensify does not support password-based login.
 
-Instead of passwords, Expensify uses Magic Codes sent to your email address to securely verify your identity when signing in. Each Magic Code is temporary and expires automatically after use or when a newer code is generated.
+Instead of passwords, Expensify uses Security Codes sent to your email address to securely verify your identity when signing in. Each Security Code is temporary and expires automatically after use or when a newer code is generated.

@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Responsable',
         dateFormat: 'AAAA-MM-JJ',
         calendarOpened: 'calendrier ouvert',
+        dialogOpened: 'dialogue',
         send: 'Envoyer',
         na: 'N/D',
         noResultsFound: 'Aucun résultat trouvé',
@@ -5891,7 +5892,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             directFeed: 'Flux direct',
             whoNeedsCardAssigned: 'Qui doit se voir assigner une carte ?',
             chooseTheCardholder: 'Choisir le titulaire de la carte',
-            pleaseSelectACardholder: 'Veuillez sélectionner un titulaire de carte pour continuer',
             chooseCard: 'Choisir une carte',
             chooseCardFor: (assignee: string) =>
                 `Choisissez une carte pour <strong>${assignee}</strong>. Vous ne trouvez pas la carte que vous cherchez ? <concierge-link>Dites-le-nous.</concierge-link>`,
@@ -6220,9 +6220,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 assignedCards: 'Assigné',
                 unassignedCards: 'Non assigné',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `exportation ${integration} ${type.toLowerCase()}` : `Export ${integration}`),
-                integrationExportTitleXero: (integration: string) => `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées. Sélectionnez une autre <a href="${exportPageLink}">option d’exportation</a> pour modifier les comptes disponibles.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées.${exportPageLink ? ` Sélectionnez une autre <a href="${exportPageLink}">option d’exportation</a> pour modifier les comptes disponibles.` : ''}`,
                 lastUpdated: 'Dernière mise à jour',
                 transactionStartDate: 'Date de début de la transaction',
                 updateCard: 'Mettre à jour la carte',
@@ -7722,6 +7721,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 defaultTaxRate: 'Taux de taxe par défaut',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Allez dans [Plus de fonctionnalités](${moreFeaturesLink}) et activez les workflows, puis ajoutez des approbations pour déverrouiller cette fonctionnalité.`,
+                createNewRule: 'Créer une nouvelle règle',
+                contextualFlagForReview: (amount: string) => `Si le montant est supérieur à ${amount}, signaler pour examen`,
+                contextualFlagForReviewDaily: (amount: string) => `Si le total quotidien de la catégorie est supérieur à ${amount}, signaler pour examen`,
             },
             customRules: {
                 title: 'Politique de dépenses',
@@ -8983,6 +8985,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             noOptionsAvailable: 'Aucune option n’est disponible pour le groupe de dépenses sélectionné.',
             undelete: 'Restaurer',
             duplicateReport: ({count}: {count: number}) => `Dupliquer ${count === 1 ? 'note de frais' : 'notes de frais'}`,
+        },
+        expensifyCardStatementPDF: {
+            title: 'Télécharger le relevé',
+            oneFeedAtATime: 'Veuillez sélectionner les règlements d’un seul flux Expensify Card à la fois.',
         },
         filtersHeader: 'Filtres',
         filters: {
@@ -10363,6 +10369,7 @@ Salut ! Je nous ai obtenu *3 mois gratuits* pour tester Expensify, la manière l
 Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
     },
     export: {
+        downloadStatementPDF: 'Télécharger le relevé',
         basicExport: 'Export basique',
         reportLevelExport: 'Toutes les données - niveau note de frais',
         expenseLevelExport: 'Toutes les données - niveau dépense',
