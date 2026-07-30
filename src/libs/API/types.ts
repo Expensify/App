@@ -525,6 +525,9 @@ const WRITE_COMMANDS = {
     UPDATE_RILLET_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT: 'UpdateRilletTravelInvoicingSettlementsAccount',
     CONNECT_POLICY_TO_DUALENTRY: 'ConnectPolicyToDualEntry',
     UPDATE_DUALENTRY_SUBSIDIARY: 'UpdateDualEntrySubsidiary',
+    UPDATE_DUALENTRY_ENABLE_NEW_CATEGORIES: 'UpdateDualEntryEnableNewCategories',
+    UPDATE_DUALENTRY_SYNC_TAX_RATES: 'UpdateDualEntrySyncTaxRates',
+    UPDATE_DUALENTRY_FIELD_MAPPING: 'UpdateDualEntryFieldMapping',
 
     SET_PROMO_CODE: 'User_SetPromoCode',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
@@ -1155,6 +1158,9 @@ type WriteCommandParameters = {
 
     [WRITE_COMMANDS.CONNECT_POLICY_TO_DUALENTRY]: Parameters.ConnectPolicyToDualEntryParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_SUBSIDIARY]: Parameters.UpdateDualEntrySubsidiaryParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_ENABLE_NEW_CATEGORIES]: Parameters.UpdateDualEntryEnableNewCategoriesParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_TAX_RATES]: Parameters.UpdateDualEntrySyncTaxRatesParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_FIELD_MAPPING]: Parameters.UpdateDualEntryFieldMappingParams;
 
     [WRITE_COMMANDS.UPGRADE_TO_CORPORATE]: Parameters.UpgradeToCorporateParams;
     [WRITE_COMMANDS.DOWNGRADE_TO_TEAM]: Parameters.DowngradeToTeamParams;
