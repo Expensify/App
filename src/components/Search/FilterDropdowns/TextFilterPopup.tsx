@@ -1,12 +1,8 @@
-import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
-import type {ReportFieldTextKey, SearchTextFilterKeys} from '@components/Search/types';
+import type {SearchTextFilterKeys} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import {getFilterFormValues} from '@libs/SearchQueryUtils';
-import {getFilterNegatableValue} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
@@ -18,27 +14,24 @@ import type {PopoverComponentProps} from './FilterPopupButton';
 import BasePopup from './BasePopup';
 
 type TextFilterPopupProps = {
-    baseFilterKey: Exclude<SearchTextFilterKeys, typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT | ReportFieldTextKey>;
-    values: Partial<SearchAdvancedFiltersForm> | undefined;
+    filterKey: SearchTextFilterKeys;
+    value: string | undefined;
     label: string;
     closeOverlay: PopoverComponentProps['closeOverlay'];
     updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function TextFilterPopup({baseFilterKey, values, label, updateFilterForm, closeOverlay}: TextFilterPopupProps) {
+function TextFilterPopup({filterKey, value: initialValue, label, updateFilterForm, closeOverlay}: TextFilterPopupProps) {
     const styles = useThemeStyles();
-
-    const {isNegated: initialIsNegated, value: initialValue} = getFilterNegatableValue(baseFilterKey, values);
-    const [isNegated, setIsNegated] = useState(initialIsNegated);
     const [value, setValue] = useState(initialValue);
 
-    const error = useTextFilterValidation(baseFilterKey, value);
+    const error = useTextFilterValidation(filterKey, value);
 
     const applyChanges = () => {
         if (error) {
             return;
         }
-        updateFilterForm(getFilterFormValues(baseFilterKey, value, isNegated));
+        updateFilterForm({[filterKey]: value} as Partial<SearchAdvancedFiltersForm>);
         closeOverlay();
     };
 
@@ -46,24 +39,18 @@ function TextFilterPopup({baseFilterKey, values, label, updateFilterForm, closeO
         <BasePopup
             label={label}
             onApply={applyChanges}
-            applySentryLabel={`Search-FilterPopupApply-${baseFilterKey}`}
+            applySentryLabel={`Search-FilterPopupApply-${filterKey}`}
         >
-            <NegatableFilter
-                baseFilterKey={baseFilterKey}
-                isNegated={isNegated}
-                onNegationChange={setIsNegated}
-            >
-                <TextInput
-                    placeholder={label}
-                    value={value}
-                    errorText={error}
-                    hasError={!!error}
-                    onChangeText={setValue}
-                    accessibilityLabel={label}
-                    role={CONST.ROLE.PRESENTATION}
-                    containerStyles={[styles.ph5]}
-                />
-            </NegatableFilter>
+            <TextInput
+                placeholder={label}
+                value={value}
+                errorText={error}
+                hasError={!!error}
+                onChangeText={setValue}
+                accessibilityLabel={label}
+                role={CONST.ROLE.PRESENTATION}
+                containerStyles={[styles.ph5]}
+            />
         </BasePopup>
     );
 }

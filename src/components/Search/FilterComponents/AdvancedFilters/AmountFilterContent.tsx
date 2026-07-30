@@ -26,7 +26,7 @@ import {View} from 'react-native';
 const BETWEEN_MODIFIER = 'Between';
 
 type AmountFilterContentProps = {
-    baseFilterKey: SearchAmountFilterKeys;
+    filterKey: SearchAmountFilterKeys;
     value: SearchAmountValues;
     largeButton?: boolean;
     autoFocus?: boolean;
@@ -41,7 +41,7 @@ type AmountFilterHandle = {
 
 type AmountInputProps = {
     ref: React.Ref<AmountFilterHandle>;
-    baseFilterKey: SearchAmountFilterKeys;
+    filterKey: SearchAmountFilterKeys;
     modifier: ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>;
     value: string;
     label: string;
@@ -56,7 +56,7 @@ function getFrontendAmount(amount: string | undefined) {
     return amount ? convertToFrontendAmountAsString(Number(amount), CONST.DEFAULT_CURRENCY_DECIMALS) : '';
 }
 
-function AmountInput({ref, baseFilterKey, modifier, value, label, autoFocus}: AmountInputProps) {
+function AmountInput({ref, filterKey, modifier, value, label, autoFocus}: AmountInputProps) {
     const styles = useThemeStyles();
     const [amount, setAmount] = useState(value);
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -64,7 +64,7 @@ function AmountInput({ref, baseFilterKey, modifier, value, label, autoFocus}: Am
 
     useImperativeHandle(ref, () => ({
         getValue: () => {
-            const key = `${baseFilterKey}${modifier}`;
+            const key = `${filterKey}${modifier}`;
             return {[key]: getBackendAmount(amount)};
         },
     }));
@@ -93,13 +93,13 @@ function AmountInput({ref, baseFilterKey, modifier, value, label, autoFocus}: Am
 
 type AmountBetweenInputProps = {
     ref: React.Ref<AmountFilterHandle>;
-    baseFilterKey: SearchAmountFilterKeys;
+    filterKey: SearchAmountFilterKeys;
     greaterThanValue: string;
     lessThanValue: string;
     autoFocus?: boolean;
 };
 
-function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue, autoFocus}: AmountBetweenInputProps) {
+function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue, autoFocus}: AmountBetweenInputProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [greaterThanAmount, setGreaterThanAmount] = useState(greaterThanValue);
@@ -109,8 +109,8 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
 
     useImperativeHandle(ref, () => ({
         getValue: () => {
-            const greaterThanKey = `${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
-            const lessThanKey = `${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
+            const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
+            const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
             return {[greaterThanKey]: getBackendAmount(greaterThanAmount), [lessThanKey]: getBackendAmount(lessThanAmount)};
         },
     }));
@@ -152,7 +152,7 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
     );
 }
 
-function AmountFilterContent({baseFilterKey, value, autoFocus, largeButton, style, onChange}: AmountFilterContentProps) {
+function AmountFilterContent({filterKey, value, autoFocus, largeButton, style, onChange}: AmountFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -184,9 +184,9 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, largeButton, styl
         }
 
         const formValues: AmountFilterValues = {};
-        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] = undefined;
-        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] = undefined;
-        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`] = undefined;
+        formValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] = undefined;
+        formValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] = undefined;
+        formValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`] = undefined;
         onChange({
             ...formValues,
             ...inputRef.current.getValue(),
@@ -203,7 +203,7 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, largeButton, styl
         {keyForList: CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN, text: translate('search.filters.amount.lessThan'), isSelected: selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN},
         {keyForList: BETWEEN_MODIFIER, text: translate('search.filters.amount.between'), isSelected: selectedModifier === BETWEEN_MODIFIER},
     ];
-    const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
+    const label = translate(FILTER_VIEW_MAP[filterKey].labelKey);
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
@@ -226,7 +226,7 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, largeButton, styl
                             (config.keyForList === BETWEEN_MODIFIER ? (
                                 <AmountBetweenInput
                                     ref={inputRef}
-                                    baseFilterKey={baseFilterKey}
+                                    filterKey={filterKey}
                                     greaterThanValue={getFrontendAmount(value?.[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN])}
                                     lessThanValue={getFrontendAmount(value?.[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN])}
                                     autoFocus={autoFocus}
@@ -234,7 +234,7 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, largeButton, styl
                             ) : (
                                 <AmountInput
                                     ref={inputRef}
-                                    baseFilterKey={baseFilterKey}
+                                    filterKey={filterKey}
                                     modifier={config.keyForList}
                                     value={getFrontendAmount(value?.[config.keyForList])}
                                     label={label}

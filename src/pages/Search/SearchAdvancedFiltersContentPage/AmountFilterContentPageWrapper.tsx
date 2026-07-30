@@ -3,10 +3,10 @@ import type {AmountFilterContentWrapperProps} from '@components/Search/FilterCom
 
 import React from 'react';
 
-function AmountFilterContentPageWrapper({baseFilterKey, value, onChange}: AmountFilterContentWrapperProps) {
+function AmountFilterContentPageWrapper({filterKey, value, onChange}: AmountFilterContentWrapperProps) {
     return (
         <AmountFilterContent
-            baseFilterKey={baseFilterKey}
+            filterKey={filterKey}
             value={value}
             largeButton
             autoFocus

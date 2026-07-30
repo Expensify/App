@@ -9020,7 +9020,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Paga',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Esporta',
             },
-            filterType: {label: 'Tipo di filtro', has: {positive: 'ha', negative: 'non ha'}, is: {positive: 'è', negative: 'non è'}},
         },
         display: {
             label: 'Visualizza',

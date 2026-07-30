@@ -17,7 +17,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React, {useRef} from 'react';
 
 type DateFilterContentProps = {
-    baseFilterKey: SearchDateFilterKeys;
+    filterKey: SearchDateFilterKeys;
     value: SearchDateValues;
     selectedDateModifier: SearchDateModifier | null;
     hasFeed: boolean;
@@ -27,7 +27,7 @@ type DateFilterContentProps = {
     onChange: (values: SearchDateValues) => void;
 };
 
-function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed, largeButton, style, onDateModifierSelected, onChange}: DateFilterContentProps) {
+function DateFilterContent({filterKey, value, selectedDateModifier, hasFeed, largeButton, style, onDateModifierSelected, onChange}: DateFilterContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const dateFilterRef = useRef<DateFilterBaseHandle>(null);
@@ -54,7 +54,7 @@ function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed,
                 selectedDateModifier={selectedDateModifier}
                 onSelectDateModifier={onDateModifierSelected}
                 defaultDateValues={value}
-                presets={getDatePresets(baseFilterKey, hasFeed)}
+                presets={getDatePresets(filterKey, hasFeed)}
                 onSubmit={onChange}
                 shouldShowActionButtons={false}
             />

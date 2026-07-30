@@ -8,14 +8,14 @@ import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-function DateFilterContentPopupWrapper({baseFilterKey, value, hasFeed, onChange}: DateFilterContentWrapperProps) {
+function DateFilterContentPopupWrapper({filterKey, value, hasFeed, onChange}: DateFilterContentWrapperProps) {
     const styles = useThemeStyles();
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
 
     return (
         <View style={[styles.flex1, selectedDateModifier ? styles.pt2 : styles.pv2]}>
             <DateFilterContent
-                baseFilterKey={baseFilterKey}
+                filterKey={filterKey}
                 value={value}
                 hasFeed={hasFeed}
                 selectedDateModifier={selectedDateModifier}

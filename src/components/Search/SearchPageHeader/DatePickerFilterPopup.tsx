@@ -11,20 +11,20 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import React from 'react';
 
 type DatePickerFilterPopupProps = Pick<PopoverComponentProps, 'closeOverlay' | 'setPopoverWidth'> & {
-    baseFilterKey: SearchDateFilterKeys;
+    filterKey: SearchDateFilterKeys;
     value: SearchDateValues;
     label: string;
     hasFeed: boolean;
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function DatePickerFilterPopup({closeOverlay, setPopoverWidth, baseFilterKey, value, label, hasFeed, updateFilterForm}: DatePickerFilterPopupProps) {
+function DatePickerFilterPopup({closeOverlay, setPopoverWidth, filterKey, value, label, hasFeed, updateFilterForm}: DatePickerFilterPopupProps) {
     const onChange = (selectedDates: SearchDateValues) => {
         const dateFormValues: Record<string, string | undefined> = {};
-        dateFormValues[`${baseFilterKey}On`] = selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON];
-        dateFormValues[`${baseFilterKey}After`] = selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER];
-        dateFormValues[`${baseFilterKey}Before`] = selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
-        dateFormValues[`${baseFilterKey}Range`] = selectedDates[CONST.SEARCH.DATE_MODIFIERS.RANGE];
+        dateFormValues[`${filterKey}On`] = selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON];
+        dateFormValues[`${filterKey}After`] = selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER];
+        dateFormValues[`${filterKey}Before`] = selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
+        dateFormValues[`${filterKey}Range`] = selectedDates[CONST.SEARCH.DATE_MODIFIERS.RANGE];
         updateFilterForm(dateFormValues as Partial<SearchAdvancedFiltersForm>);
     };
     return (
@@ -34,7 +34,7 @@ function DatePickerFilterPopup({closeOverlay, setPopoverWidth, baseFilterKey, va
             onChange={onChange}
             closeOverlay={closeOverlay}
             setPopoverWidth={setPopoverWidth}
-            presets={getDatePresets(baseFilterKey, hasFeed)}
+            presets={getDatePresets(filterKey, hasFeed)}
         />
     );
 }
