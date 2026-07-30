@@ -23,6 +23,7 @@ import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {canDowngradeSelector} from '@src/selectors/Account';
@@ -122,7 +123,9 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     // TODO: temporary fix for https://github.com/Expensify/App/issues/96369 - the error modal is kept as a locally controlled ConfirmModal
     // instead of the global useConfirmModal one, because closing the loading delete confirmation modal and immediately pushing another
     // global modal leaves the flow latched on iOS, so a second delete attempt never restarts the flow.
-    const [deleteWorkspaceErrorMessage, setDeleteWorkspaceErrorMessage] = useState<string>();
+    // Only the translation key is latched (not the translated copy) so the modal follows the current locale, the raw message is kept
+    // as-is because it comes from the backend and is cleared from Onyx as soon as the error is dismissed.
+    const [deleteWorkspaceError, setDeleteWorkspaceError] = useState<{translationKey?: TranslationPaths; message?: string}>();
 
     const hideDeleteWorkspaceErrorModal = useCallback(() => {
         dismissWorkspaceError(policyID, policy?.pendingAction);
@@ -134,7 +137,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     }, [hideDeleteWorkspaceErrorModal, onDismiss]);
 
     const closeDeleteWorkspaceErrorModal = useCallback(() => {
-        setDeleteWorkspaceErrorMessage(undefined);
+        setDeleteWorkspaceError(undefined);
         dismissDeleteWorkspaceFlow();
     }, [dismissDeleteWorkspaceFlow]);
 
@@ -145,19 +148,21 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         }
 
         // When both Expensify Cards and Consolidated Travel Billing are enabled, prioritize the Expensify Cards copy.
-        setDeleteWorkspaceErrorMessage(translate(hasExpensifyCardsEnabledOnWorkspace ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelInvoicingError'));
-    }, [dismissDeleteWorkspaceFlow, hasExpensifyCardsEnabledOnWorkspace, isFocused, translate]);
+        setDeleteWorkspaceError({translationKey: hasExpensifyCardsEnabledOnWorkspace ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelInvoicingError'});
+    }, [dismissDeleteWorkspaceFlow, hasExpensifyCardsEnabledOnWorkspace, isFocused]);
 
     const didCompletePendingDelete = !isOffline && prevIsPendingDelete && !isPendingDelete;
     const shouldLatchDeleteWorkspaceErrorModal = didCompletePendingDelete && !!policyLatestErrorMessage && isFocused;
 
-    if (shouldLatchDeleteWorkspaceErrorModal && !deleteWorkspaceErrorMessage) {
-        setDeleteWorkspaceErrorMessage(
+    if (shouldLatchDeleteWorkspaceErrorModal && !deleteWorkspaceError) {
+        setDeleteWorkspaceError(
             hasExpensifyCardsEnabledOnWorkspace || hasTravelInvoicingEnabledOnWorkspace
-                ? translate(hasExpensifyCardsEnabledOnWorkspace ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelInvoicingError')
-                : policyLatestErrorMessage,
+                ? {translationKey: hasExpensifyCardsEnabledOnWorkspace ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelInvoicingError'}
+                : {message: policyLatestErrorMessage},
         );
     }
+
+    const deleteWorkspaceErrorMessage = deleteWorkspaceError?.translationKey ? translate(deleteWorkspaceError.translationKey) : deleteWorkspaceError?.message;
 
     const deleteWorkspaceErrorPrompt =
         !!deleteWorkspaceErrorMessage && CONST.HTML_TAG_REGEX.test(deleteWorkspaceErrorMessage) ? (
