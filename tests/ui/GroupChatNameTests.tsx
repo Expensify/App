@@ -8,7 +8,6 @@ import {subscribeToUserEvents} from '@userActions/User';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/Report';
 
 import React from 'react';
@@ -145,8 +144,7 @@ jest.mock('@src/pages/inbox/sidebar/ProfileAvatarWithIndicator', () => {
     };
 });
 
-// The LHN this test asserts on lives under the Inbox, so the app has to boot there rather than on the root URL.
-TestHelper.setupApp(`https://new.expensify.com/${ROUTES.INBOX}`);
+TestHelper.setupApp();
 
 const REPORT_ID = '1';
 const USER_A_ACCOUNT_ID = 1;

@@ -16,6 +16,7 @@ import * as Session from '@src/libs/actions/Session';
 import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import appSetup from '@src/setup';
 import type {CurrencyList, Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -78,10 +79,10 @@ const anyObject: unknown = expect.any(Object);
 const anyString: unknown = expect.any(String);
 
 /**
- * Pass `initialUrl` when the test needs the app to boot on a specific screen. The root URL resolves to Home,
- * so tests relying on the reports sidebar have to boot on the Inbox instead.
+ * Boots the app on the Inbox by default, since most tests rely on the reports sidebar.
+ * Pass `initialUrl` when the test needs a different screen, e.g. `https://new.expensify.com/` for Home.
  */
-function setupApp(initialUrl = 'https://new.expensify.com/') {
+function setupApp(initialUrl = `https://new.expensify.com/${ROUTES.INBOX}`) {
     beforeAll(() => {
         Linking.setInitialURL(initialUrl);
         appSetup();

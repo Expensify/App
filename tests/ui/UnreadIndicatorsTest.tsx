@@ -16,7 +16,6 @@ import FontUtils from '@styles/utils/FontUtils';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {RecentWaypoint, ReportAction, ReportActions} from '@src/types/onyx';
 
 import type {TextStyle, ViewStyle} from 'react-native';
@@ -47,8 +46,7 @@ jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 
-// The LHN this test asserts on lives under the Inbox, so the app has to boot there rather than on the root URL.
-TestHelper.setupApp(`https://new.expensify.com/${ROUTES.INBOX}`);
+TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
 let hasRenderedApp = false;
