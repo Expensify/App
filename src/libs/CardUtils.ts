@@ -733,7 +733,7 @@ function isCSVUploadFeed(feed: string | undefined): boolean {
  * CSV feeds from Classic and Expensify Cards should not count toward the feed limit for Collect plan workspaces.
  */
 function isCSVFeedOrExpensifyCard(feedKey: string): boolean {
-    return isCSVUploadFeed(feedKey) || feedKey === CONST.EXPENSIFY_CARD.BANK;
+    return isCSVUploadFeed(feedKey) || feedKey.startsWith(CONST.EXPENSIFY_CARD.BANK);
 }
 
 /**
@@ -892,7 +892,7 @@ function doesCardFeedExist(feed: CardFeed | undefined, cardFeeds: OnyxCollection
     }
 
     // Expensify Cards are a native card product, not a third-party feed that can be disconnected
-    if (feed === CONST.EXPENSIFY_CARD.BANK) {
+    if (feed.startsWith(CONST.EXPENSIFY_CARD.BANK)) {
         return true;
     }
 
