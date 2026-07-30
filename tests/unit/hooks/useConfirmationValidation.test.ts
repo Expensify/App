@@ -103,6 +103,7 @@ const baseParams = {
     isNewManualExpenseFlowEnabled: false,
     isReadOnly: false,
     shouldShowDate: true,
+    isTaxAmountEmpty: false,
 } satisfies UseConfirmationValidationParams;
 
 function createValidationParamsForParticipant(
