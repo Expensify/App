@@ -2179,7 +2179,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     exact: true,
                 },
                 [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: {
-                    path: ROUTES.ROOT,
                     screens: {
                         [SCREENS.INBOX]: {
                             path: ROUTES.INBOX,
