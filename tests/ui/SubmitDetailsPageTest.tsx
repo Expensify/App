@@ -9,6 +9,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {Scheduler} from '@libs/Scheduler';
 
 import SubmitDetailsPage from '@pages/Share/SubmitDetailsPage';
 
@@ -481,5 +482,27 @@ describe('SubmitDetailsPage', () => {
             ROUTES.REPORT_WITH_ID.getRoute(SHARED_REPORT_ID),
             expect.objectContaining({afterTransition: expect.any(Function)}),
         );
+    });
+
+    // Error #11 — narrow layout race: confirm fires before scheduleWhenIdle runs pre-insert setup.
+    // Pre-insert should not happen, but submit must still complete without crashing.
+    it('narrow layout: handles confirm before scheduleWhenIdle fires pre-insert setup', async () => {
+        jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
+        jest.mocked(getIsNarrowLayout).mockReturnValue(true);
+
+        // scheduleWhenIdle callback never fires — pre-insert setup won't run
+        jest.mocked(Scheduler.scheduleWhenIdle).mockImplementation(() => ({cancel: jest.fn()}));
+
+        await renderAndConfirm();
+
+        // Pre-insert should NOT be called since callback never fired
+        expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalled();
+
+        // Submit should still execute
+        expect(TrackExpense.requestMoney).toHaveBeenCalled();
+
+        // Should fall back to reveal path for wide layout or skip nav (shouldNavigate false)
+        // depending on how code handles the race — critical is no crash and proper cleanup
+        expect(jest.mocked(cleanupAndNavigateAfterExpenseCreate).mock.calls.at(0)?.[0]).toBeDefined();
     });
 });
