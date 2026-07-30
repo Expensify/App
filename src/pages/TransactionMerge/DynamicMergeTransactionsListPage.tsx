@@ -23,7 +23,7 @@ type DynamicMergeTransactionsListPageProps = PlatformStackScreenProps<MergeTrans
 
 function DynamicMergeTransactionsListPage({route}: DynamicMergeTransactionsListPageProps) {
     const {translate} = useLocalize();
-    const {transactionID, isOnSearch} = route.params;
+    const {transactionID} = route.params;
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`);
 
@@ -51,7 +51,6 @@ function DynamicMergeTransactionsListPage({route}: DynamicMergeTransactionsListP
                 <MergeTransactionsListContent
                     transactionID={transactionID}
                     mergeTransaction={mergeTransaction}
-                    isOnSearch={isOnSearch}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
