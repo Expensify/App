@@ -205,6 +205,7 @@ type SettingsNavigatorParamList = {
         subPage?: EnablePaymentsSubPageType;
         action?: 'edit';
     };
+    [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE]: undefined;
     [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
         bankAccountID: string;
     };
@@ -327,6 +328,15 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_IMPORTED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_IMPORTED_CONFIRMATION]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
@@ -2730,10 +2740,6 @@ type TravelNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
     };
-    [SCREENS.TRAVEL.DYNAMIC_TCS]: {
-        domain?: string;
-        policyID?: string;
-    };
     [SCREENS.TRAVEL.DYNAMIC_DOMAIN_PERMISSION_INFO]: {
         domain: string;
         policyID?: string;
@@ -2742,29 +2748,17 @@ type TravelNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
-        domain: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-        policyID?: string;
-    };
-    [SCREENS.TRAVEL.LEGAL_ENTITY_TAX_ID]: {
-        domain: string;
-        policyID?: string;
-    };
     [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: {
         policyID?: string;
     };
     [SCREENS.TRAVEL.DYNAMIC_UPGRADE]: undefined;
-    [SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR]: {
-        policyID?: string;
-    };
     [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
         domain?: string;
         policyID?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
+    [SCREENS.TRAVEL.ENABLE]: {policyID: string; subPage?: string; action?: 'edit'};
 };
 
 type ReportsSplitNavigatorParamList = {
