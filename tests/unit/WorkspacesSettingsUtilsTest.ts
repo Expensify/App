@@ -240,7 +240,7 @@ describe('WorkspacesSettingsUtils', () => {
     });
 
     describe('getLeaveWorkspaceConfirmationPrompt', () => {
-        const translate: Parameters<typeof getLeaveWorkspaceConfirmationPrompt>[3] = (...args) => String(args[0]);
+        const translate = (key: string): string => key;
         const userEmail = 'user@example.com';
         const ownerDisplayName = 'Workspace Owner';
 
