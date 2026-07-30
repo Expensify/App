@@ -31,6 +31,7 @@ import Bolt from '@assets/images/bolt.svg';
 import Bookmark from '@assets/images/bookmark.svg';
 import Bot from '@assets/images/bot.svg';
 import Box from '@assets/images/box.svg';
+import Briefcase from '@assets/images/briefcase.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
 import Buildings from '@assets/images/buildings.svg';
@@ -313,6 +314,7 @@ const Expensicons = {
     Bolt,
     Bot,
     Box,
+    Briefcase,
     Bug,
     Building,
     Buildings,
