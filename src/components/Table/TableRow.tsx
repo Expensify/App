@@ -11,6 +11,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -21,11 +23,15 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
 
-type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
+type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'> & {
     /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
-    accessible?: boolean;
+    accessible?: true;
+
+    /** Describes the row's content to assistive technology, e.g. `Workspace name: Acme, Owner: Jane Doe`. */
+    accessibilityLabel: string;
 
     /** Whether or not the table row is pressable or not */
     interactive: boolean;
@@ -49,6 +55,7 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
 export default function TableRow({
     children,
     accessible,
+    accessibilityLabel,
     rowIndex,
     disabled,
     sentryLabel,
@@ -74,6 +81,7 @@ export default function TableRow({
 
     const item = processedData.at(rowIndex);
     const rowCount = processedData.length;
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
     const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
 
@@ -144,12 +152,37 @@ export default function TableRow({
     };
 
     const handleCheckboxPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (event && 'shiftKey' in event && event.shiftKey) {
+        if (getShiftKeyFromEvent(event)) {
             tableMethods.handleMultipleRowSelection(item.keyForList);
             return;
         }
 
         tableMethods.handleSingleRowSelection(item.keyForList);
+    };
+
+    const renderSelectionCheckbox = () => {
+        const checkbox = checkboxReplacementElement ?? (
+            <Checkbox
+                shouldStopMouseDownPropagation
+                containerStyle={styles.m0}
+                style={styles.flex1}
+                isChecked={!!item.selected}
+                disabled={!!item.disabled || !!item.isSelectionDisabled}
+                accessibilityLabel={translate('common.select')}
+                onPress={(event) => handleCheckboxPress(event)}
+            />
+        );
+
+        // When table semantics apply (web wide layout), the checkbox occupies the leading grid column and is exposed as
+        // a table cell to keep the row's cell count aligned with `aria-colcount` (which counts the selection column).
+        // The wrapper needs no sizing style: the CSS grid track (`variables.tableCheckboxColumnWidth`) sizes the cell and
+        // the checkbox fills it via its own flex. Otherwise the checkbox is rendered directly, without an extra wrapper
+        // that would shift its alignment in the native and narrow card layouts.
+        if (!isTableSemanticsEnabled) {
+            return checkbox;
+        }
+
+        return <View {...getCellAccessibilityProps(true)}>{checkbox}</View>;
     };
 
     const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
@@ -186,7 +219,7 @@ export default function TableRow({
         >
             <PressableWithFeedback
                 accessible={accessible}
-                accessibilityLabel="row"
+                accessibilityLabel={accessibilityLabel}
                 id={`table-row-${item.keyForList}`}
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
@@ -195,6 +228,7 @@ export default function TableRow({
                 hoverStyle={tableRowPressableHoverStyle}
                 pressDimmingValue={!interactive ? undefined : 1}
                 role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
+                {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex)}
                 onMouseDown={(e) => {
                     const target = e?.target;
 
@@ -218,35 +252,42 @@ export default function TableRow({
                 onLongPress={handleRowLongPress}
                 {...props}
             >
-                {(state) => (
-                    <Animated.View style={tableRowContentContainerStyles}>
-                        <View style={tableRowContentStyles}>
-                            {!!isSelectionCheckboxVisible &&
-                                (checkboxReplacementElement ?? (
-                                    <Checkbox
-                                        shouldStopMouseDownPropagation
-                                        containerStyle={styles.m0}
-                                        style={styles.flex1}
-                                        isChecked={!!item.selected}
-                                        disabled={!!item.disabled || !!item.isSelectionDisabled}
-                                        accessibilityLabel={translate('common.select')}
-                                        onPress={(event) => handleCheckboxPress(event)}
-                                    />
-                                ))}
+                {(state) => {
+                    const rowCells = (
+                        <>
+                            {!!isSelectionCheckboxVisible && renderSelectionCheckbox()}
                             {renderChildren(state)}
-                        </View>
+                        </>
+                    );
 
-                        {rowFooter}
+                    return (
+                        // When semantics apply, these two layout wrappers are marked presentational so the cells become
+                        // direct children of the row in the accessibility tree. macOS VoiceOver otherwise sees a generic
+                        // group between the row and its cells and cannot navigate columns (Ctrl+Option+Up/Down).
+                        <Animated.View
+                            style={tableRowContentContainerStyles}
+                            role={isTableSemanticsEnabled ? CONST.ROLE.PRESENTATION : undefined}
+                        >
+                            {/* Each cell is also tagged with a 1-based aria-colindex so the screen reader can align columns across rows. */}
+                            <View
+                                style={tableRowContentStyles}
+                                role={isTableSemanticsEnabled ? CONST.ROLE.PRESENTATION : undefined}
+                            >
+                                {isTableSemanticsEnabled ? assignCellColumnIndexes(rowCells) : rowCells}
+                            </View>
 
-                        {!!offlineWithFeedback?.errors && (
-                            <ErrorMessageRow
-                                errors={offlineWithFeedback.errors}
-                                dismissError={offlineWithFeedback.dismissError}
-                                onDismiss={offlineWithFeedback.onClose}
-                            />
-                        )}
-                    </Animated.View>
-                )}
+                            {rowFooter}
+
+                            {!!offlineWithFeedback?.errors && (
+                                <ErrorMessageRow
+                                    errors={offlineWithFeedback.errors}
+                                    dismissError={offlineWithFeedback.dismissError}
+                                    onDismiss={offlineWithFeedback.onClose}
+                                />
+                            )}
+                        </Animated.View>
+                    );
+                }}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
