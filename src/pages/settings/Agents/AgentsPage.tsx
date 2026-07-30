@@ -43,7 +43,6 @@ import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -63,7 +62,6 @@ function AgentsPage() {
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const isFocused = useIsFocused();
     useDocumentTitle(translate('agentsPage.title'));
 
     const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
@@ -131,12 +129,10 @@ function AgentsPage() {
     const prevAgentKeys = usePrevious(agentKeys);
 
     // Highlight (and scroll to) a newly created agent's row once it appears in the table, mirroring
-    // the same pattern used for newly-invited workspace members (see WorkspaceMembersPage).
+    // the same pattern used for newly-invited workspace members (see WorkspaceMembersPage). Not
+    // gated on useIsFocused: on wide layouts this page is the central pane of a split navigator and
+    // stays visible (but unfocused per react-navigation) while the new agent's DM opens in the RHP.
     useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
-
         const newAgentKeys = agentKeys.filter((key) => !prevAgentKeys.includes(key));
         if (!newAgentKeys.length) {
             return;
@@ -148,7 +144,7 @@ function AgentsPage() {
             tableRef.current?.scrollToIndex({index: newAgentIndex, animated: false});
         }
         tableRef.current?.highlightItems(newAgentKeys);
-    }, [isFocused, agentKeys, prevAgentKeys]);
+    }, [agentKeys, prevAgentKeys]);
 
     const agentsByAccountID = new Map(agents.map((agent) => [agent.keyForList, agent]));
     const selectedAgentKeys = selectedAgents.filter((accountIDString) => {
