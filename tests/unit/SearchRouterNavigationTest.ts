@@ -39,6 +39,7 @@ jest.mock('@components/Search/SearchContext', () => ({
 }));
 
 jest.mock('@components/Search/SearchRouter/useCreateNavigationSuggestions', () => ({
+    __esModule: true,
     ...jest.requireActual<typeof CreateNavigationSuggestions>('@components/Search/SearchRouter/useCreateNavigationSuggestions'),
     default: () => [],
 }));
