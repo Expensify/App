@@ -4,6 +4,7 @@ import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
 import {getLinkedTransactionID, isDeletedAction} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {
@@ -256,6 +257,12 @@ export default createOnyxDerivedValueConfig({
             seedDisplayNamesBaseline(personalDetails);
         }
 
+        // Seed the policy value-baseline on the startup flush (policies from disk, no POLICY trigger). Without
+        // it the first POLICY trigger has no baseline and treats every policy as changed. See getCollectionDelta.
+        if (previousPolicies === undefined && policies && !hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, triggeredKeys)) {
+            previousPolicies = policies;
+        }
+
         // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
         // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
         // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
@@ -266,13 +273,42 @@ export default createOnyxDerivedValueConfig({
             hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, triggeredKeys);
 
         const policyChangedReportKeys: string[] = [];
+        // Reports whose policy change touched only fields that don't feed the report name (type, approvalMode,
+        // role, etc.) — their name can't have changed, so they skip computeReportName and reuse the cached one.
+        const nameSkipPolicyReportKeys: string[] = [];
         if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, triggeredKeys)) {
             if (!needsFullRecompute) {
                 // Policy updated — only recompute reports whose relevant fields actually changed
                 const changedPolicyIDs = new Set<string>();
+                const nameChangedPolicyIDs = new Set<string>();
+                const threadNameChangedPolicyIDs = new Set<string>();
+                const emptyNameChangedPolicyIDs = new Set<string>();
                 for (const key of Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {})) {
-                    if (hasPolicyRelevantFieldChanged(previousPolicies?.[key], policies?.[key])) {
-                        changedPolicyIDs.add(key.replace(ONYXKEYS.COLLECTION.POLICY, ''));
+                    const prevPolicy = previousPolicies?.[key];
+                    const nextPolicy = policies?.[key];
+                    // `name`/`achAccount` feed report names but aren't in hasPolicyRelevantFieldChanged, so a
+                    // name-only change (e.g. workspace rename) would be skipped and leave the cached name stale.
+                    const nameChanged = prevPolicy?.name !== nextPolicy?.name || prevPolicy?.achAccount?.accountNumber !== nextPolicy?.achAccount?.accountNumber;
+                    // `approvalMode`/`role` feed only thread names (shouldShowMarkAsDone, isPolicyAdmin) and
+                    // `fieldList` emptiness only empty-named money-request reports (getMoneyRequestReportName).
+                    // They must not disqualify the whole policy — mass flushes (e.g. the first OpenSearchPage
+                    // delivers `fieldList` for every policy) would recompute every name again. The report loop
+                    // below drops the skip only for the shapes that read them.
+                    const threadNameChanged = prevPolicy?.approvalMode !== nextPolicy?.approvalMode || prevPolicy?.role !== nextPolicy?.role;
+                    const emptyNameChanged = isPolicyFieldListEmpty(prevPolicy ?? undefined) !== isPolicyFieldListEmpty(nextPolicy ?? undefined);
+                    if (!hasPolicyRelevantFieldChanged(prevPolicy, nextPolicy) && !nameChanged && !emptyNameChanged) {
+                        continue;
+                    }
+                    const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
+                    changedPolicyIDs.add(policyID);
+                    if (nameChanged) {
+                        nameChangedPolicyIDs.add(policyID);
+                    }
+                    if (threadNameChanged) {
+                        threadNameChangedPolicyIDs.add(policyID);
+                    }
+                    if (emptyNameChanged) {
+                        emptyNameChangedPolicyIDs.add(policyID);
                     }
                 }
                 if (changedPolicyIDs.size > 0) {
@@ -281,18 +317,30 @@ export default createOnyxDerivedValueConfig({
                         if (!report) {
                             continue;
                         }
-                        // The report's own policy — the sender workspace for an invoice.
-                        if (report.policyID && changedPolicyIDs.has(report.policyID)) {
-                            policyChangedReportKeys.push(reportKey);
-                            continue;
-                        }
                         // An invoice follows its receiver workspace. The invoice room carries the receiver
                         // on itself; a child invoice report doesn't, so we read it from its parent room
                         // (chatReportID) — the same place computeReportName looks for the invoice name.
                         const ownReceiverPolicyID = report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
                         const room = report.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : undefined;
                         const roomReceiverPolicyID = room?.invoiceReceiver && 'policyID' in room.invoiceReceiver ? room.invoiceReceiver.policyID : undefined;
-                        if ((ownReceiverPolicyID && changedPolicyIDs.has(ownReceiverPolicyID)) || (roomReceiverPolicyID && changedPolicyIDs.has(roomReceiverPolicyID))) {
+                        const receiverPolicyChanged =
+                            (!!ownReceiverPolicyID && changedPolicyIDs.has(ownReceiverPolicyID)) || (!!roomReceiverPolicyID && changedPolicyIDs.has(roomReceiverPolicyID));
+
+                        // The report's own policy — the sender workspace for an invoice.
+                        if (report.policyID && changedPolicyIDs.has(report.policyID)) {
+                            policyChangedReportKeys.push(reportKey);
+                            // Reuse the cached name only when nothing the report's name reads has changed:
+                            // receiver policy (invoices), `approvalMode`/`role` (threads), `fieldList`
+                            // emptiness (empty-named money-request reports).
+                            const isThreadNameAffected = threadNameChangedPolicyIDs.has(report.policyID) && !!report.parentReportActionID;
+                            const isEmptyNameAffected =
+                                emptyNameChangedPolicyIDs.has(report.policyID) && !report.reportName && (report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.IOU);
+                            if (!nameChangedPolicyIDs.has(report.policyID) && !receiverPolicyChanged && !isThreadNameAffected && !isEmptyNameAffected) {
+                                nameSkipPolicyReportKeys.push(reportKey);
+                            }
+                            continue;
+                        }
+                        if (receiverPolicyChanged) {
                             policyChangedReportKeys.push(reportKey);
                         }
                     }
@@ -348,15 +396,27 @@ export default createOnyxDerivedValueConfig({
             }
         }
 
-        const updates = [
+        // Sources that can move a report's name. A report pulled in purely by a name-irrelevant policy change is
+        // absent here, so it keeps its cached name and skips the expensive computeReportName.
+        const nonPolicyUpdates = [
             ...Object.keys(reportUpdates),
             ...Object.keys(reportMetadataUpdates),
             ...Object.keys(reportActionsUpdates),
             ...Object.keys(reportNameValuePairsUpdates),
             ...Array.from(reportUpdatesRelatedToReportActions),
-            ...policyChangedReportKeys,
             ...personalDetailsChangedReportKeys,
         ];
+
+        const updates = [...nonPolicyUpdates, ...policyChangedReportKeys];
+
+        // Keys that reuse their cached name. Starts as the name-irrelevant policy reports; every other change
+        // source (report/action/nvp/personal-details updates here, transactions and policy tags below) deletes
+        // its keys, so a report skips computeReportName only when a name-irrelevant policy change is its sole
+        // reason to be here. Parent-chat enqueues don't delete: a child update never feeds the parent chat's own name.
+        const nameSkipKeys = new Set(prepareReportKeys(nameSkipPolicyReportKeys));
+        for (const key of prepareReportKeys(nonPolicyUpdates)) {
+            nameSkipKeys.delete(key);
+        }
 
         if (useIncrementalUpdates) {
             // if there are report-related updates, iterate over the updates
@@ -422,7 +482,12 @@ export default createOnyxDerivedValueConfig({
                         .filter(Boolean)
                         .map((chatReportID) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
 
-                    dataToIterate.push(...prepareReportKeys([...transactionReportIDs, ...transactionParentChatReportIDs]));
+                    // Transactions feed thread/expense report names, so these keys must not skip the name recompute.
+                    const transactionReportKeys = prepareReportKeys([...transactionReportIDs, ...transactionParentChatReportIDs]);
+                    dataToIterate.push(...transactionReportKeys);
+                    for (const key of transactionReportKeys) {
+                        nameSkipKeys.delete(key);
+                    }
                 }
                 if (policyTagsUpdates) {
                     const changedPolicyIDs = new Set(Object.keys(policyTagsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY_TAGS, '')));
@@ -433,7 +498,12 @@ export default createOnyxDerivedValueConfig({
                         }
                         affectedReportKeys.push(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`);
                     }
-                    dataToIterate.push(...prepareReportKeys(affectedReportKeys));
+                    // Policy tags feed thread names (computeReportName reads allPolicyTags), so no name skip here.
+                    const policyTagsReportKeys = prepareReportKeys(affectedReportKeys);
+                    dataToIterate.push(...policyTagsReportKeys);
+                    for (const key of policyTagsReportKeys) {
+                        nameSkipKeys.delete(key);
+                    }
                 }
             } else {
                 // No updates to process, return current value to prevent unnecessary computation
@@ -493,6 +563,7 @@ export default createOnyxDerivedValueConfig({
                     reportErrors,
                     transactions,
                     isOffline,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     transactionViolations,
                     !!isReportArchived,
                     reports,
@@ -526,9 +597,14 @@ export default createOnyxDerivedValueConfig({
                     actionTargetReportActionID = actionGreenTargetReportActionID;
                 }
 
+                // Skip computeReportName when the name can't have changed (see nameSkipKeys).
+                const cachedName = currentValue?.reports?.[report.reportID]?.reportName;
+                const canReuseCachedName = cachedName !== undefined && nameSkipKeys.has(key);
+
                 acc[report.reportID] = {
-                    reportName: report
-                        ? computeReportName({
+                    reportName: canReuseCachedName
+                        ? cachedName
+                        : computeReportName({
                               report,
                               reports,
                               policies,
@@ -543,8 +619,7 @@ export default createOnyxDerivedValueConfig({
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
                               isTrackIntentUser: isTrackIntentUserSelector(introSelected),
-                          })
-                        : '',
+                          }),
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
                     brickRoadStatus,
                     requiresAttention,
