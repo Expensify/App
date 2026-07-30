@@ -225,7 +225,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const scrollingVerticalBottomOffset = useRef(0);
     const tailIndicatorHeightRef = useRef(0);
     const readActionSkipped = useRef(false);
-    const markedActionWasOptimisticRef = useRef(false);
     const stickToBottomRef = useRef(false);
     const stickToBottomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     // Set when the user taps "Latest messages"; the report is marked as read only once the scroll actually reaches the bottom.
@@ -371,31 +370,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         return unsubscribe;
     }, []);
 
-    // Latch whether the action the user manually marked unread was ever seen in an optimistic (pending) state.
-    // On reconnect the optimistic->confirmed merge clears isOptimisticAction/pendingAction on the same action key,
-    // and that confirmation re-fires the read effect below - so by then the flag is already gone. We record it
-    // here, while the action is still pending, so the read effect can honor the manual-unread intent.
-    useEffect(() => {
-        const markedReportActionID = report?.manuallyMarkedUnreadReportActionID;
-        if (!markedReportActionID) {
-            markedActionWasOptimisticRef.current = false;
-            return;
-        }
-        const markedAction = visibleReportActions.find((reportAction) => reportAction.reportActionID === markedReportActionID);
-        if (markedAction?.isOptimisticAction || markedAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            markedActionWasOptimisticRef.current = true;
-        }
-    }, [report?.manuallyMarkedUnreadReportActionID, visibleReportActions]);
-
     useEffect(() => {
         if (!isFocused) {
-            return;
-        }
-
-        // The user marked an optimistic self-message unread while offline. When it confirms on reconnect its
-        // created shifts, re-running this effect; auto-reading here would clear manuallyMarkedUnreadReportActionID
-        // and drop the New marker. Honor the manual-unread intent for the action that was pending when marked.
-        if (report?.manuallyMarkedUnreadReportActionID && markedActionWasOptimisticRef.current) {
             return;
         }
 

@@ -65,7 +65,6 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
     const didMarkReportAsReadInitially = useRef(false);
-    const markedActionWasOptimisticRef = useRef(false);
 
     const lastAction = sortedVisibleReportActions.at(0);
     const isReportUnreadValue = isUnread(report, transactionThreadReport, isReportArchived) || (!!lastAction && isCurrentActionUnread(report, lastAction));
@@ -97,34 +96,11 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         readNewestAction(reportID, isReportActionsLoaded);
     }, [isReportUnreadValue, reportID, isReportActionsLoaded]);
 
-    // Latch whether the action the user manually marked unread was ever seen in an optimistic (pending) state.
-    // On reconnect the optimistic->confirmed merge clears isOptimisticAction/pendingAction on the same action key,
-    // and that confirmation is what re-fires handleReportChangeMarkAsRead - so by then the flag is already gone.
-    // We record it here, while the action is still pending, so the read effect can honor the manual-unread intent.
-    useEffect(() => {
-        const markedReportActionID = report?.manuallyMarkedUnreadReportActionID;
-        if (!markedReportActionID) {
-            markedActionWasOptimisticRef.current = false;
-            return;
-        }
-        const markedAction = sortedVisibleReportActions.find((reportAction) => reportAction.reportActionID === markedReportActionID);
-        if (markedAction?.isOptimisticAction || markedAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            markedActionWasOptimisticRef.current = true;
-        }
-    }, [report?.manuallyMarkedUnreadReportActionID, sortedVisibleReportActions]);
-
     const didMarkOnReportChangeRef = useRef(false);
 
     const handleReportChangeMarkAsRead = useEffectEvent(() => {
         didMarkOnReportChangeRef.current = false;
         if (reportID !== prevReportID) {
-            return;
-        }
-
-        // The user marked an optimistic self-message unread while offline. When it confirms on reconnect its
-        // created shifts, re-running this effect; auto-reading here would clear manuallyMarkedUnreadReportActionID
-        // and drop the New marker. Honor the manual-unread intent for the action that was pending when marked.
-        if (report?.manuallyMarkedUnreadReportActionID && markedActionWasOptimisticRef.current) {
             return;
         }
 
