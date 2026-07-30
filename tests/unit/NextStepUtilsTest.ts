@@ -1517,6 +1517,22 @@ describe('libs/NextStepUtils', () => {
             const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, 999999);
             expect(message).toBe('<next-step>Waiting for HiddenMarker to submit expenses.</next-step>');
         });
+
+        it.each([
+            {requiredDepositCurrency: CONST.CURRENCY.USD, expectedAccount: 'USD bank account'},
+            {requiredDepositCurrency: undefined, expectedAccount: 'bank account'},
+        ])('renders the required deposit currency when it is available', ({requiredDepositCurrency, expectedAccount}) => {
+            const currentUserAccountID = 780071;
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+                requiredDepositCurrency,
+            };
+
+            const message = buildNextStepMessage(nextStep, translateLocal, currentUserAccountID);
+            expect(message).toBe(`<next-step>Waiting for <strong>you</strong> to add a ${expectedAccount}.</next-step>`);
+        });
     });
 
     describe('buildOptimisticNextStep', () => {
