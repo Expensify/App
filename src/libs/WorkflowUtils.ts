@@ -1060,8 +1060,7 @@ function reconcileApprovalWorkflowRulesForCreate(newRules: ApprovalWorkflowRule[
 
 /**
  * Reconcile an edit to an existing workflow into add/replace/remove instructions, preserving rules shared
- * with other workflows. Pass 1 rewrites/removes existing rules that hold this workflow's members; pass 2
- * folds each new rule into a structurally-matching foreign rule or creates it under a fresh ruleID.
+ * with other workflows.
  */
 function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[], memberEmails: string[], context: ReconcileContext): ApprovalWorkflowRulesDiff {
     const diff: ApprovalWorkflowRulesDiff = {};
@@ -1126,8 +1125,8 @@ function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[],
 
 /**
  * Reconcile the deletion of a workflow. Rules that listed only this workflow's members in
- * their `from` filter are removed outright; rules shared with other workflows have just
- * this workflow's members stripped from `from`.
+ * their `from` filter are removed outright; rules shared with other workflows have this workflow's members
+ * stripped from `from`.
  */
 function reconcileApprovalWorkflowRulesForRemove(memberEmails: string[], context: ReconcileContext): ApprovalWorkflowRulesDiff {
     const diff: ApprovalWorkflowRulesDiff = {};
@@ -1188,9 +1187,6 @@ function applyApprovalWorkflowRulesDiff(existingRules: Record<string, ApprovalWo
     return result;
 }
 
-// Inverse of `buildApprovalWorkflowRules`: walk each submitter's hop chain to rebuild the same
-// `PolicyConversionResult` the legacy employeeList-based converter produces.
-
 /** Return the first comparison leaf in the filter tree whose `left` field matches. */
 function findComparisonByLeft(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, leftKey: string): ApprovalWorkflowFilterComparison | undefined {
     if (!node) {
@@ -1232,9 +1228,11 @@ function getForwardApprover(rule: ApprovalWorkflowRule): string | undefined {
 }
 
 /**
- * Resolve the first approver a submitter's report is routed to on submission — the `ForwardTo`
- * target of the submitter's `ReportSubmit` rule. Falls back to `employeeList.submitsTo` for
- * pre-beta chains that haven't been re-saved as rules yet.
+ * Who approves this person's report first, right after they submit it?
+ *
+ * Finds the rule that fires on submit for this submitter and returns whoever it forwards the report to.
+ * A workspace set up before approval rules existed has no such rule until its workflow is saved again, so
+ * we fall back to the older `submitsTo` field on the employee.
  */
 function resolveFirstApprover(submitter: string, rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList): string | undefined {
     for (const rule of Object.values(rules)) {
