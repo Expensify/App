@@ -38,6 +38,13 @@ function TableSemanticContainer({isEnabled, title, rowCount, columnCount, childr
         return children;
     }
 
+    // An empty table (no data rows) has no tabular content to expose to a screen reader, and the header/body
+    // render nothing in that case. Skipping the wrapper avoids inserting an extra flex:1 layout node next to the
+    // empty-state view, which would otherwise share the available height and shift the empty state upward.
+    if (rowCount === 0) {
+        return children;
+    }
+
     const renderedChildren: React.ReactNode[] = [];
     let rowGroup: React.ReactNode[] = [];
 
