@@ -94,7 +94,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const prevPendingDeletedLogin = usePrevious(loginData?.pendingFields?.deletedLogin);
 
     /**
-     * Navigate to the magic code verification page before setting contact method as default
+     * Navigate to the validateCode verification page before setting contact method as default
      */
     const navigateToSetDefaultConfirm = useCallback(() => {
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM.getRoute(contactMethod, backTo));
@@ -154,8 +154,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         }
 
         if (isFocused) {
-            // Navigate to methods page on successful magic code verification.
-            // The validatedDate property indicates successful magic code verification.
+            // Navigate to methods page on successful validateCode verification.
+            // The validatedDate property indicates successful validateCode verification.
             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
         } else {
             // Set flag to navigate when screen regains focus
@@ -261,7 +261,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     // Replacing spaces with "hard spaces" to prevent breaking the number
     const formattedContactMethod = Str.isSMSLogin(contactMethod) ? formatPhoneNumber(contactMethod) : contactMethod;
-    const hasMagicCodeBeenSent = !!loginData.validateCodeSent;
+    const hasValidateCodeBeenSent = !!loginData.validateCodeSent;
     const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
     const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;
     const shouldSkipInitialValidation = route.params?.shouldSkipInitialValidation === 'true';
@@ -377,7 +377,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 )}
                 {isValidateCodeFormVisible && !!loginData && !loginData.validatedDate && (
                     <ValidateCodeActionForm
-                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        hasValidateCodeBeenSent={hasValidateCodeBeenSent}
                         handleSubmitForm={(validateCode) => validateSecondaryLogin(contactMethod, validateCode)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
                         clearError={() => {
