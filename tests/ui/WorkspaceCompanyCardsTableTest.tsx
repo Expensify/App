@@ -29,6 +29,7 @@ const MICROSECONDS_PER_MILLISECOND = 1000;
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: () => ({}),
+    useMemoizedLazyExpensifyIcons: () => ({}),
 }));
 
 jest.mock('@hooks/useCardFeedErrors', () => ({

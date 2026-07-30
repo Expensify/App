@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {RoomVisibility} from '@src/types/onyx/Report';
 
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 
 type DynamicVisibilityProps = WithReportOrNotFoundProps;
 
@@ -35,6 +35,9 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
 
     const {showConfirmModal} = useConfirmModal();
 
+    const [draftVisibility, setDraftVisibility] = useState<RoomVisibility | undefined>(undefined);
+    const selectedVisibility = draftVisibility ?? report?.visibility;
+
     const visibilityOptions = useMemo(
         () =>
             Object.values(CONST.REPORT.VISIBILITY)
@@ -44,36 +47,43 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
                     value: visibilityOption,
                     alternateText: translate(`newRoomPage.${visibilityOption}Description`),
                     keyForList: visibilityOption,
-                    isSelected: visibilityOption === report?.visibility,
+                    isSelected: visibilityOption === selectedVisibility,
                 })),
-        [translate, report?.visibility],
+        [translate, selectedVisibility],
     );
 
     const goBack = () => {
         Navigation.goBack(backPath);
     };
 
-    const changeVisibility = (newVisibility: RoomVisibility) => {
-        if (!report) {
+    const saveVisibility = async () => {
+        if (!report || !selectedVisibility) {
             return;
         }
-        updateRoomVisibility(report.reportID, report.visibility, newVisibility);
+
+        // Selecting Public is a sensitive change, so it still has to be confirmed before we persist it.
+        if (selectedVisibility === CONST.REPORT.VISIBILITY.PUBLIC) {
+            const result = await showConfirmModal({
+                title: translate('common.areYouSure'),
+                prompt: translate('newRoomPage.publicDescription'),
+                confirmText: translate('common.yes'),
+                cancelText: translate('common.no'),
+                shouldShowCancelButton: true,
+                danger: true,
+            });
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+        }
+        updateRoomVisibility(report.reportID, report.visibility, selectedVisibility);
         setNavigationActionToMicrotaskQueue(goBack);
     };
 
-    const showPublicVisibilityModal = async () => {
-        const result = await showConfirmModal({
-            title: translate('common.areYouSure'),
-            prompt: translate('newRoomPage.publicDescription'),
-            confirmText: translate('common.yes'),
-            cancelText: translate('common.no'),
-            shouldShowCancelButton: true,
-            danger: true,
-        });
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
-        }
-        changeVisibility(CONST.REPORT.VISIBILITY.PUBLIC);
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveVisibility,
+        isDisabled: selectedVisibility === report?.visibility,
     };
 
     return (
@@ -89,16 +99,12 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
                 <SelectionList
                     shouldPreventDefaultFocusOnSelectRow
                     data={visibilityOptions}
-                    onSelectRow={(option) => {
-                        if (option.value === CONST.REPORT.VISIBILITY.PUBLIC) {
-                            showPublicVisibilityModal();
-                            return;
-                        }
-                        changeVisibility(option.value);
-                    }}
+                    onSelectRow={(option) => setDraftVisibility(option.value)}
+                    confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedItemKey={visibilityOptions.find((visibility) => visibility.isSelected)?.keyForList}
+                    initiallyFocusedItemKey={report?.visibility}
                     ListItem={SingleSelectListItem}
+                    addBottomSafeAreaPadding
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
