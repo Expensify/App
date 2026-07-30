@@ -50,7 +50,7 @@ jobs:
     name: Build iOS HybridApp
     runs-on: blacksmith-12vcpu-macos-latest
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
       PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
     outputs:
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}

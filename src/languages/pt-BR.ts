@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Proprietário',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'calendário aberto',
+        dialogOpened: 'diálogo',
         send: 'Enviar',
         na: 'N/D',
         noResultsFound: 'Nenhum resultado encontrado',
@@ -6160,9 +6161,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 assignedCards: 'Atribuído',
                 unassignedCards: 'Não atribuído',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `exportação ${integration} ${type.toLowerCase()}` : `Exportação do ${integration}`),
-                integrationExportTitleXero: (integration: string) => `Escolha a conta do ${integration} para onde as transações devem ser exportadas.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Escolha a conta do ${integration} para a qual as transações devem ser exportadas. Selecione uma <a href="${exportPageLink}">opção de exportação</a> diferente para alterar as contas disponíveis.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Escolha a conta do ${integration} para a qual as transações devem ser exportadas.${exportPageLink ? ` Selecione uma <a href="${exportPageLink}">opção de exportação</a> diferente para alterar as contas disponíveis.` : ''}`,
                 lastUpdated: 'Última atualização',
                 transactionStartDate: 'Data de início da transação',
                 updateCard: 'Atualizar cartão',
@@ -7645,6 +7645,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 defaultTaxRate: 'Taxa de imposto padrão',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Vá para [Mais recursos](${moreFeaturesLink}) e ative os fluxos de trabalho, depois adicione aprovações para desbloquear este recurso.`,
+                createNewRule: 'Criar nova regra',
+                contextualFlagForReview: (amount: string) => `Se o valor for acima de ${amount}, marcar para revisão`,
+                contextualFlagForReviewDaily: (amount: string) => `Se o total diário da categoria estiver acima de ${amount}, sinalizar para revisão`,
             },
             customRules: {
                 title: 'Política de despesas',

@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Inhaber',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'Kalender geöffnet',
+        dialogOpened: 'Dialog',
         send: 'Senden',
         na: 'k. A.',
         noResultsFound: 'Keine Ergebnisse gefunden',
@@ -6197,9 +6198,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 assignedCards: 'Zugewiesen',
                 unassignedCards: 'Nicht zugewiesen',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()}-Export` : `${integration}-Export`),
-                integrationExportTitleXero: (integration: string) => `Wähle das ${integration}-Konto, in das Transaktionen exportiert werden sollen.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Wähle das ${integration}-Konto, in das Transaktionen exportiert werden sollen. Wähle eine andere <a href="${exportPageLink}">Exportoption</a>, um die verfügbaren Konten zu ändern.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Wähle das ${integration}-Konto, in das Transaktionen exportiert werden sollen.${exportPageLink ? ` Wähle eine andere <a href="${exportPageLink}">Exportoption</a>, um die verfügbaren Konten zu ändern.` : ''}`,
                 lastUpdated: 'Zuletzt aktualisiert',
                 transactionStartDate: 'Transaktionsstartdatum',
                 updateCard: 'Karte aktualisieren',
@@ -7693,6 +7693,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 defaultTaxRate: 'Standardsteuersatz',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Gehe zu [Weitere Funktionen](${moreFeaturesLink}) und aktiviere Workflows, füge dann Genehmigungen hinzu, um diese Funktion freizuschalten.`,
+                createNewRule: 'Neue Regel erstellen',
+                contextualFlagForReview: (amount: string) => `Wenn der Betrag ${amount} übersteigt, zur Überprüfung markieren`,
+                contextualFlagForReviewDaily: (amount: string) => `Wenn die tägliche Kategoriesumme über ${amount} liegt, zur Überprüfung kennzeichnen`,
             },
             customRules: {
                 title: 'Spesenrichtlinie',

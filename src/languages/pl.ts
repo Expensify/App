@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Właściciel',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'kalendarz otwarty',
+        dialogOpened: 'okno dialogowe',
         send: 'Wyślij',
         na: 'ND dotyczy',
         noResultsFound: 'Nie znaleziono wyników',
@@ -6142,9 +6143,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 assignedCards: 'Przypisano',
                 unassignedCards: 'Nieprzypisane',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `eksport ${integration} ${type.toLowerCase()}` : `Eksport z ${integration}`),
-                integrationExportTitleXero: (integration: string) => `Wybierz konto ${integration}, do którego mają być eksportowane transakcje.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Wybierz konto ${integration}, do którego mają być eksportowane transakcje. Wybierz inną <a href="${exportPageLink}">opcję eksportu</a>, aby zmienić dostępne konta.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Wybierz konto ${integration}, do którego mają być eksportowane transakcje.${exportPageLink ? ` Wybierz inną <a href="${exportPageLink}">opcję eksportu</a>, aby zmienić dostępne konta.` : ''}`,
                 lastUpdated: 'Ostatnia aktualizacja',
                 transactionStartDate: 'Data początkowa transakcji',
                 updateCard: 'Zaktualizuj kartę',
@@ -7628,6 +7628,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 defaultTaxRate: 'Domyślna stawka podatku',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Przejdź do [Więcej funkcji](${moreFeaturesLink}) i włącz przepływy pracy, a następnie dodaj zatwierdzenia, aby odblokować tę funkcję.`,
+                createNewRule: 'Utwórz nową regułę',
+                contextualFlagForReview: (amount: string) => `Jeśli kwota przekracza ${amount}, oznacz do sprawdzenia`,
+                contextualFlagForReviewDaily: (amount: string) => `Jeśli dzienny łączny wydatek w danej kategorii przekracza ${amount}, oznacz do sprawdzenia`,
             },
             customRules: {
                 title: 'Polityka wydatków',

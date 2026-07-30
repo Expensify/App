@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Eigenaar',
         dateFormat: 'JJJJ-MM-DD',
         calendarOpened: 'kalender geopend',
+        dialogOpened: 'dialoog',
         send: 'Verzenden',
         na: 'n.v.t.',
         noResultsFound: 'Geen resultaten gevonden',
@@ -6162,9 +6163,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 assignedCards: 'Toegewezen',
                 unassignedCards: 'Niet toegewezen',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()}-export` : `${integration}-export`),
-                integrationExportTitleXero: (integration: string) => `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd. Selecteer een andere <a href="${exportPageLink}">exportoptie</a> om de beschikbare rekeningen te wijzigen.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd.${exportPageLink ? ` Selecteer een andere <a href="${exportPageLink}">exportoptie</a> om de beschikbare rekeningen te wijzigen.` : ''}`,
                 lastUpdated: 'Laatst bijgewerkt',
                 transactionStartDate: 'Begindatum transactie',
                 updateCard: 'Kaart bijwerken',
@@ -7648,6 +7648,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 defaultTaxRate: 'Standaardbelastingtarief',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Ga naar [Meer functies](${moreFeaturesLink}) en schakel workflows in, voeg daarna goedkeuringen toe om deze functie te ontgrendelen.`,
+                createNewRule: 'Nieuwe regel maken',
+                contextualFlagForReview: (amount: string) => `Als het bedrag hoger is dan ${amount}, markeren voor controle`,
+                contextualFlagForReviewDaily: (amount: string) => `Als het dagelijkse categorietotaal hoger is dan ${amount}, markeren voor controle`,
             },
             customRules: {
                 title: 'Declaratiebeleid',
