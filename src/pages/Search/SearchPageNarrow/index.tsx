@@ -238,6 +238,8 @@ function SearchPageNarrow({
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || isSearchPending(searchResults));
     const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;
 
+    const shouldRenderLayoutProbe = (isOverlayActive || !isHeaderInteractive) && !searchOverlayContent;
+
     return (
         <View
             ref={receiptDropTargetRef}
@@ -328,7 +330,7 @@ function SearchPageNarrow({
                                         hasFilterBars={hasFilterBars}
                                     />
                                 )}
-                                {(isOverlayActive || !isHeaderInteractive) && !searchOverlayContent && <View onLayout={onSearchLayout} />}
+                                {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
                                 {!!searchOverlayContent && (
                                     <View
                                         style={[StyleSheet.absoluteFill, styles.appBG]}
@@ -370,7 +372,7 @@ function SearchPageNarrow({
                                         hasFilterBars={hasFilterBars}
                                     />
                                 )}
-                                {(isOverlayActive || !isHeaderInteractive) && !searchOverlayContent && <View onLayout={onSearchLayout} />}
+                                {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
                                 {!!searchOverlayContent && (
                                     <View
                                         style={[StyleSheet.absoluteFill, styles.appBG]}
