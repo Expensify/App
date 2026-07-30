@@ -6142,9 +6142,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 assignedCards: 'Przypisano',
                 unassignedCards: 'Nieprzypisane',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `eksport ${integration} ${type.toLowerCase()}` : `Eksport z ${integration}`),
-                integrationExportTitleXero: (integration: string) => `Wybierz konto ${integration}, do którego mają być eksportowane transakcje.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Wybierz konto ${integration}, do którego mają być eksportowane transakcje. Wybierz inną <a href="${exportPageLink}">opcję eksportu</a>, aby zmienić dostępne konta.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Wybierz konto ${integration}, do którego mają być eksportowane transakcje.${exportPageLink ? ` Wybierz inną <a href="${exportPageLink}">opcję eksportu</a>, aby zmienić dostępne konta.` : ''}`,
                 lastUpdated: 'Ostatnia aktualizacja',
                 transactionStartDate: 'Data początkowa transakcji',
                 updateCard: 'Zaktualizuj kartę',
@@ -7628,6 +7627,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 defaultTaxRate: 'Domyślna stawka podatku',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Przejdź do [Więcej funkcji](${moreFeaturesLink}) i włącz przepływy pracy, a następnie dodaj zatwierdzenia, aby odblokować tę funkcję.`,
+                createNewRule: 'Utwórz nową regułę',
+                contextualFlagForReview: (amount: string) => `Jeśli kwota przekracza ${amount}, oznacz do sprawdzenia`,
+                contextualFlagForReviewDaily: (amount: string) => `Jeśli dzienny łączny wydatek w danej kategorii przekracza ${amount}, oznacz do sprawdzenia`,
             },
             customRules: {
                 title: 'Polityka wydatków',
@@ -8872,6 +8874,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             noOptionsAvailable: 'Brak opcji dostępnych dla wybranej grupy wydatków.',
             undelete: 'Cofnij usunięcie',
             duplicateReport: ({count}: {count: number}) => `Duplikat ${count === 1 ? 'raport' : 'raporty'}`,
+        },
+        expensifyCardStatementPDF: {
+            title: 'Pobierz wyciąg',
+            oneFeedAtATime: 'Wybieraj rozliczenia z jednego feedu Expensify Card na raz.',
         },
         filtersHeader: 'Filtry',
         filters: {
@@ -10244,6 +10250,7 @@ Cześć! Właśnie załatwiłem(am) nam *3 miesiące za darmo*, żeby wypróbowa
 Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
     },
     export: {
+        downloadStatementPDF: 'Pobierz wyciąg',
         basicExport: 'Podstawowy eksport',
         reportLevelExport: 'Wszystkie dane – poziom raportu',
         expenseLevelExport: 'Wszystkie dane – poziom wydatku',
