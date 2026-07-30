@@ -1245,11 +1245,6 @@ function getCurrentUserDisplayNameOrEmail(): string | undefined {
 }
 
 function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
-    // Tasks only support the #admins chatType inheritance (see buildOptimisticTaskReport). The backend can also
-    // inherit other parent chat types (e.g. `group`), which would misclassify the task as that chat type.
-    if (report && 'type' in report && report.type === CONST.REPORT.TYPE.TASK && report.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_ADMINS) {
-        return undefined;
-    }
     return report?.chatType;
 }
 
@@ -11051,7 +11046,9 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>, isReportArchived = false
  * A "root" group chat is the top level group chat and does not refer to any threads off of a Group Chat
  */
 function isRootGroupChat(report: OnyxEntry<Report>, isReportArchived = false): boolean {
-    return !isChatThread(report) && (isGroupChat(report) || isDeprecatedGroupDM(report, isReportArchived));
+    // Excluded via `isThread` rather than `isChatThread`: the backend gives a task the parent's chatType, and
+    // `isChatThread` only matches type CHAT, so a task off a group chat would otherwise read as the root chat.
+    return !isThread(report) && (isGroupChat(report) || isDeprecatedGroupDM(report, isReportArchived));
 }
 
 /**

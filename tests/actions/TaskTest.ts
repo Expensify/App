@@ -1791,42 +1791,53 @@ describe('actions/Task', () => {
     });
 
     describe('task chatType classification (#96421)', () => {
-        it('does not treat a task that inherited a non-admins chatType as a group chat', () => {
+        it('does not treat a task off a group chat as the root group chat', () => {
             // Given a task report the backend returned carrying the parent group chat's chatType
+            const viewerAccountID = 1;
             const groupTask = {
                 reportID: 'task_group_1',
                 type: CONST.REPORT.TYPE.TASK,
                 chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 parentReportID: 'group_parent_1',
                 parentReportActionID: 'group_parent_action_1',
-            } as Report;
-
-            // Then it is not classified as a group chat or a root group chat, so the destructive leave path is never offered
-            expect(ReportUtils.isGroupChat(groupTask)).toBe(false);
-            expect(ReportUtils.isRootGroupChat(groupTask)).toBe(false);
-            expect(ReportUtils.canLeaveChat(groupTask, undefined, 1)).toBe(false);
-        });
-
-        it('does not treat a task that inherited a policy room chatType as a chat room', () => {
-            // Given a task report carrying a user-created policy room's chatType
-            const viewerAccountID = 1;
-            const roomTask = {
-                reportID: 'task_room_1',
-                type: CONST.REPORT.TYPE.TASK,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                parentReportID: 'room_parent_1',
-                parentReportActionID: 'room_parent_action_1',
-                // A visible participant so the canLeaveChat assertion discriminates on the classification, not on hidden-membership
+                // A visible participant so the canLeaveChat assertion turns on the classification, not on hidden-membership
                 participants: {[viewerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
             } as Report;
 
-            // Then it is not classified as a chat room, so room-only actions (like Leave) stay hidden
-            expect(ReportUtils.isChatRoom(roomTask)).toBe(false);
-            expect(ReportUtils.canLeaveChat(roomTask, undefined, viewerAccountID)).toBe(false);
+            // The inherited chatType is left intact, matching the backend
+            expect(ReportUtils.isGroupChat(groupTask)).toBe(true);
+            // But the task is a thread off that chat, so it is not the root group chat and the destructive leave path is unreachable
+            expect(ReportUtils.isRootGroupChat(groupTask)).toBe(false);
+            expect(ReportUtils.canLeaveChat(groupTask, undefined, viewerAccountID)).toBe(false);
+        });
+
+        it('still treats a real group chat as the root group chat', () => {
+            // Given an actual group chat, which has no parent and so is never a thread
+            const groupChat = {
+                reportID: 'group_chat_1',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            } as Report;
+
+            expect(ReportUtils.isGroupChat(groupChat)).toBe(true);
+            expect(ReportUtils.isRootGroupChat(groupChat)).toBe(true);
+        });
+
+        it('still treats a chat thread off a group chat as a non-root group chat', () => {
+            // Given a plain chat thread (type CHAT), which the previous `isChatThread` exclusion already covered
+            const groupChatThread = {
+                reportID: 'group_thread_1',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                parentReportID: 'group_parent_1',
+                parentReportActionID: 'group_parent_action_1',
+            } as Report;
+
+            expect(ReportUtils.isRootGroupChat(groupChatThread)).toBe(false);
         });
 
         it('keeps the intentional #admins chatType inheritance for tasks', () => {
-            // Given a task created under an #admins room (the one inheritance the client supports)
+            // Given a task created under an #admins room
             const adminsTask = {
                 reportID: 'task_admins_1',
                 type: CONST.REPORT.TYPE.TASK,
@@ -1835,22 +1846,9 @@ describe('actions/Task', () => {
                 parentReportActionID: 'admins_parent_action_1',
             } as Report;
 
-            // Then the admins chatType is preserved: it still reads as an admin room, never as a group chat
+            // Then the admins chatType is preserved, so #admins task routing keeps working
             expect(ReportUtils.isAdminRoom(adminsTask)).toBe(true);
-            expect(ReportUtils.isGroupChat(adminsTask)).toBe(false);
-        });
-
-        it('still classifies a real group chat as a group chat', () => {
-            // Given an actual group chat (type CHAT), which the sanitization must not affect
-            const groupChat = {
-                reportID: 'group_chat_1',
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-            } as Report;
-
-            // Then it is still classified as a group chat and a root group chat
-            expect(ReportUtils.isGroupChat(groupChat)).toBe(true);
-            expect(ReportUtils.isRootGroupChat(groupChat)).toBe(true);
+            expect(ReportUtils.isRootGroupChat(adminsTask)).toBe(false);
         });
     });
 });

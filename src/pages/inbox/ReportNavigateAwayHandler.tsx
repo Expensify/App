@@ -10,7 +10,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDeletedParentAction} from '@libs/ReportActionsUtils';
-import {isAdminRoom, isAnnounceRoom, isGroupChat, isMoneyRequest, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isPolicyExpenseChat, isTaskReport} from '@libs/ReportUtils';
+import {isAdminRoom, isAnnounceRoom, isGroupChat, isMoneyRequest, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isPolicyExpenseChat} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 
@@ -166,11 +166,7 @@ function ReportNavigateAwayHandler() {
                 (isPolicyExpenseChat(prevReport) && !prevReport?.isOwnPolicyExpenseChat) ||
                 isGroupChat(prevReport) ||
                 isAdminRoom(prevReport) ||
-                isAnnounceRoom(prevReport) ||
-                // Tasks no longer classify as their parent's chat type (see getChatType), so removal
-                // must be expected for the task type itself to keep the Concierge redirect working.
-                // Gated on `wasReportRemoved` so switching to a not-yet-loaded report isn't read as removal.
-                (isTaskReport(prevReport) && wasReportRemoved));
+                isAnnounceRoom(prevReport));
         const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
         const isTopLevelPolicyRoomWithNoStatus = !report?.statusNum && !prevReport?.parentReportID && prevReport?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
         const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;
