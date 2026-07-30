@@ -40,7 +40,6 @@ function SearchEditMultipleAttendeesPage() {
 
         const currentAttendees = draftTransaction?.comment?.attendees ?? [];
         if (deepEqual(currentAttendees, attendees)) {
-            updateBulkEditDraftTransaction({comment: {attendees: null}});
             Navigation.goBack();
             return;
         }

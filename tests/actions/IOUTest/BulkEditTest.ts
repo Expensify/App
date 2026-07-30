@@ -2355,6 +2355,76 @@ describe('actions/IOU/BulkEdit', () => {
             canEditFieldSpy.mockRestore();
         });
 
+        it('omits reportActionID for attendees-only edits when the transaction thread was created only locally', () => {
+            const transactionID = 'transaction-attendees-no-thread-1';
+            const iouReportID = 'iou-attendees-no-thread-1';
+            const policy = {
+                ...createRandomPolicy(102, CONST.POLICY.TYPE.CORPORATE),
+                isAttendeeTrackingEnabled: true,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(104, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(102),
+                transactionID,
+                reportID: iouReportID,
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    attendees: [{avatarUrl: '', displayName: 'Original Attendee', email: 'original@example.com'}],
+                },
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const nextAttendees = [{avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'}];
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spying on API.write to assert attendees params omit phantom reportActionID.
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                changes: {attendees: nextAttendees},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                allPolicies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
+                },
+            });
+
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            expect(writeSpy.mock.calls.at(0)?.[0]).toBe('UpdateMoneyRequestAttendees');
+            expect(writeSpy.mock.calls.at(0)?.[1]).toEqual({
+                transactionID,
+                reportID: iouReportID,
+                attendees: JSON.stringify([{avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'}]),
+            });
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
         it('writes generic fields and attendees as separate commands when both change', () => {
             const transactionID = 'transaction-attendees-mixed-1';
             const transactionThreadReportID = 'thread-attendees-mixed-1';

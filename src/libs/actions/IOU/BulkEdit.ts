@@ -46,6 +46,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import type {ValueOf} from 'type-fest';
 
 import {deepEqual} from 'fast-equals';
+// lodashUnionBy de-dupes recent attendees by email/displayName in one pass; no lodash-free equivalent is used here
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
 import Onyx from 'react-native-onyx';
@@ -506,6 +507,7 @@ function updateMultipleMoneyRequests({
                 value: lodashUnionBy(
                     transactionChanges.attendees?.map(({avatarUrl, displayName, email}) => ({avatarUrl, displayName, ...(email ? {email} : {})})) ?? [],
                     getRecentAttendees(),
+                    // Use || so empty-string emails fall back to displayName for the union key
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     (attendee) => attendee.email || attendee.displayName,
                 ).slice(0, CONST.IOU.MAX_RECENT_ATTENDEES),
@@ -743,7 +745,7 @@ function updateMultipleMoneyRequests({
 
         const hasGenericUpdates = Object.keys(updates).length > 0;
 
-        if (hasGenericUpdates && serializedAttendees) {
+        if (hasGenericUpdates) {
             writeBulkEditMoneyRequest(
                 {
                     transactionID,
@@ -752,29 +754,19 @@ function updateMultipleMoneyRequests({
                 },
                 onyxData,
             );
-            writeBulkEditMoneyRequestAttendees({
-                transactionID,
-                reportID: iouReport?.reportID,
-                attendees: serializedAttendees,
-            });
-        } else if (hasGenericUpdates) {
-            writeBulkEditMoneyRequest(
-                {
-                    transactionID,
-                    reportActionID: modifiedExpenseReportActionID,
-                    updates: JSON.stringify(updates),
-                },
-                onyxData,
-            );
-        } else if (serializedAttendees) {
+        }
+
+        if (serializedAttendees) {
             writeBulkEditMoneyRequestAttendees(
                 {
                     transactionID,
                     reportID: iouReport?.reportID,
-                    reportActionID: modifiedExpenseReportActionID,
+                    // UpdateMoneyRequestAttendees does not create transaction threads. Only attach
+                    // reportActionID when a real thread already exists (not one we just seeded locally).
+                    ...(!hasGenericUpdates && !didCreateThreadInThisIteration ? {reportActionID: modifiedExpenseReportActionID} : {}),
                     attendees: serializedAttendees,
                 },
-                onyxData,
+                hasGenericUpdates ? undefined : onyxData,
             );
         }
     }
