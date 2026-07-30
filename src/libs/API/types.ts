@@ -1366,6 +1366,7 @@ const READ_COMMANDS = {
     OPEN_PLAID_BANK_ACCOUNT_SELECTOR: 'OpenPlaidBankAccountSelector',
     OPEN_SEARCH_PAGE: 'OpenSearchPage',
     OPEN_SEARCH_CARD_FILTERS_PAGE: 'OpenSearchCardFiltersPage',
+    OPEN_SEARCH_CATEGORY_FILTERS_PAGE: 'OpenSearchCategoryFiltersPage',
     SEARCH: 'Search',
     GET_OLDER_ACTIONS: 'GetOlderActions',
     GET_NEWER_ACTIONS: 'GetNewerActions',
@@ -1527,6 +1528,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_SAVE_THE_WORLD_PAGE]: null;
     [READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE]: null;
     [READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE]: null;
+    [READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE]: null;
     [READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW]: Parameters.StartIssueNewCardFlowParams;
     [READ_COMMANDS.OPEN_CARD_DETAILS_PAGE]: Parameters.OpenCardDetailsPageParams;
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
@@ -1581,6 +1583,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     COMPLETE_GUIDED_SETUP: 'CompleteGuidedSetup',
 
     GET_STATEMENT_PDF: 'GetStatementPDF',
+    GET_EXPENSIFY_CARD_STATEMENT_PDF: 'GetExpensifyCardStatementPDF',
     REGISTER_AUTHENTICATION_KEY: 'RegisterAuthenticationKey',
     TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION: 'TroubleshootMultifactorAuthentication',
     REQUEST_AUTHENTICATION_CHALLENGE: 'RequestAuthenticationChallenge',
@@ -1625,6 +1628,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_STATEMENT_PDF]: Parameters.GetStatementPDFParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.GET_EXPENSIFY_CARD_STATEMENT_PDF]: Parameters.GetExpensifyCardStatementPDFParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY]: Parameters.RegisterAuthenticationKeyParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION]: Parameters.TroubleshootMultifactorAuthenticationParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_AUTHENTICATION_CHALLENGE]: Parameters.RequestAuthenticationChallengeParams;

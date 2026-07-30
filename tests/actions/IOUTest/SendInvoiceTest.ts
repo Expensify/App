@@ -288,6 +288,34 @@ describe('actions/SendInvoice', () => {
             expect(result.onyxData.failureData).toBeDefined();
         });
 
+        it('stamps hasOnceLoadedReportActions for the invoice report and the new invoice room', () => {
+            // Given: a brand new invoice (no existing chat report), which creates both an invoice report and an invoice room
+            const result = getSendInvoiceInformation({
+                transaction: baseTransaction as OnyxEntry<Transaction>,
+                currentUserAccountID: 123,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: undefined,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: undefined,
+                companyWebsite: undefined,
+                policyRecentlyUsedCategories: [],
+                senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+            });
+
+            // Then: both reports are stamped as "actions already loaded" so they never hang on an infinite skeleton once online
+            const optimisticData = result.onyxData.optimisticData ?? [];
+            const invoiceReportLoadingState = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceReportID}`);
+            const invoiceRoomLoadingState = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceRoom.reportID}`);
+
+            expect(invoiceReportLoadingState?.value).toMatchObject({hasOnceLoadedReportActions: true});
+            expect(invoiceRoomLoadingState?.value).toMatchObject({hasOnceLoadedReportActions: true});
+        });
+
         describe('delegateAccountID forwarding', () => {
             it('sets delegateAccountID on the IOU action when delegateAccountID is provided', () => {
                 const DELEGATE_ACCOUNT_ID = 999;
