@@ -906,6 +906,21 @@ type OriginalMessageSpendRuleChangeLog = {
     currency?: string;
 };
 
+/** Model of a workspace agent rule change log action (add, update, or delete) */
+type OriginalMessageAgentRuleChangeLog = {
+    /** ID of the policy the agent rule belongs to */
+    policyID?: string;
+
+    /** ID of the agent rule that changed */
+    ruleID?: string;
+
+    /** Server-generated one-line title of the agent rule */
+    ruleTitle?: string;
+
+    /** Natural-language prompt of the agent rule (present for add/update, omitted for delete) */
+    prompt?: string;
+};
+
 /** Model of a policy copy change log action */
 type OriginalMessagePolicyChangeCopyLog = {
     /** The ID of the source policy from which the user copied settings */
@@ -1575,6 +1590,9 @@ type OriginalMessageIntegrationMessage = {
     result: {
         /** Wether action was successful */
         success: boolean;
+
+        /** Whether the message is informational (the export was reconciled as already recorded in the integration) rather than an error */
+        reconciled?: boolean;
     };
 };
 
@@ -1646,6 +1664,17 @@ type OriginalMessageReimbursementDirectorInformationRequired = {
     completed: boolean;
 };
 
+/**
+ * Model of the travel nudge report action Concierge posts on an out-of-platform travel expense.
+ */
+type OriginalMessageTravelNudge = {
+    /** The kind of bookable travel the expense was classified as */
+    travelType: ValueOf<typeof CONST.RESERVATION_TYPE>;
+
+    /** Whether the expense was created from a card import or manually */
+    origination: ValueOf<typeof CONST.TRAVEL_NUDGE.ORIGINATION>;
+};
+
 /** The map type of original message */
 /* eslint-disable jsdoc/require-jsdoc */
 type OriginalMessageMap = {
@@ -1715,6 +1744,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.TASK_EDITED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL]: OriginalMessageTakeControl;
+    [CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE]: OriginalMessageTravelNudge;
     [CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE]: OriginalMessageTravelUpdate;
     [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED]: OriginalMessageUnapproved;
     [CONST.REPORT.ACTIONS.TYPE.UNHOLD]: never;
@@ -1753,12 +1783,15 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
-} & OldDotOriginalMessageMap &
+} & Omit<OldDotOriginalMessageMap, typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
     Record<PolicyChangeLogCopyReportActionNames, OriginalMessagePolicyChangeCopyLog> & {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
     } & Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
 type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageMap[T] : never;

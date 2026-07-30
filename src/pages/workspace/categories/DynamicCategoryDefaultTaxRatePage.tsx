@@ -26,7 +26,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TaxRate} from '@src/types/onyx';
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 
 type DynamicCategoryDefaultTaxRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_DEFAULT_TAX_RATE>;
 
@@ -44,7 +44,11 @@ function DynamicCategoryDefaultTaxRatePage({
     const policy = usePolicy(policyID);
     const categorySettingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path);
 
-    const selectedTaxRate = getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates?.defaultExternalID);
+    const persistedTaxRate = getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates?.defaultExternalID);
+
+    const [draftTaxRate, setDraftTaxRate] = useState<string>();
+    const selectedTaxRate = draftTaxRate ?? persistedTaxRate;
+    const hasChanges = !!selectedTaxRate && selectedTaxRate !== persistedTaxRate;
     const initialSelectedTaxRate = useInitialSelection(selectedTaxRate, {resetOnFocus: true});
 
     const textForDefault = useCallback((taxID: string, taxRate: TaxRate) => formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates), [policy?.taxRates, translate]);
@@ -66,22 +70,21 @@ function DynamicCategoryDefaultTaxRatePage({
     }, [policy, selectedTaxRate, textForDefault, localeCompare]);
     const orderedTaxesList = useMemo(() => moveInitialSelectionToTop(taxesList, initialSelectedTaxRate ? [initialSelectedTaxRate] : []), [taxesList, initialSelectedTaxRate]);
 
-    const handleSelectRow = useCallback(
-        (item: TaxRateListItem) => {
-            if (!item.keyForList) {
-                return;
-            }
-
-            if (item.keyForList === selectedTaxRate) {
-                Navigation.goBack(categorySettingsBackPath);
-                return;
-            }
-
-            setPolicyCategoryTax(policy, categoryName, item.keyForList);
+    const saveAndGoBack = () => {
+        if (hasChanges) {
+            setPolicyCategoryTax(policy, categoryName, selectedTaxRate);
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(categorySettingsBackPath));
-        },
-        [policy, categoryName, selectedTaxRate, categorySettingsBackPath],
-    );
+            return;
+        }
+        Navigation.goBack(categorySettingsBackPath);
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+        isDisabled: !hasChanges,
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -102,10 +105,16 @@ function DynamicCategoryDefaultTaxRatePage({
                 <SelectionList
                     data={orderedTaxesList}
                     ListItem={SingleSelectListItem}
-                    onSelectRow={handleSelectRow}
+                    onSelectRow={(item) => {
+                        if (!item.keyForList) {
+                            return;
+                        }
+                        setDraftTaxRate(item.keyForList);
+                    }}
+                    confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
                     addBottomSafeAreaPadding
-                    initiallyFocusedItemKey={selectedTaxRate}
+                    initiallyFocusedItemKey={persistedTaxRate}
                     style={{containerStyle: styles.pt3}}
                 />
             </ScreenWrapper>

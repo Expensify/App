@@ -569,4 +569,5 @@ export {
     getCardsUsingCustomExportCount,
     getCardsCustomExportPendingAction,
     areCardsCustomExportInErrorFields,
+    findMatchingCards,
 };
