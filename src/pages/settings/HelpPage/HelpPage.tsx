@@ -1,4 +1,4 @@
-import AccountManagerBookCallButton from '@components/AccountManagerBookCallButton';
+import BookCallButton from '@components/BookCallButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -51,6 +51,7 @@ function HelpPage() {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
 
+    const partnerManagerCalendarLink = account?.partnerManagerCalendarLink;
     const partnerManagerItem = partnerManagerDetails
         ? {
               key: partnerManagerDetails.login,
@@ -68,12 +69,23 @@ function HelpPage() {
                       betas,
                       personalDetails,
                   ),
-              shouldShowRightIcon: true,
+              shouldShowRightIcon: !partnerManagerCalendarLink,
+              shouldShowRightComponent: !!partnerManagerCalendarLink,
+
+              // Disable the row's accessibility grouping so screen readers can reach the nested Book a call button as its own element
+              shouldBeAccessible: !partnerManagerCalendarLink,
+              rightComponent: partnerManagerCalendarLink ? (
+                  <BookCallButton
+                      calendarLink={partnerManagerCalendarLink}
+                      isNested
+                  />
+              ) : undefined,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
               sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.PARTNER_MANAGER,
           }
         : null;
 
+    const guideCalendarLink = account?.guideDetails?.calendarLink;
     const guideItem = guideDetails
         ? {
               key: guideDetails.login,
@@ -91,7 +103,17 @@ function HelpPage() {
                       betas,
                       personalDetails,
                   ),
-              shouldShowRightIcon: true,
+              shouldShowRightIcon: !guideCalendarLink,
+              shouldShowRightComponent: !!guideCalendarLink,
+
+              // Disable the row's accessibility grouping so screen readers can reach the nested Book a call button as its own element
+              shouldBeAccessible: !guideCalendarLink,
+              rightComponent: guideCalendarLink ? (
+                  <BookCallButton
+                      calendarLink={guideCalendarLink}
+                      isNested
+                  />
+              ) : undefined,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
               sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.GUIDE,
           }
@@ -121,7 +143,7 @@ function HelpPage() {
               // Disable the row's accessibility grouping so screen readers can reach the nested Book a call button as its own element
               shouldBeAccessible: !accountManagerCalendarLink,
               rightComponent: accountManagerCalendarLink ? (
-                  <AccountManagerBookCallButton
+                  <BookCallButton
                       calendarLink={accountManagerCalendarLink}
                       isNested
                   />
