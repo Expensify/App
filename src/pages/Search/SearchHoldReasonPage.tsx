@@ -37,7 +37,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const isBulkHold = route.name === SCREENS.SEARCH.DYNAMIC_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS;
     const {reportID} = route.params ?? {};
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.HOLD_TRANSACTIONS.path);
-    const backTo = route.name === SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP ? route.params.backTo : dynamicBackPath;
+    const backTo = isBulkHold ? dynamicBackPath : route.params.backTo;
     const {selectedTransactionIDs, selectedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -46,7 +46,9 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const relevantTransactionIDs = useMemo(() => (isBulkHold ? selectedTransactionIDs : Object.keys(selectedTransactions)), [isBulkHold, selectedTransactionIDs, selectedTransactions]);
     const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(relevantTransactionIDs)});
     const {isOffline} = useNetwork();
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
 
     const selectedTransactionsList = Object.values(selectedTransactions);
     const isSubmitter = report ? report.ownerAccountID === currentUserAccountID : selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
