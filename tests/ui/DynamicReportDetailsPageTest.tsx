@@ -206,7 +206,7 @@ describe('DynamicReportDetailsPage', () => {
     });
 
     // Regression test for issue #97399: deleting an invoice navigates back to the invoice room via
-    // `deleteTransactionNavigateBackUrl` without synchronously unfocusing this details RHP, so the report is
+    // `deleteTransactionNavigateBackUrl` without synchronously removing focus from this details RHP, so the report is
     // nulled while the RHP is still focused. Without the delete-back-URL escape hatch, `withReportOrNotFound`
     // renders the "Not here" page on the RHP. It must stay suppressed while the delete navigation is in flight.
     describe('invoice deletion does not show the "Not here" page', () => {

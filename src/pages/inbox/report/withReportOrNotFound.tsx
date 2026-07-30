@@ -120,7 +120,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
                 // We also suppress the NotFound page while a delete-transaction navigation is in flight (e.g. deleting an invoice
-                // navigates back to the invoice room without synchronously unfocusing this details RHP), mirroring ReportNotFoundGuard.
+                // navigates back to the invoice room without synchronously removing focus from this details RHP), mirroring ReportNotFoundGuard.
                 if (shouldShowNotFoundPage && contentShown.current && (!isFocused || !!deleteTransactionNavigateBackUrl)) {
                     return null;
                 }
