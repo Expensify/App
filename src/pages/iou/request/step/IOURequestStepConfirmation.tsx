@@ -113,9 +113,6 @@ import useExpenseSubmission from './confirmation/useExpenseSubmission';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-// Trim each policy down to the fields the distance-rate re-selection needs, so subscribing to the whole policy
-// collection (to resolve a newly selected workspace's rate in handleParticipantsAdded) doesn't churn on unrelated
-// policy changes. Mirrors the mapper in useParticipantSubmission (the legacy participants-step flow).
 const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
         id: policy.id,
@@ -179,11 +176,6 @@ function IOURequestStepConfirmation({
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
-    // Prefer the workspace the user explicitly selected over the flow's origin report. In the new manual expense flow
-    // the embedded participant picker updates the draft's participants in place (handleParticipantsAdded) but leaves the
-    // route `reportID` - and therefore `reportReal` - pointing at the origin workspace the flow was seeded with. Resolving
-    // the policy from `reportReal` alone would keep it on the origin workspace (e.g. hiding the Tags section for the newly
-    // selected workspace). The invoice sender still takes precedence so invoices resolve to the sending workspace. See #96632.
     const selectedWorkspacePolicyID =
         initialTransaction?.participants?.find((participant) => participant?.isSender)?.policyID ??
         initialTransaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID;
@@ -303,9 +295,6 @@ function IOURequestStepConfirmation({
     }, [transactionReport, currentUserPersonalDetails.accountID, transaction?.transactionID, iouType]);
 
     const participantsPolicies = useParticipantsPolicies(transaction?.participants ?? []);
-    // `participantsPolicies` only holds the policies of the participants the transaction has right now, so it can't
-    // resolve the workspace the user is switching *to*. These two keep what handleParticipantsAdded needs for that
-    // case at hand instead: the trimmed policy (for the distance rate) and the default distance category of every policy.
     const [mappedPolicies] = useMappedPolicies(policyMapper);
     const [policyDistanceDefaultCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyDistanceDefaultCategoriesSelector});
 
@@ -371,9 +360,6 @@ function IOURequestStepConfirmation({
         const transactionParticipants = transaction?.participants ?? [];
         const hasTransactionParticipants = transactionParticipants.length > 0;
         const hasDefaultParticipants = defaultParticipants.length > 0;
-        // While the default participant is still resolving, an empty `defaultParticipants` doesn't mean "no default"
-        // yet. Keep the picker closed until resolution settles; otherwise it briefly auto-opens and then closes once
-        // the default (e.g. self DM when Submissions are disabled) is assigned. See #96558.
         return !hasTransactionParticipants && !hasDefaultParticipants && !isLoadingDefaultParticipants && isNewManualExpenseFlowEnabled && isManualRequest;
     }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isLoadingDefaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest]);
     const activeTransactionID = transaction?.transactionID;
@@ -452,11 +438,6 @@ function IOURequestStepConfirmation({
                         setMoneyRequestTag(activeTransactionID, '');
                     } else {
                         if (isDistanceRequest) {
-                            // When switching to a workspace chat we must re-select the workspace's distance rate. Otherwise the
-                            // transaction keeps its P2P rate ID (FAKE_P2P_ID), which isn't a valid rate on the workspace, so the
-                            // Rate field surfaces "Rate not valid" and becomes non-interactive. This mirrors the legacy
-                            // participants-step flow (useParticipantSubmission.addParticipant), which always re-selected the
-                            // workspace rate for a policy-expense-chat participant.
                             const workspacePolicy = firstParticipant.policyID ? mappedPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
                             const workspaceRateID = DistanceRequestUtils.getCustomUnitRateID({
                                 reportID: participantReportID,
@@ -469,10 +450,6 @@ function IOURequestStepConfirmation({
                         }
 
                         if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
-                            // Switching to a different workspace: the previous workspace's category and tag no longer apply,
-                            // so reset them to the destination workspace's defaults. This mirrors the legacy participants-step
-                            // flow (useParticipantSubmission.goToNextStep), which resets both on every selection and passes no
-                            // policy so the previous workspace's category-derived tax is cleared along with the category.
                             const defaultCategory = isDistanceRequest ? (policyDistanceDefaultCategories?.[firstParticipant.policyID] ?? '') : '';
                             setMoneyRequestCategory(activeTransactionID, defaultCategory, undefined);
                             setMoneyRequestTag(activeTransactionID, '');

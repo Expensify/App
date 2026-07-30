@@ -273,9 +273,6 @@ function useConfirmationValidation({
             return {errorKey: 'violations.taxOutOfPolicy'};
         }
 
-        // In the new manual expense flow the tax amount is edited inline. An empty field is stored as 0, so the
-        // input layer surfaces its emptiness via isTaxAmountEmpty; block creation when it was left empty (a real 0
-        // stays valid), mirroring the standalone tax amount step's empty guard. See #96577.
         if (isNewManualExpenseFlowEnabled && shouldShowTax && !isDistanceRequest && isTaxAmountEmpty) {
             return {errorKey: 'iou.error.invalidAmount'};
         }
