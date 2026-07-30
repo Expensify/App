@@ -433,6 +433,30 @@ type SettingsNavigatorParamList = {
         policyID: string;
         categoryName: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_FOR_REVIEW_RULE_NEW]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_FOR_REVIEW_RULE_EDIT]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_FOR_REVIEW_RULE_AMOUNT]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRE_FIELDS_RULE_NEW]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRE_FIELDS_RULE_EDIT]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.WORKSPACE.UPGRADE]: {
         policyID?: string;
         featureName?: string;
@@ -1566,9 +1590,11 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RULES_NEW]: {
         policyID: string;
+        categoryName?: string;
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
         policyID: string;
+        categoryName?: string;
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORT]: {
         policyID: string;
@@ -1581,10 +1607,13 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_NEW]: {
         policyID: string;
+        categoryName?: string;
     };
     [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_EDIT]: {
         policyID: string;
         categoryName: string;
+        /** When 'true', category field is locked (e.g. opened from category details RHP). */
+        isCategoryLocked?: string;
     };
     [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_CATEGORY]: {
         policyID: string;
@@ -1595,10 +1624,13 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_NEW]: {
         policyID: string;
+        categoryName?: string;
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EDIT]: {
         policyID: string;
         categoryName: string;
+        /** When 'true', category field is locked (e.g. opened from category details RHP). */
+        isCategoryLocked?: string;
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY]: {
         policyID: string;
@@ -1609,10 +1641,14 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT]: {
         policyID: string;
+        /** When 'true', return to create with ?categoryName= so the locked category create entry matches. */
+        isCategoryLocked?: string;
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT]: {
         policyID: string;
         categoryName: string;
+        /** When 'true', preserve locked category on return to the edit screen. */
+        isCategoryLocked?: string;
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE]: {
         policyID: string;
@@ -2285,14 +2321,12 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_TIME]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
         backToReport?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes | undefined;
     };
     [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -2311,14 +2345,12 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_TIME_EDIT]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
         backToReport?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes | undefined;
     };
     [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;

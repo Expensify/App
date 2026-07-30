@@ -6197,9 +6197,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 assignedCards: 'Zugewiesen',
                 unassignedCards: 'Nicht zugewiesen',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()}-Export` : `${integration}-Export`),
-                integrationExportTitleXero: (integration: string) => `Wähle das ${integration}-Konto, in das Transaktionen exportiert werden sollen.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Wähle das ${integration}-Konto, in das Transaktionen exportiert werden sollen. Wähle eine andere <a href="${exportPageLink}">Exportoption</a>, um die verfügbaren Konten zu ändern.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Wähle das ${integration}-Konto, in das Transaktionen exportiert werden sollen.${exportPageLink ? ` Wähle eine andere <a href="${exportPageLink}">Exportoption</a>, um die verfügbaren Konten zu ändern.` : ''}`,
                 lastUpdated: 'Zuletzt aktualisiert',
                 transactionStartDate: 'Transaktionsstartdatum',
                 updateCard: 'Karte aktualisieren',
@@ -7693,6 +7692,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 defaultTaxRate: 'Standardsteuersatz',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Gehe zu [Weitere Funktionen](${moreFeaturesLink}) und aktiviere Workflows, füge dann Genehmigungen hinzu, um diese Funktion freizuschalten.`,
+                createNewRule: 'Neue Regel erstellen',
+                contextualFlagForReview: (amount: string) => `Wenn der Betrag ${amount} übersteigt, zur Überprüfung markieren`,
+                contextualFlagForReviewDaily: (amount: string) => `Wenn die tägliche Kategoriesumme über ${amount} liegt, zur Überprüfung kennzeichnen`,
             },
             customRules: {
                 title: 'Spesenrichtlinie',
@@ -8946,6 +8948,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             noOptionsAvailable: 'Für die ausgewählte Ausgabengruppe sind keine Optionen verfügbar.',
             undelete: 'Wiederherstellen',
             duplicateReport: ({count}: {count: number}) => `Duplikat ${count === 1 ? 'Bericht' : 'Berichte'}`,
+        },
+        expensifyCardStatementPDF: {
+            title: 'Kontoauszug herunterladen',
+            oneFeedAtATime: 'Bitte wählen Sie Abrechnungen aus jeweils nur einem Expensify Card-Feed aus.',
         },
         filtersHeader: 'Filter',
         filters: {
@@ -10328,6 +10334,7 @@ Hey! Ich habe gerade für uns *3 kostenlose Monate* bekommen, um Expensify zu te
 Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     },
     export: {
+        downloadStatementPDF: 'Kontoauszug herunterladen',
         basicExport: 'Standardexport',
         reportLevelExport: 'Alle Daten – Berichtsebene',
         expenseLevelExport: 'Alle Daten – Ausgabenebene',
