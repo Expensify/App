@@ -411,7 +411,9 @@ function IOURequestStepConfirmation({
             if (shouldKeepOnSelfDM) {
                 setMoneyRequestParticipantsFromReport(activeTransactionID, selfDMReport, currentUserPersonalDetails.accountID);
                 setTransactionReport(activeTransactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
-                navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
+                if (iouType !== CONST.IOU.TYPE.TRACK) {
+                    navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
+                }
             } else {
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) {
                     navigation.setParams({iouType: CONST.IOU.TYPE.CREATE});
