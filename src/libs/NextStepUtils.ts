@@ -54,7 +54,7 @@ function buildNextStepMessage(
     nextStep: ReportNextStep,
     translate: LocaleContextProps['translate'],
     currentUserAccountID: number,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = formatPhoneNumberPhoneUtils,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
     const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, translate}) ?? '');
