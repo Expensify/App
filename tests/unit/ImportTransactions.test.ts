@@ -13,7 +13,7 @@ import Onyx from 'react-native-onyx';
 import createMock from '../utils/createMock';
 import {getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall} from '../utils/TestHelper';
 
-type APIWriteSpy = jest.SpiedFunction<typeof API.write>;
+let writeSpy: jest.SpiedFunction<typeof API.write>;
 
 describe('ImportTransactions', () => {
     beforeEach(() => {
@@ -888,8 +888,6 @@ describe('ImportTransactions', () => {
             },
             containsHeader: true,
         });
-
-        let writeSpy: APIWriteSpy;
 
         beforeEach(() => {
             writeSpy = jest.spyOn(API, 'write').mockRejectedValue(new Error('forced'));
