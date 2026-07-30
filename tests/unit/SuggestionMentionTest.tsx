@@ -1,6 +1,7 @@
 import {act, render, waitFor} from '@testing-library/react-native';
 
 import type {TextSelection} from '@components/Composer/types';
+import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
 import type {Mention} from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
@@ -15,6 +16,7 @@ import usePolicy from '@hooks/usePolicy';
 
 import SuggestionMention from '@pages/inbox/report/ReportActionCompose/SuggestionMention';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, PolicyEmployeeList, Report} from '@src/types/onyx';
 
@@ -23,6 +25,7 @@ import type {UseOnyxResult} from 'react-native-onyx';
 import React from 'react';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 
 type MentionSuggestionsProps = {
     mentions: Mention[];
@@ -32,11 +35,22 @@ type MentionSuggestionsProps = {
 
 const mockMentionSuggestionsSpy = jest.fn<void, [MentionSuggestionsProps]>();
 const mockSetHighlightedMentionIndex = jest.fn<void, [number]>();
-const mockIcons = {Megaphone: 'megaphone', FallbackAvatar: 'fallback'};
-const mockLocalize = {
-    translate: (key: string) => key,
+const mockIcons = createMock<ReturnType<typeof useMemoizedLazyExpensifyIcons>>({Megaphone: PlaceholderIcon, FallbackAvatar: PlaceholderIcon});
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- Translation interpolation parameters are intentionally ignored by this mock.
+const mockTranslate: ReturnType<typeof useLocalize>['translate'] = (key, ..._parameters) => String(key);
+const mockLocalize: ReturnType<typeof useLocalize> = {
+    translate: mockTranslate,
+    numberFormat: () => '',
+    getLocalDateFromDatetime: () => new Date(),
+    datetimeToRelative: () => '',
+    datetimeToCalendarTime: () => '',
     formatPhoneNumber: (value: string) => value,
+    toLocaleDigit: () => '',
+    toLocaleOrdinal: () => '',
+    fromLocaleDigit: () => '',
     localeCompare: (first: string, second: string) => first.localeCompare(second),
+    formatTravelDate: () => '',
+    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 const mockReports = {};
 
@@ -115,6 +129,23 @@ function getLastMentionSuggestionsProps(): MentionSuggestionsProps {
     return props;
 }
 
+type UseOnyxCall = Parameters<typeof useOnyx>;
+type UseOnyxCallResult = ReturnType<typeof useOnyx>;
+
+const mockUseOnyxImplementation = (...args: UseOnyxCall): UseOnyxCallResult => {
+    const [key] = args;
+    if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
+        return createOnyxResult<string>('');
+    }
+    if (key === ONYXKEYS.COLLECTION.REPORT) {
+        return createOnyxResult<typeof mockReports>(mockReports);
+    }
+    if (typeof key === 'string' && key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
+        return createOnyxResult<Report | undefined>(mockCurrentReport);
+    }
+    return createOnyxResult<unknown>(undefined);
+};
+
 describe('SuggestionMention', () => {
     beforeEach(() => {
         mockMentionSuggestionsSpy.mockClear();
@@ -131,21 +162,9 @@ describe('SuggestionMention', () => {
             callbackRef.current = callback;
             return React.useCallback((...args: unknown[]) => callbackRef.current(...args), []) as typeof callback;
         });
-        mockUseMemoizedLazyExpensifyIcons.mockImplementation((() => mockIcons) as unknown as typeof useMemoizedLazyExpensifyIcons);
-        mockUseLocalize.mockImplementation(() => mockLocalize as ReturnType<typeof useLocalize>);
-        mockUseOnyx.mockImplementation(((...args: Parameters<typeof useOnyx>) => {
-            const key = args[0];
-            if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
-                return createOnyxResult<string>('');
-            }
-            if (key === ONYXKEYS.COLLECTION.REPORT) {
-                return createOnyxResult<typeof mockReports>(mockReports);
-            }
-            if (typeof key === 'string' && key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
-                return createOnyxResult<Report | undefined>(mockCurrentReport);
-            }
-            return createOnyxResult<unknown>(undefined);
-        }) as typeof useOnyx);
+        mockUseMemoizedLazyExpensifyIcons.mockImplementation(() => mockIcons);
+        mockUseLocalize.mockImplementation(() => createMock<ReturnType<typeof useLocalize>>(mockLocalize));
+        mockUseOnyx.mockImplementation(mockUseOnyxImplementation);
         mockUsePolicy.mockReturnValue(undefined);
     });
 
@@ -275,9 +294,10 @@ describe('SuggestionMention', () => {
         };
 
         const buildReportWithParticipant = (overrides: Partial<Report>): Report => {
-            const participants: Record<number, {notificationPreference: string}> = {};
-            participants[PARTICIPANT_ACCOUNT_ID] = {notificationPreference: 'always'};
-            return {...overrides, participants} as unknown as Report;
+            const participants = {
+                [PARTICIPANT_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            };
+            return createMock<Report>({...overrides, participants});
         };
 
         it('weights report participants above policy employees and everyone else for a group chat', async () => {

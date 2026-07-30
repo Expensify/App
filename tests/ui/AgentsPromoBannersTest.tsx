@@ -53,9 +53,11 @@ jest.mock('@libs/actions/Policy/Rules', () => {
 });
 
 jest.mock('@components/RenderHTML', () => {
-    const ReactMock = require('react') as typeof React;
+    const ReactMock = jest.requireActual<typeof React>('react');
 
-    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+    // Keep the requireActual boundary's full module shape; this type-only import syntax is the repository-approved exception to the import-style lint rule.
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+    const {Text} = jest.requireActual<typeof import('react-native')>('react-native');
 
     return ({html}: {html: string}) => {
         const plainText = html.replaceAll(/<[^>]*>/g, '');
@@ -89,11 +91,11 @@ function buildPolicy(): Policy {
     } as Policy;
 }
 
-const rulesRoute = {
+const rulesRoute: React.ComponentProps<typeof PolicyRulesPage>['route'] = {
     key: 'rules-route',
     name: SCREENS.WORKSPACE.RULES,
     params: {policyID: POLICY_ID},
-} as never;
+};
 
 const renderRulesPage = () =>
     render(

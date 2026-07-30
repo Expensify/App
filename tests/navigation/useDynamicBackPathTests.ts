@@ -2,6 +2,8 @@ import {renderHook} from '@testing-library/react-native';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 
+import isDynamicRouteSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/isDynamicRouteSuffix';
+
 import type {DynamicRouteSuffix} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
@@ -27,6 +29,13 @@ jest.mock('@src/ROUTES', () => ({
 
 const useRootNavigationStateMock = jest.requireMock<jest.Mock>('@hooks/useRootNavigationState');
 const getPathFromStateMock: jest.Mock = jest.requireMock('@libs/Navigation/helpers/getPathFromState');
+
+function getMockDynamicRouteSuffix(path: string): DynamicRouteSuffix {
+    if (!isDynamicRouteSuffix(path)) {
+        throw new Error(`Expected mocked dynamic route suffix to be recognized: ${path}`);
+    }
+    return path;
+}
 
 describe('useDynamicBackPath', () => {
     beforeEach(() => {
@@ -97,8 +106,8 @@ describe('useDynamicBackPath', () => {
         expect(result.current).toBe('settings/wallet');
     });
 
-    const FLAG_COMMENT_PATH = 'flag/:reportID/:reportActionID' as DynamicRouteSuffix;
-    const MEMBER_DETAILS_PATH = 'member-details/:accountID' as DynamicRouteSuffix;
+    const FLAG_COMMENT_PATH = getMockDynamicRouteSuffix('flag/:reportID/:reportActionID');
+    const MEMBER_DETAILS_PATH = getMockDynamicRouteSuffix('member-details/:accountID');
 
     it('should remove parametric suffix with single param', () => {
         getPathFromStateMock.mockReturnValue('r/123/members/member-details/456');
@@ -141,8 +150,8 @@ describe('useDynamicBackPath', () => {
     });
 
     describe('optional path params', () => {
-        const OPT_TRAILING_PATH = 'opt-page/:id?' as DynamicRouteSuffix;
-        const OPT_MIDDLE_PATH = 'wrap/:p?/end' as DynamicRouteSuffix;
+        const OPT_TRAILING_PATH = getMockDynamicRouteSuffix('opt-page/:id?');
+        const OPT_MIDDLE_PATH = getMockDynamicRouteSuffix('wrap/:p?/end');
 
         it('removes a trailing-optional suffix when the optional segment is present', () => {
             getPathFromStateMock.mockReturnValue('r/123/opt-page/789');
