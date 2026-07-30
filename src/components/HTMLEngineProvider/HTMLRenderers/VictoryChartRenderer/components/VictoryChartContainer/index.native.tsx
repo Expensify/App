@@ -46,7 +46,7 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
 
     return (
         <View style={containerStyle}>
-            <VictoryChartLayoutScaleProvider scale={scale}>
+            <VictoryChartLayoutScaleProvider scale={1}>
                 <View style={contentStyle}>{children}</View>
             </VictoryChartLayoutScaleProvider>
         </View>
