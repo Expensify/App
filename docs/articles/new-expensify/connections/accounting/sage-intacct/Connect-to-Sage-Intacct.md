@@ -2,6 +2,7 @@
 title: Connect to Sage Intacct
 description: Set up the Sage Intacct integration in Expensify to streamline expense syncing and reduce manual entry.
 keywords: [New Expensify, Sage Intacct integration, connect Sage Intacct, expense report export, vendor bill export]
+order: 1
 ---
 
 

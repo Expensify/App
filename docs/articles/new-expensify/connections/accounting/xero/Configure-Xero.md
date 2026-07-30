@@ -2,6 +2,7 @@
 title: Configure Xero Settings
 description: Learn how to configure Xero import, export, and advanced sync settings in Expensify.
 keywords: [New Expensify, Xero configuration, set up Xero integration, import export Xero, Xero auto-sync]
+order: 2
 ---
 
 

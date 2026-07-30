@@ -2,6 +2,7 @@
 title: Configure QuickBooks Online
 description: Configure your QuickBooks Online connection with Expensify.
 keywords: [New Expensify, QuickBooks Online, Expensify integration, accounting settings, import settings, export settings]
+order: 2
 ---
 
 

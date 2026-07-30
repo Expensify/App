@@ -2,7 +2,7 @@
 title: Configure Sage Intacct
 description: Configure import, export, and advanced sync settings for Expensify's Sage Intacct integration.
 keywords: [New Expensify, Sage Intacct settings, import configuration, export preferences, auto-sync, custom dimensions]
-order: 3
+order: 2
 ---
 
 
