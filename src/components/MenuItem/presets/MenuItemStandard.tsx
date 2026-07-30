@@ -10,12 +10,13 @@ import MenuItemChevron from '@components/MenuItem/leaves/trailing/MenuItemChevro
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {GestureResponderEvent} from 'react-native';
 
 import React from 'react';
 
-type MenuItemStandardProps = {
+type MenuItemStandardProps = WithSentryLabel & {
     /** The title text of the row */
     title: string;
 
@@ -32,10 +33,7 @@ type MenuItemStandardProps = {
     description?: string;
 
     /** Should we disable this row? */
-    disabled?: boolean;
-
-    /** Label for Sentry tracking */
-    sentryLabel?: string;
+    isDisabled?: boolean;
 };
 
 /**
@@ -43,11 +41,11 @@ type MenuItemStandardProps = {
  * an optional description below it, and an optional trailing chevron. Covers the most common
  * simple-row shape without exposing the full `Root`/composition surface.
  */
-function MenuItemStandard({title, icon, onPress, shouldShowChevron = false, description, disabled = false, sentryLabel}: MenuItemStandardProps) {
+function MenuItemStandard({title, icon, onPress, shouldShowChevron = false, description, isDisabled = false, sentryLabel}: MenuItemStandardProps) {
     return (
         <MenuItemRoot
             onPress={callFunctionIfActionIsAllowed(onPress)}
-            isDisabled={disabled}
+            isDisabled={isDisabled}
             sentryLabel={sentryLabel}
         >
             <MenuItemRow>

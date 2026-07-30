@@ -148,13 +148,13 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     title={translate('editAgentPage.chatWithAgent')}
                     icon={icons.ChatBubble}
                     onPress={handleChatPress}
-                    disabled={areActionsDisabled}
+                    isDisabled={areActionsDisabled}
                 />
                 <MenuItemStandard
                     title={translate('editAgentPage.copilotIntoAccount')}
                     icon={icons.Users}
                     onPress={handleCopilotPress}
-                    disabled={areActionsDisabled}
+                    isDisabled={areActionsDisabled}
                 />
                 <MenuItemStandard
                     title={translate('editAgentPage.deleteAgent')}

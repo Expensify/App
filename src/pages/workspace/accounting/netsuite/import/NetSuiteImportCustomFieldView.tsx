@@ -145,7 +145,7 @@ function NetSuiteImportCustomFieldView({
                     <MenuItemStandard
                         icon={icons.Trashcan}
                         title={translate('common.remove')}
-                        disabled={!!config?.pendingFields?.[importCustomField]}
+                        isDisabled={!!config?.pendingFields?.[importCustomField]}
                         onPress={() => {
                             showConfirmModal({
                                 title: translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removeTitle`),
