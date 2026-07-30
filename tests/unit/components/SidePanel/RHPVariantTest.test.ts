@@ -78,6 +78,15 @@ describe('handleRHPVariantNavigation', () => {
         expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
     });
 
+    it('navigates home for the rhpHomePage variant when preserving the topmost report is disabled', () => {
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+
+        handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE, undefined, false);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
+    });
+
     it('preserves the topmost report for the trackExpensesWithConcierge variant and opens the side panel on top of it', () => {
         mockIsReportTopmostSplitNavigator.mockReturnValue(true);
 
@@ -89,6 +98,15 @@ describe('handleRHPVariantNavigation', () => {
 
     it('navigates home for the trackExpensesWithConcierge variant when no report is topmost', () => {
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
+    });
+
+    it('navigates home for the trackExpensesWithConcierge variant when preserving the topmost report is disabled', () => {
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+
+        handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE, undefined, false);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
         expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);

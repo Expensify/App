@@ -13,11 +13,13 @@ const PENDING_CONCIERGE_DEEP_LINK_STORAGE_KEY = 'PENDING_CONCIERGE_DEEP_LINK';
 const PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_AT_SET_STORAGE_KEY = 'PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_AT_SET';
 const PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY = 'PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN';
 const PENDING_HOME_DEEP_LINK_STORAGE_KEY = 'PENDING_HOME_DEEP_LINK';
+const ROOT_CLEARED_PENDING_CONCIERGE_DEEP_LINK_STORAGE_KEY = 'ROOT_CLEARED_PENDING_CONCIERGE_DEEP_LINK';
 const LEGACY_PERFORMANCE_NAVIGATION_KEY = 'navigation';
 const LEGACY_PERFORMANCE_NAVIGATION_TYPE_KEY = 'type';
 const LEGACY_PERFORMANCE_NAVIGATION_TYPE_RELOAD = 1;
 let hasPendingConciergeDeepLink = false;
 let hasPendingHomeDeepLink = false;
+let didRootClearPendingConciergeDeepLink = false;
 let pendingConciergeCancelTokenAtSet = '';
 
 function getSessionStorage() {
@@ -116,17 +118,24 @@ function clearPendingHomeDeepLink() {
     clearStoredFlag(PENDING_HOME_DEEP_LINK_STORAGE_KEY);
 }
 
-function clearPendingConciergeDeepLink() {
+function setRootClearedPendingConciergeDeepLink() {
+    didRootClearPendingConciergeDeepLink = true;
+    setStoredFlag(ROOT_CLEARED_PENDING_CONCIERGE_DEEP_LINK_STORAGE_KEY);
+}
+
+function clearRootClearedPendingConciergeDeepLink() {
+    didRootClearPendingConciergeDeepLink = false;
+    clearStoredFlag(ROOT_CLEARED_PENDING_CONCIERGE_DEEP_LINK_STORAGE_KEY);
+}
+
+function clearPendingConciergeDeepLink(shouldPreserveRootClearedPendingConciergeDeepLink = false) {
     hasPendingConciergeDeepLink = false;
     clearPendingHomeDeepLink();
     clearStoredFlag(PENDING_CONCIERGE_DEEP_LINK_STORAGE_KEY);
     clearPendingConciergeCancelTokenAtSet();
-}
-
-function setPendingHomeDeepLink() {
-    clearPendingConciergeDeepLink();
-    hasPendingHomeDeepLink = true;
-    setStoredFlag(PENDING_HOME_DEEP_LINK_STORAGE_KEY);
+    if (!shouldPreserveRootClearedPendingConciergeDeepLink) {
+        clearRootClearedPendingConciergeDeepLink();
+    }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -163,7 +172,7 @@ function setPendingHomeDeepLinkIfNoPendingConcierge() {
     if (hasPendingConciergeDeepLinkIntent()) {
         return;
     }
-    setPendingHomeDeepLink();
+    clearPendingHomeDeepLink();
 }
 
 function setPendingHomeDeepLinkForRoot() {
@@ -172,13 +181,20 @@ function setPendingHomeDeepLinkForRoot() {
         setPendingHomeDeepLinkIfNoPendingConcierge();
         return;
     }
+    if (!hasPendingConciergeDeepLinkFlag()) {
+        clearPendingHomeDeepLink();
+        setRootClearedPendingConciergeDeepLink();
+        return;
+    }
     if (!isDocumentHidden()) {
         setCancelToken();
     }
-    setPendingHomeDeepLink();
+    clearPendingConciergeDeepLink(true);
+    setRootClearedPendingConciergeDeepLink();
 }
 
 function setPendingConciergeDeepLink() {
+    clearRootClearedPendingConciergeDeepLink();
     clearPendingHomeDeepLink();
     hasPendingConciergeDeepLink = true;
     setStoredFlag(PENDING_CONCIERGE_DEEP_LINK_STORAGE_KEY);
@@ -244,8 +260,16 @@ function consumePendingHomeDeepLink() {
 
 function consumePendingConciergeDeepLink() {
     const shouldNavigateToConcierge = hasPendingConciergeDeepLinkIntent();
-    clearPendingConciergeDeepLink();
+    const shouldPreserveRootClearedPendingConciergeDeepLink =
+        !shouldNavigateToConcierge && (didRootClearPendingConciergeDeepLink || hasStoredFlag(ROOT_CLEARED_PENDING_CONCIERGE_DEEP_LINK_STORAGE_KEY));
+    clearPendingConciergeDeepLink(shouldPreserveRootClearedPendingConciergeDeepLink);
     return shouldNavigateToConcierge;
+}
+
+function consumeRootClearedPendingConciergeDeepLink() {
+    const shouldUseStandardOnboardingRoute = didRootClearPendingConciergeDeepLink || hasStoredFlag(ROOT_CLEARED_PENDING_CONCIERGE_DEEP_LINK_STORAGE_KEY);
+    clearRootClearedPendingConciergeDeepLink();
+    return shouldUseStandardOnboardingRoute;
 }
 
 export {
@@ -255,5 +279,6 @@ export {
     updatePendingConciergeDeepLinkForRoute,
     consumePendingConciergeDeepLink,
     consumePendingHomeDeepLink,
+    consumeRootClearedPendingConciergeDeepLink,
     clearPendingConciergeDeepLink,
 };

@@ -82,7 +82,7 @@ describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
         expect(consumePendingConciergeDeepLink()).toBe(true);
     });
 
-    it('navigates to Home before Workspace Categories when root replaced pending Concierge', () => {
+    it('navigates to Workspace Categories when root clears pending Concierge', () => {
         setPendingConciergeDeepLink();
         updatePendingConciergeDeepLinkForRoute('', false);
 
@@ -90,6 +90,6 @@ describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
 
         expect(navigationMock.dismissModal).toHaveBeenCalledTimes(1);
         expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
-        expect(navigationMock.navigate).toHaveBeenCalledWith(ROUTES.HOME);
+        expect(navigationMock.navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACES_LIST.route)}`);
     });
 });

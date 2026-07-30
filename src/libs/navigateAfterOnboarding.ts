@@ -17,7 +17,7 @@ import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostS
 import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
-import {consumePendingConciergeDeepLink, consumePendingHomeDeepLink} from './PendingConciergeDeepLink';
+import {consumePendingConciergeDeepLink, consumePendingHomeDeepLink, consumeRootClearedPendingConciergeDeepLink} from './PendingConciergeDeepLink';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
 
 let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
@@ -57,6 +57,15 @@ function navigateToPendingDeepLinkAfterOnboarding(conciergeReportID?: string) {
     }
 
     Navigation.navigate(pendingDeepLinkRoute);
+    return true;
+}
+
+function navigateToRootRouteBeforeOnboardingUnmount() {
+    if (!consumeRootClearedPendingConciergeDeepLink()) {
+        return false;
+    }
+
+    Navigation.navigate(ROUTES.HOME);
     return true;
 }
 
@@ -113,6 +122,8 @@ function navigateAfterOnboarding(
         return;
     }
 
+    const shouldUseStandardRouteAfterRootClearedConcierge = consumeRootClearedPendingConciergeDeepLink();
+
     // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
     // should navigate directly to the Concierge DM (which contains onboarding tasks).
     // This check is outside shouldOpenRHPVariant because that function returns false on native
@@ -126,7 +137,7 @@ function navigateAfterOnboarding(
     }
 
     if (shouldOpenRHPVariant(variantOverride)) {
-        handleRHPVariantNavigation(onboardingPolicyID, variantOverride, navigationOptions);
+        handleRHPVariantNavigation(onboardingPolicyID, variantOverride, navigationOptions, shouldUseStandardRouteAfterRootClearedConcierge ? false : undefined);
         return;
     }
 
@@ -141,7 +152,7 @@ function navigateAfterOnboarding(
     );
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), navigationOptions);
-    } else if (!isReportTopmostSplitNavigator()) {
+    } else if (shouldUseStandardRouteAfterRootClearedConcierge || !isReportTopmostSplitNavigator()) {
         // Navigate to home to trigger guard evaluation
         Navigation.navigate(ROUTES.HOME, navigationOptions);
     }
@@ -218,4 +229,10 @@ function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: s
     });
 }
 
-export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue};
+export {
+    navigateAfterOnboarding,
+    navigateAfterOnboardingWithMicrotaskQueue,
+    navigateToPendingDeepLinkAfterOnboarding,
+    navigateToRootRouteBeforeOnboardingUnmount,
+    navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue,
+};

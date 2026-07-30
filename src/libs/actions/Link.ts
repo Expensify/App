@@ -499,6 +499,10 @@ function openReportFromDeepLink(
 
     updatePendingConciergeDeepLinkForRoute(route, isAuthenticated);
 
+    if (!isAuthenticated && normalizePath(route) === normalizePath(ROUTES.ROOT)) {
+        return;
+    }
+
     // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
     if (!isAuthenticated && isPublicScreenRoute(route)) {
         return;

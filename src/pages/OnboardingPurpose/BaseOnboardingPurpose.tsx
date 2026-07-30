@@ -17,7 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding, navigateToRootRouteBeforeOnboardingUnmount} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
@@ -154,6 +154,9 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         adminsChatReport,
                         onBeforeOnboardingModalUnmount: () => {
                             didNavigateToPendingDeepLink = navigateToPendingDeepLinkAfterOnboarding(conciergeReportID);
+                            if (!didNavigateToPendingDeepLink) {
+                                navigateToRootRouteBeforeOnboardingUnmount();
+                            }
                         },
                     }).then(() => {
                         if (didNavigateToPendingDeepLink) {
