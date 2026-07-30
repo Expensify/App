@@ -122,6 +122,13 @@ function isFetchAlreadyStalled(lastUpdateIDFromClient: number): boolean {
 registerPauseWatchdogEscalation(() => {
     const lastUpdateIDFromClient = lastUpdateIDAppliedToClient ?? CONST.DEFAULT_NUMBER_ID;
 
+    // Only the leader closes gaps over the network (see handleMissingOnyxUpdates); escalating on a follower
+    // would fire a duplicate out-of-queue ReconnectApp.
+    if (!isClientTheLeader()) {
+        Log.info('[OnyxUpdateManager] Pause watchdog escalation skipped — not the leader client', false, {lastUpdateIDFromClient});
+        return Promise.resolve();
+    }
+
     if (stalledFetch && Date.now() - stalledFetch.time < CONST.NETWORK.STALLED_UPDATES_FETCH_BACKOFF_TIME_MS) {
         Log.info('[OnyxUpdateManager] Pause watchdog escalation skipped — within the stalled-fetch back-off window', false, {lastUpdateIDFromClient});
         return Promise.resolve();
