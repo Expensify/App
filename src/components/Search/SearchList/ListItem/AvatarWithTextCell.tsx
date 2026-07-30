@@ -6,6 +6,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
+import type {StyleProp, TextStyle} from 'react-native';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -13,9 +15,10 @@ type AvatarWithTextCellProps = {
     reportName?: string;
     icon?: Icon;
     isLargeScreenWidth?: boolean;
+    textStyle?: StyleProp<TextStyle>;
 };
 
-function AvatarWithTextCell({reportName, icon, isLargeScreenWidth}: AvatarWithTextCellProps) {
+function AvatarWithTextCell({reportName, icon, isLargeScreenWidth, textStyle}: AvatarWithTextCellProps) {
     const styles = useThemeStyles();
 
     if (!reportName || !icon) {
@@ -39,7 +42,7 @@ function AvatarWithTextCell({reportName, icon, isLargeScreenWidth}: AvatarWithTe
             {!!reportName && (
                 <Text
                     numberOfLines={1}
-                    style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroBold, styles.flexShrink1]}
+                    style={[textStyle ?? (isLargeScreenWidth ? styles.themeTextColor : styles.textMicroBold), styles.flexShrink1]}
                 >
                     {reportName}
                 </Text>
