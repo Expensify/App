@@ -1,3 +1,4 @@
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import RuleCategoriesDisabledEmptyState from '@components/Rule/RuleCategoriesDisabledEmptyState';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
@@ -7,6 +8,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 
+import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {updateDraftFlagForReviewRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
@@ -19,7 +21,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 
-import React from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback} from 'react';
 
 type FlagForReviewRuleCategoryPageBaseProps = {
     policyID: string;
@@ -36,6 +39,8 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const areCategoriesEnabled = !!policy?.areCategoriesEnabled;
+    const arePolicyCategoriesLoading = areCategoriesEnabled && policyCategories === undefined;
 
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
     const selectedCategoryItem = selectedCategoryName ? {name: getDecodedCategoryName(selectedCategoryName), value: selectedCategoryName} : undefined;
@@ -64,6 +69,21 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
             return {name: decodedCategoryName, value: category.name};
         });
 
+    const fetchPolicyCategories = useCallback(() => {
+        if (!areCategoriesEnabled || policyCategories !== undefined) {
+            return;
+        }
+        openPolicyCategoriesPage(policyID);
+    }, [areCategoriesEnabled, policyCategories, policyID]);
+
+    useNetwork({onReconnect: fetchPolicyCategories});
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyCategories();
+        }, [fetchPolicyCategories]),
+    );
+
     const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
@@ -74,6 +94,13 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
             [INPUT_IDS.CATEGORY]: value,
         });
     };
+
+    let emptyState: React.ReactNode;
+    if (!areCategoriesEnabled) {
+        emptyState = <RuleCategoriesDisabledEmptyState policyID={policyID} />;
+    } else if (arePolicyCategoriesLoading) {
+        emptyState = <FullScreenLoadingIndicator />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -93,7 +120,7 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
                 backToRoute={backToRoute}
                 allowNoneOption={false}
                 shouldSkipFocusRestoreOnSave
-                emptyState={policy?.areCategoriesEnabled ? undefined : <RuleCategoriesDisabledEmptyState policyID={policyID} />}
+                emptyState={emptyState}
             />
         </AccessOrNotFoundWrapper>
     );

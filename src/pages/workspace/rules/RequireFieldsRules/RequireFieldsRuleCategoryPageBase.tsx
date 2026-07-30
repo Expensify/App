@@ -1,3 +1,4 @@
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import RuleCategoriesDisabledEmptyState from '@components/Rule/RuleCategoriesDisabledEmptyState';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
@@ -7,6 +8,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 
+import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {setDraftRequireFieldsRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,7 +21,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 
-import React from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback} from 'react';
 
 type RequireFieldsRuleCategoryPageBaseProps = {
     policyID: string;
@@ -43,6 +46,8 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
 
     const [form] = useOnyx(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const areCategoriesEnabled = !!policy?.areCategoriesEnabled;
+    const arePolicyCategoriesLoading = areCategoriesEnabled && policyCategories === undefined;
 
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
     const selectedCategory = selectedCategoryName ? policyCategories?.[selectedCategoryName] : undefined;
@@ -76,6 +81,21 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
             const decodedCategoryName = getDecodedCategoryName(category.name);
             return {name: decodedCategoryName, value: category.name};
         });
+
+    const fetchPolicyCategories = useCallback(() => {
+        if (!areCategoriesEnabled || policyCategories !== undefined) {
+            return;
+        }
+        openPolicyCategoriesPage(policyID);
+    }, [areCategoriesEnabled, policyCategories, policyID]);
+
+    useNetwork({onReconnect: fetchPolicyCategories});
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyCategories();
+        }, [fetchPolicyCategories]),
+    );
 
     const backToRoute = () =>
         getRequireFieldsRuleBackToRoute({
@@ -119,6 +139,13 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
         setDraftRequireFieldsRule(preservedSettings);
     };
 
+    let emptyState: React.ReactNode;
+    if (!areCategoriesEnabled) {
+        emptyState = <RuleCategoriesDisabledEmptyState policyID={policyID} />;
+    } else if (arePolicyCategoriesLoading) {
+        emptyState = <FullScreenLoadingIndicator />;
+    }
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -136,7 +163,7 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
                 onBack={() => Navigation.goBack(backToRoute())}
                 backToRoute={backToRoute}
                 allowNoneOption={false}
-                emptyState={policy?.areCategoriesEnabled ? undefined : <RuleCategoriesDisabledEmptyState policyID={policyID} />}
+                emptyState={emptyState}
             />
         </AccessOrNotFoundWrapper>
     );
