@@ -15,6 +15,7 @@ import SubmitDetailsPage from '@pages/Share/SubmitDetailsPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
 
 import React from 'react';
@@ -214,10 +215,9 @@ async function renderAndConfirm() {
 }
 
 function renderSubmitDetailsPage() {
-    render(
+    return render(
         <SubmitDetailsPage
-            // @ts-expect-error minimal route for test
-            route={{key: 'submit-test', name: 'Share_Submit_Details', params: {reportOrAccountID: SHARED_REPORT_ID}}}
+            route={{key: 'submit-test', name: SCREENS.SHARE.SUBMIT_DETAILS, params: {reportOrAccountID: SHARED_REPORT_ID}}}
             navigation={{} as never}
         />,
     );
@@ -420,5 +420,52 @@ describe('SubmitDetailsPage', () => {
 
         expect(Navigation.removePreInsertedFullscreenIfNeeded).toHaveBeenCalled();
         expect(Navigation.goBack).toHaveBeenCalled();
+    });
+
+    // Error #9 — unmounting between formHasBeenSubmitted and reveal() must not crash or leak stale callbacks.
+    it('handles unmount between submit and reveal without crashing', async () => {
+        jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
+
+        let pendingRevealCallback: (() => void) | undefined;
+        jest.mocked(Navigation.revealRouteBeforeDismissingModal).mockImplementation((_route: unknown, options?: {afterTransition?: () => void}) => {
+            // Simulate reveal being async—store callback but don't call it yet.
+            pendingRevealCallback = options?.afterTransition;
+        });
+
+        const {unmount} = renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('mock-confirm-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Component unmounts before reveal callback fires.
+        unmount();
+
+        // Fire the callback after unmount—should not crash even though component is gone.
+        expect(() => pendingRevealCallback?.()).not.toThrow();
+    });
+
+    // Error #10 — if optimistic report lands under wrong ID, submit must navigate to intended destination, not stray.
+    it('navigates to intended reportID even if optimistic report lands under different ID', async () => {
+        jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
+
+        const wrongReportID = 'report-wrong-id';
+
+        await renderAndConfirm();
+
+        // Simulate expense create landing a report under a different ID (e.g., due to conflict or dedupe).
+        const wrongReport = createTestReport();
+        wrongReport.reportID = wrongReportID;
+        jest.mocked(getReportOrDraftReport).mockReturnValue(wrongReport);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${wrongReportID}`, wrongReport);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Should navigate to the ORIGINAL intended report (SHARED_REPORT_ID), not the mismatched one.
+        expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(
+            ROUTES.REPORT_WITH_ID.getRoute(SHARED_REPORT_ID),
+            expect.objectContaining({afterTransition: expect.any(Function)}),
+        );
     });
 });
