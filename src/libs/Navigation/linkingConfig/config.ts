@@ -2184,8 +2184,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     // Both would otherwise fall through to NOT_FOUND, since patterns are matched case-sensitively.
                     alias: [
                         {path: ROUTES.ROOT, exact: true},
-                        {path: CONST.SIGNIN_ROUTE, exact: true},
-                        {path: `/${SCREENS.HOME}`, exact: true},
+                        {path: CONST.SIGNIN_ROUTE.replace(/^\//, ''), exact: true},
+                        {path: SCREENS.HOME, exact: true},
                     ],
                     exact: true,
                 },
