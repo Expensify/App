@@ -147,17 +147,13 @@ function WorkspaceCompanyCardsTable({
 
     const isImportingCards = !!bankName && !!companyCardsLoadingState?.feeds?.[bankName]?.isImporting;
 
-    // Clear the importing state once cards arrive or the fallback timeout elapses
+    // Clear the importing state as soon as the feed's cards arrive. The fallback that caps how long the importing state
+    // can show is scheduled by the import action itself, so it survives leaving this table or switching feeds.
     useEffect(() => {
-        if (!isImportingCards || !bankName) {
+        if (!isImportingCards || !bankName || !hasCards) {
             return;
         }
-        if (hasCards) {
-            clearCompanyCardsFeedImportingState(domainOrWorkspaceAccountID, bankName);
-            return;
-        }
-        const timeoutID = setTimeout(() => clearCompanyCardsFeedImportingState(domainOrWorkspaceAccountID, bankName), CONST.COMPANY_CARDS.IMPORTING_CARDS_TIMEOUT_MS);
-        return () => clearTimeout(timeoutID);
+        clearCompanyCardsFeedImportingState(domainOrWorkspaceAccountID, bankName);
     }, [isImportingCards, hasCards, bankName, domainOrWorkspaceAccountID]);
 
     const isLoadingOnyxCardList = !hasCards && isLoadingOnyxValue(cardListMetadata);

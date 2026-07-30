@@ -620,11 +620,22 @@ function resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID:
     });
 }
 
+/** Pending fallback timers that clear each feed's importing state, keyed by account and feed */
+const importingCardsTimeoutIDs: Record<string, ReturnType<typeof setTimeout>> = {};
+
+function getImportingCardsTimerKey(domainOrWorkspaceAccountID: number, bankName: CompanyCardFeedWithNumber) {
+    return `${domainOrWorkspaceAccountID}_${bankName}`;
+}
+
 /** Clears the importing state for a feed once its cards arrive or the fallback timeout elapses */
 function clearCompanyCardsFeedImportingState(domainOrWorkspaceAccountID: number, bankName: CompanyCardFeedWithNumber | undefined) {
     if (!bankName) {
         return;
     }
+
+    const timerKey = getImportingCardsTimerKey(domainOrWorkspaceAccountID, bankName);
+    clearTimeout(importingCardsTimeoutIDs[timerKey]);
+    delete importingCardsTimeoutIDs[timerKey];
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`, {
         feeds: {
@@ -633,6 +644,21 @@ function clearCompanyCardsFeedImportingState(domainOrWorkspaceAccountID: number,
             },
         },
     });
+}
+
+/**
+ * Schedules the fallback that clears a feed's importing state if imported cards never arrive. The importing state lives
+ * in a RAM-only Onyx key, so this module-scoped timer shares the state's lifetime and caps the importing state at
+ * IMPORTING_CARDS_TIMEOUT_MS no matter which screens the admin visits while the import is in flight.
+ */
+function scheduleClearCompanyCardsFeedImportingState(domainOrWorkspaceAccountID: number, bankName: CompanyCardFeedWithNumber | undefined) {
+    if (!bankName) {
+        return;
+    }
+
+    const timerKey = getImportingCardsTimerKey(domainOrWorkspaceAccountID, bankName);
+    clearTimeout(importingCardsTimeoutIDs[timerKey]);
+    importingCardsTimeoutIDs[timerKey] = setTimeout(() => clearCompanyCardsFeedImportingState(domainOrWorkspaceAccountID, bankName), CONST.COMPANY_CARDS.IMPORTING_CARDS_TIMEOUT_MS);
 }
 
 function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeedWithNumber, lastScrapeResult?: number, breakConnection?: boolean) {
@@ -1391,6 +1417,8 @@ function importCSVCompanyCards({
             },
         });
     }
+
+    scheduleClearCompanyCardsFeedImportingState(workspaceAccountID, feedName);
 
     return API.write(WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS, parameters, {
         optimisticData,
