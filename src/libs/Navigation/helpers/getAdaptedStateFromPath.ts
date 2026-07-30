@@ -37,7 +37,6 @@ import getParamsFromRoute from './getParamsFromRoute';
 import getStateFromPath from './getStateFromPath';
 import {isFullScreenName} from './isNavigatorName';
 import normalizePath from './normalizePath';
-import redirectRootPathToHome from './redirectRootPathToHome';
 import replacePathInNestedState from './replacePathInNestedState';
 
 type GetAdaptedStateReturnType = ReturnType<typeof getStateFromPath>;
@@ -451,8 +450,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
     let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     normalizedPath = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
-
-    normalizedPath = redirectRootPathToHome(normalizedPath);
 
     const state = getStateFromPath(normalizedPath as RoutePath) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {

@@ -27,6 +27,13 @@ describe('root path', () => {
         expect(getFocusedScreenName('/signin')).toBe(SCREENS.HOME);
     });
 
+    it('keeps the query params of a root URL', () => {
+        const state = getAdaptedStateFromPath('/?delegatorEmail=delegator%40expensify.com', undefined);
+
+        expect(findFocusedRoute(state)?.name).toBe(SCREENS.HOME);
+        expect(findFocusedRoute(state)?.params).toEqual({delegatorEmail: 'delegator@expensify.com'});
+    });
+
     it('serializes Home back to the canonical /home path', () => {
         expect(roundTrip('/')).toBe('/home');
     });

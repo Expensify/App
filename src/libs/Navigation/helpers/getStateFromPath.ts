@@ -15,7 +15,6 @@ import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDyna
 import getStateForDynamicRoute from './dynamicRoutesUtils/getStateForDynamicRoute';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import getMatchingNewRoute from './getMatchingNewRoute';
-import redirectRootPathToHome from './redirectRootPathToHome';
 
 /**
  * @param path - The path to parse
@@ -23,7 +22,7 @@ import redirectRootPathToHome from './redirectRootPathToHome';
  */
 function getStateFromPath(path: Route): PartialState<NavigationState> {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
-    const normalizedPathAfterRedirection = redirectRootPathToHome(getMatchingNewRoute(normalizedPath) ?? normalizedPath);
+    const normalizedPathAfterRedirection = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
     // Collect all syntactic matches and validate each one against entryScreens.
     // This prevents false-positive greedy matches where a user-defined name (e.g. a tag
