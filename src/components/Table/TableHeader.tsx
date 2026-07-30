@@ -270,7 +270,10 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
             style={
                 isTableSemanticsEnabled
-                    ? [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.flex1, !column.sortable && styles.cursorDefault]
+                    ? // The column's `containerStyles` (e.g. `justifyContentEnd`) are horizontal-alignment styles meant for the
+                      // header row, so they belong on this `flexRow` button rather than the column-direction cell wrapper below,
+                      // where `justify-content` would act on the vertical axis and leave the label mis-aligned.
+                      [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.flex1, column.styling?.containerStyles, !column.sortable && styles.cursorDefault]
                     : tableHeaderStyles
             }
             onPress={() => toggleSorting(column.key)}
@@ -288,7 +291,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
     // announces the header once (via the button's accessibilityLabel) instead of re-reading the cell's contents.
     return (
         <View
-            style={[column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles]}
+            style={column.styling?.flex ? {flex: column.styling.flex} : styles.flex1}
             {...getColumnHeaderAccessibilityProps(true, !!column.sortable, isSortingByColumn, activeSorting.order, columnIndex)}
         >
             {sortButton}
