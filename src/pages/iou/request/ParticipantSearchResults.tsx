@@ -58,6 +58,10 @@ import ParticipantSelectorFooter from './ParticipantSelectorFooter';
 
 const sanitizedSelectedParticipant = (option: Option | OptionData, iouType: IOUType) => ({
     ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber', 'displayName'),
+    // A report-less Contacts option carries an empty-string reportID sentinel. Normalize it to undefined so downstream
+    // readers that rely on `!== undefined`/`??` (e.g. initiallySelectedReportID guard, useParticipantSubmission ref)
+    // don't treat the empty string as a real reportID, which would produce a spurious checkmark and an invalid route.
+    reportID: option.reportID ? option.reportID : undefined,
     selected: true,
     iouType,
 });
@@ -376,6 +380,7 @@ function ParticipantSearchResults({
                               userToInviteExpenseReport,
                               userToInviteExpenseReportPolicy,
                               translate,
+                              currentUserAccountID,
                               reportAttributesDerived,
                           )
                         : getParticipantsOption(participant, personalDetails, translate);
