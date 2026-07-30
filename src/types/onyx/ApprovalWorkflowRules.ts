@@ -73,12 +73,8 @@ type ApprovalWorkflowFilter = {
 };
 
 /**
- * The body of a single approval-workflow rule. This is exactly what is stored in the server `rules`
- * table `value` column, what is sent over the wire to `SetApprovalWorkflow`, and (extended with
- * `scope`/`scopeID`) what is stored in the `ONYXKEYS.COLLECTION.RULE` collection.
- *
- * When the report event matches one of the `triggers` and the `filters` match the report, the rule's
- * `actions` are performed (forward the report to an approver, or approve it).
+ * The body of a single approval-workflow rule. When the report event matches one of the `triggers` and
+ * the `filters` match the report, the rule's `actions` are performed
  */
 type ApprovalWorkflowRule = {
     /** Report lifecycle events that fire this rule. */

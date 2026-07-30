@@ -57,7 +57,7 @@ const ownerEmail = 'owner@gmail.com';
 
 /**
  * Reads every rule in the `ONYXKEYS.COLLECTION.RULE` collection that belongs to the given policy and is
- * not optimistically pending deletion. This mirrors what the app treats as the policy's live rule set.
+ * not optimistically pending deletion.
  */
 async function getRulesCollection(): Promise<OnyxCollection<Rule>> {
     let collection: OnyxCollection<Rule> = {};
@@ -77,13 +77,13 @@ async function getActivePolicyRules(policyID: string): Promise<Rule[]> {
     );
 }
 
-/** Build the index-keyed object shape the rules API uses for lists (`['a'] -> {'0': 'a'}`). */
+/** Build the index-keyed object shape the rules API uses for lists */
 function indexMap<T>(...values: T[]): Record<string, T> {
     return Object.fromEntries(values.map((value, index) => [String(index), value]));
 }
 
-/** Seed the two rules (submit -> forward, approve -> finalize) that describe a `submitters -> approver` workflow. */
-async function seedForwardApproveRules(policyID: string, submitters: string[], approver: string) {
+/** Write the two rules (submit -> forward, approve -> finalize) that describe a `submitters -> approver` workflow. */
+async function createForwardApproveRules(policyID: string, submitters: string[], approver: string) {
     await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule1`, {
         scope: CONST.RULES.SCOPE.POLICY,
         scopeID: policyID,
@@ -961,7 +961,7 @@ describe('actions/Workflow', () => {
             };
 
             // Existing workflow: employee1 (A) and employee2 (B) submit to owner (C).
-            await seedForwardApproveRules(policyID, [employee1Email, employee2Email], ownerEmail);
+            await createForwardApproveRules(policyID, [employee1Email, employee2Email], ownerEmail);
 
             // New workflow: employee3 (D) submits to owner (C) — same chain as the existing workflow.
             const approvalWorkflow = {
@@ -1064,7 +1064,7 @@ describe('actions/Workflow', () => {
             };
 
             // Seed the existing [employee1] → [owner] workflow as rules in the collection.
-            await seedForwardApproveRules(policyID, [employee1Email], ownerEmail);
+            await createForwardApproveRules(policyID, [employee1Email], ownerEmail);
 
             const initialApprovalWorkflow = {
                 members: [{email: employee1Email, displayName: employee1Email}],
@@ -1114,7 +1114,7 @@ describe('actions/Workflow', () => {
             };
 
             // Seed the existing [employee1] → [owner] workflow as rules in the collection.
-            await seedForwardApproveRules(policyID, [employee1Email], ownerEmail);
+            await createForwardApproveRules(policyID, [employee1Email], ownerEmail);
 
             const approvalWorkflow = {
                 members: [{email: employee1Email, displayName: employee1Email}],

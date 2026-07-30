@@ -135,9 +135,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             ? convertApprovalWorkflowRulesToWorkflows(conversionParams)
             : convertPolicyEmployeesToApprovalWorkflows(conversionParams);
 
-        // `firstApproverEmail` isn't unique once rule-based chains diverge, so prefer matching on the
-        // member that opened this workflow (a member belongs to exactly one workflow). Fall back to the
-        // first-approver match for the default workflow (no members) and legacy/unspecified cases.
         const memberEmail = route.params.memberEmail;
         const currentApprovalWorkflow =
             (memberEmail ? result.approvalWorkflows.find((workflow) => workflow.members.some((member) => member.email === memberEmail)) : undefined) ??
