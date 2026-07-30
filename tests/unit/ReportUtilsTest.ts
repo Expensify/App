@@ -16595,6 +16595,76 @@ describe('ReportUtils', () => {
                 // Callers that haven't been migrated yet omit translate and keep the previous global-driven output
                 expect(getReportPreviewReportActionMessage({reportOrID: iouReport})).toBe(getReportPreviewReportActionMessage({reportOrID: iouReport}, englishTranslate));
             });
+
+            it('resolves the latest-expense requestor name through the injected translate function', async () => {
+                const hiddenRequestorAccountID = 246812;
+                const iouReport: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'preview-action-requestor-report',
+                    type: CONST.REPORT.TYPE.IOU,
+                    currency: CONST.CURRENCY.USD,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                // The last actor has no name, so their slot resolves to the "hidden" copy produced by the injected translate
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [hiddenRequestorAccountID]: {accountID: hiddenRequestorAccountID, login: '', displayName: ''},
+                });
+                const iouReportAction: ReportAction = {
+                    ...LHNTestUtils.getFakeReportAction(),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: hiddenRequestorAccountID,
+                    originalMessage: {
+                        IOUReportID: iouReport.reportID,
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        amount: 12300,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                };
+
+                const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
+                    path === 'common.hidden' ? 'HiddenRequestorMarker' : translate(CONST.LOCALES.EN, path, ...parameters);
+
+                const result = getReportPreviewReportActionMessage({reportOrID: iouReport, iouReportAction}, translateWithMarker);
+
+                // The latest-expense preview prefixes the requestor resolved through the provided translate
+                expect(result).toBe('HiddenRequestorMarker: $123.00');
+            });
+
+            it('resolves the owner name of non-reimbursable spend through the injected translate function', async () => {
+                const hiddenOwnerAccountID = 246813;
+                const iouReport: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'preview-action-owner-report',
+                    type: CONST.REPORT.TYPE.IOU,
+                    currency: CONST.CURRENCY.USD,
+                    ownerAccountID: hiddenOwnerAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                // The report owner has no name, so their slot resolves to the "hidden" copy produced by the injected translate
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [hiddenOwnerAccountID]: {accountID: hiddenOwnerAccountID, login: '', displayName: ''},
+                });
+                // A non-reimbursable transaction routes the preview into the "spent" branch
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}preview-owner-transaction`, {
+                    transactionID: 'preview-owner-transaction',
+                    reportID: iouReport.reportID,
+                    reimbursable: false,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                });
+                await waitForBatchedUpdates();
+
+                const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenOwnerMarker' : translate(CONST.LOCALES.EN, path, ...parameters));
+
+                const result = getReportPreviewReportActionMessage({reportOrID: iouReport}, translateWithMarker);
+
+                // The non-reimbursable preview resolves the owner through the provided translate
+                expect(result).toContain('HiddenOwnerMarker spent');
+            });
         });
     });
 
