@@ -219,6 +219,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE]: {
+                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT.route,
                             exact: true,
@@ -954,6 +958,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE]: DYNAMIC_ROUTES.WORKSPACE_INVITE.path,
                         [SCREENS.WORKSPACE.MEMBERS_IMPORT]: {
                             path: ROUTES.WORKSPACE_MEMBERS_IMPORT.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_IMPORT]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_IMPORT.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_IMPORTED]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_IMPORTED.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_IMPORTED_CONFIRMATION]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_IMPORTED_CONFIRMATION.route,
                         },
                         [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
                             path: ROUTES.WORKSPACE_MEMBERS_IMPORTED.route,
