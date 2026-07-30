@@ -171,6 +171,7 @@ function updateLegalName(
     legalLastName: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'>,
+    shouldGoBack = true,
 ) {
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
@@ -207,7 +208,9 @@ function updateLegalName(
     API.write(WRITE_COMMANDS.UPDATE_LEGAL_NAME, parameters, {
         optimisticData,
     });
-    Navigation.goBack();
+    if (shouldGoBack) {
+        Navigation.goBack();
+    }
 }
 
 function updateAddress(addresses: Address[], street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {

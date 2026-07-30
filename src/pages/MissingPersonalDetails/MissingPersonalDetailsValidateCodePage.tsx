@@ -34,6 +34,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {getSubPageValues} from './utils';
@@ -121,7 +122,9 @@ function MissingPersonalDetailsValidateCodePage({
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
             descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin ?? '')}
-            sendValidateCode={() => requestValidateCodeAction()}
+            sendValidateCode={() =>
+                requestValidateCodeAction(isVirtualCard ? {reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REVEAL_CARD_DETAILS, reasonCardID: Number.parseInt(cardID, 10)} : undefined)
+            }
             validateCodeActionErrorField="personalDetails"
             handleSubmitForm={handleSubmitForm}
             validateError={!isEmptyObject(revealCardError) ? revealCardError : validateLoginError}
