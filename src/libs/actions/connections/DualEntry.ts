@@ -17,6 +17,7 @@ import type {
     UpdateDualEntrySyncReimbursedReportsParams,
     UpdateDualEntrySyncTaxRatesParams,
     UpdateDualEntrySyncTravelInvoicingSettlementsParams,
+    UpdateDualEntryTravelInvoicingPayableAccountParams,
     UpdateDualEntryTravelInvoicingSettlementsAccountParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -689,6 +690,24 @@ function updateDualEntryTravelInvoicingSettlementsAccount(
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
+function updateDualEntryTravelInvoicingPayableAccount(
+    policyID: string,
+    travelInvoicingPayableAccountID: DualEntryExport['travelInvoicingPayableAccountID'],
+    oldTravelInvoicingPayableAccountID?: DualEntryExport['travelInvoicingPayableAccountID'],
+) {
+    const onyxData = prepareDualEntryExportOnyxData(
+        policyID,
+        CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT_ID,
+        travelInvoicingPayableAccountID,
+        oldTravelInvoicingPayableAccountID ?? null,
+    );
+    const parameters: UpdateDualEntryTravelInvoicingPayableAccountParams = {
+        policyID,
+        travelInvoicingPayableAccountID,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
+}
+
 export {
     connectToDualEntry,
     clearDualEntryErrorField,
@@ -709,4 +728,5 @@ export {
     updateDualEntrySettlementsAccount,
     updateDualEntrySyncTravelInvoicingSettlements,
     updateDualEntryTravelInvoicingSettlementsAccount,
+    updateDualEntryTravelInvoicingPayableAccount,
 };
