@@ -375,6 +375,13 @@ describe('actions/SendInvoice', () => {
             );
 
             expect(reportLoadingStateUpdate).toBeUndefined();
+            // Then: both reports are stamped as "actions already loaded" so they never hang on an infinite skeleton once online
+            const optimisticData = result.onyxData.optimisticData ?? [];
+            const invoiceReportLoadingState = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceReportID}`);
+            const invoiceRoomLoadingState = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceRoom.reportID}`);
+
+            expect(invoiceReportLoadingState?.value).toMatchObject({hasOnceLoadedReportActions: true});
+            expect(invoiceRoomLoadingState?.value).toMatchObject({hasOnceLoadedReportActions: true});
         });
 
         describe('delegateAccountID forwarding', () => {
