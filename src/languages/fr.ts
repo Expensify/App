@@ -7905,6 +7905,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 findSuggestion: 'Trouver une règle',
                 emptySuggestionsTitle: 'Aucune suggestion disponible',
                 emptySuggestionsSubtitle: 'Essayez d’écrire votre propre règle.',
+                saveConfirmation: {
+                    title: 'Enregistrer la règle',
+                    prompt: 'RuleBot appliquera cette règle aux nouvelles dépenses.',
+                    applyToUnsubmittedExpenses: ({count}: {count: number}) => `Appliquer cette règle à ${count} ${count === 1 ? 'dépense non soumise' : 'dépenses non soumises'}`,
+                },
                 revampSubtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin.',
                 describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',
                 gotIt: 'Compris',

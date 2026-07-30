@@ -1,5 +1,14 @@
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import {addPolicyAgentRule, clearPolicyAgentRuleErrors, clearPolicyCodingRuleErrors, deletePolicyAgentRule, updatePolicyAgentRule} from '@libs/actions/Policy/Rules';
+import {
+    addPolicyAgentRule,
+    clearPolicyAgentRuleErrors,
+    clearPolicyCodingRuleErrors,
+    deletePolicyAgentRule,
+    getPolicyUnsubmittedExpenseCount,
+    updatePolicyAgentRule,
+} from '@libs/actions/Policy/Rules';
+import * as API from '@libs/API';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -101,6 +110,22 @@ describe('actions/PolicyRules', () => {
             const policy = await getPolicy(fakePolicy.id);
             expect(policy?.rules?.agentRules).toBeFalsy();
         });
+
+        it('sends applyToExistingExpenses only when the rule should be applied to existing expenses', () => {
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            addPolicyAgentRule('1', 'agentRule1', 'Prompt', true);
+            expect(writeSpy).toHaveBeenLastCalledWith(
+                WRITE_COMMANDS.ADD_POLICY_AGENT_RULE,
+                {policyID: '1', agentRuleID: 'agentRule1', prompt: 'Prompt', applyToExistingExpenses: true},
+                expect.anything(),
+            );
+
+            addPolicyAgentRule('1', 'agentRule2', 'Prompt');
+            expect(writeSpy).toHaveBeenLastCalledWith(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE, {policyID: '1', agentRuleID: 'agentRule2', prompt: 'Prompt'}, expect.anything());
+
+            writeSpy.mockRestore();
+        });
     });
 
     describe('updatePolicyAgentRule', () => {
@@ -190,6 +215,38 @@ describe('actions/PolicyRules', () => {
             const policy = await getPolicy(fakePolicy.id);
             expect(policy?.rules?.agentRules?.[agentRuleID]?.prompt).toBe('Original');
             expect(policy?.rules?.agentRules?.[agentRuleID]?.pendingAction).toBeFalsy();
+        });
+
+        it('sends applyToExistingExpenses only when the rule should be applied to existing expenses', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            updatePolicyAgentRule('1', 'agentRule1', 'New', 'Old', 'Old title', true);
+            expect(writeSpy).toHaveBeenLastCalledWith(
+                WRITE_COMMANDS.UPDATE_POLICY_AGENT_RULE,
+                {policyID: '1', agentRuleID: 'agentRule1', prompt: 'New', applyToExistingExpenses: true},
+                expect.anything(),
+            );
+
+            updatePolicyAgentRule('1', 'agentRule1', 'New', 'Old', 'Old title');
+            expect(writeSpy).toHaveBeenLastCalledWith(WRITE_COMMANDS.UPDATE_POLICY_AGENT_RULE, {policyID: '1', agentRuleID: 'agentRule1', prompt: 'New'}, expect.anything());
+
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe('getPolicyUnsubmittedExpenseCount', () => {
+        it('reads the unsubmitted expense count for the policy', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+
+            getPolicyUnsubmittedExpenseCount('1');
+            expect(readSpy).toHaveBeenCalledWith(READ_COMMANDS.GET_POLICY_UNSUBMITTED_EXPENSE_COUNT, {policyID: '1'});
+
+            getPolicyUnsubmittedExpenseCount(undefined);
+            expect(readSpy).toHaveBeenCalledTimes(1);
+
+            readSpy.mockRestore();
         });
     });
 

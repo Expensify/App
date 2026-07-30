@@ -8202,6 +8202,11 @@ const translations = {
                 emptySuggestionsTitle: 'No suggestions available',
                 emptySuggestionsSubtitle: 'Try writing your own rule.',
                 gotIt: 'Got it',
+                saveConfirmation: {
+                    title: 'Save rule',
+                    prompt: 'RuleBot will apply this rule to new expenses.',
+                    applyToUnsubmittedExpenses: ({count}: {count: number}) => `Apply this rule to ${count} unsubmitted expense${count === 1 ? '' : 's'}`,
+                },
             },
         },
         planTypePage: {

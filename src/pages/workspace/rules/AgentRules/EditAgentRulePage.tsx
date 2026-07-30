@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useAgentRuleApplyConfirmation from '@hooks/useAgentRuleApplyConfirmation';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
@@ -53,6 +54,7 @@ function EditAgentRulePage({
     const policy = usePolicy(policyID);
     const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
+    const {confirmAgentRuleSave} = useAgentRuleApplyConfirmation(policyID);
     const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
@@ -75,10 +77,14 @@ function EditAgentRulePage({
     const saveRule = (values: FormOnyxValues<EditAgentRuleFormID>): void => {
         const newPrompt = values[INPUT_IDS.PROMPT];
         const previousPrompt = agentRule?.prompt ?? '';
-        if (newPrompt !== previousPrompt) {
-            updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt, agentRule?.title);
+        if (newPrompt === previousPrompt) {
+            Navigation.goBack();
+            return;
         }
-        Navigation.goBack();
+        confirmAgentRuleSave((applyToExistingExpenses) => {
+            updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt, agentRule?.title, applyToExistingExpenses);
+            Navigation.goBack();
+        });
     };
 
     const handleDelete = () => {
