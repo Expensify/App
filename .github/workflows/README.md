@@ -61,6 +61,13 @@ git fetch origin tag 1.0.0-0 --no-tags --depth=1 # This will fetch the latest co
 git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fetch all commits from the 1.0.1-0 tag, except for those that are reachable from the 1.0.0-0 tag.
 ```
 
+## Which checkout action to use
+
+- **Linux jobs:** use `useblacksmith/checkout`. Blacksmith's Linux runners grant a sticky disk in ~0.3s, so its persistent "git-mirror" cache makes the clone much faster.
+- **macOS jobs:** use upstream `actions/checkout`. Blacksmith's macOS runners have no sticky-disk agent, so the mirror cache can never work there - `useblacksmith/checkout` blocks ~75s on a gRPC probe to `192.168.127.1` before timing out and falling back to a plain clone anyway.
+
+`runs-on` is static per job, so pick the action per job rather than detecting the runner at runtime.
+
 ## Security Rules 🔐
 1. Do **not** use `pull_request_target` trigger unless an external fork needs access to secrets, or a _write_ `GITHUB_TOKEN`.
 1. Do **not ever** write a `pull_request_target` trigger with an explicit PR checkout, e.g. using `useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121`. This is [discussed further here](https://securitylab.github.com/research/github-actions-preventing-pwn-requests)

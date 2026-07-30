@@ -26,6 +26,8 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -441,6 +443,7 @@ const translations: TranslationDeepObject<typeof en> = {
         print: 'Stampa',
         help: 'Aiuto',
         collapsed: 'Comprresso',
+        expand: 'Espandi',
         expanded: 'Espanso',
         expenseReport: 'Nota spese',
         rateOutOfPolicy: 'Tariffa fuori dalla policy',
@@ -1104,11 +1107,13 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToAccountExecutive: 'Parla con il tuo account executive',
             forGuidedSetup: 'per la configurazione guidata.',
             configureApprovalsSubText: 'Definisci le approvazioni dei report',
+            setupTravel: 'Configura viaggi',
+            setupTravelSubText: 'Configura regole specifiche per i viaggi',
         },
         yourSpend: {
             title: 'Le tue spese',
             awaitingApproval: 'In attesa di approvazione',
-            repaidLast30Days: 'Rimborsato negli ultimi 30 giorni',
+            repaidLast30Days: 'Rimborsato ultimi 30 giorni',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transazioni recenti • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Vedi altri ${count}`,
@@ -1192,6 +1197,7 @@ const translations: TranslationDeepObject<typeof en> = {
             'Il file che hai caricato è vuoto oppure contiene dati non validi. Assicurati che il file sia formattato correttamente e contenga le informazioni necessarie prima di caricarlo di nuovo.',
         importSpreadsheetLibraryError: 'Caricamento del modulo foglio di calcolo non riuscito. Controlla la connessione a Internet e riprova.',
         importSpreadsheet: 'Importa foglio di calcolo',
+        importWorkflows: 'Importa flussi di lavoro',
         downloadCSV: 'Scarica CSV',
         importMemberConfirmation: () => ({
             one: `Conferma i dettagli seguenti per il nuovo membro dello spazio di lavoro che verrà aggiunto come parte di questo caricamento. I membri esistenti non riceveranno aggiornamenti di ruolo né messaggi di invito.`,
@@ -2596,6 +2602,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Usa questa carta per le tue prenotazioni con Expensify Travel. Verrà visualizzata come “Travel Card” al momento del pagamento.',
         },
         chaseAccountNumberDifferent: 'Perché il mio numero di conto è diverso?',
+        cardLastSynced: (relativeDate: string) => `Sincronizzato il ${relativeDate}`,
+        cardNeverSynced: 'Mai sincronizzato',
+        cardStatus: {
+            active: 'Attiva',
+            inactive: 'Inattivo',
+            fixConnection: 'Sistema questa connessione per favore',
+            fixConnectionIn: (companyCardsRoute: string) => `Correggi questa connessione in <a href="${companyCardsRoute}">carte aziendali</a>`,
+            askAdminToFixConnection: 'Chiedi a un amministratore di correggere questa connessione',
+        },
+        bankAccountStatus: {
+            active: 'Attiva',
+            incomplete: 'Incompleto',
+            pending: 'In sospeso',
+            verifying: 'Verifica in corso',
+            reviewingDocumentation: 'Stiamo esaminando la tua documentazione',
+            finishAddingBankAccount: 'Completa l’aggiunta del conto bancario',
+            finish: 'Fine',
+            confirmTestTransactions: 'Conferma le transazioni di prova',
+            accountRequiresAttention: 'Questo conto richiede attenzione',
+            unlock: 'Sblocca',
+        },
     },
     cardPage: {
         expensifyCard: 'Carta Expensify',
@@ -2929,8 +2956,16 @@ ${amount} per ${merchant} - ${date}`,
             updateAvatar: "Si è verificato un problema durante l'aggiornamento dell'avatar di questo agente",
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'Nuovo agente',
+        buildCustomAgent: 'Crea un agente personalizzato',
+        orStartWithTemplate: 'Oppure inizia con un modello:',
+        role: 'Agente',
+        emptyTemplatesTitle: 'Ancora nessun modello',
+        emptyTemplatesSubtitle: 'Crea un agente personalizzato per iniziare.',
+    },
+    addAgentPage: {
+        title: 'Crea un agente personalizzato',
         agentName: 'Nome agente',
         instructions: 'Scrivi istruzioni personalizzate',
         createAgent: 'Crea agente',
@@ -4299,7 +4334,7 @@ ${amount} per ${merchant} - ${date}`,
         toLearnMore: 'per saperne di più.',
         termsAndConditions: {
             header: 'Prima di continuare...',
-            title: 'Termini e condizioni',
+            title: 'Rivedi termini e condizioni',
             label: 'Accetto i termini e le condizioni',
             subtitle: `Accetta i <a href="${CONST.TRAVEL_TERMS_URL}">termini e condizioni</a> di Expensify Travel.`,
             error: 'Devi accettare i termini e le condizioni di Expensify Travel per continuare',
@@ -4372,11 +4407,8 @@ ${amount} per ${merchant} - ${date}`,
         departs: 'Partenza',
         errorMessage: 'Si è verificato un errore. Riprova più tardi.',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>Per prenotare viaggi, <a href="${phoneErrorMethodsRoute}">aggiungi un’email di lavoro come login principale</a>.</rbr>`,
-        domainSelector: {
-            title: 'Dominio',
-            subtitle: 'Scegli un dominio per la configurazione di Expensify Travel.',
-            recommended: 'Consigliato',
-        },
+        domainSelector: {headline: 'Quale dominio vuoi configurare?', title: 'Dominio', subtitle: 'Scegli un dominio per la configurazione di Expensify Travel.', recommended: 'Consigliato'},
+        workspaceAddress: {headline: 'Qual è l’indirizzo della tua azienda?'},
         domainPermissionInfo: {
             title: 'Dominio',
             restriction: (domain: string) =>
@@ -4431,6 +4463,7 @@ ${amount} per ${merchant} - ${date}`,
         nightIn: 'notte in',
         nightsIn: 'notti a',
         taxID: {
+            headline: 'Qual è la tua partita IVA aziendale?',
             title: 'Codice fiscale',
             subtitle: 'Inserisci il codice fiscale della tua entità legale così possiamo configurare la fatturazione dei viaggi nella tua valuta locale.',
             inputLabel: 'Partita IVA dell’entità legale',
@@ -4438,21 +4471,21 @@ ${amount} per ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Ciao! Sapevi che puoi prenotare e gestire i voli direttamente in Expensify? La prossima volta evita la seccatura di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Sapevi che puoi prenotare e gestire i voli direttamente in Expensify? La prossima volta evita il fastidio di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Ehi! Sapevi che puoi prenotare e gestire i voli direttamente in Expensify? E che carica automaticamente le ricevute per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Sapevi che puoi prenotare e gestire i voli direttamente in Expensify? E che carica automaticamente le ricevute per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Ciao! Sapevi che puoi prenotare e gestire i tuoi soggiorni in hotel direttamente in Expensify? La prossima volta evita la seccatura di creare la tua spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Lo sapevi che puoi prenotare e gestire i soggiorni in hotel direttamente in Expensify? La prossima volta evita il fastidio di creare la tua spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Ehi! Sapevi che puoi prenotare e gestire i soggiorni in hotel direttamente in Expensify? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Lo sapevi che puoi prenotare e gestire i soggiorni in hotel direttamente in Expensify? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Ehi! Sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? La prossima volta evita il fastidio di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? La prossima volta evita la seccatura di creare la tua spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Ehi! Lo sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Lo sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Ehi! Sapevi che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? La prossima volta evita il fastidio di creare la tua spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Sapevi che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? La prossima volta evita la seccatura di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Ciao! Lo sai che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? E che carica automaticamente le ricevute per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Sapevi che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? E che le ricevute vengono caricate automaticamente per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
     },
     workspace: {
@@ -5048,7 +5081,9 @@ ${amount} per ${merchant} - ${date}`,
             creditCardAccount: 'Conto della carta di credito',
             defaultVendor: 'Fornitore predefinito',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Imposta un fornitore predefinito che verrà applicato alle spese rimborsabili ${isReimbursable ? '' : 'non-'} che non hanno un fornitore corrispondente in Sage Intacct.`,
+                isReimbursable
+                    ? `Imposta un fornitore predefinito che verrà applicato alle spese rimborsabili che non hanno un fornitore corrispondente in Sage Intacct.`
+                    : `Le spese che non possono essere abbinate ai tuoi fornitori Sage Intacct verranno associate per impostazione predefinita a questo fornitore.`,
             exportDescription: 'Configura come i dati di Expensify vengono esportati in Sage Intacct.',
             exportPreferredExporterNote:
                 'L’esportatore preferito può essere qualsiasi amministratore dello spazio di lavoro, ma deve anche essere un Amministratore del dominio se imposti conti di esportazione diversi per le singole carte aziendali nelle Impostazioni del dominio.',
@@ -5807,13 +5842,14 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             },
             assign: 'Assegna',
             assignCard: 'Assegna carta',
-            findCard: 'Trova carta',
+            findCompanyCard: 'Trova carta aziendale',
             cardNumber: 'Numero carta',
             commercialFeed: 'Feed commerciale',
             feedName: (feedName: string) => `Carte ${feedName}`,
             directFeed: 'Flusso diretto',
             whoNeedsCardAssigned: 'Chi ha bisogno di una carta assegnata?',
             chooseTheCardholder: 'Scegli il titolare della carta',
+            pleaseSelectACardholder: 'Seleziona un titolare della carta per continuare',
             chooseCard: 'Scegli una carta',
             chooseCardFor: (assignee: string) =>
                 `Scegli una carta per <strong>${assignee}</strong>. Non riesci a trovare la carta che stai cercando? <concierge-link>Facci sapere.</concierge-link>`,
@@ -6057,6 +6093,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             currentTravelSpendLabel: 'Spesa di viaggio attuale',
                             currentTravelSpendPaymentQueued: (amount: string) => `Il pagamento di ${amount} è in coda e verrà elaborato a breve.`,
                             currentTravelSpendCta: 'Paga saldo',
+                            viewOnSpend: 'Visualizza in Spese',
                             currentTravelLimitLabel: 'Limite di viaggio attuale',
                             settlementAccountLabel: 'Conto di regolamento',
                             settlementFrequencyLabel: 'Frequenza di regolamento',
@@ -6145,8 +6182,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 transactionStartDate: 'Data di inizio transazione',
                 updateCard: 'Aggiorna carta',
                 unassignCard: 'Rimuovi carta',
+                unassignCards: 'Rimuovi carte',
                 unassign: 'Rimuovi assegnazione',
                 unassignCardDescription: 'La rimozione dell’assegnazione di questa carta eliminerà tutte le transazioni non inviate.',
+                unassignCardsDescription: 'La rimozione dell’assegnazione eliminerà tutte le transazioni non inviate dalle carte selezionate.',
                 assignCard: 'Assegna carta',
                 removeCard: 'Rimuovi carta',
                 remove: 'Rimuovi',
@@ -6252,6 +6291,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 defaultHourlyRate: 'Tariffa oraria predefinita',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Per disattivare HR, scollega prima ${integration} da questo workspace.`},
+            vendors: {title: 'Fornitori', subtitle: 'Abbina le spese della carta ai fornitori importati dal tuo software di contabilità.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Esempi:',
@@ -6607,6 +6647,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             peopleAdmins: 'Amministratori persone',
             paymentsAdmins: 'Amministratori pagamenti',
             members: 'Membri',
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Non puoi rimuovere ${memberName} da questo spazio di lavoro finché ha una Carta Expensify. Disattiva prima la sua carta in Spazio di lavoro > Carta Expensify, quindi riprova.`,
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
@@ -6945,6 +6987,12 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             exportCompanyCard: 'Esporta le spese con carta aziendale come',
             exportDate: 'Data di esportazione',
             defaultVendor: 'Fornitore predefinito',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Le spese che non vengono abbinate automaticamente verranno assegnate per impostazione predefinita a questo fornitore.`
+                    : `Le spese che non vengono abbinate automaticamente useranno questo fornitore per impostazione predefinita. In caso contrario, saranno esportate come Varie carta di credito.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Scegli un fornitore predefinito ${connectionName} per le spese che non vengono abbinate automaticamente.`,
             defaultAccount: 'Conto predefinito',
             autoSync: 'Sincronizzazione automatica',
             autoSyncDescription: 'Sincronizza automaticamente NetSuite ed Expensify ogni giorno. Esporta i report finalizzati in tempo reale',
@@ -7779,6 +7827,18 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 editRuleTitle: 'Modifica regola',
                 deleteRule: 'Elimina regola',
                 deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
+                unableToRemoveTitle: 'Impossibile rimuovere',
+                unableToRemovePrompt: (rulesRoute: string) =>
+                    `Le <a href="${rulesRoute}">regole agente</a> applicate da RuleBot devono essere rimosse dal tuo spazio di lavoro prima di poter rimuovere questo agente.`,
+                unableToCloseAccountTitle: 'Impossibile chiudere l’account',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `Le <a href="${rulesRoute}">regole agente</a> applicate da RuleBot devono essere rimosse dal tuo spazio di lavoro prima di poter chiudere questo account.`,
+                unableToDeleteAgentTitle: 'Impossibile eliminare l’agente',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `Le <a href="${rulesRoute}">regole agente</a> applicate da RuleBot devono essere rimosse dal tuo spazio di lavoro prima di poter eliminare questo agente.`,
+                unableToChangeRoleTitle: 'Impossibile modificare il ruolo',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `Le <a href="${rulesRoute}">regole agente</a> applicate da RuleBot devono essere rimosse dal tuo spazio di lavoro prima di poter modificare il ruolo di questo agente.`,
                 describeRuleTitle: 'Descrivi la regola che il tuo agente AI deve seguire',
                 describeRuleHeadline: 'Descrivi la tua regola',
                 disclaimer: 'Gli agenti IA possono commettere errori.',
@@ -8593,6 +8653,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `ha modificato la categoria di spesa predefinita per "${mccGroupName}" in "${newCategory}" (precedentemente "${oldCategory}")`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'abilitato' : 'disabilitato'} il requisito per gli acquisti con carta aziendale`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) =>
+                title ? `ha aggiunto la regola dell’agente "${title}": ${prompt}` : `ha aggiunto una regola dell’agente: ${prompt}`,
+            updated: ({title, prompt}: {title: string; prompt: string}) =>
+                title ? `ha aggiornato la regola dell’agente "${title}" in: ${prompt}` : `ha aggiornato una regola dell’agente in: ${prompt}`,
+            deleted: ({title}: {title: string}) => (title ? `ha rimosso la regola dell’agente "${title}"` : 'ha rimosso una regola dell’agente'),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'bloccato', allow: 'consentito'},
             amountOperator: {over: 'terminato', under: 'sotto'},
@@ -8947,6 +9014,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Paga',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Esporta',
             },
+            filterType: {label: 'Tipo di filtro', has: {positive: 'ha', negative: 'non ha'}, is: {positive: 'è', negative: 'non è'}},
         },
         display: {
             label: 'Visualizza',
@@ -9426,6 +9494,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         save: 'Salva',
         resume: 'Riprendi',
         discard: 'Scarta',
+        edit: 'Modifica',
+        editStop: 'Modifica fermata',
+        totalDistance: 'Distanza totale',
         discardDistanceTrackingModal: {
             title: 'Annulla rilevamento distanza',
             prompt: 'Sei sicuro? Questo eliminerà il tuo percorso attuale e non potrà essere annullato.',
@@ -10182,7 +10253,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Inizia <strong>qui!</strong></tooltip>',
-        accountSwitcher: '<tooltip>Accedi ai tuoi <strong>account Copilot</strong> qui</tooltip>',
+        accountSwitcher: '<tooltip>Ora puoi fare da copilota in un altro account!</tooltip>',
         outstandingFilter: '<tooltip>Filtra per le spese\nche <strong>necessitano di approvazione</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Invia questa ricevuta per\n<strong>completare il test drive!</strong></tooltip>',
         gpsTooltip: '<tooltip>Tracciamento GPS in corso! Quando hai finito, interrompi il tracciamento qui sotto.</tooltip>',

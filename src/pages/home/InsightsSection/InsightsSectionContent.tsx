@@ -34,7 +34,7 @@ function InsightsSectionContent() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {displayed, state, dropdownConfigs, onSelectInsight} = useHomeInsights();
-    const {config, query, queryJSON, groupBy, view, sortedData} = displayed ?? {};
+    const {config, query, queryJSON, groupBy, view, sortedData, retry} = displayed ?? {};
 
     if (!config || !query || !queryJSON || !view || !groupBy || state === INSIGHT_STATE.HIDDEN) {
         return null;
@@ -88,8 +88,10 @@ function InsightsSectionContent() {
                     titleStyles={[styles.mt0, styles.mb2]}
                     subtitle={translate('errorPage.subtitle')}
                     subtitleStyle={styles.textSupporting}
-                    containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5]}
+                    containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5, styles.pb5]}
                     contentFitImage="contain"
+                    buttonTranslationKey="common.tryAgain"
+                    onButtonPress={retry}
                 />
             )}
             {(state === INSIGHT_STATE.LOADING || state === INSIGHT_STATE.READY) && (
