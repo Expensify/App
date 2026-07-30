@@ -4,15 +4,19 @@ import Navigation from '@libs/Navigation/Navigation';
 import SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 
+import type HybridAppModuleType from '@expensify/react-native-hybrid-app/src/types';
+
 import createMock from '../utils/createMock';
 
 // Target-local mock: the owned Jest environment has no ReactNativeHybridApp module, which Navigation/Log loads during initialization.
-jest.mock('@expensify/react-native-hybrid-app', () => ({
-    __esModule: true,
-    default: {
-        isHybridApp: jest.fn(() => false),
-    },
-}));
+jest.mock('@expensify/react-native-hybrid-app', () => {
+    return {
+        __esModule: true,
+        default: {
+            isHybridApp: jest.fn<ReturnType<HybridAppModuleType['isHybridApp']>, Parameters<HybridAppModuleType['isHybridApp']>>(() => false),
+        },
+    };
+});
 
 const mockRemoveDraftTransactionsByIDs = jest.fn<void, [string[] | undefined]>();
 

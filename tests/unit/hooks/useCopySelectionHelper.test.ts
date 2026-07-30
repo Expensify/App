@@ -13,8 +13,8 @@ jest.mock('@libs/Clipboard', () => ({
     __esModule: true,
     default: {
         canSetHtml: jest.fn<ReturnType<CanSetHtml>, Parameters<CanSetHtml>>(),
-        setString: jest.fn(),
-        setHtml: jest.fn(),
+        setString: jest.fn<ReturnType<SetString>, Parameters<SetString>>(),
+        setHtml: jest.fn<ReturnType<SetHtml>, Parameters<SetHtml>>(),
     },
 }));
 

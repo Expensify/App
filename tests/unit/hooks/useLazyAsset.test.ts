@@ -14,12 +14,12 @@ import type {SvgProps} from 'react-native-svg/lib/typescript';
 
 import React from 'react';
 
+import createMock from '../../utils/createMock';
+
 type ExpensifyIconsChunk = NonNullable<ReturnType<typeof getExpensifyIconsChunk>>;
 type ExpensifyIconName = Parameters<ExpensifyIconsChunk['getExpensifyIcon']>[0];
-type ExpensifyIconsChunkFixture = Pick<ExpensifyIconsChunk, 'getExpensifyIcon' | 'AVAILABLE_EXPENSIFY_ICONS'> & Record<Extract<ExpensifyIconName, 'AddReaction' | 'Apple'>, IconAsset>;
 type IllustrationsChunk = NonNullable<ReturnType<typeof getIllustrationsChunk>>;
 type IllustrationName = Parameters<IllustrationsChunk['getIllustration']>[0];
-type IllustrationsChunkFixture = Pick<IllustrationsChunk, 'getIllustration' | 'AVAILABLE_ILLUSTRATIONS'> & Record<Extract<IllustrationName, 'Building' | 'Tag'>, IconAsset>;
 
 jest.mock('@components/Icon/PlaceholderIcon', () => {
     // eslint-disable-next-line @typescript-eslint/no-shadow, @typescript-eslint/no-unsafe-assignment
@@ -34,13 +34,13 @@ jest.mock('@components/Icon/PlaceholderIcon', () => {
 });
 
 jest.mock('@components/Icon/ExpensifyIconLoader', () => ({
-    getExpensifyIconsChunk: jest.fn<ExpensifyIconsChunkFixture | null, []>(),
+    getExpensifyIconsChunk: jest.fn<ExpensifyIconsChunk | null, []>(),
     loadExpensifyIconsChunk: jest.fn(),
     loadExpensifyIcon: jest.fn(),
 }));
 
 jest.mock('@components/Icon/IllustrationLoader', () => ({
-    getIllustrationsChunk: jest.fn<IllustrationsChunkFixture | null, []>(),
+    getIllustrationsChunk: jest.fn<IllustrationsChunk | null, []>(),
     loadIllustrationsChunk: jest.fn(),
     loadIllustration: jest.fn(),
 }));
@@ -61,10 +61,10 @@ jest.mock('@hooks/useLazyAsset', () => {
 });
 
 type ExpensifyIconLoaderMock = {
-    getExpensifyIconsChunk: jest.Mock<ExpensifyIconsChunkFixture | null, []>;
+    getExpensifyIconsChunk: jest.Mock<ExpensifyIconsChunk | null, []>;
 };
 type IllustrationLoaderMock = {
-    getIllustrationsChunk: jest.Mock<IllustrationsChunkFixture | null, []>;
+    getIllustrationsChunk: jest.Mock<IllustrationsChunk | null, []>;
 };
 
 const mockGetExpensifyIconsChunk = jest.requireMock<ExpensifyIconLoaderMock>('@components/Icon/ExpensifyIconLoader').getExpensifyIconsChunk;
@@ -385,17 +385,16 @@ describe('useMemoizedLazyExpensifyIcons', () => {
 
     it('should load multiple icons synchronously when chunk is cached', () => {
         // Given: A cached chunk that's already available synchronously
-        const mockChunk = {
-            getExpensifyIcon: jest.fn((name: ExpensifyIconName) => {
-                if (name === 'AddReaction' || name === 'Apple') {
-                    return mockAsset;
-                }
-                return undefined;
-            }),
-            AVAILABLE_EXPENSIFY_ICONS: ['AddReaction', 'Apple'],
-            AddReaction: mockAsset,
-            Apple: mockAsset,
-        } satisfies ExpensifyIconsChunkFixture;
+        const mockChunk = createMock<ExpensifyIconsChunk>({});
+        mockChunk.getExpensifyIcon = jest.fn((name: ExpensifyIconName) => {
+            if (name === 'AddReaction' || name === 'Apple') {
+                return mockAsset;
+            }
+            return undefined;
+        });
+        mockChunk.AVAILABLE_EXPENSIFY_ICONS = ['AddReaction', 'Apple'];
+        mockChunk.AddReaction = mockAsset;
+        mockChunk.Apple = mockAsset;
 
         mockGetExpensifyIconsChunk.mockReturnValue(mockChunk);
 
@@ -425,17 +424,16 @@ describe('useMemoizedLazyIllustrations', () => {
 
     it('should load multiple illustrations synchronously when chunk is cached', () => {
         // Given: A cached chunk that's already available synchronously
-        const mockChunk = {
-            getIllustration: jest.fn((name: IllustrationName) => {
-                if (name === 'Building' || name === 'Tag') {
-                    return mockAsset;
-                }
-                return undefined;
-            }),
-            AVAILABLE_ILLUSTRATIONS: ['Building', 'Tag'],
-            Building: mockAsset,
-            Tag: mockAsset,
-        } satisfies IllustrationsChunkFixture;
+        const mockChunk = createMock<IllustrationsChunk>({});
+        mockChunk.getIllustration = jest.fn((name: IllustrationName) => {
+            if (name === 'Building' || name === 'Tag') {
+                return mockAsset;
+            }
+            return undefined;
+        });
+        mockChunk.AVAILABLE_ILLUSTRATIONS = ['Building', 'Tag'];
+        mockChunk.Building = mockAsset;
+        mockChunk.Tag = mockAsset;
 
         mockGetIllustrationsChunk.mockReturnValue(mockChunk);
 

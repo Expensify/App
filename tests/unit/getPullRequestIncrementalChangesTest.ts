@@ -4,7 +4,6 @@ import type {InternalOctokit} from '@github/libs/GithubUtils';
 
 import Git from '@scripts/utils/Git';
 
-import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 import type {Writable} from 'type-fest';
 
 /**
@@ -12,32 +11,19 @@ import type {Writable} from 'type-fest';
  */
 import * as core from '@actions/core';
 import {context} from '@actions/github';
-import {request} from '@octokit/request';
 
 import createMock from '../utils/createMock';
 
-type ListFilesMethod = RestEndpointMethods['pulls']['listFiles'];
+type ListFilesMethod = InternalOctokit['rest']['pulls']['listFiles'];
 type ListFilesResponse = Awaited<ReturnType<ListFilesMethod>>;
-type ListFilesMap = (response: ListFilesResponse, done: () => void) => ListFilesResponse['data'];
-type PaginateIterator = InternalOctokit['paginate']['iterator'];
+type PaginateMethod = InternalOctokit['paginate'];
 
-const mockPaginate = Object.assign(jest.fn<Promise<ListFilesResponse['data']>, [ListFilesMethod, Parameters<ListFilesMethod>[0], ListFilesMap?]>(), {
-    iterator: jest.fn<ReturnType<PaginateIterator>, Parameters<PaginateIterator>>(),
-});
-const mockListFiles = Object.assign(jest.fn<ReturnType<ListFilesMethod>, Parameters<ListFilesMethod>>(), {
-    defaults: request.defaults,
-    endpoint: request.endpoint.defaults({url: ''}),
-});
-const mockOctokit = createMock<RestEndpointMethods>({
-    pulls: {
-        listFiles: mockListFiles,
-    },
-});
+let internalOctokit: InternalOctokit;
+let paginateSpy: jest.SpiedFunction<PaginateMethod>;
 
 // Mock all dependencies
 jest.mock('@actions/core');
 jest.mock('@actions/github');
-jest.mock('@github/libs/GithubUtils');
 jest.mock('@scripts/utils/Git');
 
 const mockSetOutput = jest.mocked(core.setOutput);
@@ -56,8 +42,19 @@ Git.diff = mockGitDiff;
 Git.parseDiff = mockGitParseDiff;
 
 // Mock GitHubUtils methods
-const mockGetPullRequestDiff = jest.fn();
-GitHubUtils.getPullRequestDiff = mockGetPullRequestDiff;
+const mockGetPullRequestDiff = jest.fn<ReturnType<typeof GitHubUtils.getPullRequestDiff>, Parameters<typeof GitHubUtils.getPullRequestDiff>>();
+
+beforeAll(() => {
+    GitHubUtils.initOctokitWithToken('fake_token');
+    const initializedOctokit = GitHubUtils.internalOctokit;
+    if (!initializedOctokit) {
+        throw new Error('Expected GithubUtils to initialize an Octokit client.');
+    }
+
+    internalOctokit = initializedOctokit;
+    paginateSpy = jest.spyOn(internalOctokit, 'paginate');
+    jest.spyOn(GitHubUtils, 'getPullRequestDiff').mockImplementation(mockGetPullRequestDiff);
+});
 
 describe('getPullRequestIncrementalChanges', () => {
     beforeEach(() => {
@@ -76,6 +73,9 @@ describe('getPullRequestIncrementalChanges', () => {
         // Default mocks
         mockGetInput.mockReturnValue(null);
         mockGitEnsureRef.mockResolvedValue(undefined);
+        mockGetPullRequestDiff.mockReset();
+        paginateSpy.mockReset();
+        paginateSpy.mockResolvedValue([]);
     });
 
     it('returns empty array when no local changes', async () => {
@@ -214,9 +214,7 @@ describe('getPullRequestIncrementalChanges', () => {
         };
 
         // Mock paginate to return PR files
-        mockPaginate.mockResolvedValue(createMock<ListFilesResponse['data']>([{filename: 'src/file1.ts'}, {filename: 'src/file2.ts'}]));
-        Object.defineProperty(GitHubUtils, 'paginate', {configurable: true, get: () => mockPaginate});
-        Object.defineProperty(GitHubUtils, 'octokit', {configurable: true, get: () => mockOctokit});
+        paginateSpy.mockResolvedValue(createMock<ListFilesResponse['data']>([{filename: 'src/file1.ts'}, {filename: 'src/file2.ts'}]));
 
         await run();
 
@@ -257,9 +255,7 @@ describe('getPullRequestIncrementalChanges', () => {
         });
 
         // Mock paginate to return PR files
-        mockPaginate.mockResolvedValue(createMock<ListFilesResponse['data']>([{filename: 'src/test.ts'}]));
-        Object.defineProperty(GitHubUtils, 'paginate', {configurable: true, get: () => mockPaginate});
-        Object.defineProperty(GitHubUtils, 'octokit', {configurable: true, get: () => mockOctokit});
+        paginateSpy.mockResolvedValue(createMock<ListFilesResponse['data']>([{filename: 'src/test.ts'}]));
 
         await run();
 

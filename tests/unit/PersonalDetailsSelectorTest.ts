@@ -239,6 +239,7 @@ describe('PersonalDetailsSelector', () => {
             login: 'test@user.com',
             avatar: 'https://example.com/avatar.png',
             pronouns: 'they/them',
+            timezone: {selected: 'Europe/London'},
         });
         const listWithAvatar = createMock<PersonalDetailsList>({[accountID]: fullDetails});
 

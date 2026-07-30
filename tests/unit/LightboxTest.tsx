@@ -6,6 +6,8 @@ import Lightbox from '@components/Lightbox';
 
 import CONST from '@src/CONST';
 
+import type ReactNative from 'react-native';
+
 import React from 'react';
 
 import createSharedValueMock from '../utils/createSharedValueMock';
@@ -13,8 +15,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@components/Image', () => {
     const MockReact = jest.requireActual<typeof React>('react');
-    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-    const {View} = jest.requireActual<typeof import('react-native')>('react-native');
+    const {View} = jest.requireActual<typeof ReactNative>('react-native');
     function MockImage({priority, testID, ...props}: {priority?: string; testID?: string}) {
         return MockReact.createElement(View, {
             testID: testID ?? 'image',
@@ -35,8 +36,7 @@ jest.mock('@components/Lightbox/numberOfConcurrentLightboxes', () => ({
 
 jest.mock('@components/MultiGestureCanvas', () => {
     const MockReact = jest.requireActual<typeof React>('react');
-    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-    const {View} = jest.requireActual<typeof import('react-native')>('react-native');
+    const {View} = jest.requireActual<typeof ReactNative>('react-native');
     return {
         __esModule: true,
         default: ({children}: {children: React.ReactNode}) => MockReact.createElement(View, {testID: 'multi-gesture-canvas'}, children),
