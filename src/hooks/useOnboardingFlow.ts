@@ -16,7 +16,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
-import {useEffect} from 'react';
+import {useCallback, useEffect} from 'react';
 
 import useOnyx from './useOnyx';
 import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
@@ -165,7 +165,7 @@ function useOnboardingFlowRouter() {
         wasInvitedToNewDot,
         isOnboardingCompleted,
         shouldSuppressPromotionalUI,
-        isVisitingSecureLink,
+        getIsVisitingSecureLink,
     ]);
 
     return {
