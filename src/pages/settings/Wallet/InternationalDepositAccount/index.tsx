@@ -1,5 +1,6 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
+import useLoadDepositAccountSetup from '@hooks/useLoadDepositAccountSetup';
 import useOnyx from '@hooks/useOnyx';
 
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -31,8 +32,13 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
     const [isAccountLoading, isLoadingMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: isLoadingPersonalBankAccountSelector});
     const backTo = route.params?.backTo;
 
-    console.log('InternationalDepositAccount');
-    const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, corpayFieldsMetadata, bankAccountListMetadata, draftValuesMetadata, countryMetadata, isLoadingMetadata);
+    // The reimbursement countries drive which steps the flow shows and where it starts, so gate the content until
+    // they load to keep the substep hooks from initializing with stale/empty data.
+    const isLoadingDepositAccountSetup = useLoadDepositAccountSetup();
+
+    const isLoading =
+        isLoadingDepositAccountSetup ||
+        isLoadingOnyxValue(privatePersonalDetailsMetadata, corpayFieldsMetadata, bankAccountListMetadata, draftValuesMetadata, countryMetadata, isLoadingMetadata);
 
     if (isLoading) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'InternationalDepositAccount', isLoading};

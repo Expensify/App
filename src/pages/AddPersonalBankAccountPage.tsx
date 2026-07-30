@@ -1,16 +1,19 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
+import useLoadDepositAccountSetup from '@hooks/useLoadDepositAccountSetup';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {clearPersonalBankAccount} from '@userActions/BankAccounts';
 import {continueSetup} from '@userActions/PaymentMethods';
@@ -28,6 +31,10 @@ function AddPersonalBankAccountPage() {
     const {translate} = useLocalize();
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
+
+    // The reimbursement countries decide whether PersonalInfoPage collects international deposit details, so gate it
+    // until they load to keep the substep hook from initializing with stale/empty data.
+    const isLoadingDepositAccountSetup = useLoadDepositAccountSetup();
     const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
     const kycWallRef = useContext(KYCWallContext);
 
@@ -87,6 +94,10 @@ function AddPersonalBankAccountPage() {
                 </FullPageNotFoundView>
             </ScreenWrapper>
         );
+    }
+
+    if (isLoadingDepositAccountSetup) {
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'AddPersonalBankAccountPage', isLoadingDepositAccountSetup} satisfies SkeletonSpanReasonAttributes} />;
     }
 
     return <PersonalInfoPage />;

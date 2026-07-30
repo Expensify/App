@@ -9,6 +9,9 @@ import useOnyx from './useOnyx';
  * Returns whether international deposit details (IBAN/SWIFT) should be collected when adding a bank account in the
  * given country. This is the case when any of the user's policies can reimburse from a country other than the one
  * the bank account is being added in.
+ *
+ * The reimbursement countries this relies on are not part of the policy summary; they are fetched via
+ * useLoadDepositAccountSetup at the entry of the bank account setup flow, which also gates rendering until they load.
  */
 function useShouldCollectInternationalDepositDetails(bankCountry: string): boolean {
     const selector = (policies: OnyxCollection<Policy>) =>
