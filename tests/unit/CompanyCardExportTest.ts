@@ -22,9 +22,16 @@ const CARD_B = '222';
 const ACCOUNT_ID_A = 96415001;
 const ACCOUNT_ID_B = 96415002;
 
-function createSettingsState(routes: PlatformStackNavigationState<SettingsNavigatorParamList>['routes']): PlatformStackNavigationState<SettingsNavigatorParamList> {
+type TestSettingsRoute = {
+    key: string;
+    name: string;
+    params?: Record<string, string | number | undefined>;
+};
+
+function createSettingsState(routes: TestSettingsRoute[]): PlatformStackNavigationState<SettingsNavigatorParamList> {
     return {
-        routes,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- unit tests intentionally build partial/malformed settings routes
+        routes: routes as PlatformStackNavigationState<SettingsNavigatorParamList>['routes'],
         index: routes.length - 1,
         key: 'settings',
         routeNames: [],
@@ -278,7 +285,7 @@ describe('getCompanyCardDetailsBackPath', () => {
     });
 
     it('matches an encoded feed against the current feed', () => {
-        const encodedFeed = encodeURIComponent(FEED_A) as CompanyCardFeedWithDomainID;
+        const encodedFeed = encodeURIComponent(FEED_A);
         const state = createSettingsState([
             {
                 key: 'details-encoded',
@@ -298,14 +305,14 @@ describe('getCompanyCardDetailsBackPath', () => {
             {
                 key: 'details-missing',
                 name: SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
-                params: {policyID: MOCK_POLICY_ID} as PlatformStackNavigationState<SettingsNavigatorParamList>['routes'][number]['params'],
+                params: {policyID: MOCK_POLICY_ID},
             },
         ]);
         const nonStringParamsState = createSettingsState([
             {
                 key: 'details-non-string',
                 name: SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
-                params: {policyID: MOCK_POLICY_ID, feed: FEED_A, cardID: 111} as unknown as PlatformStackNavigationState<SettingsNavigatorParamList>['routes'][number]['params'],
+                params: {policyID: MOCK_POLICY_ID, feed: FEED_A, cardID: 111},
             },
         ]);
 
