@@ -68,7 +68,7 @@ function DynamicCategoryDefaultTaxRatePage({
             }))
             .sort((a, b) => localeCompare(a.text ?? a.keyForList ?? '', b.text ?? b.keyForList ?? ''));
     }, [policy, selectedTaxRate, textForDefault, localeCompare]);
-    const orderedTaxesList = useMemo(() => moveInitialSelectionToTop(taxesList, initialSelectedTaxRate ? [initialSelectedTaxRate] : []), [taxesList, initialSelectedTaxRate]);
+    const orderedTaxesList = moveInitialSelectionToTop(taxesList, initialSelectedTaxRate ? [initialSelectedTaxRate] : []);
 
     const saveAndGoBack = () => {
         if (hasChanges) {
