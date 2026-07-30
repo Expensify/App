@@ -70,6 +70,22 @@ function mockBrowserReloadNavigation(useLegacyFallback = false) {
     };
 }
 
+function mockDocumentHidden(isHidden: boolean) {
+    const originalHidden = Object.getOwnPropertyDescriptor(document, 'hidden');
+    Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        value: isHidden,
+    });
+
+    return () => {
+        if (originalHidden) {
+            Object.defineProperty(document, 'hidden', originalHidden);
+        } else {
+            Reflect.deleteProperty(document, 'hidden');
+        }
+    };
+}
+
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
     default: {
@@ -364,6 +380,19 @@ describe('navigateAfterOnboarding', () => {
 
         expect(consumePendingHomeDeepLink()).toBe(true);
         expect(consumePendingConciergeDeepLink()).toBe(false);
+    });
+
+    it('should not publish a cross-tab cancellation token for background root route replays', () => {
+        const restoreDocumentHidden = mockDocumentHidden(true);
+        window.localStorage.setItem(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY, 'existing-token');
+
+        try {
+            updatePendingConciergeDeepLinkForRoute('', true);
+
+            expect(window.localStorage.getItem(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY)).toBe('existing-token');
+        } finally {
+            restoreDocumentHidden();
+        }
     });
 
     it('should preserve pending Concierge intent when an authenticated onboarding route is replayed after refresh', () => {

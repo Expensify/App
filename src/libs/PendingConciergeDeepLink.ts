@@ -150,6 +150,14 @@ function isBrowserReload() {
     }
 }
 
+function isDocumentHidden() {
+    try {
+        return typeof document !== 'undefined' && document.hidden;
+    } catch {
+        return false;
+    }
+}
+
 function setPendingHomeDeepLinkIfNoPendingConcierge() {
     // Startup/linking can emit ambiguous root/home signals, so avoid replacing an explicit /concierge intent.
     if (hasPendingConciergeDeepLinkIntent()) {
@@ -164,7 +172,9 @@ function setPendingHomeDeepLinkForRoot() {
         setPendingHomeDeepLinkIfNoPendingConcierge();
         return;
     }
-    setCancelToken();
+    if (!isDocumentHidden()) {
+        setCancelToken();
+    }
     setPendingHomeDeepLink();
 }
 
