@@ -32,7 +32,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCompanyCardErrorField} from '@libs/actions/CompanyCards';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {getAllCardsForWorkspace, getCardFeedTextColor, getCardHintText, getProgramKeyForCard, getTranslationKeyForLimitType, isCardFrozen, maskCard} from '@libs/CardUtils';
+import {
+    getAllCardsForWorkspace,
+    getCardFeedTextColor,
+    getCardFeedWithDomainID,
+    getCardHintText,
+    getProgramKeyForCard,
+    getTranslationKeyForLimitType,
+    isCardFrozen,
+    maskCard,
+} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
