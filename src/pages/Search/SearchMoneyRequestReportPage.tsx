@@ -391,6 +391,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         <ScreenWrapper
                             testID="SearchMoneyRequestReportPage"
                             shouldEnableMaxHeight
+                            style={[styles.appBG, styles.flex1]}
                             offlineIndicatorStyle={styles.mtAuto}
                         >
                             <FullPageNotFoundView

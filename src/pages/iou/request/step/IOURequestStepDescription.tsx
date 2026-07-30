@@ -177,6 +177,9 @@ function IOURequestStepDescription({
         onCancel: () => {
             inputRef.current?.focus();
         },
+        onConfirm: () => {
+            inputRef.current?.blur();
+        },
         getHasUnsavedChanges: () => {
             if (isSaved) {
                 return false;

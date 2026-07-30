@@ -815,6 +815,7 @@ function prepareRejectMoneyRequestData(
     // Add rter transaction violation
     if (!isIOU) {
         const currentTransactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? [];
+        const filteredTransactionViolations = currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
         const newViolation = {
             name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
             type: CONST.VIOLATION_TYPES.WARNING,
@@ -827,9 +828,9 @@ function prepareRejectMoneyRequestData(
         };
 
         optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
-            value: [...currentTransactionViolations, newViolation],
+            value: [...filteredTransactionViolations, newViolation],
         });
 
         // Add failure data to revert transaction violations

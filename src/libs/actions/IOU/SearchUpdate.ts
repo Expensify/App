@@ -88,7 +88,10 @@ function shouldOptimisticallyUpdateSearch(
     // `status` and `policyID` are regular filters now, but they used to be root keys. They are already accounted for by the
     // status/policyID checks above, so they don't count as restrictive flat filters when deciding whether to optimistically update.
     const hasNoFlatFilters = currentSearchQueryJSON.flatFilters.every(
-        (filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS || filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+        (filter) =>
+            filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS ||
+            filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID ||
+            filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
     );
 
     const onlyFromFilter = currentSearchQueryJSON.flatFilters.length === 1 ? currentSearchQueryJSON.flatFilters.at(0) : undefined;

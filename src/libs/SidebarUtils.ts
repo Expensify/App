@@ -1380,6 +1380,10 @@ function getOptionData({
         }
     }
 
+    if (result.alternateText) {
+        result.alternateText = StringUtils.lineBreaksToSpaces(result.alternateText).trim();
+    }
+
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
 
     if (isJoinRequestInAdminRoom(report)) {

@@ -66,6 +66,7 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
+            offlineIndicatorStyle={styles.mtAuto}
             testID="NotificationPreferencePage"
         >
             <FullPageNotFoundView shouldShow={shouldDisableNotificationPreferences}>
