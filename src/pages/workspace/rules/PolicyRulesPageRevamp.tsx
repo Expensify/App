@@ -98,18 +98,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
     const {showConfirmModal} = useConfirmModal();
 
-    const isPolicyLoaded = !!policy?.id && !policy?.isLoading;
-    const areCategoriesEnabled = !!policy?.areCategoriesEnabled;
-    const shouldShowCategoryRulesTabs = !isPolicyLoaded || areCategoriesEnabled;
-
-    useEffect(() => {
-        if (!isPolicyLoaded || areCategoriesEnabled || (activeTab !== RULES_TAB.REQUIRE_FIELDS && activeTab !== RULES_TAB.FLAG_FOR_REVIEW)) {
-            return;
-        }
-
-        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, RULES_TAB.GENERAL);
-    }, [activeTab, areCategoriesEnabled, isPolicyLoaded]);
-
     useEffect(() => {
         // Fetch once on mount (and when policyID changes). setPolicyCodingRule already updates Onyx — refetching after saves can overwrite a newly added rule with stale data.
         openPolicyRulesPage(policyID);
@@ -221,20 +209,16 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             title: translate('workspace.rules.tabs.expenseDefaults'),
             icon: icons.DocumentMagicWand,
         },
-        ...(shouldShowCategoryRulesTabs
-            ? [
-                  {
-                      key: RULES_TAB.REQUIRE_FIELDS,
-                      title: translate('workspace.rules.tabs.requireFields'),
-                      icon: icons.Task,
-                  },
-                  {
-                      key: RULES_TAB.FLAG_FOR_REVIEW,
-                      title: translate('workspace.rules.tabs.flagForReview'),
-                      icon: icons.Flag,
-                  },
-              ]
-            : []),
+        {
+            key: RULES_TAB.REQUIRE_FIELDS,
+            title: translate('workspace.rules.tabs.requireFields'),
+            icon: icons.Task,
+        },
+        {
+            key: RULES_TAB.FLAG_FOR_REVIEW,
+            title: translate('workspace.rules.tabs.flagForReview'),
+            icon: icons.Flag,
+        },
         ...(isCustomAgentBetaEnabled
             ? [
                   {

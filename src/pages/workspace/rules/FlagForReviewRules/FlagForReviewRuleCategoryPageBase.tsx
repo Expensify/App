@@ -1,3 +1,4 @@
+import RuleCategoriesDisabledEmptyState from '@components/Rule/RuleCategoriesDisabledEmptyState';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
 import useNetwork from '@hooks/useNetwork';
@@ -92,6 +93,7 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
                 backToRoute={backToRoute}
                 allowNoneOption={false}
                 shouldSkipFocusRestoreOnSave
+                emptyState={policy?.areCategoriesEnabled ? undefined : <RuleCategoriesDisabledEmptyState policyID={policyID} />}
             />
         </AccessOrNotFoundWrapper>
     );

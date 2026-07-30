@@ -55,13 +55,29 @@ type RuleSelectionBaseProps = {
 
     /** Set at parents whose Save is `pressOnEnter` so an auto-save selection can't leave the row re-focused and hijack the next Enter. */
     shouldSkipFocusRestoreOnSave?: boolean;
+
+    /** Rendered instead of the picker, e.g. when the feature the items come from is disabled */
+    emptyState?: React.ReactNode;
 };
 
 function resolveBackToRoute(backToRoute: RuleSelectionBackToRoute, selectedValue?: string): Route {
     return typeof backToRoute === 'function' ? backToRoute(selectedValue) : backToRoute;
 }
 
-function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave, onBack, backToRoute, allowNoneOption = true, hash, shouldSkipFocusRestoreOnSave}: RuleSelectionBaseProps) {
+function RuleSelectionBase({
+    titleKey,
+    title,
+    testID,
+    selectedItem,
+    items,
+    onSave,
+    onBack,
+    backToRoute,
+    allowNoneOption = true,
+    hash,
+    shouldSkipFocusRestoreOnSave,
+    emptyState,
+}: RuleSelectionBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -82,15 +98,17 @@ function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave
                     onBackButtonPress={onBack}
                 />
                 <View style={[styles.flex1]}>
-                    <SearchSingleSelectionPicker
-                        initiallySelectedItem={selectedItem}
-                        items={items}
-                        onSaveSelection={handleSaveSelection}
-                        shouldAutoSave
-                        shouldNavigateOnSave={false}
-                        allowNoneOption={allowNoneOption}
-                        shouldSkipFocusRestoreOnSave={shouldSkipFocusRestoreOnSave}
-                    />
+                    {emptyState ?? (
+                        <SearchSingleSelectionPicker
+                            initiallySelectedItem={selectedItem}
+                            items={items}
+                            onSaveSelection={handleSaveSelection}
+                            shouldAutoSave
+                            shouldNavigateOnSave={false}
+                            allowNoneOption={allowNoneOption}
+                            shouldSkipFocusRestoreOnSave={shouldSkipFocusRestoreOnSave}
+                        />
+                    )}
                 </View>
             </ScreenWrapper>
         </RuleNotFoundPageWrapper>

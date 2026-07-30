@@ -7944,6 +7944,10 @@ const translations = {
                 subtitle: 'Require or waive expense fields for specific categories.',
                 cta: 'Create field requirement rule',
             },
+            categoriesDisabledEmptyState: {
+                title: 'Categories are not enabled',
+                subtitle: 'Enable categories to gain more control of your spend.',
+            },
             requireFieldsRule: {
                 title: 'Field requirements',
                 subtitle: 'Require specific expense fields or waive requiring them.',

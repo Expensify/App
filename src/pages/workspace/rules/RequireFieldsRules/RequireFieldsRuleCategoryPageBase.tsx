@@ -1,3 +1,4 @@
+import RuleCategoriesDisabledEmptyState from '@components/Rule/RuleCategoriesDisabledEmptyState';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
 import useNetwork from '@hooks/useNetwork';
@@ -135,6 +136,7 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
                 onBack={() => Navigation.goBack(backToRoute())}
                 backToRoute={backToRoute}
                 allowNoneOption={false}
+                emptyState={policy?.areCategoriesEnabled ? undefined : <RuleCategoriesDisabledEmptyState policyID={policyID} />}
             />
         </AccessOrNotFoundWrapper>
     );
