@@ -7,6 +7,7 @@ import {waitForIdle} from '@libs/Network/SequentialQueue';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -33,7 +34,8 @@ jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 
-TestHelper.setupApp();
+// The reports sidebar this test presses lives under the Inbox, so the app has to boot there rather than on the root URL.
+TestHelper.setupApp(`https://new.expensify.com/${ROUTES.INBOX}`);
 const fetchMock = TestHelper.setupGlobalFetchMock();
 
 const LIST_SIZE = {

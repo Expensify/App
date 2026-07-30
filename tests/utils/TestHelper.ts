@@ -77,9 +77,13 @@ const anyArray: unknown = expect.any(Array);
 const anyObject: unknown = expect.any(Object);
 const anyString: unknown = expect.any(String);
 
-function setupApp() {
+/**
+ * Pass `initialUrl` when the test needs the app to boot on a specific screen. The root URL resolves to Home,
+ * so tests relying on the reports sidebar have to boot on the Inbox instead.
+ */
+function setupApp(initialUrl = 'https://new.expensify.com/') {
     beforeAll(() => {
-        Linking.setInitialURL('https://new.expensify.com/');
+        Linking.setInitialURL(initialUrl);
         appSetup();
 
         // Connect to Pusher
