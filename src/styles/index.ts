@@ -1221,6 +1221,11 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        editableCellColumn: {
+            alignSelf: 'stretch',
+            justifyContent: 'center',
+        },
+
         editableCellEditButtonContainer: {
             position: 'absolute',
             top: 0,
@@ -6875,6 +6880,12 @@ const dynamicStyles = (theme: ThemeColors) =>
             width: shouldUseNarrowLayout ? variables.componentSizeNormal : variables.h28,
             backgroundColor: shouldUseNarrowLayout ? undefined : theme.buttonDefaultBG,
             borderRadius: 999,
+        }),
+
+        // The 40px bulk-actions button swaps in for the table filter bar row (32px search bar on wide layouts, 44px on narrow),
+        // so offset its vertical margin to keep the row height identical and prevent the table from shifting (see searchBulkActionsButton).
+        tableBulkActionsButton: (shouldUseNarrowTableLayout: boolean) => ({
+            marginVertical: shouldUseNarrowTableLayout ? 2 : -4,
         }),
     }) satisfies DynamicStyles;
 
