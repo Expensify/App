@@ -6285,9 +6285,8 @@ const translations = {
                 assignedCards: 'Assigned',
                 unassignedCards: 'Unassigned',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
-                integrationExportTitleXero: (integration: string) => `Choose the ${integration} account where transactions should be exported.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Choose the ${integration} account where transactions should be exported. Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Choose the ${integration} account where transactions should be exported.${exportPageLink ? ` Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.` : ''}`,
                 lastUpdated: 'Last updated',
                 transactionStartDate: 'Transaction start date',
                 updateCard: 'Update card',
@@ -9081,6 +9080,10 @@ const translations = {
             undelete: 'Undelete',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
+        expensifyCardStatementPDF: {
+            title: 'Download statement',
+            oneFeedAtATime: 'Please select settlements from one Expensify Card feed at a time.',
+        },
         filtersHeader: 'Filters',
         filters: {
             date: {
@@ -10480,6 +10483,7 @@ const translations = {
             `# ${name} invited you to test drive Expensify\nHey! I just got us *3 months free* to test drive Expensify, the fastest way to do expenses.\n\nHere’s a *test receipt* to show you how it works:`,
     },
     export: {
+        downloadStatementPDF: 'Download statement',
         basicExport: 'Basic export',
         currentView: 'Current view',
         reportLevelExport: 'All Data - report level',

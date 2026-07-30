@@ -5963,9 +5963,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 assignedCards: '已分配',
                 unassignedCards: '未分配',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} 导出` : `${integration} 导出`),
-                integrationExportTitleXero: (integration: string) => `选择要导出交易的 ${integration} 账户。`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `选择要导出交易的 ${integration} 账户。选择其他<a href="${exportPageLink}">导出选项</a>以更改可用账户。`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `选择要导出交易的 ${integration} 账户。${exportPageLink ? `选择其他<a href="${exportPageLink}">导出选项</a>以更改可用账户。` : ''}`,
                 lastUpdated: '最近更新',
                 transactionStartDate: '交易开始日期',
                 updateCard: '更新卡片',
@@ -8590,6 +8589,10 @@ ${reportName}`,
             undelete: '取消删除',
             duplicateReport: ({count}: {count: number}) => `重复 ${count === 1 ? '报表' : '报表'}`,
         },
+        expensifyCardStatementPDF: {
+            title: '下载对账单',
+            oneFeedAtATime: '请一次只选择来自一个 Expensify Card 数据源的结算。',
+        },
         filtersHeader: '筛选器',
         filters: {
             date: {
@@ -9933,6 +9936,7 @@ ${reportName}`,
 这里有一张*测试收据*，来展示它是如何运作的：`,
     },
     export: {
+        downloadStatementPDF: '下载对账单',
         basicExport: '基本导出',
         reportLevelExport: '所有数据 - 报告级别',
         expenseLevelExport: '所有数据 - 报销级别',
