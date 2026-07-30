@@ -1,7 +1,7 @@
 ---
 title: Add the Expensify Card to Apple or Google Pay
 description: Pay with your Expensify Card by adding it to your Apple Pay or Google Pay wallet for easy contactless payments.
-keywords: [New Expensify, Expensify Card, Apple Pay, Google Pay, mobile wallet, contactless payments, virtual card]
+keywords: [New Expensify, Expensify Card, Apple Pay, Google Pay, mobile wallet, contactless payments, virtual card, This Card Cannot Be Used, card cannot be used, provisioning error]
 ---
 
 
@@ -34,3 +34,11 @@ You cannot add the card to your Apple wallet from the web.
 **Note:** If adding your Expensify Card directly in the Google Wallet app doesn't work, you can add your card from within the Expensify mobile app instead. From inside the mobile app, head to **Account > Wallet**, select your card, and choose **Add to Google Wallet**.
 
 You cannot add the card to your Google wallet from the web.
+
+---
+
+# Troubleshooting
+
+## "This Card Cannot Be Used" keeps appearing
+
+If you see a **"This Card Cannot Be Used"** error and it persists even after removing the card from your wallet and adding it again, the card's provisioning needs to be reset on our end — this isn't something you can fix by retrying on the device. Contact Concierge with the last 4 digits of the affected card and let them know the error continues after re-adding, and we'll reset the provisioning so you can add the card to your wallet.

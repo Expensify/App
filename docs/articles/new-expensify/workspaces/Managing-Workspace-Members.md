@@ -1,7 +1,7 @@
 ---
 title: Managing Workspace Members in New Expensify
 description: Learn how to add, remove, filter, and manage user roles in a New Expensify workspace.
-keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, invite users, filter members, role filter]
+keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, invite users, filter members, role filter, add employee, add new employee, add member, add new member, add new user, set up new user, onboard employee, onboard member]
 ---
 
 
