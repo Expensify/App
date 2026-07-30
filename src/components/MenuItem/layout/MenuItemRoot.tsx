@@ -36,7 +36,6 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel}: Menu
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isExecuting} = useMenuItemGroupState() ?? {};
-    const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const pressableRef = useRef<View>(null);
     const isCompactMenu = useIsCompactMenu();
     const isCompact = isCompactMenu && !shouldUseNarrowLayout;
@@ -69,16 +68,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel}: Menu
         if (!onPress || !event) {
             return;
         }
-
-        if (!singleExecution || !waitForNavigate) {
-            onPress(event);
-            return;
-        }
-        singleExecution(
-            waitForNavigate(() => {
-                onPress(event);
-            }),
-        )();
+        onPress?.(event);
     };
 
     return (
