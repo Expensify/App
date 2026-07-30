@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
@@ -17,9 +17,12 @@ import React from 'react';
 
 type CurrencyOption = {text: string; value: string; keyForList: string; isSelected: boolean};
 
+type ConfirmButtonOptions = {showButton?: boolean; text?: string; onConfirm?: () => void; isDisabled?: boolean};
+
 let capturedData: CurrencyOption[] = [];
 let capturedOnSelectRow: ((option: CurrencyOption) => void) | undefined;
 let capturedCustomListHeader: React.ReactNode;
+let capturedConfirmButtonOptions: ConfirmButtonOptions | undefined;
 
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => false})));
 
@@ -72,10 +75,21 @@ jest.mock('@components/HeaderWithBackButton', () => {
 });
 
 jest.mock('@components/SelectionList', () => {
-    function MockSelectionList({data, onSelectRow, customListHeader}: {data: CurrencyOption[]; onSelectRow: (option: CurrencyOption) => void; customListHeader?: React.ReactNode}) {
+    function MockSelectionList({
+        data,
+        onSelectRow,
+        customListHeader,
+        confirmButtonOptions,
+    }: {
+        data: CurrencyOption[];
+        onSelectRow: (option: CurrencyOption) => void;
+        customListHeader?: React.ReactNode;
+        confirmButtonOptions?: ConfirmButtonOptions;
+    }) {
         capturedData = data ?? [];
         capturedOnSelectRow = onSelectRow;
         capturedCustomListHeader = customListHeader;
+        capturedConfirmButtonOptions = confirmButtonOptions;
         return (data ?? []).map((item) => item.text).join(',');
     }
     return MockSelectionList;
@@ -121,6 +135,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         capturedData = [];
         capturedOnSelectRow = undefined;
         capturedCustomListHeader = undefined;
+        capturedConfirmButtonOptions = undefined;
         mockUsePermissions.mockReturnValue({isBetaEnabled: () => false});
         mockUseDynamicBackPath.mockReturnValue('settings/subscription/change-billing-currency');
         mockOnyx();
@@ -194,32 +209,81 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         expect(capturedData.find((option) => option.isSelected)).toBeUndefined();
     });
 
-    it('writes only the change-billing draft (not the add-card draft) on select in the change-billing flow', () => {
+    it('moves the checkmark on select without persisting or navigating (deferred until Save)', () => {
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
         const aud = capturedData.find((option) => option.value === 'AUD');
         expect(aud).toBeDefined();
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        capturedOnSelectRow?.(aud!);
+        act(() => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            capturedOnSelectRow?.(aud!);
+        });
+
+        expect(mockSetDraftValues).not.toHaveBeenCalled();
+        expect(mockSetPaymentMethodCurrency).not.toHaveBeenCalled();
+        expect(mockGoBack).not.toHaveBeenCalled();
+
+        const selected = capturedData.filter((option) => option.isSelected);
+        expect(selected).toHaveLength(1);
+        expect(selected.at(0)?.value).toBe('AUD');
+    });
+
+    it('writes only the change-billing draft (not the add-card draft) and navigates back when Save is tapped', () => {
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        const aud = capturedData.find((option) => option.value === 'AUD');
+        expect(aud).toBeDefined();
+        act(() => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            capturedOnSelectRow?.(aud!);
+        });
+
+        expect(capturedConfirmButtonOptions?.showButton).toBe(true);
+        act(() => {
+            capturedConfirmButtonOptions?.onConfirm?.();
+        });
 
         expect(mockSetDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {currency: 'AUD'});
         expect(mockSetPaymentMethodCurrency).not.toHaveBeenCalled();
         expect(mockGoBack).toHaveBeenCalledWith('settings/subscription/change-billing-currency');
     });
 
-    it('writes only the add-card draft (not the change-billing draft) on select in the add payment card flow', () => {
+    it('writes only the add-card draft (not the change-billing draft) and navigates back when Save is tapped', () => {
         mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
         const aud = capturedData.find((option) => option.value === 'AUD');
         expect(aud).toBeDefined();
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        capturedOnSelectRow?.(aud!);
+        act(() => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            capturedOnSelectRow?.(aud!);
+        });
+
+        act(() => {
+            capturedConfirmButtonOptions?.onConfirm?.();
+        });
 
         expect(mockSetPaymentMethodCurrency).toHaveBeenCalledWith('AUD');
         expect(mockSetDraftValues).not.toHaveBeenCalled();
         expect(mockGoBack).toHaveBeenCalledWith('settings/subscription/add-payment-card');
+    });
+
+    it('disables Save while the selection still matches the persisted currency, and enables it after a change', () => {
+        mockOnyx('USD');
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        expect(capturedConfirmButtonOptions?.isDisabled).toBe(true);
+
+        const aud = capturedData.find((option) => option.value === 'AUD');
+        expect(aud).toBeDefined();
+        act(() => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            capturedOnSelectRow?.(aud!);
+        });
+
+        expect(capturedConfirmButtonOptions?.isDisabled).toBe(false);
     });
 
     it('shows the currency note when opened from a flow that does not already display it (e.g. add payment card)', () => {

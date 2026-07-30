@@ -14,20 +14,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 import type {TodoCounts} from '@hooks/useTodoCounts';
 
-import {setSearchContext} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
-import {getItemBadgeText, getSectionBadgeText} from '@libs/SearchUIUtils';
+import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
+import {getItemBadgeText, getSectionBadgeText, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useContext, useEffect, useEffectEvent, useLayoutEffect, useRef, useState} from 'react';
+import React, {useContext, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import SavedSearchList from './SavedSearchList';
@@ -45,44 +43,14 @@ type SectionParams = {
     activeItemIndex: number;
     sectionStartIndex: number;
     reportCounts: TodoCounts;
-    areAllSectionsExpanded: boolean;
     onItemPress: (query: string) => void;
-    onCollapsed: (isCollapsed: boolean) => void;
 };
 
-function Section({section, hash, activeItemIndex, sectionStartIndex, reportCounts, areAllSectionsExpanded, onItemPress, onCollapsed}: SectionParams) {
+function Section({section, hash, activeItemIndex, sectionStartIndex, reportCounts, onItemPress}: SectionParams) {
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'Basket',
-        'CalendarSolid',
-        'Receipt',
-        'MoneyBag',
-        'CreditCard',
-        'MoneyHourglass',
-        'CreditCardHourglass',
-        'Bank',
-        'User',
-        'Folder',
-        'Document',
-        'Pencil',
-        'ThumbsUp',
-        'CheckCircle',
-    ]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(SEARCH_TYPE_MENU_ICON_NAMES);
 
     const [isExpanded, setIsExpanded] = useState(true);
-
-    const onUnmount = useEffectEvent(() => {
-        if (isExpanded) {
-            return;
-        }
-        // When the section is removed/unmounted while collapsed,
-        // notify the parent that the section is no longer collapsed.
-        onCollapsed(false);
-    });
-
-    useEffect(() => {
-        return () => onUnmount();
-    }, []);
 
     const isSavedSearchesSection = section.translationPath === 'search.savedSearchesMenuItemTitle';
 
@@ -90,20 +58,12 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
         <SearchTypeMenuAccordion
             isExpanded={isExpanded}
             onSectionHeaderPress={() => {
-                setIsExpanded((prevIsExpanded) => {
-                    onCollapsed(prevIsExpanded);
-                    return !prevIsExpanded;
-                });
+                setIsExpanded((prevIsExpanded) => !prevIsExpanded);
             }}
             title={translate(section.translationPath)}
             badgeText={getSectionBadgeText(section.translationPath, reportCounts)}
         >
-            {isSavedSearchesSection && (
-                <SavedSearchList
-                    hash={hash}
-                    areAllSectionsExpanded={areAllSectionsExpanded}
-                />
-            )}
+            {isSavedSearchesSection && <SavedSearchList hash={hash} />}
             {!isSavedSearchesSection &&
                 section.menuItems.map((item, itemIndex) => {
                     const flattenedIndex = sectionStartIndex + itemIndex;
@@ -151,11 +111,7 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
         saveScrollOffset(route, e.nativeEvent.contentOffset.y);
     };
 
-    const handleTypeMenuItemPress = singleExecution((searchQuery: string) => {
-        clearSelectedTransactions();
-        setSearchContext(false);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
-    });
+    const handleTypeMenuItemPress = singleExecution((searchQuery: string) => navigateToCannedSpendSearch(searchQuery, clearSelectedTransactions));
 
     useLayoutEffect(() => {
         const scrollOffset = getScrollOffset(route);
@@ -174,13 +130,6 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
 
     const areSuggestedSearchesLoading = !isOffline && !isSearchDataLoaded && !isLoadingOnyxValue(isSearchDataLoadedResult);
 
-    const [collapsedSectionCount, setCollapsedSectionCount] = useState(0);
-    const areAllSectionsExpanded = collapsedSectionCount === 0;
-
-    const updateCollapsedCount = (isCollapsed: boolean) => {
-        setCollapsedSectionCount((prevCollapsedCount) => prevCollapsedCount + (isCollapsed ? 1 : -1));
-    };
-
     return (
         <ScrollView
             onScroll={onScroll}
@@ -192,12 +141,10 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
                     <Section
                         section={expenseReportsSection}
                         onItemPress={handleTypeMenuItemPress}
-                        onCollapsed={updateCollapsedCount}
                         hash={hash}
                         sectionStartIndex={0}
                         activeItemIndex={activeItemIndex}
                         reportCounts={reportCounts}
-                        areAllSectionsExpanded={areAllSectionsExpanded}
                     />
                 )}
 
@@ -212,12 +159,10 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
                             key={section.translationPath}
                             section={section}
                             onItemPress={handleTypeMenuItemPress}
-                            onCollapsed={updateCollapsedCount}
                             hash={hash}
                             sectionStartIndex={sectionStartIndices.at(index + (expenseReportsSection ? 1 : 0)) ?? 0}
                             activeItemIndex={activeItemIndex}
                             reportCounts={reportCounts}
-                            areAllSectionsExpanded={areAllSectionsExpanded}
                         />
                     ))
                 )}

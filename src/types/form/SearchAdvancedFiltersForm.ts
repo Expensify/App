@@ -805,10 +805,10 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ACTION_NOT]: string;
 
         [FILTER_KEYS.HAS]: HasFilterValues;
-        [FILTER_KEYS.HAS_NOT]: string[];
+        [FILTER_KEYS.HAS_NOT]: HasFilterValues;
 
         [FILTER_KEYS.IS]: IsFilterValues;
-        [FILTER_KEYS.IS_NOT]: string[];
+        [FILTER_KEYS.IS_NOT]: IsFilterValues;
 
         [FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO]: string;
         [FILTER_KEYS.PURCHASE_AMOUNT_NOT]: string;

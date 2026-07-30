@@ -23,7 +23,7 @@ import INPUT_IDS from '@src/types/form/ChangeBillingCurrencyForm';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 
 type Currency = ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
 
@@ -49,6 +49,11 @@ function DynamicPaymentCardCurrencySelectorPage() {
     const addCardDefaultCurrency = !canUseEurBilling && preferredCurrency === CONST.PAYMENT_CARD_CURRENCY.EUR ? CONST.PAYMENT_CARD_CURRENCY.USD : preferredCurrency;
     const currentCurrency = (isChangeBillingCurrencyFlow ? (formDraft?.[INPUT_IDS.CURRENCY] ?? preferredCurrency) : (addCardFormDraft?.currency ?? addCardDefaultCurrency)) as Currency;
 
+    // Selecting a row only moves the checkmark; the pick is persisted when Save is tapped. Named to avoid reading as one of
+    // the Onyx form drafts above — this is unsaved local state.
+    const [pickedCurrency, setPickedCurrency] = useState<Currency>();
+    const selectedCurrency = pickedCurrency ?? currentCurrency;
+
     const currencyOptions = useMemo(
         () =>
             (Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Currency[])
@@ -57,10 +62,26 @@ function DynamicPaymentCardCurrencySelectorPage() {
                     text: currency,
                     value: currency,
                     keyForList: currency,
-                    isSelected: currency === currentCurrency,
+                    isSelected: currency === selectedCurrency,
                 })),
-        [currentCurrency, canUseEurBilling],
+        [selectedCurrency, canUseEurBilling],
     );
+
+    const saveAndGoBack = () => {
+        if (isChangeBillingCurrencyFlow) {
+            setDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {[INPUT_IDS.CURRENCY]: selectedCurrency});
+        } else {
+            setPaymentMethodCurrency(selectedCurrency);
+        }
+        Navigation.goBack(backPath);
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+        isDisabled: selectedCurrency === currentCurrency,
+    };
 
     return (
         <ScreenWrapper
@@ -77,14 +98,8 @@ function DynamicPaymentCardCurrencySelectorPage() {
                 data={currencyOptions}
                 ListItem={SingleSelectListItem}
                 customListHeader={shouldShowCurrencyNote ? <PaymentCardCurrencyHeader isSectionList /> : undefined}
-                onSelectRow={(option) => {
-                    if (isChangeBillingCurrencyFlow) {
-                        setDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {[INPUT_IDS.CURRENCY]: option.value});
-                    } else {
-                        setPaymentMethodCurrency(option.value);
-                    }
-                    Navigation.goBack(backPath);
-                }}
+                onSelectRow={(option) => setPickedCurrency(option.value)}
+                confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={currentCurrency}
                 showScrollIndicator

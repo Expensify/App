@@ -6,10 +6,12 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {TextInputOptions} from '@components/SelectionList/types';
 
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
@@ -53,6 +55,7 @@ function MultiSelect<T extends string>({
     value,
     items,
     isSearchable,
+    isNegatable,
     searchPlaceholder,
     selectionListTextInputStyle,
     selectionListStyle,
@@ -67,8 +70,17 @@ function MultiSelect<T extends string>({
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
+    // Snapshot the values selected when the filter first opened so they can be floated to the top of a long list on
+    // first render without repinning rows that are toggled afterwards.
+    // moveInitialSelectionToTop gates on the *unfiltered* items length so the decision doesn't flip as the user types,
+    // and reordering before filtering keeps the pinned items on top among the results that still match.
+    const initialSelectedValues = useInitialValue(() => value.map((item) => item.value));
+    const orderedItems = moveInitialSelectionToTop(items, initialSelectedValues);
+
     const searchLower = debouncedSearchTerm.toLowerCase();
-    const filteredItems = isSearchable ? items.filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower)) : items;
+    const filteredItems = isSearchable
+        ? orderedItems.filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower))
+        : orderedItems;
     const listData: ListItem[] = filteredItems.map((item) => ({
         text: item.text,
         keyForList: item.value,
@@ -113,6 +125,7 @@ function MultiSelect<T extends string>({
         <ListFilterView
             itemCount={listData.length}
             isSearchable={isSearchable}
+            isNegatable={isNegatable}
         >
             {loading ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
@@ -125,6 +138,7 @@ function MultiSelect<T extends string>({
             ) : (
                 <SelectionList
                     shouldSingleExecuteRowSelect
+                    shouldUpdateFocusedIndex
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     data={listData}
                     ListItem={MultiSelectListItem}

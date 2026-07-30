@@ -1080,12 +1080,14 @@ function rejectExpenseReport(
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
                   isRejectedReport: true,
+                  isTrackIntentUser,
               })
             : // buildOptimisticNextStep is used in parallel
               buildNextStepNew({
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
                   bypassNextApproverID: targetAccountID,
+                  isTrackIntentUser,
               }),
     });
 

@@ -1,5 +1,7 @@
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
+import NavigationDeferredMount from '@components/NavigationDeferredMount';
 
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -46,7 +48,7 @@ function ReportActions() {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isAppLoadPending = useIsAppLoadPending();
     const {reportActions} = usePaginatedReportActions(reportIDFromRoute);
 
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
@@ -65,7 +67,7 @@ function ReportActions() {
     // Concierge is excluded so the body still mounts under the app-load skeleton, seeding sessionStartTime
     // before content appeared.
     const isConciergeMainDM = isConciergeChatReport(report, conciergeReportID);
-    const shouldShowAppLoadSkeleton = !!isLoadingApp && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM;
+    const shouldShowAppLoadSkeleton = isAppLoadPending && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM;
 
     useMarkOpenReportEndOnSkeleton(report, shouldShowAppLoadSkeleton);
 
@@ -102,4 +104,33 @@ function ReportActions() {
     );
 }
 
+type ReportActionsWithInboxTabDeferredMountProps = {
+    /** The report ID used by the deferred loading skeleton */
+    reportID: string | undefined;
+
+    /** Whether to defer mounting report actions during the initial Inbox tab navigation */
+    shouldDefer: boolean;
+};
+
+function ReportActionsWithInboxTabDeferredMount({reportID, shouldDefer}: ReportActionsWithInboxTabDeferredMountProps) {
+    if (!shouldDefer) {
+        return <ReportActions />;
+    }
+
+    return (
+        <NavigationDeferredMount
+            waitForUpcomingTransition={false}
+            placeholder={
+                <ReportActionsLoadingSkeleton
+                    reportID={reportID}
+                    skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.INBOX_TAB_DEFER}
+                />
+            }
+        >
+            <ReportActions />
+        </NavigationDeferredMount>
+    );
+}
+
+export {ReportActionsWithInboxTabDeferredMount};
 export default ReportActions;

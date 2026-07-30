@@ -19,7 +19,7 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import Navigation from '@navigation/Navigation';
 
-import getAvailableEuCountries from '@pages/ReimbursementAccount/utils/getAvailableEuCountries';
+import getAvailableCardCountryOptions from '@pages/ReimbursementAccount/utils/getAvailableCardCountryOptions';
 
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
 import {setIsComingFromGlobalReimbursementsFlow} from '@userActions/Policy/Policy';
@@ -52,13 +52,14 @@ type CountryFullStepProps = {
 };
 
 function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isComingFromExpensifyCard}: CountryFullStepProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
     const [showNoPolicyError, setShowNoPolicyError] = useState(false);
 
     const currency =
@@ -67,12 +68,13 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
         reimbursementAccount?.achData?.currency ??
         CONST.BBA_COUNTRY_CURRENCY_MAP[reimbursementAccount?.achData?.country ?? ''];
 
-    const shouldAllowChange = currency === CONST.CURRENCY.EUR && !reimbursementAccount?.achData?.accountNumber;
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID) && isComingFromExpensifyCard;
+    // GBP maps 1:1 to GB outside the Expensify Card flow, so only unlock the country picker for GBP during card onboarding, where GI is also valid
+    const shouldAllowChange = (currency === CONST.CURRENCY.EUR || (currency === CONST.CURRENCY.GBP && isUkEuCurrencySupported)) && !reimbursementAccount?.achData?.accountNumber;
     const defaultCountries = shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES;
     const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const currencyMappedToCountry = mapCurrencyToCountry(currency) || countryDefaultValue;
-    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID) && isComingFromExpensifyCard;
-    const countriesSupportedForExpensifyCard = getAvailableEuCountries();
+    const countriesSupportedForExpensifyCard = getAvailableCardCountryOptions(supportedCountriesByCurrency, currency, localeCompare);
 
     const [userSelectedCountry, setUserSelectedCountry] = useState<string>('');
     const selectedCountry = shouldAllowChange ? userSelectedCountry || countryDefaultValue : currencyMappedToCountry;
