@@ -1,7 +1,6 @@
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePolicy from '@hooks/usePolicy';
 
 import {requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import getTravelAcceptTermsRoute from '@libs/getTravelAcceptTermsRoute';
@@ -25,7 +24,6 @@ function DynamicVerifyAccountPage({route}: DynamicVerifyAccountPageProps) {
     const {domain, policyID} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.path);
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
-    const policy = usePolicy(policyID);
     const {isBetaEnabled} = usePermissions();
 
     useEffect(() => {
@@ -37,7 +35,7 @@ function DynamicVerifyAccountPage({route}: DynamicVerifyAccountPageProps) {
     const isTravelVerifiedBetaEnabled = isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED);
 
     // Determine where to navigate after successful OTP validation
-    const defaultForwardRoute = domain ? getTravelAcceptTermsRoute(domain, policyID, policy) : undefined;
+    const defaultForwardRoute = policyID ? getTravelAcceptTermsRoute(policyID) : undefined;
     const navigateForwardTo = isTravelVerifiedBetaEnabled ? (travelProvisioning?.nextStepRoute ?? defaultForwardRoute) : undefined;
 
     const handleValidationSuccess = useCallback(() => {
