@@ -8627,6 +8627,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `heeft de standaarduitgavencategorie voor ‘${mccGroupName}’ gewijzigd in ‘${newCategory}’ (voorheen ‘${oldCategory}’)`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `vereiste ${enabled ? 'ingeschakeld' : 'uitgeschakeld'} voor bedrijfskaarttransacties`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `heeft de agentregel ‘${title}’ toegevoegd: ${prompt}` : `heeft een agentregel toegevoegd: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) =>
+                title ? `heeft de agentregel ‘${title}’ bijgewerkt naar: ${prompt}` : `heeft een agentregel bijgewerkt naar: ${prompt}`,
+            deleted: ({title}: {title: string}) => (title ? `heeft de agentregel ‘${title}’ verwijderd` : 'heeft een agentregel verwijderd'),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'geblokkeerd', allow: 'toegestaan'},
             amountOperator: {over: 'over', under: 'onder'},
@@ -10217,7 +10223,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Begin <strong>hier!</strong></tooltip>',
-        accountSwitcher: '<tooltip>Krijg hier toegang tot je <strong>Copilot-accounts</strong></tooltip>',
+        accountSwitcher: '<tooltip>Je kunt nu copilot worden in een ander account!</tooltip>',
         outstandingFilter: '<tooltip>Filter voor uitgaven\ndie <strong>goedkeuring nodig hebben</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Stuur deze bon om\n<strong>de proefrit te voltooien!</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS-tracking bezig! Als je klaar bent, stop dan hieronder met bijhouden.</tooltip>',

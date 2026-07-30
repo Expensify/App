@@ -8714,6 +8714,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `a modifié la catégorie de dépense par défaut pour « ${mccGroupName} » en « ${newCategory} » (auparavant « ${oldCategory} »)`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} l’exigence d’achats par carte d’entreprise`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `a ajouté la règle d’agent « ${title} » : ${prompt}` : `a ajouté une règle d’agent : ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) =>
+                title ? `a mis à jour la règle d’agent « ${title} » en : ${prompt}` : `a mis à jour une règle d’agent en : ${prompt}`,
+            deleted: ({title}: {title: string}) => (title ? `a supprimé la règle d’agent « ${title} »` : 'a supprimé une règle d’agent'),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'bloqué', allow: 'autorisé'},
             amountOperator: {over: 'terminé', under: 'sous'},
@@ -10305,7 +10311,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',
-        accountSwitcher: '<tooltip>Accédez à vos <strong>comptes Copilot</strong> ici</tooltip>',
+        accountSwitcher: '<tooltip>Vous pouvez désormais copiloter un autre compte&nbsp;!</tooltip>',
         outstandingFilter: '<tooltip>Filtrer les dépenses\nqui <strong>doivent être approuvées</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
         gpsTooltip: '<tooltip>Suivi GPS en cours ! Lorsque vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',

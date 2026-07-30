@@ -8160,6 +8160,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             `${enabled ? 'habilitó' : 'deshabilitó'} que los titulares de tarjetas eliminen transacciones de la fuente de tarjetas "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `cambió el día de cierre del período de estado de cuenta de la fuente de tarjetas "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (previamente "${previousValue}")` : ''}`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `añadió la regla de agente «${title}»: ${prompt}` : `añadió una regla de agente: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `actualizó la regla de agente «${title}» a: ${prompt}` : `actualizó una regla de agente a: ${prompt}`),
+            deleted: ({title}: {title: string}) => (title ? `eliminó la regla de agente «${title}»` : 'eliminó una regla de agente'),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'bloqueado', allow: 'permitido'},
             amountOperator: {over: 'más de', under: 'debajo'},
@@ -10433,7 +10438,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>¡Comienza <strong>aquí</strong>!</tooltip>',
-        accountSwitcher: '<tooltip>Accede a tus <strong>cuentas copiloto</strong> aquí</tooltip>',
+        accountSwitcher: '<tooltip>¡Ahora puedes copilotar en otra cuenta!</tooltip>',
         outstandingFilter: '<tooltip>Filtra los gastos\nque <strong>necesitan aprobación</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
         gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',

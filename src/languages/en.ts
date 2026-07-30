@@ -8491,6 +8491,11 @@ const translations = {
         updatedCardFeedLiability: (feedName: string, enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} cardholders to delete card transactions for card feed "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `changed card feed "${feedName}" statement period end day${newValue ? ` to "${newValue}"` : ''}${previousValue ? ` (previously "${previousValue}")` : ''}`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `added the agent rule "${title}": ${prompt}` : `added an agent rule: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `updated the agent rule "${title}" to: ${prompt}` : `updated an agent rule to: ${prompt}`),
+            deleted: ({title}: {title: string}) => (title ? `removed the agent rule "${title}"` : 'removed an agent rule'),
+        },
         expensifyCardRule: {
             actionVerb: {
                 block: 'blocked',
@@ -10450,7 +10455,7 @@ const translations = {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>Get started <strong>here!</strong></tooltip>',
-        accountSwitcher: '<tooltip>Access your <strong>Copilot accounts</strong> here</tooltip>',
+        accountSwitcher: '<tooltip>You can now copilot into another account!</tooltip>',
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",

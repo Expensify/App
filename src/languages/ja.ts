@@ -8542,6 +8542,12 @@ ${reportName}`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `「${mccGroupName}」のデフォルト支出カテゴリーを「${newCategory}」に変更しました（以前は「${oldCategory}」）`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の法人カード購入要件`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `エージェントルール「${title}」を追加しました：${prompt}` : `エージェントルールを追加しました：${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) =>
+                title ? `エージェントルール「${title}」を次の内容に更新しました：${prompt}` : `エージェントルールを次の内容に更新しました：${prompt}`,
+            deleted: ({title}: {title: string}) => (title ? `エージェントルール「${title}」を削除しました` : 'エージェントルールを削除しました'),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'ブロック済み', allow: '許可済み'},
             amountOperator: {
@@ -10109,7 +10115,7 @@ ${reportName}`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
-        accountSwitcher: '<tooltip>ここから<strong>Copilot アカウント</strong>にアクセスできます</tooltip>',
+        accountSwitcher: '<tooltip>他のアカウントにコパイロットとして入ることができるようになりました！</tooltip>',
         outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',
