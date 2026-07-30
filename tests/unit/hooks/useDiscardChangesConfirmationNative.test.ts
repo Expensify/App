@@ -84,14 +84,9 @@ describe('useDiscardChangesConfirmation (native)', () => {
         });
     };
 
-    // The armed flag updates a tick after the commit (setTimeout 0), so flush that timer before asserting on it
-    const flushDeferredRecheck = async () => {
-        await act(async () => {
-            await new Promise((resolve) => {
-                setTimeout(resolve, 0);
-            });
-        });
-    };
+    // Mirrors how the step screens compute dirtiness: the current value against the committed baseline
+    const renderValueDrivenHook = (baseline: string) =>
+        renderHook(({typed}: {typed: string}) => useDiscardChangesConfirmation({getHasUnsavedChanges: () => typed !== baseline}), {initialProps: {typed: baseline}});
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -166,52 +161,40 @@ describe('useDiscardChangesConfirmation (native)', () => {
 
             pressHardwareBack();
             await resolveModalWith('CONFIRM');
-            await flushDeferredRecheck();
 
             expect(mockNavigationGoBack).toHaveBeenCalledTimes(1);
             expect(mockNavigationDispatch).not.toHaveBeenCalled();
             expect(mockPreventRemoveFlag).toBe(true);
         });
 
-        it('arms prevention once a recheck sees unsaved changes', async () => {
-            let hasChanges = false;
-            const {result} = renderDiscardHook(() => hasChanges);
+        it('leaves prevention off on a clean screen', () => {
+            renderValueDrivenHook('');
 
-            await flushDeferredRecheck();
             expect(mockPreventRemoveFlag).toBe(false);
+        });
 
-            hasChanges = true;
-            act(() => result.current.recheckUnsavedChanges());
-            await flushDeferredRecheck();
+        it('leaves prevention off on a prefilled screen still matching its baseline', () => {
+            renderValueDrivenHook('42');
+
+            expect(mockPreventRemoveFlag).toBe(false);
+        });
+
+        it('arms prevention as soon as the value differs from the baseline', () => {
+            const {rerender} = renderValueDrivenHook('');
+
+            rerender({typed: '5'});
+
             expect(mockPreventRemoveFlag).toBe(true);
         });
 
-        it('arms prevention before the deferred read runs', async () => {
-            let hasChanges = false;
-            const {result} = renderDiscardHook(() => hasChanges);
+        it('relaxes prevention as soon as the value is reverted to the baseline', () => {
+            const {rerender} = renderValueDrivenHook('42');
 
-            await flushDeferredRecheck();
-            expect(mockPreventRemoveFlag).toBe(false);
-
-            hasChanges = true;
-            // Not flushing: the call itself must arm the guard, not the timer
-            act(() => result.current.recheckUnsavedChanges());
+            rerender({typed: '4'});
             expect(mockPreventRemoveFlag).toBe(true);
 
-            await flushDeferredRecheck();
-            expect(mockPreventRemoveFlag).toBe(true);
-        });
-
-        it('relaxes prevention when the deferred read finds the screen clean', async () => {
-            let hasChanges = true;
-            const {result} = renderDiscardHook(() => hasChanges);
-
-            await flushDeferredRecheck();
-            expect(mockPreventRemoveFlag).toBe(true);
-
-            hasChanges = false;
-            act(() => result.current.recheckUnsavedChanges());
-            await flushDeferredRecheck();
+            // No timer to flush: a swipe started right after the revert must not be swallowed
+            rerender({typed: '42'});
             expect(mockPreventRemoveFlag).toBe(false);
         });
 

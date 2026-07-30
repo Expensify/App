@@ -156,9 +156,11 @@ function MoneyRequestAmountForm({
     );
 
     const toggleNegative = useCallback(() => {
-        setIsNegative(!isNegative);
-        // The sign flip bypasses the input's change handler, so notify the parent like a keystroke would
-        onAmountChange?.(moneyRequestAmountInputRef.current?.getNumber() ?? '');
+        const nextIsNegative = !isNegative;
+        setIsNegative(nextIsNegative);
+        // The sign flip bypasses the input's change handler, so report the newly signed value like a keystroke would
+        const currentNumber = moneyRequestAmountInputRef.current?.getNumber() ?? '';
+        onAmountChange?.(currentNumber && nextIsNegative ? `-${currentNumber}` : currentNumber);
     }, [isNegative, onAmountChange]);
 
     const clearNegative = useCallback(() => {
@@ -303,7 +305,8 @@ function MoneyRequestAmountForm({
                 onCurrencyButtonPress={onCurrencyButtonPress}
                 onFormatAmount={onFormatAmount}
                 onAmountChange={(newAmount) => {
-                    onAmountChange?.(newAmount);
+                    // Signed the same way `getNumber` composes it, so the parent compares like-for-like
+                    onAmountChange?.(newAmount && isNegative ? `-${newAmount}` : newAmount);
                     if (!formError) {
                         return;
                     }

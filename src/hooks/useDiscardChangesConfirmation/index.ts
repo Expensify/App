@@ -26,9 +26,6 @@ import runDiscardConfirmation from './runDiscardConfirmation';
  */
 type RestoreState = {phase: 'idle'} | {phase: 'awaitingRestore'; dismissModalOnRestore: boolean} | {phase: 'restoring'};
 
-// Web reads dirtiness at navigation time in `useBeforeRemove`; a stable no-op just keeps the shared return type
-function recheckUnsavedChangesNoop() {}
-
 function useDiscardChangesConfirmation({
     getHasUnsavedChanges,
     onCancel,
@@ -169,7 +166,7 @@ function useDiscardChangesConfirmation({
         isSavingRef.current = shouldSuppress;
     };
 
-    return {suppressDiscardPrompt, recheckUnsavedChanges: recheckUnsavedChangesNoop};
+    return {suppressDiscardPrompt};
 }
 
 export default useDiscardChangesConfirmation;

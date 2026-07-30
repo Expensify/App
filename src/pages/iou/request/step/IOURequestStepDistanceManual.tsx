@@ -159,11 +159,12 @@ function IOURequestStepDistanceManual({
     const distanceInMeters = getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ? transaction.comment.customUnit.distanceUnit : unit);
     const distance = typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)) : undefined;
 
-    const {suppressDiscardPrompt, recheckUnsavedChanges} = useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => {
-            const typedDistance = numberFormRef.current?.getNumber() ?? '';
-            return getStringFieldHasUnsavedChanges(typedDistance, distance?.toString() ?? '', isCreatingNewRequest);
-        },
+    const committedDistance = distance?.toString() ?? '';
+    // Mirrors the input so dirtiness compares the current value against the baseline instead of reading a ref
+    const [typedDistance, setTypedDistance] = useState(committedDistance);
+
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => getStringFieldHasUnsavedChanges(typedDistance, committedDistance, isCreatingNewRequest),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
         },
@@ -337,8 +338,8 @@ function IOURequestStepDistanceManual({
                 numberFormRef={numberFormRef}
                 value={distance?.toString()}
                 shouldUseDynamicFontSize
-                onInputChange={() => {
-                    recheckUnsavedChanges();
+                onInputChange={(newDistance) => {
+                    setTypedDistance(newDistance);
                     if (!formError) {
                         return;
                     }

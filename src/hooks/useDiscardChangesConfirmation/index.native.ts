@@ -9,7 +9,7 @@ import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext'
 import type {NavigationAction} from '@react-navigation/native';
 
 import {useFocusEffect, useIsFocused, usePreventRemove, useRoute} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useRef} from 'react';
 import {BackHandler} from 'react-native';
 
 import type {DiscardChangesConfirmation} from './types';
@@ -40,24 +40,9 @@ function useDiscardChangesConfirmation({
     });
     const hasUnsavedChanges = () => isFocused && !isSavingRef.current && getHasUnsavedChanges();
 
-    // `usePreventRemove` reads this during render, so the signal must be state, never a ref (React Compiler)
-    const [shouldPreventRemove, setShouldPreventRemove] = useState(false);
-    // Deferred past the commit so ref-backed inputs are read after their child state settles, not one event behind
-    const readUnsavedChanges = useCallback(() => {
-        setTimeout(() => {
-            setShouldPreventRemove(isFocused && !isSavingRef.current && getHasUnsavedChanges());
-        }, 0);
-    }, [isFocused, getHasUnsavedChanges]);
-    // Runs every commit since dirtiness often lives in refs; screens that never re-render on input call `recheckUnsavedChanges` themselves
-    useEffect(readUnsavedChanges);
-    // Callers only invoke this from a change handler, so arm now: a swipe starting before the deferred read
-    // would otherwise dismiss a dirty screen. Arming in the effect above would bring the blink back.
-    const recheckUnsavedChanges = useCallback(() => {
-        if (isFocused && !isSavingRef.current) {
-            setShouldPreventRemove(true);
-        }
-        readUnsavedChanges();
-    }, [isFocused, readUnsavedChanges]);
+    // Callers derive dirtiness from current values and baselines, so this is safe to read during render.
+    // The save suppression stays out of it because `isSavingRef` is a ref: the callback below applies that.
+    const shouldPreventRemove = isFocused && getHasUnsavedChanges();
 
     useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
@@ -121,7 +106,7 @@ function useDiscardChangesConfirmation({
         isSavingRef.current = shouldSuppress;
     };
 
-    return {suppressDiscardPrompt, recheckUnsavedChanges};
+    return {suppressDiscardPrompt};
 }
 
 export default useDiscardChangesConfirmation;
