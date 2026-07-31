@@ -67,6 +67,17 @@ describe('useDisclosureState', () => {
             act(() => result.current.setOpen((previous) => !previous));
             expect(onOpenChange).toHaveBeenCalledWith(false);
         });
+
+        it('an action captured while closed still reads the latest controlled value after the prop opens', () => {
+            const onOpenChange = jest.fn();
+            const {result, rerender} = renderHook(({open}: {open: boolean}) => useDisclosureState({isOpen: open, onOpenChange}), {
+                initialProps: {open: false},
+            });
+            const capturedClose = result.current.close;
+            rerender({open: true});
+            act(() => capturedClose());
+            expect(onOpenChange).toHaveBeenCalledWith(false);
+        });
     });
 
     describe('Stability', () => {
