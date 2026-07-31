@@ -13308,7 +13308,10 @@ function isSearchRelevantReportAction(action: OnyxInputOrEntry<ReportAction>): a
         isDynamicExternalWorkflowSubmitFailedAction(action) ||
         isDynamicExternalWorkflowApproveFailedAction(action) ||
         isSubmittedAction(action) ||
-        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED)
     );
 }
 

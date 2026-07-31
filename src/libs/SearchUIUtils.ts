@@ -2901,10 +2901,14 @@ function findActionByCreated(
 }
 
 /**
- * Returns the earliest APPROVED/FORWARDED action between the snapshot-derived one and the given report actions.
+ * Returns the earliest APPROVED/FORWARDED action between the snapshot-derived one and the given report actions,
+ * ignoring approvals that precede the latest unapprove/retract/reopen — those belong to a reversed approval cycle.
  */
 function getFirstApprovedAction(snapshotApprovedAction: OnyxTypes.ReportAction | undefined, actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction | undefined {
-    return findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.FORWARDED], 'earliest', snapshotApprovedAction);
+    const latestReversal = findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED, CONST.REPORT.ACTIONS.TYPE.RETRACTED, CONST.REPORT.ACTIONS.TYPE.REOPENED], 'latest');
+    const seed = snapshotApprovedAction && (!latestReversal || snapshotApprovedAction.created > latestReversal.created) ? snapshotApprovedAction : undefined;
+    const candidates = latestReversal ? actions.filter((action) => action.created > latestReversal.created) : actions;
+    return findActionByCreated(candidates, [CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.FORWARDED], 'earliest', seed);
 }
 
 /**
@@ -2917,27 +2921,27 @@ function getApprovedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.Report
     if (reportItem.statusNum === CONST.REPORT.STATUS_NUM.OPEN || reportItem.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
         return '';
     }
-    if (reportItem.approved) {
-        return reportItem.approved;
-    }
+    const reportApproved = reportItem.approved ?? '';
     if (reportItem.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
-        return '';
+        return reportApproved;
     }
-    return findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.APPROVED], 'latest')?.created ?? '';
+    // Newer wins: an offline re-approve leaves a stale `approved` on the report, an untouched report has no newer action
+    const actionApproved = findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.APPROVED], 'latest')?.created ?? '';
+    return reportApproved >= actionApproved ? reportApproved : actionApproved;
 }
 
 /**
- * Returns the report's submitted date, falling back to the latest SUBMITTED action's created time. The OPEN check
- * comes before trusting `reportItem.submitted` because the backend can stamp `submitted` on never-submitted reports.
+ * Returns the report's submitted date or the latest SUBMITTED action's created time, whichever is newer — an
+ * offline retract + resubmit leaves a stale `submitted` on the report. The OPEN check comes before trusting
+ * `reportItem.submitted` because the backend can stamp `submitted` on never-submitted reports.
  */
 function getSubmittedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.ReportAction[]): string {
     if (reportItem.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
         return '';
     }
-    if (reportItem.submitted) {
-        return reportItem.submitted;
-    }
-    return findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.SUBMITTED], 'latest')?.created ?? '';
+    const reportSubmitted = reportItem.submitted ?? '';
+    const actionSubmitted = findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.SUBMITTED], 'latest')?.created ?? '';
+    return reportSubmitted >= actionSubmitted ? reportSubmitted : actionSubmitted;
 }
 
 /**

@@ -6718,6 +6718,108 @@ describe('SearchUIUtils', () => {
                 expect(item?.firstApproverAccountID).toBe(approverAccountID);
             });
 
+            it('should clear firstApprover/firstApproved when the report was unapproved after the approval', () => {
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'approved-1': {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-20 08:00:00',
+                            },
+                            'unapproved-1': {
+                                reportActionID: 'unapproved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-21 10:00:00',
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe('');
+                expect(item?.firstApproverAccountID).toBeUndefined();
+                expect(item?.formattedFirstApprover).toBe('');
+            });
+
+            it('should clear firstApprover/firstApproved when a live UNAPPROVED action follows the snapshot approval (offline unapprove)', () => {
+                const approvedAt = '2024-12-20 08:00:00';
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'approved-1': {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: approvedAt,
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: approvedAt,
+                            },
+                            {
+                                reportActionID: 'optimistic-unapproved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-21 10:00:00',
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe('');
+                expect(item?.firstApproverAccountID).toBeUndefined();
+            });
+
+            it('should use the first approval after the latest unapproval when the report was re-approved', () => {
+                const reApprovedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'approved-1': {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-20 08:00:00',
+                            },
+                            'unapproved-1': {
+                                reportActionID: 'unapproved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-21 10:00:00',
+                            },
+                            'approved-2': {
+                                reportActionID: 'approved-2',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: adminAccountID,
+                                created: reApprovedAt,
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe(reApprovedAt);
+                expect(item?.firstApproverAccountID).toBe(adminAccountID);
+            });
+
             it('should populate approved from a live APPROVED action missing from the snapshot when the report is optimistically fully approved (offline approve)', () => {
                 const approvedAt = '2024-12-22 09:30:00';
                 const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
@@ -6784,8 +6886,8 @@ describe('SearchUIUtils', () => {
                 expect(item?.approved).toBe(latestApprovedAt);
             });
 
-            it('should prefer the snapshot approved date over live actions when both are present', () => {
-                const snapshotApprovedAt = '2024-12-18 07:00:00';
+            it('should prefer the snapshot approved date when it is newer than the live actions', () => {
+                const snapshotApprovedAt = '2024-12-25 07:00:00';
                 const liveApprovedAt = '2024-12-22 09:30:00';
                 const data = makeReportFilterTestData({
                     type: CONST.REPORT.TYPE.EXPENSE,
@@ -6806,6 +6908,31 @@ describe('SearchUIUtils', () => {
                 });
                 const item = sections.find((s) => s.keyForList === rptFilterReportID);
                 expect(item?.approved).toBe(snapshotApprovedAt);
+            });
+
+            it('should use the newer live APPROVED action over a stale report approved date (offline re-approve after unapprove)', () => {
+                const staleApprovedAt = '2024-12-18 07:00:00';
+                const reApprovedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    approved: staleApprovedAt,
+                });
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-approved-2',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: reApprovedAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe(reApprovedAt);
             });
 
             it('should clear the approved date for a report that is back to Outstanding while its approved date is still set (offline unapprove)', () => {
@@ -6878,8 +7005,8 @@ describe('SearchUIUtils', () => {
                 expect(item?.submitted).toBe('');
             });
 
-            it('should prefer the snapshot submitted date over live actions when both are present', () => {
-                const snapshotSubmittedAt = '2024-12-18 07:00:00';
+            it('should prefer the snapshot submitted date when it is newer than the live actions', () => {
+                const snapshotSubmittedAt = '2024-12-25 07:00:00';
                 const liveSubmittedAt = '2024-12-22 09:30:00';
                 const data = makeReportFilterTestData({
                     type: CONST.REPORT.TYPE.EXPENSE,
@@ -6900,6 +7027,31 @@ describe('SearchUIUtils', () => {
                 });
                 const item = sections.find((s) => s.keyForList === rptFilterReportID);
                 expect(item?.submitted).toBe(snapshotSubmittedAt);
+            });
+
+            it('should use the newer live SUBMITTED action over a stale report submitted date (offline retract and resubmit)', () => {
+                const staleSubmittedAt = '2024-12-20 08:00:00';
+                const reSubmittedAt = '2024-12-21 09:30:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    submitted: staleSubmittedAt,
+                });
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-submitted-2',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                                actorAccountID: adminAccountID,
+                                created: reSubmittedAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.submitted).toBe(reSubmittedAt);
             });
 
             it('should populate submitted/approved on nested transaction rows from live actions missing from the snapshot', () => {
