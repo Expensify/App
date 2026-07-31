@@ -1085,10 +1085,10 @@ function search({
     const startRequest = () =>
         makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then(async (result) => {
-                // The shared Onyx handler does not apply `failureData` for a 460 response. Apply it here so
-                // this search ends in `error` instead of staying in `loading` and running again.
+                // The shared Onyx handler does not apply `failureData` for a 460 response. Treat it as a
+                // terminal empty search so the request does not stay in `loading` or show an error.
                 if (result?.jsonCode === CONST.JSON_CODE.ADMIN_REQUIRED) {
-                    await Onyx.update(failureData ?? []);
+                    await Onyx.update(successData ?? []);
                 }
                 const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
 

@@ -140,7 +140,7 @@ describe('search snapshot terminal state', () => {
         expect(isSearchDataLoaded(snapshot, queryJSON)).toBe(true);
     });
 
-    it('resolves the snapshot to error when the API layer skips failureData for a 460 response', async () => {
+    it('resolves the snapshot to loaded without an error when the API layer skips failureData for a 460 response', async () => {
         const queryJSON = getQueryJSON();
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {
             search: {
@@ -160,8 +160,9 @@ describe('search snapshot terminal state', () => {
         await waitForBatchedUpdates();
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
-        expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.ERROR);
+        expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
         expect(snapshot?.search?.isLoading).toBe(false);
+        expect(snapshot?.errors).toBeUndefined();
         expect(isSearchDataLoaded(snapshot, queryJSON)).toBe(true);
     });
 
