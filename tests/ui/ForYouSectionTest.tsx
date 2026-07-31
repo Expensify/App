@@ -1,16 +1,19 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import type useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTodoCounts from '@hooks/useTodoCounts';
 
+import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
+import type * as NetworkStateModule from '@libs/NetworkState';
 
 import ForYouSection from '@pages/home/ForYouSection';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {TransactionViolations} from '@src/types/onyx';
+import type {AnyRequest, TransactionViolations} from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
@@ -19,6 +22,20 @@ import Onyx from 'react-native-onyx';
 
 import {createMockReport} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+let mockHasLoadedAppStatus: 'loading' | 'loaded' = 'loaded';
+
+jest.mock('@hooks/useOnyx', () => {
+    const actualUseOnyx = jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default;
+
+    return {
+        __esModule: true,
+        default: (...args: Parameters<typeof useOnyx>) => {
+            const result = actualUseOnyx(...args);
+            return args.at(0) === 'hasLoadedApp' ? [result.at(0), {status: mockHasLoadedAppStatus}] : result;
+        },
+    };
+});
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -29,6 +46,16 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 
 jest.mock('@hooks/useTodoCounts', () => jest.fn());
+
+jest.mock('@libs/NetworkState', () => ({
+    ...jest.requireActual<typeof NetworkStateModule>('@libs/NetworkState'),
+    getIsOffline: () => true,
+}));
+
+jest.mock('@pages/home/ForYouSection/ForYouSkeleton', () => () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    return ReactModule.createElement('View', {testID: 'for-you-skeleton'});
+});
 
 // ForYouSection calls useIsFocused() to freeze useTodoCounts when unfocused; this test renders it outside a
 // NavigationContainer, so stub the focus hook (useTodoCounts is mocked, so the focus value itself is irrelevant).
@@ -179,12 +206,43 @@ function pressFirstBeginButton() {
     fireEvent.press(firstButton);
 }
 
+const buildRequest = (command: AnyRequest['command'], initiatedOffline = false): AnyRequest => ({
+    command,
+    data: {},
+    initiatedOffline,
+});
+
+async function setAppLoadState({
+    hasLoadedApp,
+    isLoadingApp,
+    isLoadingReportData,
+    requests = [],
+}: {
+    hasLoadedApp: boolean;
+    isLoadingApp: boolean;
+    isLoadingReportData: boolean;
+    requests?: AnyRequest[];
+}) {
+    await act(async () => {
+        await Onyx.multiSet({
+            [ONYXKEYS.HAS_LOADED_APP]: hasLoadedApp,
+            [ONYXKEYS.IS_LOADING_APP]: isLoadingApp,
+            [ONYXKEYS.IS_LOADING_REPORT_DATA]: isLoadingReportData,
+            [ONYXKEYS.PERSISTED_REQUESTS]: requests,
+            [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
+            [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
+        });
+    });
+    await waitForBatchedUpdatesWithAct();
+}
+
 describe('ForYouSection', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
 
     beforeEach(async () => {
+        mockHasLoadedAppStatus = 'loaded';
         mockIsFocused = true;
         mockUseResponsiveLayout.mockReturnValue({
             shouldUseNarrowLayout: false,
@@ -217,6 +275,138 @@ describe('ForYouSection', () => {
             await Onyx.clear();
         });
         await waitForBatchedUpdatesWithAct();
+    });
+
+    describe('app load gate', () => {
+        it('shows the skeleton during a cold OpenApp load', async () => {
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: false,
+                isLoadingReportData: false,
+                requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+        });
+
+        it('keeps the skeleton visible while HAS_LOADED_APP is hydrating', async () => {
+            mockHasLoadedAppStatus = 'loading';
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: false,
+                isLoadingReportData: false,
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+        });
+
+        it('uses IS_LOADING_APP as a cold restart recovery fallback after HAS_LOADED_APP hydrates false', async () => {
+            mockHasLoadedAppStatus = 'loaded';
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: true,
+                isLoadingReportData: false,
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+        });
+
+        it('does not show the skeleton after loading settles without an OpenApp request', async () => {
+            mockHasLoadedAppStatus = 'loaded';
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: false,
+                isLoadingReportData: false,
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+        });
+
+        it('does not show the skeleton on a cached start with a stranded loading flag', async () => {
+            mockHasLoadedAppStatus = 'loading';
+            await setAppLoadState({
+                hasLoadedApp: true,
+                isLoadingApp: true,
+                isLoadingReportData: false,
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+        });
+
+        it('does not show the skeleton for a warm ReconnectApp', async () => {
+            await setAppLoadState({
+                hasLoadedApp: true,
+                isLoadingApp: true,
+                isLoadingReportData: true,
+                requests: [buildRequest(WRITE_COMMANDS.RECONNECT_APP)],
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+        });
+
+        it('does not show the skeleton for an account switch after the app has loaded', async () => {
+            await setAppLoadState({
+                hasLoadedApp: true,
+                isLoadingApp: true,
+                isLoadingReportData: true,
+                requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+        });
+
+        it('preserves IS_LOADING_REPORT_DATA as an initial load gate', async () => {
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: false,
+                isLoadingReportData: false,
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+        });
+
+        it('preserves the cold load skeleton for an OpenApp request initiated offline', async () => {
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: false,
+                isLoadingReportData: false,
+                requests: [buildRequest(WRITE_COMMANDS.OPEN_APP, true)],
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+        });
     });
 
     describe('EmptyState', () => {
@@ -328,6 +518,7 @@ describe('ForYouSection', () => {
                 // The onboarding status must be known, otherwise the skeleton stays hidden to avoid flashing for onboarding users.
                 await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
                 await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+                await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [buildRequest(WRITE_COMMANDS.OPEN_APP)]);
             });
             await waitForBatchedUpdatesWithAct();
 
