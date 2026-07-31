@@ -9,6 +9,7 @@ import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import {createSelfDM} from '../../utils/collections/reports';
+import {formatPhoneNumber} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -188,6 +189,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     isSelfDMSplit: true,
                     selfDMReportID: selfDMReport.reportID,
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                    formatPhoneNumber,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 };
@@ -330,6 +332,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     quickAction: undefined,
                     isSelfDMSplit: false,
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                    formatPhoneNumber,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 };
@@ -371,6 +374,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     isSelfDMSplit: true,
                     selfDMReportID: undefined,
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                    formatPhoneNumber,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 };
@@ -418,6 +422,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                         } as Report,
                     },
                 },
+                formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
             };

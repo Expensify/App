@@ -6,6 +6,7 @@ import type {Beta, PolicyTagLists, Report} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {formatPhoneNumber} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -68,6 +69,7 @@ const baseParams = {
     quickAction: undefined,
     policyRecentlyUsedCurrencies: [] as string[],
     personalDetails: {},
+    formatPhoneNumber,
     delegateAccountID: undefined,
     isTrackIntentUser: false,
 } as const;
@@ -226,6 +228,33 @@ describe('getMoneyRequestInformation', () => {
             expect(result.onyxData.optimisticData ?? []).not.toEqual(
                 expect.arrayContaining([expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: true})})})]),
             );
+        });
+    });
+
+    describe('optimistic personal details formatting', () => {
+        it('uses the injected formatter when creating optimistic personal details for a new chat participant', () => {
+            const phoneLogin = '+15555550100@expensify.sms';
+            const mockFormatPhoneNumber = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
+            const result = getMoneyRequestInformation({
+                ...baseParams,
+                parentChatReport: undefined,
+                participantParams: {
+                    ...baseParams.participantParams,
+                    participant: {
+                        accountID: PAYER_ACCOUNT_ID,
+                        login: phoneLogin,
+                        displayName: phoneLogin,
+                    },
+                },
+                personalDetails: {},
+                formatPhoneNumber: mockFormatPhoneNumber,
+            });
+
+            const personalDetailsEntry = result.onyxData.optimisticData?.find((entry) => entry.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const value = personalDetailsEntry?.value as Record<number, {displayName: string}> | undefined;
+
+            expect(mockFormatPhoneNumber).toHaveBeenCalledWith(phoneLogin);
+            expect(value?.[PAYER_ACCOUNT_ID]?.displayName).toBe(`formatted:${phoneLogin}`);
         });
     });
 });

@@ -911,6 +911,7 @@ function completeSplitBill({
     delegateAccountID,
     isTrackIntentUser,
     sessionEmail,
+    formatPhoneNumber,
 }: CompleteSplitBillActionParams) {
     if (!reportAction) {
         return;
@@ -1157,6 +1158,7 @@ function completeSplitBill({
             },
             quickAction,
             personalDetails,
+            formatPhoneNumber,
             delegateAccountID,
             isTrackIntentUser,
         });
@@ -1897,6 +1899,7 @@ function createSplitsAndOnyxData({
             hasViolations,
             quickAction,
             personalDetails,
+            formatPhoneNumber,
             delegateAccountID,
             isTrackIntentUser,
         });
@@ -2166,6 +2169,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyRecentlyUsedCurrencies,
             personalDetails,
             betas,
+            formatPhoneNumber,
             optimisticReportPreviewActionID,
             delegateAccountID,
             isTrackIntentUser,

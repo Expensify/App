@@ -47,7 +47,7 @@ type AddExistingExpenseFooterProps = {
 };
 
 function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, errorMessage, setErrorMessage}: AddExistingExpenseFooterProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -93,6 +93,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
                         selfDMReportActions,
                         delegateAccountID,
+                        formatPhoneNumber,
                         isTrackIntentUser,
                     });
                 } else {

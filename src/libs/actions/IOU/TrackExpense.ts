@@ -1,5 +1,7 @@
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {AddTrackedExpenseToPolicyParams, CreateWorkspaceParams, DeleteMoneyRequestParams, RequestMoneyParams, ShareTrackedExpenseParams, TrackExpenseParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -1652,6 +1654,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         personalDetails,
         shouldDeferAutoSubmit,
         delegateAccountID,
+        formatPhoneNumber,
         isTrackIntentUser,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
@@ -1761,6 +1764,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
+        formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
     });
@@ -1953,6 +1957,7 @@ function convertBulkTrackedExpensesToIOU({
     policyTagList,
     selfDMReportActions,
     delegateAccountID,
+    formatPhoneNumber,
     isTrackIntentUser,
 }: {
     transactions: OnyxTypes.Transaction[];
@@ -1969,6 +1974,7 @@ function convertBulkTrackedExpensesToIOU({
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     selfDMReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isTrackIntentUser: boolean | undefined;
 }) {
     const iouReportID = iouReport?.reportID;
@@ -2089,6 +2095,7 @@ function convertBulkTrackedExpensesToIOU({
                 policyTagList,
             },
             delegateAccountID,
+            formatPhoneNumber,
             isTrackIntentUser,
         });
 
