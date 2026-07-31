@@ -98,7 +98,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
 
     const reportID = report?.reportID;
     const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
-    const isFromReviewDuplicates = !!route.params.backTo?.replaceAll(/\?.*/g, '').endsWith('/duplicates/review');
+    const isFromReviewDuplicates = !!route.params.backTo && /\/duplicates\/review\/[^/]+$/.test(route.params.backTo.replaceAll(/\?.*/g, ''));
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine() && (wideRHPRouteKeys.length === 0 || isSmallScreenWidth);
@@ -125,7 +125,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
         }
 
         if (isPending(transaction) && (parentReport?.transactionCount ?? 0) <= 1) {
-            return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.allTransactionsPendingNextStep')};
+            return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
         if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
             const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);

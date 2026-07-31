@@ -1,6 +1,7 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import ExpensifyCardStatementPDFDownloadModal from '@components/ExpensifyCardStatementPDFDownloadModal';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import KYCWall from '@components/KYCWall';
@@ -80,6 +81,12 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         setIsPdfModalVisible,
         pdfReportID,
         handlePdfModalHide,
+        isExpensifyCardStatementPDFModalVisible,
+        setIsExpensifyCardStatementPDFModalVisible,
+        expensifyCardStatementPDFParams,
+        handleExpensifyCardStatementPDFModalHide,
+        isExpensifyCardStatementMultiFeedAlertVisible,
+        handleExpensifyCardStatementMultiFeedAlertClose,
         exportDownloadStatusModal,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
@@ -160,7 +167,9 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 iouReport={selectedIOUReport}
                 addBankAccountRoute={
-                    isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: currentSelectedPolicyID, backTo: Navigation.getActiveRoute()}) : undefined
+                    isCurrentSelectedExpenseReport
+                        ? () => ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: currentSelectedPolicyID, backTo: Navigation.getActiveRoute()})
+                        : undefined
                 }
                 onSuccessfulKYC={(paymentType) => {
                     confirmPayment?.(paymentType, pendingPaymentAdditionalDataRef.current);
@@ -201,7 +210,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         currentUserAccountID: currentUserPersonalDetails.accountID,
                                     })
                                 }
-                                success
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 isSplitButton={false}
                                 style={[styles.w100, styles.ph5]}
                                 anchorAlignment={{
@@ -215,6 +224,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     ) : (
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             <ButtonWithDropdownMenu
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 onPress={() => null}
                                 shouldAlwaysShowDropdownMenu
                                 customText={selectionButtonText}
@@ -281,6 +291,23 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     onModalHide={handlePdfModalHide}
                 />
             )}
+            {!!expensifyCardStatementPDFParams && (
+                <ExpensifyCardStatementPDFDownloadModal
+                    statementParams={expensifyCardStatementPDFParams}
+                    isVisible={isExpensifyCardStatementPDFModalVisible}
+                    onClose={() => setIsExpensifyCardStatementPDFModalVisible(false)}
+                    onModalHide={handleExpensifyCardStatementPDFModalHide}
+                />
+            )}
+            <DecisionModal
+                title={translate('search.expensifyCardStatementPDF.title')}
+                prompt={translate('search.expensifyCardStatementPDF.oneFeedAtATime')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={handleExpensifyCardStatementMultiFeedAlertClose}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={isExpensifyCardStatementMultiFeedAlertVisible}
+                onClose={handleExpensifyCardStatementMultiFeedAlertClose}
+            />
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
                     onClose={dismissRejectModalBasedOnAction}

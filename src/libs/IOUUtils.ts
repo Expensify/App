@@ -337,7 +337,7 @@ function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType
     return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
 
-function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails, reportID?: string) {
+function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails) {
     if (!currentUser) {
         return;
     }
@@ -350,13 +350,8 @@ function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails, r
 
     const initialAttendee: Attendee = {
         email: login,
-        login,
         displayName,
         avatarUrl: SafeString(currentUser.avatar),
-        accountID: currentUser.accountID,
-        text: displayName,
-        selected: true,
-        reportID,
     };
 
     return [initialAttendee];
@@ -510,6 +505,27 @@ function getIsWorkspacesOnlyForTransaction(transaction: OnyxEntry<Transaction>, 
     return transaction?.amount !== undefined && transaction?.amount !== null && transaction?.amount < 0;
 }
 
+/**
+ * Whether a report carries a real workspace policy. The self-DM / personal report uses the placeholder
+ * `CONST.POLICY.ID_FAKE` ('_FAKE_') policyID, which is truthy and would otherwise pass naive `report?.policyID`
+ * checks. Money-request policy resolution must treat it as "no real policy" so a placeholder/stale route report
+ * (e.g. the self-DM a submissions-disabled workspace flow is seeded onto) does not shadow the selected workspace
+ * chat's real policy when picking which report to derive the policyID from. See #96576.
+ */
+function reportHasRealPolicy(report: OnyxEntry<Report>): boolean {
+    return !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
+}
+
+/**
+ * Picks which report a money-request page should derive its policyID from. Candidates are passed in preference order
+ * (usually route report, then transaction report, then participant report): the first one carrying a real workspace
+ * policy wins, so a placeholder/stale candidate can't shadow a real one (see `reportHasRealPolicy`). When none has a
+ * real policy the first defined candidate is returned, preserving each page's original fallback behavior.
+ */
+function pickReportForPolicy(...reports: Array<OnyxEntry<Report>>): OnyxEntry<Report> {
+    return reports.find((report) => reportHasRealPolicy(report)) ?? reports.find((report) => !!report);
+}
+
 /** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
 function resolveReportForMoneyRequest({
     transaction,
@@ -543,6 +559,33 @@ function resolveReportForMoneyRequest({
  */
 function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean; isSelfDM?: boolean} | undefined): boolean {
     return !!(participant?.accountID && !participant.isPolicyExpenseChat && !participant.isSelfDM);
+}
+
+/**
+ * A participant points at the current user's self-DM when it carries the self-DM flag, or — for flows that seed the
+ * raw account before the flag is set (e.g. the new manual expense flow, which skips the iouType -> TRACK conversion) —
+ * when it resolves to the current user. Workspace (policy expense chat) and sender (invoice) participants are excluded.
+ */
+function isSelfDMParticipant(participant: Participant | undefined, currentUserAccountID: number | undefined): boolean {
+    if (!participant || participant.isSender || participant.isPolicyExpenseChat) {
+        return false;
+    }
+    return participant.isSelfDM === true || (!!currentUserAccountID && participant.accountID === currentUserAccountID);
+}
+
+/**
+ * An expense targets the current user's self-DM (and therefore must be tracked rather than requested) when it has a
+ * single selected participant that resolves to the current user's self-DM. SPLIT/INVOICE/PAY are never self-DM
+ * destinations. This is the single source of truth shared by the confirmation step (to resolve the destination report)
+ * and the submission hook (to route through trackExpense), so both stay in sync.
+ */
+function isSelfDMSoleDestination(participants: Participant[], iouType: IOUType, currentUserAccountID: number | undefined): boolean {
+    if (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.INVOICE || iouType === CONST.IOU.TYPE.PAY) {
+        return false;
+    }
+    const selectedParticipants = participants.filter((participant) => participant.selected);
+    const soleSelectedParticipant = selectedParticipants.length === 1 ? selectedParticipants.at(0) : undefined;
+    return isSelfDMParticipant(soleSelectedParticipant, currentUserAccountID);
 }
 
 /**
@@ -580,7 +623,10 @@ export {
     getInitialPerDiemTargetReport,
     getIsWorkspacesOnlyForTransaction,
     isParticipantP2P,
+    isSelfDMSoleDestination,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
     resolveEarlyReportID,
+    reportHasRealPolicy,
+    pickReportForPolicy,
 };

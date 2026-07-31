@@ -1,5 +1,5 @@
 import type {RequestMoneyInformation} from '@libs/actions/IOU/MoneyRequestBuilder';
-import type {ReplaceReceipt} from '@libs/actions/IOU/Receipt';
+import type {ReplaceReceiptRetryParams} from '@libs/actions/IOU/Receipt';
 import type {StartSplitBilActionParams} from '@libs/actions/IOU/Split';
 import type {CreateTrackExpenseParams} from '@libs/actions/IOU/TrackExpense';
 
@@ -292,7 +292,7 @@ type ReceiptError = {
     action?: string;
 
     /** Parameters required to retry the failed action */
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
 
     /** The type of receipt error */
     error: typeof CONST.IOU.RECEIPT_ERROR;

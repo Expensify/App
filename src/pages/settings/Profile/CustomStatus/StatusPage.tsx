@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DelegatorList from '@components/DelegatorList';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import FixedFooter from '@components/FixedFooter';
@@ -158,15 +158,15 @@ function StatusPage() {
     const saveButton = useMemo(
         () => (
             <Button
-                success
-                large
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 style={styles.w100}
-                text={translate('statusPage.save')}
                 onPress={() => formRef.current?.submit()}
-                pressOnEnter
-                enterKeyEventListenerPriority={1}
                 isLoading={isFormLoading}
-            />
+            >
+                <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                <Button.Text>{translate('statusPage.save')}</Button.Text>
+            </Button>
         ),
         [translate, isFormLoading, styles.w100],
     );

@@ -34,6 +34,8 @@ function Button({
     onPressIn = () => {},
     onPressOut = () => {},
     onMouseDown = undefined,
+    onFocus = undefined,
+    onBlur = undefined,
     style = [],
     disabledStyle,
     innerStyles = [],
@@ -82,11 +84,11 @@ function Button({
         return [defaultStyles[variant], shouldUseDisabledStyles && disabledStyles[variant]];
     }, [isDisabled, stayNormalOnDisable, styles, variant, StyleUtils]);
 
-    const borderRadiusStyles = useMemo<Record<'left' | 'right' | 'all', StyleProp<ViewStyle>>>(
+    const borderRadiusStyles = useMemo<Record<ValueOf<typeof CONST.BUTTON_REMOVE_BORDER_RADIUS>, StyleProp<ViewStyle>>>(
         () => ({
-            right: styles.noRightBorderRadius,
-            left: styles.noLeftBorderRadius,
-            all: [styles.noRightBorderRadius, styles.noLeftBorderRadius],
+            [CONST.BUTTON_REMOVE_BORDER_RADIUS.RIGHT]: styles.noRightBorderRadius,
+            [CONST.BUTTON_REMOVE_BORDER_RADIUS.LEFT]: styles.noLeftBorderRadius,
+            [CONST.BUTTON_REMOVE_BORDER_RADIUS.ALL]: [styles.noRightBorderRadius, styles.noLeftBorderRadius],
         }),
         [styles.noRightBorderRadius, styles.noLeftBorderRadius],
     );
@@ -129,9 +131,9 @@ function Button({
     }, [buttonStyles, blendOpacity]);
 
     let loadingIndicatorColor = theme.text;
-    if (variant === 'danger') {
+    if (variant === CONST.BUTTON_VARIANT.DANGER) {
         loadingIndicatorColor = theme.buttonDangerText;
-    } else if (variant === 'success') {
+    } else if (variant === CONST.BUTTON_VARIANT.SUCCESS) {
         loadingIndicatorColor = theme.textLight;
     }
 
@@ -160,8 +162,8 @@ function Button({
                 !isDisabled || !stayNormalOnDisable
                     ? [
                           !isDisabled ? styles.buttonDefaultHovered : undefined,
-                          variant === 'success' && !isDisabled ? styles.buttonSuccessHovered : undefined,
-                          variant === 'danger' && !isDisabled ? styles.buttonDangerHovered : undefined,
+                          variant === CONST.BUTTON_VARIANT.SUCCESS && !isDisabled ? styles.buttonSuccessHovered : undefined,
+                          variant === CONST.BUTTON_VARIANT.DANGER && !isDisabled ? styles.buttonDangerHovered : undefined,
                           hoverStyles,
                       ]
                     : []
@@ -170,6 +172,8 @@ function Button({
             onPressIn={onPressIn}
             onPressOut={onPressOut}
             onMouseDown={onMouseDown}
+            onFocus={onFocus}
+            onBlur={onBlur}
             onHoverIn={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(true) : undefined}
             onHoverOut={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(false) : undefined}
             onPress={(event) => {
