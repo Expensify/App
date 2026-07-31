@@ -61,6 +61,7 @@ const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value
 const PAGINATION_SIZE = CONST.MAX_SELECTION_LIST_PAGE_LENGTH;
 
 function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
+    const {translate} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -144,6 +145,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             selectedOptions,
             includeSelectedOptions: true,
         },
+        translate,
     );
 
     const areOptionsInitialized = !isLoading;
