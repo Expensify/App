@@ -23,6 +23,7 @@ import {View} from 'react-native';
 import type {BaseAvatarProps} from './types';
 
 import Avatar from '..';
+import SubscriptAvatarFrame from './SubscriptAvatarFrame';
 
 type SubscriptCardFeedAvatarProps = BaseAvatarProps & {
     /** The primary (main) avatar icon */
@@ -62,52 +63,55 @@ function SubscriptCardFeedAvatar({
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     return (
-        <View
-            style={[StyleUtils.getContainerStyles(size), containerStyle]}
-            testID="ReportActionAvatars-Subscript"
-        >
-            <UserDetailsTooltip
-                shouldRender={shouldShowTooltip}
-                accountID={Number(primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-                icon={primaryAvatar}
-                fallbackUserDetails={{
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    displayName: fallbackDisplayName || primaryAvatar.name,
-                }}
-            >
-                <View>
-                    <Avatar
-                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
-                        type={primaryAvatar.type}
-                        source={primaryAvatar.source}
-                        name={primaryAvatar.name ?? ''}
-                        avatarID={primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                        fallbackIcon={primaryAvatar.fallbackIcon}
-                        fill={primaryAvatar.fill}
-                        size={size}
-                        testID="ReportActionAvatars-Subscript-MainAvatar"
+        <SubscriptAvatarFrame
+            size={size}
+            containerStyle={containerStyle}
+            primary={
+                <UserDetailsTooltip
+                    shouldRender={shouldShowTooltip}
+                    accountID={Number(primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
+                    icon={primaryAvatar}
+                    fallbackUserDetails={{
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        displayName: fallbackDisplayName || primaryAvatar.name,
+                    }}
+                >
+                    <View>
+                        <Avatar
+                            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
+                            type={primaryAvatar.type}
+                            source={primaryAvatar.source}
+                            name={primaryAvatar.name ?? ''}
+                            avatarID={primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                            fallbackIcon={primaryAvatar.fallbackIcon}
+                            fill={primaryAvatar.fill}
+                            size={size}
+                            testID="ReportActionAvatars-Subscript-MainAvatar"
+                        />
+                    </View>
+                </UserDetailsTooltip>
+            }
+            secondary={
+                <View
+                    style={[
+                        // Nullish coalescing thinks that empty strings are truthy, thus I'm using OR operator
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor || theme.sidebar),
+                        StyleUtils.getAvatarSubscriptIconContainerStyle(cardFeedIconSize.width, cardFeedIconSize.height),
+                        styles.dFlex,
+                        styles.justifyContentCenter,
+                    ]}
+                >
+                    <Icon
+                        src={getCardFeedIcon(cardFeed, illustrations, companyCardFeedIcons)}
+                        width={cardFeedIconSize.width}
+                        height={cardFeedIconSize.height}
+                        additionalStyles={styles.alignSelfCenter}
+                        testID="ReportActionAvatars-Subscript-CardIcon"
                     />
                 </View>
-            </UserDetailsTooltip>
-            <View
-                style={[
-                    // Nullish coalescing thinks that empty strings are truthy, thus I'm using OR operator
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor || theme.sidebar),
-                    StyleUtils.getAvatarSubscriptIconContainerStyle(cardFeedIconSize.width, cardFeedIconSize.height),
-                    styles.dFlex,
-                    styles.justifyContentCenter,
-                ]}
-            >
-                <Icon
-                    src={getCardFeedIcon(cardFeed, illustrations, companyCardFeedIcons)}
-                    width={cardFeedIconSize.width}
-                    height={cardFeedIconSize.height}
-                    additionalStyles={styles.alignSelfCenter}
-                    testID="ReportActionAvatars-Subscript-CardIcon"
-                />
-            </View>
-        </View>
+            }
+        />
     );
 }
 
