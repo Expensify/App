@@ -2627,6 +2627,7 @@ describe('actions/IOU', () => {
 
                 // When it is moved with a stale local receipt file
                 trackExpense({
+                    conciergeChat: undefined,
                     report: {reportID: '123', policyID: 'A'},
                     isDraftPolicy: false,
                     action,
@@ -2695,6 +2696,7 @@ describe('actions/IOU', () => {
 
                 // When it is moved before its upload response is processed
                 trackExpense({
+                    conciergeChat: undefined,
                     report: {reportID: '123', policyID: 'A'},
                     isDraftPolicy: false,
                     action,
