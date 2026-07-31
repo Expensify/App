@@ -51,6 +51,8 @@ type CreateNavigationItem = {
     keyForList: string;
 };
 
+const MAX_CHAT_ENABLED_POLICIES_TO_EVALUATE = 2;
+
 const chatEnabledGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin: string | undefined) => {
     if (isEmptyObject(policies)) {
         return getEmptyArray<OnyxTypes.Policy>();
@@ -63,7 +65,7 @@ const chatEnabledGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Pol
         }
 
         result.push(policy);
-        if (result.length === 2) {
+        if (result.length === MAX_CHAT_ENABLED_POLICIES_TO_EVALUATE) {
             break;
         }
     }
