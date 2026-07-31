@@ -29,6 +29,9 @@ type DropdownButtonProps = WithSentryLabel &
         /** The selected value(s) if any */
         value: string | string[] | null;
 
+        /** Whether to use medium size button instead of small */
+        medium?: boolean;
+
         /** Button inner styles */
         innerStyles?: StyleProp<ViewStyle>;
 
@@ -40,7 +43,7 @@ type DropdownButtonProps = WithSentryLabel &
         onClosePress?: () => void;
     };
 
-function DropdownButton({label, value, labelStyle, innerStyles, caretWrapperStyle, sentryLabel, onClosePress, ...props}: DropdownButtonProps) {
+function DropdownButton({label, value, medium = false, labelStyle, innerStyles, caretWrapperStyle, sentryLabel, onClosePress, ...props}: DropdownButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
@@ -70,7 +73,7 @@ function DropdownButton({label, value, labelStyle, innerStyles, caretWrapperStyl
                         style={styles.flexShrink1}
                         innerStyles={[
                             // Restores the size padding: there is no `Button.Text` child here to contribute its `ph1`.
-                            styles.ph3,
+                            medium ? styles.ph4 : styles.ph3,
                             isExpanded && styles.buttonHoveredBG,
                             {maxWidth: variables.filterPillMaxWidth},
                             styles.flexShrink1,
@@ -80,11 +83,13 @@ function DropdownButton({label, value, labelStyle, innerStyles, caretWrapperStyl
                         onPress={onPress}
                         sentryLabel={sentryLabel}
                         removeBorderRadius={shouldShowCloseButton ? CONST.BUTTON_REMOVE_BORDER_RADIUS.RIGHT : undefined}
-                        size={CONST.BUTTON_SIZE.SMALL}
+                        size={medium ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
                     >
                         <CaretWrapper
                             // flexShrink1 replaces old flex1 is necessary so a long label truncates instead of widening the pill.
                             style={[styles.flexShrink1, styles.mw100, caretWrapperStyle]}
+                            caretWidth={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
+                            caretHeight={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
                             isActive={isExpanded}
                         >
                             <Text
