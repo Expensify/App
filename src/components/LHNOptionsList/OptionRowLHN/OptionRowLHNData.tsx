@@ -51,7 +51,7 @@ function OptionRowLHNData({
     const styles = useThemeStyles();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const oneTransactionThreadReportID = oneTransactionThreadReport?.reportID;
@@ -168,6 +168,7 @@ function OptionRowLHNData({
         policyTags,
         currentUserLogin: login ?? '',
         isTrackIntentUser,
+        formatPhoneNumber,
     });
 
     // For single-sender IOUs, trim to the sender's avatar to match the header.

@@ -2860,7 +2860,11 @@ function isPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<Repo
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE);
 }
 
-function getPolicyChangeLogAddEmployeeMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
+function getPolicyChangeLogAddEmployeeMessage(
+    translate: LocalizedTranslate,
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    formatPhoneNumberLocal: LocaleContextProps['formatPhoneNumber'],
+): string {
     if (!isPolicyChangeLogAddEmployeeMessage(reportAction)) {
         return '';
     }
@@ -2868,7 +2872,7 @@ function getPolicyChangeLogAddEmployeeMessage(translate: LocalizedTranslate, rep
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
     const role = originalMessage?.role ?? '';
-    const formattedEmail = formatPhoneNumber(email);
+    const formattedEmail = formatPhoneNumberLocal(email);
     return translate('report.actions.type.addEmployee', formattedEmail, role, originalMessage?.didJoinPolicy);
 }
 
@@ -2876,12 +2880,19 @@ function isPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repor
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE);
 }
 
-function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate: LocalizedTranslate, field: string | undefined, oldValue: unknown, newValue: unknown, rawEmail: string): string {
+function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(
+    translate: LocalizedTranslate,
+    formatPhoneNumberLocal: LocaleContextProps['formatPhoneNumber'],
+    field: string | undefined,
+    oldValue: unknown,
+    newValue: unknown,
+    rawEmail: string,
+): string {
     if (!field) {
         return '';
     }
 
-    const email = formatPhoneNumber(rawEmail ?? '');
+    const email = formatPhoneNumberLocal(rawEmail ?? '');
     const stringOldValue = typeof oldValue === 'string' ? oldValue : '';
     const stringNewValue = typeof newValue === 'string' ? newValue : '';
     const customFieldType = Object.values(CONST.CUSTOM_FIELD_KEYS).find((value) => value === field);
@@ -2895,7 +2906,11 @@ function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate: Localiz
     return translate('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
 }
 
-function getPolicyChangeLogUpdateEmployee(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
+function getPolicyChangeLogUpdateEmployee(
+    translate: LocalizedTranslate,
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    formatPhoneNumberLocal: LocaleContextProps['formatPhoneNumber'],
+): string {
     if (!isPolicyChangeLogChangeRoleMessage(reportAction)) {
         return '';
     }
@@ -2910,14 +2925,14 @@ function getPolicyChangeLogUpdateEmployee(translate: LocalizedTranslate, reportA
                 if (!fieldChange || typeof fieldChange !== 'object') {
                     return '';
                 }
-                return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, fieldChange.field, fieldChange.oldValue, fieldChange.newValue, email);
+                return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, formatPhoneNumberLocal, fieldChange.field, fieldChange.oldValue, fieldChange.newValue, email);
             })
             .filter(Boolean);
 
         return messages.join(', ');
     }
 
-    return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, originalMessage?.field, originalMessage?.oldValue, originalMessage?.newValue, email);
+    return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, formatPhoneNumberLocal, originalMessage?.field, originalMessage?.oldValue, originalMessage?.newValue, email);
 }
 
 function getPolicyChangeLogEmployeeLeftMessage(
@@ -3899,12 +3914,16 @@ function getPolicyChangeLogDefaultTitleEnforcedMessage(translate: LocalizedTrans
     return getReportActionText(action);
 }
 
-function getPolicyChangeLogDeleteMemberMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
+function getPolicyChangeLogDeleteMemberMessage(
+    translate: LocalizedTranslate,
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    formatPhoneNumberLocal: LocaleContextProps['formatPhoneNumber'],
+): string {
     if (!isPolicyChangeLogDeleteMemberMessage(reportAction)) {
         return '';
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const email = formatPhoneNumber(originalMessage?.email ?? '');
+    const email = formatPhoneNumberLocal(originalMessage?.email ?? '');
     const role = translate('workspace.common.roleName', originalMessage?.role ?? '').toLowerCase();
     return translate('report.actions.type.removeMember', email, role);
 }

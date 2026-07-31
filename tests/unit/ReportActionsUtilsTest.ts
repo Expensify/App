@@ -1,6 +1,5 @@
 import {isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {setHasRadio} from '@libs/NetworkState';
 import {isExpenseReport} from '@libs/ReportUtils';
@@ -71,7 +70,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {getFakeReportAction} from '../utils/ReportTestUtils';
-import {translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -2466,11 +2465,36 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getPolicyChangeLogAddEmployeeMessage', () => {
+        it('should use the injected phone formatter for SMS logins', () => {
+            const email = '+919383833920@expensify.sms';
+            const role = CONST.POLICY.ROLE.USER;
+            const formatPhoneNumberSpy = jest.fn(formatPhoneNumber);
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    role,
+                    didJoinPolicy: false,
+                },
+            };
+
+            const actual = ReportActionsUtils.getPolicyChangeLogAddEmployeeMessage(translateLocal, action, formatPhoneNumberSpy);
+            const expected = translateLocal('report.actions.type.addEmployee', formatPhoneNumber(email), role, false);
+            expect(formatPhoneNumberSpy).toHaveBeenCalledWith(email);
+            expect(actual).toBe(expected);
+        });
+    });
+
     describe('getPolicyChangeLogUpdateEmployee', () => {
         it('should remove SMS domain when the email is a phone number', () => {
             const email = '+919383833920@expensify.sms';
             const newValue = 'test';
             const previousValue = '';
+            const formatPhoneNumberSpy = jest.fn(formatPhoneNumber);
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
                 ...createRandomReportAction(0),
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
@@ -2484,8 +2508,9 @@ describe('ReportActionsUtils', () => {
                 },
             };
 
-            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, formatPhoneNumberSpy);
             const expected = translateLocal('report.actions.type.updatedCustomField1', formatPhoneNumber(email), newValue, previousValue);
+            expect(formatPhoneNumberSpy).toHaveBeenCalledWith(email);
             expect(actual).toBe(expected);
         });
 
@@ -2525,7 +2550,7 @@ describe('ReportActionsUtils', () => {
                 currentRole: translateLocal('workspace.common.roleName', previousRole).toLowerCase(),
             });
 
-            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, formatPhoneNumber);
             expect(actual).toBe(`${expectedCustomFieldMessage}, ${expectedRoleMessage}`);
         });
     });
@@ -2534,6 +2559,7 @@ describe('ReportActionsUtils', () => {
         it('should remove SMS domain when the email is a phone number', () => {
             const email = '+919383833920@expensify.sms';
             const role = CONST.POLICY.ROLE.USER;
+            const formatPhoneNumberSpy = jest.fn(formatPhoneNumber);
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE> = {
                 ...createRandomReportAction(0),
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE,
@@ -2545,8 +2571,9 @@ describe('ReportActionsUtils', () => {
                 },
             };
 
-            const actual = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(translateLocal, action);
+            const actual = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(translateLocal, action, formatPhoneNumberSpy);
             const expected = translateLocal('report.actions.type.removeMember', formatPhoneNumber(email), translateLocal('workspace.common.roleName', role).toLowerCase());
+            expect(formatPhoneNumberSpy).toHaveBeenCalledWith(email);
             expect(actual).toBe(expected);
         });
     });

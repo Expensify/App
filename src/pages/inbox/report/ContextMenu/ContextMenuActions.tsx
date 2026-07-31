@@ -1214,11 +1214,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_AVATAR) {
                     setClipboardMessage(getRoomAvatarUpdatedMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
-                    setClipboardMessage(getPolicyChangeLogAddEmployeeMessage(translate, reportAction));
+                    setClipboardMessage(getPolicyChangeLogAddEmployeeMessage(translate, reportAction, formatPhoneNumber));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
-                    setClipboardMessage(getPolicyChangeLogUpdateEmployee(translate, reportAction));
+                    setClipboardMessage(getPolicyChangeLogUpdateEmployee(translate, reportAction, formatPhoneNumber));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
-                    setClipboardMessage(getPolicyChangeLogDeleteMemberMessage(translate, reportAction));
+                    setClipboardMessage(getPolicyChangeLogDeleteMemberMessage(translate, reportAction, formatPhoneNumber));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
                     setClipboardMessage(getDeletedTransactionMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {

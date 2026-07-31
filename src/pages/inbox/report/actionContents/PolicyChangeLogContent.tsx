@@ -100,7 +100,12 @@ import React from 'react';
 
 type PolicyChangeLogMessageResult = string | {html: string};
 
-type ResolverFn = (translate: LocaleContextProps['translate'], action: OnyxTypes.ReportAction, policy: OnyxEntry<OnyxTypes.Policy>) => PolicyChangeLogMessageResult;
+type ResolverFn = (
+    translate: LocaleContextProps['translate'],
+    action: OnyxTypes.ReportAction,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+) => PolicyChangeLogMessageResult;
 
 // Reusable resolvers for action types that share the same handler
 const categoryResolver: ResolverFn = (translate, action, policy) => getWorkspaceCategoryUpdateMessage(translate, action, policy);
@@ -173,9 +178,10 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE]: (translate, action) => getPolicyChangeLogDefaultBillableMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE]: (translate, action) => getPolicyChangeLogDefaultReimbursableMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED]: (translate, action) => getPolicyChangeLogDefaultTitleEnforcedMessage(translate, action),
-    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE]: (translate, action) => getPolicyChangeLogAddEmployeeMessage(translate, action),
-    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE]: (translate, action) => getPolicyChangeLogUpdateEmployee(translate, action),
-    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE]: (translate, action) => getPolicyChangeLogDeleteMemberMessage(translate, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE]: (translate, action, _policy, formatPhoneNumber) => getPolicyChangeLogAddEmployeeMessage(translate, action, formatPhoneNumber),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE]: (translate, action, _policy, formatPhoneNumber) => getPolicyChangeLogUpdateEmployee(translate, action, formatPhoneNumber),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE]: (translate, action, _policy, formatPhoneNumber) =>
+        getPolicyChangeLogDeleteMemberMessage(translate, action, formatPhoneNumber),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE]: (translate, action) => getAddedApprovalRuleMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_APPROVER_RULE]: (translate, action) => getDeletedApprovalRuleMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE]: (translate, action) => getUpdatedApprovalRuleMessage(translate, action),
@@ -268,7 +274,7 @@ type PolicyChangeLogContentProps = {
 };
 
 function PolicyChangeLogContent({action, policyID}: PolicyChangeLogContentProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const resolver = POLICY_CHANGE_LOG_RESOLVERS[action.actionName];
@@ -276,7 +282,7 @@ function PolicyChangeLogContent({action, policyID}: PolicyChangeLogContentProps)
         return null;
     }
 
-    const message = resolver(translate, action, policy);
+    const message = resolver(translate, action, policy, formatPhoneNumber);
 
     if (typeof message === 'object') {
         return (
