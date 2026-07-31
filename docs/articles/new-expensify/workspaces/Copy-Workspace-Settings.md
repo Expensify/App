@@ -31,12 +31,7 @@ Some settings require the destination workspaces to be on the Control plan. If a
 4. On the **Select settings** page, choose the settings to copy to the selected workspaces, then select **Next**. Available settings depend on what is enabled on the source workspace. 
 5. Review the summary of the settings that will be copied, then select **Copy settings** to confirm.
 
-
-<!-- SCREENSHOT:
-Suggestion: The workspace three dots (⋮) menu open with the Copy settings option visible.
-Location: After step 2.
-Purpose: Confirms where the Copy settings option lives so admins don't confuse it with Duplicate workspace.
--->
+![The workspace three dots (⋮) menu open with the Copy settings option visible]({{site.url}}/assets/images/Workspaces_copy_settings.png){:width="100%"}
 
 ---
 
