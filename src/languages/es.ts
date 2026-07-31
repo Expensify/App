@@ -7423,6 +7423,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                     `<muted-text>Los roles especializados del espacio de trabajo solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             unlockFeatures: '¡Desbloquea estas funciones!',
+            publicReceiptVisibility: {
+                title: 'Visibilidad pública del recibo',
+                description: 'Si quieres que los enlaces de tus recibos sean accesibles para cualquiera, como un cliente o un contable externo, esta función es para ti.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>La visibilidad pública de recibos solo está disponible en el plan Controlar, desde <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7529,6 +7535,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 requireCompanyCard: 'Requerir que todas las compras se hagan con la tarjeta de empresa',
                 requireCompanyCardDescription: 'Marca todo gasto en efectivo, incluyendo kilometraje y gastos per diem.',
                 requireCompanyCardDisabledTooltip: 'Habilita las tarjetas de empresa (bajo Más características) para desbloquearlo.',
+                publicReceiptVisibility: 'Visibilidad pública del recibo',
+                publicReceiptVisibilityHintEnabled: 'Cualquier persona con la URL puede ver los recibos. No es necesario tener acceso al informe con el recibo.',
+                publicReceiptVisibilityHintDisabled: 'Solo los miembros de Expensify con acceso al informe que contiene el recibo pueden ver los recibos.',
                 enableTagsToUnlockTitle: '¿Habilitar etiquetas?',
                 enableTagsToUnlockPrompt: 'Habilita las etiquetas (en Más funciones) para desbloquear.',
                 enableTagsAndRequirePrompt: '¿Seguro que quieres habilitar las etiquetas y hacerlas obligatorias para todos los gastos?',
