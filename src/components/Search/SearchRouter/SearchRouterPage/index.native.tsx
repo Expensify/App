@@ -15,6 +15,21 @@ import getKeyboardHeight from '@libs/getKeyboardHeight';
 import React from 'react';
 import {View} from 'react-native';
 
+type GetAvailableHeightParams = {
+    isKeyboardOverlapping: boolean;
+    keyboardHeight: number;
+    keyboardActiveHeight: number;
+    bottomInset: number;
+    windowHeight: number;
+    paddingTop: number;
+};
+
+function getAvailableHeight({isKeyboardOverlapping, keyboardHeight, keyboardActiveHeight, bottomInset, windowHeight, paddingTop}: GetAvailableHeightParams): number | undefined {
+    const measuredKeyboardHeight = keyboardHeight || getKeyboardHeight(keyboardActiveHeight, bottomInset);
+    const effectiveKeyboardHeight = isKeyboardOverlapping ? measuredKeyboardHeight : 0;
+    return effectiveKeyboardHeight ? Math.max(windowHeight - effectiveKeyboardHeight - paddingTop, 0) : undefined;
+}
+
 function SearchRouterPage() {
     const {closeSearchRouter} = useSearchRouterActions();
     const {isSearchRouterDisplayed} = useSearchRouterState();
@@ -26,12 +41,17 @@ function SearchRouterPage() {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const isKeyboardOverlapping = isOffline && isKeyboardActive;
-    const measuredKeyboardHeight = keyboardHeight || getKeyboardHeight(keyboardActiveHeight, bottom);
-    const effectiveKeyboardHeight = isKeyboardOverlapping ? measuredKeyboardHeight : 0;
     // Keep the router between the top safe area and the keyboard; ScreenWrapper and the
     // list already handle bottom safe-area and offline-indicator spacing.
     // Clamp to zero so transient dimensions during animation never produce a negative height.
-    const availableHeight = effectiveKeyboardHeight ? Math.max(windowHeight - effectiveKeyboardHeight - paddingTop, 0) : undefined;
+    const availableHeight = getAvailableHeight({
+        isKeyboardOverlapping,
+        keyboardHeight,
+        keyboardActiveHeight,
+        bottomInset: bottom,
+        windowHeight,
+        paddingTop,
+    });
 
     return (
         <ScreenWrapper
@@ -53,3 +73,4 @@ function SearchRouterPage() {
 }
 
 export default SearchRouterPage;
+export {getAvailableHeight};
