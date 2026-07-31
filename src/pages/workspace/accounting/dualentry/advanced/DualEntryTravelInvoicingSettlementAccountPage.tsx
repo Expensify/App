@@ -1,0 +1,105 @@
+import BlockingView from '@components/BlockingViews/BlockingView';
+import type {ListItem} from '@components/SelectionList/types';
+import SelectionScreen from '@components/SelectionScreen';
+import Text from '@components/Text';
+
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {clearDualEntryErrorField, updateDualEntryTravelInvoicingSettlementsAccount} from '@libs/actions/connections/DualEntry';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {settingsPendingAction} from '@libs/PolicyUtils';
+
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import type {DualEntryAccount} from '@src/types/onyx/Policy';
+
+import React from 'react';
+import {View} from 'react-native';
+
+type AccountListItem = ListItem & {
+    value: DualEntryAccount['id'];
+};
+
+function DualEntryTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnectionsProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
+    const policyID = policy?.id;
+    const dualentryConfig = policy?.connections?.dualentry?.config;
+    const dualentryData = policy?.connections?.dualentry?.data;
+    const travelInvoicingSettlementsBankAccountID = dualentryConfig?.sync?.travelInvoicingSettlementsBankAccountID;
+    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID) : undefined;
+
+    const syncTravelInvoicingSettlements = dualentryConfig?.sync?.syncTravelInvoicingSettlements ?? true;
+    const shouldBeBlocked = !syncTravelInvoicingSettlements;
+
+    const data: AccountListItem[] =
+        dualentryData?.accounts
+            ?.filter((accountItem) => accountItem.isActive && accountItem.accountType === CONST.DUALENTRY_ACCOUNT_TYPE.BANK && accountItem.currency === CONST.CURRENCY.USD)
+            .map((accountItem) => ({
+                value: accountItem.id,
+                text: `${accountItem.id} ${accountItem.name}`,
+                keyForList: accountItem.id,
+                isSelected: travelInvoicingSettlementsBankAccountID === accountItem.id,
+            })) ?? [];
+    const {filteredData, textInputOptions} = useSelectionListSearch(data);
+
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualentry.travelInvoicingSettlementAccount.description')}</Text>
+        </View>
+    );
+
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.dualentry.noAccountsFound')}
+            subtitle={translate('workspace.dualentry.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
+    );
+
+    const setTravelInvoicingSettlementsAccount = (item: AccountListItem) => {
+        if (item.value !== travelInvoicingSettlementsBankAccountID && policyID) {
+            updateDualEntryTravelInvoicingSettlementsAccount(policyID, item.value, travelInvoicingSettlementsBankAccountID);
+        }
+        Navigation.goBack(backPath);
+    };
+
+    return (
+        <SelectionScreen
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            shouldBeBlocked={shouldBeBlocked}
+            displayName="DualEntryTravelInvoicingSettlementAccountPage"
+            title="workspace.dualentry.travelInvoicingSettlementAccount.label"
+            data={filteredData}
+            textInputOptions={textInputOptions}
+            headerContent={headerContent}
+            listEmptyContent={listEmptyContent}
+            onSelectRow={setTravelInvoicingSettlementsAccount}
+            shouldSingleExecuteRowSelect
+            initiallyFocusedOptionKey={travelInvoicingSettlementsBankAccountID}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.DUALENTRY}
+            pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID], dualentryConfig?.pendingFields)}
+            errors={getLatestErrorField(dualentryConfig, CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => policyID && clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID)}
+        />
+    );
+}
+
+export default withPolicyConnections(DualEntryTravelInvoicingSettlementAccountPage);
