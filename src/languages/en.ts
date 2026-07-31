@@ -236,6 +236,8 @@ const translations = {
         owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'calendar opened',
+        // @context Screen-reader live announcement suffix when an RHP/modal dialog opens, e.g. "App download links, dialog".
+        dialogOpened: 'dialog',
         send: 'Send',
         na: 'N/A',
         noResultsFound: 'No results found',
@@ -5965,7 +5967,6 @@ const translations = {
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseTheCardholder: 'Choose the cardholder',
-            pleaseSelectACardholder: 'Please select a cardholder to continue',
             chooseCard: 'Choose a card',
             chooseCardFor: (assignee: string) => `Choose a card for <strong>${assignee}</strong>. Can't find the card you're looking for? <concierge-link>Let us know.</concierge-link>`,
             noActiveCards: 'No active cards on this feed',
@@ -6286,9 +6287,8 @@ const translations = {
                 assignedCards: 'Assigned',
                 unassignedCards: 'Unassigned',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
-                integrationExportTitleXero: (integration: string) => `Choose the ${integration} account where transactions should be exported.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Choose the ${integration} account where transactions should be exported. Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Choose the ${integration} account where transactions should be exported.${exportPageLink ? ` Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.` : ''}`,
                 lastUpdated: 'Last updated',
                 transactionStartDate: 'Transaction start date',
                 updateCard: 'Update card',
@@ -6769,8 +6769,6 @@ const translations = {
                 `${memberName} has outstanding expense reports to approve. Please ask them to approve, or take control of their reports before removing them from the workspace.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `You can't remove ${memberName} from this workspace. Please set a new reimburser in Workflows > Make or track payments, then try again.`,
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `You can't remove ${memberName} from this workspace while they have an Expensify Card. Please deactivate their card in Workspace > Expensify Card, then try again.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `If you remove ${memberName} from this workspace, we'll replace them as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -8024,6 +8022,9 @@ const translations = {
                 },
                 defaultTaxRate: 'Default tax rate',
                 enableWorkflows: (moreFeaturesLink: string) => `Go to [More features](${moreFeaturesLink}) and enable workflows, then add approvals to unlock this feature.`,
+                createNewRule: 'Create new rule',
+                contextualFlagForReview: (amount: string) => `If amount is above ${amount}, flag for review`,
+                contextualFlagForReviewDaily: (amount: string) => `If daily category total is above ${amount}, flag for review`,
             },
             customRules: {
                 title: 'Expense policy',
@@ -9935,6 +9936,7 @@ const translations = {
         keepThisOne: 'Keep this one',
         confirmDetails: `Confirm the details you're keeping`,
         confirmDuplicatesInfo: `The duplicates you don't keep will be held for the submitter to delete.`,
+        cannotMergeDuplicates: 'You can only merge expenses on draft or outstanding reports. Retract it and try again.',
         hold: 'This expense was put on hold',
         resolvedDuplicates: 'resolved the duplicate',
         companyCardRequired: 'Company card purchases required',
