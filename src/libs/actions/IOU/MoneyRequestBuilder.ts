@@ -1550,7 +1550,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 ...(customUnitRateID && {customUnitRateID}),
                 ...(workspaceDistanceUnit && {distanceUnit: workspaceDistanceUnit}),
                 ...(distance !== undefined && {quantity: distance}),
-                defaultP2PRate: null,
+                ...(!!workspaceDistanceCustomUnit && {defaultP2PRate: null}),
                 name: optimisticTransaction.comment?.customUnit?.name ?? existingTransaction?.comment?.customUnit?.name ?? CONST.CUSTOM_UNITS.NAME_DISTANCE,
             },
         };
