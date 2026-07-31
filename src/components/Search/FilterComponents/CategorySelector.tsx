@@ -1,10 +1,15 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 
+import useLoadSearchCategoryData from '@hooks/useLoadSearchCategoryData';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {getAllPolicyValues, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,6 +19,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import MultiSelect from './MultiSelect';
 
@@ -23,6 +29,9 @@ type CategorySelectorProps = SearchFilterCommonProps<string[] | undefined> & {
 
 function CategorySelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
     const {translate, localeCompare} = useLocalize();
+    const {isLoadingInitialCategories} = useLoadSearchCategoryData({shouldRefresh: true});
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const selectedCategoriesItems = value.map((category) => {
@@ -60,6 +69,20 @@ function CategorySelector({value = [], policyID, selectionListTextInputStyle, se
             })
             .toSorted((a, b) => sortOptionsWithEmptyValue(a.text.toString(), b.text.toString(), localeCompare)),
     );
+
+    if (isLoadingInitialCategories) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SearchFiltersCategoryPage'};
+        return (
+            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <ActivityIndicator
+                    color={theme.spinner}
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    style={[styles.pl3]}
+                    reasonAttributes={reasonAttributes}
+                />
+            </View>
+        );
+    }
 
     return (
         <MultiSelect
