@@ -41,6 +41,9 @@ type CreateTodosReportsAndTransactionsParams = {
 
     /** The current user's primary login - matched against policy roles (e.g. exporter, reimburser) */
     login: string;
+
+    /** Whether the transaction collection has hydrated - an empty `reportTransactions` doesn't mean zero expenses until this is true */
+    areTransactionsLoaded: boolean;
 };
 
 /**
@@ -90,6 +93,9 @@ type TodoBucketContext = {
 
     /** The current user's primary login - matched against policy roles (e.g. exporter, reimburser) */
     login: string;
+
+    /** Whether the transaction collection has hydrated - an empty `reportTransactions` doesn't mean zero expenses until this is true */
+    areTransactionsLoaded: boolean;
 };
 
 /**
@@ -100,7 +106,19 @@ type TodoBucketContext = {
 function reportMatchesTodoBucket(
     searchKey: SearchKey,
     report: Report,
-    {policy, reportNameValuePair, reportTransactions, reportMetadata, allReportActions, allExpensesHeld, ownerLogin, bankAccountList, currentUserAccountID, login}: TodoBucketContext,
+    {
+        policy,
+        reportNameValuePair,
+        reportTransactions,
+        reportMetadata,
+        allReportActions,
+        allExpensesHeld,
+        ownerLogin,
+        bankAccountList,
+        currentUserAccountID,
+        login,
+        areTransactionsLoaded,
+    }: TodoBucketContext,
 ): boolean {
     switch (searchKey) {
         case CONST.SEARCH.SEARCH_KEYS.SUBMIT:
@@ -109,8 +127,9 @@ function reportMatchesTodoBucket(
             }
 
             // Empty drafts can't be submitted, but they still belong in the Drafts tab and to-do so users can find and clean them up.
+            // Gate on areTransactionsLoaded since unloaded transactions look identical to zero transactions.
             if (reportTransactions.length === 0) {
-                return isOpenReport(report) && isGroupPolicy(policy) && !isArchivedReport(reportNameValuePair);
+                return areTransactionsLoaded && isOpenReport(report) && isGroupPolicy(policy) && !isArchivedReport(reportNameValuePair);
             }
 
             // isSubmitAction also allows workflow approvers to submit on the owner's behalf; the to-do only nudges the owner.
@@ -155,6 +174,7 @@ function createTodosReportsAndTransactions({
     bankAccountList,
     currentUserAccountID,
     login,
+    areTransactionsLoaded,
 }: CreateTodosReportsAndTransactionsParams) {
     const reportsToSubmit: Report[] = [];
     const reportsToApprove: Report[] = [];
@@ -185,6 +205,7 @@ function createTodosReportsAndTransactions({
             bankAccountList,
             currentUserAccountID,
             login,
+            areTransactionsLoaded,
         };
         if (reportMatchesTodoBucket(CONST.SEARCH.SEARCH_KEYS.SUBMIT, report, context)) {
             reportsToSubmit.push(report);
@@ -220,6 +241,7 @@ function getTodoReportsForSearchKey(
         bankAccountList,
         currentUserAccountID,
         login,
+        areTransactionsLoaded,
     }: CreateTodosReportsAndTransactionsParams,
 ) {
     const reports: Report[] = [];
@@ -241,6 +263,7 @@ function getTodoReportsForSearchKey(
             bankAccountList,
             currentUserAccountID,
             login,
+            areTransactionsLoaded,
         };
 
         if (reportMatchesTodoBucket(searchKey, report, context)) {

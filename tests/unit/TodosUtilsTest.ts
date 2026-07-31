@@ -102,6 +102,7 @@ const baseParams = {
     bankAccountList: undefined,
     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
     login: CURRENT_USER_EMAIL,
+    areTransactionsLoaded: true,
 };
 
 describe('TodosUtils', () => {
@@ -311,6 +312,26 @@ describe('TodosUtils', () => {
             expect(result.reportsToSubmit.map((report) => report.reportID)).toEqual(['empty_draft']);
         });
 
+        it('excludes a report from the submit bucket while the transaction collection has not finished loading', () => {
+            // Unloaded transactions look identical to zero transactions, so this must not be misclassified as an empty draft.
+            const reportWithUnloadedTransactions = createMockReport('unloaded_transactions', {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                areTransactionsLoaded: false,
+                allReports: toReportsCollection([reportWithUnloadedTransactions]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToSubmit).toEqual([]);
+        });
+
         it('excludes an empty open report owned by another user from the submit bucket', () => {
             const emptyReport = createMockReport('empty_other_owner', {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -463,6 +484,25 @@ describe('TodosUtils', () => {
             });
 
             expect(result.reports.map((report) => report.reportID)).toEqual(['empty_draft']);
+        });
+
+        it('excludes a report from the submit bucket while the transaction collection has not finished loading', () => {
+            const reportWithUnloadedTransactions = createMockReport('unloaded_transactions', {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = getTodoReportsForSearchKey(CONST.SEARCH.SEARCH_KEYS.SUBMIT, {
+                ...baseParams,
+                areTransactionsLoaded: false,
+                allReports: toReportsCollection([reportWithUnloadedTransactions]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reports).toEqual([]);
         });
     });
 });
