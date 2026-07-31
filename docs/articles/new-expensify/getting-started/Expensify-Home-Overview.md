@@ -68,7 +68,7 @@ The **For you** section highlights items that may need your attention like:
 
 Each item links you to where you can complete the action, such as a specific report or workspace.
 
-If you recently created your account, the **For you** section stays hidden until you have your first to-do to submit, approve, export, or pay. Once your first to-do appears, the section remains on Home from then on.
+If you recently created your account, the **For you** section stays hidden until you have your first to-do to submit, approve, export, or pay. 
 
 After the section has appeared, if there’s nothing that needs action, the **For you** section may appear empty. This means you’re fully caught up.
 
@@ -97,9 +97,9 @@ If you don't hold one of these roles, or your workspace doesn't have expenses ac
 
 ## How the Getting started section works on Home
 
-The **Getting started** section shows a checklist of key setup steps to help Workspace Admins configure their workspace during setup. 
+The **Getting started** section shows a checklist of key steps to set up your Expensify account. 
 
-This section appears only if you own a workspace on a free trial or have setup tasks to complete. 
+This section appears only if you have setup tasks to complete. 
 
 ---
 
