@@ -1,7 +1,7 @@
 ---
 title: Create Agent Rules
 description: Create AI-powered workspace rules using natural-language instructions to automate report reviews, routing, approvals, and other actions.
-keywords: [agent rules, RuleBot, AI rules, automated approvals, report routing, workspace automation, approval automation]
+keywords: [agent rules, RuleBot, AI rules, automated approvals, report routing, workspace automation, approval automation, edit agent rule, agent rule history, admins room audit trail]
 internalScope: Audience is Workspace Admins. Covers creating, managing, and understanding Agent Rules and how RuleBot enforces them. Does not cover Agent management, personal AI features, or Concierge AI.
 ---
 
@@ -94,6 +94,16 @@ For example, RuleBot might:
    
 ---
 
+## How to edit an Agent rule
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Workspace name]**
+2. Click **Rules**.
+3. In the **Agent rules** section, select the AI rule you want to change.
+4. Update the natural-language description of the behavior you want.
+5. Click **Save**.
+
+---
+
 ## How to delete an Agent rule
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Workspace name]**
@@ -102,6 +112,20 @@ For example, RuleBot might:
 4. Click **Delete**.
 
 Deleting an Agent rule stops RuleBot from enforcing that rule on future report activity.
+
+---
+
+## How Agent rule changes are recorded in the #admins room
+
+Every time an Agent rule is added, updated, or deleted, Expensify posts a system message to the workspace's #admins room so admins have a visible audit trail of who changed what.
+
+ - **Added:** Records the rule title and its full prompt.
+ - **Updated:** Records the rule title and the new prompt.
+ - **Deleted:** Records the rule title.
+
+The #admins room's preview in your chat list shows a concise summary, such as that someone added, updated, or deleted an Agent rule.
+
+[Learn how to find the #admins room for a workspace](/articles/new-expensify/chat/Expensify-Chat-Rooms-for-Admins).
 
 ---
 
@@ -124,3 +148,7 @@ When evaluating a report, RuleBot can review the 50 most recent report actions, 
 ## Do I need to create or manage RuleBot?
 
 No. RuleBot is created automatically when you add your first Agent rule and is managed by Expensify.
+
+## Where can I see a history of Agent rule changes?
+
+In the workspace's #admins room. Expensify posts a system message there each time an Agent rule is added, updated, or deleted.
