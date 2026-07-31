@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CaretWrapper from '@components/CaretWrapper';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -28,9 +29,6 @@ type DropdownButtonProps = WithSentryLabel &
         /** The selected value(s) if any */
         value: string | string[] | null;
 
-        /** Whether to use medium size button instead of small */
-        medium?: boolean;
-
         /** Button inner styles */
         innerStyles?: StyleProp<ViewStyle>;
 
@@ -42,7 +40,7 @@ type DropdownButtonProps = WithSentryLabel &
         onClosePress?: () => void;
     };
 
-function DropdownButton({label, value, medium = false, labelStyle, innerStyles, caretWrapperStyle, sentryLabel, onClosePress, ...props}: DropdownButtonProps) {
+function DropdownButton({label, value, labelStyle, innerStyles, caretWrapperStyle, sentryLabel, onClosePress, ...props}: DropdownButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
@@ -70,16 +68,23 @@ function DropdownButton({label, value, medium = false, labelStyle, innerStyles, 
                     <Button
                         ref={ref}
                         style={styles.flexShrink1}
-                        innerStyles={[isExpanded && styles.buttonHoveredBG, {maxWidth: variables.filterPillMaxWidth}, styles.flexShrink1, innerStyles, shouldShowCloseButton && styles.pr2]}
+                        innerStyles={[
+                            // Restores the size padding: there is no `Button.Text` child here to contribute its `ph1`.
+                            styles.ph3,
+                            isExpanded && styles.buttonHoveredBG,
+                            {maxWidth: variables.filterPillMaxWidth},
+                            styles.flexShrink1,
+                            innerStyles,
+                            shouldShowCloseButton && styles.pr2,
+                        ]}
                         onPress={onPress}
                         sentryLabel={sentryLabel}
-                        shouldRemoveRightBorderRadius={shouldShowCloseButton}
-                        {...(medium ? {medium: true} : {small: true})}
+                        removeBorderRadius={shouldShowCloseButton ? CONST.BUTTON_REMOVE_BORDER_RADIUS.RIGHT : undefined}
+                        size={CONST.BUTTON_SIZE.SMALL}
                     >
                         <CaretWrapper
-                            style={[styles.flex1, styles.mw100, caretWrapperStyle]}
-                            caretWidth={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
-                            caretHeight={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
+                            // flexShrink1 replaces old flex1 is necessary so a long label truncates instead of widening the pill.
+                            style={[styles.flexShrink1, styles.mw100, caretWrapperStyle]}
                             isActive={isExpanded}
                         >
                             <Text
@@ -94,8 +99,8 @@ function DropdownButton({label, value, medium = false, labelStyle, innerStyles, 
                         <>
                             <View style={[styles.buttonDivider]} />
                             <Button
-                                small
-                                shouldRemoveLeftBorderRadius
+                                size={CONST.BUTTON_SIZE.SMALL}
+                                removeBorderRadius={CONST.BUTTON_REMOVE_BORDER_RADIUS.LEFT}
                                 innerStyles={[styles.pl0, styles.pr0half, styles.filterDropDownCloseIcon]}
                                 onPress={onClosePress}
                             >
