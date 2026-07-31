@@ -9146,6 +9146,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         genericUpdateReportFieldFailureMessage: 'Onverwachte fout bij het bijwerken van het veld. Probeer het later opnieuw.',
         genericUpdateReportNameEditFailureMessage: 'Onverwachte fout bij het hernoemen van het rapport. Probeer het later opnieuw.',
         noActivityYet: 'Nog geen activiteit',
+        collapsedSystemMessages: () => ({
+            one: 'Er is 1 wijziging aangebracht',
+            other: (count: number) => `Er zijn ${count} wijzigingen aangebracht`,
+        }),
         connectionSettings: 'Verbindingsinstellingen',
         actions: {
             type: {

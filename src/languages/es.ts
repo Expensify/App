@@ -8989,7 +8989,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde.',
         genericUpdateReportNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Por favor, intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
-        collapsedSystemMessages: ({count}) => `${count} ${count === 1 ? 'cambio realizado' : 'cambios realizados'}`,
+        collapsedSystemMessages: () => ({
+            one: '1 cambio realizado',
+            other: (count: number) => `${count} cambios realizados`,
+        }),
         connectionSettings: 'Configuración de conexión',
         actions: {
             type: {

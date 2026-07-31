@@ -8829,6 +8829,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: '更新该字段时发生未知错误。请稍后重试。',
         genericUpdateReportNameEditFailureMessage: '重命名报表时发生意外错误。请稍后重试。',
         noActivityYet: '暂无活动',
+        collapsedSystemMessages: () => ({
+            one: '已进行了1项更改',
+            other: (count: number) => `已进行了${count}项更改`,
+        }),
         connectionSettings: '连接设置',
         actions: {
             type: {

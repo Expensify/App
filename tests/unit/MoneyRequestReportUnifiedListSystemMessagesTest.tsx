@@ -68,9 +68,19 @@ describe('MoneyRequestReportUnifiedList system-message presentation', () => {
     });
 
     it('uses the displayed action list and keeps inline transaction offsets aligned', () => {
-        const transactionItem: TransactionListItemData = {type: 'transaction', transaction: {transactionID: 'transaction-1'}};
+        const transactionItem: TransactionListItemData = {
+            type: 'transaction',
+            transaction: {
+                amount: 0,
+                created: '2026-07-30 00:00:00.000',
+                currency: CONST.CURRENCY.USD,
+                merchant: '',
+                reportID: 'report-1',
+                transactionID: 'transaction-1',
+            },
+        };
         const displayReportActions = [makeAction('1'), makeAction('3')];
-        const renderReportAction = jest.fn(() => null);
+        const renderReportAction = jest.fn<React.ReactElement, [ReportAction, number]>(() => <View />);
         const onViewableItemsChanged = jest.fn();
         const onLastItemIndexChange = jest.fn();
 
@@ -136,7 +146,7 @@ describe('MoneyRequestReportUnifiedList system-message presentation', () => {
 
     it('keeps horizontal-table action indices local to the displayed action list', () => {
         const displayReportActions = [makeAction('1'), makeAction('2')];
-        const renderReportAction = jest.fn(() => null);
+        const renderReportAction = jest.fn<React.ReactElement, [ReportAction, number]>(() => <View />);
 
         render(
             <MoneyRequestReportUnifiedList

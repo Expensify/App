@@ -453,7 +453,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     /**
      * The reportActionID the unread marker should display above
      */
-    const [unreadMarkerReportActionID] = getUnreadMarkerReportAction({
+    const [nullableUnreadMarkerReportActionID] = getUnreadMarkerReportAction({
         visibleReportActions,
         earliestReceivedOfflineMessageIndex,
         currentUserAccountID,
@@ -464,6 +464,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         isReversed: true,
         hasWindowFocus: Visibility.hasFocus(),
     });
+    const unreadMarkerReportActionID = nullableUnreadMarkerReportActionID ?? undefined;
 
     const {displayReportActions, runsByAnchorReportActionID, unreadMarkerReportActionIndex, expandedSystemMessageReportActionIDs, toggleSystemMessageRun} =
         useMoneyRequestReportActionsPresentation({

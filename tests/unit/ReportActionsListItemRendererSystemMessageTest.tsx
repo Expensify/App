@@ -7,7 +7,7 @@ import type {Report, ReportAction} from '@src/types/onyx';
 
 import React from 'react';
 
-const mockReportActionItem = jest.fn(() => null);
+const mockReportActionItem = jest.fn<null, [unknown]>(() => null);
 
 jest.mock('@pages/inbox/report/ReportActionItem', () => ({
     __esModule: true,
