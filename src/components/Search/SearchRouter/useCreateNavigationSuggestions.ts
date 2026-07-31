@@ -62,6 +62,8 @@ function buildCreateNavigationItems(items: CreateNavigationItem[]): NavigationSu
         }));
 }
 
+// Search Router is already hidden when this runs, so the topmost modal is an underlying RHP.
+// Wait for it to close before opening the Create flow to avoid stacking modal routes.
 function replaceTopmostModalWithAction(action: () => void) {
     if (!Navigation.isTopmostRouteModalScreen()) {
         action();
