@@ -197,7 +197,7 @@ You can move to a top-level destination without using the navigation tabs by typ
 
 1. Select **Search** (the magnifying glass icon).
 2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
-3. Select the **Go to [destination]** result to open it.
+3. Select the destination to open it.
 
 ---
 
