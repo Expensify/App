@@ -662,6 +662,53 @@ describe('PersonalDetailOptionsListUtils', () => {
             expect(results.personalDetails.length).toBe(2);
         });
 
+        it('should exclude a report-backed option without a login from recent options', () => {
+            // Given a stale personal detail that still has an accountID and a 1:1 report, but no login (e.g. after its contact method was removed)
+            const staleAccountID = 1002;
+            const staleReportID = '14';
+            const personalDetailsWithStaleContact: PersonalDetailsList = {
+                ...PERSONAL_DETAILS,
+                [staleAccountID]: {
+                    accountID: staleAccountID,
+                    displayName: 'Stale Contact',
+                },
+            };
+            const reportsWithStaleContact: OnyxCollection<Report> = {
+                ...REPORTS,
+
+                // Note: This report has the largest lastVisibleActionCreated, so it would be the first recent option if it wasn't filtered out
+                [staleReportID]: {
+                    lastReadTime: '2021-01-14 11:25:39.303',
+                    lastVisibleActionCreated: '2022-11-22 03:26:04.999',
+                    isPinned: false,
+                    reportID: staleReportID,
+                    participants: {
+                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [staleAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    reportName: 'Stale Contact',
+                    type: CONST.REPORT.TYPE.CHAT,
+                },
+            };
+            const optionsWithStaleContact = createOptionList(
+                currentUserAccountID,
+                personalDetailsWithStaleContact,
+                {...ACCOUNT_ID_TO_REPORT_ID_MAP, [staleAccountID]: staleReportID},
+                translateReportObjectToOnyxCollection(reportsWithStaleContact),
+                undefined,
+                {},
+                formatPhoneNumber,
+                translateLocal,
+            );
+
+            // When getting the valid options
+            const results = getValidOptions(optionsWithStaleContact.options, currentUserLogin, formatPhoneNumber, 1);
+
+            // Then the loginless option should not be offered in either section
+            expect(results.recentOptions).not.toEqual(expect.arrayContaining([expect.objectContaining({accountID: staleAccountID})]));
+            expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({accountID: staleAccountID})]));
+        });
+
         describe('excludedLogins', () => {
             it('should exclude Concierge when excludedLogins is specified', () => {
                 const results = getValidOptions(OPTIONS_WITH_CONCIERGE.options, currentUserLogin, formatPhoneNumber, 1, undefined, {
