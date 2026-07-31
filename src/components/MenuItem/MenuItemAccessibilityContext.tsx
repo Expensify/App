@@ -86,5 +86,5 @@ function useMenuItemAccessibility() {
 }
 
 export default MenuItemAccessibilityContext;
-export {useMenuItemAccessibilityLabel, useMenuItemAccessibility, MENU_ITEM_LABEL_SLOTS};
-export type {MenuItemAccessibilityActions, MenuItemLabelSlot};
+export {useMenuItemAccessibilityLabel, useMenuItemAccessibility};
+export type {MenuItemAccessibilityActions};

@@ -57,4 +57,3 @@ function useMenuItemInteraction(): MenuItemInteraction {
 }
 
 export {MenuItemConfigContext, MenuItemInteractionContext, useMenuItemConfig, useMenuItemInteraction};
-export type {MenuItemConfig, MenuItemInteraction};
