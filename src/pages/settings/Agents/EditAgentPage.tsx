@@ -29,8 +29,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type EditAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>;
@@ -39,11 +40,21 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'Users']);
+    const isFocused = useIsFocused();
     const routeAccountID = route.params.accountID;
     const [resolvedAccountID] = useOnyx(ONYXKEYS.RAM_ONLY_OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {
         selector: (mapping: Record<string, number> | null | undefined) => mapping?.[routeAccountID] ?? routeAccountID,
     });
     const accountID = resolvedAccountID ?? routeAccountID;
+
+    useEffect(() => {
+        if (!isFocused || accountID === routeAccountID) {
+            return;
+        }
+
+        Navigation.setParams({accountID}, route.key);
+    }, [accountID, isFocused, route.key, routeAccountID]);
+
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
