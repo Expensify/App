@@ -105,10 +105,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         }
 
         const isLastActionUnread = !!lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions);
-        // When the user manually marked an action unread, isUnread/isLastActionUnread can both be false (e.g. a
-        // self-authored action), which would bail before readNewestAction runs and leave manuallyMarkedUnreadReportActionID
-        // set — so the marker never clears. Fall through in that case so the read path can clear it.
-        if (report?.manuallyMarkedUnreadReportActionID == null && !isUnread(report, transactionThreadReport, isReportArchived) && !isLastActionUnread) {
+        if (!isUnread(report, transactionThreadReport, isReportArchived) && !isLastActionUnread) {
             return;
         }
         const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
