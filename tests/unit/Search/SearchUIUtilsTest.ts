@@ -6786,7 +6786,7 @@ describe('SearchUIUtils', () => {
                 expect(item?.firstApproverAccountID).toBeUndefined();
             });
 
-            it('should use the first approval after the latest unapproval when the report was re-approved', () => {
+            it('should use the first approval after the latest UNAPPROVED action when the report was re-approved', () => {
                 const reApprovedAt = '2024-12-22 09:30:00';
                 const data = makeReportFilterTestData(
                     {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
