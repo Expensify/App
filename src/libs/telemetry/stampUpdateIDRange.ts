@@ -8,9 +8,9 @@ function getNumericFormField(body: FormData, key: string): number | undefined {
 }
 
 /**
- * Sentry's `beforeOutgoingRequestSpan` hook, whose hint holds the arguments the request was made with. A repeated
- * fetch only means something with its range attached: a range that advances is a client catching up, a range that
- * repeats is a client stuck in a loop.
+ * Runs on Sentry's `beforeOutgoingRequestSpan` hook. The hook hint holds the request arguments, so this function reads
+ * the update-ID range from the `FormData` body and stamps the range on the auto-instrumented `http.client` span.
+ * A range that advances means the client is catching up. A range that repeats means the client is stuck in a loop.
  */
 function stampUpdateIDRange(span: Pick<Span, 'setAttributes'>, hint: FetchBreadcrumbHint | XhrBreadcrumbHint): void {
     const requestInit: unknown = Array.isArray(hint.input) ? hint.input.at(1) : undefined;
