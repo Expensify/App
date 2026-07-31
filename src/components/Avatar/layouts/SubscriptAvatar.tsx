@@ -69,16 +69,14 @@ function SubscriptAvatar({
 
     let subscriptAvatarStyle;
     if (size === CONST.AVATAR_SIZE.SMALL) {
-        subscriptAvatarStyle = styles.secondAvatarSubscriptCompact;
-    } else if (size === CONST.AVATAR_SIZE.SMALL_NORMAL) {
-        subscriptAvatarStyle = styles.secondAvatarSubscriptSmallNormal;
-    } else if (size === CONST.AVATAR_SIZE.X_LARGE) {
-        subscriptAvatarStyle = styles.secondAvatarSubscriptXLarge;
+        subscriptAvatarStyle = styles.secondAvatarSubscriptSmall;
+    } else if (size === CONST.AVATAR_SIZE.XXXX_LARGE) {
+        subscriptAvatarStyle = styles.secondAvatarSubscriptXxxxLarge;
     } else {
         subscriptAvatarStyle = styles.secondAvatarSubscript;
     }
 
-    const subscriptAvatarSize = size === CONST.AVATAR_SIZE.X_LARGE ? CONST.AVATAR_SIZE.HEADER : CONST.AVATAR_SIZE.SUBSCRIPT;
+    const subscriptAvatarSize = size === CONST.AVATAR_SIZE.XXXX_LARGE ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.XX_SMALL;
 
     return (
         <View
@@ -114,10 +112,13 @@ function SubscriptAvatar({
                     accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
                     icon={secondaryAvatar}
                 >
-                    <View style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptAvatarStyle]}>
+                    <View style={subscriptAvatarStyle}>
                         <Avatar
                             iconAdditionalStyles={[
-                                StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : subscriptAvatarSize),
+                                // The medium subscript on a xxxx-large avatar keeps the small border width (as before the size migration) — the default border width for its size is 1px thicker and would shrink the visible avatar.
+                                size === CONST.AVATAR_SIZE.XXXX_LARGE
+                                    ? StyleUtils.getAvatarBorderWidth(CONST.AVATAR_SIZE.SMALL)
+                                    : StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.XXXX_SMALL : subscriptAvatarSize),
                                 StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG),
                             ]}
                             type={secondaryAvatar.type}
@@ -126,7 +127,7 @@ function SubscriptAvatar({
                             avatarID={secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
                             fallbackIcon={secondaryAvatar.fallbackIcon}
                             fill={secondaryAvatar.fill}
-                            size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : subscriptAvatarSize}
+                            size={isSmall ? CONST.AVATAR_SIZE.XXXX_SMALL : subscriptAvatarSize}
                             testID="ReportActionAvatars-Subscript-SecondaryAvatar"
                         />
                     </View>
@@ -135,7 +136,6 @@ function SubscriptAvatar({
             {!!subscriptCardFeed && (
                 <View
                     style={[
-                        size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {},
                         // Nullish coalescing thinks that empty strings are truthy, thus I'm using OR operator
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor || theme.sidebar),

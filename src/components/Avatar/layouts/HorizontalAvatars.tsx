@@ -131,7 +131,7 @@ function HorizontalAvatars({
                                 shouldUseCardBackground,
                             }),
                             StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
-                            StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
+                            StyleUtils.getHorizontalStackedOverlayAvatarStyle(size),
                             icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(3)?.type),
                         ]}
                     >

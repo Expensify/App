@@ -61,38 +61,38 @@ function DiagonalAvatars({
     const secondaryIcon = icons.at(1);
 
     const tooltipTexts = shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name)) : [''];
-    const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.X_LARGE;
+    const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.XXXX_LARGE;
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
 
     const avatarSizeToStylesMap: Partial<AvatarSizeToStylesMap> = {
         [CONST.AVATAR_SIZE.SMALL]: {
-            singleAvatarStyle: styles.singleAvatarSmall,
-            secondAvatarStyles: styles.secondAvatarSmall,
+            singleAvatarStyle: styles.singleAvatarXxxSmall,
+            secondAvatarStyles: styles.secondAvatarXxxSmall,
         },
-        [CONST.AVATAR_SIZE.LARGE]: {
-            singleAvatarStyle: styles.singleAvatarMedium,
-            secondAvatarStyles: styles.secondAvatarMedium,
+        [CONST.AVATAR_SIZE.XXX_LARGE]: {
+            singleAvatarStyle: styles.singleAvatarXLarge,
+            secondAvatarStyles: styles.secondAvatarXLarge,
         },
-        [CONST.AVATAR_SIZE.X_LARGE]: {
-            singleAvatarStyle: styles.singleAvatarMediumLarge,
-            secondAvatarStyles: styles.secondAvatarMediumLarge,
+        [CONST.AVATAR_SIZE.XXXX_LARGE]: {
+            singleAvatarStyle: styles.singleAvatarXxLarge,
+            secondAvatarStyles: styles.secondAvatarXxLarge,
         },
     };
 
     const defaultAvatarStyles: AvatarStyles = {
-        singleAvatarStyle: styles.singleAvatar,
-        secondAvatarStyles: styles.secondAvatar,
+        singleAvatarStyle: styles.singleAvatarXSmall,
+        secondAvatarStyles: styles.secondAvatarXSmall,
     };
 
     let avatarSize;
     if (shouldUseMidSubscriptSize) {
-        avatarSize = CONST.AVATAR_SIZE.MID_SUBSCRIPT;
-    } else if (size === CONST.AVATAR_SIZE.LARGE) {
-        avatarSize = CONST.AVATAR_SIZE.MEDIUM;
-    } else if (size === CONST.AVATAR_SIZE.X_LARGE) {
-        avatarSize = CONST.AVATAR_SIZE.MEDIUM_LARGE;
+        avatarSize = CONST.AVATAR_SIZE.XXX_SMALL;
+    } else if (size === CONST.AVATAR_SIZE.XXX_LARGE) {
+        avatarSize = CONST.AVATAR_SIZE.X_LARGE;
+    } else if (size === CONST.AVATAR_SIZE.XXXX_LARGE) {
+        avatarSize = CONST.AVATAR_SIZE.XX_LARGE;
     } else {
-        avatarSize = CONST.AVATAR_SIZE.SMALLER;
+        avatarSize = CONST.AVATAR_SIZE.X_SMALL;
     }
 
     const {singleAvatarStyle, secondAvatarStyles} = avatarSizeToStylesMap[size] ?? defaultAvatarStyles;

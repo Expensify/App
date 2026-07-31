@@ -74,10 +74,10 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
     }
 
     const [primaryAvatar, secondaryAvatar] = icons;
-    const size = CONST.AVATAR_SIZE.X_LARGE;
+    const size = CONST.AVATAR_SIZE.XXXX_LARGE;
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && !!secondaryAvatar?.name) {
-        const subscriptAvatarSize = CONST.AVATAR_SIZE.HEADER;
+        const subscriptAvatarSize = CONST.AVATAR_SIZE.DEFAULT;
 
         return (
             <View
@@ -118,7 +118,7 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
                     accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
                     icon={secondaryAvatar}
                 >
-                    <View style={styles.secondAvatarSubscriptXLarge}>
+                    <View style={styles.secondAvatarSubscriptXxxxLarge}>
                         <PressableWithoutFocus
                             onPress={() => navigateToAvatarPage(secondaryAvatar)}
                             accessibilityLabel={getAccessibilityLabel(secondaryAvatar)}
@@ -126,7 +126,8 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_AVATAR}
                         >
                             <Avatar
-                                iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(subscriptAvatarSize), StyleUtils.getBorderColorStyle(theme.componentBG)]}
+                                // The medium subscript on a xxxx-large avatar keeps the small border width (as before the size migration) — the default border width for its size is 1px thicker and would shrink the visible avatar.
+                                iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(CONST.AVATAR_SIZE.SMALL), StyleUtils.getBorderColorStyle(theme.componentBG)]}
                                 type={secondaryAvatar.type}
                                 source={secondaryAvatar.source}
                                 name={secondaryAvatar.name ?? ''}
