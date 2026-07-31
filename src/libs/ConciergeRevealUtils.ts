@@ -12,8 +12,8 @@ const TRICKLE_HARD_CAP_MS = 60_000;
 const ACCELERATED_REMAINING_MS = 1_500;
 /** Minimum char-level anchors before we opt into the trickle reveal. Replies under this fall back to an immediate reveal. */
 const MIN_TRICKLE_TOKEN_COUNT = 100;
-/** Per-token cadence for the optimistic reveal, a constant ~60 chars/sec. */
-const OPTIMISTIC_FLAT_MS_PER_TOKEN = 17;
+/** Per-token cadence for the optimistic reveal, a constant ~90 chars/sec. */
+const OPTIMISTIC_FLAT_MS_PER_TOKEN = 11;
 
 function easeOut(t: number): number {
     const clamped = Math.max(0, Math.min(1, t));
