@@ -1,12 +1,13 @@
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 
 import * as AppUpdate from '@libs/actions/AppUpdate';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 
@@ -134,7 +135,7 @@ export default {
         }
 
         if (isRoomOrGroupChat) {
-            const roomName = getReportName(report, reportAttributes);
+            const roomName = deprecatedGetReportName(report, reportAttributes);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
@@ -164,6 +165,8 @@ export default {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const bodyWithHTML = getForReportAction({
             translate: translateLocal,
+            // Non-React call path (pusher/notification pipeline): pass the standalone util, which falls back to the module-scope currency list.
+            convertToDisplayString,
             reportAction,
             policy,
             movedFromReport,

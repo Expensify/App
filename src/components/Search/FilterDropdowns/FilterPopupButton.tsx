@@ -11,6 +11,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ReactNode, RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -65,6 +66,10 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     const triggerRef = useRef<View | null>(null);
     const anchorRef = useRef<View | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+    // Defer mounting the (potentially heavy) popover content until the dropdown is first opened, then keep it
+    // mounted so the close animation and reopening stay instant. The content is otherwise mounted eagerly on
+    // screen focus even while hidden, which runs each filter selector's expensive option-building on page load.
+    const [hasEverExpanded, setHasEverExpanded] = useState(false);
     const [customPopoverWidth, setCustomPopoverWidth] = useState<number | undefined>(undefined);
     const {calculatePopoverPosition} = usePopoverPosition();
 
@@ -88,9 +93,20 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     };
 
     const calculatePopoverPositionAndToggleOverlay = () => {
-        calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
-            setPopoverTriggerPosition({...position, vertical: position.vertical});
-            toggleOverlay();
+        // Dismiss the keyboard before opening the popover. On Android, if a search input is still focused, the
+        // keyboard stays up. The bottom-docked popover's KeyboardAvoidingView then reserves keyboard-height
+        // padding, so the sheet renders mid-screen instead of at the bottom. dismissKeyboardAndExecute waits for
+        // keyboardDidHide on Android before running the callback; on other platforms it runs immediately.
+        KeyboardUtils.dismissKeyboardAndExecute(() => {
+            calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
+                setPopoverTriggerPosition({...position, vertical: position.vertical});
+                // Latch in the same batch as the open (and only when it will actually open, mirroring toggleOverlay's
+                // alert-modal guard) so the deferred subtree mounts together with the popover becoming visible.
+                if (!isOverlayVisible && !willAlertModalBecomeVisible) {
+                    setHasEverExpanded(true);
+                }
+                toggleOverlay();
+            });
         });
     };
 
@@ -107,8 +123,9 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
             {/* Dropdown Trigger */}
             {renderButton({ref: triggerRef, onPress: calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
 
-            {/* Dropdown overlay */}
-            {isFocused && (
+            {/* Dropdown overlay. Gated on hasEverExpanded so the (potentially heavy) content subtree isn't mounted
+                until the dropdown is first opened — PopoverWithMeasuredContentBase mounts children even while hidden. */}
+            {isFocused && hasEverExpanded && (
                 <PopoverWithMeasuredContent
                     anchorRef={triggerRef}
                     avoidKeyboard

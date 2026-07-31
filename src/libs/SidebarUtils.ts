@@ -31,6 +31,8 @@ import {Str} from 'expensify-common';
 
 import type {OptionData} from './ReportUtils';
 
+import {isAnonymousUser} from './actions/Session';
+import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {formatList} from './Localize';
 import {
@@ -151,7 +153,7 @@ import {
     isTagModificationAction,
     isTaskAction,
 } from './ReportActionsUtils';
-import {getReportName as getReportNameFromDerived} from './ReportNameUtils';
+import {deprecatedGetReportName} from './ReportNameUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
     excludeParticipantsForDisplay,
@@ -196,6 +198,7 @@ import {
     isOneOnOneChat,
     isOneTransactionThread,
     isPolicyExpenseChat,
+    isPublicRoom,
     isSelfDM,
     isSystemChat as isSystemChatUtil,
     isTaskReport,
@@ -343,6 +346,10 @@ function shouldDisplayReportInLHN({
         !!draftComment ||
         hasErrorsOtherThanFailedReceipt ||
         isFocused ||
+        // An anonymous user can only access public rooms, and such a room's notification preference
+        // defaults to `hidden`. Without this, opening a thread inside the room (which steals focus)
+        // drops the room from the LHN, leaving the anon user unable to return to it. See #92672.
+        (isPublicRoom(report) && isAnonymousUser()) ||
         isSystemChat ||
         !!report.isPinned ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -567,7 +574,7 @@ function categorizeReportsForLHN(
         }
 
         const reportID = report.reportID;
-        const displayName = getReportNameFromDerived(report, reportAttributes);
+        const displayName = deprecatedGetReportName(report, reportAttributes);
         const miniReport: MiniReport = {
             reportID,
             displayName,
@@ -749,6 +756,8 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
+// TODO: Refactor to use options object parameter to reduce parameter count
+// eslint-disable-next-line @typescript-eslint/max-params
 function getReasonAndReportActionThatHasRedBrickRoad(
     report: Report,
     chatReport: OnyxEntry<Report>,
@@ -757,6 +766,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     reportErrors: Errors,
     transactions: OnyxCollection<Transaction>,
     isOffline: boolean,
+    currentUserAccountID: number,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
@@ -774,7 +784,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         };
     }
 
-    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, transactions, isReportArchived, reports);
+    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, transactions, currentUserAccountID, isReportArchived, reports);
     const errors = reportErrors;
     const hasErrors = Object.keys(errors).length !== 0;
 
@@ -969,6 +979,7 @@ function getOptionData({
         hasMultipleParticipants,
         localeCompare,
         formatPhoneNumberPhoneUtils,
+        translate,
         undefined,
         isSelfDM(report),
     );
@@ -1007,6 +1018,7 @@ function getOptionData({
             currentUserLogin,
             lastAction,
             isTrackIntentUser,
+            currentUserAccountID,
         });
     }
 
@@ -1056,7 +1068,7 @@ function getOptionData({
                     : translate('workspace.invite.removed');
             const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            const roomName = getReportNameFromDerived(lastActionReport ?? undefined, reportAttributesDerived) || lastActionOriginalMessage?.roomName;
+            const roomName = deprecatedGetReportName(lastActionReport ?? undefined, reportAttributesDerived) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -1239,6 +1251,12 @@ function getOptionData({
             result.alternateText = getUpdateExpensifyCardRuleMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE) {
             result.alternateText = getRemoveExpensifyCardRuleMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE) {
+            result.alternateText = StringUtils.lineBreaksToSpaces(getAddAgentRuleMessage(translate, lastAction));
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE) {
+            result.alternateText = StringUtils.lineBreaksToSpaces(getUpdateAgentRuleMessage(translate, lastAction));
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE) {
+            result.alternateText = StringUtils.lineBreaksToSpaces(getDeleteAgentRuleMessage(translate, lastAction));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD) {
             result.alternateText = getUpdatedManualApprovalThresholdMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET) {
@@ -1304,7 +1322,7 @@ function getOptionData({
             result.alternateText =
                 lastMessageTextFromReport.length > 0
                     ? formatReportLastMessageText(Parser.htmlToText(lastMessageText))
-                    : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction, visibleReportActionsData)?.lastMessageText;
+                    : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction, visibleReportActionsData, currentUserAccountID)?.lastMessageText;
 
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(
@@ -1374,7 +1392,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = getReportNameFromDerived(report, reportAttributesDerived);
+    const reportName = deprecatedGetReportName(report, reportAttributesDerived);
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -1450,7 +1468,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
         } else {
             welcomeMessage.messageHtml = translate(
                 'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
-                getPolicyName({report, policy}),
+                getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
                 getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}),
             );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
@@ -1468,7 +1486,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
         return welcomeMessage;
     }
     const isMultipleParticipant = participantPersonalDetailList.length > 1;
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare, formatPhoneNumberPhoneUtils);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare, formatPhoneNumberPhoneUtils, translate);
 
     if (!displayNamesWithTooltips.length) {
         return welcomeMessage;
@@ -1504,8 +1522,8 @@ function getRoomWelcomeMessage(
     reportDetailsLink = '',
 ): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
-    const workspaceName = getPolicyName({report});
-    const reportName = getReportNameFromDerived(report ?? undefined, reportAttributes);
+    const workspaceName = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
+    const reportName = deprecatedGetReportName(report ?? undefined, reportAttributes);
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);
@@ -1526,7 +1544,7 @@ function getRoomWelcomeMessage(
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
                 ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate})
                 : invoiceReceiverPolicy?.name;
-        const receiver = getPolicyName({report});
+        const receiver = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);
     } else {
         // Message for user created rooms or other room types.

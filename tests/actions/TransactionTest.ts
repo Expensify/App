@@ -19,7 +19,7 @@ import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -39,16 +39,20 @@ import getOnyxValue from '../utils/getOnyxValue';
 import {getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransactionsReportAction>[0], 'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency'> & {
+type LegacyChangeTransactionsReportProps = Omit<
+    Parameters<typeof changeTransactionsReportAction>[0],
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions'
+> & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
     personalPolicyOutputCurrency?: string;
+    selfDMReportActions?: OnyxEntry<ReportActions>;
     isTrackIntentUser: boolean | undefined;
 };
 
-function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
+function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest}: LegacyChangeTransactionsReportProps) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, personalPolicyOutputCurrency, ...rest});
+    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest});
 }
 
 const topMostReportID = '23423423';
@@ -214,6 +218,7 @@ describe('actions/Transaction', () => {
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             trackExpense({
+                conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -244,7 +249,6 @@ describe('actions/Transaction', () => {
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (transactions) => {
                     transaction = Object.values(transactions ?? {}).find((t) => !!t);
                     allTransactions = transactions;
@@ -253,7 +257,6 @@ describe('actions/Transaction', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
                 callback: (allReports) => {
                     expenseReport = Object.values(allReports ?? {}).find((r) => r?.type === CONST.REPORT.TYPE.EXPENSE);
                 },
@@ -261,11 +264,12 @@ describe('actions/Transaction', () => {
 
             let iouReportActionOnSelfDMReport: OnyxEntry<ReportAction>;
             let trackExpenseActionableWhisper: OnyxEntry<ReportAction>;
+            let selfDMReportActions: OnyxEntry<ReportActions>;
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                waitForCollectionCallback: true,
                 callback: (allReportActions) => {
+                    selfDMReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`];
                     iouReportActionOnSelfDMReport = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`] ?? {}).find(
                         (r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
                     );
@@ -304,6 +308,7 @@ describe('actions/Transaction', () => {
                 policyTagList,
                 transactionViolations: {},
                 allReports: undefined,
+                selfDMReportActions,
                 isTrackIntentUser: false,
             });
 
@@ -314,7 +319,6 @@ describe('actions/Transaction', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (transactions) => {
                     updatedTransaction = Object.values(transactions ?? {}).find((t) => t?.transactionID === transaction?.transactionID);
                 },
@@ -322,7 +326,6 @@ describe('actions/Transaction', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                waitForCollectionCallback: true,
                 callback: (allReportActions) => {
                     updatedIOUReportActionOnSelfDMReport = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`] ?? {}).find(
                         (r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -335,7 +338,6 @@ describe('actions/Transaction', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
                 callback: (allReports) => {
                     updatedExpenseReport = Object.values(allReports ?? {}).find((r) => r?.reportID === expenseReport?.reportID);
                 },
@@ -566,6 +568,7 @@ describe('actions/Transaction', () => {
 
                 const policyID = generatePolicyID();
                 createWorkspace({
+                    conciergeChat: undefined,
                     policyOwnerEmail: CARLOS_EMAIL,
                     makeMeAdmin: true,
                     policyName: "Carlos's Workspace",
@@ -586,7 +589,6 @@ describe('actions/Transaction', () => {
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (allReports) => {
                         chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
                     },
@@ -624,14 +626,12 @@ describe('actions/Transaction', () => {
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (allReports) => {
                         expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
                     },
                 });
                 await getOnyxData({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (allReportsAction) => {
                         const iouActions = Object.values(allReportsAction ?? {}).filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                             isMoneyRequestAction(reportAction),
@@ -676,21 +676,18 @@ describe('actions/Transaction', () => {
                 let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (value) => {
                         allTransactions = value;
                     },
                 });
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (value) => {
                         allReports = value;
                     },
                 });
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-                    waitForCollectionCallback: true,
                     callback: (value) => {
                         allReportNameValuePairs = value;
                     },
@@ -749,6 +746,7 @@ describe('actions/Transaction', () => {
 
                 const policyID = generatePolicyID();
                 createWorkspace({
+                    conciergeChat: undefined,
                     policyOwnerEmail: RORY_EMAIL,
                     makeMeAdmin: true,
                     policyName: "Rory's Workspace",
@@ -769,7 +767,6 @@ describe('actions/Transaction', () => {
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (allReports) => {
                         chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
                     },
@@ -807,14 +804,12 @@ describe('actions/Transaction', () => {
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (allReports) => {
                         expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
                     },
                 });
                 await getOnyxData({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (allReportsAction) => {
                         const iouActions = Object.values(allReportsAction ?? {}).filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                             isMoneyRequestAction(reportAction),
@@ -859,21 +854,18 @@ describe('actions/Transaction', () => {
                 let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (value) => {
                         allTransactions = value;
                     },
                 });
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (value) => {
                         allReports = value;
                     },
                 });
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-                    waitForCollectionCallback: true,
                     callback: (value) => {
                         allReportNameValuePairs = value;
                     },
@@ -936,6 +928,7 @@ describe('actions/Transaction', () => {
 
                 const policyID = generatePolicyID();
                 createWorkspace({
+                    conciergeChat: undefined,
                     policyOwnerEmail: CARLOS_EMAIL,
                     makeMeAdmin: true,
                     policyName: "Carlos's Workspace",
@@ -956,7 +949,6 @@ describe('actions/Transaction', () => {
 
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (allReports) => {
                         chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
                     },
@@ -996,7 +988,6 @@ describe('actions/Transaction', () => {
 
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (allReports) => {
                         expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
                     },
@@ -1004,7 +995,6 @@ describe('actions/Transaction', () => {
 
                 await getOnyxData({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (allReportsAction) => {
                         const iouActions = Object.values(allReportsAction ?? {}).filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                             isMoneyRequestAction(reportAction),
@@ -1055,21 +1045,18 @@ describe('actions/Transaction', () => {
 
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (value) => {
                         allTransactions = value;
                     },
                 });
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (value) => {
                         allReports = value;
                     },
                 });
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-                    waitForCollectionCallback: true,
                     callback: (value) => {
                         allReportNameValuePairs = value;
                     },
@@ -1132,6 +1119,7 @@ describe('actions/Transaction', () => {
 
                 const policyID = generatePolicyID();
                 createWorkspace({
+                    conciergeChat: undefined,
                     policyOwnerEmail: CARLOS_EMAIL,
                     makeMeAdmin: true,
                     policyName: "Carlos's Workspace for Hold Test",
@@ -1153,7 +1141,6 @@ describe('actions/Transaction', () => {
 
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (allReports) => {
                         chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
                     },
@@ -1194,7 +1181,6 @@ describe('actions/Transaction', () => {
 
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (allReports) => {
                         expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
                     },
@@ -1203,7 +1189,6 @@ describe('actions/Transaction', () => {
                 // Get the original transaction ID and transaction thread report ID
                 await getOnyxData({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (allReportsAction) => {
                         const iouActions = Object.values(allReportsAction ?? {}).filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                             isMoneyRequestAction(reportAction),
@@ -1229,7 +1214,6 @@ describe('actions/Transaction', () => {
                 let firstIOU: ReportAction | undefined;
                 await getOnyxData({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (allReportsAction) => {
                         const iouActions = Object.values(allReportsAction ?? {}).filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                             isMoneyRequestAction(reportAction),
@@ -1275,21 +1259,18 @@ describe('actions/Transaction', () => {
 
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (value) => {
                         allTransactions = value;
                     },
                 });
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (value) => {
                         allReports = value;
                     },
                 });
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-                    waitForCollectionCallback: true,
                     callback: (value) => {
                         allReportNameValuePairs = value;
                     },
@@ -1349,7 +1330,6 @@ describe('actions/Transaction', () => {
 
                 await getOnyxData({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (allReportsAction) => {
                         const iouActions = Object.values(allReportsAction ?? {}).filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                             isMoneyRequestAction(reportAction),

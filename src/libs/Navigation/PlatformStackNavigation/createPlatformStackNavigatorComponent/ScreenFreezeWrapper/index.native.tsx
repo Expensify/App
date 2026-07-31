@@ -1,8 +1,8 @@
+import DisplayContentsView from '@components/DisplayContentsView';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import CustomViewWrapper from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/CustomViewWrapper';
-
-import React, {useLayoutEffect, useState} from 'react';
+import {useLayoutEffect, useState} from 'react';
 import {Freeze} from 'react-freeze';
 
 import type ScreenFreezeWrapperProps from './types';
@@ -41,11 +41,9 @@ function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperPro
         };
     }, [isScreenBlurred]);
 
-    // Keeps the underlay screen visible during swipe-back gestures on mobile,
-    // preventing a blank screen flash while navigating between screens.
     return (
         <Freeze freeze={frozen}>
-            <CustomViewWrapper style={styles.flex1}>{children}</CustomViewWrapper>
+            <DisplayContentsView style={styles.flex1}>{children}</DisplayContentsView>
         </Freeze>
     );
 }

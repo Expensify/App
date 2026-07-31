@@ -33,16 +33,28 @@ import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransactionsReportAction>[0], 'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency'> & {
+type LegacyChangeTransactionsReportProps = Omit<
+    Parameters<typeof changeTransactionsReportAction>[0],
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions'
+> & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     personalPolicyOutputCurrency?: string;
 };
+type CapturedOnyxData = {
+    optimisticData?: Array<{key: string; value: unknown}>;
+    successData?: Array<{key: string; value: unknown}>;
+    failureData?: Array<{key: string; value: unknown}>;
+};
+
+function isCapturedOnyxData(value: unknown): value is CapturedOnyxData {
+    return typeof value === 'object' && value !== null;
+}
 
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
 function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, personalPolicyOutputCurrency, ...rest});
+    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, personalPolicyOutputCurrency, selfDMReportActions: undefined, ...rest});
 }
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -335,6 +347,150 @@ describe('Transaction', () => {
 
             expect(nextStepFailureData).toBeDefined();
             expect(nextStepFailureData?.value).toEqual(mockReportNextStep);
+
+            mockAPIWrite.mockRestore();
+        });
+
+        it('keeps sibling duplicate violations cleaned after moving a duplicate transaction to unreported', async () => {
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            const transaction = generateTransaction({
+                transactionID: 'txn_a',
+                reportID: FAKE_OLD_REPORT_ID,
+            });
+            const siblingTransaction = generateTransaction({
+                transactionID: 'txn_b',
+                reportID: FAKE_OLD_REPORT_ID,
+            });
+            const oldIOUAction = createIOUAction(transaction);
+
+            const duplicateViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {duplicates: [siblingTransaction.transactionID]},
+            };
+            const siblingDuplicateViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {duplicates: [transaction.transactionID]},
+            };
+            const missingCategoryViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${siblingTransaction.transactionID}`, siblingTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                policy: undefined,
+                allTransactions: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                },
+                policyTagList: undefined,
+                transactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicateViolation],
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`]: [siblingDuplicateViolation, missingCategoryViolation],
+                },
+                allReports: undefined,
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
+            const capturedOnyxData = apiWriteCall?.[2];
+            const onyxData = isCapturedOnyxData(capturedOnyxData) ? capturedOnyxData : undefined;
+            const siblingViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`;
+
+            expect(onyxData?.optimisticData?.find((data) => data.key === siblingViolationsKey)?.value).toEqual([missingCategoryViolation]);
+            expect(onyxData?.successData?.find((data) => data.key === siblingViolationsKey)?.value).toEqual([missingCategoryViolation]);
+            expect(onyxData?.failureData?.find((data) => data.key === siblingViolationsKey)?.value).toEqual([siblingDuplicateViolation, missingCategoryViolation]);
+
+            mockAPIWrite.mockRestore();
+        });
+
+        it('removes every selected transaction from shared sibling duplicate violations when moving multiple transactions to unreported', async () => {
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            const firstTransaction = generateTransaction({
+                transactionID: 'txn_a',
+                reportID: FAKE_OLD_REPORT_ID,
+            });
+            const secondTransaction = generateTransaction({
+                transactionID: 'txn_c',
+                reportID: FAKE_OLD_REPORT_ID,
+            });
+            const siblingTransaction = generateTransaction({
+                transactionID: 'txn_b',
+                reportID: FAKE_OLD_REPORT_ID,
+            });
+            const firstIOUAction = createIOUAction(firstTransaction);
+            const secondIOUAction = createIOUAction(secondTransaction);
+
+            const firstDuplicateViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {duplicates: [siblingTransaction.transactionID]},
+            };
+            const secondDuplicateViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {duplicates: [siblingTransaction.transactionID]},
+            };
+            const siblingDuplicateViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {duplicates: [firstTransaction.transactionID, secondTransaction.transactionID]},
+            };
+            const missingCategoryViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction.transactionID}`, firstTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`, secondTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${siblingTransaction.transactionID}`, siblingTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {
+                [firstIOUAction.reportActionID]: firstIOUAction,
+                [secondIOUAction.reportActionID]: secondIOUAction,
+            });
+
+            changeTransactionsReport({
+                transactionIDs: [firstTransaction.transactionID, secondTransaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                policy: undefined,
+                allTransactions: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction.transactionID}`]: firstTransaction,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`]: secondTransaction,
+                },
+                policyTagList: undefined,
+                transactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${firstTransaction.transactionID}`]: [firstDuplicateViolation],
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${secondTransaction.transactionID}`]: [secondDuplicateViolation],
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`]: [siblingDuplicateViolation, missingCategoryViolation],
+                },
+                allReports: undefined,
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
+            const capturedOnyxData = apiWriteCall?.[2];
+            const onyxData = isCapturedOnyxData(capturedOnyxData) ? capturedOnyxData : undefined;
+            const siblingViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`;
+            const finalOptimisticSiblingUpdate = onyxData?.optimisticData?.findLast((data) => data.key === siblingViolationsKey);
+            const finalSuccessSiblingUpdate = onyxData?.successData?.findLast((data) => data.key === siblingViolationsKey);
+
+            expect(finalOptimisticSiblingUpdate?.value).toEqual([missingCategoryViolation]);
+            expect(finalSuccessSiblingUpdate?.value).toEqual([missingCategoryViolation]);
+            expect(onyxData?.failureData?.find((data) => data.key === siblingViolationsKey)?.value).toEqual([siblingDuplicateViolation, missingCategoryViolation]);
 
             mockAPIWrite.mockRestore();
         });

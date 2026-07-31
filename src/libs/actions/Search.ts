@@ -1,6 +1,6 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -26,6 +26,7 @@ import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentat
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -51,7 +52,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -74,11 +75,13 @@ import type {
     ReportAction,
     ReportActions,
     ReportNextStepDeprecated,
+    SaveSearch,
     Transaction,
 } from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
+import type SearchFooterConversion from '@src/types/onyx/SearchFooterConversion';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 
@@ -225,6 +228,7 @@ type HandleActionButtonPressParams = {
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
     delegateEmail?: string;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -262,6 +266,7 @@ function handleActionButtonPress({
     searchData,
     chatReportActions,
     delegateEmail,
+    delegateAccountID,
     isTrackIntentUser,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
@@ -313,6 +318,7 @@ function handleActionButtonPress({
                 policy,
                 searchData,
                 chatReportActions,
+                delegateAccountID,
                 isTrackIntentUser,
             });
             return;
@@ -519,6 +525,7 @@ type GetPayActionCallbackParams = {
     policy: OnyxEntry<Policy>;
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -546,6 +553,7 @@ function getPayActionCallback({
     policy,
     searchData,
     chatReportActions,
+    delegateAccountID,
     isTrackIntentUser,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
@@ -594,6 +602,7 @@ function getPayActionCallback({
         methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
+        delegateAccountID,
         isTrackIntentUser,
     });
 }
@@ -675,8 +684,8 @@ function getOnyxLoadingData(
     const shouldClearTotals = isSearchAPI && shouldCalculateTotals === false && offset === 0;
 
     // `search.state` tracks the lifecycle of a real search request (identified by its queryJSON): it starts as
-    // `loading` optimistically and is resolved to `loaded`/`error` by successData/failureData. handlePreventSearchAPI
-    // reuses this helper as a UI-only loading toggle with no query and no success/failure step, so it must stay out of
+    // `loading` optimistically and is resolved to `loaded` by finallyData. handlePreventSearchAPI
+    // reuses this helper as a UI-only loading toggle with no query, so it must stay out of
     // the state machine — otherwise it would strand `state: loading` with no terminal write to clear it.
     const isSearchRequest = isSearchAPI && !!queryJSON;
     const type = queryJSON?.type;
@@ -703,26 +712,16 @@ function getOnyxLoadingData(
         },
     ];
 
-    // successData writes the terminal `loaded` state on any jsonCode 200 resolve. It also stamps `type` so
-    // responses that do carry data stay consistent with the anti-stale isSearchDataLoaded check (which compares
-    // type/hash). On a success response without data, isSearchDataLoaded still resolves to false via its own data/errors gate;
-    // `state` is what marks that case as done once a future PR wires the read side to it. `isLoading` isn't set here
-    // because finallyData always runs right after and already clears it for isSearchAPI. Empty for the non-search
-    // callers of this helper so they don't pay for a meaningless `{search: {}}` merge on the SNAPSHOT key.
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = isSearchRequest
-        ? [
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                  value: {
-                      search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type},
-                  },
-              },
-          ]
-        : [];
+    // Side effect: record this query string under SEARCH_QUERY_BY_HASH so IOU optimistic updates
+    // can later fan to every loaded snapshot whose query matches. Done here (not via optimisticData)
+    // because this function's return type only allows snapshot keys; the matching eviction lives
+    // in the SNAPSHOT subscription in IOU/index.ts.
+    if (queryJSON?.inputQuery) {
+        Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, {[hash]: queryJSON.inputQuery});
+    }
 
-    // finallyData runs after successData/failureData regardless of jsonCode, so it deliberately does NOT write `state`:
-    // doing so would clobber the `error` terminal set by failureData. The terminal state is owned by success/failure.
+    // finallyData runs for every HTTP response, including 460 responses that deliberately skip failureData.
+    // It owns the terminal request state, while failureData separately records whether the request failed.
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -730,6 +729,7 @@ function getOnyxLoadingData(
             value: {
                 search: {
                     ...(isSearchAPI && {isLoading: false}),
+                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type, hash}),
                 },
             },
         },
@@ -744,14 +744,14 @@ function getOnyxLoadingData(
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
-                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.ERROR}),
+                    ...(isSearchRequest && {hash}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     ];
 
-    return {optimisticData, successData, finallyData, failureData};
+    return {optimisticData, finallyData, failureData};
 }
 
 function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
@@ -796,6 +796,68 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
     write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
 }
 
+function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, savedSearches: OnyxEntry<SaveSearch>) {
+    const queryString = `type:expense from:${currentUserAccountID}`;
+    const queryJSON = buildSearchQueryJSON(queryString);
+    if (!queryJSON) {
+        return;
+    }
+
+    if (savedSearches?.[queryJSON.hash]) {
+        return;
+    }
+
+    const jsonQuery = JSON.stringify(queryJSON);
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SAVED_SEARCHES,
+            value: {
+                [queryJSON.hash]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    name: searchName,
+                    query: queryJSON.inputQuery,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH,
+            value: true,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SAVED_SEARCHES,
+            value: {
+                [queryJSON.hash]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH,
+            value: false,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SAVED_SEARCHES,
+            value: {
+                [queryJSON.hash]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: searchName}, {optimisticData, failureData, successData});
+}
+
 function deleteSavedSearch(hash: number) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
         {
@@ -833,22 +895,10 @@ function deleteSavedSearch(hash: number) {
 }
 
 function openSearchPage(params?: OpenSearchPageParams) {
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED,
-            value: true,
-        },
-    ];
-
-    read(
-        READ_COMMANDS.OPEN_SEARCH_PAGE,
-        {
-            includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
-            includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
-        },
-        {successData},
-    );
+    read(READ_COMMANDS.OPEN_SEARCH_PAGE, {
+        includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
+        includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
+    });
 }
 
 function openSearchCardFiltersPage() {
@@ -861,6 +911,34 @@ function openSearchCardFiltersPage() {
     ];
 
     read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
+}
+
+function openSearchCategoryFiltersPage() {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA,
+            value: true,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED,
+            value: true,
+        },
+    ];
+
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA,
+            value: false,
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
 }
 
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
@@ -910,6 +988,28 @@ function handlePreventSearchAPI(hash: number | undefined) {
     };
 }
 
+/**
+ * Builds the backend-facing query from a client queryJSON: strips client-only fields and rewrites client-side-sorted
+ * columns to a backend-supported date sort.
+ */
+function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
+    const {exactMatchFilterKeys, flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
+    const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
+        ? {
+              ...queryJSONWithoutFlatFilters,
+              sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+              inputQuery: buildSearchQueryString({
+                  ...queryJSON,
+                  sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+              }),
+              rawFilterList: queryJSONWithoutFlatFilters.rawFilterList?.map((filter) =>
+                  filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY ? {...filter, value: CONST.SEARCH.TABLE_COLUMNS.DATE} : filter,
+              ),
+          }
+        : queryJSONWithoutFlatFilters;
+    return {backendQueryJSON, limit, exactMatchFilterKeys};
+}
+
 function search({
     queryJSON,
     searchKey,
@@ -948,18 +1048,8 @@ function search({
     }
     inFlightSearchRequests.add(dedupeKey);
 
-    const {optimisticData, successData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
-    const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
-    const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
-        ? {
-              ...queryJSONWithoutFlatFilters,
-              sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-              inputQuery: buildSearchQueryString({...queryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE}),
-              rawFilterList: queryJSONWithoutFlatFilters.rawFilterList?.map((filter) =>
-                  filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY ? {...filter, value: CONST.SEARCH.TABLE_COLUMNS.DATE} : filter,
-              ),
-          }
-        : queryJSONWithoutFlatFilters;
+    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
+    const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
         searchKey,
@@ -969,7 +1059,7 @@ function search({
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
-    const jsonQuery = serializeQueryJSONForBackend(query);
+    const jsonQuery = serializeQueryJSONForBackend(query, exactMatchFilterKeys ? new Set(exactMatchFilterKeys) : undefined);
 
     if (shouldUpdateLastSearchParams) {
         saveLastSearchParams({
@@ -980,10 +1070,16 @@ function search({
     }
 
     const startRequest = () =>
-        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
+        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
             .then((result) => {
+                const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+
+                // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.
+                if (result?.jsonCode === CONST.JSON_CODE.SUCCESS && response?.data === undefined) {
+                    Log.info('[Search] loading_terminal_empty', false, {hash: queryJSON.hash, type: queryJSON.type});
+                }
+
                 if (shouldUpdateLastSearchParams) {
-                    const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
                     const reports = Object.keys(response?.data ?? {})
                         .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
                         .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
@@ -1013,23 +1109,102 @@ function search({
 
                 return result?.jsonCode;
             })
-            .catch((error) => {
+            .catch(async (error) => {
                 // A network-level rejection (no HTTP response at all, e.g. offline/timeout) never reaches
-                // SaveResponseInOnyx, so nothing else applies failureData for it. Apply it here so the snapshot
-                // still reaches a terminal `error` state instead of being stranded in `loading`, then re-throw so
-                // this still rejects for any caller relying on that.
-                Onyx.update(failureData ?? []);
+                // SaveResponseInOnyx, so nothing else applies failureData/finallyData for it. Apply both here so
+                // the snapshot records the error and still reaches the terminal `loaded` state.
+                await Onyx.update(failureData ?? []);
+                await Onyx.update(finallyData ?? []);
                 throw error;
             })
             .finally(() => {
                 inFlightSearchRequests.delete(dedupeKey);
             });
 
+    // Catch here so every caller (the page-load fire in useSearchPageSetup and the re-search handlers
+    // in SearchPage/SearchPageNarrow) is covered without a separate catch each. Failure and terminal state
+    // are already applied, so this only prevents the rejection from floating into the browser's
+    // onunhandledrejection (APP-5J) while still logging it for diagnosis. Resolves to undefined so
+    // callers' .then still runs and reads a real (falsy) jsonCode.
+    const handleSearchError = (error: unknown) => {
+        Log.hmmm('[Search] search() request failed', {error: String(error)});
+        return undefined;
+    };
+
     if (skipWaitForWrites) {
-        return startRequest();
+        return startRequest().catch(handleSearchError);
     }
 
-    return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest);
+    return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest).catch(handleSearchError);
+}
+
+/**
+ * Fetches converted footer-total figures for the Search footer currency picker. The Auth command merges the
+ * results into the SEARCH_FOOTER_CONVERSION cache via onyxData (nested under the target currency), leaving the
+ * live search snapshot untouched:
+ *  - transactionIDList: each transaction's converted amount.
+ *  - reportIDList: each report's converted total (the Reports search).
+ *  - neither: the whole-search converted total/count + the first page's per-transaction amounts.
+ * Callers should check the cache first to avoid redundant requests.
+ */
+function getFooterConvertedAmounts({
+    queryJSON,
+    searchKey,
+    targetCurrency,
+    transactionIDList,
+    reportIDList,
+    sources,
+}: {
+    queryJSON: Readonly<SearchQueryJSON>;
+    searchKey: SearchKey | undefined;
+    targetCurrency: string;
+    transactionIDList?: string;
+    reportIDList?: string;
+    /** Default-currency source figures to stamp the requested conversions against (for stale detection on edit). */
+    sources?: SearchFooterConversion['sources'];
+}) {
+    if (!targetCurrency) {
+        return;
+    }
+
+    // searchKey changes what the backend query matches (e.g. unapprovedCash excludes card expenses), so it must be
+    // sent exactly as search() sends it or the converted totals cover a different expense set than the snapshot.
+    const {backendQueryJSON, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
+    const jsonQuery = serializeQueryJSONForBackend(
+        {
+            ...backendQueryJSON,
+            searchKey,
+            filters: backendQueryJSON.filters ?? null,
+        },
+        exactMatchFilterKeys ? new Set(exactMatchFilterKeys) : undefined,
+    );
+
+    read(
+        READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT,
+        {
+            jsonQuery,
+            targetCurrency,
+            ...(transactionIDList && {transactionIDList}),
+            ...(reportIDList && {reportIDList}),
+        },
+        {
+            // Stamp the source figures this request converts (and clear any prior failure for this currency) so a later
+            // edit that moves them is detected as stale and the footer can retry. The command merges its converted
+            // figures into the same key, so the stamp and the converted value live side by side.
+            optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FOOTER_CONVERSION, value: {...(sources && {sources}), failedCurrencies: {[targetCurrency]: null}}}],
+            // A failed read leaves no converted value, so record the failure; the footer then falls back to the default
+            // total instead of the stale converted value (or a skeleton that would stay until the next edit/reconnect).
+            failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FOOTER_CONVERSION, value: {failedCurrencies: {[targetCurrency]: true}}}],
+        },
+    );
+}
+
+/**
+ * Clears the footer-currency conversion cache. The converted figures are ephemeral, session-scoped display
+ * data, so they are dropped when leaving Search rather than persisted across sessions.
+ */
+function clearFooterConversion() {
+    Onyx.set(ONYXKEYS.SEARCH_FOOTER_CONVERSION, null);
 }
 
 function submitMoneyRequestOnSearch(
@@ -1362,7 +1537,7 @@ function rejectMoneyRequestsOnSearch(
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV(
-    {jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams,
+    {jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName, isGroupExport}: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
 ) {
@@ -1397,6 +1572,7 @@ function exportSearchItemsToCSV(
         transactionIDList,
         isBasicExport,
         exportColumnLabels,
+        isGroupExport,
     }) as Params;
 
     const formData = new FormData();
@@ -1513,23 +1689,41 @@ function queueExportSearchWithTemplate(
     return exportID;
 }
 
+/** Export templates pre-grouped for the Export menus: each group is sorted alphabetically and rendered with a divider between groups */
+type ExportTemplateGroups = {
+    /** Custom templates (custom integrations + account/policy in-app templates) */
+    customTemplates: ExportTemplate[];
+    /** Default templates (expense/report level exports, and optionally the basic export) */
+    defaultTemplates: ExportTemplate[];
+};
+
 /**
- * Collates a list of export templates available to the user from their account, policy, and custom integrations templates
+ * Collates the export templates available to the user from their account, policy, and custom integrations templates
  * @param integrationsExportTemplates - The user's custom integrations export templates
  * @param csvExportLayouts - The user's custom account level export templates
+ * @param localeCompare - Locale-aware string comparison function used to sort each group alphabetically
  * @param policy - The user's policy
  * @param includeReportLevelExport - Whether to include the report level export template
- * @returns
+ * @param includeBasicExport - Whether to include the basic export (CSV download) template in the default group
+ * @returns The export templates pre-grouped into the custom group and the default group, each sorted alphabetically
  */
 function getExportTemplates(
     integrationsExportTemplates: ExportTemplate[],
     csvExportLayouts: Record<string, ExportTemplate>,
     translate: LocalizedTranslate,
+    localeCompare: LocaleContextProps['localeCompare'],
     policy?: Policy,
     includeReportLevelExport = true,
-): ExportTemplate[] {
+    includeBasicExport = false,
+): ExportTemplateGroups {
     // Helper function to normalize template data into consistent ExportTemplate format
-    const normalizeTemplate = (templateName: string, template: ExportTemplate, type: ValueOf<typeof CONST.EXPORT_TEMPLATE_TYPES>, description = '', policyID?: string): ExportTemplate => ({
+    const normalizeTemplate = (
+        templateName: string,
+        template: Pick<ExportTemplate, 'name'> & Partial<ExportTemplate>,
+        type: ValueOf<typeof CONST.EXPORT_TEMPLATE_TYPES>,
+        description = '',
+        policyID?: string,
+    ): ExportTemplate => ({
         ...template,
         templateName,
         description,
@@ -1539,14 +1733,17 @@ function getExportTemplates(
 
     // By default, we always include the expense level export template
     const exportTemplates: ExportTemplate[] = [
-        normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, {name: translate('export.expenseLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
+        normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, {name: translate('export.expenseLevelExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
     ];
 
     // Conditionally include the report level export template
     if (includeReportLevelExport) {
-        exportTemplates.push(
-            normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
-        );
+        exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
+    }
+
+    // Conditionally include the basic export (CSV download) template so it's sorted alphabetically alongside the other default templates
+    if (includeBasicExport) {
+        exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, {name: translate('export.basicExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
     }
 
     // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
@@ -1562,7 +1759,13 @@ function getExportTemplates(
     // Update the integrations export templates to include the name, description, policyID, and type
     const integrationsTemplates = integrationsExportTemplates.map((template) => normalizeTemplate(template.name, template, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
 
-    return [...exportTemplates, ...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates];
+    // Custom templates (custom integrations + account/policy in-app templates), sorted alphabetically by name
+    const customTemplates = [...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates].sort((first, second) => localeCompare(first.name, second.name));
+
+    // Default templates (expense/report level and optionally basic export), sorted alphabetically by name
+    const defaultTemplates = [...exportTemplates].sort((first, second) => localeCompare(first.name, second.name));
+
+    return {customTemplates, defaultTemplates};
 }
 
 /**
@@ -1850,7 +2053,10 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
 
 export {
     saveSearch,
+    seedMyExpensesSearch,
     search,
+    getFooterConvertedAmounts,
+    clearFooterConversion,
     rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,
     queueExportSearchItemsToCSV,
@@ -1877,6 +2083,7 @@ export {
     getPayMoneyOnSearchInvoiceParams,
     handlePreventSearchAPI,
     openSearchCardFiltersPage,
+    openSearchCategoryFiltersPage,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
