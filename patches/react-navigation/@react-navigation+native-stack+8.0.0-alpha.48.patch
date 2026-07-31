@@ -1,0 +1,60 @@
+diff --git a/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js b/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js
+index c701cb9..39e4d8f 100644
+--- a/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js
++++ b/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js
+@@ -2,7 +2,7 @@
+ 
+ import { getDefaultHeaderHeight, getHeaderTitle, HeaderBackContext, HeaderHeightContext, HeaderShownContext, useFrameSize } from '@react-navigation/elements';
+ import { ActivityView, SafeAreaProviderCompat } from '@react-navigation/elements/internal';
+-import { NavigationProvider, StackActions, usePreventRemoveContext, useTheme } from '@react-navigation/native';
++import { IsFocusedContext, NavigationProvider, StackActions, usePreventRemoveContext, useTheme } from '@react-navigation/native';
+ import * as React from 'react';
+ import { Animated, Platform, StyleSheet, useAnimatedValue, View } from 'react-native';
+ import { useSafeAreaInsets } from 'react-native-safe-area-context';
+@@ -29,6 +29,7 @@ const SceneView = ({
+   isNextScreenModal,
+   isInactive,
+   isBeforeLast,
++  isCoveredExternally,
+   onWillDisappear,
+   onWillAppear,
+   onAppear,
+@@ -198,7 +199,18 @@ const SceneView = ({
+       }
+     }
+   });
++  // PATCHED (Expensify RN8 PoC): `pauseWhenCovered` (screen option) — pause this screen whenever it
++  // is covered, including the two positions stock hard-codes to 'normal': under a transparent next
++  // screen and before-last. Skips sheet/iPad-modal covers (screen behind stays partially visible) and
++  // inactive (dismissing) screens. ActivityView's native keep-visible + 500ms delay keep the content
++  // painted through transitions. Mirrors the CardStack patch in @react-navigation/stack.
++  const pauseWhenCovered = options.pauseWhenCovered === true;
+   const activityMode =
++  // PATCHED (Expensify RN8 PoC): external cover — this screen is stack-focused but an ancestor
++  // navigator's focus is elsewhere (e.g. root-stack RHP over tab-nested content).
++  pauseWhenCovered && focused && isCoveredExternally ? 'paused' :
++  // PATCHED (Expensify RN8 PoC): in-stack cover.
++  pauseWhenCovered && !focused && !isInactive && !isNextScreenSheet && !(isNextScreenModal && !isModal) && (isNextScreenTransparent || isBeforeLast) ? 'paused' :
+   // Render focused screens normally
+   // Unpause preloaded and retained screens so updates are visible
+   // Unpause previous screen so update isn't delayed for swipe back
+@@ -338,6 +350,11 @@ export function NativeStackView({
+   navigation,
+   descriptors
+ }) {
++  // PATCHED (Expensify RN8 PoC): IsFocusedContext is provided per screen by NavigationProvider and
++  // composes the parent chain — false exactly when any ancestor navigator has focus elsewhere.
++  // undefined (root navigator, no provider above) is treated as focused.
++  const isParentFocused = React.use(IsFocusedContext);
++  const isCoveredExternally = isParentFocused === false;
+   const {
+     setNextDismissedKey
+   } = useDismissedRouteError(state);
+@@ -374,6 +391,7 @@ export function NativeStackView({
+           isNextScreenModal: isNextScreenModal,
+           isInactive: index > state.index,
+           isBeforeLast: index === activeRoutes.length - 2,
++          isCoveredExternally: isCoveredExternally,
+           onWillDisappear: () => {
+             navigation.emit({
+               type: 'transitionStart',

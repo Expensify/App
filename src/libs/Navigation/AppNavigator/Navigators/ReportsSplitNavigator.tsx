@@ -98,7 +98,7 @@ function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<Tab
                     // where stock v8 would keep it hidden-but-live) or externally by an ancestor stack's cover
                     // (RHP over the tab — the send-message perf scenario; needs the CardStack external-cover
                     // patch extension, see patches/react-navigation). Other splits' central screens stay stock.
-                    options={{web: {pauseWhenCovered: true}}}
+                    options={{web: {pauseWhenCovered: true}, native: {pauseWhenCovered: true}}}
                 >
                     {(screenProps: ReportScreenProps) => {
                         const ReportScreen = loadReportScreen();

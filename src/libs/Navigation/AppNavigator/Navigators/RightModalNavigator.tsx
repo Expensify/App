@@ -458,6 +458,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                         ...options,
                                         animation: animationEnabledOnSearchReport ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
                                         web: {...options.web, pauseWhenCovered: true},
+                                        native: {...options.native, pauseWhenCovered: true},
                                     };
                                 }}
                             />
@@ -470,6 +471,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                         ...options,
                                         animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
                                         web: {...options.web, pauseWhenCovered: true},
+                                        native: {...options.native, pauseWhenCovered: true},
                                     };
                                 }}
                             />
@@ -482,6 +484,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                         ...options,
                                         animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
                                         web: {...options.web, pauseWhenCovered: true},
+                                        native: {...options.native, pauseWhenCovered: true},
                                     };
                                 }}
                             />
