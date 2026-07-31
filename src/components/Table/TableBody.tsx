@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useState} from 'react';
@@ -107,6 +107,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const [isListLoaded, setIsListLoaded] = useState(false);
     const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = useState(false);
     const [activeStickyHeaderIndex, setActiveStickyHeaderIndex] = useState(-1);
+    const [pageHeaderHeight, setPageHeaderHeight] = useState<number>();
     const {
         semanticTableID,
         processedData: filteredAndSortedData,
@@ -214,8 +215,13 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         return React.createElement(component);
     };
 
+    const handlePageHeaderLayout = useCallback((event: LayoutChangeEvent) => {
+        const nextPageHeaderHeight = event.nativeEvent.layout.height;
+        setPageHeaderHeight((currentPageHeaderHeight) => (currentPageHeaderHeight === nextPageHeaderHeight ? currentPageHeaderHeight : nextPageHeaderHeight));
+    }, []);
+
     const pageHeaderElement = (
-        <View>
+        <View onLayout={handlePageHeaderLayout}>
             {renderListComponent(ListHeaderComponent)}
             {headerComponent}
             <TableSemanticRowOwner
@@ -227,6 +233,12 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 ownedRowIDs={semanticOwnedRowIDs}
             />
         </View>
+    );
+    const pageHeaderMeasurementElement = (
+        <View
+            aria-hidden
+            style={pageHeaderHeight === undefined ? undefined : {height: pageHeaderHeight}}
+        />
     );
 
     const EmptyResultComponent = (
@@ -322,7 +334,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
         switch (rowKind) {
             case 'pageHeader':
-                return pageHeaderElement;
+                return info.target === 'Measurement' ? pageHeaderMeasurementElement : pageHeaderElement;
             case 'tableHeader': {
                 const isAccessibleTableHeader = info.target === (isTableHeaderSticky ? 'StickyHeader' : 'Cell');
                 const isAccessibilityHidden = isTableSemanticsEnabled && !isAccessibleTableHeader;

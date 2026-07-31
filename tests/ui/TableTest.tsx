@@ -972,7 +972,7 @@ describe('Table', () => {
             );
 
             // The synthetic page header is index 0, the column header is 1, and the first data row is 2.
-            mockFlashListMeasurementTargetIndexes = [1, 2];
+            mockFlashListMeasurementTargetIndexes = [0, 1, 2];
             const {rerender} = render(renderTable());
 
             const table = screen.getByLabelText('Members');
@@ -989,6 +989,30 @@ describe('Table', () => {
             expectNodeBefore(screen.getByTestId('table-header-component'), table);
             expectNodeBefore(table, firstOwnedRow);
             expect(ownedRowIDs).toEqual(visibleRows.map((row) => String(row.props.id)));
+
+            const pageHeaderMeasurement = screen.getByTestId('flash-list-measurement-0');
+            expect(within(pageHeaderMeasurement).queryByTestId('table-header-component')).toBeNull();
+            expect(within(pageHeaderMeasurement).queryByTestId('search-input')).toBeNull();
+            expect(within(pageHeaderMeasurement).queryByRole(CONST.ROLE.TABLE)).toBeNull();
+            const pageHeaderMeasurementPlaceholder = within(pageHeaderMeasurement)
+                .UNSAFE_getAllByProps({'aria-hidden': true})
+                .find((node) => typeof node.type === 'string');
+            if (!pageHeaderMeasurementPlaceholder) {
+                throw new Error('Expected an inert page-header measurement placeholder');
+            }
+
+            let pageHeaderWrapper = table.parent;
+            while (pageHeaderWrapper && typeof pageHeaderWrapper.props.onLayout !== 'function') {
+                pageHeaderWrapper = pageHeaderWrapper.parent;
+            }
+            if (!pageHeaderWrapper) {
+                throw new Error('Expected the real page header to expose its layout handler');
+            }
+            fireEvent(pageHeaderWrapper, 'layout', {nativeEvent: {layout: {height: 120, width: 800, x: 0, y: 0}}});
+            const updatedPageHeaderMeasurementPlaceholder = within(screen.getByTestId('flash-list-measurement-0'))
+                .UNSAFE_getAllByProps({'aria-hidden': true})
+                .find((node) => typeof node.type === 'string');
+            expect(StyleSheet.flatten(updatedPageHeaderMeasurementPlaceholder?.props.style)?.height).toBe(120);
 
             const measurementHeader = getHostTableRowsWithin(screen.getByTestId('flash-list-measurement-1')).at(0);
             const measurementDataRow = getHostTableRowsWithin(screen.getByTestId('flash-list-measurement-2')).at(0);
