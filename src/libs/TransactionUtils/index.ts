@@ -3199,7 +3199,7 @@ function getIsFromGlobalCreate(transaction: OnyxEntry<Transaction> | Partial<Tra
  * selected route has no distance.
  */
 function getSelectedRouteDistance(transaction: OnyxEntry<Transaction>): number | undefined {
-    if (!isMapDistanceRequest(transaction)) {
+    if (!isMapDistanceRequest(transaction) && !isDistanceTypeRequest(transaction)) {
         return undefined;
     }
 

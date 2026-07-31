@@ -4053,6 +4053,12 @@ describe('getSelectedRouteDistance', () => {
         expect(TransactionUtils.getSelectedRouteDistance(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP}))).toBeUndefined();
     });
 
+    it('returns the selected route distance for the legacy distance request type', () => {
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, comment: {selectedRouteKey: 'route1'}, routes});
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1500);
+        expect(TransactionUtils.getSelectedRouteDistance(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, routes}))).toBe(1000);
+    });
+
     it('returns undefined for distance requests that are not map based', () => {
         const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, comment: {selectedRouteKey: 'route1'}, routes});
         expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBeUndefined();
