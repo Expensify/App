@@ -6465,6 +6465,14 @@ function getColumnsToShow({
     }
 
     if (customResult) {
+        if (columns[CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS] && !customResult.includes(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)) {
+            const totalAmountIndex = customResult.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+            if (totalAmountIndex === -1) {
+                customResult.push(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+            } else {
+                customResult.splice(totalAmountIndex, 0, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+            }
+        }
         return customResult;
     }
 

@@ -6876,7 +6876,7 @@ const CONST = {
                 TAG: {column: this.TABLE_COLUMNS.TAG, search: true, reportView: true},
                 VIOLATIONS: {
                     column: this.TABLE_COLUMNS.VIOLATIONS,
-                    search: true,
+                    search: false,
                     reportView: false,
                 },
                 TAG_GL_CODE: {
