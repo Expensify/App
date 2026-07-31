@@ -5560,7 +5560,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             rilletSetup: 'Rillet のセットアップ',
             enterCredentials: 'Rillet の API キーを入力してください',
             howToFindAPIKey:
-                '<strong>API キーの確認方法</strong><ol><li>Rillet にログインします</li><li>［Account］→［Settings］に移動します</li><li>以下の API キーをコピーします</li></ol>',
+                '<strong>API キーの見つけ方</strong><ol><li>Rillet にログインします</li><li>[organization name] -> Organization settings -> API access に移動します</li><li>API キーを作成します</li><li>以下の API キーをコピーします</li></ol>',
             subsidiary: '子会社',
             subsidiarySelectDescription: 'データをインポートしたい Rillet 内の子会社を選択してください。',
             noSubsidiariesFound: '子会社が見つかりません',

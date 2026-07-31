@@ -5605,7 +5605,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             rilletSetup: 'Configuração do Rillet',
             enterCredentials: 'Insira sua chave de API Rillet',
             howToFindAPIKey:
-                '<strong>Encontrando sua chave de API.</strong><ol><li>Faça login no Rillet</li><li>Vá para Conta -> Configurações</li><li>Copie a chave de API abaixo</li></ol>',
+                '<strong>Encontrando sua chave de API.</strong><ol><li>Faça login no Rillet</li><li>Navegue até [organization name] -> Configurações da organização -> Acesso à API</li><li>Crie a chave de API</li><li>Copie a chave de API abaixo</li></ol>',
             subsidiary: 'Subsidiária',
             subsidiarySelectDescription: 'Escolha a subsidiária no Rillet da qual você gostaria de importar dados.',
             noSubsidiariesFound: 'Nenhuma subsidiária encontrada',

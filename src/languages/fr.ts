@@ -5652,7 +5652,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             rilletSetup: 'Configuration Rillet',
             enterCredentials: 'Saisissez votre clé API Rillet',
             howToFindAPIKey:
-                '<strong>Recherche de votre clé API.</strong><ol><li>Connectez-vous à Rillet</li><li>Accédez à Compte -> Paramètres</li><li>Copiez la clé API ci-dessous</li></ol>',
+                '<strong>Recherche de votre clé API.</strong><ol><li>Connectez-vous à Rillet</li><li>Accédez à [nom de l’organisation] -> Paramètres de l’organisation -> Accès à l’API</li><li>Créez une clé API</li><li>Copiez la clé API ci-dessous</li></ol>',
             subsidiary: 'Filiale',
             subsidiarySelectDescription: 'Choisissez la filiale dans Rillet depuis laquelle vous souhaitez importer des données.',
             noSubsidiariesFound: 'Aucune filiale trouvée',
