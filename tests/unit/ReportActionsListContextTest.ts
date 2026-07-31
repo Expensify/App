@@ -122,6 +122,50 @@ describe('computeReportActionsSkeletonState', () => {
         expect(state.shouldShowLoadingSkeleton).toBe(true);
     });
 
+    it('preserves a top-aligned unread initial load before OpenReport enters the queue', () => {
+        const state = computeReportActionsSkeletonState(
+            createReadinessSignals({
+                report: unreadReport,
+                isMissingReportActions: false,
+                reportActionsLength: 1,
+                shouldBeAlignedToTop: true,
+                isReportLoadPending: false,
+                isLoadingInitialReportActions: undefined,
+            }),
+        );
+
+        expect(state.shouldShowLoadingSkeleton).toBe(true);
+    });
+
+    it('releases a top-aligned unread initial load after a terminal OpenReport failure', () => {
+        const state = computeReportActionsSkeletonState(
+            createReadinessSignals({
+                report: unreadReport,
+                isMissingReportActions: false,
+                reportActionsLength: 1,
+                shouldBeAlignedToTop: true,
+                isReportLoadPending: false,
+                isLoadingInitialReportActions: false,
+            }),
+        );
+
+        expect(state.shouldShowLoadingSkeleton).toBe(false);
+    });
+
+    it('keeps a partially cached unread report gated while its OpenReport is pending', () => {
+        const state = computeReportActionsSkeletonState(
+            createReadinessSignals({
+                report: unreadReport,
+                isMissingReportActions: false,
+                reportActionsLength: 2,
+                isReportLoadPending: true,
+                isLoadingInitialReportActions: false,
+            }),
+        );
+
+        expect(state.shouldShowLoadingSkeleton).toBe(true);
+    });
+
     it('preserves the unread initial load when the report load is pending', () => {
         const state = computeReportActionsSkeletonState(
             createReadinessSignals({
