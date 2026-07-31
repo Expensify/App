@@ -319,6 +319,27 @@ function SubmitDetailsPage({
         });
     }, [pendingNavigationReportID, pendingNavigationReport?.reportID]);
 
+    // Fallback: if optimistic report lands under different ID, still reveal to intended destination after timeout.
+    useEffect(() => {
+        if (!pendingNavigationReportID || hasStartedPendingNavigation.current || pendingNavigationReport?.reportID) {
+            return;
+        }
+
+        const timeoutId = setTimeout(() => {
+            if (hasStartedPendingNavigation.current || pendingNavigationReport?.reportID) {
+                return;
+            }
+            hasStartedPendingNavigation.current = true;
+            Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(pendingNavigationReportID), {
+                afterTransition: () => {
+                    setIsConfirming(false);
+                },
+            });
+        }, 500);
+
+        return () => clearTimeout(timeoutId);
+    }, [pendingNavigationReportID, pendingNavigationReport?.reportID]);
+
     // Timeout for pending report arrival — if optimistic write doesn't land within 5s, something's broken anyway.
     // Fallback dismisses spinner and lets user navigate back without indefinite hang.
     useEffect(() => {

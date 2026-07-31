@@ -467,26 +467,38 @@ describe('SubmitDetailsPage', () => {
 
     // Error #10 — if optimistic report lands under wrong ID, submit must navigate to intended destination, not stray.
     it('navigates to intended reportID even if optimistic report lands under different ID', async () => {
-        jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
+        jest.useFakeTimers();
+        try {
+            jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SHARED_REPORT_ID}`, null);
+            });
 
-        const wrongReportID = 'report-wrong-id';
+            const wrongReportID = 'report-wrong-id';
 
-        await renderAndConfirm();
+            await renderAndConfirm();
 
-        // Simulate expense create landing a report under a different ID (e.g., due to conflict or dedupe).
-        const wrongReport = createTestReport();
-        wrongReport.reportID = wrongReportID;
-        jest.mocked(getReportOrDraftReport).mockReturnValue(wrongReport);
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${wrongReportID}`, wrongReport);
-        });
-        await waitForBatchedUpdatesWithAct();
+            // Simulate expense create landing a report under a different ID (e.g., due to conflict or dedupe).
+            const wrongReport = createTestReport();
+            wrongReport.reportID = wrongReportID;
+            jest.mocked(getReportOrDraftReport).mockReturnValue(wrongReport);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${wrongReportID}`, wrongReport);
+            });
+            await waitForBatchedUpdatesWithAct();
 
-        // Should navigate to the ORIGINAL intended report (SHARED_REPORT_ID), not the mismatched one.
-        expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(
-            ROUTES.REPORT_WITH_ID.getRoute(SHARED_REPORT_ID),
-            expect.objectContaining({afterTransition: expect.any(Function)}),
-        );
+            // Advance timers to trigger the fallback reveal timeout
+            jest.advanceTimersByTime(600);
+            await waitForBatchedUpdatesWithAct();
+
+            // Should navigate to the ORIGINAL intended report (SHARED_REPORT_ID), not the mismatched one.
+            expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(
+                ROUTES.REPORT_WITH_ID.getRoute(SHARED_REPORT_ID),
+                expect.objectContaining({afterTransition: expect.any(Function)}),
+            );
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     // Error #11 — narrow layout race: confirm fires before scheduleWhenIdle runs pre-insert setup.
