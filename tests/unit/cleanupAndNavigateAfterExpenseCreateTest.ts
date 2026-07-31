@@ -83,14 +83,9 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             shouldNavigate: false,
         });
 
-        if (__DEV__) {
-            expect(warnSpy).toHaveBeenCalledWith(
-                '[cleanupAndNavigateAfterExpenseCreate] shouldNavigate=false but span is active. Caller must own span lifecycle — miss this and span hangs 60s until dropped.',
-            );
-        } else {
-            expect(warnSpy).not.toHaveBeenCalled();
-        }
-
+        expect(warnSpy).toHaveBeenCalledWith(
+            '[cleanupAndNavigateAfterExpenseCreate] shouldNavigate=false but span is active. Caller must own span lifecycle — miss this and span hangs 60s until dropped.',
+        );
         warnSpy.mockRestore();
     });
 
