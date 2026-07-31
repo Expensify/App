@@ -5616,7 +5616,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             rilletSetup: 'Configurazione Rillet',
             enterCredentials: 'Inserisci la tua chiave API Rillet',
             howToFindAPIKey:
-                '<strong>Come trovare la tua chiave API.</strong><ol><li>Accedi a Rillet</li><li>Vai a [organization name] -> Impostazioni organizzazione -> Accesso API</li><li>Crea chiave API</li><li>Copia la chiave API qui sotto</li></ol>',
+                '<strong>Come trovare la tua chiave API.</strong><ol><li>Accedi a Rillet</li><li>Vai a [nome organizzazione] -> Impostazioni organizzazione -> Accesso API</li><li>Crea una chiave API</li><li>Incolla la chiave API qui sotto</li></ol>',
             subsidiary: 'Filiale',
             subsidiarySelectDescription: 'Scegli la consociata in Rillet da cui vuoi importare i dati.',
             noSubsidiariesFound: 'Nessuna consociata trovata',
