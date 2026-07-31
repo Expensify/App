@@ -41,7 +41,7 @@ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Nav
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {getDistanceInMeters, getRateID, getRequestType, getSelectedRouteKey, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
+import {getDistanceInMeters, getRateID, getRequestType, getSelectedRouteKey, hasManualDistanceOverride, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -496,25 +496,29 @@ function IOURequestStepDistance({
             }
 
             // If nothing was changed, simply go to transaction thread.
-            // We compare addresses only because numbers are rounded vs. the backup. We also send the
-            // update when a manual `customUnit.quantity` override was cleared by `saveWaypoint` (a
-            // waypoint re-save resets the distance to the route value), so the BE re-evaluates and
-            // clears stale distance violations like `increasedDistance` (GH #90105).
+            // We compare addresses only because numbers are rounded vs. the backup.
             const hasRouteChanged = !deepEqual(transactionBackup?.routes, transaction?.routes);
-            const distanceWasReset = transactionBackup?.comment?.customUnit?.quantity != null && transactionBackup.comment.customUnit.quantity !== transaction?.comment?.customUnit?.quantity;
-            // Picking a different map route changes nothing else about the transaction, so it needs its own signal or
-            // the save would be skipped by the check below and the selection silently dropped. Only compared when the
-            // waypoints are untouched: a waypoint edit re-fetches the routes and resets the selection to the primary
-            // one anyway, and the backed up selection refers to routes that no longer exist.
-            const haveAddressesChanged = haveWaypointAddressesChanged(transactionBackup?.comment?.waypoints, waypoints);
+            // Picking a alternate route without waypoints change changes nothing else about the transaction, so it needs its own signal or
+            // the save would be skipped by the check below and the selection silently dropped.
+            const haveWaypointsChanged = haveWaypointAddressesChanged(transactionBackup?.comment?.waypoints, waypoints);
             const selectedRouteKey = getSelectedRouteKey(currentTransaction);
-            const hasSelectedRouteChanged = !haveAddressesChanged && selectedRouteKey !== getSelectedRouteKey(transactionBackup);
-            if (!haveAddressesChanged && !distanceWasReset && !hasSelectedRouteChanged) {
+            // A waypoint edit re-fetches the routes and resets the selection to the primary one, so the backed up
+            // selection refers to routes that no longer exist and can't be compared against. In that case anything
+            // other than the primary route is a fresh pick the user made on the re-fetched routes.
+            const shouldUpdateSelectedRoute = haveWaypointsChanged ? selectedRouteKey !== CONST.TRANSACTION.DEFAULT_ROUTE_KEY : selectedRouteKey !== getSelectedRouteKey(transactionBackup);
+            // Saving from the Map tab means the distance comes from the map route, so a manual `customUnit.quantity`
+            // override on the saved expense is dropped even when nothing else changed. This reads the backup rather
+            // than the current transaction because `saveWaypoint` clears the override locally while the BE still has
+            // it, so re-saving a waypoint has to reach the BE too for it to re-evaluate and clear stale distance
+            // violations like `increasedDistance` (GH #90105). No `distance` is ever sent from this tab — the BE
+            // overwrites it with the `selectedRouteDistance` that `selectedRouteKey` carries.
+            const selectedRouteDistanceInMeters = currentTransaction?.routes?.[selectedRouteKey]?.distance;
+            const shouldDropManualDistance = !!selectedRouteDistanceInMeters && hasManualDistanceOverride(transactionBackup);
+            if (!haveWaypointsChanged && !shouldUpdateSelectedRoute && !shouldDropManualDistance) {
                 transactionWasSaved.current = true;
                 navigateBackAfterSave();
                 return;
             }
-            const routeDistanceInUnit = currentDistanceInMeters > 0 ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(currentDistanceInMeters, distanceUnit)) : undefined;
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
                     transaction,
@@ -524,8 +528,9 @@ function IOURequestStepDistance({
                     waypoints,
                     recentWaypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
-                    ...(distanceWasReset && routeDistanceInUnit !== undefined ? {distance: routeDistanceInUnit} : {}),
-                    ...(hasSelectedRouteChanged ? {selectedRouteKey} : {}),
+                    // Sent when dropping an override too: it is what carries `selectedRouteDistance` to the BE, which is
+                    // the distance the expense is rewritten to.
+                    ...(shouldUpdateSelectedRoute || shouldDropManualDistance ? {selectedRouteKey} : {}),
                     policy,
                     policyTagList: policyTags,
                     policyCategories,
@@ -569,8 +574,6 @@ function IOURequestStepDistance({
         transaction,
         report,
         currentTransaction,
-        currentDistanceInMeters,
-        distanceUnit,
         policy,
         parentReport,
         iouReportOwnerLogin,
@@ -634,6 +637,7 @@ function IOURequestStepDistance({
             return;
         }
 
+        const selectedRouteKey = getSelectedRouteKey(currentTransaction);
         const hasRouteChanged = haveWaypointsChanged && !deepEqual(transactionBackup?.routes, transaction?.routes);
         updateMoneyRequestDistance({
             transaction,
@@ -643,6 +647,8 @@ function IOURequestStepDistance({
             waypoints,
             distance: distanceAsFloat,
             ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
+            // We need to pass selectedRouteKey to ensure that updating manual distance won't cause alternate route to be overriden with the primary one
+            ...(wasOriginallyMapDistance ? {selectedRouteKey} : {}),
             transactionBackup,
             policy,
             policyTagList: policyTags,
@@ -664,39 +670,39 @@ function IOURequestStepDistance({
         removeBackupTransaction(transaction?.transactionID);
         navigateBackAfterSave();
     }, [
-        translate,
+        transactionBackup,
+        duplicateWaypointsError,
+        atLeastTwoDifferentWaypointsError,
+        hasRouteError,
         distanceRate,
-        transactionID,
-        action,
-        iouType,
-        distanceUnit,
         isEditingSplit,
         transaction,
-        currentTransaction?.comment?.customUnit?.distanceUnit,
-        splitDraftTransaction,
-        policy,
-        navigateBackAfterSave,
+        currentTransaction,
         currentDistance,
+        distanceUnit,
         waypoints,
-        transactionBackup,
         report,
         parentReport,
         iouReportOwnerLogin,
+        policy,
         policyTags,
         policyCategories,
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
-        recentWaypoints,
-        duplicateWaypointsError,
-        atLeastTwoDifferentWaypointsError,
-        hasRouteError,
         delegateAccountID,
+        recentWaypoints,
         distanceOriginalPolicy,
         reportPolicyTags,
         isTrackIntentUser,
         personalPolicy?.outputCurrency,
+        navigateBackAfterSave,
+        translate,
+        transactionID,
+        action,
+        iouType,
+        splitDraftTransaction,
     ]);
 
     const renderItem = useCallback(

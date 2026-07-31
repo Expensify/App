@@ -487,6 +487,46 @@ describe('TransactionUtils', () => {
             });
         });
 
+        it('leaves the existing routes intact when only the distance changes', () => {
+            // A manual distance edit used to null out `routes.route0.distance`. That also wipes the alternate routes
+            // the Map tab and the footer read from, so the routes are left untouched now and the manually typed value
+            // lives only in `customUnit.quantity`.
+            const routes = {
+                route0: {
+                    distance: 16093.44,
+                    geometry: {
+                        coordinates: [[0, 0] as [number, number], [1, 1] as [number, number]],
+                    },
+                },
+                route1: {
+                    distance: 19312.13,
+                    geometry: {
+                        coordinates: [[0, 0] as [number, number], [2, 2] as [number, number]],
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                routes,
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: undefined,
+                transactionChanges: {distance: 20},
+                personalPolicyOutputCurrency: undefined,
+            });
+
+            expect(updatedTransaction.routes).toEqual(routes);
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
+        });
+
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
             // A P2P distance expense (FAKE_P2P_ID) has no policy rate, so the mileage currency comes from the
             // resolved personal-policy currency that getUpdatedTransaction forwards to getRate. getRateForP2P only
@@ -4058,6 +4098,45 @@ describe('getSelectedRouteKey', () => {
             'route0',
         );
         expect(TransactionUtils.getSelectedRouteKey(undefined)).toBe('route0');
+    });
+});
+
+describe('hasManualDistanceOverride', () => {
+    // 1 mi = 1609.344 m, so these are exactly 1 mi and 2 mi.
+    const routes = {
+        route0: {distance: 1609.344, geometry: {type: 'LineString' as const, coordinates: [[0, 0] as [number, number]]}},
+        route1: {distance: 3218.688, geometry: {type: 'LineString' as const, coordinates: [[1, 1] as [number, number]]}},
+    };
+    const withQuantity = (quantity: number | null, comment: Transaction['comment'] = {}) =>
+        generateTransaction({
+            comment: {...comment, customUnit: {...comment?.customUnit, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity}},
+            routes,
+        });
+
+    it('detects a quantity that does not match the selected route', () => {
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(50))).toBe(true);
+    });
+
+    it('does not flag a quantity that matches the primary route', () => {
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(1))).toBe(false);
+    });
+
+    it('compares against the selected alternate route, not the primary one', () => {
+        // 2 mi is route1's own distance — an alternate route selection, not an override.
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(2, {selectedRouteKey: 'route1'}))).toBe(false);
+        // 1 mi matches route0, but route1 is the selected route, so it is an override of it.
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(1, {selectedRouteKey: 'route1'}))).toBe(true);
+    });
+
+    it('recovers the selection from routeDistanceMeters when the expense has no local pick', () => {
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(2, {customUnit: {routeDistanceMeters: 3218.688}}))).toBe(false);
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(50, {customUnit: {routeDistanceMeters: 3218.688}}))).toBe(true);
+    });
+
+    it('returns false when there is nothing to compare', () => {
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(null))).toBe(false);
+        expect(TransactionUtils.hasManualDistanceOverride(generateTransaction({comment: {customUnit: {quantity: 50}}}))).toBe(false);
+        expect(TransactionUtils.hasManualDistanceOverride(undefined)).toBe(false);
     });
 });
 

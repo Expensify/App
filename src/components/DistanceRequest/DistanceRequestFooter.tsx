@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setSelectedRoute} from '@libs/actions/Transaction';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getDistanceInMeters, getSelectedRouteKey, getWaypointIndex, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
+import {getSelectedRouteKey, getWaypointIndex, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -135,7 +135,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                     waypoints={waypointMarkers}
                     styleURL={CONST.MAPBOX.STYLE_URL}
                     overlayStyle={styles.mapEditView}
-                    distanceInMeters={primaryRoute?.distance ?? getDistanceInMeters(transaction, undefined)}
+                    distanceInMeters={primaryRoute?.distance !== null ? primaryRoute?.distance : undefined}
                     unit={unit}
                 />
             </View>

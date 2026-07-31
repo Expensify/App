@@ -846,7 +846,6 @@ function getUpdatedTransaction({
         const previousDistanceInMeters = getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit);
 
         lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
-        lodashSet(updatedTransaction, 'routes.route0.distance', null);
         shouldStopSmartscan = true;
 
         const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
@@ -883,8 +882,8 @@ function getUpdatedTransaction({
     }
 
     // The user picked a different map route without touching the waypoints, so the routes are unchanged and only the
-    // distance the expense reads from them changes. Unlike the `distance` branch above this keeps `routes` intact,
-    // since this is a route distance, not a manual override.
+    // distance the expense reads from them changes. Like the `distance` branch above this keeps `routes` intact, so
+    // the alternate routes the user can still switch between survive the edit.
     // A manually typed distance always wins over the route distance, so skip this when both are being changed.
     if (Object.hasOwn(transactionChanges, 'selectedRouteKey') && typeof transactionChanges.selectedRouteKey === 'string' && !Object.hasOwn(transactionChanges, 'distance')) {
         const selectedRouteDistanceInMeters = transaction?.routes?.[transactionChanges.selectedRouteKey]?.distance;
@@ -3208,6 +3207,23 @@ function getSelectedRouteDistance(transaction: OnyxEntry<Transaction>): number |
     return transaction?.routes?.[selectedRouteKey]?.distance ?? undefined;
 }
 
+/**
+ * Whether the transaction's displayed distance is a manually typed override rather than the distance of the map route
+ * it points at. `comment.customUnit.quantity` holds both cases — a value the user typed on the Manual tab and, after
+ * picking an alternate route, that route's distance — so the comparison has to be against the *selected* route and not
+ * the primary one, or every alternate route selection would look like an override.
+ */
+function hasManualDistanceOverride(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    const quantity = transaction?.comment?.customUnit?.quantity;
+    const selectedRouteDistanceInMeters = transaction?.routes?.[getSelectedRouteKey(transaction)]?.distance;
+    if (quantity == null || !selectedRouteDistanceInMeters) {
+        return false;
+    }
+
+    const unit = transaction?.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    return quantity !== roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(selectedRouteDistanceInMeters, unit));
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -3236,6 +3252,7 @@ export {
     getDistanceInMeters,
     getSelectedRouteDistance,
     getSelectedRouteKey,
+    hasManualDistanceOverride,
     getCardID,
     getOriginalCurrency,
     getOriginalAmount,
