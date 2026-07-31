@@ -66,6 +66,7 @@ type IntegrationsMessageParams = {
         code?: number;
         messages?: string[];
         title?: string;
+        reconciled?: boolean;
         link?: {
             url: string;
             text: string;
@@ -85,6 +86,14 @@ type UnshareParams = {to: string};
 
 type ConnectionNameParams = {
     connectionName: AllConnectionName;
+};
+
+type ConnectionDisplayNameParams = {
+    connectionName: string;
+};
+
+type DefaultVendorHelperTextParams = {
+    isSet: boolean;
 };
 
 type ExportAgainModalDescriptionParams = {
@@ -175,6 +184,8 @@ export type {
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
     ConnectionNameParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ExportAgainModalDescriptionParams,
     UpdateRoleParams,
     OptionalParam,

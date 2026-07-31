@@ -17,6 +17,10 @@ import {parsePhoneNumber} from '@libs/PhoneNumber';
 
 import Navigation from '@navigation/Navigation';
 
+import Address from '@pages/AddPersonalBankAccountPage/substeps/AddressStep';
+import LegalName from '@pages/AddPersonalBankAccountPage/substeps/LegalNameStep';
+import PhoneNumber from '@pages/AddPersonalBankAccountPage/substeps/PhoneNumberStep';
+
 import {clearPersonalBankAccount, clearPersonalBankAccountErrors, updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
 
@@ -28,10 +32,6 @@ import type {BankAccountList} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect} from 'react';
-
-import Address from './InternationalDepositAccount/PersonalInfo/substeps/AddressStep';
-import LegalName from './InternationalDepositAccount/PersonalInfo/substeps/LegalNameStep';
-import PhoneNumber from './InternationalDepositAccount/PersonalInfo/substeps/PhoneNumberStep';
 
 const PAGE_NAME = CONST.UPDATE_PERSONAL_BANK_ACCOUNT.PAGE_NAME;
 
