@@ -442,7 +442,7 @@ jobs:
     runs-on: blacksmith-12vcpu-macos-latest
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
     steps:
       - name: Checkout
         # Upstream checkout on macOS - Blacksmith's git-mirror cache can't work there (see workflows/README.md)
@@ -523,7 +523,7 @@ jobs:
     runs-on: blacksmith-12vcpu-macos-latest
     if: ${{ always() && !cancelled() && needs.prep.outputs.DEPLOY_ENV == 'production' && needs.iosBuild.result != 'failure' && needs.iosUploadTestflight.result != 'failure' }}
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
     steps:
       - name: Checkout
         # Upstream checkout on macOS - Blacksmith's git-mirror cache can't work there (see workflows/README.md)
