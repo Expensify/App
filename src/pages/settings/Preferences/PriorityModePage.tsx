@@ -31,7 +31,6 @@ function PriorityModePage() {
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const styles = useThemeStyles();
 
-    // Leave the draft unset until the user picks a row, so a late-hydrating Onyx value can't leave a stale draft that overwrites the saved mode.
     const [selectedPriorityMode, setSelectedPriorityMode] = useState<ValueOf<typeof CONST.PRIORITY_MODE>>();
     const currentPriorityMode = selectedPriorityMode ?? priorityMode;
 

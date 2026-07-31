@@ -37,7 +37,6 @@ function ThemePage() {
 
     const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;
 
-    // Leave the drafts unset until the user edits them, so a late-hydrating Onyx theme can't leave a stale draft that overwrites the saved theme.
     const [selectedBaseTheme, setSelectedBaseTheme] = useState<ValueOf<typeof CONST.THEME>>();
     const [isHighContrast, setIsHighContrast] = useState<boolean>();
     const currentBaseTheme = selectedBaseTheme ?? getBaseTheme(currentTheme);

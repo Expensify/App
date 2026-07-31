@@ -48,7 +48,6 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     const [timezoneInputText, setTimezoneInputText] = useState('');
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
 
-    // Leave the draft unset until the user picks a row, so a late-hydrating timezone can't leave a stale draft that overwrites the saved timezone.
     const [selectedTimezone, setSelectedTimezone] = useState<SelectedTimezone>();
     const currentSelectedTimezone = selectedTimezone ?? timezone.selected;
 
