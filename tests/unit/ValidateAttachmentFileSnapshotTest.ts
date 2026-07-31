@@ -11,8 +11,9 @@ import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
 jest.mock('@src/libs/snapshotPickedFile', () => jest.requireActual<{default: (file: File, name: string) => Promise<File>}>('@src/libs/snapshotPickedFile/index.ts'));
 
 // The web snapshot only copies bytes on desktop browsers; make the browser type controllable per test.
+// Force the web implementation here too, so the user-agent based checks under test are the real ones.
 jest.mock('@src/libs/Browser', () => ({
-    ...jest.requireActual<Record<string, unknown>>('@src/libs/Browser'),
+    ...jest.requireActual<Record<string, unknown>>('@src/libs/Browser/index.web.ts'),
     isMobile: jest.fn(() => false),
 }));
 

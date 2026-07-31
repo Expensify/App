@@ -2,7 +2,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import {isMobile} from '@libs/Browser';
+import {isIPadInDesktopMode, isMobile} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import Log from '@libs/Log';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
@@ -37,6 +37,7 @@ import useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLeng
 import useEditMessage from './useEditMessage';
 
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+const isMobileBrowser = isMobile() || isIPadInDesktopMode();
 
 type ComposerProviderProps = {
     reportID: string;
@@ -52,7 +53,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
 
-    const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || (!!draftComment && !isMobile());
+    const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || (!!draftComment && !isMobileBrowser);
     const initialFocused = shouldFocusComposerOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
