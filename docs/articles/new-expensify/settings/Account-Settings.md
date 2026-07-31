@@ -67,8 +67,8 @@ To change your language:
 1. In the navigation tabs, select **Account > Preferences**.
 2. Tap or click on **Language**.
 3. Choose your preferred language from the list.
-4. The checkmark will confirm the selected language.
-5. Your account will update automatically to reflect the new language setting.
+4. The checkmark will move to confirm your selection.
+5. Click or tap **Save** to apply your new language setting.
 
 **Note:** Language changes affect your personal account view only. Workspace members must update their own preferences individually.
 
