@@ -36,6 +36,7 @@ jest.mock('@components/QRShare/QRShareWithDownload', () => jest.fn(() => null));
 jest.mock('@components/ContextMenuItem', () => jest.fn(() => null));
 jest.mock('@components/MenuItem', () => jest.fn(() => null));
 jest.mock('@components/MenuItem/presets/MenuItemStandard', () => jest.fn(() => null));
+
 jest.mock('@libs/Avatars/AvatarLookup', () => ({
     ...jest.requireActual<typeof AvatarLookup>('@libs/Avatars/AvatarLookup'),
     findLocalAvatarForURL: jest.fn(),
