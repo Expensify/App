@@ -413,12 +413,6 @@ function isCancelPaymentAction(
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isPayer = isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false);
-
-    if (!isAdmin || !isPayer) {
-        return false;
-    }
-
     // Get all report actions for this report and filter for pay actions
     // Pay actions are at the report level, not per transaction
     const allReportActions = getAllReportActions(report.reportID);
@@ -433,6 +427,12 @@ function isCancelPaymentAction(
             const originalMessage = getOriginalMessage(action);
             return originalMessage && 'paymentType' in originalMessage && originalMessage.paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
         });
+
+    const isPayer = isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, !isPaidViaBankAccount);
+
+    if (!isAdmin || !isPayer) {
+        return false;
+    }
 
     // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
     if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED && !isPaidViaBankAccount) {
