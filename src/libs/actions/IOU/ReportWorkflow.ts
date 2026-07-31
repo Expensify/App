@@ -1418,9 +1418,7 @@ function submitReport({
     const optimisticNextStepApproverID = !isSubmitAndClosePolicy && managerID !== undefined && isValidAccountRoute(managerID) ? managerID : undefined;
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
 
-    // Held expenses split onto a new Draft report on submit (mirroring the backend), so only the unheld amount is
-    // actually submitted. Hold maintains unheldTotal optimistically in the same sign convention as total, so use it
-    // for the submitted action amount when there are held expenses.
+    // unheldTotal already uses the same sign convention as total, so it can be used directly here without conversion.
     const reportTransactions = getReportTransactions(expenseReport.reportID);
     const heldTransactions = reportTransactions.filter((transaction) => isOnHold(transaction));
     const hasHeldExpenses = heldTransactions.length > 0;
@@ -1688,16 +1686,15 @@ function submitReport({
         });
     }
 
-    // Mirror the backend held-transaction split so offline/optimistic state matches: held expenses move to a new
-    // report (Draft on non-instant policies) while only the unheld expenses stay on the submitted report. Reuses the
-    // same helper and param convention as ApproveMoneyRequest. Holds split on every submit path; RTER-7-day is
-    // automated-only (server-side) and pending/scanning already split server-side, so neither needs an equivalent here.
+    // Held expenses left on the submitted report would misrepresent its optimistic total until the next sync, so they
+    // need somewhere else to live in the meantime. RTER-7-day and pending/scanning submissions never reach this
+    // function, so they don't need equivalent handling here.
     let optimisticHoldReportID: string | undefined;
     let optimisticHoldActionID: string | undefined;
     let optimisticHoldReportExpenseActionIDs: string | undefined;
 
-    // Only split when at least one unheld expense remains — an all-held report can't be submitted (the backend throws
-    // 401 and the submit action is already gated), so there's nothing to submit.
+    // An all-held report is already blocked from being submitted, so this only has to handle the case where at
+    // least one unheld expense remains.
     if (hasHeldExpenses && heldTransactions.length < reportTransactions.length && !isSubmitAndClosePolicy && !isDEWPolicy && parentReport?.reportID) {
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
             chatReport: parentReport,
@@ -1705,10 +1702,9 @@ function submitReport({
             recipient: {accountID: expenseReport.ownerAccountID},
             policy,
             createdTimestamp: getReportOriginalCreationTimestamp(expenseReport),
-            // Not the approval flow: don't copy workflow actions or add the "unapproved transactions" message.
+            // False skips copying workflow actions and the unapproved-transactions message, which only apply on approve.
             isApprovalFlow: false,
-            // Only ASAP_SUBMIT changes the new report's initial state, and getExpenseReportStateAndStatus mirrors the
-            // backend's getInitialReportStateAndStatus, so the split report gets the correct state with no override.
+            // Needed only so ASAP_SUBMIT can affect the new report's initial state; no other override is required here.
             betas: isASAPSubmitBetaEnabled ? [CONST.BETAS.ASAP_SUBMIT] : [],
         });
 
