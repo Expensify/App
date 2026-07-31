@@ -114,7 +114,8 @@ function handleExpiredSession<TKey extends OnyxKey>(
             if (!wasSuccessful) {
                 if (isFromSequentialQueue) {
                     // A resolved 407 reads as success to SequentialQueue, which deletes the persisted write.
-                    // reauthenticate() returns false even when the session is still alive, so retry instead.
+                    // Throw on every give-up: the latched short-lived-token abort and the delegate restore return
+                    // false with the session alive. One that did sign out costs nothing, its Onyx.clear empties the queue first.
                     throw new Error('Failed to reauthenticate');
                 }
 

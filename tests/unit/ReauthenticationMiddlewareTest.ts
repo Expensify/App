@@ -147,6 +147,45 @@ describe('Reauthentication middleware', () => {
         ).rejects.toThrow('Failed to reauthenticate');
     });
 
+    test('keeps the failure updates of a queued write when reauthentication gives up and signs out', () => {
+        // Same mock as the abort case on purpose: the middleware cannot tell the two apart.
+        jest.mocked(reauthenticate).mockResolvedValueOnce(false);
+
+        const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+            command: 'TestCommand',
+            data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE},
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.NETWORK,
+                    value: {shouldFailAllRequests: true},
+                },
+            ],
+            finallyData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.NETWORK,
+                    value: {shouldForceOffline: true},
+                },
+            ],
+        };
+
+        return expect(
+            Reauthentication(
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                }),
+                request,
+                true,
+            ),
+        )
+            .rejects.toThrow('Failed to reauthenticate')
+            .then(() => {
+                expect(request.failureData).toBeDefined();
+                expect(request.finallyData).toBeDefined();
+            });
+    });
+
     test('resolves Authenticate HTTP failures as auth responses instead of retryable errors', () => {
         const resolve = jest.fn();
         const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
