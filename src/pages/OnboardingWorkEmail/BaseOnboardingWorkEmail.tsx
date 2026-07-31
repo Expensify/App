@@ -15,7 +15,6 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,7 +32,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import Log from '@src/libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -74,7 +72,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const ICON_SIZE = 48;
     const operatingSystem = getOperatingSystem();
     const isFocused = useIsFocused();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORK_EMAIL);
 
     useEffect(() => {
         setOnboardingErrorMessage(null);
@@ -205,8 +202,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
-                stepCounter={onboardingStep?.stepCounter}
-                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 shouldShowBackButton={false}
                 shouldDisplayHelpButton={false}
             />
