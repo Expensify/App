@@ -1711,6 +1711,55 @@ describe('ReportNameUtils', () => {
             // Then it should use the "spent" wording with the owner's display name
             expect(reportName).toBe('Ragnar Lothbrok spent $25.00');
         });
+
+        it('resolves the expense report workspace name through the provided translate function', () => {
+            // Given an OPEN expense report whose policy cannot resolve a name (empty policy name)
+            const expenseReport: Report = {
+                ...createExpenseReport(203),
+                reportID: '203',
+                reportName: '',
+                policyName: '',
+                oldPolicyName: '',
+                policyID: '203',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 0,
+                currency: 'USD',
+            };
+
+            // And a policy with a non-empty fieldList (so we skip the "New Report" shortcut) but no resolvable name
+            const policyWithoutName: Policy = {
+                ...createRandomPolicy(203, CONST.POLICY.TYPE.TEAM),
+                id: '203',
+                name: '',
+                fieldList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    text_title: {
+                        defaultValue: '{report:type} {report:startdate}',
+                        deletable: false,
+                        externalIDs: [],
+                        fieldID: 'text_title',
+                        isTax: false,
+                        name: 'title',
+                        orderWeight: 0,
+                        type: 'formula',
+                        target: 'expense',
+                        values: [],
+                        disabledOptions: [],
+                        keys: [],
+                    },
+                },
+            };
+
+            // A translate that tags the "unavailable" workspace copy so we can prove getPolicyName used the provided translate
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithoutName, linkedTransactions: [], translate: translateWithUnavailableMarker});
+
+            expect(reportName).toContain('UnavailableWorkspaceMarker');
+        });
     });
 
     describe('computeReportName - Transaction thread with linkedTransaction', () => {

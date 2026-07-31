@@ -10,7 +10,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import type {Card, Policy, Report, Transaction} from '../../src/types/onyx';
+import type {Card, Policy, Report, ReviewDuplicates, Transaction} from '../../src/types/onyx';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
@@ -3325,6 +3325,155 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('buildMergeDuplicatesParams', () => {
+        const MERGE_KEPT_OPEN_REPORT_ID = 'mergeKeptOpenReport';
+        const MERGE_SUBMITTED_REPORT_ID = 'mergeSubmittedReport';
+        const MERGE_APPROVED_REPORT_ID = 'mergeApprovedReport';
+        const MERGE_CLOSED_REPORT_ID = 'mergeClosedReport';
+        const MERGE_REIMBURSED_REPORT_ID = 'mergeReimbursedReport';
+
+        beforeAll(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_KEPT_OPEN_REPORT_ID}`, {
+                reportID: MERGE_KEPT_OPEN_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_SUBMITTED_REPORT_ID}`, {
+                reportID: MERGE_SUBMITTED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_APPROVED_REPORT_ID}`, {
+                reportID: MERGE_APPROVED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            });
+            // Submit & Close workspaces leave the report approved but closed, the state from the reported bug.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_CLOSED_REPORT_ID}`, {
+                reportID: MERGE_CLOSED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_REIMBURSED_REPORT_ID}`, {
+                reportID: MERGE_REIMBURSED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        function buildReviewDuplicates(keptTransactionID: string, duplicateIDs: string[]): ReviewDuplicates {
+            return {
+                transactionID: keptTransactionID,
+                duplicates: duplicateIDs,
+                reportID: MERGE_KEPT_OPEN_REPORT_ID,
+                merchant: '',
+                category: '',
+                tag: '',
+                taxCode: '',
+                taxAmount: 0,
+                description: '',
+                comment: {},
+                reimbursable: true,
+                billable: false,
+            };
+        }
+
+        it('keeps only duplicates whose report is open or awaiting first approval', () => {
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const openDuplicate = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const submittedDuplicate = generateTransaction({reportID: MERGE_SUBMITTED_REPORT_ID});
+            const approvedDuplicate = generateTransaction({reportID: MERGE_APPROVED_REPORT_ID});
+            const closedDuplicate = generateTransaction({reportID: MERGE_CLOSED_REPORT_ID});
+            const reimbursedDuplicate = generateTransaction({reportID: MERGE_REIMBURSED_REPORT_ID});
+            const duplicates = [openDuplicate, submittedDuplicate, approvedDuplicate, closedDuplicate, reimbursedDuplicate];
+
+            const params = TransactionUtils.buildMergeDuplicatesParams(
+                buildReviewDuplicates(
+                    keptTransaction.transactionID,
+                    duplicates.map((transaction) => transaction.transactionID),
+                ),
+                duplicates,
+                keptTransaction,
+            );
+
+            expect(params.transactionIDList).toEqual([openDuplicate.transactionID, submittedDuplicate.transactionID]);
+        });
+
+        it('excludes a duplicate on a Submit & Close (approved and closed) report', () => {
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const closedDuplicate = generateTransaction({reportID: MERGE_CLOSED_REPORT_ID});
+
+            const params = TransactionUtils.buildMergeDuplicatesParams(
+                buildReviewDuplicates(keptTransaction.transactionID, [closedDuplicate.transactionID]),
+                [closedDuplicate],
+                keptTransaction,
+            );
+
+            expect(params.transactionIDList).toEqual([]);
+        });
+
+        it('returns an empty transactionIDList when every duplicate is non-editable', () => {
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const approvedDuplicate = generateTransaction({reportID: MERGE_APPROVED_REPORT_ID});
+            const reimbursedDuplicate = generateTransaction({reportID: MERGE_REIMBURSED_REPORT_ID});
+            const duplicates = [approvedDuplicate, reimbursedDuplicate];
+
+            const params = TransactionUtils.buildMergeDuplicatesParams(
+                buildReviewDuplicates(
+                    keptTransaction.transactionID,
+                    duplicates.map((transaction) => transaction.transactionID),
+                ),
+                duplicates,
+                keptTransaction,
+            );
+
+            expect(params.transactionIDList).toEqual([]);
+        });
+    });
+
+    describe('canMergeDuplicates', () => {
+        const DUPLICATE_IDS = ['1', '2'];
+
+        function buildReportWithState(stateNum: Report['stateNum'], statusNum: Report['statusNum']): Report {
+            return {...createRandomReport(1), stateNum, statusNum};
+        }
+
+        it('allows merging when the kept report is open and there are duplicates', () => {
+            const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
+            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(true);
+        });
+
+        it('allows merging when the kept report is awaiting first approval', () => {
+            const report = buildReportWithState(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED);
+            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(true);
+        });
+
+        it('allows merging when the kept expense is unreported (no resolvable report)', () => {
+            expect(TransactionUtils.canMergeDuplicates(undefined, DUPLICATE_IDS)).toBe(true);
+        });
+
+        it('blocks merging when the kept report is approved and closed (Submit & Close)', () => {
+            const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED);
+            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(false);
+        });
+
+        it('blocks merging when the kept report is reimbursed', () => {
+            const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED);
+            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(false);
+        });
+
+        it('blocks merging when there are no duplicates left to merge', () => {
+            const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
+            expect(TransactionUtils.canMergeDuplicates(report, [])).toBe(false);
+        });
+    });
+
     describe('buildNewTransactionAfterReviewingDuplicates', () => {
         it('preserves the kept transaction tax amount when the selected tax code matches the existing tax code', () => {
             const duplicatedTransaction = generateTransaction({
@@ -3861,6 +4010,27 @@ describe('TransactionUtils', () => {
                 comment: {waypoints: {}},
             });
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
+        });
+    });
+
+    describe('isSplitContainerTransaction', () => {
+        it('returns true when the transaction lives in SPLIT_REPORT_ID (hidden container)', () => {
+            const transaction = generateTransaction({reportID: CONST.REPORT.SPLIT_REPORT_ID});
+            expect(TransactionUtils.isSplitContainerTransaction(transaction)).toBe(true);
+        });
+
+        it('returns false for a transaction in a normal report (e.g. restored original)', () => {
+            const transaction = generateTransaction({reportID: '123456'});
+            expect(TransactionUtils.isSplitContainerTransaction(transaction)).toBe(false);
+        });
+
+        it('returns false for an unreported transaction', () => {
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+            expect(TransactionUtils.isSplitContainerTransaction(transaction)).toBe(false);
+        });
+
+        it('returns false for undefined', () => {
+            expect(TransactionUtils.isSplitContainerTransaction(undefined)).toBe(false);
         });
     });
 });

@@ -5,6 +5,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type {AnyRequest} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -141,6 +142,29 @@ function useIsAppLoadPending(): boolean {
 }
 
 /**
+ * Whether the initial app skeleton should be visible and why.
+ *
+ * HAS_LOADED_APP prevents the skeleton from returning after the first OpenApp completes. The legacy
+ * IS_LOADING_APP flag only recovers interrupted cold starts after HAS_LOADED_APP hydrates false.
+ */
+function useAppLoadSkeletonState({isLoadingReportData = false}: {isLoadingReportData?: boolean} = {}) {
+    const isAppLoadPending = useIsAppLoadPending();
+    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [hasLoadedApp = false, hasLoadedAppMetadata] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const isLoadingHasLoadedApp = isLoadingOnyxValue(hasLoadedAppMetadata);
+    const isColdRestartRecoveryFallback = !hasLoadedApp && isLoadingApp;
+    const shouldShowSkeleton = (!hasLoadedApp && (isAppLoadPending || isLoadingHasLoadedApp || isLoadingReportData)) || isColdRestartRecoveryFallback;
+
+    return {
+        shouldShowSkeleton,
+        isAppLoadPending,
+        hasLoadedApp,
+        isLoadingHasLoadedApp,
+        isColdRestartRecoveryFallback,
+    };
+}
+
+/**
  * Whether an OpenReport request or its deferred Onyx updates are pending for this report.
  *
  * `undefined` returns false, so callers can pass an optional reportID without a fallback value.
@@ -187,4 +211,4 @@ function useLoadingBarVisibility(): boolean {
     return !isOffline && hasPendingLoadingBarRequest;
 }
 
-export {useIsAppLoadPending, useIsReportLoadPending, useIsLoadingBarPending, useLoadingBarVisibility};
+export {useIsAppLoadPending, useAppLoadSkeletonState, useIsReportLoadPending, useIsLoadingBarPending, useLoadingBarVisibility};
