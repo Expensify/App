@@ -579,7 +579,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: 'Bijlagefout',
         errorWhileSelectingAttachment: 'Er is een fout opgetreden bij het selecteren van een bijlage. Probeer het opnieuw.',
         errorWhileSelectingCorruptedAttachment: 'Er is een fout opgetreden bij het selecteren van een beschadigde bijlage. Probeer een ander bestand.',
-        errorWhileConvertingHeic: 'We konden deze afbeelding niet verwerken. Probeer het opnieuw of maak de foto opnieuw.',
+        errorWhileConvertingHeic: 'We konden deze afbeelding niet verwerken. Probeer het opnieuw of upload de foto in een ander formaat.',
         takePhoto: 'Maak foto',
         chooseFromGallery: 'Kies uit galerij',
         chooseDocument: 'Bestand kiezen',
