@@ -157,11 +157,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     /** The selfDM report ID for split transactions */
     selfDMReportID?: string;
 
-    /**
-     * Whether to skip registering this transaction on the `pendingNewTransactionIDs` highlight rail. Set by flows that
-     * never open the expense report (e.g. saving a split from the Search/Spend page), where the flags would never be
-     * consumed or cleared - see the guard in buildOnyxDataForMoneyRequest.
-     */
+    /** Keeps this transaction off the `pendingNewTransactionIDs` highlight rail, for flows that never open the expense report */
     shouldSkipReportHighlightRail?: boolean;
 };
 
@@ -684,11 +680,9 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    // Flag for the highlight rail only when the add makes the report multi-tx (its table fresh-mounts with the tx present, so the diff misses it); never the first tx (0→1), which would leave a stale flag; no successData (races the mount).
-    // Splits saved from the Search/Spend page are excluded: that flow navigates back to Search and never opens the expense
-    // report, so nothing mounts MoneyRequestReportActionsList to consume and clear the rail. The flags would sit in
-    // REPORT_METADATA until the user later opened that report from the Inbox, highlighting rows that are no longer new.
-    // The Search page highlights its own rows via TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE instead.
+    // Only flag when the add makes the report multi-tx: on 0→1 the table fresh-mounts with the tx already present, so
+    // nothing consumes the flag and it goes stale. Same reason callers pass shouldSkipReportHighlightRail when the flow
+    // won't open the expense report. No successData - it races the mount.
     const existingReportTransactions = iou.report?.reportID
         ? getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID)
         : [];

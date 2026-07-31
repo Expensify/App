@@ -870,9 +870,8 @@ describe('actions/IOU', () => {
         });
 
         /**
-         * Reads the real REPORT_METADATA value rather than the mocked addPendingNewTransactionIDs. The flags are written
-         * by buildOnyxDataForMoneyRequest as Onyx optimisticData, not through that function, so assertions on the mock
-         * alone cannot observe them - which is how the Search/Spend pollution regressed after it was first fixed.
+         * Reads REPORT_METADATA directly: the flags are written as Onyx optimisticData, not through the mocked
+         * addPendingNewTransactionIDs, so mock-only assertions cannot observe them - which is how this regressed.
          */
         function getPendingNewTransactionIDsFromOnyx(reportID: string) {
             return new Promise<Record<string, unknown> | undefined>((resolve) => {

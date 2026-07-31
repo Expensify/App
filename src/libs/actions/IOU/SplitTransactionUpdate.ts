@@ -112,10 +112,7 @@ type UpdateSplitTransactionsParams = {
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isFromSplitExpensesFlow?: boolean;
-    /**
-     * Whether the newly created splits must stay off the REPORT_METADATA highlight rail. Set by flows that never open
-     * the expense report (e.g. saving a split from the Search/Spend page), where nothing would ever clear the flags.
-     */
+    /** Keeps the new splits off the highlight rail, for flows that never open the expense report */
     shouldSkipReportHighlightRail?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
@@ -2050,8 +2047,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         popReportsSplitNavigatorToReport(selfDMReportID);
         Navigation.dismissModal();
         requestAnimationFrame(() => {
-            // Navigates back to selfDM, not the expense report, so keep the new splits off the REPORT_METADATA
-            // highlight rail - nothing would mount to consume and clear the flags.
+            // Navigates to selfDM, not the expense report - nothing mounts to consume the highlight rail.
             updateSplitTransactions({...params, isFromSplitExpensesFlow: true, shouldSkipReportHighlightRail: true});
         });
         params?.searchContext?.clearSelectedTransactions?.(true);
@@ -2098,10 +2094,8 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
         registerSearchRouteHighlight();
-        // This branch never opens the expense report, so the new splits must stay off the REPORT_METADATA highlight
-        // rail - only that report's list consumes and clears those flags when it mounts. Left set, they would sit in
-        // Onyx and highlight stale rows the next time the user opened the report from the Inbox. The Search page
-        // highlights its own rows via registerSearchRouteHighlight above instead.
+        // Returns to Search, not the expense report, so rail flags would sit unconsumed and highlight stale rows the
+        // next time that report is opened from the Inbox. registerSearchRouteHighlight above covers this page instead.
         updateSplitTransactions({...params, isFromSplitExpensesFlow: true, shouldSkipReportHighlightRail: true});
 
         if (!isSelfDMSplit) {
@@ -2125,8 +2119,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // (dismissToSuperWideRHP + goBack) instead of dismissModalWithReport. This naturally pops
     // stale screens from the stack instead of leaving them behind.
     if (isLastTransactionInReport && fallbackReportID) {
-        // Navigates to the fallback report rather than the expense report, so nothing mounts to consume the
-        // REPORT_METADATA highlight rail - keep the new splits off it.
+        // Navigates to the fallback report, not the expense report - nothing mounts to consume the highlight rail.
         updateSplitTransactions({...params, isFromSplitExpensesFlow: true, shouldSkipReportHighlightRail: true});
 
         const backRoute = ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID);
