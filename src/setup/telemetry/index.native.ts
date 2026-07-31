@@ -3,10 +3,67 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 
+import type {Span} from '@sentry/core';
+
 import {AppStartTimeNitroModule} from '@expensify/nitro-utils';
+import * as Sentry from '@sentry/react-native';
 
 import reportModuleInitTimes from './reportModuleInitTimes';
 import setupSentry from './setupSentry';
+
+/** Markers that describe a condition of the startup rather than a stage boundary; reported as attributes, not child spans. */
+const STARTUP_FLAG_MARKERS: Record<string, string> = {
+    OldDotDeeplinkDeferred: 'old_dot_deeplink_deferred',
+    OldDotReauthBlocked: 'old_dot_reauth_blocked',
+};
+
+/**
+ * Turns the named startup timestamps recorded by the native layer (see recordStartupMarker in
+ * Mobile-Expensify) into backdated child spans of ManualAppStartup, so the pre-JS native head
+ * of the startup is visible in Sentry instead of being one opaque block.
+ */
+function reportStartupMarkers(startupSpan: Span, nativeAppStartTimeMs: number) {
+    try {
+        const markersJSON = (AppStartTimeNitroModule as {readonly appStartupMarkers?: string}).appStartupMarkers ?? '{}';
+        const parsed: unknown = JSON.parse(markersJSON);
+        if (!parsed || typeof parsed !== 'object') {
+            return;
+        }
+        const markers = Object.entries(parsed)
+            .filter((entry): entry is [string, number] => typeof entry[1] === 'number' && entry[1] >= nativeAppStartTimeMs)
+            .sort(([, a], [, b]) => a - b);
+
+        let previousTimestampMs = nativeAppStartTimeMs;
+        for (const [name, timestampMs] of markers) {
+            const flagAttribute = STARTUP_FLAG_MARKERS[name];
+            if (flagAttribute) {
+                startupSpan.setAttribute(flagAttribute, true);
+                continue;
+            }
+            const stageSpan = Sentry.startInactiveSpan({
+                name,
+                op: name,
+                parentSpan: startupSpan,
+                startTime: previousTimestampMs,
+            });
+            stageSpan.end(timestampMs);
+            previousTimestampMs = timestampMs;
+        }
+
+        // The remaining gap is Hermes bundle eval + JS init, ending where this telemetry setup runs.
+        if (markers.length > 0) {
+            const jsInitSpan = Sentry.startInactiveSpan({
+                name: CONST.TELEMETRY.SPAN_STARTUP_NEW_DOT_JS_INIT,
+                op: CONST.TELEMETRY.SPAN_STARTUP_NEW_DOT_JS_INIT,
+                parentSpan: startupSpan,
+                startTime: previousTimestampMs,
+            });
+            jsInitSpan.end(Date.now());
+        }
+    } catch (error) {
+        Log.warn('[Telemetry] Failed to report native startup markers', {error});
+    }
+}
 
 export default function (): void {
     setupSentry();
@@ -20,11 +77,15 @@ export default function (): void {
         nativeAppStartTimeMs = undefined;
     }
 
-    startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP, {
+    const startupSpan = startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP, {
         name: CONST.TELEMETRY.SPAN_APP_STARTUP,
         op: CONST.TELEMETRY.SPAN_APP_STARTUP,
         startTime: nativeAppStartTimeMs,
     });
+
+    if (startupSpan && nativeAppStartTimeMs) {
+        reportStartupMarkers(startupSpan, nativeAppStartTimeMs);
+    }
 
     startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_NETWORK_REQUEST, {
         name: CONST.TELEMETRY.SPAN_APP_STARTUP_NETWORK_REQUEST,

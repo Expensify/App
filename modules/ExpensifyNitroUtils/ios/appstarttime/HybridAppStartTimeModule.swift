@@ -3,6 +3,7 @@ import Foundation
 
 final class HybridAppStartTimeModule: HybridAppStartTimeModuleSpec {
     private static let appStartTimePreferencesKey = "AppStartTime"
+    private static let appStartupMarkersPreferencesKey = "AppStartupMarkers"
 
     public var memorySize: Int { MemoryLayout<HybridAppStartTimeModule>.size }
 
@@ -12,5 +13,15 @@ final class HybridAppStartTimeModule: HybridAppStartTimeModuleSpec {
 
     var appStartTime: Double {
         return UserDefaults.standard.double(forKey: Self.appStartTimePreferencesKey)
+    }
+
+    var appStartupMarkers: String {
+        guard let markers = UserDefaults.standard.dictionary(forKey: Self.appStartupMarkersPreferencesKey),
+              JSONSerialization.isValidJSONObject(markers),
+              let data = try? JSONSerialization.data(withJSONObject: markers),
+              let json = String(data: data, encoding: .utf8) else {
+            return "{}"
+        }
+        return json
     }
 }

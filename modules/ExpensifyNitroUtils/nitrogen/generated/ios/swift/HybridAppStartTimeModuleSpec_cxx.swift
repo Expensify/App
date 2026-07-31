@@ -127,6 +127,13 @@ open class HybridAppStartTimeModuleSpec_cxx {
       return self.__implementation.appStartTime
     }
   }
+  
+  public final var appStartupMarkers: std.string {
+    @inline(__always)
+    get {
+      return std.string(self.__implementation.appStartupMarkers)
+    }
+  }
 
   // Methods
   
