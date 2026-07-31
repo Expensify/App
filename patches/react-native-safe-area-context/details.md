@@ -15,4 +15,4 @@
 
 - Upstream PR/issue: 🛑 — the unguarded `document.body.removeChild` is still present on the library's `main` branch, so upgrading does not resolve it.
 - E/App issue: https://github.com/Expensify/App/issues/95343
-- PR introducing patch: 🛑 TODO
+- PR introducing patch: https://github.com/Expensify/App/pull/97595
