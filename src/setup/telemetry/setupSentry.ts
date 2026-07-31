@@ -1,6 +1,7 @@
 import {isDevelopment} from '@libs/Environment/Environment';
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, reportingObserverIntegration, tracingIntegration} from '@libs/telemetry/integrations';
 import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
+import stampUpdateIDRange from '@libs/telemetry/stampUpdateIDRange';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -48,6 +49,8 @@ function setupSentry(): void {
             },
         },
     });
+
+    Sentry.getClient()?.on('beforeOutgoingRequestSpan', stampUpdateIDRange);
 
     Sentry.setTag(CONST.TELEMETRY.TAGS.BUILD_TYPE, CONFIG.IS_HYBRID_APP ? CONST.TELEMETRY.BUILD_TYPE_HYBRID_APP : CONST.TELEMETRY.BUILD_TYPE_STANDALONE);
 }

@@ -2259,6 +2259,8 @@ const CONST = {
         ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_JSON_CODE: 'json_code',
+        ATTRIBUTE_UPDATE_ID_FROM: 'update_id_from',
+        ATTRIBUTE_UPDATE_ID_TO: 'update_id_to',
         ATTRIBUTE_COLD_START: 'cold_start',
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
