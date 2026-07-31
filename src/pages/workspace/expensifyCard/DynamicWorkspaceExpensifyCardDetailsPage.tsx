@@ -476,7 +476,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                                     numberOfLinesTitle={2}
                                     icon={exportMenuItem.shouldShowMenuItemIcon ? getIntegrationIcon(connectedIntegration, expensifyIcons) : undefined}
                                     iconType={CONST.ICON_TYPE_AVATAR}
-                                    avatarSize={CONST.AVATAR_SIZE.SMALLER}
+                                    avatarSize={CONST.AVATAR_SIZE.X_SMALL}
                                     shouldShowRightIcon={canWriteExpensifyCard}
                                     onPress={() =>
                                         Navigation.navigate(

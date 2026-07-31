@@ -140,14 +140,14 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
                     showsHorizontalScrollIndicator={false}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={
-                        isInLandscapeMode ? [{paddingBottom: styles.singleAvatarMedium.height}, styles.ph4] : [{paddingRight: styles.singleAvatarMedium.width}, styles.pl4]
+                        isInLandscapeMode ? [{paddingBottom: styles.singleAvatarXLarge.height}, styles.ph4] : [{paddingRight: styles.singleAvatarXLarge.width}, styles.pl4]
                     }
                 />
                 <SubmitButtonShadow isInLandscapeMode={isInLandscapeMode}>
                     <Button
                         size={CONST.BUTTON_SIZE.LARGE}
                         isDisabled={!optimisticTransactionsReceipts.length || isCapturingPhoto}
-                        innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
+                        innerStyles={[styles.singleAvatarXLarge, styles.bgGreenSuccess]}
                         onPress={submit}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.RECEIPT_PREVIEW_SUBMIT_BUTTON}
                     >

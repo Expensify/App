@@ -54,7 +54,7 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart, styles.alignSelfCenter];
+    const avatarStyle = [styles.alignSelfStart, styles.alignSelfCenter];
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {initials} = useLetterAvatars();
@@ -126,7 +126,7 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     <UserInitialsAvatar
                         text={initials}
                         colors={selectedLetterScheme}
-                        size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.X_LARGE)}
+                        size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.XXXX_LARGE)}
                     />
                 </View>
             ) : (
@@ -136,7 +136,7 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     source={avatarURL}
                     avatarID={accountID}
                     fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
+                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
                     type={CONST.ICON_TYPE_AVATAR}
                 />
             )}

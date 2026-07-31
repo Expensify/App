@@ -76,7 +76,16 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     if (isPolicyExpenseChat(report)) {
         participants = [
             getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails, translate),
-            getPolicyExpenseReportOption({...report, selected: true, reportID}, privateIsArchived, personalDetails, report, policy, translate, reportAttributesDerived),
+            getPolicyExpenseReportOption(
+                {...report, selected: true, reportID},
+                privateIsArchived,
+                personalDetails,
+                report,
+                policy,
+                translate,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                reportAttributesDerived,
+            ),
         ];
     } else {
         participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails, translate));
