@@ -426,7 +426,7 @@ function getMoneyRequestReportName({
     let payerOrApproverName;
     if (isExpenseReport(report)) {
         const parentReport = getParentReport(report);
-        payerOrApproverName = getPolicyName({report: parentReport ?? report, policy});
+        payerOrApproverName = getPolicyName({report: parentReport ?? report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
     } else if (isInvoiceReport(report)) {
         const chatReport = getReportOrDraftReport(report?.chatReportID);
         payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPolicy);
@@ -1052,8 +1052,7 @@ function computeReportName({
         return chatThreadReportName;
     }
 
-    const transactionsArray = transactions ? (Object.values(transactions).filter(Boolean) as Array<OnyxEntry<Transaction>>) : undefined;
-    if (isClosedExpenseReportWithNoExpenses(report, transactionsArray)) {
+    if (isClosedExpenseReportWithNoExpenses(report, transactions)) {
         return translate('parentReportAction.deletedReport');
     }
 
