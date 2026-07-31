@@ -1018,8 +1018,10 @@ describe('Table', () => {
                     'aria-hidden': true,
                 })
                 .find((node) => typeof node.type === 'string');
-            const updatedPageHeaderMeasurementStyle = StyleSheet.flatten(updatedPageHeaderMeasurementPlaceholder?.props.style as React.ComponentProps<typeof View>['style']);
-            expect(updatedPageHeaderMeasurementStyle?.height).toBe(120);
+            if (!updatedPageHeaderMeasurementPlaceholder) {
+                throw new Error('Expected the page-header measurement placeholder to remain mounted');
+            }
+            expect(updatedPageHeaderMeasurementPlaceholder).toHaveStyle({height: 120});
 
             const measurementHeader = getHostTableRowsWithin(screen.getByTestId('flash-list-measurement-1')).at(0);
             const measurementDataRow = getHostTableRowsWithin(screen.getByTestId('flash-list-measurement-2')).at(0);
