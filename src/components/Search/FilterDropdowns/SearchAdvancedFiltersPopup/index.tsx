@@ -31,8 +31,8 @@ import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import AmountFilterContentPopupWrapper from './AmountFilterContentPopupWrapper';
-import CommonFilterContentPopupWrapper from './CommonFilterContentPopupWrapper';
 import DateFilterContentPopupWrapper from './DateFilterContentPopupWrapper';
+import ListFilterContentPopupWrapper from './ListFilterContentPopupWrapper';
 import ReportFieldFilterContentPopupWrapper from './ReportFieldFilterContentPopupWrapper';
 import TextInputFilterContentPopupWrapper from './TextInputFilterContentPopupWrapper';
 
@@ -101,9 +101,9 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                 >
                     <SearchAdvancedFiltersContent
                         values={searchAdvancedFiltersForm}
-                        filterKey={selectedFilter}
+                        baseFilterKey={selectedFilter}
                         components={{
-                            Common: CommonFilterContentPopupWrapper,
+                            List: ListFilterContentPopupWrapper,
                             Text: TextInputFilterContentPopupWrapper,
                             Amount: AmountFilterContentPopupWrapper,
                             Date: DateFilterContentPopupWrapper,

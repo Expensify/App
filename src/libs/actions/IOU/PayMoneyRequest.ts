@@ -73,6 +73,7 @@ type PayInvoiceArgs = {
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -120,8 +121,7 @@ type PayMoneyRequestFunctionParams = {
     onPaid?: () => void;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
-    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isTrackIntentUser: boolean | undefined;
 };
@@ -193,8 +193,7 @@ function getPayMoneyRequestParams({
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
     currentUserLocalCurrency: string | undefined;
-    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isTrackIntentUser: boolean | undefined;
 }): PayMoneyRequestData {
@@ -1083,6 +1082,7 @@ function payInvoice({
     chatReportActions,
     additionalOnyxData,
     shouldPlaySuccessSound = true,
+    delegateAccountID,
     isTrackIntentUser,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
@@ -1120,6 +1120,7 @@ function payInvoice({
         isSelfTourViewed,
         defaultWorkspaceName,
         chatReportActions,
+        delegateAccountID,
         isTrackIntentUser,
     });
 

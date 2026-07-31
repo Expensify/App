@@ -4,7 +4,9 @@ import FullStory, {FSPage} from '@fullstory/react-native';
 
 import type {Fullstory} from './types';
 
-import {getChatFSClass, shouldInitializeFullstory} from './common';
+import {getChatFSClass, normalizeFullstoryPropertiesForNative, shouldInitializeFullstory} from './common';
+
+let isFullstoryTrackingEnabled = false;
 
 const FS: Fullstory = {
     Page: FSPage,
@@ -20,8 +22,7 @@ const FS: Fullstory = {
     consent: (shouldConsent) => FullStory.consent(shouldConsent),
 
     identify: (userMetadata, envName) => {
-        const localMetadata = userMetadata;
-        localMetadata.environment = envName;
+        const localMetadata = {...userMetadata, environment: envName};
         FullStory.identify(String(localMetadata.accountID), localMetadata);
     },
 
@@ -36,6 +37,7 @@ const FS: Fullstory = {
             // We only use FullStory in production environment. We need to check this here
             // after the init function since this function is also called on updates for
             // UserMetadata onyx key.
+            isFullstoryTrackingEnabled = false;
             getEnvironment().then((envName: string) => {
                 if (!FS.shouldInitialize(userMetadata, envName)) {
                     return;
@@ -44,6 +46,7 @@ const FS: Fullstory = {
                 FullStory.restart();
                 FullStory.consent(true);
                 FS.identify(userMetadata, envName);
+                isFullstoryTrackingEnabled = true;
             });
         } catch (e) {
             // error handler
@@ -60,8 +63,12 @@ const FS: Fullstory = {
         return FullStory.getCurrentSessionURL();
     },
 
-    event: (eventName, eventProperties = {}) => {
-        FullStory.event(eventName, eventProperties);
+    event: (eventName, eventProperties) => {
+        if (!isFullstoryTrackingEnabled) {
+            return;
+        }
+
+        FullStory.event(eventName, normalizeFullstoryPropertiesForNative(eventProperties ?? {}));
     },
 
     log: (level, message) => {
@@ -75,7 +82,11 @@ const FS: Fullstory = {
     },
 
     setUserVars: (userVars) => {
-        FullStory.setUserVars(userVars);
+        FullStory.setUserVars(
+            normalizeFullstoryPropertiesForNative(userVars, {
+                preserveKeys: ['displayName', 'email'],
+            }),
+        );
     },
 
     resetIdleTimer: () => {
