@@ -50,12 +50,12 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
-    const size = CONST.AVATAR_SIZE.SMALLER;
+    const size = CONST.AVATAR_SIZE.X_SMALL;
     const maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT;
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
     const overlapSize = oneAvatarSize.width / 3 + 2 * oneAvatarBorderWidth;
-    const height = oneAvatarSize.height;
+    const height = StyleUtils.getAvatarSizeWithBorder(size);
     const avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height), styles.overflowHidden]);
 
     const icons = sortIconsByName(attendeeIcons, personalDetails, localeCompare);
@@ -123,7 +123,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                             }),
 
                             // Set overlay background color with RGBA value so that the text will not inherit opacity
-                            StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
+                            StyleUtils.getHorizontalStackedOverlayAvatarStyle(size),
                             icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(3)?.type),
                             StyleUtils.getBackgroundColorWithOpacityStyle(colors.productDark400, variables.overlayOpacity),
                         ]}

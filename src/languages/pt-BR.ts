@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Proprietário',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'calendário aberto',
+        dialogOpened: 'diálogo',
         send: 'Enviar',
         na: 'N/D',
         noResultsFound: 'Nenhum resultado encontrado',
@@ -1111,7 +1112,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpend: {
             title: 'Seus gastos',
             awaitingApproval: 'Aguardando aprovação',
-            repaidLast30Days: 'Reembolsado nos últimos 30 dias',
+            repaidLast30Days: 'Reembolsado últimos 30 dias',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transações recentes • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Ver mais ${count}`,
@@ -1196,6 +1197,7 @@ const translations: TranslationDeepObject<typeof en> = {
             'O arquivo que você enviou está vazio ou contém dados inválidos. Verifique se o arquivo está formatado corretamente e contém as informações necessárias antes de enviá-lo novamente.',
         importSpreadsheetLibraryError: 'Falha ao carregar o módulo de planilha. Verifique sua conexão com a internet e tente novamente.',
         importSpreadsheet: 'Importar planilha',
+        importWorkflows: 'Importar fluxos de trabalho',
         downloadCSV: 'Baixar CSV',
         importMemberConfirmation: () => ({
             one: `Confirme os detalhes abaixo para o novo membro do espaço de trabalho que será adicionado como parte deste envio. Membros existentes não receberão atualizações de função nem mensagens de convite.`,
@@ -4321,7 +4323,7 @@ ${amount} para ${merchant} - ${date}`,
         toLearnMore: 'para saber mais.',
         termsAndConditions: {
             header: 'Antes de continuarmos...',
-            title: 'Termos e condições',
+            title: 'Revisar termos e condições',
             label: 'Eu concordo com os termos e condições',
             subtitle: `Concorde com os <a href="${CONST.TRAVEL_TERMS_URL}">termos e condições</a> do Expensify Travel.`,
             error: 'Você deve concordar com os termos e condições do Expensify Travel para continuar',
@@ -4396,10 +4398,12 @@ ${amount} para ${merchant} - ${date}`,
         phoneError: (phoneErrorMethodsRoute: string) =>
             `<rbr>Por favor, <a href="${phoneErrorMethodsRoute}">adicione um e-mail profissional como seu login principal</a> para reservar viagens.</rbr>`,
         domainSelector: {
+            headline: 'Qual domínio você quer configurar?',
             title: 'Domínio',
             subtitle: 'Escolha um domínio para a configuração do Expensify Travel.',
             recommended: 'Recomendado',
         },
+        workspaceAddress: {headline: 'Qual é o endereço da sua empresa?'},
         domainPermissionInfo: {
             title: 'Domínio',
             restriction: (domain: string) =>
@@ -4454,6 +4458,7 @@ ${amount} para ${merchant} - ${date}`,
         nightIn: 'noite em',
         nightsIn: 'noites em',
         taxID: {
+            headline: 'Qual é o CNPJ da sua empresa?',
             title: 'CPF/CNPJ',
             subtitle: 'Insira o CNPJ da sua empresa para que possamos configurar a cobrança de viagens na sua moeda local.',
             inputLabel: 'CNPJ da pessoa jurídica',
@@ -6155,9 +6160,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 assignedCards: 'Atribuído',
                 unassignedCards: 'Não atribuído',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `exportação ${integration} ${type.toLowerCase()}` : `Exportação do ${integration}`),
-                integrationExportTitleXero: (integration: string) => `Escolha a conta do ${integration} para onde as transações devem ser exportadas.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Escolha a conta do ${integration} para a qual as transações devem ser exportadas. Selecione uma <a href="${exportPageLink}">opção de exportação</a> diferente para alterar as contas disponíveis.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Escolha a conta do ${integration} para a qual as transações devem ser exportadas.${exportPageLink ? ` Selecione uma <a href="${exportPageLink}">opção de exportação</a> diferente para alterar as contas disponíveis.` : ''}`,
                 lastUpdated: 'Última atualização',
                 transactionStartDate: 'Data de início da transação',
                 updateCard: 'Atualizar cartão',
@@ -6626,8 +6630,6 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             peopleAdmins: 'Administradores de pessoas',
             paymentsAdmins: 'Administradores de pagamentos',
             members: 'Membros',
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `Você não pode remover ${memberName} deste workspace enquanto essa pessoa tiver um Cartão Expensify. Desative o cartão em Workspace > Cartão Expensify e tente novamente.`,
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -7640,6 +7642,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 defaultTaxRate: 'Taxa de imposto padrão',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Vá para [Mais recursos](${moreFeaturesLink}) e ative os fluxos de trabalho, depois adicione aprovações para desbloquear este recurso.`,
+                createNewRule: 'Criar nova regra',
+                contextualFlagForReview: (amount: string) => `Se o valor for acima de ${amount}, marcar para revisão`,
+                contextualFlagForReviewDaily: (amount: string) => `Se o total diário da categoria estiver acima de ${amount}, sinalizar para revisão`,
             },
             customRules: {
                 title: 'Política de despesas',
@@ -8614,6 +8619,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `alterou a categoria de gasto padrão de "${mccGroupName}" para "${newCategory}" (antes "${oldCategory}")`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} o requisito de compras com cartão corporativo`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `adicionou a regra de agente "${title}": ${prompt}` : `adicionou uma regra de agente: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) =>
+                title ? `atualizou a regra do agente "${title}" para: ${prompt}` : `atualizou uma regra de agente para: ${prompt}`,
+            deleted: ({title}: {title: string}) => (title ? `removeu a regra de agente "${title}"` : 'removeu uma regra de agente'),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'bloqueado', allow: 'permitido'},
             amountOperator: {over: 'acima', under: 'abaixo'},
@@ -8875,6 +8886,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             noOptionsAvailable: 'Nenhuma opção disponível para o grupo de despesas selecionado.',
             undelete: 'Restaurar',
             duplicateReport: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'relatório' : 'relatórios'}`,
+        },
+        expensifyCardStatementPDF: {
+            title: 'Baixar extrato',
+            oneFeedAtATime: 'Selecione liquidações de um único feed do Expensify Card por vez.',
         },
         filtersHeader: 'Filtros',
         filters: {
@@ -9720,6 +9735,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `A tarifa só é válida de ${startDate} até ${endDate}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `A tarifa só é válida a partir de ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `A tarifa só é válida até ${endDate}`,
+        cannotMergeDuplicates: 'Você só pode mesclar despesas em relatórios rascunho ou pendentes. Retraia o relatório e tente novamente.',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} é obrigatório`,
@@ -10202,7 +10218,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
-        accountSwitcher: '<tooltip>Acesse suas <strong>contas Copilot</strong> aqui</tooltip>',
+        accountSwitcher: '<tooltip>Agora você pode fazer copiloto em outra conta!</tooltip>',
         outstandingFilter: '<tooltip>Filtrar despesas\nque <strong>precisam de aprovação</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envie este recibo para\n<strong>concluir o test drive!</strong></tooltip>',
         gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',
@@ -10253,6 +10269,7 @@ Ei! Acabei de conseguir *3 meses grátis* para a gente testar o Expensify, a man
 Aqui está um *comprovante de teste* para mostrar como funciona:`,
     },
     export: {
+        downloadStatementPDF: 'Baixar extrato',
         basicExport: 'Exportação básica',
         reportLevelExport: 'Todos os dados - nível de relatório',
         expenseLevelExport: 'Todos os dados - nível de despesa',

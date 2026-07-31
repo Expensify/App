@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
@@ -166,7 +167,15 @@ function DynamicIOURequestStepDestination({
         if (isEditPage) {
             navigateBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport));
+            // Time is a dynamic route: build it on the start base when the destination is shown inline on the start page
+            // (single per-diem policy) and on the destination base otherwise, so Time's back returns to the right step.
+            const timeBase = openedFromStartPage
+                ? ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport)
+                : createDynamicRoute(
+                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
+                      ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport),
+                  );
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path, timeBase));
         }
     };
 
