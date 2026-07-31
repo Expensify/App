@@ -26,8 +26,16 @@ function loadModule(platform: string): TableAccessibilityModule {
 }
 
 // The pure prop builders are platform-independent, so any platform works when loading them.
-const {getTableContainerAccessibilityProps, getRowGroupAccessibilityProps, getRowAccessibilityProps, getColumnHeaderAccessibilityProps, getCellAccessibilityProps, assignCellColumnIndexes} =
-    loadModule(CONST.PLATFORM.WEB);
+const {
+    getTableContainerAccessibilityProps,
+    getRowGroupAccessibilityProps,
+    getTableHeaderRowID,
+    getTableDataRowID,
+    getRowAccessibilityProps,
+    getColumnHeaderAccessibilityProps,
+    getCellAccessibilityProps,
+    assignCellColumnIndexes,
+} = loadModule(CONST.PLATFORM.WEB);
 
 type CellProbe = {role?: string; 'aria-colindex'?: number; children?: React.ReactNode};
 
@@ -99,6 +107,20 @@ describe('tableAccessibility', () => {
 
         it('exposes the rowgroup role when enabled', () => {
             expect(getRowGroupAccessibilityProps(true)).toEqual({role: CONST.ROLE.ROWGROUP});
+        });
+
+        it('owns detached virtualized rows in their reading order', () => {
+            expect(getRowGroupAccessibilityProps(true, ['header-row', 'data-row-0', 'data-row-1'])).toEqual({
+                role: CONST.ROLE.ROWGROUP,
+                'aria-owns': 'header-row data-row-0 data-row-1',
+            });
+        });
+    });
+
+    describe('semantic row IDs', () => {
+        it('builds stable header and data-row IDs for a table instance', () => {
+            expect(getTableHeaderRowID(':r1:')).toBe(':r1:-header-row');
+            expect(getTableDataRowID(':r1:', 4)).toBe(':r1:-data-row-4');
         });
     });
 

@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import React from 'react';
 import {View} from 'react-native';
 
-import {getTableContainerAccessibilityProps} from './tableAccessibility';
+import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps} from './tableAccessibility';
 import TableBody from './TableBody';
 import TableHeader from './TableHeader';
 
@@ -21,11 +21,16 @@ type TableSemanticContainerProps = {
     columnCount: number;
 
     /**
-     * Whether `TableBody` still renders content while the table is empty (e.g. an empty-state or header list slot is
-     * supplied). When it does, it keeps its own `role="rowgroup"`, so the `role="table"` wrapper must be preserved to
-     * avoid orphaned table semantics.
+     * Whether `TableBody` still renders content while an inline-semantic table is empty (e.g. an empty-state or list
+     * header is supplied). Its `role="rowgroup"` then needs the enclosing `role="table"` wrapper.
      */
     rendersBodyWhenEmpty: boolean;
+
+    /** Whether the virtualized rows are associated with the semantic table by DOM ID. */
+    shouldOwnRowsByID?: boolean;
+
+    /** Header/data row IDs in their accessible reading order. */
+    ownedRowIDs?: string[];
 
     /** Table children — expected to contain a contiguous `TableHeader`/`TableBody` run. */
     children: React.ReactNode;
@@ -38,11 +43,31 @@ type TableSemanticContainerProps = {
  * narrow card layout. Header and body are contiguous in every table, so grouping the consecutive run keeps a single
  * table container while preserving child order.
  */
-function TableSemanticContainer({isEnabled, title, rowCount, columnCount, rendersBodyWhenEmpty, children}: TableSemanticContainerProps) {
+function TableSemanticContainer({isEnabled, title, rowCount, columnCount, rendersBodyWhenEmpty, shouldOwnRowsByID = false, ownedRowIDs, children}: TableSemanticContainerProps) {
     const styles = useThemeStyles();
 
     if (!isEnabled) {
         return children;
+    }
+
+    // A scrolling page header has to remain inside FlashList for layout and input identity, but controls cannot be
+    // descendants of an ARIA table. Keep the semantic table as a zero-height sibling and use the standard aria-owns
+    // relationship to place only the virtualized header/data rows in its rowgroup accessibility tree.
+    if (shouldOwnRowsByID) {
+        const renderedChildren = React.Children.toArray(children);
+        if (rowCount === 0) {
+            return renderedChildren;
+        }
+
+        return [
+            <View
+                key="tableSemanticContainer-ownedRows"
+                {...getTableContainerAccessibilityProps(true, title, rowCount, columnCount)}
+            >
+                <View {...getRowGroupAccessibilityProps(true, ownedRowIDs)} />
+            </View>,
+            ...renderedChildren,
+        ];
     }
 
     // An empty table whose header/body both render null has no tabular content for a screen reader, so skip the wrapper

@@ -24,7 +24,7 @@ import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
-import {useTableContext} from './TableContext';
+import {useTableContext, useTableRowSemanticID} from './TableContext';
 
 type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'> & {
     /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
@@ -64,6 +64,8 @@ export default function TableRow({
     offlineWithFeedback,
     checkboxReplacementElement,
     rowFooter,
+    id,
+    'aria-hidden': ariaHidden,
     ...props
 }: TableRowProps) {
     const theme = useTheme();
@@ -72,6 +74,7 @@ export default function TableRow({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled, shouldEnableSelectionInNarrowPaneModal = false} = useTableContext();
+    const semanticRowID = useTableRowSemanticID();
 
     // Tables inside a narrow pane modal (RHP) opt into keying the selection UX off the real screen size (isSmallScreenWidth),
     // because shouldUseNarrowLayout is always true in an RHP and would otherwise suppress selection entirely. All other
@@ -220,7 +223,8 @@ export default function TableRow({
             <PressableWithFeedback
                 accessible={accessible}
                 accessibilityLabel={accessibilityLabel}
-                id={`table-row-${item.keyForList}`}
+                id={semanticRowID === null ? undefined : (semanticRowID ?? id ?? `table-row-${item.keyForList}`)}
+                aria-hidden={semanticRowID === null || ariaHidden || undefined}
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={interactive}

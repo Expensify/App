@@ -24,6 +24,7 @@ type MockFlashListProps<T> = {
     ListFooterComponentStyle?: React.ComponentProps<typeof View>['style'];
     contentContainerStyle?: React.ComponentProps<typeof View>['style'];
     onEndReached?: () => void;
+    onChangeStickyIndex?: (current: number, previous: number) => void;
     onLoad?: (info: {elapsedTimeInMs: number}) => void;
     onScroll?: (event: {nativeEvent: {contentOffset: {y: number}}}) => void;
     onStartReached?: () => void;
@@ -43,6 +44,7 @@ const mockTextInputNativeFocus = jest.fn();
 const mockTextInputNativeBlur = jest.fn();
 let mockNextTextInputInstanceID = 0;
 let mockFlashListProps: Array<MockFlashListProps<unknown>> = [];
+let mockFlashListStickyHeaderIndex: number | undefined;
 let mockShouldUseNarrowLayout = false;
 
 // Mock navigation
@@ -150,6 +152,7 @@ jest.mock('@shopify/flash-list', () => {
         ) => {
             mockFlashListProps.push(props);
             const data = props.data ?? [];
+            const stickyHeaderItem = mockFlashListStickyHeaderIndex === undefined ? undefined : data.at(mockFlashListStickyHeaderIndex);
 
             ReactLocal.useEffect(() => {
                 mockFlashListMount();
@@ -180,6 +183,15 @@ jest.mock('@shopify/flash-list', () => {
                                   </RNView>
                               );
                           })}
+                    {stickyHeaderItem !== undefined && (
+                        <RNView testID="flash-list-sticky-header">
+                            {props.renderItem?.({
+                                item: stickyHeaderItem,
+                                index: mockFlashListStickyHeaderIndex,
+                                target: 'StickyHeader',
+                            } as ListRenderItemInfo<unknown>)}
+                        </RNView>
+                    )}
                     {!!props.ListFooterComponent && <RNView style={props.ListFooterComponentStyle}>{renderComponent(props.ListFooterComponent)}</RNView>}
                 </RNView>
             );
@@ -492,6 +504,7 @@ describe('Table', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockFlashListProps = [];
+        mockFlashListStickyHeaderIndex = undefined;
         mockShouldUseNarrowLayout = false;
     });
 
@@ -680,6 +693,84 @@ describe('Table', () => {
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
         });
 
+        it('should keep page controls outside ARIA table semantics while owning virtualized rows', () => {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive={false}
+                    accessibilityLabel={item.name}
+                >
+                    <View role={CONST.ROLE.CELL}>
+                        <Text>{item.name}</Text>
+                    </View>
+                    <View role={CONST.ROLE.CELL}>
+                        <Text>{item.category}</Text>
+                    </View>
+                    <View role={CONST.ROLE.CELL}>
+                        <Text>{item.value}</Text>
+                    </View>
+                </Table.Row>
+            );
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                    headerComponent={<Text testID="table-header-component">Page controls</Text>}
+                    shouldUseStickyColumnHeader
+                    title="Members"
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            const table = screen.getByRole(CONST.ROLE.TABLE);
+            const rowGroup = within(table).getByRole(CONST.ROLE.ROWGROUP);
+            const ownedRowIDs = String(rowGroup.props['aria-owns']).split(' ');
+            const rows = screen.getAllByRole(CONST.ROLE.ROW);
+
+            expect(within(table).queryByTestId('table-header-component')).toBeNull();
+            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expect(ownedRowIDs).toEqual(rows.map((row) => row.props.id));
+            expect(table.props['aria-rowcount']).toBe(props.data.length + 1);
+            expect(table.props['aria-colcount']).toBe(props.columns.length);
+        });
+
+        it('should transfer the semantic header ID to the sticky clone without exposing a duplicate row', () => {
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    headerComponent={<Text>Page controls</Text>}
+                    shouldUseStickyColumnHeader
+                    title="Members"
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            const initialHeader = screen.getAllByRole(CONST.ROLE.ROW).at(0);
+            const headerID: unknown = initialHeader?.props.id;
+            expect(headerID).toBeTruthy();
+
+            mockFlashListStickyHeaderIndex = 1;
+            act(() => {
+                mockFlashListProps.at(-1)?.onChangeStickyIndex?.(1, -1);
+            });
+
+            const accessibleHeaders = screen.getAllByRole(CONST.ROLE.ROW);
+            expect(accessibleHeaders).toHaveLength(1);
+            expect(accessibleHeaders.at(0)?.props.id).toBe(headerID);
+            expect(screen.getByTestId('flash-list-sticky-header')).toBeTruthy();
+        });
+
         it('should preserve a composed search slot when an earlier optional header slot toggles', () => {
             const props = createDefaultProps();
             const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
@@ -809,6 +900,8 @@ describe('Table', () => {
 
             expect(screen.getByTestId('flash-list')).toBeTruthy();
             expect(screen.getByTestId('generic-empty-state')).toBeTruthy();
+            expect(screen.queryByRole(CONST.ROLE.TABLE)).toBeNull();
+            expect(screen.queryByRole(CONST.ROLE.ROWGROUP)).toBeNull();
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
 

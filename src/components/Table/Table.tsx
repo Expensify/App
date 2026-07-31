@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import type {FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 
-import React, {useImperativeHandle, useRef} from 'react';
+import React, {useId, useImperativeHandle, useRef} from 'react';
 
 import type {TableContextValue} from './TableContext';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
@@ -26,7 +26,7 @@ import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
-import {shouldUseTableSemantics} from './tableAccessibility';
+import {getTableDataRowID, getTableHeaderRowID, shouldUseTableSemantics} from './tableAccessibility';
 import {doesBodyRenderWhenEmpty} from './TableBody';
 import TableContext from './TableContext';
 import TableEmptyState from './TableEmptyStates/TableEmptyState';
@@ -220,6 +220,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const isMobileSelectionEnabled = useMobileSelectionMode();
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const semanticTableID = useId();
 
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
@@ -308,6 +309,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
+        semanticTableID,
         title,
         headerComponent,
         emptyStateElement,
@@ -344,9 +346,11 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // The selection checkbox renders as an extra leading column when selection is enabled (always visible in the wide
     // web layout where semantics apply), so it has to be counted alongside the configured data columns.
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
+    const shouldOwnRowsByID = isTableSemanticsEnabled && tableListMetadata.hasPageHeader;
+    const semanticOwnedRowIDs = shouldOwnRowsByID ? [getTableHeaderRowID(semanticTableID), ...processedData.map((_, rowIndex) => getTableDataRowID(semanticTableID, rowIndex))] : undefined;
 
-    // When empty, `TableBody` still renders (keeping its role="rowgroup") if an empty-state or header list slot is
-    // supplied, so the semantic wrapper must be preserved then to avoid orphaned table semantics.
+    // In the normal inline semantic layout, an empty body with a list slot still needs its enclosing table wrapper.
+    // Page-header tables use detached row ownership below, so their empty branch is handled separately.
     const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps, headerComponent);
 
     return (
@@ -357,6 +361,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+                shouldOwnRowsByID={shouldOwnRowsByID}
+                ownedRowIDs={semanticOwnedRowIDs}
             >
                 {renderedChildren}
             </TableSemanticContainer>

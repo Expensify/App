@@ -29,7 +29,13 @@ jest.mock('@components/Table/TableBody', () => {
 
 function renderContainer(
     children: React.ReactNode,
-    {isEnabled = true, rowCount = 3, rendersBodyWhenEmpty = false}: {isEnabled?: boolean; rowCount?: number; rendersBodyWhenEmpty?: boolean} = {},
+    {
+        isEnabled = true,
+        rowCount = 3,
+        rendersBodyWhenEmpty = false,
+        shouldOwnRowsByID = false,
+        ownedRowIDs,
+    }: {isEnabled?: boolean; rowCount?: number; rendersBodyWhenEmpty?: boolean; shouldOwnRowsByID?: boolean; ownedRowIDs?: string[]} = {},
 ) {
     render(
         <TableSemanticContainer
@@ -38,6 +44,8 @@ function renderContainer(
             rowCount={rowCount}
             columnCount={4}
             rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+            shouldOwnRowsByID={shouldOwnRowsByID}
+            ownedRowIDs={ownedRowIDs}
         >
             {children}
         </TableSemanticContainer>,
@@ -78,6 +86,39 @@ describe('TableSemanticContainer', () => {
         expect(screen.getByTestId('filter-bar')).toBeTruthy();
         expect(within(table).queryByTestId('filter-bar')).toBeNull();
         expect(within(table).getByTestId('stub-header')).toBeTruthy();
+    });
+
+    it('keeps a scrolling page header and body outside the table while owning only its virtualized rows', () => {
+        const pageControls = React.createElement(View, {key: 'controls', testID: 'page-controls'});
+        const ownedRowIDs = ['members-header-row', 'members-data-row-0', 'members-data-row-1', 'members-data-row-2'];
+        renderContainer([pageControls, React.createElement(TableHeader, {key: 'h'}), React.createElement(TableBody, {key: 'b'})], {
+            shouldOwnRowsByID: true,
+            ownedRowIDs,
+        });
+
+        const table = screen.getByLabelText('Members');
+        const rowGroup = within(table).getByRole(CONST.ROLE.ROWGROUP);
+        expect(rowGroup.props['aria-owns']).toBe(ownedRowIDs.join(' '));
+
+        expect(within(table).queryByTestId('page-controls')).toBeNull();
+        expect(within(table).queryByTestId('stub-header')).toBeNull();
+        expect(within(table).queryByTestId('stub-body')).toBeNull();
+        expect(screen.getByTestId('page-controls')).toBeTruthy();
+        expect(screen.getByTestId('stub-header')).toBeTruthy();
+        expect(screen.getByTestId('stub-body')).toBeTruthy();
+    });
+
+    it('does not expose an empty detached table for page-header controls', () => {
+        renderContainer([React.createElement(View, {key: 'controls', testID: 'page-controls'}), React.createElement(TableBody, {key: 'b'})], {
+            rowCount: 0,
+            rendersBodyWhenEmpty: true,
+            shouldOwnRowsByID: true,
+            ownedRowIDs: [],
+        });
+
+        expect(screen.queryByLabelText('Members')).toBeNull();
+        expect(screen.getByTestId('page-controls')).toBeTruthy();
+        expect(screen.getByTestId('stub-body')).toBeTruthy();
     });
 
     it('skips the table wrapper for an empty table when the body renders nothing', () => {

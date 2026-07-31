@@ -28,6 +28,7 @@ type TableAccessibilityProps = {
     'aria-colcount'?: number;
     'aria-rowindex'?: number;
     'aria-colindex'?: number;
+    'aria-owns'?: string;
     'aria-sort'?: 'ascending' | 'descending' | 'none';
     /* eslint-enable @typescript-eslint/naming-convention */
 };
@@ -67,8 +68,26 @@ function getTableContainerAccessibilityProps(isEnabled: boolean, label: string |
 }
 
 /** Props for the element grouping rows together, i.e. the table body wrapper. */
-function getRowGroupAccessibilityProps(isEnabled: boolean): TableAccessibilityProps {
-    return isEnabled ? {role: CONST.ROLE.ROWGROUP} : {};
+function getRowGroupAccessibilityProps(isEnabled: boolean, ownedRowIDs?: string[]): TableAccessibilityProps {
+    if (!isEnabled) {
+        return {};
+    }
+
+    const rowGroupProps: TableAccessibilityProps = {role: CONST.ROLE.ROWGROUP};
+    if (ownedRowIDs?.length) {
+        rowGroupProps['aria-owns'] = ownedRowIDs.join(' ');
+    }
+
+    return rowGroupProps;
+}
+
+/** Stable DOM IDs used to associate virtualized rows with a detached semantic rowgroup. */
+function getTableHeaderRowID(tableID: string): string {
+    return `${tableID}-header-row`;
+}
+
+function getTableDataRowID(tableID: string, rowIndex: number): string {
+    return `${tableID}-data-row-${rowIndex}`;
 }
 
 /**
@@ -182,6 +201,8 @@ export {
     shouldUseTableSemantics,
     getTableContainerAccessibilityProps,
     getRowGroupAccessibilityProps,
+    getTableHeaderRowID,
+    getTableDataRowID,
     getRowAccessibilityProps,
     getColumnHeaderAccessibilityProps,
     getCellAccessibilityProps,
