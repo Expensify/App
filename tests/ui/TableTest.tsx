@@ -9,11 +9,12 @@ import type Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import type {ReactTestInstance} from 'react-test-renderer';
 
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
+
+type TestInstance = ReturnType<typeof screen.getByTestId>;
 
 type MockFlashListProps<T> = {
     data?: T[];
@@ -506,12 +507,12 @@ function activateStickyHeadersAfterListLoad() {
     requestAnimationFrameSpy.mockRestore();
 }
 
-function getHostTableRows(): ReactTestInstance[] {
+function getHostTableRows(): TestInstance[] {
     return screen.UNSAFE_getAllByProps({role: CONST.ROLE.ROW}).filter((row) => typeof row.type === 'string');
 }
 
-function expectNodeBefore(first: ReactTestInstance, second: ReactTestInstance) {
-    const firstAncestors = new Set<ReactTestInstance>();
+function expectNodeBefore(first: TestInstance, second: TestInstance) {
+    const firstAncestors = new Set<TestInstance>();
     let ancestor = first.parent;
     while (ancestor) {
         firstAncestors.add(ancestor);
@@ -526,14 +527,14 @@ function expectNodeBefore(first: ReactTestInstance, second: ReactTestInstance) {
         throw new Error('Expected both nodes to have a common rendered ancestor');
     }
 
-    const getBranchBelow = (node: ReactTestInstance) => {
+    const getBranchBelow = (node: TestInstance) => {
         let branch = node;
         while (branch.parent && branch.parent !== commonAncestor) {
             branch = branch.parent;
         }
         return branch;
     };
-    const siblings = commonAncestor.children.filter((child): child is ReactTestInstance => typeof child !== 'string');
+    const siblings = commonAncestor.children.filter((child): child is TestInstance => typeof child !== 'string');
     expect(siblings.indexOf(getBranchBelow(first))).toBeLessThan(siblings.indexOf(getBranchBelow(second)));
 }
 
@@ -775,6 +776,7 @@ describe('Table', () => {
             const pageControls = screen.getByTestId('table-header-component');
 
             expect(within(table).queryByTestId('table-header-component')).toBeNull();
+            expect(table.props.style).toBeUndefined();
             expectNodeBefore(pageControls, table);
             expect(ownedRowIDs).toEqual(rows.map((row) => String(row.props.id)));
             expect(table.props['aria-rowcount']).toBe(props.data.length + 1);
@@ -872,11 +874,25 @@ describe('Table', () => {
             if (!hiddenHeader || !accessibleHeader) {
                 throw new Error('Expected one hidden and one accessible table header');
             }
-            expect(hiddenHeader.findAllByProps({accessibilityLabel: 'Name'}).some((node) => node.props.disabled === true && node.props.tabIndex === -1)).toBe(true);
-            expect(hiddenHeader.findAllByProps({accessibilityLabel: 'workspace.common.selectAll'}).some((node) => node.props.disabled === true && node.props.tabIndex === -1)).toBe(true);
-            expect(accessibleHeader.findAllByProps({accessibilityLabel: 'Name'}).some((node) => node.props.disabled === false && node.props.tabIndex === undefined)).toBe(true);
             expect(
-                accessibleHeader.findAllByProps({accessibilityLabel: 'workspace.common.selectAll'}).some((node) => node.props.disabled === false && node.props.tabIndex === undefined),
+                within(hiddenHeader)
+                    .UNSAFE_getAllByProps({accessibilityLabel: 'Name'})
+                    .some((node) => node.props.disabled === true && node.props.tabIndex === -1),
+            ).toBe(true);
+            expect(
+                within(hiddenHeader)
+                    .UNSAFE_getAllByProps({accessibilityLabel: 'workspace.common.selectAll'})
+                    .some((node) => node.props.disabled === true && node.props.tabIndex === -1),
+            ).toBe(true);
+            expect(
+                within(accessibleHeader)
+                    .UNSAFE_getAllByProps({accessibilityLabel: 'Name'})
+                    .some((node) => node.props.disabled === false && node.props.tabIndex === undefined),
+            ).toBe(true);
+            expect(
+                within(accessibleHeader)
+                    .UNSAFE_getAllByProps({accessibilityLabel: 'workspace.common.selectAll'})
+                    .some((node) => node.props.disabled === false && node.props.tabIndex === undefined),
             ).toBe(true);
             expect(screen.getByTestId('flash-list-sticky-header')).toBeTruthy();
         });

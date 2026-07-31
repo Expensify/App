@@ -30,31 +30,6 @@ type TableSemanticContainerProps = {
     children: React.ReactNode;
 };
 
-type TableSemanticRowOwnerProps = {
-    isEnabled: boolean;
-    title: string | undefined;
-    rowCount: number;
-    columnCount: number;
-    hasHeaderRow: boolean;
-    ownedRowIDs: string[] | undefined;
-};
-
-/**
- * Owns virtualized table rows without wrapping their physical FlashList. Page controls render immediately before this
- * zero-layout node, while the owned header/data rows and any footer content follow it in their visual reading order.
- */
-function TableSemanticRowOwner({isEnabled, title, rowCount, columnCount, hasHeaderRow, ownedRowIDs}: TableSemanticRowOwnerProps) {
-    if (!isEnabled || rowCount === 0) {
-        return null;
-    }
-
-    return (
-        <View {...getTableContainerAccessibilityProps(true, title, rowCount, columnCount, hasHeaderRow)}>
-            <View {...getRowGroupAccessibilityProps(true, ownedRowIDs)} />
-        </View>
-    );
-}
-
 /**
  * Wraps only the contiguous header/body run in the `role="table"` container so that surrounding controls (filter bar,
  * empty states, …) stay outside the ARIA table, where a screen reader would otherwise navigate into them as table
@@ -115,7 +90,5 @@ function TableSemanticContainer({isEnabled, title, rowCount, columnCount, render
 }
 
 TableSemanticContainer.displayName = 'TableSemanticContainer';
-TableSemanticRowOwner.displayName = 'TableSemanticRowOwner';
 
 export default TableSemanticContainer;
-export {TableSemanticRowOwner};

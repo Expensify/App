@@ -16,10 +16,16 @@ import {StyleSheet, View} from 'react-native';
 import type {TableData} from '.';
 
 import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getSyntheticRowKind} from './buildTableListData';
-import {getRowGroupAccessibilityProps, getTableDataRowID, getTableHeaderRowID, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
+import {
+    getRowGroupAccessibilityProps,
+    getTableContainerAccessibilityProps,
+    getTableDataRowID,
+    getTableHeaderRowID,
+    getVirtualizedRowSemanticID,
+    shouldUseTableSemantics,
+} from './tableAccessibility';
 import {TableRowHasHeaderContext, TableRowSemanticIDContext, useTableContext} from './TableContext';
 import TableHeader from './TableHeader';
-import {TableSemanticRowOwner} from './TableSemanticContainer';
 
 /**
  * Props for the TableBody component.
@@ -33,6 +39,31 @@ type TableBodyListProps = TableBodyProps & {
     /** Message shown when the filtered table is empty. */
     emptyMessage: string;
 };
+
+type TableSemanticRowOwnerProps = {
+    isEnabled: boolean;
+    title: string | undefined;
+    rowCount: number;
+    columnCount: number;
+    hasHeaderRow: boolean;
+    ownedRowIDs: string[] | undefined;
+};
+
+/**
+ * Owns virtualized table rows without wrapping their physical FlashList. Page controls render immediately before this
+ * zero-layout node, while the owned header/data rows and any footer content follow it in their visual reading order.
+ */
+function TableSemanticRowOwner({isEnabled, title, rowCount, columnCount, hasHeaderRow, ownedRowIDs}: TableSemanticRowOwnerProps) {
+    if (!isEnabled || rowCount === 0) {
+        return null;
+    }
+
+    return (
+        <View {...getTableContainerAccessibilityProps(true, title, rowCount, columnCount, hasHeaderRow)}>
+            <View {...getRowGroupAccessibilityProps(true, ownedRowIDs)} />
+        </View>
+    );
+}
 
 /**
  * Whether `TableBody` still renders when the table has no data rows because an empty-state or page-header list slot
