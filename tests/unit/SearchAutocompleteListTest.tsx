@@ -2,12 +2,14 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import Text from '@components/Text';
 
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
+import {setHasRadio} from '@libs/NetworkState';
 import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 
@@ -20,8 +22,10 @@ import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
+import type ReactNative from 'react-native';
 
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createCollection from '../utils/collections/createCollection';
@@ -30,6 +34,25 @@ import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+
+const mockFlashListContentContainerStyles: Array<React.ComponentProps<typeof ReactNative.FlatList>['contentContainerStyle']> = [];
+
+jest.mock('@shopify/flash-list', () => {
+    const RN = jest.requireActual<typeof ReactNative>('react-native');
+    return {
+        FlashList: ({data, contentContainerStyle, ...props}: React.ComponentProps<typeof RN.FlatList>) => {
+            mockFlashListContentContainerStyles.push(contentContainerStyle);
+            return (
+                <RN.FlatList
+                    data={data}
+                    contentContainerStyle={contentContainerStyle}
+                    {...props}
+                    initialNumToRender={data?.length}
+                />
+            );
+        },
+    };
+});
 
 jest.mock('lodash/debounce', () =>
     jest.fn((fn: Record<string, jest.Mock>) => {
@@ -141,6 +164,8 @@ const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
 const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
+const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_ENABLED = {addSafeAreaPadding: true};
+const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_DISABLED = {addSafeAreaPadding: false};
 
 const mockOnClose = jest.fn((afterClose?: () => void) => {
     afterClose?.();
@@ -154,14 +179,18 @@ const fakeRecentReports = [
     {reportID: '103', keyForList: '103', text: 'Charlie Report', alternateText: 'charlie alt', lastMessageText: 'hey'},
 ];
 
-function SearchRouterWrapper({isSearchRouterDisplayed}: {isSearchRouterDisplayed?: boolean}) {
+function SearchRouterWrapper({isSearchRouterDisplayed, addOfflineIndicatorSafeAreaPadding}: {isSearchRouterDisplayed?: boolean; addOfflineIndicatorSafeAreaPadding?: boolean}) {
     return (
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <SearchRouter
-                onRouterClose={mockOnClose}
-                isSearchRouterDisplayed={isSearchRouterDisplayed}
-            />
-        </ComposeProviders>
+        <ScreenWrapperOfflineIndicatorContext.Provider
+            value={addOfflineIndicatorSafeAreaPadding ? OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_ENABLED : OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_DISABLED}
+        >
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <SearchRouter
+                    onRouterClose={mockOnClose}
+                    isSearchRouterDisplayed={isSearchRouterDisplayed}
+                />
+            </ComposeProviders>
+        </ScreenWrapperOfflineIndicatorContext.Provider>
     );
 }
 
@@ -199,6 +228,7 @@ describe('SearchAutocompleteList', () => {
     });
 
     afterEach(async () => {
+        setHasRadio(true);
         await act(async () => {
             await Onyx.clear();
         });
@@ -244,6 +274,37 @@ describe('SearchAutocompleteList', () => {
             expect(mockOnClose).toHaveBeenCalledWith(navigationAction);
             expect(navigationAction).toHaveBeenCalledTimes(1);
         });
+    });
+
+    it('should add offline indicator clearance to the list content', async () => {
+        mockUseNavigationSuggestions.mockReturnValue([
+            {
+                text: 'Go to Inbox',
+                keyForList: 'inbox',
+                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
+                action: jest.fn(),
+            },
+        ]);
+        mockFlashListContentContainerStyles.length = 0;
+        render(<SearchRouterWrapper addOfflineIndicatorSafeAreaPadding />);
+        await flushAllUpdates();
+
+        const getContentPaddingBottom = () => {
+            return mockFlashListContentContainerStyles
+                .map((contentContainerStyle) => StyleSheet.flatten(contentContainerStyle)?.paddingBottom)
+                .findLast((paddingBottom) => typeof paddingBottom === 'number');
+        };
+        const onlinePaddingBottom = getContentPaddingBottom();
+
+        expect(typeof onlinePaddingBottom).toBe('number');
+        if (typeof onlinePaddingBottom !== 'number') {
+            throw new Error('Expected the Search Router list to have numeric bottom padding');
+        }
+
+        act(() => setHasRadio(false));
+        await flushAllUpdates();
+
+        expect(getContentPaddingBottom()).toBe(onlinePaddingBottom + CONST.OFFLINE_INDICATOR_HEIGHT);
     });
 
     it('should display Recent searches section when query is empty and recent searches exist', async () => {
