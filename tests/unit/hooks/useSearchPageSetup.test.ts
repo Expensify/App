@@ -59,13 +59,13 @@ function makeUnresolvedSearchResults(hash: number, isLoading: boolean): SearchRe
     return searchResults;
 }
 
-function makeCachedSearchResults(hash: number, isLoading: boolean, state: SearchResults['search']['state']): SearchResults {
+function makeCachedSearchResults(hash: number, isLoading: boolean, state: SearchResults['search']['state'], offset = 0): SearchResults {
     return {
         data: {personalDetailsList: {}},
         search: {
             hash,
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            offset: 0,
+            offset,
             hasMoreResults: false,
             hasResults: false,
             isLoading,
@@ -117,14 +117,24 @@ describe('useSearchPageSetup', () => {
         expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({isLoading: false}));
     });
 
-    it('retries a cached snapshot whose legacy isLoading flag is stranded true', async () => {
+    it('does not restart the first page while a later page is loading', async () => {
+        const queryJSON = getQueryJSON();
+        mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, true, CONST.SEARCH.SNAPSHOT_STATE.LOADING, CONST.SEARCH.RESULTS_PAGE_SIZE);
+
+        renderHook(() => useSearchPageSetup(queryJSON));
+
+        await Promise.resolve();
+        expect(mockSearch).not.toHaveBeenCalled();
+    });
+
+    it('does not retry a cached snapshot whose terminal state is loaded when the legacy isLoading flag is stale', async () => {
         const queryJSON = getQueryJSON();
         mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, true, CONST.SEARCH.SNAPSHOT_STATE.LOADED);
 
         renderHook(() => useSearchPageSetup(queryJSON));
 
-        await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
-        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({isLoading: false}));
+        await Promise.resolve();
+        expect(mockSearch).not.toHaveBeenCalled();
     });
 
     it('does not retry a cached snapshot that reached a terminal loaded state', async () => {

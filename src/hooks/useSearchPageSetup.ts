@@ -57,7 +57,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const isSnapshotDataLoaded = queryJSON ? isSearchDataLoaded(currentSearchResults, queryJSON) : false;
     // Keep `isLoading` as a dependency so an unresolved search retries when temporary search prevention changes it to false.
     const isSnapshotSearchLoading = !!currentSearchResults?.search?.isLoading;
-    const isSnapshotSearchPending = isSearchPending(currentSearchResults);
+    const isInitialSearchPending = isSearchPending(currentSearchResults) && (currentSearchResults?.search?.offset ?? 0) === 0;
 
     // Clear selected transactions when navigating to a different search query
     function clearOnHashChange() {
@@ -87,9 +87,9 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             lastSavedSearchHash = hash;
         }
 
-        // `isLoading` or `state` may stay set after a reload. Start the search again even if cached data
-        // exists. `search()` skips the call when the same request is already running.
-        if (isSnapshotDataLoaded && !isSnapshotSearchPending && !isSnapshotSearchLoading) {
+        // A pending initial request may be stale after reload and can be restarted through request deduplication.
+        // Pagination must not restart page one.
+        if (isSnapshotDataLoaded && !isInitialSearchPending) {
             return;
         }
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
@@ -98,7 +98,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites})?.then((jsonCode) =>
             setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)),
         );
-    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isSnapshotSearchPending, currentSearchKey, shouldCalculateTotals]);
+    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals]);
 
     useFocusEffect(() => {
         openSearch();
