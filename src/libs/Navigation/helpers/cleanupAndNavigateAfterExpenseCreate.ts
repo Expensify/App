@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {isTracking} from '@libs/telemetry/submitFollowUpAction';
 
@@ -46,8 +47,7 @@ function cleanupAndNavigateAfterExpenseCreate({
     navigationReportID,
 }: CleanupAndNavigateAfterExpenseCreateParams) {
     if (__DEV__ && isTracking() && !shouldNavigate) {
-        // eslint-disable-next-line no-console
-        console.warn('[cleanupAndNavigateAfterExpenseCreate] shouldNavigate=false but span is active. Caller must own span lifecycle — miss this and span hangs 60s until dropped.');
+        Log.warn('[cleanupAndNavigateAfterExpenseCreate] shouldNavigate=false but span is active. Caller must own span lifecycle — miss this and span hangs 60s until dropped.');
     }
 
     cleanupAfterExpenseCreate({

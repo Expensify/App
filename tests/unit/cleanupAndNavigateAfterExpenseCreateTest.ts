@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
@@ -70,7 +71,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
     });
 
     it('should warn in __DEV__ when shouldNavigate is false but a submit span is still active', () => {
-        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => {});
         jest.mocked(isTracking).mockReturnValue(true);
 
         cleanupAndNavigateAfterExpenseCreate({
