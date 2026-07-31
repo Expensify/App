@@ -33,6 +33,7 @@ function InfoPopover() {
                 alignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                 onDismiss={() => setPopover(null)}
                 stackId={stackId}
+                containFocus={false}
                 surfaceStyle={popoverChrome}
             >
                 {content}
@@ -42,7 +43,7 @@ function InfoPopover() {
 }
 ```
 
-`vertical: TOP` puts content below the anchor, `BOTTOM` above. Both flip when there's no room.
+`vertical: TOP` puts content below the anchor, `BOTTOM` above. Both flip when there's no room. `containFocus` is required — `false` for a plain info popover, `true` to trap keyboard/screen-reader focus inside interactive overlays.
 
 ### Build your own overlay
 

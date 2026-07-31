@@ -4,6 +4,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import useDismissOnAnchorMove from '@components/Overlay/hooks/useDismissOnAnchorMove/index.web';
+import anchorBoxChanged from '@components/Overlay/hooks/useDismissOnAnchorMove/shared';
 
 function rectAt(left: number, top: number, width = 100, height = 40): DOMRect {
     return {x: left, y: top, left, top, right: left + width, bottom: top + height, width, height, toJSON: () => ({})};
@@ -230,5 +231,22 @@ describe('useDismissOnAnchorMove (web) — anchor leaves viewport / is removed',
         expect(onDismiss).toHaveBeenCalledTimes(1);
 
         restoreIO();
+    });
+});
+
+// The shared 4-edge comparison drives dismissal on both web (resize) and native (Dimensions change).
+describe('anchorBoxChanged (shared web + native)', () => {
+    const box = {left: 10, top: 20, right: 110, bottom: 60};
+
+    it('is false when every edge is within the sub-pixel epsilon', () => {
+        expect(anchorBoxChanged({left: 10.5, top: 20.5, right: 110.5, bottom: 60.5}, box)).toBe(false);
+    });
+
+    it('is true when the position moved (left/top)', () => {
+        expect(anchorBoxChanged({left: 10, top: 200, right: 110, bottom: 240}, box)).toBe(true);
+    });
+
+    it('is true when only the size changed (right/bottom edges)', () => {
+        expect(anchorBoxChanged({left: 10, top: 20, right: 210, bottom: 60}, box)).toBe(true);
     });
 });

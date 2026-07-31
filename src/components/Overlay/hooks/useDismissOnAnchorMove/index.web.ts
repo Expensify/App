@@ -5,7 +5,7 @@ import useCallbackRef from '@hooks/useCallbackRef';
 
 import {useEffect} from 'react';
 
-const ANCHOR_MOVE_EPSILON_PX = 1;
+import anchorBoxChanged from './shared';
 
 function useDismissOnAnchorMove(anchor: AnchorNode | null, onDismiss: () => void, isActive: boolean): void {
     const stableDismiss = useCallbackRef(onDismiss);
@@ -41,13 +41,8 @@ function useDismissOnAnchorMove(anchor: AnchorNode | null, onDismiss: () => void
 
         // Dismiss on resize only if the anchor's box actually changed (position or size) — ignores mobile keyboard / URL-bar resizes that leave it in place.
         const baseline = anchorHost.getBoundingClientRect();
-        const boxChanged = (next: DOMRect) =>
-            Math.abs(next.left - baseline.left) > ANCHOR_MOVE_EPSILON_PX ||
-            Math.abs(next.top - baseline.top) > ANCHOR_MOVE_EPSILON_PX ||
-            Math.abs(next.right - baseline.right) > ANCHOR_MOVE_EPSILON_PX ||
-            Math.abs(next.bottom - baseline.bottom) > ANCHOR_MOVE_EPSILON_PX;
         const onResize = () => {
-            if (!boxChanged(anchorHost.getBoundingClientRect())) {
+            if (!anchorBoxChanged(anchorHost.getBoundingClientRect(), baseline)) {
                 return;
             }
             dismissOnce();

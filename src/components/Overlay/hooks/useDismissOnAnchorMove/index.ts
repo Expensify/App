@@ -1,9 +1,12 @@
-import type {AnchorNode} from '@components/Overlay/libs/measureAnchor';
+import measureAnchor from '@components/Overlay/libs/measureAnchor';
+import type {AnchorNode, AnchorRect} from '@components/Overlay/libs/measureAnchor';
 
 import useCallbackRef from '@hooks/useCallbackRef';
 
 import {useEffect} from 'react';
 import {Dimensions} from 'react-native';
+
+import anchorBoxChanged from './shared';
 
 function useDismissOnAnchorMove(anchor: AnchorNode | null, onDismiss: () => void, isActive: boolean): void {
     const stableDismiss = useCallbackRef(onDismiss);
@@ -13,18 +16,46 @@ function useDismissOnAnchorMove(anchor: AnchorNode | null, onDismiss: () => void
             return undefined;
         }
 
-        // Dismiss only on a portrait<->landscape flip; the keyboard shrinks height without flipping, so it's ignored.
-        const initial = Dimensions.get('window');
-        let wasPortrait = initial.height >= initial.width;
-        const subscription = Dimensions.addEventListener('change', ({window}) => {
-            const isPortrait = window.height >= window.width;
-            if (isPortrait === wasPortrait) {
+        let cancelled = false;
+        let dismissed = false;
+        const dismissOnce = () => {
+            if (dismissed) {
                 return;
             }
-            wasPortrait = isPortrait;
+            dismissed = true;
             stableDismiss();
+        };
+
+        let baseline: AnchorRect | null = null;
+        measureAnchor(anchor).then(
+            (rect) => {
+                if (cancelled) {
+                    return;
+                }
+                baseline = rect;
+            },
+            () => {},
+        );
+
+        const subscription = Dimensions.addEventListener('change', () => {
+            measureAnchor(anchor).then(
+                (next) => {
+                    if (cancelled || baseline === null || next === null) {
+                        return;
+                    }
+                    if (!anchorBoxChanged(next, baseline)) {
+                        return;
+                    }
+                    dismissOnce();
+                },
+                () => {},
+            );
         });
-        return () => subscription.remove();
+
+        return () => {
+            cancelled = true;
+            subscription.remove();
+        };
     }, [anchor, isActive, stableDismiss]);
 }
 
