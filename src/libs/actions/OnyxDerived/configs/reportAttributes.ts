@@ -563,6 +563,7 @@ export default createOnyxDerivedValueConfig({
                     reportErrors,
                     transactions,
                     isOffline,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     transactionViolations,
                     !!isReportArchived,
                     reports,
@@ -709,6 +710,14 @@ export default createOnyxDerivedValueConfig({
             reports: reportAttributes,
             locale: preferredLocale ?? null,
         };
+    },
+    // On Onyx clear, drop the cross-compute baselines so the first post-clear pass is treated as a full
+    // change (see the engine's resetForClear). Otherwise the rehydrated data is diffed against the stale
+    // pre-clear baseline, "nothing changed" is concluded, and names computed while data was empty stay blank.
+    onReset: () => {
+        previousDisplayNames = {};
+        previousPersonalDetails = undefined;
+        previousPolicies = undefined;
     },
 });
 

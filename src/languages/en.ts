@@ -236,6 +236,8 @@ const translations = {
         owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'calendar opened',
+        // @context Screen-reader live announcement suffix when an RHP/modal dialog opens, e.g. "App download links, dialog".
+        dialogOpened: 'dialog',
         send: 'Send',
         na: 'N/A',
         noResultsFound: 'No results found',
@@ -1082,7 +1084,7 @@ const translations = {
         yourSpend: {
             title: 'Your spend',
             awaitingApproval: 'Awaiting approval',
-            repaidLast30Days: 'Repaid in the last 30 days',
+            repaidLast30Days: 'Repaid last 30 days',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recent transactions • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `See ${count} more`,
@@ -1272,6 +1274,7 @@ const translations = {
             'The file you uploaded is either empty or contains invalid data. Please ensure that the file is correctly formatted and contains the necessary information before uploading it again.',
         importSpreadsheetLibraryError: 'Failed to load spreadsheet module. Please check your internet connection and try again.',
         importSpreadsheet: 'Import spreadsheet',
+        importWorkflows: 'Import workflows',
         downloadCSV: 'Download CSV',
         importMemberConfirmation: () => ({
             one: `Please confirm the details below for a new workspace member that will be added as part of this upload. Existing members won’t receive any role updates or invite messages.`,
@@ -1544,6 +1547,8 @@ const translations = {
         paidThisBill: 'paid this bill',
         reimbursedOnBehalfOf: (actor: string) => `on behalf of ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `from the bank account ending in ${debitBankAccount}`,
+        reimbursedCrossBorder: ({amount, debitBankAccount, creditBankAccount}: {amount: string; debitBankAccount: string; creditBankAccount: string}) =>
+            `paid ${amount} from account ${debitBankAccount} to account ${creditBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} added a bank account, taking report off hold. Reimbursement is initiated`,
         reimbursedWithFastACH: ({
             isCurrentUser,
@@ -2887,6 +2892,13 @@ const translations = {
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: "Submission frequency couldn't be changed. Please try again or contact support.",
         monthlyOffsetErrorMessage: "Monthly frequency couldn't be changed. Please try again or contact support.",
+    },
+    workflowsCurrencyConversionFeesPage: {
+        title: 'Currency conversion fees',
+        subtitle: 'When reimbursing in a different currency, conversion fees may apply. Select who will pay the fees below. This only applies to cross-border conversions.',
+        companyPays: 'Company pays',
+        employeePays: 'Employee pays',
+        errorMessage: "Currency conversion fee preference couldn't be changed. Please try again or contact support.",
     },
     workflowsCreateApprovalsPage: {
         title: 'Confirm',
@@ -4442,7 +4454,7 @@ const translations = {
         toLearnMore: ' to learn more.',
         termsAndConditions: {
             header: 'Before we continue...',
-            title: 'Terms & conditions',
+            title: 'Review terms & conditions',
             label: 'I agree to the terms & conditions',
             subtitle: `Please agree to the Expensify Travel <a href="${CONST.TRAVEL_TERMS_URL}">terms & conditions</a>.`,
             error: 'You must agree to the Expensify Travel terms & conditions to continue',
@@ -4516,11 +4528,16 @@ const translations = {
         errorMessage: 'Something went wrong. Please try again later.',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>Please <a href="${phoneErrorMethodsRoute}">add a work email as your primary login</a> to book travel.</rbr>`,
         domainSelector: {
+            headline: 'Which domain do you want to set up?',
             title: 'Domain',
             subtitle: 'Choose a domain for Expensify Travel setup.',
             recommended: 'Recommended',
         },
+        workspaceAddress: {
+            headline: "What's your business address?",
+        },
         taxID: {
+            headline: "What's your business tax ID?",
             title: 'Tax ID',
             subtitle: 'Enter your legal entity tax ID so we can set up travel billing in your local currency.',
             inputLabel: 'Legal entity tax ID',
@@ -5712,7 +5729,8 @@ const translations = {
         rillet: {
             rilletSetup: 'Rillet setup',
             enterCredentials: 'Enter your Rillet API key',
-            howToFindAPIKey: '<strong>Finding your API key.</strong><ol><li>Log in to Rillet</li><li>Navigate to Account -> Settings</li><li>Copy the API key below</li></ol>',
+            howToFindAPIKey:
+                '<strong>Finding your API key.</strong><ol><li>Log in to Rillet</li><li>Navigate to [organization name] -> Organization settings -> API access</li><li>Create API key</li><li>Paste the API key below</li></ol>',
             subsidiary: 'Subsidiary',
             subsidiarySelectDescription: "Choose the subsidiary in Rillet that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
@@ -5949,7 +5967,7 @@ const translations = {
             },
             assign: 'Assign',
             assignCard: 'Assign card',
-            findCard: 'Find card',
+            findCompanyCard: 'Find company card',
             cardNumber: 'Card number',
             commercialFeed: 'Commercial feed',
             feedName: (feedName: string) => `${feedName} cards`,
@@ -6278,15 +6296,16 @@ const translations = {
                 assignedCards: 'Assigned',
                 unassignedCards: 'Unassigned',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
-                integrationExportTitleXero: (integration: string) => `Choose the ${integration} account where transactions should be exported.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Choose the ${integration} account where transactions should be exported. Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Choose the ${integration} account where transactions should be exported.${exportPageLink ? ` Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.` : ''}`,
                 lastUpdated: 'Last updated',
                 transactionStartDate: 'Transaction start date',
                 updateCard: 'Update card',
                 unassignCard: 'Unassign card',
+                unassignCards: 'Unassign cards',
                 unassign: 'Unassign',
                 unassignCardDescription: 'Unassigning this card will delete all unsubmitted transactions.',
+                unassignCardsDescription: 'Unassigning will delete all unsubmitted transactions from the selected cards.',
                 assignCard: 'Assign card',
                 removeCard: 'Remove card',
                 remove: 'Remove',
@@ -6759,8 +6778,6 @@ const translations = {
                 `${memberName} has outstanding expense reports to approve. Please ask them to approve, or take control of their reports before removing them from the workspace.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `You can't remove ${memberName} from this workspace. Please set a new reimburser in Workflows > Make or track payments, then try again.`,
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `You can't remove ${memberName} from this workspace while they have an Expensify Card. Please deactivate their card in Workspace > Expensify Card, then try again.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `If you remove ${memberName} from this workspace, we'll replace them as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -7520,6 +7537,8 @@ const translations = {
                 description: `Rules run in the background and keep your spend under control so you don't have to sweat the small stuff.\n\nRequire expense details like receipts and descriptions, set limits and defaults, and automate approvals and payments – all in one place.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Rules are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+                onlyAvailableOnPlanUnlimited: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Unlimited access to rules is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             publicReceiptVisibility: {
                 title: 'Public receipt visibility',
@@ -7826,6 +7845,12 @@ const translations = {
                 requireCompanyCard: 'Require company cards for all purchases',
                 requireCompanyCardDescription: 'Flag all cash spend, including mileage and per-diem expenses.',
                 requireCompanyCardDisabledTooltip: 'Enable Company cards (under More features) to unlock.',
+                enableTagsToUnlockTitle: 'Enable tags?',
+                enableTagsToUnlockPrompt: 'Enable Tags (under More features) to unlock.',
+                enableTagsAndRequirePrompt: 'Are you sure you want to enable tags and require them for all expenses?',
+                enableCategoriesToUnlockTitle: 'Enable categories?',
+                enableCategoriesToUnlockPrompt: 'Enable Categories (under More features) to unlock.',
+                enableCategoriesAndRequirePrompt: 'Are you sure you want to enable categories and require them for all expenses?',
             },
             expenseReportRules: {
                 title: 'Advanced',
@@ -8023,6 +8048,9 @@ const translations = {
                 },
                 defaultTaxRate: 'Default tax rate',
                 enableWorkflows: (moreFeaturesLink: string) => `Go to [More features](${moreFeaturesLink}) and enable workflows, then add approvals to unlock this feature.`,
+                createNewRule: 'Create new rule',
+                contextualFlagForReview: (amount: string) => `If amount is above ${amount}, flag for review`,
+                contextualFlagForReviewDaily: (amount: string) => `If daily category total is above ${amount}, flag for review`,
             },
             customRules: {
                 title: 'Expense policy',
@@ -8176,6 +8204,18 @@ const translations = {
                 editRuleTitle: 'Edit rule',
                 deleteRule: 'Delete rule',
                 deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
+                unableToRemoveTitle: 'Unable to remove',
+                unableToRemovePrompt: (rulesRoute: string) =>
+                    `The <a href="${rulesRoute}">agent rules</a> being enforced by RuleBot need to be removed from your workspace first before you can remove this agent.`,
+                unableToCloseAccountTitle: 'Unable to close account',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `The <a href="${rulesRoute}">agent rules</a> being enforced by RuleBot need to be removed from your workspace first before you can close this account.`,
+                unableToDeleteAgentTitle: 'Unable to delete agent',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `The <a href="${rulesRoute}">agent rules</a> being enforced by RuleBot need to be removed from your workspace first before you can delete this agent.`,
+                unableToChangeRoleTitle: 'Unable to change role',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `The <a href="${rulesRoute}">agent rules</a> being enforced by RuleBot need to be removed from your workspace first before you can change this agent's role.`,
                 describeRuleTitle: 'Describe the rule for your AI agent to follow',
                 describeRuleHeadline: 'Describe your rule',
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',
@@ -8455,6 +8495,11 @@ const translations = {
         updatedCardFeedLiability: (feedName: string, enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} cardholders to delete card transactions for card feed "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `changed card feed "${feedName}" statement period end day${newValue ? ` to "${newValue}"` : ''}${previousValue ? ` (previously "${previousValue}")` : ''}`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `added the agent rule "${title}": ${prompt}` : `added an agent rule: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `updated the agent rule "${title}" to: ${prompt}` : `updated an agent rule to: ${prompt}`),
+            deleted: ({title}: {title: string}) => (title ? `removed the agent rule "${title}"` : 'removed an agent rule'),
+        },
         expensifyCardRule: {
             actionVerb: {
                 block: 'blocked',
@@ -9064,6 +9109,10 @@ const translations = {
             undelete: 'Undelete',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
+        expensifyCardStatementPDF: {
+            title: 'Download statement',
+            oneFeedAtATime: 'Please select settlements from one Expensify Card feed at a time.',
+        },
         filtersHeader: 'Filters',
         filters: {
             date: {
@@ -9627,6 +9676,9 @@ const translations = {
         save: 'Save',
         resume: 'Resume',
         discard: 'Discard',
+        edit: 'Edit',
+        editStop: 'Edit stop',
+        totalDistance: 'Total distance',
         discardDistanceTrackingModal: {
             title: 'Discard distance tracking',
             prompt: "Are you sure? This will discard your current journey and can't be undone.",
@@ -9910,6 +9962,7 @@ const translations = {
         keepThisOne: 'Keep this one',
         confirmDetails: `Confirm the details you're keeping`,
         confirmDuplicatesInfo: `The duplicates you don't keep will be held for the submitter to delete.`,
+        cannotMergeDuplicates: 'You can only merge expenses on draft or outstanding reports. Retract it and try again.',
         hold: 'This expense was put on hold',
         resolvedDuplicates: 'resolved the duplicate',
         companyCardRequired: 'Company card purchases required',
@@ -10411,7 +10464,7 @@ const translations = {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>Get started <strong>here!</strong></tooltip>',
-        accountSwitcher: '<tooltip>Access your <strong>Copilot accounts</strong> here</tooltip>',
+        accountSwitcher: '<tooltip>You can now copilot into another account!</tooltip>',
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",
@@ -10460,6 +10513,7 @@ const translations = {
             `# ${name} invited you to test drive Expensify\nHey! I just got us *3 months free* to test drive Expensify, the fastest way to do expenses.\n\nHere’s a *test receipt* to show you how it works:`,
     },
     export: {
+        downloadStatementPDF: 'Download statement',
         basicExport: 'Basic export',
         currentView: 'Current view',
         reportLevelExport: 'All Data - report level',

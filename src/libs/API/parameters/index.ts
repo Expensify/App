@@ -252,6 +252,7 @@ export type {default as UpdatePolicyCategoryPayrollCodeParams} from './UpdatePol
 export type {default as UpdatePolicyCategoryGLCodeParams} from './UpdatePolicyCategoryGLCodeParams';
 export type {default as SetWorkspaceAutoHarvestingParams} from './SetWorkspaceAutoHarvestingParams';
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
+export type {default as SetGlobalReimbursementFXPreferenceParams} from './SetGlobalReimbursementFXPreferenceParams';
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
 export type {default as DisablePolicyApprovalsParams} from './DisablePolicyApprovalsParams';
@@ -331,6 +332,7 @@ export type {default as LeavePolicyParams} from './LeavePolicyParams';
 export type {default as OpenPolicyAccountingPageParams} from './OpenPolicyAccountingPageParams';
 export type {default as DismissViolationParams} from './DismissViolationParams';
 export type {default as SearchParams} from './Search';
+export type {default as GetTransactionsConvertedAmountParams} from './GetTransactionsConvertedAmount';
 export type {default as SendInvoiceParams} from './SendInvoiceParams';
 export type {default as PayInvoiceParams} from './PayInvoiceParams';
 export type {default as MarkAsCashParams} from './MarkAsCashParams';
@@ -447,6 +449,7 @@ export type {default as ToggleTravelInvoicingContinuousReconciliationParams} fro
 export type {default as UpdateTravelInvoicingMonthlyLimitParams} from './UpdateTravelInvoicingMonthlyLimitParams';
 export type {default as UpdateTravelInvoicingSettlementFrequencyParams} from './UpdateTravelInvoicingSettlementFrequencyParams';
 export type {default as RetryTravelCardsProvisioningParams} from './RetryTravelCardsProvisioningParams';
+export type {default as GetExpensifyCardStatementPDFParams} from './GetExpensifyCardStatementPDFParams';
 export type {default as GetTravelInvoiceStatementPDFParams} from './GetTravelInvoiceStatementPDFParams';
 export type {default as ExportTravelInvoiceStatementCSVParams} from './ExportTravelInvoiceStatementCSVParams';
 export type {default as SetCompanyCardFeedName} from './SetCompanyCardFeedName';
