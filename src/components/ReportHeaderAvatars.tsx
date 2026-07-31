@@ -18,6 +18,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import Avatar from './Avatar';
+import getSubscriptAvatarSizing from './Avatar/layouts/getSubscriptAvatarSizing';
 import SingleAvatar from './Avatar/layouts/SingleAvatar';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import useReportActionAvatars from './ReportActionAvatars/useReportActionAvatars';
@@ -77,7 +78,7 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
     const size = CONST.AVATAR_SIZE.XXXX_LARGE;
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && !!secondaryAvatar?.name) {
-        const subscriptAvatarSize = CONST.AVATAR_SIZE.DEFAULT;
+        const {subscriptSize, borderWidthSize, containerStyleKey} = getSubscriptAvatarSizing(size);
 
         return (
             <View
@@ -118,7 +119,7 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
                     accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
                     icon={secondaryAvatar}
                 >
-                    <View style={styles.secondAvatarSubscriptXxxxLarge}>
+                    <View style={styles[containerStyleKey]}>
                         <PressableWithoutFocus
                             onPress={() => navigateToAvatarPage(secondaryAvatar)}
                             accessibilityLabel={getAccessibilityLabel(secondaryAvatar)}
@@ -126,15 +127,14 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_AVATAR}
                         >
                             <Avatar
-                                // The medium subscript on a xxxx-large avatar keeps the small border width (as before the size migration) — the default border width for its size is 1px thicker and would shrink the visible avatar.
-                                iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(CONST.AVATAR_SIZE.SMALL), StyleUtils.getBorderColorStyle(theme.componentBG)]}
+                                iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(theme.componentBG)]}
                                 type={secondaryAvatar.type}
                                 source={secondaryAvatar.source}
                                 name={secondaryAvatar.name ?? ''}
                                 avatarID={secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
                                 fallbackIcon={secondaryAvatar.fallbackIcon}
                                 fill={secondaryAvatar.fill}
-                                size={subscriptAvatarSize}
+                                size={subscriptSize}
                                 testID="ReportActionAvatars-Subscript-SecondaryAvatar"
                             />
                         </PressableWithoutFocus>

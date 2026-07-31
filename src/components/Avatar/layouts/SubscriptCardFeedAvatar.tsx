@@ -77,7 +77,7 @@ function SubscriptCardFeedAvatar({
             >
                 <View>
                     <Avatar
-                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
+                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
                         type={primaryAvatar.type}
                         source={primaryAvatar.source}
                         name={primaryAvatar.name ?? ''}

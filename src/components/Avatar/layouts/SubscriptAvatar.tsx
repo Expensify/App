@@ -15,6 +15,7 @@ import {View} from 'react-native';
 import type {BaseAvatarProps} from './types';
 
 import Avatar from '..';
+import getSubscriptAvatarSizing from './getSubscriptAvatarSizing';
 
 type SubscriptAvatarProps = BaseAvatarProps & {
     /** The primary (main) avatar icon */
@@ -36,18 +37,7 @@ function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, shouldShowToolti
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const isSmall = size === CONST.AVATAR_SIZE.SMALL;
-
-    let subscriptAvatarStyle;
-    if (size === CONST.AVATAR_SIZE.SMALL) {
-        subscriptAvatarStyle = styles.secondAvatarSubscriptSmall;
-    } else if (size === CONST.AVATAR_SIZE.XXXX_LARGE) {
-        subscriptAvatarStyle = styles.secondAvatarSubscriptXxxxLarge;
-    } else {
-        subscriptAvatarStyle = styles.secondAvatarSubscript;
-    }
-
-    const subscriptAvatarSize = size === CONST.AVATAR_SIZE.XXXX_LARGE ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.XX_SMALL;
+    const {subscriptSize, borderWidthSize, containerStyleKey} = getSubscriptAvatarSizing(size);
 
     return (
         <View
@@ -65,7 +55,7 @@ function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, shouldShowToolti
             >
                 <View>
                     <Avatar
-                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
+                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
                         type={primaryAvatar.type}
                         source={primaryAvatar.source}
                         name={primaryAvatar.name ?? ''}
@@ -83,22 +73,16 @@ function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, shouldShowToolti
                     accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
                     icon={secondaryAvatar}
                 >
-                    <View style={subscriptAvatarStyle}>
+                    <View style={styles[containerStyleKey]}>
                         <Avatar
-                            iconAdditionalStyles={[
-                                // The medium subscript on a xxxx-large avatar keeps the small border width (as before the size migration) — the default border width for its size is 1px thicker and would shrink the visible avatar.
-                                size === CONST.AVATAR_SIZE.XXXX_LARGE
-                                    ? StyleUtils.getAvatarBorderWidth(CONST.AVATAR_SIZE.SMALL)
-                                    : StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.XXXX_SMALL : subscriptAvatarSize),
-                                StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG),
-                            ]}
+                            iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG)]}
                             type={secondaryAvatar.type}
                             source={secondaryAvatar.source}
                             name={secondaryAvatar.name ?? ''}
                             avatarID={secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
                             fallbackIcon={secondaryAvatar.fallbackIcon}
                             fill={secondaryAvatar.fill}
-                            size={isSmall ? CONST.AVATAR_SIZE.XXXX_SMALL : subscriptAvatarSize}
+                            size={subscriptSize}
                             testID="ReportActionAvatars-Subscript-SecondaryAvatar"
                         />
                     </View>
