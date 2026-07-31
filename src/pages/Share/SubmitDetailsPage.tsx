@@ -40,10 +40,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID, resolveReportForMoneyRequest} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
-import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -57,6 +54,7 @@ import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
+import getSubmitExpensePreMountDestinationRoute from '@pages/iou/request/step/confirmation/getSubmitExpensePreMountDestinationRoute';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -292,16 +290,16 @@ function SubmitDetailsPage({
     // Keep pre-mount off while pending navigation owns the reveal — otherwise once the optimistic
     // report lands, isDestinationReportMissing flips false and usePreMountDestination would schedule
     // a narrow pre-insert alongside the pending revealRouteBeforeDismissingModal (dual nav).
-    const hasPreInsertedFullscreen = Navigation.getIsFullscreenPreInsertedUnderRHP();
-    const canPreInsert = !isSearchTopmostFullScreenRoute() && !isReportTopmostSplitNavigator() && !isReportOpenInRHP(navigationRef.getRootState());
-    const preMountDestinationRoute =
-        hasNavigationDestination &&
-        !isDestinationReportMissing &&
-        !pendingNavigationReportID &&
-        canPreInsert &&
-        (hasPreInsertedFullscreen || Navigation.getTopmostReportId() !== postSubmitNavigationReportID)
-            ? ROUTES.REPORT_WITH_ID.getRoute(postSubmitNavigationReportID)
-            : undefined;
+    const preMountDestinationRoute = getSubmitExpensePreMountDestinationRoute({
+        isTransactionReady: hasNavigationDestination && !isDestinationReportMissing && !pendingNavigationReportID,
+        destinationReportID: postSubmitNavigationReportID,
+        destinationReport: destinationReportInCollection,
+        isFromGlobalCreate: false,
+        canPreInsertSearch: false,
+        iouType,
+        isCreatingTrackExpense,
+        isSelfDMDestination: isSelfDM(report),
+    });
 
     const {reveal: revealPreMountDestination, cleanupPreMount} = usePreMountDestination(preMountDestinationRoute, {
         shouldPreservePreInsertedRouteOnUnmount: () => hasCalledReveal.current,
