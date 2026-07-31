@@ -576,7 +576,6 @@ const CONST = {
     },
 
     ASSIGN_CARD_BUTTON_TEST_ID: 'assignCardButtonTestID',
-    ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID: 'assignCardCardholderRowTestID',
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         ASPECT_RATIO: 3.72,
@@ -4514,21 +4513,18 @@ const CONST = {
     },
 
     AVATAR_SIZE: {
-        X_LARGE: 'xlarge',
-        LARGE: 'large',
-        MEDIUM: 'medium',
-        DEFAULT: 'default',
+        XXXX_SMALL: 'xxxx-small',
+        XXX_SMALL: 'xxx-small',
+        XX_SMALL: 'xx-small',
+        X_SMALL: 'x-small',
         SMALL: 'small',
-        SMALLER: 'smaller',
-        SUBSCRIPT: 'subscript',
-        SMALL_SUBSCRIPT: 'small-subscript',
-        MID_SUBSCRIPT: 'mid-subscript',
-        LARGE_BORDERED: 'large-bordered',
-        MEDIUM_LARGE: 'medium-large',
-        HEADER: 'header',
-        MENTION_ICON: 'mention-icon',
-        SMALL_NORMAL: 'small-normal',
-        LARGE_NORMAL: 'large-normal',
+        // The default avatar size, mapping to the medium avatar dimensions (variables.avatarSizeMedium)
+        DEFAULT: 'medium',
+        LARGE: 'large',
+        X_LARGE: 'x-large',
+        XX_LARGE: 'xx-large',
+        XXX_LARGE: 'xxx-large',
+        XXXX_LARGE: 'xxxx-large',
     },
 
     COMPANY_CARD: {

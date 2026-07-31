@@ -81,6 +81,7 @@ import type {
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
+import type SearchFooterConversion from '@src/types/onyx/SearchFooterConversion';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 
@@ -1000,6 +1001,28 @@ function handlePreventSearchAPI(hash: number | undefined) {
     };
 }
 
+/**
+ * Builds the backend-facing query from a client queryJSON: strips client-only fields and rewrites client-side-sorted
+ * columns to a backend-supported date sort.
+ */
+function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
+    const {exactMatchFilterKeys, flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
+    const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
+        ? {
+              ...queryJSONWithoutFlatFilters,
+              sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+              inputQuery: buildSearchQueryString({
+                  ...queryJSON,
+                  sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+              }),
+              rawFilterList: queryJSONWithoutFlatFilters.rawFilterList?.map((filter) =>
+                  filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY ? {...filter, value: CONST.SEARCH.TABLE_COLUMNS.DATE} : filter,
+              ),
+          }
+        : queryJSONWithoutFlatFilters;
+    return {backendQueryJSON, limit, exactMatchFilterKeys};
+}
+
 function search({
     queryJSON,
     searchKey,
@@ -1039,20 +1062,7 @@ function search({
     inFlightSearchRequests.add(dedupeKey);
 
     const {optimisticData, successData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
-    const {exactMatchFilterKeys, flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
-    const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
-        ? {
-              ...queryJSONWithoutFlatFilters,
-              sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-              inputQuery: buildSearchQueryString({
-                  ...queryJSON,
-                  sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-              }),
-              rawFilterList: queryJSONWithoutFlatFilters.rawFilterList?.map((filter) =>
-                  filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY ? {...filter, value: CONST.SEARCH.TABLE_COLUMNS.DATE} : filter,
-              ),
-          }
-        : queryJSONWithoutFlatFilters;
+    const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
         searchKey,
@@ -1144,6 +1154,75 @@ function search({
     }
 
     return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest).catch(handleSearchError);
+}
+
+/**
+ * Fetches converted footer-total figures for the Search footer currency picker. The Auth command merges the
+ * results into the SEARCH_FOOTER_CONVERSION cache via onyxData (nested under the target currency), leaving the
+ * live search snapshot untouched:
+ *  - transactionIDList: each transaction's converted amount.
+ *  - reportIDList: each report's converted total (the Reports search).
+ *  - neither: the whole-search converted total/count + the first page's per-transaction amounts.
+ * Callers should check the cache first to avoid redundant requests.
+ */
+function getFooterConvertedAmounts({
+    queryJSON,
+    searchKey,
+    targetCurrency,
+    transactionIDList,
+    reportIDList,
+    sources,
+}: {
+    queryJSON: Readonly<SearchQueryJSON>;
+    searchKey: SearchKey | undefined;
+    targetCurrency: string;
+    transactionIDList?: string;
+    reportIDList?: string;
+    /** Default-currency source figures to stamp the requested conversions against (for stale detection on edit). */
+    sources?: SearchFooterConversion['sources'];
+}) {
+    if (!targetCurrency) {
+        return;
+    }
+
+    // searchKey changes what the backend query matches (e.g. unapprovedCash excludes card expenses), so it must be
+    // sent exactly as search() sends it or the converted totals cover a different expense set than the snapshot.
+    const {backendQueryJSON, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
+    const jsonQuery = serializeQueryJSONForBackend(
+        {
+            ...backendQueryJSON,
+            searchKey,
+            filters: backendQueryJSON.filters ?? null,
+        },
+        exactMatchFilterKeys ? new Set(exactMatchFilterKeys) : undefined,
+    );
+
+    read(
+        READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT,
+        {
+            jsonQuery,
+            targetCurrency,
+            ...(transactionIDList && {transactionIDList}),
+            ...(reportIDList && {reportIDList}),
+        },
+        {
+            // Stamp the source figures this request converts (and clear any prior failure for this currency) so a later
+            // edit that moves them is detected as stale and the footer can retry. The command merges its converted
+            // figures into the same key, so the stamp and the converted value live side by side.
+            optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FOOTER_CONVERSION, value: {...(sources && {sources}), failedCurrencies: {[targetCurrency]: null}}}],
+            // A failed read leaves no converted value, so record the failure; the footer then falls back to the default
+            // total instead of the stale converted value (or a skeleton that would stay until the next edit/reconnect).
+            failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FOOTER_CONVERSION, value: {failedCurrencies: {[targetCurrency]: true}}}],
+        },
+    );
+}
+
+/**
+ * Clears the footer-currency conversion cache. The converted figures are ephemeral, session-scoped display
+ * data, so they are dropped when leaving Search rather than persisted across sessions.
+ */
+function clearFooterConversion() {
+    Onyx.set(ONYXKEYS.SEARCH_FOOTER_CONVERSION, null);
 }
 
 function submitMoneyRequestOnSearch(
@@ -1994,6 +2073,8 @@ export {
     saveSearch,
     seedMyExpensesSearch,
     search,
+    getFooterConvertedAmounts,
+    clearFooterConversion,
     rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,
     queueExportSearchItemsToCSV,
