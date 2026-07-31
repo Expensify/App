@@ -2,7 +2,6 @@ import Log from '@libs/Log';
 
 import type {EmitterSubscription, ScaledSize} from 'react-native';
 
-import {useSyncExternalStore} from 'react';
 import {Dimensions} from 'react-native';
 
 // How long the window stays marked as changing after the last qualifying dimension change. Long enough for the
@@ -44,7 +43,8 @@ function rememberWindowSize(size: ScaledSize) {
 function handleDimensionsChange({window}: {window: ScaledSize}) {
     // Only width and orientation changes count as a resize. The soft keyboard changes the window height on Android
     // (adjustResize) and on mobile web, and reacting to that would remount and clean up the effects of every hidden
-    // screen on each keyboard toggle.
+    // screen on each keyboard toggle. A scale only change (e.g. moving the window to a monitor with a different
+    // pixel density) keeps the same layout size in density independent units, so it does not count either.
     if (window.width === lastWidth && isPortrait(window) === lastIsPortrait) {
         return;
     }
@@ -87,14 +87,4 @@ function getSnapshot() {
     return isWindowSizeChanging;
 }
 
-/**
- * Reports whether the window is being resized or the device has just changed orientation. Screens deprioritized with
- * React <Activity> render at background priority and have no mounted effects, so their layout goes stale when the
- * window size changes. Reading this flag lets them become visible for the duration of the change and lay themselves
- * out again while they are still covered, instead of catching up in front of the user on reveal.
- */
-function useIsWindowSizeChanging() {
-    return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-}
-
-export default useIsWindowSizeChanging;
+export {subscribe, getSnapshot};

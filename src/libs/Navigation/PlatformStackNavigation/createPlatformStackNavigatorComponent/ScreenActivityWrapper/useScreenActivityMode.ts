@@ -5,7 +5,7 @@ import type {ActivityProps} from 'react';
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef, useState} from 'react';
 
-import useIsWindowSizeChanging from './windowSizeChangeStore';
+import useIsWindowSizeChanging from './useIsWindowSizeChanging';
 
 // requestAnimationFrame never fires while the app sits in the background or in a hidden browser tab, so a screen
 // that mounts there would keep rendering at full priority until it comes back. Whichever fires first wins.
