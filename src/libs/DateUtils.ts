@@ -178,6 +178,7 @@ function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, cu
 
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
     const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
+    const localizedTime = new Intl.DateTimeFormat(locale, {timeStyle: 'short'}).format(date);
 
     if (isLowercase) {
         todayAt = todayAt.toLowerCase();
@@ -186,18 +187,20 @@ function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, cu
     }
 
     if (isToday(date, currentSelectedTimezone)) {
-        return `${todayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+        return `${todayAt} ${localizedTime}${tz}`;
     }
     if (isTomorrow(date, currentSelectedTimezone)) {
-        return `${tomorrowAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+        return `${tomorrowAt} ${localizedTime}${tz}`;
     }
     if (isYesterday(date, currentSelectedTimezone)) {
-        return `${yesterdayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+        return `${yesterdayAt} ${localizedTime}${tz}`;
     }
     if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
-        return `${format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT)} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+        const shortDate = new Intl.DateTimeFormat(locale, {day: 'numeric', month: 'short'}).format(date);
+        return `${shortDate} ${at} ${localizedTime}${tz}`;
     }
-    return `${format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT)} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+    const dateWithYear = new Intl.DateTimeFormat(locale, {day: 'numeric', month: 'short', year: 'numeric'}).format(date);
+    return `${dateWithYear} ${at} ${localizedTime}${tz}`;
 }
 
 /**

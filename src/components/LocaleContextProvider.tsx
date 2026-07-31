@@ -18,7 +18,6 @@ import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {format as formatDate} from 'date-fns';
 import React, {createContext, useEffect, useState} from 'react';
 
 type LocaleContextProviderProps = {
@@ -154,8 +153,8 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
     const formatTravelDate: LocaleContextProps['formatTravelDate'] = (datetime) => {
         const date = new Date(datetime);
-        const formattedDate = formatDate(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
-        const formattedHour = formatDate(date, CONST.DATE.LOCAL_TIME_FORMAT);
+        const formattedDate = new Intl.DateTimeFormat(currentLocale, {dateStyle: 'medium'}).format(date);
+        const formattedHour = new Intl.DateTimeFormat(currentLocale, {timeStyle: 'short'}).format(date);
         const at = translateLocalize(currentLocale, 'common.conjunctionAt');
         return `${formattedDate} ${at} ${formattedHour}`;
     };
