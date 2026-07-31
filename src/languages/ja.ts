@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'オーナー',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'カレンダーが開きました',
+        dialogOpened: 'ダイアログ',
         send: '送信',
         na: '該当なし',
         noResultsFound: '結果が見つかりません',
@@ -1180,6 +1181,7 @@ const translations: TranslationDeepObject<typeof en> = {
             'アップロードしたファイルは空であるか、無効なデータが含まれています。再度アップロードする前に、ファイルの形式が正しく、必要な情報が含まれていることを確認してください。',
         importSpreadsheetLibraryError: 'スプレッドシートモジュールの読み込みに失敗しました。インターネット接続を確認して、もう一度お試しください。',
         importSpreadsheet: 'スプレッドシートをインポート',
+        importWorkflows: 'ワークフローをインポート',
         downloadCSV: 'CSV をダウンロード',
         importMemberConfirmation: () => ({
             one: `このアップロードの一部として追加される新しいワークスペースメンバーの詳細を、以下で確認してください。既存のメンバーにはロールの更新や招待メッセージは送信されません。`,
@@ -5787,7 +5789,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             directFeed: 'ダイレクトフィード',
             whoNeedsCardAssigned: '誰にカードを割り当てる必要がありますか？',
             chooseTheCardholder: 'カード名義人を選択',
-            pleaseSelectACardholder: '続行するにはカード名義人を選択してください',
             chooseCard: 'カードを選択',
             chooseCardFor: (assignee: string) =>
                 `<strong>${assignee}</strong> に割り当てるカードを選択してください。お探しのカードが見つかりませんか？<concierge-link>お知らせください。</concierge-link>`,
@@ -6095,9 +6096,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 assignedCards: '割り当て済み',
                 unassignedCards: '未割り当て',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} エクスポート` : `${integration} エクスポート`),
-                integrationExportTitleXero: (integration: string) => `取引のエクスポート先となる${integration}の口座を選択してください。`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `取引をエクスポートする${integration}アカウントを選択してください。利用可能なアカウントを変更するには、別の<a href="${exportPageLink}">エクスポートオプション</a>を選択してください。`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `取引をエクスポートする${integration}アカウントを選択してください。${exportPageLink ? `利用可能なアカウントを変更するには、別の<a href="${exportPageLink}">エクスポートオプション</a>を選択してください。` : ''}`,
                 lastUpdated: '最終更新日時',
                 transactionStartDate: '取引開始日',
                 updateCard: 'カードを更新',
@@ -6566,8 +6566,6 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             peopleAdmins: 'People 管理者',
             paymentsAdmins: '支払い管理者',
             members: 'メンバー',
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `${memberName}さんはExpensify カードをお持ちの間、このワークスペースから削除できません。ワークスペース > Expensify カードでカードを無効化してから、もう一度お試しください。`,
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -7571,6 +7569,9 @@ ${reportName}`,
                 },
                 defaultTaxRate: 'デフォルト税率',
                 enableWorkflows: (moreFeaturesLink: string) => `[その他の機能](${moreFeaturesLink})に移動してワークフローを有効にし、承認を追加してこの機能を有効化してください。`,
+                createNewRule: '新しいルールを作成',
+                contextualFlagForReview: (amount: string) => `金額が${amount}を超える場合は、確認のためフラグを付けます`,
+                contextualFlagForReviewDaily: (amount: string) => `日別カテゴリ合計が ${amount} を超える場合は、確認のためフラグを付けます`,
             },
             customRules: {
                 title: '経費ポリシー',
@@ -8541,6 +8542,12 @@ ${reportName}`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `「${mccGroupName}」のデフォルト支出カテゴリーを「${newCategory}」に変更しました（以前は「${oldCategory}」）`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の法人カード購入要件`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `エージェントルール「${title}」を追加しました：${prompt}` : `エージェントルールを追加しました：${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) =>
+                title ? `エージェントルール「${title}」を次の内容に更新しました：${prompt}` : `エージェントルールを次の内容に更新しました：${prompt}`,
+            deleted: ({title}: {title: string}) => (title ? `エージェントルール「${title}」を削除しました` : 'エージェントルールを削除しました'),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'ブロック済み', allow: '許可済み'},
             amountOperator: {
@@ -8802,6 +8809,10 @@ ${reportName}`,
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',
             undelete: '削除を取り消す',
             duplicateReport: ({count}: {count: number}) => `${count === 1 ? 'レポート' : 'レポート'} を複製`,
+        },
+        expensifyCardStatementPDF: {
+            title: '明細書をダウンロード',
+            oneFeedAtATime: '一度に1つのExpensify Cardフィードからのみ決済を選択してください。',
         },
         filtersHeader: 'フィルター',
         filters: {
@@ -9631,6 +9642,7 @@ ${reportName}`,
         customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `料金は${startDate}から${endDate}までのみ有効です`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `料金は${startDate}からのみ有効です`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `料金は${endDate}までのみ有効です`,
+        cannotMergeDuplicates: '経費を統合できるのは、下書きまたは未清算のレポートのみです。レポートを取り下げて、もう一度お試しください。',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} は必須です`,
@@ -10108,7 +10120,7 @@ ${reportName}`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
-        accountSwitcher: '<tooltip>ここから<strong>Copilot アカウント</strong>にアクセスできます</tooltip>',
+        accountSwitcher: '<tooltip>他のアカウントにコパイロットとして入ることができるようになりました！</tooltip>',
         outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',
@@ -10159,6 +10171,7 @@ ${reportName}`,
 使い方がわかるように、こちらが*テスト用レシート*です。`,
     },
     export: {
+        downloadStatementPDF: '明細書をダウンロード',
         basicExport: '基本エクスポート',
         reportLevelExport: 'すべてのデータ - レポートレベル',
         expenseLevelExport: 'すべてのデータ - 経費レベル',

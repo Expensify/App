@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Właściciel',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'kalendarz otwarty',
+        dialogOpened: 'okno dialogowe',
         send: 'Wyślij',
         na: 'ND dotyczy',
         noResultsFound: 'Nie znaleziono wyników',
@@ -1192,6 +1193,7 @@ const translations: TranslationDeepObject<typeof en> = {
             'Przesłany plik jest pusty lub zawiera nieprawidłowe dane. Upewnij się, że plik ma prawidłowy format i zawiera wszystkie wymagane informacje, zanim prześlesz go ponownie.',
         importSpreadsheetLibraryError: 'Nie udało się załadować modułu arkusza kalkulacyjnego. Sprawdź połączenie z internetem i spróbuj ponownie.',
         importSpreadsheet: 'Importuj arkusz kalkulacyjny',
+        importWorkflows: 'Importuj przepływy pracy',
         downloadCSV: 'Pobierz plik CSV',
         importMemberConfirmation: () => ({
             one: `Potwierdź poniższe dane nowego członka przestrzeni roboczej, który zostanie dodany w ramach tego przesyłania. Istniejący członkowie nie otrzymają żadnych aktualizacji ról ani zaproszeń.`,
@@ -5823,7 +5825,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             directFeed: 'Bezpośredni kanał',
             whoNeedsCardAssigned: 'Kto potrzebuje przypisanej karty?',
             chooseTheCardholder: 'Wybierz posiadacza karty',
-            pleaseSelectACardholder: 'Wybierz posiadacza karty, aby kontynuować',
             chooseCard: 'Wybierz kartę',
             chooseCardFor: (assignee: string) => `Wybierz kartę dla <strong>${assignee}</strong>. Nie możesz znaleźć karty, której szukasz? <concierge-link>Daj nam znać.</concierge-link>`,
             noActiveCards: 'Brak aktywnych kart w tym kanale',
@@ -6141,9 +6142,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 assignedCards: 'Przypisano',
                 unassignedCards: 'Nieprzypisane',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `eksport ${integration} ${type.toLowerCase()}` : `Eksport z ${integration}`),
-                integrationExportTitleXero: (integration: string) => `Wybierz konto ${integration}, do którego mają być eksportowane transakcje.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Wybierz konto ${integration}, do którego mają być eksportowane transakcje. Wybierz inną <a href="${exportPageLink}">opcję eksportu</a>, aby zmienić dostępne konta.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Wybierz konto ${integration}, do którego mają być eksportowane transakcje.${exportPageLink ? ` Wybierz inną <a href="${exportPageLink}">opcję eksportu</a>, aby zmienić dostępne konta.` : ''}`,
                 lastUpdated: 'Ostatnia aktualizacja',
                 transactionStartDate: 'Data początkowa transakcji',
                 updateCard: 'Zaktualizuj kartę',
@@ -6613,8 +6613,6 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             peopleAdmins: 'Administratorzy osób',
             paymentsAdmins: 'Administratorzy płatności',
             members: 'Członkowie',
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `Nie możesz usunąć użytkownika ${memberName} z tego workspace, dopóki ma Kartę Expensify. Dezaktywuj jego kartę w Workspace > Karta Expensify, a następnie spróbuj ponownie.`,
         },
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',
@@ -7627,6 +7625,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 defaultTaxRate: 'Domyślna stawka podatku',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Przejdź do [Więcej funkcji](${moreFeaturesLink}) i włącz przepływy pracy, a następnie dodaj zatwierdzenia, aby odblokować tę funkcję.`,
+                createNewRule: 'Utwórz nową regułę',
+                contextualFlagForReview: (amount: string) => `Jeśli kwota przekracza ${amount}, oznacz do sprawdzenia`,
+                contextualFlagForReviewDaily: (amount: string) => `Jeśli dzienny łączny wydatek w danej kategorii przekracza ${amount}, oznacz do sprawdzenia`,
             },
             customRules: {
                 title: 'Polityka wydatków',
@@ -8606,6 +8607,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `zmieniono domyślną kategorię wydatków dla „${mccGroupName}” na „${newCategory}” (poprzednio „${oldCategory}”)`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'wyłączone'} wymóg dotyczący zakupów kartą służbową`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `dodał(a) regułę agenta „${title}”: ${prompt}` : `dodano regułę agenta: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `zaktualizował(a) regułę agenta „${title}” na: ${prompt}` : `zaktualizowano regułę agenta na: ${prompt}`),
+            deleted: ({title}: {title: string}) => (title ? `usunął(-ęła) regułę agenta „${title}”` : 'usunięto regułę agenta'),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'zablokowane', allow: 'dozwolone'},
             amountOperator: {over: 'ponad', under: 'pod'},
@@ -8866,6 +8872,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             noOptionsAvailable: 'Brak opcji dostępnych dla wybranej grupy wydatków.',
             undelete: 'Cofnij usunięcie',
             duplicateReport: ({count}: {count: number}) => `Duplikat ${count === 1 ? 'raport' : 'raporty'}`,
+        },
+        expensifyCardStatementPDF: {
+            title: 'Pobierz wyciąg',
+            oneFeedAtATime: 'Wybieraj rozliczenia z jednego feedu Expensify Card na raz.',
         },
         filtersHeader: 'Filtry',
         filters: {
@@ -9706,6 +9716,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Stawka jest ważna tylko od ${startDate} do ${endDate}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Stawka jest ważna tylko od ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Stawka jest ważna tylko do ${endDate}`,
+        cannotMergeDuplicates: 'Możesz łączyć wydatki tylko w szkicach lub otwartych raportach. Wycofaj go i spróbuj ponownie.',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Pole ${fieldName} jest wymagane`,
@@ -10187,7 +10198,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Rozpocznij <strong>tutaj!</strong></tooltip>',
-        accountSwitcher: '<tooltip>Uzyskaj tutaj dostęp do <strong>kont Copilot</strong></tooltip>',
+        accountSwitcher: '<tooltip>Teraz możesz dołączyć jako kopilot do innego konta!</tooltip>',
         outstandingFilter: '<tooltip>Filtruj wydatki,\nktóre <strong>wymagają zatwierdzenia</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Wyślij ten paragon, aby\n<strong>zakończyć jazdę próbną!</strong></tooltip>',
         gpsTooltip: '<tooltip>Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.</tooltip>',
@@ -10238,6 +10249,7 @@ Cześć! Właśnie załatwiłem(am) nam *3 miesiące za darmo*, żeby wypróbowa
 Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
     },
     export: {
+        downloadStatementPDF: 'Pobierz wyciąg',
         basicExport: 'Podstawowy eksport',
         reportLevelExport: 'Wszystkie dane – poziom raportu',
         expenseLevelExport: 'Wszystkie dane – poziom wydatku',

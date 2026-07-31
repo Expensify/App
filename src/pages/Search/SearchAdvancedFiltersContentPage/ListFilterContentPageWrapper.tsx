@@ -3,6 +3,7 @@ import type {ListFilterContentWrapperProps} from '@components/Search/FilterCompo
 import ListFilterContent from '@components/Search/FilterComponents/ListFilterContent';
 
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
@@ -10,6 +11,7 @@ import React, {useState} from 'react';
 
 function ListFilterContentPageWrapper({baseFilterKey, value: initialValue, isNegated: initialIsNegated, type, policyID, ready, onChange}: ListFilterContentWrapperProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
     const [isNegated, setIsNegatedValue] = useState(initialIsNegated);
 
@@ -24,6 +26,7 @@ function ListFilterContentPageWrapper({baseFilterKey, value: initialValue, isNeg
             ready={ready}
             onChange={setValue}
             onNegationChange={setIsNegatedValue}
+            style={[styles.flex1]}
             footer={
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}

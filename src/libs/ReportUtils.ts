@@ -2488,17 +2488,14 @@ function findLastAccessedReport(
 /**
  * Whether the provided report has expenses
  */
-function hasExpenses(reportID?: string, transactions?: Array<OnyxEntry<Transaction>>): boolean {
-    if (transactions) {
-        return !!transactions?.find((transaction) => transaction?.reportID === reportID);
-    }
-    return !!Object.values(deprecatedAllTransactions ?? {}).find((transaction) => transaction?.reportID === reportID);
+function hasExpenses(reportID?: string, transactions?: OnyxCollection<Transaction>): boolean {
+    return !!Object.values(transactions ?? deprecatedAllTransactions ?? {}).find((transaction) => transaction?.reportID === reportID);
 }
 
 /**
  * Whether the provided report is a closed expense report with no expenses
  */
-function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: Array<OnyxEntry<Transaction>>): boolean {
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: OnyxCollection<Transaction>): boolean {
     if (!report?.statusNum || report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || !isExpenseReport(report)) {
         return false;
     }
@@ -5588,8 +5585,7 @@ function getReportActionWithMissingSmartscanFields(
     iouReport: OnyxEntry<Report>,
     iouReportID: string | undefined,
     iouReportTransactions: OnyxCollection<Transaction>,
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number,
+    currentUserAccountID: number,
 ): ReportAction | undefined {
     const reportActions = Object.values(getAllReportActions(iouReportID));
     return reportActions.find((action) => {
@@ -5615,8 +5611,7 @@ function shouldShowRBRForMissingSmartscanFields(
     iouReport: OnyxEntry<Report>,
     iouReportID: string | undefined,
     iouReportTransactions: OnyxCollection<Transaction>,
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number,
+    currentUserAccountID: number,
 ): boolean {
     return !!getReportActionWithMissingSmartscanFields(iouReport, iouReportID, iouReportTransactions, currentUserAccountID);
 }
@@ -9677,10 +9672,9 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     report: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions>,
     allTransactions: OnyxCollection<Transaction>,
+    currentUserAccountID: number,
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number,
 ): ReportErrorsAndReportActionThatRequiresAttention {
     const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action));
     const reportActionErrors: ErrorFields = {};
@@ -9696,9 +9690,9 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
         }
     }
 
-    if (!isReportArchived && hasSmartscanError(reportActionsArray, report, allTransactions, reports, currentUserAccountID)) {
+    if (!isReportArchived && hasSmartscanError(reportActionsArray, report, allTransactions, currentUserAccountID, reports)) {
         reportActionErrors.smartscan = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
-        reportAction = getReportActionWithSmartscanError(reportActionsArray, report, allTransactions, reports, currentUserAccountID);
+        reportAction = getReportActionWithSmartscanError(reportActionsArray, report, allTransactions, currentUserAccountID, reports);
     }
 
     if (!isReportArchived && isReportOwner(report) && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
@@ -9731,9 +9725,9 @@ function getAllReportErrors(
         report,
         reportActions,
         allTransactions,
+        currentUserAccountID,
         isReportArchived,
         reports,
-        currentUserAccountID,
     );
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
@@ -11129,9 +11123,8 @@ function getReportActionWithSmartscanError(
     reportActions: ReportAction[],
     report: OnyxEntry<Report>,
     allTransactions: OnyxCollection<Transaction>,
+    currentUserAccountID: number,
     reports?: OnyxCollection<Report>,
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number,
 ): ReportAction | undefined {
     return reportActions.find((action) => {
         const isReportPreview = isReportPreviewAction(action);
@@ -11162,11 +11155,10 @@ function hasSmartscanError(
     reportActions: ReportAction[],
     report: OnyxEntry<Report>,
     allTransactions: OnyxCollection<Transaction>,
+    currentUserAccountID: number,
     reports?: OnyxCollection<Report>,
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number,
 ): boolean {
-    return !!getReportActionWithSmartscanError(reportActions, report, allTransactions, reports, currentUserAccountID);
+    return !!getReportActionWithSmartscanError(reportActions, report, allTransactions, currentUserAccountID, reports);
 }
 
 function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
