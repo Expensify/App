@@ -2,7 +2,6 @@ import Icon from '@components/Icon';
 import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -19,14 +18,11 @@ function MenuItemChevron() {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {isDisabled} = useMenuItemConfig();
     const {isHovered} = useMenuItemInteraction();
 
     return (
-        <View
-            style={[styles.pointerEventsAuto, StyleUtils.getMenuItemIconStyle(true), isDisabled && styles.cursorDisabled, !isHovered && styles.opacitySemiTransparent, styles.alignItemsEnd]}
-        >
+        <View style={[styles.menuItemChevron, isDisabled && styles.cursorDisabled, !isHovered && styles.opacitySemiTransparent]}>
             <Icon
                 src={icons.ArrowRight}
                 fill={theme.icon}

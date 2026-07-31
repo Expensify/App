@@ -16,7 +16,7 @@ function MenuItemTrailing({children}: MenuItemTrailingProps) {
     const StyleUtils = useStyleUtils();
     const isCompact = useIsCompact();
 
-    return <View style={[styles.flexRow, styles.mlAuto, styles.alignItemsCenter, styles.gap2, StyleUtils.getMenuItemTextContainerStyle(isCompact)]}>{children}</View>;
+    return <View style={[styles.menuItemTrailing, StyleUtils.getMenuItemTextContainerStyle(isCompact)]}>{children}</View>;
 }
 
 export default MenuItemTrailing;

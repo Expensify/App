@@ -19,7 +19,7 @@ function MenuItemContent({children}: MenuItemContentProps) {
     const StyleUtils = useStyleUtils();
     const isCompact = useIsCompact();
 
-    return <View style={[styles.justifyContentCenter, styles.flex1, styles.gap1, StyleUtils.getMenuItemTextContainerStyle(isCompact)]}>{children}</View>;
+    return <View style={[styles.menuItemContent, StyleUtils.getMenuItemTextContainerStyle(isCompact)]}>{children}</View>;
 }
 
 export default MenuItemContent;

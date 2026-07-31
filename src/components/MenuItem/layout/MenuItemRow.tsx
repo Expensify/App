@@ -16,7 +16,7 @@ function MenuItemRow({children}: MenuItemRowProps) {
     const {isDisabled} = useMenuItemConfig();
     const isCompact = useIsCompact();
 
-    return <View style={[styles.flexRow, styles.pointerEventsAuto, styles.gap3, isDisabled && styles.cursorDisabled, isCompact && styles.alignItemsCenter]}>{children}</View>;
+    return <View style={[styles.menuItemRow, isDisabled && styles.cursorDisabled, isCompact && styles.alignItemsCenter]}>{children}</View>;
 }
 
 export default MenuItemRow;
