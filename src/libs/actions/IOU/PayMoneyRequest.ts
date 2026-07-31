@@ -559,8 +559,10 @@ function cancelSendMoneyPayment(iouReport: OnyxTypes.Report, chatReport: OnyxTyp
             value: {
                 isWaitingOnBankAccount: false,
                 isCancelledIOU: true,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                // These reports belong to the sender's personal policy, which approves optionally, so cancelling
+                // returns the report to submitted and closed rather than approved.
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 lastVisibleActionCreated: optimisticIOUCancelAction.created,
                 lastMessageText: getReportActionText(optimisticIOUCancelAction),
                 lastMessageHtml: getReportActionHtml(optimisticIOUCancelAction),

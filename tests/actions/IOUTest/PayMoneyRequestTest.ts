@@ -1677,8 +1677,8 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
             expect(updatedReport?.isCancelledIOU).toBe(true);
             expect(updatedReport?.isWaitingOnBankAccount).toBe(false);
-            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
-            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.CLOSED);
 
             // And a reimbursement-dequeued cancel action is added to the IOU report
             const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
