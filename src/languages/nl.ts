@@ -7636,7 +7636,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 flagAmountsOverSubtitle: 'Dit overschrijft het maximale bedrag voor alle onkosten.',
                 expenseLimitTypes: {
                     expense: 'Individuele uitgave',
-                    expenseSubtitle: 'Markeer onkostbedragen per categorie. Deze regel overschrijft de algemene werkruimteregel voor het maximale onkostbedrag.',
+                    expenseSubtitle:
+                        'Markeer onkostbedragen per categorie. Deze regel overschrijft de algemene werkruimteregel voor het maximale onkostbedrag. Reserveringen voor meerdere dagen worden beoordeeld op basis van het gemiddelde per nacht.',
                     daily: 'Categorietotaal',
                     dailySubtitle: 'Markeer totale dagelijkse categorie-uitgaven per onkostendeclaratie.',
                 },
@@ -9755,6 +9756,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Tarief is alleen geldig vanaf ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Tarief is alleen geldig tot ${endDate}`,
         cannotMergeDuplicates: 'Je kunt alleen onkosten samenvoegen op concept- of openstaande rapporten. Trek het rapport in en probeer het opnieuw.',
+        overCategoryLimitPerNight: (formattedLimit: string) => `Nachtelijk tarief boven ${formattedLimit}/persoon-categorie limiet`,
+        overLimitPerNight: (formattedLimit: string) => `Nachttarief boven limiet van ${formattedLimit}/persoon`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is verplicht`,

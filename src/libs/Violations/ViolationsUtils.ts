@@ -713,6 +713,10 @@ const ViolationsUtils = {
         // Amount is stored with opposite sign (negative for expenses), so we negate it to get the actual expense amount
         const expenseAmount = -amount;
 
+        // A SmartScanned multi-day reservation is measured against its average nightly rate rather than its total
+        const reservationNights = TransactionUtils.getReservationNights(updatedTransaction);
+        const amountForLimitCheck = reservationNights > 0 ? expenseAmount / reservationNights : expenseAmount;
+
         // The category maxExpenseAmountNoReceipt and maxExpenseAmount settings override the respective policy settings.
         const shouldShowReceiptRequiredViolation =
             canCalculateAmountViolations &&
@@ -754,14 +758,14 @@ const ViolationsUtils = {
             typeof categoryOverLimit !== 'number' &&
             typeof overLimitAmount === 'number' &&
             isMaxExpenseAmountRuleEnabled(overLimitAmount) &&
-            expenseAmount > overLimitAmount &&
+            amountForLimitCheck > overLimitAmount &&
             isControlPolicy;
         // Ensure we are comparing amounts in the same currency
         const isSameCurrency = updatedTransaction.currency === currency;
         const shouldShowOverTripLimitViolation =
             canCalculateAmountViolations && !isInvoiceTransaction && TransactionUtils.hasReservationList(updatedTransaction) && isSameCurrency && expenseAmount > -updatedTransaction.amount;
         const shouldCategoryShowOverLimitViolation =
-            canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
+            canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && amountForLimitCheck > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment =
             !isInvoiceTransaction &&
             policyCategories?.[categoryName ?? '']?.areCommentsRequired &&
@@ -863,6 +867,7 @@ const ViolationsUtils = {
                 data: {
                     amount: shouldCategoryShowOverLimitViolation ? categoryOverLimit : policy.maxExpenseAmount,
                     currency: policy.outputCurrency,
+                    ...(reservationNights > 0 ? {nights: reservationNights} : {}),
                 },
                 type: CONST.VIOLATION_TYPES.VIOLATION,
                 showInReview: true,
@@ -1024,9 +1029,13 @@ const ViolationsUtils = {
             case 'overAutoApprovalLimit':
                 return translate('violations.overAutoApprovalLimit', convertToDisplayString(amount, currency));
             case 'overCategoryLimit':
-                return translate('violations.overCategoryLimit', convertToDisplayString(amount, currency));
+                return violation.data?.nights
+                    ? translate('violations.overCategoryLimitPerNight', convertToDisplayString(amount, currency))
+                    : translate('violations.overCategoryLimit', convertToDisplayString(amount, currency));
             case 'overLimit':
-                return translate('violations.overLimit', convertToDisplayString(amount, currency));
+                return violation.data?.nights
+                    ? translate('violations.overLimitPerNight', convertToDisplayString(amount, currency))
+                    : translate('violations.overLimit', convertToDisplayString(amount, currency));
             case 'overTripLimit':
                 return translate('violations.overTripLimit', convertToDisplayString(amount, currency));
             case 'overLimitAttendee':

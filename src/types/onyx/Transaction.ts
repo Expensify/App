@@ -266,6 +266,12 @@ type Receipt = {
 
     /** Correlation id created at capture, used to follow this receipt from capture to upload in the logs. */
     receiptTraceId?: string;
+
+    /** Check-in date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
+    reservationStartDate?: string;
+
+    /** Check-out date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
+    reservationEndDate?: string;
 };
 
 /** Model of route */

@@ -85,7 +85,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {format, isValid, parse} from 'date-fns';
+import {differenceInDays, format, isValid, parse} from 'date-fns';
 import {SafeString, Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
@@ -2272,6 +2272,27 @@ function hasReservationList(transaction: Transaction | undefined | null): boolea
 }
 
 /**
+ * Returns the number of nights covered by a SmartScanned reservation receipt, or 0 when the
+ * transaction has no usable reservation range.
+ */
+function getReservationNights(transaction: OnyxEntry<Transaction>): number {
+    const startDate = transaction?.receipt?.reservationStartDate;
+    const endDate = transaction?.receipt?.reservationEndDate;
+    if (!startDate || !endDate) {
+        return 0;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return 0;
+    }
+
+    const nights = differenceInDays(end, start);
+    return nights > 0 ? nights : 0;
+}
+
+/**
  * Whether an expense is going to be paid later, either at checkout for hotels or drop off for car rental
  */
 function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean {
@@ -3355,4 +3376,5 @@ export {
     isDeletedTransaction,
     getDistanceRequestType,
     isUnreportedManagedCardTransaction,
+    getReservationNights,
 };
