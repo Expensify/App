@@ -82,7 +82,6 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         excludeFromSuggestionsOnly: expensifyTeamExclusions,
         includeLoginsOnly: workspaceMemberLogins,
-        includeUserToInvite: true,
         includeCurrentUser: false,
         includeRecentReports: false,
         shouldInitialize: ready,
