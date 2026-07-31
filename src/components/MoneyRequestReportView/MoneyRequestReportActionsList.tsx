@@ -215,7 +215,7 @@ function MoneyRequestReportActionsList({isReportLoadPending, onLayout}: MoneyReq
         return filteredActions.slice().reverse();
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction, visibleReportActionsData, reportID]);
 
-    const shouldShowOpenReportLoadingSkeleton = !isOffline && isInitialReportLoadPending && visibleReportActions.length === 0;
+    const shouldShowOpenReportLoadingSkeleton = isInitialReportLoadPending && visibleReportActions.length === 0;
     const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'MoneyRequestReportActionsList',
         isOffline,
