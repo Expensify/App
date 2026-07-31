@@ -17,7 +17,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isMobileSafari} from '@libs/Browser';
+import {isMobile, isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
@@ -387,7 +387,7 @@ function ComposerWithSuggestions({
     }, [text]);
 
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!text) && areAllModalsHidden() && isFocused;
+    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || (!!text && !isMobile())) && areAllModalsHidden() && isFocused;
     const delayedAutoFocusRouteKeyRef = useRef<string | null>(null);
 
     const valueRef = useRef(initialText);

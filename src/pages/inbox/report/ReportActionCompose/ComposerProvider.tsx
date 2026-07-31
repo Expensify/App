@@ -2,6 +2,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
+import {isMobile} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import Log from '@libs/Log';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
@@ -51,7 +52,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
 
-    const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
+    const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || (!!draftComment && !isMobile());
     const initialFocused = shouldFocusComposerOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
