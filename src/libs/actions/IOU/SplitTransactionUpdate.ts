@@ -75,7 +75,6 @@ import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getAllReports} from './index';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {getMoneyRequestInformation, getReportPreviewAction} from './MoneyRequestBuilder';
-import {addPendingNewTransactionIDs} from './PendingNewTransactions';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 
@@ -106,6 +105,11 @@ type UpdateSplitTransactionsParams = {
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isFromSplitExpensesFlow?: boolean;
+    /**
+     * Whether the newly created splits must stay off the REPORT_METADATA highlight rail. Set by flows that never open
+     * the expense report (e.g. saving a split from the Search/Spend page), where nothing would ever clear the flags.
+     */
+    shouldSkipReportHighlightRail?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
@@ -135,6 +139,7 @@ function updateSplitTransactions({
     policyRecentlyUsedCurrencies,
     iouReportNextStep,
     isFromSplitExpensesFlow,
+    shouldSkipReportHighlightRail,
     betas,
     personalDetails,
     transactionReport,
@@ -693,7 +698,7 @@ function updateSplitTransactions({
             participantParams,
             parentChatReport,
             policyParams: {...policyParams, policyTagList},
-            transactionParams,
+            transactionParams: {...transactionParams, shouldSkipReportHighlightRail},
             moneyRequestReportID: moneyRequestReportIDForSplit,
             existingTransaction,
             existingTransactionID,
@@ -1921,7 +1926,12 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         return;
     }
 
-    updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
+    // True only for the branch below that reaches Navigation.dismissModalWithReport - the single path that opens the
+    // expense report. Every other branch returns earlier, so its newly created splits must stay off the REPORT_METADATA
+    // highlight rail: only the report's list consumes and clears those flags when it mounts.
+    const willOpenExpenseReport = !isSearchPageTopmostFullScreenRoute && !!params.transactionReport?.parentReportID && !(isLastTransactionInReport && !!fallbackReportID);
+
+    updateSplitTransactions({...params, isFromSplitExpensesFlow: true, shouldSkipReportHighlightRail: !willOpenExpenseReport});
     const transactionThreadReportID = params.firstIOU?.childReportID;
     const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
 
@@ -1996,17 +2006,6 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         });
 
         return;
-    }
-
-    // Register newly created split transaction IDs so they briefly highlight in the expense list.
-    // This only runs on the path that opens the expense report (dismissModalWithReport), so the highlight
-    // flags are consumed and cleared on mount. We skip existing transactions (already in allChildTransactions)
-    // and reverse splits (no new transactions are created). The Search/Spend page and last-transaction cases
-    // return earlier above, so they never pollute REPORT_METADATA with flags that would never be cleared.
-    if (params.expenseReport?.reportID && !isReverseSplitOperation && !isLastTransactionInReport) {
-        for (const transactionID of getNewSplitTransactionIDs()) {
-            addPendingNewTransactionIDs(targetReportID, transactionID);
-        }
     }
 
     if (isTracking()) {

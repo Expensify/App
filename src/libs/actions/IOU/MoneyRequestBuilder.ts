@@ -156,6 +156,13 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
 
     /** The selfDM report ID for split transactions */
     selfDMReportID?: string;
+
+    /**
+     * Whether to skip registering this transaction on the `pendingNewTransactionIDs` highlight rail. Set by flows that
+     * never open the expense report (e.g. saving a split from the Search/Spend page), where the flags would never be
+     * consumed or cleared - see the guard in buildOnyxDataForMoneyRequest.
+     */
+    shouldSkipReportHighlightRail?: boolean;
 };
 
 type RequestMoneyInformation = {
@@ -278,6 +285,8 @@ type BuildOnyxDataForMoneyRequestParams = {
     isSelfDMSplit?: boolean;
     /** The selfDM report ID for split transactions */
     selfDMReportID?: string;
+    /** Whether to skip the `pendingNewTransactionIDs` highlight rail because this flow never opens the expense report */
+    shouldSkipReportHighlightRail?: boolean;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -440,6 +449,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         isSelfDMSplit,
         isReverseSplitOperation,
         selfDMReportID,
+        shouldSkipReportHighlightRail,
         isTrackIntentUser,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -675,12 +685,16 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     // Flag for the highlight rail only when the add makes the report multi-tx (its table fresh-mounts with the tx present, so the diff misses it); never the first tx (0→1), which would leave a stale flag; no successData (races the mount).
+    // Splits saved from the Search/Spend page are excluded: that flow navigates back to Search and never opens the expense
+    // report, so nothing mounts MoneyRequestReportActionsList to consume and clear the rail. The flags would sit in
+    // REPORT_METADATA until the user later opened that report from the Inbox, highlighting rows that are no longer new.
+    // The Search page highlights its own rows via TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE instead.
     const existingReportTransactions = iou.report?.reportID
         ? getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID)
         : [];
     const addMakesReportMultiTransaction =
         isMoneyRequestReport(iou.report) && existingReportTransactions.some((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && addMakesReportMultiTransaction) {
+    if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && !shouldSkipReportHighlightRail && addMakesReportMultiTransaction) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
@@ -1327,6 +1341,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         odometerEnd,
         isSelfDMSplit,
         selfDMReportID,
+        shouldSkipReportHighlightRail,
     } = transactionParams;
 
     const payerEmail = addSMSDomainIfPhoneNumber(participant.login ?? '');
@@ -1700,6 +1715,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         delegateAccountID,
         isSelfDMSplit,
         selfDMReportID,
+        shouldSkipReportHighlightRail,
         isTrackIntentUser,
     });
 
