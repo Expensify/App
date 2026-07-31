@@ -33,19 +33,23 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Remove E/App version from package-lock.json
+      # Extract only the lint-affecting dependencies (eslint packages, plus
+      # typescript/ts-api-utils since a TS bump can change type-aware lint results).
+      # The cache key hashes this slice so a cold full re-lint happens only when
+      # the lint config or a lint dependency changes -- not on every dep bump.
+      - name: Extract lint-related deps from package-lock.json
         shell: bash
-        run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
+        run: |
+          jq '{packages: (.packages | to_entries | map(select(.key | test("eslint|^node_modules/(typescript|ts-api-utils)$"))) | from_entries)}' package-lock.json > lint-deps-lock.json
 
       - name: Restore ESLint cache
         # v5.0.1
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: node_modules/.cache/eslint
-          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'lint-deps-lock.json') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'normalized-package-lock.json') }}-
-            ${{ runner.os }}-eslint-
+            ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'lint-deps-lock.json') }}-
 
       # ESLint's cache doesn't track cross-file TypeScript dependencies, which can cause stale errors.
       # If lint fails, we clear the cache and retry to rule out false positives.
@@ -69,7 +73,7 @@ jobs:
         if: always()
         with:
           path: node_modules/.cache/eslint
-          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'lint-deps-lock.json') }}-${{ github.sha }}
 
       # If lint tightened the seatbelt baseline (i.e. fewer baselined errors than last time),
       # commit the updated TSV back to `main` as OSBotify. Only runs under `workflow_call`
