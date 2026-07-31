@@ -779,7 +779,7 @@ function updateSplitTransactions({
             betas,
             personalDetails,
             delegateAccountID,
-            formatPhoneNumber,
+            formatPhoneNumber: (phoneNumber: string) => phoneNumber,
             isTrackIntentUser,
         });
 
