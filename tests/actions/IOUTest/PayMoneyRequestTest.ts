@@ -976,7 +976,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
         });
         describe('scan-failed expenses', () => {
             const employeeAccountID = 3;
-            const employeeEmail = 'employee@test.com';
             const scanFailedPolicy: Policy = {
                 ...createRandomPolicy(0),
                 id: '1',
