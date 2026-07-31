@@ -1,5 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {translate} from '@libs/Localize';
 import {
     buildReportNameFromParticipantNames,
@@ -466,6 +467,50 @@ describe('ReportNameUtils', () => {
                 currentUserAccountID,
             );
             expect(name).toBe(expected);
+        });
+        test('Cross-border pay parent action', () => {
+            // Given a thread on a payment that converted currency for the employee
+            const thread: Report = createWorkspaceThread(60);
+            const parentAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                    creditedAmount: 1340,
+                    creditedCurrency: 'GBP',
+                    debitBankAccountLast4: '6789',
+                    creditBankAccountLast4: '3335',
+                },
+            };
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
+                    [actionId]: parentAction,
+                },
+            };
+
+            // When the thread is named
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+
+            // Then it names the credited amount and both accounts rather than only the company account
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'iou.reimbursedCrossBorder', {amount: convertToDisplayString(1340, 'GBP'), debitBankAccount: '6789', creditBankAccount: '3335'}));
         });
         test('Hold parent action', () => {
             const thread: Report = createWorkspaceThread(52);
@@ -1636,6 +1681,55 @@ describe('ReportNameUtils', () => {
 
             // Then it should NOT return empty string — it should fall through to dynamic name computation
             expect(reportName).not.toBe('');
+        });
+
+        it('resolves the expense report workspace name through the provided translate function', () => {
+            // Given an OPEN expense report whose policy cannot resolve a name (empty policy name)
+            const expenseReport: Report = {
+                ...createExpenseReport(202),
+                reportID: '202',
+                reportName: '',
+                policyName: '',
+                oldPolicyName: '',
+                policyID: '202',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 0,
+                currency: 'USD',
+            };
+
+            // And a policy with a non-empty fieldList (so we skip the "New Report" shortcut) but no resolvable name
+            const policyWithoutName: Policy = {
+                ...createRandomPolicy(202, CONST.POLICY.TYPE.TEAM),
+                id: '202',
+                name: '',
+                fieldList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    text_title: {
+                        defaultValue: '{report:type} {report:startdate}',
+                        deletable: false,
+                        externalIDs: [],
+                        fieldID: 'text_title',
+                        isTax: false,
+                        name: 'title',
+                        orderWeight: 0,
+                        type: 'formula',
+                        target: 'expense',
+                        values: [],
+                        disabledOptions: [],
+                        keys: [],
+                    },
+                },
+            };
+
+            // A translate that tags the "unavailable" workspace copy so we can prove getPolicyName used the provided translate
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithoutName, translate: translateWithUnavailableMarker});
+
+            expect(reportName).toContain('UnavailableWorkspaceMarker');
         });
     });
 
