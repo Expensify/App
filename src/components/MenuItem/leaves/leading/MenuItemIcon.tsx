@@ -1,8 +1,7 @@
-import {useIsCompactMenu} from '@components/CompactMenuContext';
 import Icon from '@components/Icon';
+import useIsCompact from '@components/MenuItem/hooks/useIsCompact';
 import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
 
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -24,9 +23,7 @@ function MenuItemIcon({src}: MenuItemIconProps) {
     const StyleUtils = useStyleUtils();
     const {isDisabled, isInteractive} = useMenuItemConfig();
     const {isHovered, isPressed} = useMenuItemInteraction();
-    const isCompactMenu = useIsCompactMenu();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isCompact = isCompactMenu && !shouldUseNarrowLayout;
+    const isCompact = useIsCompact();
 
     const iconFill = StyleUtils.getIconFillColor(getButtonState(isHovered, isPressed, false, isDisabled, isInteractive), true, true);
 

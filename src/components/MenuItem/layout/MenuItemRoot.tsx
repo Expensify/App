@@ -1,10 +1,9 @@
-import {useIsCompactMenu} from '@components/CompactMenuContext';
 import Hoverable from '@components/Hoverable';
+import useIsCompact from '@components/MenuItem/hooks/useIsCompact';
 import MenuItemAccessibilityContext, {useMenuItemAccessibility} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/MenuItem/MenuItemContext';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -33,10 +32,8 @@ type MenuItemRootProps = PropsWithChildren &
 function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel}: MenuItemRootProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const pressableRef = useRef<View>(null);
-    const isCompactMenu = useIsCompactMenu();
-    const isCompact = isCompactMenu && !shouldUseNarrowLayout;
+    const isCompact = useIsCompact();
     const isInteractive = !!onPress;
 
     const {accessibilityProps, providerValue} = useMenuItemAccessibility();

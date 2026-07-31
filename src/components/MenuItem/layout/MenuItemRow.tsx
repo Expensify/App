@@ -1,7 +1,6 @@
-import {useIsCompactMenu} from '@components/CompactMenuContext';
+import useIsCompact from '@components/MenuItem/hooks/useIsCompact';
 import {useMenuItemConfig} from '@components/MenuItem/MenuItemContext';
 
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PropsWithChildren} from 'react';
@@ -14,10 +13,8 @@ type MenuItemRowProps = PropsWithChildren;
 /** The main horizontal line of a menu item */
 function MenuItemRow({children}: MenuItemRowProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isDisabled} = useMenuItemConfig();
-    const isCompactMenu = useIsCompactMenu();
-    const isCompact = isCompactMenu && !shouldUseNarrowLayout;
+    const isCompact = useIsCompact();
 
     return <View style={[styles.flexRow, styles.pointerEventsAuto, styles.gap3, isDisabled && styles.cursorDisabled, isCompact && styles.alignItemsCenter]}>{children}</View>;
 }
