@@ -8596,10 +8596,8 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
         });
 
-        it('should return true when the request reached a terminal error state', () => {
+        it('should use the requested hash when a loaded request preserves cached data and stale sort metadata', () => {
             const results = makeSearchResults({
-                data: undefined,
-                errors: undefined,
                 search: {
                     hasMoreResults: false,
                     hasResults: false,
@@ -8607,9 +8605,9 @@ describe('SearchUIUtils', () => {
                     hash: queryJSON?.hash ?? 0,
                     isLoading: false,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    sortBy: queryJSON?.sortBy ?? 'date',
-                    sortOrder: queryJSON?.sortOrder ?? 'desc',
-                    state: CONST.SEARCH.SNAPSHOT_STATE.ERROR,
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
                 },
             });
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
@@ -8683,9 +8681,8 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.LOADING))).toBe(true);
         });
 
-        it('should return false for the terminal loaded and error states', () => {
+        it('should return false for the terminal loaded state', () => {
             expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.LOADED))).toBe(false);
-            expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.ERROR))).toBe(false);
         });
 
         it('should return false when the state is absent or searchResults is undefined', () => {

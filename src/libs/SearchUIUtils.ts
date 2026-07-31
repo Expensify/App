@@ -4910,14 +4910,14 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
               }).primaryHash
             : queryJSON?.hash;
     const state = searchResults?.search?.state;
-    // A response can finish without writing data or errors, so `loaded` and `error` also count as resolved.
+    // A response can finish without writing data or errors, so `loaded` also counts as resolved.
     // The type and hash checks below keep results from an earlier query out.
-    const isTerminal = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED || state === CONST.SEARCH.SNAPSHOT_STATE.ERROR;
+    const isTerminal = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED;
     const hasResolved = searchResults?.data != null || searchResults?.errors != null || isTerminal;
     const hasResponseSortMetadata = searchResults?.search?.sortBy !== undefined && searchResults.search.sortOrder !== undefined;
     const hasMatchingRequestedHash = searchResults?.search?.hash === queryJSON?.hash;
-    const isTerminalResponseWithoutData = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED && searchResults?.data === undefined;
-    const canUseRequestedHash = state === CONST.SEARCH.SNAPSHOT_STATE.ERROR || isTerminalResponseWithoutData || !hasResponseSortMetadata;
+    // finallyData stores the requested hash when the request settles, so it remains authoritative even when cached data or old sort metadata remain.
+    const canUseRequestedHash = isTerminal || !hasResponseSortMetadata;
     const hasMatchingHash = (canUseRequestedHash && hasMatchingRequestedHash) || searchResults?.search?.hash === responseAdjustedQueryHash;
 
     return hasResolved && searchResults?.search?.type === queryJSON?.type && hasMatchingHash;

@@ -86,6 +86,20 @@ describe('search snapshot terminal state', () => {
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADING);
     });
 
+    it('settles the snapshot to loaded through finally data', async () => {
+        const queryJSON = getQueryJSON();
+
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        const {optimisticData, finallyData} = getCapturedSearchOnyxData();
+        await Onyx.update(optimisticData ?? []);
+        await Onyx.update(finallyData ?? []);
+        await waitForBatchedUpdates();
+
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+        expect(snapshot?.search?.hash).toBe(queryJSON.hash);
+    });
+
     it('resolves the snapshot to loaded on a successful response', async () => {
         const queryJSON = getQueryJSON();
 
@@ -107,16 +121,16 @@ describe('search snapshot terminal state', () => {
         expect(snapshot?.search?.hasResults).toBe(true);
     });
 
-    it('resolves the snapshot to error on a failed response', async () => {
+    it('resolves the snapshot to loaded with errors on a failed response', async () => {
         const queryJSON = getQueryJSON();
 
         await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
         await simulateResolvedRequest({jsonCode: FAILURE_JSON_CODE});
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
-        // finallyData runs after failureData; the error state must survive it.
-        expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.ERROR);
+        expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
         expect(snapshot?.search?.hash).toBe(queryJSON.hash);
+        expect(snapshot?.errors).toBeDefined();
     });
 
     it('reaches a terminal state when a successful response resolves without any snapshot data', async () => {
@@ -187,7 +201,7 @@ describe('search snapshot terminal state', () => {
         await Promise.all([firstRequest, duplicateRequest]);
     });
 
-    it('resolves the snapshot to error when the request promise rejects, instead of staying loading', async () => {
+    it('resolves the snapshot to loaded with errors when the request promise rejects', async () => {
         const queryJSON = getQueryJSON();
         jest.mocked(makeRequestWithSideEffects).mockRejectedValueOnce(new Error('Network request failed'));
 
@@ -199,6 +213,7 @@ describe('search snapshot terminal state', () => {
         await waitForBatchedUpdates();
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
-        expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.ERROR);
+        expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+        expect(snapshot?.errors).toBeDefined();
     });
 });

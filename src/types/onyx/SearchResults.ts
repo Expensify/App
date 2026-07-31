@@ -65,7 +65,7 @@ type SearchResultsInfo = {
     /** The sort order of the current search */
     sortOrder: SortOrder;
 
-    /** Explicit terminal lifecycle state of the most recent search request for this snapshot.
+    /** Explicit lifecycle state of the most recent search request for this snapshot.
      * Optional because snapshots persisted before this field existed (and snapshots written by
      * non-search actions) may not carry it.
      *
