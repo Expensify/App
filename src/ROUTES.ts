@@ -1840,9 +1840,9 @@ const ROUTES = {
             return `${base}${pagePart}${subPagePart}${actionPart}` as const;
         },
     },
-    SETTINGS_ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE: {
-        route: 'settings/wallet/enable-payments/confirm-magic-code',
-        getRoute: () => 'settings/wallet/enable-payments/confirm-magic-code' as const,
+    SETTINGS_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/wallet/enable-payments/confirm-validate-code',
+        getRoute: () => 'settings/wallet/enable-payments/confirm-validate-code' as const,
     },
     SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT: {
         route: 'settings/wallet/:bankAccountID/unshare-bank-account',
