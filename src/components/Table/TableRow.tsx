@@ -67,6 +67,7 @@ export default function TableRow({
     id,
     'aria-hidden': ariaHidden,
     focusable,
+    fullDisabled,
     tabIndex,
     ...props
 }: TableRowProps) {
@@ -263,6 +264,7 @@ export default function TableRow({
                 {...props}
                 {...inertProps}
                 focusable={isAccessibilityHidden ? false : focusable}
+                fullDisabled={isAccessibilityHidden || fullDisabled}
                 tabIndex={isAccessibilityHidden ? -1 : tabIndex}
             >
                 {(state) => {
