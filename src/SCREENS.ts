@@ -100,7 +100,7 @@ const SCREENS = {
         PROFILE: {
             ROOT: 'Settings_Profile',
             DISPLAY_NAME: 'Settings_Display_Name',
-            CONTACT_METHODS: 'Settings_ContactMethods',
+            DYNAMIC_CONTACT_METHODS: 'Dynamic_Settings_ContactMethods',
             CONTACT_METHOD_DETAILS: 'Settings_ContactMethodDetails',
             NEW_CONTACT_METHOD: 'Settings_NewContactMethod',
             NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE: 'Settings_NewContactMethod_ConfirmValidateCode',
@@ -118,7 +118,7 @@ const SCREENS = {
             PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE: 'Settings_PrivatePersonalDetails_ConfirmValidateCode',
             AVATAR: 'Settings_Avatar',
             DYNAMIC_ADDRESS_COUNTRY: 'Dynamic_Address_Country',
-            ADDRESS_STATE: 'Settings_Address_State',
+            DYNAMIC_ADDRESS_STATE: 'Dynamic_Address_State',
         },
 
         PREFERENCES: {
@@ -351,7 +351,6 @@ const SCREENS = {
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         RECEIPT: 'Money_Request_Receipt',
-        STATE_SELECTOR: 'Money_Request_State_Selector',
         DYNAMIC_STEP_ATTENDEES: 'Dynamic_Money_Request_Attendee',
         STEP_ACCOUNTANT: 'Money_Request_Accountant',
         DYNAMIC_STEP_DESTINATION: 'Dynamic_Money_Request_Destination',

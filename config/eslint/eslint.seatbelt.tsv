@@ -1313,7 +1313,7 @@
 "../../src/pages/settings/Profile/PersonalDetails/PersonalAddressPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsConfirmValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	8
-"../../src/pages/settings/Profile/PersonalDetails/StateSelectionPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/settings/Profile/PersonalDetails/DynamicStateSelectionPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Profile/ProfilePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Profile/ProfilePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Profile/PronounsPage.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1723,7 +1723,7 @@
 "../../tests/ui/BottomTabBarTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/ui/CategoryListItemHeaderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/ComposerTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/ui/ContactMethodsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../tests/ui/DynamicContactMethodsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/ui/CountrySelectionListTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/ui/CountrySelectorModalTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/ui/DynamicCountrySelectionPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -1766,7 +1766,7 @@
 "../../tests/ui/SearchReportAvatarTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/ui/SelectCountryStepTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/ui/SessionTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/ui/StateSelectionPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
+"../../tests/ui/DynamicStateSelectionPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../tests/ui/StateSelectorModalTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../tests/ui/SubmitDetailsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/SwitchToExpensifyClassicTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
