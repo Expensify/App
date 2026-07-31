@@ -197,7 +197,6 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
         translationKey: 'search.exportedTo',
-        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -235,7 +234,6 @@ const taskHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
         translationKey: 'search.exportedTo',
-        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -334,7 +332,6 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
         translationKey: 'search.exportedTo',
-        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,

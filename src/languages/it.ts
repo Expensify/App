@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Proprietario',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'calendario aperto',
+        dialogOpened: 'finestra di dialogo',
         send: 'Invia',
         na: 'N/D',
         noResultsFound: 'Nessun risultato trovato',
@@ -5850,7 +5851,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             directFeed: 'Flusso diretto',
             whoNeedsCardAssigned: 'Chi ha bisogno di una carta assegnata?',
             chooseTheCardholder: 'Scegli il titolare della carta',
-            pleaseSelectACardholder: 'Seleziona un titolare della carta per continuare',
             chooseCard: 'Scegli una carta',
             chooseCardFor: (assignee: string) =>
                 `Scegli una carta per <strong>${assignee}</strong>. Non riesci a trovare la carta che stai cercando? <concierge-link>Facci sapere.</concierge-link>`,
@@ -6176,9 +6176,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 assignedCards: 'Assegnato',
                 unassignedCards: 'Non assegnato',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `esportazione ${integration} ${type.toLowerCase()}` : `Esportazione ${integration}`),
-                integrationExportTitleXero: (integration: string) => `Scegli il conto ${integration} in cui esportare le transazioni.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Scegli il conto ${integration} in cui esportare le transazioni. Seleziona un’altra <a href="${exportPageLink}">opzione di esportazione</a> per modificare i conti disponibili.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Scegli il conto ${integration} in cui esportare le transazioni.${exportPageLink ? ` Seleziona un’altra <a href="${exportPageLink}">opzione di esportazione</a> per modificare i conti disponibili.` : ''}`,
                 lastUpdated: 'Ultimo aggiornamento',
                 transactionStartDate: 'Data di inizio transazione',
                 updateCard: 'Aggiorna carta',
@@ -6648,8 +6647,6 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             peopleAdmins: 'Amministratori persone',
             paymentsAdmins: 'Amministratori pagamenti',
             members: 'Membri',
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `Non puoi rimuovere ${memberName} da questo spazio di lavoro finché ha una Carta Expensify. Disattiva prima la sua carta in Spazio di lavoro > Carta Expensify, quindi riprova.`,
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
@@ -7667,6 +7664,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 defaultTaxRate: 'Aliquota fiscale predefinita',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Vai su [Altre funzionalità](${moreFeaturesLink}) e abilita i flussi di lavoro, quindi aggiungi le approvazioni per sbloccare questa funzionalità.`,
+                createNewRule: 'Crea nuova regola',
+                contextualFlagForReview: (amount: string) => `Se l'importo è superiore a ${amount}, contrassegna per revisione`,
+                contextualFlagForReviewDaily: (amount: string) => `Se il totale giornaliero della categoria supera ${amount}, segnala per revisione`,
             },
             customRules: {
                 title: 'Politica di spesa',

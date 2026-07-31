@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Eigenaar',
         dateFormat: 'JJJJ-MM-DD',
         calendarOpened: 'kalender geopend',
+        dialogOpened: 'dialoog',
         send: 'Verzenden',
         na: 'n.v.t.',
         noResultsFound: 'Geen resultaten gevonden',
@@ -5843,7 +5844,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             directFeed: 'Directe feed',
             whoNeedsCardAssigned: 'Wie moet er een kaart toegewezen krijgen?',
             chooseTheCardholder: 'Kies de kaarthouder',
-            pleaseSelectACardholder: 'Selecteer een kaarthouder om door te gaan',
             chooseCard: 'Kies een kaart',
             chooseCardFor: (assignee: string) =>
                 `Kies een kaart voor <strong>${assignee}</strong>. Kun je de kaart die je zoekt niet vinden? <concierge-link>Laat het ons weten.</concierge-link>`,
@@ -6163,9 +6163,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 assignedCards: 'Toegewezen',
                 unassignedCards: 'Niet toegewezen',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()}-export` : `${integration}-export`),
-                integrationExportTitleXero: (integration: string) => `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd. Selecteer een andere <a href="${exportPageLink}">exportoptie</a> om de beschikbare rekeningen te wijzigen.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd.${exportPageLink ? ` Selecteer een andere <a href="${exportPageLink}">exportoptie</a> om de beschikbare rekeningen te wijzigen.` : ''}`,
                 lastUpdated: 'Laatst bijgewerkt',
                 transactionStartDate: 'Begindatum transactie',
                 updateCard: 'Kaart bijwerken',
@@ -6634,8 +6633,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             peopleAdmins: 'People-beheerders',
             paymentsAdmins: 'Betalingsbeheerders',
             members: 'Leden',
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `Je kunt ${memberName} niet uit deze werkruimte verwijderen zolang diegene een Expensify Kaart heeft. Deactiveer eerst hun kaart in Werkruimte > Expensify Kaart en probeer het daarna opnieuw.`,
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -7649,6 +7646,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 defaultTaxRate: 'Standaardbelastingtarief',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Ga naar [Meer functies](${moreFeaturesLink}) en schakel workflows in, voeg daarna goedkeuringen toe om deze functie te ontgrendelen.`,
+                createNewRule: 'Nieuwe regel maken',
+                contextualFlagForReview: (amount: string) => `Als het bedrag hoger is dan ${amount}, markeren voor controle`,
+                contextualFlagForReviewDaily: (amount: string) => `Als het dagelijkse categorietotaal hoger is dan ${amount}, markeren voor controle`,
             },
             customRules: {
                 title: 'Declaratiebeleid',

@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: '所有者',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: '日历已打开',
+        dialogOpened: '对话框',
         send: '发送',
         na: '不适用',
         noResultsFound: '未找到结果',
@@ -5667,7 +5668,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             directFeed: '直接连接',
             whoNeedsCardAssigned: '谁需要分配一张卡？',
             chooseTheCardholder: '选择持卡人',
-            pleaseSelectACardholder: '请选择持卡人以继续',
             chooseCard: '选择一张卡片',
             chooseCardFor: (assignee: string) => `为 <strong>${assignee}</strong> 选择一张卡片。找不到需要的卡片？<concierge-link>告诉我们。</concierge-link>`,
             noActiveCards: '此信息源中没有活动卡片',
@@ -5964,9 +5964,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 assignedCards: '已分配',
                 unassignedCards: '未分配',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} 导出` : `${integration} 导出`),
-                integrationExportTitleXero: (integration: string) => `选择要导出交易的 ${integration} 账户。`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `选择要导出交易的 ${integration} 账户。选择其他<a href="${exportPageLink}">导出选项</a>以更改可用账户。`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `选择要导出交易的 ${integration} 账户。${exportPageLink ? `选择其他<a href="${exportPageLink}">导出选项</a>以更改可用账户。` : ''}`,
                 lastUpdated: '最近更新',
                 transactionStartDate: '交易开始日期',
                 updateCard: '更新卡片',
@@ -6419,8 +6418,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             peopleAdmins: '人员管理员',
             paymentsAdmins: '付款管理员',
             members: '成员',
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `在 ${memberName} 仍持有 Expensify 卡时，您无法将其从此工作区中移除。请在“工作区 > Expensify 卡”中停用其卡片后重试。`,
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
@@ -7403,6 +7400,9 @@ ${reportName}`,
                 },
                 defaultTaxRate: '默认税率',
                 enableWorkflows: (moreFeaturesLink: string) => `前往 [更多功能](${moreFeaturesLink}) 并启用工作流，然后添加审批以解锁此功能。`,
+                createNewRule: '创建新规则',
+                contextualFlagForReview: (amount: string) => `如果金额高于 ${amount}，标记以供审核`,
+                contextualFlagForReviewDaily: (amount: string) => `如果每日类别总额高于 ${amount}，标记以供审核`,
             },
             customRules: {
                 title: '报销政策',
