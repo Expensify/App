@@ -19,7 +19,7 @@ function MenuItemTitle({children}: MenuItemTitleProps) {
     const styles = useThemeStyles();
     const {isDisabled, isInteractive} = useMenuItemConfig();
 
-    useMenuItemAccessibilityLabel(typeof children === 'string' || typeof children === 'number' ? String(children) : undefined);
+    useMenuItemAccessibilityLabel('title', typeof children === 'string' || typeof children === 'number' ? String(children) : undefined);
 
     return (
         <Text

@@ -47,6 +47,7 @@ function MenuItemStandard({title, icon, onPress, shouldShowChevron = false, desc
             onPress={callFunctionIfActionIsAllowed(onPress)}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
+            accessibilityLabel={[title, description].filter(Boolean).join(', ')}
         >
             <MenuItemRow>
                 <MenuItemIcon src={icon} />

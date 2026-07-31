@@ -1,66 +1,66 @@
-import {createContext, useCallback, useContext, useEffect, useId, useMemo, useState} from 'react';
+import type {TupleToUnion} from 'type-fest';
+
+import {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+
+/** The label slots a `MenuItem` row can contribute, in the order they are announced */
+const MENU_ITEM_LABEL_SLOTS = ['title', 'description'] as const;
+
+type MenuItemLabelSlot = TupleToUnion<typeof MENU_ITEM_LABEL_SLOTS>;
 
 type MenuItemAccessibilityActions = {
-    /** Registers a label (e.g. the title or description text) under the calling component's id */
-    registerLabel: (id: string, text: string) => void;
+    /** Registers a label (the title or description text) under a fixed slot key */
+    registerLabel: (slot: MenuItemLabelSlot, text: string) => void;
 
-    /** Removes the calling component's label */
-    unregisterLabel: (id: string) => void;
+    /** Removes the label registered under the given slot */
+    unregisterLabel: (slot: MenuItemLabelSlot) => void;
 };
 
 const MenuItemAccessibilityContext = createContext<MenuItemAccessibilityActions | undefined>(undefined);
 
 /**
- * Keeps `value` registered under a generated id for as long as the component is mounted.
- * No-op when `value` is empty or when the registry is missing (rendered outside a `MenuItem.Root`).
- */
-function useMenuItemAccessibilityRegistration<T>(value: T | undefined, register: ((id: string, value: T) => void) | undefined, unregister: ((id: string) => void) | undefined) {
-    const id = useId();
-
-    useEffect(() => {
-        if (!value || !register || !unregister) {
-            return;
-        }
-        register(id, value);
-        return () => unregister(id);
-    }, [id, value, register, unregister]);
-}
-
-/**
- * Contributes text to the label `MenuItem.Root` derives, joined in render order.
+ * Contributes text to the label `MenuItem.Root` derives. Registered under a fixed slot key so the
+ * announced order is deterministic (`title`, then `description`) regardless of mount/render timing
  * No-op when `text` is empty or when rendered outside a `MenuItem.Root`.
  */
-function useMenuItemAccessibilityLabel(text: string | undefined) {
+function useMenuItemAccessibilityLabel(slot: MenuItemLabelSlot, text: string | undefined) {
     const actions = useContext(MenuItemAccessibilityContext);
+    const registerLabel = actions?.registerLabel;
+    const unregisterLabel = actions?.unregisterLabel;
 
-    useMenuItemAccessibilityRegistration(text, actions?.registerLabel, actions?.unregisterLabel);
+    useEffect(() => {
+        if (!text || !registerLabel || !unregisterLabel) {
+            return;
+        }
+        registerLabel(slot, text);
+        return () => unregisterLabel(slot);
+    }, [slot, text, registerLabel, unregisterLabel]);
 }
 
 /**
- * Small `id -> value` registry backed by an immutable `Map`.
+ * Small `slot -> text` registry backed by an immutable `Map`.
  * Writes are no-ops when the value is unchanged, so unrelated re-renders don't churn the map identity.
  */
-function useIdKeyedRegistry<T>() {
-    const [entries, setEntries] = useState<Map<string, T>>(() => new Map());
+function useLabelSlotRegistry() {
+    const [entries, setEntries] = useState<Map<MenuItemLabelSlot, string>>(() => new Map());
 
-    const register = useCallback((id: string, value: T) => {
+    const register = useCallback((slot: MenuItemLabelSlot, value: string) => {
         setEntries((prev) => {
-            if (prev.get(id) === value) {
+            if (prev.get(slot) === value) {
                 return prev;
             }
             const next = new Map(prev);
-            next.set(id, value);
+            next.set(slot, value);
             return next;
         });
     }, []);
 
-    const unregister = useCallback((id: string) => {
+    const unregister = useCallback((slot: MenuItemLabelSlot) => {
         setEntries((prev) => {
-            if (!prev.has(id)) {
+            if (!prev.has(slot)) {
                 return prev;
             }
             const next = new Map(prev);
-            next.delete(id);
+            next.delete(slot);
             return next;
         });
     }, []);
@@ -73,15 +73,18 @@ function useIdKeyedRegistry<T>() {
  * Returns the props to spread on the pressable plus the value for `MenuItemAccessibilityContext.Provider`.
  */
 function useMenuItemAccessibility() {
-    // Text contributed by Title/Description children, in render order
-    const {entries: labels, register: registerLabel, unregister: unregisterLabel} = useIdKeyedRegistry<string>();
-
-    const accessibilityProps = {accessibilityLabel: [...labels.values()].join(', ')};
+    // Text contributed by Title/Description children, keyed by fixed slot
+    const {entries: labels, register: registerLabel, unregister: unregisterLabel} = useLabelSlotRegistry();
 
     const providerValue: MenuItemAccessibilityActions = useMemo(() => ({registerLabel, unregisterLabel}), [registerLabel, unregisterLabel]);
 
-    return {accessibilityProps, providerValue};
+    const accessibilityLabel = MENU_ITEM_LABEL_SLOTS.map((slot) => labels.get(slot))
+        .filter(Boolean)
+        .join(', ');
+
+    return {accessibilityLabel, providerValue};
 }
 
 export default MenuItemAccessibilityContext;
-export {useMenuItemAccessibilityLabel, useMenuItemAccessibility};
+export {useMenuItemAccessibilityLabel, useMenuItemAccessibility, MENU_ITEM_LABEL_SLOTS};
+export type {MenuItemAccessibilityActions, MenuItemLabelSlot};

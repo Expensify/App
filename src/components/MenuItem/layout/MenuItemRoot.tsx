@@ -1,5 +1,6 @@
 import Hoverable from '@components/Hoverable';
 import useIsCompact from '@components/MenuItem/hooks/useIsCompact';
+import type {MenuItemAccessibilityActions} from '@components/MenuItem/MenuItemAccessibilityContext';
 import MenuItemAccessibilityContext, {useMenuItemAccessibility} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/MenuItem/MenuItemContext';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -27,16 +28,30 @@ type MenuItemRootProps = PropsWithChildren &
 
         /** Whether the menu item is disabled */
         isDisabled?: boolean;
+
+        /**
+         * Pre-computed accessibility label. When provided, `Root` uses it directly and skips
+         * deriving the label from registered `Title`/`Description` children — so neither
+         * `useMenuItemAccessibility` runs nor the `MenuItemAccessibilityContext` provider mounts.
+         * Presets that know their text statically should pass it.
+         */
+        accessibilityLabel?: string;
     };
 
-function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel}: MenuItemRootProps) {
+type MenuItemRootLayoutProps = MenuItemRootProps & {
+    /** The resolved label spread on the pressable */
+    accessibilityLabel: string;
+
+    /** When set, children are wrapped in `MenuItemAccessibilityContext.Provider` so they can register text */
+    providerValue?: MenuItemAccessibilityActions;
+};
+
+function MenuItemRootLayout({children, onPress, isDisabled = false, sentryLabel, accessibilityLabel, providerValue}: MenuItemRootLayoutProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
     const isCompact = useIsCompact();
     const isInteractive = !!onPress;
-
-    const {accessibilityProps, providerValue} = useMenuItemAccessibility();
 
     useEffect(() => {
         const element = pressableRef.current;
@@ -87,13 +102,13 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel}: Menu
                         disabled={isDisabled}
                         ref={pressableRef}
                         role={isInteractive ? CONST.ROLE.BUTTON : undefined}
-                        accessibilityLabel={accessibilityProps.accessibilityLabel}
+                        accessibilityLabel={accessibilityLabel}
                         accessible
                         tabIndex={isInteractive ? 0 : -1}
                         sentryLabel={sentryLabel}
                     >
-                        {({pressed}) => (
-                            <MenuItemAccessibilityContext.Provider value={providerValue}>
+                        {({pressed}) => {
+                            const body = (
                                 <MenuItemInteractionContext.Provider
                                     value={{
                                         isHovered,
@@ -102,13 +117,45 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel}: Menu
                                 >
                                     <View style={styles.flex1}>{children}</View>
                                 </MenuItemInteractionContext.Provider>
-                            </MenuItemAccessibilityContext.Provider>
-                        )}
+                            );
+
+                            return providerValue ? <MenuItemAccessibilityContext.Provider value={providerValue}>{body}</MenuItemAccessibilityContext.Provider> : body;
+                        }}
                     </PressableWithFeedback>
                 )}
             </Hoverable>
         </MenuItemConfigContext.Provider>
     );
+}
+
+/**
+ * Derives the label from registered `Title`/`Description` children and exposes the registry via context.
+ * Only used when no `accessibilityLabel` prop was passed to `Root`.
+ */
+function MenuItemRootWithDerivedLabel(props: MenuItemRootProps) {
+    const {accessibilityLabel, providerValue} = useMenuItemAccessibility();
+
+    return (
+        <MenuItemRootLayout
+            {...props}
+            accessibilityLabel={accessibilityLabel}
+            providerValue={providerValue}
+        />
+    );
+}
+
+function MenuItemRoot({accessibilityLabel, ...props}: MenuItemRootProps) {
+    // Label known up-front: render the plain layout — no accessibility hook, no context provider.
+    if (accessibilityLabel !== undefined) {
+        return (
+            <MenuItemRootLayout
+                {...props}
+                accessibilityLabel={accessibilityLabel}
+            />
+        );
+    }
+
+    return <MenuItemRootWithDerivedLabel {...props} />;
 }
 
 export default MenuItemRoot;

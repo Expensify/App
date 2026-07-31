@@ -5,7 +5,7 @@
  * imports keep working), extended with the compound sub-components following the
  * composition-over-configuration pattern.
  *
- * The row's accessibility label is derived from the `Title`/`Description` text, in render order.
+ * The row's accessibility label is derived from the `Title`/`Description` text.
  *
  * @example Simple navigation row
  * ```tsx

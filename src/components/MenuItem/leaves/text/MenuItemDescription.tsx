@@ -13,7 +13,7 @@ type MenuItemDescriptionProps = PropsWithChildren;
 function MenuItemDescription({children}: MenuItemDescriptionProps) {
     const styles = useThemeStyles();
 
-    useMenuItemAccessibilityLabel(typeof children === 'string' || typeof children === 'number' ? String(children) : undefined);
+    useMenuItemAccessibilityLabel('description', typeof children === 'string' || typeof children === 'number' ? String(children) : undefined);
 
     return (
         <Text
