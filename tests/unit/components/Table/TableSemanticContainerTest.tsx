@@ -97,7 +97,13 @@ describe('TableSemanticContainer', () => {
         });
 
         const table = screen.getByLabelText('Members');
-        const rowGroup = within(table).getByRole(CONST.ROLE.ROWGROUP);
+        const [rowGroup] = table.children;
+        expect(rowGroup).toBeDefined();
+        expect(typeof rowGroup).not.toBe('string');
+        if (!rowGroup || typeof rowGroup === 'string') {
+            throw new Error('Expected the semantic table to contain a rowgroup');
+        }
+        expect(rowGroup.props.role).toBe(CONST.ROLE.ROWGROUP);
         expect(rowGroup.props['aria-owns']).toBe(ownedRowIDs.join(' '));
 
         expect(within(table).queryByTestId('page-controls')).toBeNull();
@@ -147,9 +153,9 @@ describe('TableSemanticContainer', () => {
         let unmountCount = 0;
         function TrackedFilterBar() {
             React.useEffect(() => {
-                mountCount++;
+                mountCount += 1;
                 return () => {
-                    unmountCount++;
+                    unmountCount += 1;
                 };
             }, []);
             return <View testID="tracked-filter-bar" />;

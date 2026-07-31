@@ -20,7 +20,7 @@ import {StyleSheet, View} from 'react-native';
 
 import type {TableColumn, TableData} from './types';
 
-import {getColumnHeaderAccessibilityProps, getRowAccessibilityProps, getTableHeaderRowID, shouldUseTableSemantics} from './tableAccessibility';
+import {getColumnHeaderAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
 
 /**
@@ -60,31 +60,19 @@ type TableHeaderProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, isStickyListHeader = false, id, 'aria-hidden': ariaHidden, ...props}: TableHeaderProps) {
+function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, isStickyListHeader = false, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {
-        semanticTableID,
-        columns,
-        isEmptyResult,
-        title,
-        shouldUseNarrowTableLayout,
-        tableMethods,
-        selectionEnabled,
-        processedData,
-        isMobileSelectionEnabled,
-        shouldEnableSelectionInNarrowPaneModal,
-        tableListMetadata,
-    } = useTableContext<DataType, ColumnKey>();
+    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, processedData, isMobileSelectionEnabled, shouldEnableSelectionInNarrowPaneModal} =
+        useTableContext<DataType, ColumnKey>();
     // Tables inside a narrow pane modal (RHP) opt into keying the header checkbox off the real screen size, since
     // shouldUseNarrowLayout is always true in an RHP. Other tables keep the original behavior. Visual padding below still uses shouldUseNarrowLayout.
     const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
-    const headerID = isTableSemanticsEnabled && tableListMetadata.hasPageHeader && !ariaHidden ? getTableHeaderRowID(semanticTableID) : id;
 
     if (shouldUseNarrowTableLayout && !title) {
         return null;
@@ -116,8 +104,6 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
 
     const header = (
         <View
-            id={headerID}
-            aria-hidden={ariaHidden}
             style={[
                 styles.pv2,
                 styles.mh5,

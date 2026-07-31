@@ -44,7 +44,6 @@ const mockTextInputNativeFocus = jest.fn();
 const mockTextInputNativeBlur = jest.fn();
 let mockNextTextInputInstanceID = 0;
 let mockFlashListProps: Array<MockFlashListProps<unknown>> = [];
-let mockFlashListStickyHeaderIndex: number | undefined;
 let mockShouldUseNarrowLayout = false;
 
 // Mock navigation
@@ -96,6 +95,11 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
     default: {
         isHybridApp: jest.fn(() => false),
     },
+}));
+
+jest.mock('@libs/getPlatform', () => ({
+    __esModule: true,
+    default: () => 'web',
 }));
 
 jest.mock('@components/MenuItem', () => {
@@ -152,7 +156,8 @@ jest.mock('@shopify/flash-list', () => {
         ) => {
             mockFlashListProps.push(props);
             const data = props.data ?? [];
-            const stickyHeaderItem = mockFlashListStickyHeaderIndex === undefined ? undefined : data.at(mockFlashListStickyHeaderIndex);
+            const stickyHeaderIndex = props.stickyHeaderIndices?.at(0);
+            const stickyHeaderItem = stickyHeaderIndex === undefined ? undefined : data.at(stickyHeaderIndex);
 
             ReactLocal.useEffect(() => {
                 mockFlashListMount();
@@ -187,7 +192,7 @@ jest.mock('@shopify/flash-list', () => {
                         <RNView testID="flash-list-sticky-header">
                             {props.renderItem?.({
                                 item: stickyHeaderItem,
-                                index: mockFlashListStickyHeaderIndex,
+                                index: stickyHeaderIndex,
                                 target: 'StickyHeader',
                             } as ListRenderItemInfo<unknown>)}
                         </RNView>
@@ -504,7 +509,6 @@ describe('Table', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockFlashListProps = [];
-        mockFlashListStickyHeaderIndex = undefined;
         mockShouldUseNarrowLayout = false;
     });
 
@@ -760,7 +764,7 @@ describe('Table', () => {
             const headerID: unknown = initialHeader?.props.id;
             expect(headerID).toBeTruthy();
 
-            mockFlashListStickyHeaderIndex = 1;
+            activateStickyHeadersAfterListLoad();
             act(() => {
                 mockFlashListProps.at(-1)?.onChangeStickyIndex?.(1, -1);
             });
