@@ -9664,9 +9664,9 @@ describe('SearchUIUtils', () => {
             const crossBorderGroup = {
                 ...domesticGroup,
                 entryID: 2,
-                debitedAmount: -10000,
+                debitedAmount: 10000,
                 debitedCurrency: 'USD',
-                creditedAmount: -9200,
+                creditedAmount: 9200,
                 creditedCurrency: 'EUR',
             };
 
@@ -9681,6 +9681,16 @@ describe('SearchUIUtils', () => {
             const crossBorderColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: crossBorderData, visibleColumns: [], groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID});
             expect(crossBorderColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
             expect(crossBorderColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
+
+            // A group with no account number never reaches the list, so its amounts must not open a column either.
+            const unrenderedData: OnyxTypes.SearchResults['data'] = {
+                ...domesticData,
+                // @ts-expect-error minimal dataset for getColumnsToShow
+                [`group_${crossBorderGroup.entryID}`]: {...crossBorderGroup, accountNumber: ''},
+            };
+            const unrenderedColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: unrenderedData, visibleColumns: [], groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID});
+            expect(unrenderedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
+            expect(unrenderedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
         });
 
         test('Should hide a conversion amount column when its currency is missing', () => {
@@ -9693,9 +9703,9 @@ describe('SearchUIUtils', () => {
                 bankName: CONST.BANK_NAMES.CHASE,
                 debitPosted: '2026-01-02',
                 state: 8,
-                debitedAmount: -10000,
+                debitedAmount: 10000,
                 debitedCurrency: 'USD',
-                creditedAmount: -9200,
+                creditedAmount: 9200,
             };
 
             // @ts-expect-error minimal dataset for getColumnsToShow

@@ -5902,7 +5902,9 @@ function hasGroupWithConversionAmount(column: keyof typeof conversionAmountGroup
         }
 
         const group: Partial<SearchWithdrawalIDGroup> = data[key];
-        return !!group[amount] && !!group[currency];
+
+        // getWithdrawalIDSections drops groups without an account number, so a column keyed off one would have no row to fill it.
+        return !!group.accountNumber && !!group[amount] && !!group[currency];
     });
 }
 
