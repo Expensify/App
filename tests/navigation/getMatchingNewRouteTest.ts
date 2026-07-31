@@ -494,4 +494,17 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-destination/per-diem-time')).toBe(undefined);
         expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-time-edit')).toBe(undefined);
     });
+
+    it('redirects legacy money request upgrade path to the money-request-upgrade dynamic route', () => {
+        expect(getMatchingNewRoute('/create/expense/upgrade/123/456')).toBe('/r/456/money-request-upgrade?action=create&iouType=expense&transactionID=123&reportID=456');
+    });
+    it('redirects legacy money request upgrade path with an upgrade-path suffix to the dynamic route', () => {
+        expect(getMatchingNewRoute('/create/expense/upgrade/123/456/categories')).toBe(
+            '/r/456/money-request-upgrade?action=create&iouType=expense&transactionID=123&reportID=456&upgradePath=categories',
+        );
+    });
+
+    it('does not redirect the already-migrated money request upgrade dynamic route', () => {
+        expect(getMatchingNewRoute('/r/456/money-request-upgrade?action=create&iouType=expense&transactionID=123&reportID=456')).toBe(undefined);
+    });
 });

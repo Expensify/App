@@ -1443,11 +1443,19 @@ const DYNAMIC_ROUTES = {
         queryParams: ['action', 'iouType', 'transactionID', 'reportID'],
     },
     MONEY_REQUEST_UPGRADE: {
-        path: 'upgrade',
+        path: 'money-request-upgrade',
         entryScreens: ['*'],
         getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string; reportID: string; upgradeBackTo?: string; shouldSubmitExpense?: boolean; upgradePath?: string}) => {
             const {action, iouType, transactionID, reportID, upgradeBackTo, shouldSubmitExpense, upgradePath} = params;
-            return getUrlWithParams('upgrade', {action, iouType, transactionID, reportID, upgradeBackTo, shouldSubmitExpense: shouldSubmitExpense ? 'true' : undefined, upgradePath});
+            return getUrlWithParams('money-request-upgrade', {
+                action,
+                iouType,
+                transactionID,
+                reportID,
+                upgradeBackTo,
+                shouldSubmitExpense: shouldSubmitExpense ? 'true' : undefined,
+                upgradePath,
+            });
         },
         queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'upgradeBackTo', 'shouldSubmitExpense', 'upgradePath'],
     },
