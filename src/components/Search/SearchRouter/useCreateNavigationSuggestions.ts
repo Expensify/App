@@ -1,3 +1,6 @@
+/**
+ * Builds the Create/FAB navigation suggestions shown in the Search Router.
+ */
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 
 import useCreateReport from '@hooks/useCreateReport';
