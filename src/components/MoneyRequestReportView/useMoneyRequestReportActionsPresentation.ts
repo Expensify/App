@@ -17,12 +17,18 @@ type MoneyRequestReportActionsPresentationProps = {
 
 function useMoneyRequestReportActionsPresentation({visibleReportActions, linkedReportActionID, unreadMarkerReportActionID}: MoneyRequestReportActionsPresentationProps) {
     const [expandedSystemMessageReportActionIDs, setExpandedSystemMessageReportActionIDs] = useState<Set<string>>(() => new Set());
-    const [forceExpandedLinkedReportActionID, setForceExpandedLinkedReportActionID] = useState(linkedReportActionID);
+    const [manuallyCollapsedLinkedReportActionID, setManuallyCollapsedLinkedReportActionID] = useState<string>();
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronize the one-shot expansion whenever the route targets a different action
-        setForceExpandedLinkedReportActionID(linkedReportActionID);
-    }, [linkedReportActionID]);
+        if (manuallyCollapsedLinkedReportActionID === undefined || manuallyCollapsedLinkedReportActionID === linkedReportActionID) {
+            return;
+        }
+
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- a manual collapse applies only while the route keeps targeting the same action
+        setManuallyCollapsedLinkedReportActionID(undefined);
+    }, [linkedReportActionID, manuallyCollapsedLinkedReportActionID]);
+
+    const forceExpandedLinkedReportActionID = linkedReportActionID === manuallyCollapsedLinkedReportActionID ? undefined : linkedReportActionID;
 
     const displayState = useMemo(
         () => getSystemMessageDisplayState(visibleReportActions, expandedSystemMessageReportActionIDs, forceExpandedLinkedReportActionID ? [forceExpandedLinkedReportActionID] : []),
@@ -32,8 +38,8 @@ function useMoneyRequestReportActionsPresentation({visibleReportActions, linkedR
 
     const toggleSystemMessageRun = useCallback(
         (reportActionIDs: string[], isExpanded: boolean) => {
-            if (isExpanded && forceExpandedLinkedReportActionID && reportActionIDs.includes(forceExpandedLinkedReportActionID)) {
-                setForceExpandedLinkedReportActionID(undefined);
+            if (isExpanded && linkedReportActionID && reportActionIDs.includes(linkedReportActionID)) {
+                setManuallyCollapsedLinkedReportActionID(linkedReportActionID);
             }
 
             setExpandedSystemMessageReportActionIDs((previousReportActionIDs) => {
@@ -48,7 +54,7 @@ function useMoneyRequestReportActionsPresentation({visibleReportActions, linkedR
                 return nextReportActionIDs;
             });
         },
-        [forceExpandedLinkedReportActionID],
+        [linkedReportActionID],
     );
 
     return {
