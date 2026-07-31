@@ -5,12 +5,17 @@ import SelectionList from '@components/SelectionList';
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 
-import StateSelectionPage from '@pages/settings/Profile/PersonalDetails/StateSelectionPage';
+import DynamicStateSelectionPage from '@pages/settings/Profile/PersonalDetails/DynamicStateSelectionPage';
 
 import type * as ReactNavigation from '@react-navigation/native';
+import type {ComponentProps} from 'react';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
+
+import createMock from '../utils/createMock';
+
+type DynamicStateSelectionPageProps = ComponentProps<typeof DynamicStateSelectionPage>;
 
 const mockUseState = React.useState;
 const mockStates = COMMON_CONST.STATES;
@@ -21,7 +26,6 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNavigation,
         useFocusEffect: jest.fn(),
-        useRoute: jest.fn(() => ({params: {state: 'NY', label: 'State', backTo: ''}})),
     };
 });
 
@@ -35,6 +39,7 @@ jest.mock('@hooks/useDebouncedState', () =>
         return [value, value, setValue];
     }),
 );
+jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/profile/address'));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => {
@@ -43,6 +48,8 @@ jest.mock('@hooks/useLocalize', () =>
             }
 
             const [, stateKey, property] = key.split('.');
+            // stateKey is parsed from an `allStates.<key>.*` path generated from mockStates itself, so it is guaranteed valid.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const state = mockStates[stateKey as keyof typeof mockStates];
 
             if (property === 'stateName') {
@@ -57,7 +64,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
-describe('StateSelectionPage', () => {
+describe('DynamicStateSelectionPage', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
 
     beforeEach(() => {
@@ -65,7 +72,12 @@ describe('StateSelectionPage', () => {
     });
 
     it('pins the saved state to the top on reopen and wires debounced focus sync', () => {
-        render(<StateSelectionPage />);
+        render(
+            <DynamicStateSelectionPage
+                route={createMock<DynamicStateSelectionPageProps['route']>({params: {state: 'NY'}})}
+                navigation={createMock<DynamicStateSelectionPageProps['navigation']>({})}
+            />,
+        );
 
         const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
         expect(selectionListProps?.data.at(0)).toEqual(
@@ -80,7 +92,12 @@ describe('StateSelectionPage', () => {
     });
 
     it('keeps natural filtered ordering while search is active', () => {
-        render(<StateSelectionPage />);
+        render(
+            <DynamicStateSelectionPage
+                route={createMock<DynamicStateSelectionPageProps['route']>({params: {state: 'NY'}})}
+                navigation={createMock<DynamicStateSelectionPageProps['navigation']>({})}
+            />,
+        );
 
         const initialProps = mockedSelectionList.mock.lastCall?.[0];
 
@@ -91,16 +108,34 @@ describe('StateSelectionPage', () => {
         const searchedProps = mockedSelectionList.mock.lastCall?.[0];
         const expectedSearchResults = searchOptions(
             'New',
-            Object.keys(mockStates).map((state) => ({
-                value: mockStates[state as keyof typeof mockStates].stateISO,
-                keyForList: mockStates[state as keyof typeof mockStates].stateISO,
-                text: mockStates[state as keyof typeof mockStates].stateName,
-                isSelected: mockStates[state as keyof typeof mockStates].stateISO === 'NY',
-                searchValue: StringUtils.sanitizeString(`${mockStates[state as keyof typeof mockStates].stateISO}${mockStates[state as keyof typeof mockStates].stateName}`),
-            })),
+            Object.keys(mockStates).map((stateKey) => {
+                // stateKey comes from Object.keys(mockStates) itself, so it is guaranteed valid.
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const state = mockStates[stateKey as keyof typeof mockStates];
+                return {
+                    value: state.stateISO,
+                    keyForList: state.stateISO,
+                    text: state.stateName,
+                    isSelected: state.stateISO === 'NY',
+                    searchValue: StringUtils.sanitizeString(`${state.stateISO}${state.stateName}`),
+                };
+            }),
         );
 
         expect(searchedProps?.data.map((item) => item.keyForList)).toEqual(expectedSearchResults.map((item) => item.keyForList));
         expect(searchedProps?.searchValueForFocusSync).toBe('New');
+    });
+
+    it('renders without crashing when the route has no params', () => {
+        render(
+            <DynamicStateSelectionPage
+                route={createMock<DynamicStateSelectionPageProps['route']>({})}
+                navigation={createMock<DynamicStateSelectionPageProps['navigation']>({})}
+            />,
+        );
+
+        const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
+        expect(selectionListProps?.initiallyFocusedItemKey).toBeUndefined();
+        expect(selectionListProps?.data.every((item) => !item.isSelected)).toBe(true);
     });
 });
