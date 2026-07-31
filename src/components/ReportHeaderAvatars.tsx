@@ -4,6 +4,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -41,9 +42,7 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    // reportID can be an empty string causing Onyx to fetch the whole collection
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
 
     const {avatarType, avatars: icons} = useReportActionAvatars({
         report,

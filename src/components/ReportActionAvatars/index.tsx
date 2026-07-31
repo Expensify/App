@@ -13,7 +13,6 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import {sortIconsByName} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -213,17 +212,16 @@ function ReportActionAvatars({
         return null;
     }
 
-    const delegateAccountIDFromAction = getDelegateAccountIDFromReportAction(source.action);
-    const singleAvatar: AvatarIcon =
-        delegateAccountID && delegateAccountIDFromAction
-            ? {
-                  ...primaryAvatar,
-                  copilot: {
-                      accountID: delegateAccountIDFromAction,
-                      actedForAccountID: delegateAccountID,
-                  },
-              }
-            : primaryAvatar;
+    const delegateAccountIDFromAction = source.action?.delegateAccountID;
+    const singleAvatar: AvatarIcon = delegateAccountIDFromAction
+        ? {
+              ...primaryAvatar,
+              copilot: {
+                  accountID: delegateAccountIDFromAction,
+                  actedForAccountID: delegateAccountID,
+              },
+          }
+        : primaryAvatar;
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT_CARD_FEED && subscriptCardFeed) {
         return (
