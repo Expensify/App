@@ -70,8 +70,10 @@ const shouldDisplayNewMarkerOnReportAction = ({
     // timestamp-based check below: once an optimistic self-message confirms, unreadMarkerTime,
     // lastReadTime, and created all converge on (or drift past) the confirmed `created`, so
     // isReportActionUnread wrongly reports it as read. The stored reportActionID is the only signal
-    // stable across that transition. Still yield to a more-recent unread message.
-    if (!!manuallyMarkedUnreadReportActionID && message.reportActionID === manuallyMarkedUnreadReportActionID && !isNextMessageUnread) {
+    // stable across that transition. The marked action is the oldest unread by construction
+    // (markCommentAsUnread sets lastReadTime = its created - 1ms), so it remains the correct anchor
+    // even when newer messages arrive after the mark.
+    if (!!manuallyMarkedUnreadReportActionID && message.reportActionID === manuallyMarkedUnreadReportActionID) {
         return true;
     }
 

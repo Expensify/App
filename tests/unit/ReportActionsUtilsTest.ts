@@ -5594,7 +5594,10 @@ describe('ReportActionsUtils', () => {
             ).toBe(false);
         });
 
-        it('yields the marker to a more-recent unread message even when an older action is marked unread', () => {
+        it('keeps the marker on the explicitly marked-unread action even when a newer message is present', () => {
+            // The marked action is the oldest unread by construction (lastReadTime = its created - 1ms), so it
+            // stays the anchor regardless of an adjacent unread message — a newer message arriving after the mark
+            // must not steal the marker off the message the user deliberately marked unread.
             const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'marked-action-id', created: '2023-01-01 11:00:00.000'});
             const nextMessage = makeAction({created: '2023-01-01 11:30:00.000'});
             expect(
@@ -5605,7 +5608,7 @@ describe('ReportActionsUtils', () => {
                     manuallyMarkedUnreadReportActionID: 'marked-action-id',
                     isOffline: false,
                 }),
-            ).toBe(false);
+            ).toBe(true);
         });
     });
 
