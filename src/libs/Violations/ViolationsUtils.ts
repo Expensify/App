@@ -11,7 +11,6 @@ import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
-import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {
     arePolicyRulesEnabled,
     getDistanceRateCustomUnitRate,
@@ -23,6 +22,7 @@ import {
     isDefaultTagName,
     isMatchingVendorListLoaded,
     isTaxTrackingEnabled,
+    isXeroActiveMatchingSource,
 } from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -468,6 +468,7 @@ const ViolationsUtils = {
         isFromExpenseReport,
         shouldRemoveRejectedExpenseViolation,
         distanceOriginalPolicy,
+        ownerLogin: ownerLoginParam,
     }: {
         updatedTransaction: Transaction;
         transactionViolations: TransactionViolation[];
@@ -481,6 +482,7 @@ const ViolationsUtils = {
         isFromExpenseReport?: boolean;
         shouldRemoveRejectedExpenseViolation?: boolean;
         distanceOriginalPolicy?: OnyxEntry<Policy>;
+        ownerLogin: string | undefined;
     }): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -583,15 +585,52 @@ const ViolationsUtils = {
                 }
             } else if (transactionVendorID && isMatchingVendorListLoaded(policy)) {
                 // Only mutate INACTIVE_VENDOR once the active integration's vendor list has actually
-                // hydrated. While `policy.connections.*.data.vendors` is still `undefined`,
-                // `getMatchingVendorByID` returns `undefined` for every ID — pushing the violation
-                // would persist a false positive in Onyx, and rejecting it would strip a legitimate
-                // one. Leave the existing violation state untouched until the list arrives.
+                // hydrated. While the active integration's vendor list is still `undefined` (incl.
+                // the Xero `data.contacts === undefined` pre-sync gap), `getMatchingVendorByID`
+                // returns `undefined` for every ID — pushing the violation would persist a false
+                // positive in Onyx, and rejecting it would strip a legitimate one. Leave the
+                // existing violation state untouched until the list arrives.
                 const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
+
+                // Stamp Xero-specific copy on the violation so the render site can use the
+                // "Supplier" wording the rest of the Xero UI uses; QBO/Intacct keep the default
+                // "Vendor" wording.
+                const isSupplierViolation = isXeroActiveMatchingSource(policy);
                 if (!matchedVendor && !hasInactiveVendorViolation) {
-                    newTransactionViolations.push({name: CONST.VIOLATIONS.INACTIVE_VENDOR, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+                    newTransactionViolations.push({
+                        name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                        ...(isSupplierViolation ? {data: {isSupplierViolation: true}} : {}),
+                    });
                 } else if (matchedVendor && hasInactiveVendorViolation) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+                } else if (!matchedVendor && hasInactiveVendorViolation) {
+                    // Reconcile data.isSupplierViolation with the current active matching source.
+                    // Backfills the flag when Xero is now active (server-fired violation, or
+                    // persisted from before this code path existed). Strips a stale flag when the
+                    // workspace has switched back to QBO/Intacct as the active source — otherwise
+                    // the render layer would keep showing "Supplier" wording even though the picker
+                    // is back to "Vendor".
+                    const needsSupplierFlagReconciliation = newTransactionViolations.some(
+                        (violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR && (violation.data?.isSupplierViolation === true) !== isSupplierViolation,
+                    );
+                    if (needsSupplierFlagReconciliation) {
+                        newTransactionViolations = newTransactionViolations.map((violation) => {
+                            if (violation.name !== CONST.VIOLATIONS.INACTIVE_VENDOR) {
+                                return violation;
+                            }
+                            const currentFlag = violation.data?.isSupplierViolation === true;
+                            if (currentFlag === isSupplierViolation) {
+                                return violation;
+                            }
+                            if (isSupplierViolation) {
+                                return {...violation, data: {...violation.data, isSupplierViolation: true}};
+                            }
+                            const {isSupplierViolation: stripped, ...remainingData} = violation.data ?? {};
+                            return Object.keys(remainingData).length > 0 ? {...violation, data: remainingData} : {...violation, data: undefined};
+                        });
+                    }
                 }
             } else if (!transactionVendorID && hasInactiveVendorViolation) {
                 // Vendor was cleared while the feature is still active — drop the now-stale violation.
@@ -735,7 +774,7 @@ const ViolationsUtils = {
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
         let attendeesMinusOwnerCount: number;
         // Prefer the actual report owner's login; fall back to the current user when the report is unavailable (e.g. an offline-created expense)
-        const ownerLogin = getLoginByAccountID(iouReport?.ownerAccountID) ?? getCurrentUserEmail();
+        const ownerLogin = ownerLoginParam ?? getCurrentUserEmail();
         if (ownerLogin) {
             // Filter by login or email to identify owner
             attendeesMinusOwnerCount = attendees.filter((a) => {
@@ -918,6 +957,7 @@ const ViolationsUtils = {
             message = '',
             errorIndexes = [],
             missingFields = [],
+            isSupplierViolation = false,
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -957,7 +997,7 @@ const ViolationsUtils = {
             case 'futureDate':
                 return translate('violations.futureDate');
             case 'inactiveVendor':
-                return translate('violations.inactiveVendor');
+                return translate('violations.inactiveVendor', {isSupplier: isSupplierViolation});
             case 'invoiceMarkup':
                 return translate('violations.invoiceMarkup', invoiceMarkup);
             case 'maxAge':
