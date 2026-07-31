@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import React from 'react';
 import {View} from 'react-native';
 
-import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps} from './tableAccessibility';
+import {getTableContainerAccessibilityProps} from './tableAccessibility';
 import TableBody from './TableBody';
 import TableHeader from './TableHeader';
 
