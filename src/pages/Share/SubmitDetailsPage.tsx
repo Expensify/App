@@ -319,6 +319,20 @@ function SubmitDetailsPage({
         });
     }, [pendingNavigationReportID, pendingNavigationReport?.reportID]);
 
+    // Timeout for pending report arrival — if optimistic write doesn't land within 5s, something's broken anyway.
+    // Fallback dismisses spinner and lets user navigate back without indefinite hang.
+    useEffect(() => {
+        if (!pendingNavigationReportID) {
+            return;
+        }
+
+        const timeoutId = setTimeout(() => {
+            setIsConfirming(false);
+        }, 5000);
+
+        return () => clearTimeout(timeoutId);
+    }, [pendingNavigationReportID]);
+
     const finishRequestAndNavigate = (receipt: Receipt, gpsPoint?: GpsPoint) => {
         if (!transaction || !participant) {
             return;
