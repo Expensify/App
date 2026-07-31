@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Właściciel',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'kalendarz otwarty',
+        dialogOpened: 'okno dialogowe',
         send: 'Wyślij',
         na: 'ND dotyczy',
         noResultsFound: 'Nie znaleziono wyników',
@@ -1463,6 +1464,8 @@ const translations: TranslationDeepObject<typeof en> = {
         paidThisBill: 'zapłacił(a) ten rachunek',
         reimbursedOnBehalfOf: (actor: string) => `w imieniu ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `z konta bankowego kończącego się na ${debitBankAccount}`,
+        reimbursedCrossBorder: ({amount, debitBankAccount, creditBankAccount}: {amount: string; debitBankAccount: string; creditBankAccount: string}) =>
+            `zapłacono ${amount} z konta ${debitBankAccount} na konto ${creditBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} dodał konto bankowe, zdejmując raport z wstrzymania. Zwrot został zainicjowany`,
         reimbursedWithFastACH: ({
             isCurrentUser,
@@ -2793,6 +2796,13 @@ ${amount} dla ${merchant} - ${date}`,
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Nie udało się zmienić częstotliwości wysyłania. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
         monthlyOffsetErrorMessage: 'Nie można było zmienić miesięcznej częstotliwości. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
+    },
+    workflowsCurrencyConversionFeesPage: {
+        title: 'Opłaty za przewalutowanie',
+        subtitle: 'Przy zwrocie w innej walucie mogą obowiązywać opłaty za przewalutowanie. Wybierz poniżej, kto zapłaci opłaty. Dotyczy to wyłącznie przewalutowań transgranicznych.',
+        companyPays: 'Płaci firma',
+        employeePays: 'Płaci pracownik',
+        errorMessage: 'Nie udało się zmienić preferencji dotyczącej opłat za przewalutowanie. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
     },
     workflowsCreateApprovalsPage: {
         title: 'Potwierdź',
@@ -5824,7 +5834,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             directFeed: 'Bezpośredni kanał',
             whoNeedsCardAssigned: 'Kto potrzebuje przypisanej karty?',
             chooseTheCardholder: 'Wybierz posiadacza karty',
-            pleaseSelectACardholder: 'Wybierz posiadacza karty, aby kontynuować',
             chooseCard: 'Wybierz kartę',
             chooseCardFor: (assignee: string) => `Wybierz kartę dla <strong>${assignee}</strong>. Nie możesz znaleźć karty, której szukasz? <concierge-link>Daj nam znać.</concierge-link>`,
             noActiveCards: 'Brak aktywnych kart w tym kanale',
@@ -6142,9 +6151,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 assignedCards: 'Przypisano',
                 unassignedCards: 'Nieprzypisane',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `eksport ${integration} ${type.toLowerCase()}` : `Eksport z ${integration}`),
-                integrationExportTitleXero: (integration: string) => `Wybierz konto ${integration}, do którego mają być eksportowane transakcje.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Wybierz konto ${integration}, do którego mają być eksportowane transakcje. Wybierz inną <a href="${exportPageLink}">opcję eksportu</a>, aby zmienić dostępne konta.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Wybierz konto ${integration}, do którego mają być eksportowane transakcje.${exportPageLink ? ` Wybierz inną <a href="${exportPageLink}">opcję eksportu</a>, aby zmienić dostępne konta.` : ''}`,
                 lastUpdated: 'Ostatnia aktualizacja',
                 transactionStartDate: 'Data początkowa transakcji',
                 updateCard: 'Zaktualizuj kartę',
@@ -6614,8 +6622,6 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             peopleAdmins: 'Administratorzy osób',
             paymentsAdmins: 'Administratorzy płatności',
             members: 'Członkowie',
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `Nie możesz usunąć użytkownika ${memberName} z tego workspace, dopóki ma Kartę Expensify. Dezaktywuj jego kartę w Workspace > Karta Expensify, a następnie spróbuj ponownie.`,
         },
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',
@@ -7628,6 +7634,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 defaultTaxRate: 'Domyślna stawka podatku',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Przejdź do [Więcej funkcji](${moreFeaturesLink}) i włącz przepływy pracy, a następnie dodaj zatwierdzenia, aby odblokować tę funkcję.`,
+                createNewRule: 'Utwórz nową regułę',
+                contextualFlagForReview: (amount: string) => `Jeśli kwota przekracza ${amount}, oznacz do sprawdzenia`,
+                contextualFlagForReviewDaily: (amount: string) => `Jeśli dzienny łączny wydatek w danej kategorii przekracza ${amount}, oznacz do sprawdzenia`,
             },
             customRules: {
                 title: 'Polityka wydatków',
@@ -8873,6 +8882,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             undelete: 'Cofnij usunięcie',
             duplicateReport: ({count}: {count: number}) => `Duplikat ${count === 1 ? 'raport' : 'raporty'}`,
         },
+        expensifyCardStatementPDF: {
+            title: 'Pobierz wyciąg',
+            oneFeedAtATime: 'Wybieraj rozliczenia z jednego feedu Expensify Card na raz.',
+        },
         filtersHeader: 'Filtry',
         filters: {
             date: {
@@ -9712,6 +9725,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Stawka jest ważna tylko od ${startDate} do ${endDate}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Stawka jest ważna tylko od ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Stawka jest ważna tylko do ${endDate}`,
+        cannotMergeDuplicates: 'Możesz łączyć wydatki tylko w szkicach lub otwartych raportach. Wycofaj go i spróbuj ponownie.',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Pole ${fieldName} jest wymagane`,
@@ -10253,6 +10267,7 @@ Cześć! Właśnie załatwiłem(am) nam *3 miesiące za darmo*, żeby wypróbowa
 Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
     },
     export: {
+        downloadStatementPDF: 'Pobierz wyciąg',
         basicExport: 'Podstawowy eksport',
         reportLevelExport: 'Wszystkie dane – poziom raportu',
         expenseLevelExport: 'Wszystkie dane – poziom wydatku',

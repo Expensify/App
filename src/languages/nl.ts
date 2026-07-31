@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Eigenaar',
         dateFormat: 'JJJJ-MM-DD',
         calendarOpened: 'kalender geopend',
+        dialogOpened: 'dialoog',
         send: 'Verzenden',
         na: 'n.v.t.',
         noResultsFound: 'Geen resultaten gevonden',
@@ -1467,6 +1468,8 @@ const translations: TranslationDeepObject<typeof en> = {
         paidThisBill: 'heeft deze rekening betaald',
         reimbursedOnBehalfOf: (actor: string) => `namens ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `van de bankrekening die eindigt op ${debitBankAccount}`,
+        reimbursedCrossBorder: ({amount, debitBankAccount, creditBankAccount}: {amount: string; debitBankAccount: string; creditBankAccount: string}) =>
+            `${amount} betaald van rekening ${debitBankAccount} naar rekening ${creditBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} heeft een bankrekening toegevoegd en het rapport van de wachtlijst gehaald. Terugbetaling is gestart`,
         reimbursedWithFastACH: ({
             isCurrentUser,
@@ -2804,6 +2807,14 @@ ${amount} voor ${merchant} - ${date}`,
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Indienfrequentie kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
         monthlyOffsetErrorMessage: 'Maandelijkse frequentie kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
+    },
+    workflowsCurrencyConversionFeesPage: {
+        title: 'Valutaomrekeningskosten',
+        subtitle:
+            'Bij vergoedingen in een andere valuta kunnen omrekeningskosten van toepassing zijn. Selecteer hieronder wie de kosten betaalt. Dit geldt alleen voor grensoverschrijdende omrekeningen.',
+        companyPays: 'Bedrijf betaalt',
+        employeePays: 'Werknemer betaalt',
+        errorMessage: 'De voorkeur voor valutaomrekeningskosten kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
     },
     workflowsCreateApprovalsPage: {
         title: 'Bevestigen',
@@ -5842,7 +5853,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             directFeed: 'Directe feed',
             whoNeedsCardAssigned: 'Wie moet er een kaart toegewezen krijgen?',
             chooseTheCardholder: 'Kies de kaarthouder',
-            pleaseSelectACardholder: 'Selecteer een kaarthouder om door te gaan',
             chooseCard: 'Kies een kaart',
             chooseCardFor: (assignee: string) =>
                 `Kies een kaart voor <strong>${assignee}</strong>. Kun je de kaart die je zoekt niet vinden? <concierge-link>Laat het ons weten.</concierge-link>`,
@@ -6162,9 +6172,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 assignedCards: 'Toegewezen',
                 unassignedCards: 'Niet toegewezen',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()}-export` : `${integration}-export`),
-                integrationExportTitleXero: (integration: string) => `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd. Selecteer een andere <a href="${exportPageLink}">exportoptie</a> om de beschikbare rekeningen te wijzigen.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd.${exportPageLink ? ` Selecteer een andere <a href="${exportPageLink}">exportoptie</a> om de beschikbare rekeningen te wijzigen.` : ''}`,
                 lastUpdated: 'Laatst bijgewerkt',
                 transactionStartDate: 'Begindatum transactie',
                 updateCard: 'Kaart bijwerken',
@@ -6633,8 +6642,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             peopleAdmins: 'People-beheerders',
             paymentsAdmins: 'Betalingsbeheerders',
             members: 'Leden',
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `Je kunt ${memberName} niet uit deze werkruimte verwijderen zolang diegene een Expensify Kaart heeft. Deactiveer eerst hun kaart in Werkruimte > Expensify Kaart en probeer het daarna opnieuw.`,
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -7648,6 +7655,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 defaultTaxRate: 'Standaardbelastingtarief',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Ga naar [Meer functies](${moreFeaturesLink}) en schakel workflows in, voeg daarna goedkeuringen toe om deze functie te ontgrendelen.`,
+                createNewRule: 'Nieuwe regel maken',
+                contextualFlagForReview: (amount: string) => `Als het bedrag hoger is dan ${amount}, markeren voor controle`,
+                contextualFlagForReviewDaily: (amount: string) => `Als het dagelijkse categorietotaal hoger is dan ${amount}, markeren voor controle`,
             },
             customRules: {
                 title: 'Declaratiebeleid',
@@ -8895,6 +8905,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             undelete: 'Terugzetten',
             duplicateReport: ({count}: {count: number}) => `Duplicaat ${count === 1 ? 'rapport' : 'rapporten'}`,
         },
+        expensifyCardStatementPDF: {
+            title: 'Afschrift downloaden',
+            oneFeedAtATime: 'Selecteer afrekeningen van telkens slechts één Expensify Card-feed.',
+        },
         filtersHeader: 'Filters',
         filters: {
             date: {
@@ -9740,6 +9754,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Tarief is alleen geldig van ${startDate} tot ${endDate}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Tarief is alleen geldig vanaf ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Tarief is alleen geldig tot ${endDate}`,
+        cannotMergeDuplicates: 'Je kunt alleen onkosten samenvoegen op concept- of openstaande rapporten. Trek het rapport in en probeer het opnieuw.',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is verplicht`,
@@ -10283,6 +10298,7 @@ Hoi! Ik heb zojuist *3 maanden gratis* geregeld om Expensify uit te proberen, de
 Hier is een *proefbon* om je te laten zien hoe het werkt:`,
     },
     export: {
+        downloadStatementPDF: 'Afschrift downloaden',
         basicExport: 'Standaardexport',
         reportLevelExport: 'Alle gegevens - rapportniveau',
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',

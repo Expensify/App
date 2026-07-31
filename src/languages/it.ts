@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Proprietario',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'calendario aperto',
+        dialogOpened: 'finestra di dialogo',
         send: 'Invia',
         na: 'N/D',
         noResultsFound: 'Nessun risultato trovato',
@@ -1469,6 +1470,8 @@ const translations: TranslationDeepObject<typeof en> = {
         paidThisBill: 'ha pagato questa fattura',
         reimbursedOnBehalfOf: (actor: string) => `per conto di ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `dal conto bancario che termina con ${debitBankAccount}`,
+        reimbursedCrossBorder: ({amount, debitBankAccount, creditBankAccount}: {amount: string; debitBankAccount: string; creditBankAccount: string}) =>
+            `ha pagato ${amount} dal conto ${debitBankAccount} al conto ${creditBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} ha aggiunto un conto bancario, rimuovendo il blocco sul resoconto. Il rimborso è stato avviato`,
         reimbursedWithFastACH: ({
             isCurrentUser,
@@ -2802,6 +2805,14 @@ ${amount} per ${merchant} - ${date}`,
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Impossibile modificare la frequenza di invio. Riprova oppure contatta l’assistenza.',
         monthlyOffsetErrorMessage: 'Impossibile modificare la frequenza mensile. Riprova oppure contatta l’assistenza.',
+    },
+    workflowsCurrencyConversionFeesPage: {
+        title: 'Commissioni di conversione valuta',
+        subtitle:
+            'Quando rimborsi in una valuta diversa, potrebbero essere applicate commissioni di conversione. Seleziona di seguito chi pagherà le commissioni. Questo vale solo per le conversioni transfrontaliere.',
+        companyPays: "Paga l'azienda",
+        employeePays: 'Paga il dipendente',
+        errorMessage: 'Impossibile modificare la preferenza sulle commissioni di conversione valuta. Riprova oppure contatta l’assistenza.',
     },
     workflowsCreateApprovalsPage: {
         title: 'Conferma',
@@ -5849,7 +5860,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             directFeed: 'Flusso diretto',
             whoNeedsCardAssigned: 'Chi ha bisogno di una carta assegnata?',
             chooseTheCardholder: 'Scegli il titolare della carta',
-            pleaseSelectACardholder: 'Seleziona un titolare della carta per continuare',
             chooseCard: 'Scegli una carta',
             chooseCardFor: (assignee: string) =>
                 `Scegli una carta per <strong>${assignee}</strong>. Non riesci a trovare la carta che stai cercando? <concierge-link>Facci sapere.</concierge-link>`,
@@ -6175,9 +6185,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 assignedCards: 'Assegnato',
                 unassignedCards: 'Non assegnato',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `esportazione ${integration} ${type.toLowerCase()}` : `Esportazione ${integration}`),
-                integrationExportTitleXero: (integration: string) => `Scegli il conto ${integration} in cui esportare le transazioni.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Scegli il conto ${integration} in cui esportare le transazioni. Seleziona un’altra <a href="${exportPageLink}">opzione di esportazione</a> per modificare i conti disponibili.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Scegli il conto ${integration} in cui esportare le transazioni.${exportPageLink ? ` Seleziona un’altra <a href="${exportPageLink}">opzione di esportazione</a> per modificare i conti disponibili.` : ''}`,
                 lastUpdated: 'Ultimo aggiornamento',
                 transactionStartDate: 'Data di inizio transazione',
                 updateCard: 'Aggiorna carta',
@@ -6647,8 +6656,6 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             peopleAdmins: 'Amministratori persone',
             paymentsAdmins: 'Amministratori pagamenti',
             members: 'Membri',
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `Non puoi rimuovere ${memberName} da questo spazio di lavoro finché ha una Carta Expensify. Disattiva prima la sua carta in Spazio di lavoro > Carta Expensify, quindi riprova.`,
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
@@ -7666,6 +7673,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 defaultTaxRate: 'Aliquota fiscale predefinita',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Vai su [Altre funzionalità](${moreFeaturesLink}) e abilita i flussi di lavoro, quindi aggiungi le approvazioni per sbloccare questa funzionalità.`,
+                createNewRule: 'Crea nuova regola',
+                contextualFlagForReview: (amount: string) => `Se l'importo è superiore a ${amount}, contrassegna per revisione`,
+                contextualFlagForReviewDaily: (amount: string) => `Se il totale giornaliero della categoria supera ${amount}, segnala per revisione`,
             },
             customRules: {
                 title: 'Politica di spesa',
@@ -8924,6 +8934,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             undelete: 'Ripristina',
             duplicateReport: ({count}: {count: number}) => `Duplica ${count === 1 ? 'report' : 'report'}`,
         },
+        expensifyCardStatementPDF: {
+            title: 'Scarica estratto conto',
+            oneFeedAtATime: 'Seleziona le liquidazioni di un solo feed Expensify Card alla volta.',
+        },
         filtersHeader: 'Filtri',
         filters: {
             date: {
@@ -9770,6 +9784,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `La tariffa è valida solo dal ${startDate} al ${endDate}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `La tariffa è valida solo a partire dal ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `La tariffa è valida solo fino al ${endDate}`,
+        cannotMergeDuplicates: 'Puoi unire le spese solo nei report in bozza o in sospeso. Revoca il report e riprova.',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} è obbligatorio`,
@@ -10313,6 +10328,7 @@ Ciao! Ho appena ottenuto *3 mesi gratis* per noi per provare Expensify, il modo 
 Ecco una *ricevuta di prova* per mostrarti come funziona:`,
     },
     export: {
+        downloadStatementPDF: 'Scarica estratto conto',
         basicExport: 'Esportazione di base',
         reportLevelExport: 'Tutti i dati - livello report',
         expenseLevelExport: 'Tutti i dati - livello spesa',
