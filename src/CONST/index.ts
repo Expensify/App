@@ -2475,6 +2475,7 @@ const CONST = {
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
         INCORRECT_VALIDATE_CODE: 451,
+        ADMIN_REQUIRED: 460,
         POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
@@ -6668,12 +6669,11 @@ const CONST = {
             TRIP: 'trip',
             CHAT: 'chat',
         },
-        // Terminal lifecycle state of a search snapshot's most recent request. Written by the search action lifecycle
-        // (loading on request start, loaded/error on resolve) so the snapshot always has an explicit, mutually exclusive state.
+        // Lifecycle state of a search snapshot's most recent request. Written by the search action lifecycle
+        // so the snapshot distinguishes an active request from one that has settled.
         SNAPSHOT_STATE: {
             LOADING: 'loading',
             LOADED: 'loaded',
-            ERROR: 'error',
         },
         ACTION_FILTERS: {
             SUBMIT: 'submit',

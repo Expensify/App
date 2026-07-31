@@ -8549,6 +8549,23 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
         });
 
+        it('should reject the requested hash when the response carries conflicting sort metadata', () => {
+            const results = makeSearchResults({
+                search: {
+                    hasMoreResults: false,
+                    hasResults: true,
+                    offset: 0,
+                    hash: queryJSON?.hash ?? 0,
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+                },
+            });
+
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+
         it('should return false when searchResults is undefined', () => {
             expect(SearchUIUtils.isSearchDataLoaded(undefined, queryJSON)).toBe(false);
         });
@@ -8557,7 +8574,7 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchDataLoaded(makeSearchResults(), undefined)).toBe(false);
         });
 
-        it('should return true on a response with no data that reached a terminal loaded state (type and hash match)', () => {
+        it('should return true on a terminal response without data that only carries the requested hash', () => {
             const results = makeSearchResults({
                 data: undefined,
                 errors: undefined,
@@ -8573,13 +8590,14 @@ describe('SearchUIUtils', () => {
                     state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
                 },
             });
+            Reflect.deleteProperty(results.search, 'sortBy');
+            Reflect.deleteProperty(results.search, 'sortOrder');
+
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
         });
 
-        it('should return true when the request reached a terminal error state', () => {
+        it('should use the requested hash when a loaded request preserves cached data and stale sort metadata', () => {
             const results = makeSearchResults({
-                data: undefined,
-                errors: undefined,
                 search: {
                     hasMoreResults: false,
                     hasResults: false,
@@ -8587,9 +8605,9 @@ describe('SearchUIUtils', () => {
                     hash: queryJSON?.hash ?? 0,
                     isLoading: false,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    sortBy: queryJSON?.sortBy ?? 'date',
-                    sortOrder: queryJSON?.sortOrder ?? 'desc',
-                    state: CONST.SEARCH.SNAPSHOT_STATE.ERROR,
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
                 },
             });
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
@@ -8663,9 +8681,8 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.LOADING))).toBe(true);
         });
 
-        it('should return false for the terminal loaded and error states', () => {
+        it('should return false for the terminal loaded state', () => {
             expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.LOADED))).toBe(false);
-            expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.ERROR))).toBe(false);
         });
 
         it('should return false when the state is absent or searchResults is undefined', () => {
