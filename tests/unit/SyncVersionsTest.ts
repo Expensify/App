@@ -326,4 +326,17 @@ describeMacOS('syncVersions.sh sync (full version)', () => {
         expect(result.status).toBe(1);
         expect(result.stdout).toContain("::error::Sync failed! Versions still don't match");
     }, 120000);
+
+    it('still syncs when the submodule pointer is already current', () => {
+        // Reachable after a previous sync got as far as bumping the submodule pointer but not the versions
+        setUpFixture('9.3.10-1', '9.3.11-48', true);
+        runScript('check');
+
+        const result = runScript('sync', {env: {NEED_FULL_VERSION_SYNC: 'true'}});
+
+        expect(result.status).toBe(0);
+        expect(result.outputs.POST_SYNC_APP_VERSION).toBe('9.3.11-48');
+        expect(readVersion(path.join(appDir, 'package.json'))).toBe('9.3.11-48');
+        expect(git(appDir, 'log', '-1', '--format=%s', 'origin/main')).toBe('Update version to 9.3.11-48 (sync recovery)');
+    }, 120000);
 });

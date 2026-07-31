@@ -168,9 +168,12 @@ function sync_full_version {
     git add package.json package-lock.json android/app/build.gradle ios/*/Info.plist
     git commit -m "Update version to $target (sync recovery)"
 
-    # Update submodule reference
+    # Update submodule reference. It can already be current when a previous sync only got half way,
+    # in which case there is nothing to commit.
     git add Mobile-Expensify
-    git commit -m "Update Mobile-Expensify submodule version to $target (sync recovery)"
+    if ! git diff --staged --quiet; then
+        git commit -m "Update Mobile-Expensify submodule version to $target (sync recovery)"
+    fi
 
     # Push changes
     if ! git push origin main; then
