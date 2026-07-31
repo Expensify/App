@@ -2276,8 +2276,8 @@ function hasReservationList(transaction: Transaction | undefined | null): boolea
  * transaction has no usable reservation range.
  */
 function getReservationNights(transaction: OnyxEntry<Transaction>): number {
-    const startDate = transaction?.receipt?.reservationStartDate;
-    const endDate = transaction?.receipt?.reservationEndDate;
+    const startDate = transaction?.receipt?.hotelReservationStartDate;
+    const endDate = transaction?.receipt?.hotelReservationEndDate;
     if (!startDate || !endDate) {
         return 0;
     }

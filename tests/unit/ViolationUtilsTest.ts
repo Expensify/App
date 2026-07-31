@@ -1016,7 +1016,7 @@ describe('getViolationsOnyxData', () => {
             it('should not add overLimit violation when the nightly average equals the limit exactly', () => {
                 // 5 nights at exactly the limit per night
                 transaction.amount = -1000000;
-                transaction.receipt = {reservationStartDate: '2026-03-01', reservationEndDate: '2026-03-06'};
+                transaction.receipt = {hotelReservationStartDate: '2026-03-01', hotelReservationEndDate: '2026-03-06'};
                 policy.maxExpenseAmount = 200000;
 
                 expect(findOverLimit(getViolations())).toBeUndefined();
@@ -1025,7 +1025,7 @@ describe('getViolationsOnyxData', () => {
             it('should add overLimit violation with the night count when the nightly average is over the limit', () => {
                 // 5 nights, averaging 200001 per night
                 transaction.amount = -1000005;
-                transaction.receipt = {reservationStartDate: '2026-03-01', reservationEndDate: '2026-03-06'};
+                transaction.receipt = {hotelReservationStartDate: '2026-03-01', hotelReservationEndDate: '2026-03-06'};
                 policy.maxExpenseAmount = 200000;
 
                 expect(findOverLimit(getViolations())).toEqual(expect.objectContaining({data: expect.objectContaining({nights: 5})}));
@@ -1033,7 +1033,7 @@ describe('getViolationsOnyxData', () => {
 
             it('should add overLimit violation with a single night for a one-night stay over the limit', () => {
                 transaction.amount = -200001;
-                transaction.receipt = {reservationStartDate: '2026-03-01', reservationEndDate: '2026-03-02'};
+                transaction.receipt = {hotelReservationStartDate: '2026-03-01', hotelReservationEndDate: '2026-03-02'};
                 policy.maxExpenseAmount = 200000;
 
                 expect(findOverLimit(getViolations())).toEqual(expect.objectContaining({data: expect.objectContaining({nights: 1})}));
@@ -1050,7 +1050,7 @@ describe('getViolationsOnyxData', () => {
 
             it('should flag the full amount when only one of the two reservation dates is present', () => {
                 transaction.amount = -1000000;
-                transaction.receipt = {reservationStartDate: '2026-03-01'};
+                transaction.receipt = {hotelReservationStartDate: '2026-03-01'};
                 policy.maxExpenseAmount = 200000;
 
                 const overLimit = findOverLimit(getViolations());
@@ -1062,12 +1062,12 @@ describe('getViolationsOnyxData', () => {
                 transaction.amount = -1000000;
                 policy.maxExpenseAmount = 200000;
 
-                transaction.receipt = {reservationStartDate: '2026-03-06', reservationEndDate: '2026-03-06'};
+                transaction.receipt = {hotelReservationStartDate: '2026-03-06', hotelReservationEndDate: '2026-03-06'};
                 const sameDay = findOverLimit(getViolations());
                 expect(sameDay).toBeDefined();
                 expect(sameDay?.data?.nights).toBeUndefined();
 
-                transaction.receipt = {reservationStartDate: '2026-03-06', reservationEndDate: '2026-03-01'};
+                transaction.receipt = {hotelReservationStartDate: '2026-03-06', hotelReservationEndDate: '2026-03-01'};
                 const inverted = findOverLimit(getViolations());
                 expect(inverted).toBeDefined();
                 expect(inverted?.data?.nights).toBeUndefined();
@@ -1076,7 +1076,7 @@ describe('getViolationsOnyxData', () => {
             it('should keep using the full amount for the receipt-required threshold', () => {
                 // 5 nights, so the nightly average (200000) is under the threshold while the total (1000000) is over it
                 transaction.amount = -1000000;
-                transaction.receipt = {reservationStartDate: '2026-03-01', reservationEndDate: '2026-03-06'};
+                transaction.receipt = {hotelReservationStartDate: '2026-03-01', hotelReservationEndDate: '2026-03-06'};
                 policy.maxExpenseAmountNoReceipt = 500000;
 
                 expect(getViolations().find((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED)).toBeDefined();
@@ -1085,7 +1085,7 @@ describe('getViolationsOnyxData', () => {
             it('should keep using the full amount for the itemized-receipt-required threshold', () => {
                 // Same 5-night stay: the nightly average is under the threshold, the total is over it
                 transaction.amount = -1000000;
-                transaction.receipt = {reservationStartDate: '2026-03-01', reservationEndDate: '2026-03-06'};
+                transaction.receipt = {hotelReservationStartDate: '2026-03-01', hotelReservationEndDate: '2026-03-06'};
                 policy.maxExpenseAmountNoItemizedReceipt = 500000;
 
                 expect(getViolations().find((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED)).toBeDefined();

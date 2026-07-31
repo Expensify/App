@@ -268,10 +268,10 @@ type Receipt = {
     receiptTraceId?: string;
 
     /** Check-in date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
-    reservationStartDate?: string;
+    hotelReservationStartDate?: string;
 
     /** Check-out date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
-    reservationEndDate?: string;
+    hotelReservationEndDate?: string;
 };
 
 /** Model of route */
