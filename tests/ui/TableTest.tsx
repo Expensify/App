@@ -995,7 +995,10 @@ describe('Table', () => {
             expect(within(pageHeaderMeasurement).queryByTestId('search-input')).toBeNull();
             expect(within(pageHeaderMeasurement).queryByRole(CONST.ROLE.TABLE)).toBeNull();
             const pageHeaderMeasurementPlaceholder = within(pageHeaderMeasurement)
-                .UNSAFE_getAllByProps({'aria-hidden': true})
+                .UNSAFE_getAllByProps({
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'aria-hidden': true,
+                })
                 .find((node) => typeof node.type === 'string');
             if (!pageHeaderMeasurementPlaceholder) {
                 throw new Error('Expected an inert page-header measurement placeholder');
@@ -1010,9 +1013,13 @@ describe('Table', () => {
             }
             fireEvent(pageHeaderWrapper, 'layout', {nativeEvent: {layout: {height: 120, width: 800, x: 0, y: 0}}});
             const updatedPageHeaderMeasurementPlaceholder = within(screen.getByTestId('flash-list-measurement-0'))
-                .UNSAFE_getAllByProps({'aria-hidden': true})
+                .UNSAFE_getAllByProps({
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'aria-hidden': true,
+                })
                 .find((node) => typeof node.type === 'string');
-            expect(StyleSheet.flatten(updatedPageHeaderMeasurementPlaceholder?.props.style)?.height).toBe(120);
+            const updatedPageHeaderMeasurementStyle = StyleSheet.flatten(updatedPageHeaderMeasurementPlaceholder?.props.style as React.ComponentProps<typeof View>['style']);
+            expect(updatedPageHeaderMeasurementStyle?.height).toBe(120);
 
             const measurementHeader = getHostTableRowsWithin(screen.getByTestId('flash-list-measurement-1')).at(0);
             const measurementDataRow = getHostTableRowsWithin(screen.getByTestId('flash-list-measurement-2')).at(0);
