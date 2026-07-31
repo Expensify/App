@@ -492,17 +492,6 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 titleStyle={styles.flex1}
                             />
                         )}
-                        {shouldShowTax && (
-                            <MenuItemWithTopDescription
-                                key={translate('iou.taxAmount')}
-                                description={translate('iou.taxAmount')}
-                                title={convertToDisplayString(Math.abs(splitExpenseDraftTransaction?.taxAmount ?? 0), currency)}
-                                numberOfLinesTitle={2}
-                                interactive={false}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                            />
-                        )}
                         {shouldShowReimbursable && (
                             <SplitToggleRow
                                 label={translate('common.reimbursable')}
