@@ -31,7 +31,7 @@ Requirements:
 1. Open ChatGPT.
 2. Go to **Settings**.
 3. Select **Plugins**.
-4. Find **Expensify** in the list.
+4. Select **Expensify** from the list.
 5. Click **Connect**.
 6. Complete the OAuth sign-in and approval flow in your browser.
 7. Click **Allow**.
@@ -76,7 +76,7 @@ Make sure you completed the OAuth approval flow in your browser.
 
 If ChatGPT still cannot access your data:
 
-- Go to **Settings** > **Apps** in ChatGPT and confirm that **Expensify** appears under **Enabled Apps**.
+- Go to **Settings** > **Plugins** in ChatGPT and confirm that **Expensify** appears under **Enabled Plugins**.
 - Open the **Expensify** connector in ChatGPT, select the three dots **(⋮)**, and click **Reconnect**.
 - Remove the Expensify connector and add it again by following the setup instructions in this article.
 
