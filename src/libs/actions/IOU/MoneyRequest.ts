@@ -638,7 +638,7 @@ function setMoneyRequestCategory(
     transactionID: string,
     category: string,
     policy: OnyxEntry<Policy>,
-    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'],
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     isMovingFromTrackExpense?: boolean,
 ) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
@@ -962,7 +962,7 @@ function updateDistanceRateOnExpenseDateChange({
     lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates>;
     isDraft: boolean;
     personalPolicyOutputCurrency: string | undefined;
-    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 }) {
     if (!isDistanceRequest(transaction) || !(isPolicyExpenseChat || isTrackExpense)) {
         return;

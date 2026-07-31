@@ -1,6 +1,5 @@
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {getCurrencyDecimals as getLegacyCurrencyDecimals, getCurrencySymbol as getLegacyCurrencySymbol} from '@libs/CurrencyUtils';
 import {calculateAmount} from '@libs/IOUUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -59,9 +58,9 @@ function initSplitExpense(
     // When set, the caller's workspace is billing-restricted: redirect to RESTRICTED_ACTION instead of opening the split flow
     restrictedActionPolicyID: string | undefined,
     personalPolicyOutputCurrency: string | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     {navigateToEditSplitExpense = false, isProduction = false}: {navigateToEditSplitExpense?: boolean; isProduction?: boolean} = {},
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'] = getLegacyCurrencyDecimals,
-    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'] = getLegacyCurrencySymbol,
 ): void {
     if (!transaction) {
         return;

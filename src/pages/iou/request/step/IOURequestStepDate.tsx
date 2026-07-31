@@ -169,6 +169,7 @@ function IOURequestStepDate({
                 lastSelectedDistanceRates,
                 isDraft: isTransactionDraft,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                getCurrencyDecimals,
             });
         }
 

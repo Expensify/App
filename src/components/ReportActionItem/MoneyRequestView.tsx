@@ -1217,9 +1217,9 @@ function MoneyRequestView({
                                     selfDMReportID,
                                     restrictedActionPolicyID,
                                     personalPolicy?.outputCurrency,
-                                    {isProduction},
                                     getCurrencyDecimals,
                                     getCurrencySymbol,
+                                    {isProduction},
                                 );
                                 return;
                             }

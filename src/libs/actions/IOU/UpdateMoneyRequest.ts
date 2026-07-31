@@ -3,6 +3,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import * as API from '@libs/API';
 import type {UpdateMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getCurrencyDecimals as getLegacyCurrencyDecimals, getCurrencySymbol as getLegacyCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -89,8 +90,8 @@ type UpdateMoneyRequestDateParams = {
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
-    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'];
-    getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 type SearchSnapshotOnyxData = {
@@ -989,8 +990,8 @@ type UpdateMoneyRequestDistanceParams = {
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
     reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'];
-    getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 /** Updates the waypoints of a distance expense */
@@ -1160,7 +1161,7 @@ function updateMoneyRequestCategory({
     delegateAccountID: number | undefined;
     reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
-    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 }) {
     const transactionChanges: TransactionChanges = {
         category,
@@ -1317,8 +1318,8 @@ function updateMoneyRequestDistanceRate({
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
     reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'];
-    getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
@@ -1566,8 +1567,9 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         distanceOriginalPolicy,
         isTrackIntentUser,
         personalPolicyOutputCurrency,
-        getCurrencyDecimals,
-        getCurrencySymbol,
+        // Callers that don't edit amount-related fields don't have the currency context wired up yet, so fall back to the legacy helpers.
+        getCurrencyDecimals = getLegacyCurrencyDecimals,
+        getCurrencySymbol = getLegacyCurrencySymbol,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -2243,7 +2245,8 @@ function getUpdateTrackExpenseParams(
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT
     | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
 > {
-    const {personalPolicyOutputCurrency, getCurrencyDecimals, getCurrencySymbol} = currencyContext ?? {};
+    // Callers that don't edit amount-related fields don't have the currency context wired up yet, so fall back to the legacy helpers.
+    const {personalPolicyOutputCurrency, getCurrencyDecimals = getLegacyCurrencyDecimals, getCurrencySymbol = getLegacyCurrencySymbol} = currencyContext ?? {};
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS

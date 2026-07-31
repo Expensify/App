@@ -199,12 +199,12 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     selfDMReportID,
                     restrictedActionPolicyID,
                     personalPolicy?.outputCurrency,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                     {
                         navigateToEditSplitExpense: true,
                         isProduction,
                     },
-                    getCurrencyDecimals,
-                    getCurrencySymbol,
                 );
                 return {
                     action: 'redirected',
