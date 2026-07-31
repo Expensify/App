@@ -94,6 +94,7 @@ function useCompleteOnboarding() {
                       betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
+                      conciergeChat,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 

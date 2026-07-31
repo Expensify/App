@@ -915,6 +915,11 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: str
 }
 
 function getCorpayOnboardingFields(country: Country | '') {
+    // No request when there is no country yet — the calling effects re-fire once Onyx hydrates the selected country.
+    if (!country) {
+        return;
+    }
+
     return API.read(READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS, {countryISO: country});
 }
 
