@@ -71,7 +71,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         [personalDetails, selectedReport?.ownerAccountID],
     );
     const [transactions] = useTransactionsByID(transactionIDs);
-    const hasUnreportedManagedCardTransactions = transactions.some((transaction) => isUnreportedManagedCardTransaction(transaction));
+    const managedCardTransactionID = transactions.find((transaction) => isUnreportedManagedCardTransaction(transaction))?.transactionID;
+    const hasUnreportedManagedCardTransactions = !!managedCardTransactionID;
     const hasPerDiemTransactions = useHasPerDiemTransactions(transactionIDs);
 
     // When moving an expense that belongs to another user, or when the selection includes per diem
@@ -163,6 +164,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             isTrackIntentUser,
             false,
             shouldDismissEmptyReportsConfirmation,
+            {managedCardTransactionID},
         );
         selectReport(
             {

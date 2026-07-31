@@ -15,7 +15,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {extractFirstAndLastNameFromAvailableDetails} from '@libs/PersonalDetailsUtils';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     getFieldRequiredErrors,
     getInvalidAddressErrorTranslationPath,
@@ -28,10 +27,12 @@ import {
     meetsMinimumAgeRequirement,
 } from '@libs/ValidationUtils';
 
+import getWalletPersonalDetailsParams from '@pages/EnablePayments/shared/getWalletPersonalDetailsParams';
 import IdologyQuestions from '@pages/EnablePayments/shared/IdologyQuestions';
+import useWalletPhoneMagicCode from '@pages/EnablePayments/shared/useWalletPhoneMagicCode';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 
-import {setAdditionalDetailsQuestions, updatePersonalDetails} from '@userActions/Wallet';
+import {setAdditionalDetailsQuestions} from '@userActions/Wallet';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,6 +82,8 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
     const maxDate = subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
 
+    const {submitPersonalDetails} = useWalletPhoneMagicCode();
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
         const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
@@ -119,19 +122,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
     };
 
     const activateWallet = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>) => {
-        const personalDetails = {
-            phoneNumber: (values.phoneNumber && parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
-            legalFirstName: values.legalFirstName ?? '',
-            legalLastName: values.legalLastName ?? '',
-            addressStreet: values.addressStreet ?? '',
-            addressCity: values.addressCity ?? '',
-            addressState: values.addressState ?? '',
-            addressZip: values.addressZipCode ?? '',
-            dob: values.dob ?? '',
-            ssn: values.ssn ?? '',
-        };
-        // Attempt to set the personal details
-        updatePersonalDetails(personalDetails);
+        submitPersonalDetails(getWalletPersonalDetailsParams(values));
     };
 
     if (walletAdditionalDetails?.questions && walletAdditionalDetails.questions.length > 0) {

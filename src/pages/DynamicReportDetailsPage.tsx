@@ -25,18 +25,21 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportAttributes, {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -138,7 +141,7 @@ import type {ValueOf} from 'type-fest';
 
 import {StackActions, useFocusEffect} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
-import {createFilteredPoliciesInfoSelector} from '@selectors/Policy';
+import {createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -172,8 +175,11 @@ type CaseID = ValueOf<typeof CASES>;
 function DynamicReportDetailsPage({policy, report, route, reportMetadata, reportLoadingState}: DynamicReportDetailsPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Users',
@@ -224,9 +230,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email)}, [
-        currentUserPersonalDetails?.email,
-    ]);
+    const filteredPoliciesInfoSelector = useMemo(() => createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email), [currentUserPersonalDetails?.email]);
+    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
     const {showConfirmModal} = useConfirmModal();
     const reportAttributes = useReportAttributes();
     const derivedParentReportName = useDerivedReportNameByReportID(report?.parentReportID);
@@ -344,6 +349,12 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
+    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const hasWorkspaceToSubmitToSelector = useMemo(
+        () => createHasWorkspaceToSubmitToSelector(currentUserPersonalDetails.login, isSubmit2026BetaEnabled),
+        [currentUserPersonalDetails.login, isSubmit2026BetaEnabled],
+    );
+    const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasWorkspaceToSubmitToSelector});
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
         report: parentReport,
@@ -509,34 +520,83 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID, moneyRequestReportActions);
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
             const currentUserLocalCurrency = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT,
-                translationKey: 'actionableMentionTrackExpense.submit',
-                icon: expensifyIcons.Send,
-                isAnonymousAction: false,
-                shouldShowRightIcon: true,
-                action: () => {
-                    createDraftTransactionAndNavigateToParticipantSelector({
-                        reportID: actionReportID,
-                        actionName: CONST.IOU.ACTION.SUBMIT,
-                        reportActionID: actionableWhisperReportActionID,
-                        introSelected,
-                        draftTransactionIDs,
-                        activePolicy,
-                        userBillingGracePeriodEnds,
-                        amountOwed,
-                        ownerBillingGracePeriodEnd,
-                        isRestrictedToPreferredPolicy,
-                        preferredPolicyID,
-                        transaction: iouTransaction,
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        currentUserEmail: currentUserPersonalDetails.email ?? '',
-                        currentUserLocalCurrency,
-                        filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
-                        firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+            const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(iouTransaction, iouOriginalTransaction);
+
+            // Hide the "Submit it to someone" option for self-DM split expenses when the user isn't a member of any workspace.
+            if (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo) {
+                const baseSubmitParams = {
+                    reportID: actionReportID,
+                    reportActionID: actionableWhisperReportActionID,
+                    introSelected,
+                    draftTransactionIDs,
+                    activePolicy,
+                    userBillingGracePeriodEnds,
+                    amountOwed,
+                    ownerBillingGracePeriodEnd,
+                    isRestrictedToPreferredPolicy,
+                    preferredPolicyID,
+                    transaction: iouTransaction,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    currentUserEmail: currentUserPersonalDetails.email ?? '',
+                    currentUserLocalCurrency,
+                    filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                    firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+                };
+                if (canUseSubmit2026) {
+                    // On the Submit (submit2026) plan, "Submit to someone" splits into two destinations here too, matching the
+                    // track-expense whisper: submit to an individual ("a friend") or a submit-enabled workspace ("my employer").
+                    const defaultWorkspaceName = generateDefaultWorkspaceName(currentUserPersonalDetails.email ?? '', lastWorkspaceNumber, translate, currentUserPersonalDetails.displayName);
+
+                    // Self-DM split expenses can only be submitted to a workspace, so the "a friend" destination is omitted here
+                    // just like it is on the track-expense whisper.
+                    if (!isSelfDMExpenseSplit) {
+                        items.push({
+                            key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT_TO_FRIEND,
+                            translationKey: 'actionableMentionTrackExpense.submitToFriend',
+                            icon: expensifyIcons.Send,
+                            isAnonymousAction: false,
+                            shouldShowRightIcon: true,
+                            action: () => {
+                                createDraftTransactionAndNavigateToParticipantSelector({
+                                    ...baseSubmitParams,
+                                    actionName: CONST.IOU.ACTION.SUBMIT,
+                                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.FRIEND,
+                                    defaultWorkspaceName,
+                                });
+                            },
+                        });
+                    }
+                    items.push({
+                        key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT_TO_EMPLOYER,
+                        translationKey: 'actionableMentionTrackExpense.submitToEmployer',
+                        icon: expensifyIcons.Send,
+                        isAnonymousAction: false,
+                        shouldShowRightIcon: true,
+                        action: () => {
+                            createDraftTransactionAndNavigateToParticipantSelector({
+                                ...baseSubmitParams,
+                                actionName: CONST.IOU.ACTION.SUBMIT,
+                                submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                                defaultWorkspaceName,
+                            });
+                        },
                     });
-                },
-            });
+                } else {
+                    items.push({
+                        key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT,
+                        translationKey: 'actionableMentionTrackExpense.submit',
+                        icon: expensifyIcons.Send,
+                        isAnonymousAction: false,
+                        shouldShowRightIcon: true,
+                        action: () => {
+                            createDraftTransactionAndNavigateToParticipantSelector({
+                                ...baseSubmitParams,
+                                actionName: CONST.IOU.ACTION.SUBMIT,
+                            });
+                        },
+                    });
+                }
+            }
             if (Permissions.canUseTrackFlows()) {
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.CATEGORIZE,
@@ -731,11 +791,17 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
+        iouOriginalTransaction,
+        hasWorkspaceToSubmitTo,
         filteredPoliciesInfo?.filteredPoliciesCount,
         filteredPoliciesInfo?.firstPolicyID,
         parentReport,
         delegateEmail,
         conciergeReportID,
+        canUseSubmit2026,
+        lastWorkspaceNumber,
+        translate,
+        currentUserPersonalDetails.displayName,
     ]);
 
     const icons = useMemo(
@@ -762,7 +828,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 <View style={styles.mb3}>
                     <ReportActionAvatars
                         noRightMarginOnSubscriptContainer
-                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                         useProfileNavigationWrapper
                         singleAvatarContainerStyle={[]}
                         reportID={report?.reportID ?? moneyRequestReport?.reportID}
@@ -776,8 +842,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 source={icons.at(0)?.source}
                 avatarID={icons.at(0)?.id}
                 isUsingDefaultAvatar={!report.avatarUrl}
-                size={CONST.AVATAR_SIZE.X_LARGE}
-                avatarStyle={styles.avatarXLarge}
+                size={CONST.AVATAR_SIZE.XXXX_LARGE}
                 onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                 onImageRemoved={() => {
                     // Calling this without a file will remove the avatar
@@ -799,7 +864,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         isGroupChat,
         icons,
         report,
-        styles.avatarXLarge,
         styles.smallEditIconAccount,
         styles.mt6,
         styles.w100,
