@@ -27,6 +27,7 @@ const expenseReport = {reportID: 'expense-1', chatReportID: 'linked-chat-1'} as 
 describe('cleanupAndNavigateAfterExpenseCreate', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.mocked(isTracking).mockReturnValue(false);
         (isMoneyRequestReport as jest.Mock).mockReturnValue(false);
         (getReportOrDraftReport as jest.Mock).mockReturnValue(undefined);
     });
