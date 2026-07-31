@@ -10,7 +10,7 @@ import getMatchScore from '@libs/getMatchScore';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 import type {CurrencyListItem, CurrencySelectionListProps} from './types';
 
@@ -29,7 +29,7 @@ function CurrencySelectionList({
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
     const [searchValue, setSearchValue] = useState('');
-    const selectedCurrencyCodes = useMemo(() => [initiallySelectedCurrencyCode, ...selectedCurrencies].filter(Boolean), [initiallySelectedCurrencyCode, selectedCurrencies]);
+    const selectedCurrencyCodes = [initiallySelectedCurrencyCode, ...selectedCurrencies].filter(Boolean);
     const initiallyPinnedCurrencyCodes = useInitialSelection(selectedCurrencyCodes, {resetOnFocus: true});
     const {translate} = useLocalize();
     const initiallyPinnedCurrencyCodeSet = new Set(initiallyPinnedCurrencyCodes);
@@ -116,6 +116,7 @@ function CurrencySelectionList({
             textInputOptions={textInputOptions}
             shouldShowTextInput={!!searchInputLabel}
             shouldSingleExecuteRowSelect
+            shouldPreventAutoScrollOnSelect
             initiallyFocusedItemKey={initiallySelectedCurrencyCode}
             shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
         />

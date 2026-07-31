@@ -157,6 +157,7 @@ function SearchSingleSelectionPicker({
             footerContent={shouldAutoSave ? undefined : footerContent}
             shouldShowLoadingPlaceholder={!noResultsFound}
             shouldUpdateFocusedIndex
+            shouldPreventAutoScrollOnSelect
             shouldStopPropagation
         />
     );
