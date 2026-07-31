@@ -304,6 +304,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         });
 
         it('should not create movedTransactionAction when rejecting an expense to a new draft report', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             const secondTransaction = {
@@ -330,7 +331,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
             // Then: expenseMovedReportActionID should not be present because we don't create
             // movedTransactionAction when moving to a new draft report
-            const params = writeSpy.mock.calls.at(0)?.[1] as Record<string, unknown>;
+            const params = writeSpy.mock.calls.at(0)?.[1];
             expect(params).not.toHaveProperty('expenseMovedReportActionID');
             writeSpy.mockRestore();
         });

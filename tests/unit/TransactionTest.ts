@@ -4,7 +4,6 @@ import useOnyx from '@hooks/useOnyx';
 
 import {changeTransactionsReport as changeTransactionsReportAction, dismissDuplicateTransactionViolation, markAsCash, sanitizeWaypointsForAPI, saveWaypoint} from '@libs/actions/Transaction';
 import * as API from '@libs/API';
-import type {TransactionThreadInfo} from '@libs/API/parameters';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -33,6 +32,7 @@ import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
+import {hasDefinedProperty, parseJSONRecord, readProperty} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
@@ -2068,15 +2068,16 @@ describe('Transaction', () => {
 
             expect(mockAPIWrite).toHaveBeenCalled();
 
-            const parameters = mockAPIWrite.mock.calls.at(0)?.[1] as {transactionIDToReportActionAndThreadData: string};
-            const transactionData = JSON.parse(parameters.transactionIDToReportActionAndThreadData) as Record<string, TransactionThreadInfo>;
+            const parameters = mockAPIWrite.mock.calls.at(0)?.[1];
+            const transactionData = parseJSONRecord(readProperty(parameters, 'transactionIDToReportActionAndThreadData'));
 
-            expect(transactionData[transaction.transactionID]?.movedReportActionID).toBeUndefined();
+            expect(hasDefinedProperty(transactionData[transaction.transactionID], 'movedReportActionID')).toBe(false);
 
             mockAPIWrite.mockRestore();
         });
 
         it('should create MOVED_TRANSACTION action when moving expenses from a non-Draft report', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const mockAPIWrite = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
 
             const submittedReport = {
@@ -2114,10 +2115,10 @@ describe('Transaction', () => {
 
             expect(mockAPIWrite).toHaveBeenCalled();
 
-            const parameters = mockAPIWrite.mock.calls.at(0)?.[1] as {transactionIDToReportActionAndThreadData: string};
-            const transactionData = JSON.parse(parameters.transactionIDToReportActionAndThreadData) as Record<string, TransactionThreadInfo>;
+            const parameters = mockAPIWrite.mock.calls.at(0)?.[1];
+            const transactionData = parseJSONRecord(readProperty(parameters, 'transactionIDToReportActionAndThreadData'));
 
-            expect(transactionData[transaction.transactionID]?.movedReportActionID).toBeDefined();
+            expect(hasDefinedProperty(transactionData[transaction.transactionID], 'movedReportActionID')).toBe(true);
 
             mockAPIWrite.mockRestore();
         });
