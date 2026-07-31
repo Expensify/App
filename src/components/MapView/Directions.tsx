@@ -3,9 +3,13 @@ import type {DirectionsProps} from './MapViewTypes';
 import AlternateDirections from './AlternateDirections';
 import Direction from './Direction';
 import DistanceSymbol from './DistanceSymbol';
+import useDistanceUnit from './useDistanceUnit';
 import utils from './utils';
 
 function Directions({directionCoordinates, alternateDirection, setIsAlternateDirectionSelected, distanceInMeters, unit, waypoints}: DirectionsProps) {
+    // Held here rather than in each DistanceSymbol so that toggling one label switches the unit for every label on the map.
+    const {distanceUnit, toggleDistanceUnit} = useDistanceUnit(unit);
+
     if (!directionCoordinates) {
         return null;
     }
@@ -25,7 +29,8 @@ function Directions({directionCoordinates, alternateDirection, setIsAlternateDir
                     />
                     <DistanceSymbol
                         distanceInMeters={alternateDirection.distanceInMeters}
-                        unit={unit}
+                        distanceUnit={distanceUnit}
+                        toggleDistanceUnit={toggleDistanceUnit}
                         directionCoordinates={utils.convertSegmentedRouteToSingleSegmentRoute(alternateDirectionCoordinates)}
                         waypoints={waypoints}
                         isSelected={isAlternateDirectionSelected}
@@ -36,7 +41,8 @@ function Directions({directionCoordinates, alternateDirection, setIsAlternateDir
             )}
             <DistanceSymbol
                 distanceInMeters={distanceInMeters}
-                unit={unit}
+                distanceUnit={distanceUnit}
+                toggleDistanceUnit={toggleDistanceUnit}
                 directionCoordinates={utils.convertSegmentedRouteToSingleSegmentRoute(directionCoordinates)}
                 waypoints={waypoints}
                 isSelected={!isAlternateDirectionSelected}

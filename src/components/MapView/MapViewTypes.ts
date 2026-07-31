@@ -98,8 +98,11 @@ type DistanceSymbolProps = {
     // Distance displayed on the map in meters.
     distanceInMeters?: number;
 
-    // Unit of measurement for distance
-    unit?: Unit;
+    // Unit of measurement for distance.
+    distanceUnit?: Unit;
+
+    // Toggles the unit of measurement for every symbol on the map.
+    toggleDistanceUnit: () => void;
 
     // List of coordinates which together forms a direction.
     directionCoordinates?: Coordinate[];

@@ -11,12 +11,10 @@ import {View} from 'react-native';
 import type {DistanceSymbolProps} from './MapViewTypes';
 
 import DistanceSymbolMarker from './DistanceSymbolMarker';
-import useDistanceUnit from './useDistanceUnit';
 import utils from './utils';
 
-function DistanceSymbol({distanceInMeters, unit, directionCoordinates, waypoints, isSelected = true}: DistanceSymbolProps) {
+function DistanceSymbol({distanceInMeters, distanceUnit, toggleDistanceUnit, directionCoordinates, waypoints, isSelected = true}: DistanceSymbolProps) {
     const styles = useThemeStyles();
-    const {distanceUnit, toggleDistanceUnit} = useDistanceUnit(unit);
 
     const distanceLabelText = DistanceRequestUtils.getDistanceForDisplayLabel(distanceInMeters ?? 0, distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
 
