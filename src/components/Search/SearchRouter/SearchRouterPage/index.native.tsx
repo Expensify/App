@@ -25,7 +25,9 @@ function SearchRouterPage() {
     const {windowHeight} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const effectiveKeyboardHeight = isOffline && isKeyboardActive ? keyboardHeight || getKeyboardHeight(keyboardActiveHeight, bottom) : 0;
+    const isKeyboardOverlapping = isOffline && isKeyboardActive;
+    const measuredKeyboardHeight = keyboardHeight || getKeyboardHeight(keyboardActiveHeight, bottom);
+    const effectiveKeyboardHeight = isKeyboardOverlapping ? measuredKeyboardHeight : 0;
     // Keep the router between the top safe area and keyboard. ScreenWrapper and the list handle bottom safe-area and offline-indicator spacing; clamp transient dimensions to zero.
     const availableHeight = effectiveKeyboardHeight ? Math.max(windowHeight - effectiveKeyboardHeight - paddingTop, 0) : undefined;
 
