@@ -16,6 +16,7 @@ import type {BaseAvatarProps} from './types';
 
 import Avatar from '..';
 import getSubscriptAvatarSizing from './getSubscriptAvatarSizing';
+import SubscriptAvatarFrame from './SubscriptAvatarFrame';
 
 type SubscriptAvatarProps = BaseAvatarProps & {
     /** The primary (main) avatar icon */
@@ -40,55 +41,58 @@ function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, shouldShowToolti
     const {subscriptSize, borderWidthSize, containerStyleKey} = getSubscriptAvatarSizing(size);
 
     return (
-        <View
-            style={[StyleUtils.getContainerStyles(size), containerStyle]}
-            testID="ReportActionAvatars-Subscript"
-        >
-            <UserDetailsTooltip
-                shouldRender={shouldShowTooltip}
-                accountID={Number(primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-                icon={primaryAvatar}
-                fallbackUserDetails={{
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    displayName: fallbackDisplayName || primaryAvatar.name,
-                }}
-            >
-                <View>
-                    <Avatar
-                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
-                        type={primaryAvatar.type}
-                        source={primaryAvatar.source}
-                        name={primaryAvatar.name ?? ''}
-                        avatarID={primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                        fallbackIcon={primaryAvatar.fallbackIcon}
-                        fill={primaryAvatar.fill}
-                        size={size}
-                        testID="ReportActionAvatars-Subscript-MainAvatar"
-                    />
-                </View>
-            </UserDetailsTooltip>
-            {!!secondaryAvatar && (
+        <SubscriptAvatarFrame
+            size={size}
+            containerStyle={containerStyle}
+            primary={
                 <UserDetailsTooltip
                     shouldRender={shouldShowTooltip}
-                    accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-                    icon={secondaryAvatar}
+                    accountID={Number(primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
+                    icon={primaryAvatar}
+                    fallbackUserDetails={{
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        displayName: fallbackDisplayName || primaryAvatar.name,
+                    }}
                 >
-                    <View style={styles[containerStyleKey]}>
+                    <View>
                         <Avatar
-                            iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG)]}
-                            type={secondaryAvatar.type}
-                            source={secondaryAvatar.source}
-                            name={secondaryAvatar.name ?? ''}
-                            avatarID={secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                            fallbackIcon={secondaryAvatar.fallbackIcon}
-                            fill={secondaryAvatar.fill}
-                            size={subscriptSize}
-                            testID="ReportActionAvatars-Subscript-SecondaryAvatar"
+                            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
+                            type={primaryAvatar.type}
+                            source={primaryAvatar.source}
+                            name={primaryAvatar.name ?? ''}
+                            avatarID={primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                            fallbackIcon={primaryAvatar.fallbackIcon}
+                            fill={primaryAvatar.fill}
+                            size={size}
+                            testID="ReportActionAvatars-Subscript-MainAvatar"
                         />
                     </View>
                 </UserDetailsTooltip>
-            )}
-        </View>
+            }
+            secondary={
+                secondaryAvatar ? (
+                    <UserDetailsTooltip
+                        shouldRender={shouldShowTooltip}
+                        accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
+                        icon={secondaryAvatar}
+                    >
+                        <View style={styles[containerStyleKey]}>
+                            <Avatar
+                                iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG)]}
+                                type={secondaryAvatar.type}
+                                source={secondaryAvatar.source}
+                                name={secondaryAvatar.name ?? ''}
+                                avatarID={secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                                fallbackIcon={secondaryAvatar.fallbackIcon}
+                                fill={secondaryAvatar.fill}
+                                size={subscriptSize}
+                                testID="ReportActionAvatars-Subscript-SecondaryAvatar"
+                            />
+                        </View>
+                    </UserDetailsTooltip>
+                ) : undefined
+            }
+        />
     );
 }
 

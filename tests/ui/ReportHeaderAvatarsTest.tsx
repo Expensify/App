@@ -72,12 +72,46 @@ const iouReport = {
     policyID: policy.id,
 };
 
+const personalPolicy = {
+    ...policy420A,
+    name: 'Test user expenses',
+    id: 'PERSONAL_POLICY',
+    type: CONST.POLICY.TYPE.PERSONAL,
+};
+
+const dmChatReport = {
+    ...chatReportR14932,
+    chatType: undefined,
+    reportID: 'CHAT_REPORT_DM',
+    policyID: personalPolicy.id,
+    type: CONST.REPORT.TYPE.CHAT,
+};
+
+const reportPreviewDMAction = {
+    ...actionR14932,
+    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+    reportActionID: 'REPORT_PREVIEW_DM',
+    childReportID: 'IOU_REPORT_DM',
+};
+
+// Both DM members have expenses on this report (no single sender), so the header shows the diagonal layout
+const iouDMReport = {
+    ...iouReportR14932,
+    reportID: 'IOU_REPORT_DM',
+    chatReportID: dmChatReport.reportID,
+    parentReportActionID: reportPreviewDMAction.reportActionID,
+    policyID: personalPolicy.id,
+    type: CONST.REPORT.TYPE.IOU,
+    chatType: undefined,
+};
+
 const onyxState = {
     [ONYXKEYS.SESSION]: {accountID: LOGGED_USER_ID, email: personalDetails[LOGGED_USER_ID].login},
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
-    ...toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (item) => item.id),
-    ...toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [iouReport, chatReport], (report) => report.reportID),
+    ...toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy, personalPolicy], (item) => item.id),
+    ...toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [iouReport, chatReport, iouDMReport, dmChatReport], (report) => report.reportID),
     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]: {[reportPreviewAction.reportActionID]: reportPreviewAction},
+    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${dmChatReport.reportID}`]: {[reportPreviewDMAction.reportActionID]: reportPreviewDMAction},
 };
 
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
@@ -154,5 +188,27 @@ describe('ReportHeaderAvatars', () => {
 
         expect(navigateSpy).toHaveBeenCalledTimes(1);
         expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_AVATAR.getRoute(chatReport.reportID, policy.id));
+    });
+
+    it('renders diagonal avatars with their own press targets when both DM members have expenses on the report', async () => {
+        await renderHeaderAvatars(iouDMReport.reportID);
+
+        expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars')).toBeOnTheScreen();
+        expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars-MainAvatar')).toBeOnTheScreen();
+        expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars-SecondaryAvatar')).toBeOnTheScreen();
+        expect(screen.getAllByRole(CONST.ROLE.BUTTON)).toHaveLength(2);
+    });
+
+    it('navigates from each diagonal avatar independently', async () => {
+        await renderHeaderAvatars(iouDMReport.reportID);
+
+        const buttons = screen.getAllByRole(CONST.ROLE.BUTTON);
+        for (const button of buttons) {
+            fireEvent.press(button);
+        }
+
+        expect(navigateSpy).toHaveBeenCalledTimes(2);
+        const [[firstRoute], [secondRoute]] = navigateSpy.mock.calls;
+        expect(firstRoute).not.toBe(secondRoute);
     });
 });

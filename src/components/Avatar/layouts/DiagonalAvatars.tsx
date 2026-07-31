@@ -11,8 +11,7 @@ import {getUserDetailTooltipText} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 
-import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -20,13 +19,8 @@ import {View} from 'react-native';
 import type {MultipleAvatarsProps} from './types';
 
 import Avatar from '..';
-
-type AvatarStyles = {
-    singleAvatarStyle: ViewStyle & ImageStyle;
-    secondAvatarStyles: ViewStyle & ImageStyle;
-};
-
-type AvatarSizeToStylesMap = Record<ValueOf<typeof CONST.AVATAR_SIZE>, AvatarStyles>;
+import DiagonalAvatarsFrame from './DiagonalAvatarsFrame';
+import getDiagonalAvatarSizing from './getDiagonalAvatarSizing';
 
 type DiagonalAvatarsProps = MultipleAvatarsProps & {
     /** Whether to use the mid-subscript size for the avatars */
@@ -61,49 +55,19 @@ function DiagonalAvatars({
     const secondaryIcon = icons.at(1);
 
     const tooltipTexts = shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name)) : [''];
-    const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.XXXX_LARGE;
-    const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
 
-    const avatarSizeToStylesMap: Partial<AvatarSizeToStylesMap> = {
-        [CONST.AVATAR_SIZE.SMALL]: {
-            singleAvatarStyle: styles.singleAvatarXxxSmall,
-            secondAvatarStyles: styles.secondAvatarXxxSmall,
-        },
-        [CONST.AVATAR_SIZE.XXX_LARGE]: {
-            singleAvatarStyle: styles.singleAvatarXLarge,
-            secondAvatarStyles: styles.secondAvatarXLarge,
-        },
-        [CONST.AVATAR_SIZE.XXXX_LARGE]: {
-            singleAvatarStyle: styles.singleAvatarXxLarge,
-            secondAvatarStyles: styles.secondAvatarXxLarge,
-        },
-    };
-
-    const defaultAvatarStyles: AvatarStyles = {
-        singleAvatarStyle: styles.singleAvatarXSmall,
-        secondAvatarStyles: styles.secondAvatarXSmall,
-    };
-
-    let avatarSize;
-    if (shouldUseMidSubscriptSize) {
-        avatarSize = CONST.AVATAR_SIZE.XXX_SMALL;
-    } else if (size === CONST.AVATAR_SIZE.XXX_LARGE) {
-        avatarSize = CONST.AVATAR_SIZE.X_LARGE;
-    } else if (size === CONST.AVATAR_SIZE.XXXX_LARGE) {
-        avatarSize = CONST.AVATAR_SIZE.XX_LARGE;
-    } else {
-        avatarSize = CONST.AVATAR_SIZE.X_SMALL;
-    }
-
-    const {singleAvatarStyle, secondAvatarStyles} = avatarSizeToStylesMap[size] ?? defaultAvatarStyles;
+    const {avatarSize, singleAvatarStyleKey} = getDiagonalAvatarSizing(size, shouldUseMidSubscriptSize);
     const secondaryAvatarContainerStyles = secondaryAvatarContainerStyle ?? [StyleUtils.getBackgroundAndBorderStyle(isHovered ? theme.activeComponentBG : theme.componentBG)];
 
     return (
-        <View style={[avatarContainerStyles, removeRightMargin && styles.mr0]}>
-            <View
-                style={[singleAvatarStyle, primaryIcon?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, primaryIcon?.type)]}
-                testID="ReportActionAvatars-MultipleAvatars"
-            >
+        <DiagonalAvatarsFrame
+            size={size}
+            iconCount={icons.length}
+            containerStyle={StyleUtils.getContainerStyles(size, isInReportAction)}
+            primaryIcon={primaryIcon}
+            secondaryIcon={secondaryIcon}
+            secondaryContainerStyle={secondaryAvatarContainerStyles}
+            primary={
                 <UserDetailsTooltip
                     accountID={Number(primaryIcon?.id)}
                     icon={primaryIcon}
@@ -123,63 +87,57 @@ function DiagonalAvatars({
                             fallbackIcon={primaryIcon?.fallbackIcon}
                             fill={primaryIcon?.fill}
                             size={avatarSize}
-                            imageStyles={singleAvatarStyle}
+                            imageStyles={styles[singleAvatarStyleKey]}
                             testID="ReportActionAvatars-MultipleAvatars-MainAvatar"
                         />
                     </View>
                 </UserDetailsTooltip>
-                <View
-                    style={[
-                        secondAvatarStyles,
-                        secondaryAvatarContainerStyles,
-                        secondaryIcon?.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, secondaryIcon?.type) : {},
-                    ]}
-                >
-                    {icons.length === 2 ? (
-                        <UserDetailsTooltip
-                            accountID={Number(secondaryIcon?.id)}
-                            icon={secondaryIcon}
-                            fallbackUserDetails={{
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                displayName: fallbackDisplayName || secondaryIcon?.name,
-                            }}
-                            shouldRender={shouldShowTooltip}
+            }
+            secondary={
+                icons.length === 2 ? (
+                    <UserDetailsTooltip
+                        accountID={Number(secondaryIcon?.id)}
+                        icon={secondaryIcon}
+                        fallbackUserDetails={{
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            displayName: fallbackDisplayName || secondaryIcon?.name,
+                        }}
+                        shouldRender={shouldShowTooltip}
+                    >
+                        <View>
+                            <Avatar
+                                type={secondaryIcon?.type ?? CONST.ICON_TYPE_AVATAR}
+                                source={secondaryIcon?.source}
+                                name={secondaryIcon?.name ?? ''}
+                                avatarID={secondaryIcon?.id ?? CONST.DEFAULT_NUMBER_ID}
+                                fallbackIcon={secondaryIcon?.fallbackIcon}
+                                fill={secondaryIcon?.fill}
+                                size={avatarSize}
+                                imageStyles={styles[singleAvatarStyleKey]}
+                                testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"
+                            />
+                        </View>
+                    </UserDetailsTooltip>
+                ) : (
+                    <Tooltip
+                        text={tooltipTexts.slice(1).join(', ')}
+                        shouldRender={shouldShowTooltip}
+                    >
+                        <View
+                            style={[styles[singleAvatarStyleKey], styles.alignItemsCenter, styles.justifyContentCenter]}
+                            testID="ReportActionAvatars-MultipleAvatars-LimitReached"
                         >
-                            <View>
-                                <Avatar
-                                    type={secondaryIcon?.type ?? CONST.ICON_TYPE_AVATAR}
-                                    source={secondaryIcon?.source}
-                                    name={secondaryIcon?.name ?? ''}
-                                    avatarID={secondaryIcon?.id ?? CONST.DEFAULT_NUMBER_ID}
-                                    fallbackIcon={secondaryIcon?.fallbackIcon}
-                                    fill={secondaryIcon?.fill}
-                                    size={avatarSize}
-                                    imageStyles={singleAvatarStyle}
-                                    testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"
-                                />
-                            </View>
-                        </UserDetailsTooltip>
-                    ) : (
-                        <Tooltip
-                            text={tooltipTexts.slice(1).join(', ')}
-                            shouldRender={shouldShowTooltip}
-                        >
-                            <View
-                                style={[singleAvatarStyle, styles.alignItemsCenter, styles.justifyContentCenter]}
-                                testID="ReportActionAvatars-MultipleAvatars-LimitReached"
+                            <Text
+                                style={[styles.userSelectNone, size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText]}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
-                                <Text
-                                    style={[styles.userSelectNone, size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText]}
-                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                >
-                                    {`+${icons.length - 1}`}
-                                </Text>
-                            </View>
-                        </Tooltip>
-                    )}
-                </View>
-            </View>
-        </View>
+                                {`+${icons.length - 1}`}
+                            </Text>
+                        </View>
+                    </Tooltip>
+                )
+            }
+        />
     );
 }
 
