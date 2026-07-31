@@ -1,7 +1,7 @@
 import {clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
 import {applyPendingConciergeAction, clearPendingFollowupList, discardPendingConciergeAction, hidePendingFollowupList} from '@libs/actions/Report/SuggestedFollowup';
 import AgentZeroOptimisticStore, {MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
-import {ACCELERATED_REMAINING_MS, getOptimisticRevealDurationMS, MIN_TRICKLE_TOKEN_COUNT, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
+import {getOptimisticRevealDurationMS, MIN_TRICKLE_TOKEN_COUNT, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
@@ -46,7 +46,6 @@ function usePendingConciergeResponse(reportID: string | undefined) {
     const {dispatchLocalDraftEvent} = useConciergeDraftActions();
 
     const tokens = tokenizeForReveal(fullHtml);
-    const accelerateRef = useRef<((nowMs: number) => void) | null>(null);
 
     // Captured into a ref so the trickle effect can re-run only on the IDs that
     // identify a distinct Concierge reply. Composer typing, unrelated Onyx emits,
@@ -58,16 +57,6 @@ function usePendingConciergeResponse(reportID: string | undefined) {
     useEffect(() => {
         trickleInputsRef.current = {pendingResponse, fullHtml, tokens, dispatchLocalDraftEvent, persistedAction};
     });
-
-    // Reconciliation: when the canonical reportComment lands in REPORT_ACTIONS
-    // mid-trickle, fire the running loop's accelerator so the remaining reveal
-    // finishes in ~1.5s instead of snapping the synthetic bubble closed.
-    useEffect(() => {
-        if (!persistedAction || !accelerateRef.current) {
-            return;
-        }
-        accelerateRef.current(Date.now());
-    }, [persistedAction]);
 
     const lastOnlineTransitionAtRef = useRef<number>(0);
     const wasOfflineRef = useRef<boolean>(isOffline);
@@ -157,16 +146,10 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         let sequence = 0;
         let intervalID: ReturnType<typeof setInterval> | null = null;
         let trickleStart = 0;
-        // The accelerator recomputes effectiveDuration when the canonical reply lands
-        // so the tail finishes quickly.
-        let effectiveDuration = getOptimisticRevealDurationMS(snapshotTokens.length);
+        const effectiveDuration = getOptimisticRevealDurationMS(snapshotTokens.length);
         let lastStage = 0;
         let cancelled = false;
         const clampProgress = (elapsedMs: number) => Math.max(0, Math.min(1, elapsedMs / effectiveDuration));
-        // Snapshot of trickle progress at the moment the canonical reportComment
-        // arrives. Presence (`arrival !== undefined`) doubles as the
-        // "acceleration fired" check that selects the completion reason below.
-        let arrival: {progress: number; elapsedMs: number} | undefined;
 
         const dispatch = (status: ConciergeDraftEvent['status'], finalRenderedHTML: string) => {
             if (cancelled) {
@@ -192,44 +175,22 @@ function usePendingConciergeResponse(reportID: string | undefined) {
                 intervalID = null;
             }
             const totalElapsedMs = trickleStart === 0 ? 0 : Date.now() - trickleStart;
-            let reason: 'natural' | 'accelerated' | 'stale_cap' = 'natural';
-            if (arrival) {
-                reason = 'accelerated';
-            } else if (totalElapsedMs >= TRICKLE_HARD_CAP_MS) {
-                reason = 'stale_cap';
-            }
+            const reason: 'natural' | 'stale_cap' = totalElapsedMs >= TRICKLE_HARD_CAP_MS ? 'stale_cap' : 'natural';
             Log.info('[ConciergeTrickle] complete', false, {
                 reportActionID,
                 reason,
                 tokenCount: snapshotTokens.length,
                 durationMs: effectiveDuration,
                 totalElapsedMs,
-                arrivedAtProgress: arrival?.progress,
-                arrivedAtElapsedMs: arrival?.elapsedMs,
             });
             dispatch('completed', snapshotTokens.at(-1) ?? snapshotHtml);
             // Don't reapply our older optimistic when the canonical is already there —
-            // it would clobber server-added markup (follow-up buttons, deep-link
-            // Pressables). `arrival` covers the accelerator path; the live ref read
-            // catches arrivals during the pre-trickle setTimeout where the accelerator
-            // no-ops on null intervalID.
-            if (arrival || trickleInputsRef.current.persistedAction) {
+            // it would clobber server-added markup (follow-up buttons, deep-link Pressables).
+            if (trickleInputsRef.current.persistedAction) {
                 discardPendingConciergeAction(reportID);
             } else {
                 applyPendingConciergeAction(reportID, reportAction);
             }
-        };
-
-        accelerateRef.current = (nowMs: number) => {
-            if (!intervalID || trickleStart === 0) {
-                return;
-            }
-            const elapsed = nowMs - trickleStart;
-            // Compressing effectiveDuration is what makes progress hit 1 within
-            // ACCELERATED_REMAINING_MS — the next tick observes progress >= 1
-            // and runs completeAndApply via the normal path.
-            arrival = {progress: clampProgress(elapsed), elapsedMs: elapsed};
-            effectiveDuration = elapsed + ACCELERATED_REMAINING_MS;
         };
 
         const startTrickle = () => {
@@ -281,7 +242,6 @@ function usePendingConciergeResponse(reportID: string | undefined) {
             if (intervalID) {
                 clearInterval(intervalID);
             }
-            accelerateRef.current = null;
         };
     }, [reportID, reportActionID]);
 }
