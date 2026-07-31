@@ -40,7 +40,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useImperativeHandle, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
+import {LegacyScrollView as ScrollView} from 'react-native-gesture-handler';
 
 import type {BaseOnboardingPurposeProps} from './types';
 

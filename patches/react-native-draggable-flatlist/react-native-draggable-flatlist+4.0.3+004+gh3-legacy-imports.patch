@@ -1,0 +1,102 @@
+diff --git a/node_modules/react-native-draggable-flatlist/lib/module/components/DraggableFlatList.js b/node_modules/react-native-draggable-flatlist/lib/module/components/DraggableFlatList.js
+index 80185d0..4ebb7d2 100644
+--- a/node_modules/react-native-draggable-flatlist/lib/module/components/DraggableFlatList.js
++++ b/node_modules/react-native-draggable-flatlist/lib/module/components/DraggableFlatList.js
+@@ -2,7 +2,7 @@ function _extends() { _extends = Object.assign || function (target) { for (var i
+ 
+ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+ import { InteractionManager } from "react-native";
+-import { FlatList, Gesture, GestureDetector } from "react-native-gesture-handler";
++import { Gesture, GestureDetector, LegacyFlatList as FlatList } from "react-native-gesture-handler";
+ import Animated, { runOnJS, useAnimatedReaction, useAnimatedScrollHandler, useSharedValue, withSpring } from "react-native-reanimated";
+ import CellRendererComponent from "./CellRendererComponent";
+ import { DEFAULT_PROPS } from "../constants";
+diff --git a/node_modules/react-native-draggable-flatlist/lib/module/components/NestableScrollContainer.js b/node_modules/react-native-draggable-flatlist/lib/module/components/NestableScrollContainer.js
+index f7b0e82..e6aeef0 100644
+--- a/node_modules/react-native-draggable-flatlist/lib/module/components/NestableScrollContainer.js
++++ b/node_modules/react-native-draggable-flatlist/lib/module/components/NestableScrollContainer.js
+@@ -1,7 +1,7 @@
+ function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
+ 
+ import React from "react";
+-import { ScrollView } from "react-native-gesture-handler";
++import { LegacyScrollView as ScrollView } from "react-native-gesture-handler";
+ import Animated, { useAnimatedScrollHandler } from "react-native-reanimated";
+ import { NestableScrollContainerProvider, useSafeNestableScrollContainerContext } from "../context/nestableScrollContainerContext";
+ import { useStableCallback } from "../hooks/useStableCallback";
+diff --git a/node_modules/react-native-draggable-flatlist/src/components/DraggableFlatList.tsx b/node_modules/react-native-draggable-flatlist/src/components/DraggableFlatList.tsx
+index 260a524..c972579 100644
+--- a/node_modules/react-native-draggable-flatlist/src/components/DraggableFlatList.tsx
++++ b/node_modules/react-native-draggable-flatlist/src/components/DraggableFlatList.tsx
+@@ -13,9 +13,9 @@ import {
+   InteractionManager,
+ } from "react-native";
+ import {
+-  FlatList,
+   Gesture,
+   GestureDetector,
++  LegacyFlatList as FlatList,
+ } from "react-native-gesture-handler";
+ import Animated, {
+   runOnJS,
+diff --git a/node_modules/react-native-draggable-flatlist/src/components/NestableDraggableFlatList.tsx b/node_modules/react-native-draggable-flatlist/src/components/NestableDraggableFlatList.tsx
+index b84ee99..38b4537 100644
+--- a/node_modules/react-native-draggable-flatlist/src/components/NestableDraggableFlatList.tsx
++++ b/node_modules/react-native-draggable-flatlist/src/components/NestableDraggableFlatList.tsx
+@@ -10,7 +10,7 @@ import { useSafeNestableScrollContainerContext } from "../context/nestableScroll
+ import { useNestedAutoScroll } from "../hooks/useNestedAutoScroll";
+ import { typedMemo } from "../utils";
+ import { useStableCallback } from "../hooks/useStableCallback";
+-import { FlatList } from "react-native-gesture-handler";
++import { LegacyFlatList as FlatList } from "react-native-gesture-handler";
+ 
+ function NestableDraggableFlatListInner<T>(
+   props: DraggableFlatListProps<T>,
+diff --git a/node_modules/react-native-draggable-flatlist/src/components/NestableScrollContainer.tsx b/node_modules/react-native-draggable-flatlist/src/components/NestableScrollContainer.tsx
+index 61054a7..3af38f5 100644
+--- a/node_modules/react-native-draggable-flatlist/src/components/NestableScrollContainer.tsx
++++ b/node_modules/react-native-draggable-flatlist/src/components/NestableScrollContainer.tsx
+@@ -1,6 +1,6 @@
+ import React from "react";
+ import { LayoutChangeEvent, ScrollViewProps } from "react-native";
+-import { ScrollView } from "react-native-gesture-handler";
++import { LegacyScrollView as ScrollView } from "react-native-gesture-handler";
+ import Animated, { useAnimatedScrollHandler } from "react-native-reanimated";
+ import {
+   NestableScrollContainerProvider,
+diff --git a/node_modules/react-native-draggable-flatlist/src/context/nestableScrollContainerContext.tsx b/node_modules/react-native-draggable-flatlist/src/context/nestableScrollContainerContext.tsx
+index 6b035d1..e35eb00 100644
+--- a/node_modules/react-native-draggable-flatlist/src/context/nestableScrollContainerContext.tsx
++++ b/node_modules/react-native-draggable-flatlist/src/context/nestableScrollContainerContext.tsx
+@@ -1,5 +1,5 @@
+ import React, { useContext, useMemo, useRef, useState } from "react";
+-import { ScrollView } from "react-native-gesture-handler";
++import { LegacyScrollView as ScrollView } from "react-native-gesture-handler";
+ import Animated, { useSharedValue } from "react-native-reanimated";
+ 
+ type NestableScrollContainerContextVal = ReturnType<
+diff --git a/node_modules/react-native-draggable-flatlist/src/context/refContext.tsx b/node_modules/react-native-draggable-flatlist/src/context/refContext.tsx
+index 49bee06..7419532 100644
+--- a/node_modules/react-native-draggable-flatlist/src/context/refContext.tsx
++++ b/node_modules/react-native-draggable-flatlist/src/context/refContext.tsx
+@@ -1,6 +1,6 @@
+ import React, { useContext, useEffect } from "react";
+ import { useMemo, useRef } from "react";
+-import { FlatList } from "react-native-gesture-handler";
++import { LegacyFlatList as FlatList } from "react-native-gesture-handler";
+ import Animated, { type SharedValue, useSharedValue, WithSpringConfig } from "react-native-reanimated";
+ import { DEFAULT_PROPS } from "../constants";
+ import { useProps } from "./propsContext";
+diff --git a/node_modules/react-native-draggable-flatlist/src/types.ts b/node_modules/react-native-draggable-flatlist/src/types.ts
+index 564e3ff..157cb8c 100644
+--- a/node_modules/react-native-draggable-flatlist/src/types.ts
++++ b/node_modules/react-native-draggable-flatlist/src/types.ts
+@@ -6,7 +6,7 @@ import {
+   ViewStyle,
+ } from "react-native";
+ import { useAnimatedValues } from "./context/animatedValueContext";
+-import { FlatList } from "react-native-gesture-handler";
++import { LegacyFlatList as FlatList } from "react-native-gesture-handler";
+ import Animated, {
+   AnimateProps,
+   WithSpringConfig,

@@ -40,7 +40,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
+import {LegacyScrollView as ScrollView} from 'react-native-gesture-handler';
 
 type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_TCS>;
 

@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import type {ReactElement} from 'react';
 
 import React, {useCallback, useEffect, useRef} from 'react';
-import {FlatList} from 'react-native-gesture-handler';
+import {LegacyFlatList as FlatList} from 'react-native-gesture-handler';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import type {AutoCompleteSuggestionsPortalProps} from './AutoCompleteSuggestionsPortal';

@@ -1,6 +1,6 @@
 import {isMobile} from '@libs/Browser';
 
-import type {PanGesture} from 'react-native-gesture-handler';
+import type {LegacyPanGesture as PanGesture} from 'react-native-gesture-handler';
 
 import {useCallback} from 'react';
 import {Dimensions} from 'react-native';

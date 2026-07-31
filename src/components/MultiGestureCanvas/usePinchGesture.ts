@@ -1,4 +1,4 @@
-import type {PinchGesture} from 'react-native-gesture-handler';
+import type {LegacyPinchGesture as PinchGesture} from 'react-native-gesture-handler';
 
 import {useCallback, useEffect, useState} from 'react';
 import {Gesture} from 'react-native-gesture-handler';

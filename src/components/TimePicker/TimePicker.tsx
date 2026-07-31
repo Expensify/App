@@ -17,7 +17,7 @@ import {canUseTouchScreen as canUseTouchScreenDeviceCapabilities} from '@libs/De
 import CONST from '@src/CONST';
 
 import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
-import type {TextInput} from 'react-native-gesture-handler';
+import type {LegacyTextInput as TextInput} from 'react-native-gesture-handler';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';

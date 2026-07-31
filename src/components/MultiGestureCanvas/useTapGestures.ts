@@ -1,4 +1,4 @@
-import type {TapGesture} from 'react-native-gesture-handler';
+import type {LegacyTapGesture as TapGesture} from 'react-native-gesture-handler';
 
 import {useCallback, useMemo} from 'react';
 import {Gesture} from 'react-native-gesture-handler';

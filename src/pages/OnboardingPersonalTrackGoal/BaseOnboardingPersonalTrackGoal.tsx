@@ -27,7 +27,7 @@ import SCREENS from '@src/SCREENS';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
+import {LegacyScrollView as ScrollView} from 'react-native-gesture-handler';
 
 import type {BaseOnboardingPersonalTrackGoalProps} from './types';
 

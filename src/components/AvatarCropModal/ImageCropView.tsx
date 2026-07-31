@@ -8,7 +8,7 @@ import ControlSelection from '@libs/ControlSelection';
 
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {PanGesture} from 'react-native-gesture-handler';
+import type {LegacyPanGesture as PanGesture} from 'react-native-gesture-handler';
 import type {SharedValue} from 'react-native-reanimated';
 
 import React from 'react';

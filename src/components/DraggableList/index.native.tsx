@@ -1,6 +1,6 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {FlatList} from 'react-native-gesture-handler';
+import type {LegacyFlatList as FlatList} from 'react-native-gesture-handler';
 
 import React from 'react';
 import DraggableFlatList from 'react-native-draggable-flatlist';
