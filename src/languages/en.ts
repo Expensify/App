@@ -5718,7 +5718,8 @@ const translations = {
         rillet: {
             rilletSetup: 'Rillet setup',
             enterCredentials: 'Enter your Rillet API key',
-            howToFindAPIKey: '<strong>Finding your API key.</strong><ol><li>Log in to Rillet</li><li>Navigate to Account -> Settings</li><li>Copy the API key below</li></ol>',
+            howToFindAPIKey:
+                '<strong>Finding your API key.</strong><ol><li>Log in to Rillet</li><li>Navigate to [organization name] -> Organization settings -> API access</li><li>Create API key</li><li>Copy the API key below</li></ol>',
             subsidiary: 'Subsidiary',
             subsidiarySelectDescription: "Choose the subsidiary in Rillet that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
