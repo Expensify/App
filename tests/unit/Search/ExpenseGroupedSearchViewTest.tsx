@@ -323,11 +323,21 @@ describe('ExpenseGroupedSearchView', () => {
         expect(countArmedExitAnimations(root)).toBe(0);
     });
 
-    it('keeps the FadeOutUp exit armed for a group whose child transaction is pending delete', async () => {
-        // The group carries no pendingAction of its own; the pending delete lives on a child, so the group row must still arm its exit.
-        const {UNSAFE_root: root} = renderView({data: createMockGroupData([{transactionCount: 1, deletedTransactions: new Set([0])}, {transactionCount: 1}])});
+    it('keeps the FadeOutUp exit armed for a group whose every child transaction is pending delete', async () => {
+        // The group carries no pendingAction of its own; the pending delete lives on its children, and once they are all
+        // deleted the group row itself leaves the list, so it must arm its exit.
+        const {UNSAFE_root: root} = renderView({data: createMockGroupData([{transactionCount: 2, deletedTransactions: new Set([0, 1])}, {transactionCount: 1}])});
         await waitForBatchedUpdates();
 
         expect(countArmedExitAnimations(root)).toBe(1);
+    });
+
+    it('does not arm the FadeOutUp exit on a group that survives a partial delete', async () => {
+        // Only one of the group's transactions is pending delete, so the group row stays mounted: arming its exit would
+        // bring the flicker back for that group on remount.
+        const {UNSAFE_root: root} = renderView({data: createMockGroupData([{transactionCount: 2, deletedTransactions: new Set([0])}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+
+        expect(countArmedExitAnimations(root)).toBe(0);
     });
 });
