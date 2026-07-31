@@ -32,6 +32,8 @@ Many core Expensify concepts stay the same in New Expensify, but the navigation 
 | System alerts and operational issues | **Time sensitive** section on the **Home** tab | Important issues like failed reimbursements and broken bank connections are highlighted directly in the **Time sensitive** section so they are easier to find and resolve quickly. |
 | Manual navigation and menu hunting | Concierge-assisted workflows | Instead of remembering where features live, you can ask Concierge questions, get guidance, or have Concierge help complete actions for you directly inside Expensify. |
 
+![Home on New Expensify]({{site.url}}/assets/images/home.png){:width="100%"}
+
 ---
 
 ## How to complete familiar Expensify Classic tasks in New Expensify

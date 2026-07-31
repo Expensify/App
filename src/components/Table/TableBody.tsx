@@ -16,6 +16,7 @@ import {StyleSheet, View} from 'react-native';
 import type {TableData} from '.';
 
 import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getSyntheticRowKind} from './buildTableListData';
+import {getRowGroupAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
 import TableHeader from './TableHeader';
 
@@ -31,6 +32,15 @@ type TableBodyListProps = TableBodyProps & {
     /** Message shown when the filtered table is empty. */
     emptyMessage: string;
 };
+
+/**
+ * Whether `TableBody` still renders (keeping its `role="rowgroup"`) when the table has no data rows — i.e. an
+ * empty-state (`ListEmptyComponent`) or page header is supplied. Single source of truth for that condition,
+ * mirrored by the early `return null` below and read by `Table`.
+ */
+function doesBodyRenderWhenEmpty(listProps: {ListEmptyComponent?: unknown; ListHeaderComponent?: unknown} | undefined, headerComponent?: unknown): boolean {
+    return !!listProps?.ListEmptyComponent || !!listProps?.ListHeaderComponent || !!headerComponent;
+}
 
 /**
  * Renders the table body using FlashList when data rows are present or a page-header search/filter has no results.
@@ -191,6 +201,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 ref={listContainerRef}
                 style={[styles.flex1, styles.mnh0, styles.flexColumn, style]}
                 onLayout={onLayout}
+                {...getRowGroupAccessibilityProps(shouldUseTableSemantics(shouldUseNarrowTableLayout))}
                 {...props}
             >
                 {tableListMetadata.hasPageHeader && pageHeaderElement}
@@ -285,6 +296,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             ref={listContainerRef}
             style={[styles.flex1, styles.mnh0, style]}
             onLayout={onLayout}
+            {...getRowGroupAccessibilityProps(shouldUseTableSemantics(shouldUseNarrowTableLayout))}
             {...props}
         >
             <FlashList<TableData>
@@ -327,8 +339,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
 function TableBody(props: TableBodyProps) {
     const {translate} = useLocalize();
-    const {activeSearchString, hasActiveFilters, hasSearchString, isEmptyResult, listProps, originalDataLength, tableListMetadata} = useTableContext<TableData>();
-    const {ListEmptyComponent} = listProps ?? {};
+    const {activeSearchString, hasActiveFilters, hasSearchString, headerComponent, isEmptyResult, listProps, originalDataLength} = useTableContext<TableData>();
     let emptyMessage = '';
 
     if (hasSearchString) {
@@ -343,7 +354,7 @@ function TableBody(props: TableBodyProps) {
     // nothing here so the declarative Table.EmptyState/Table.NoResultsState siblings take over.
     // With a page header (or a ListEmptyComponent) the body must stay mounted even when empty,
     // otherwise the header (tabs, buttons, search) or the empty view would disappear with the rows.
-    if (!tableListMetadata.hasPageHeader && (isEmptyResult || !originalDataLength) && !ListEmptyComponent) {
+    if ((isEmptyResult || !originalDataLength) && !doesBodyRenderWhenEmpty(listProps, headerComponent)) {
         return null;
     }
 
@@ -356,3 +367,4 @@ function TableBody(props: TableBodyProps) {
 }
 
 export default TableBody;
+export {doesBodyRenderWhenEmpty};

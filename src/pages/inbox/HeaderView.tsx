@@ -1,5 +1,5 @@
 import AccountManagerBookCallButton from '@components/AccountManagerBookCallButton';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CaretWrapper from '@components/CaretWrapper';
 import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import DisplayNames from '@components/DisplayNames';
@@ -61,7 +61,6 @@ import {
     isConciergeChatReport,
     isCurrentUserSubmitter,
     isDeprecatedGroupDM,
-    isExpenseRequest,
     isGroupChat as isGroupChatReportUtils,
     isInvoiceReport,
     isInvoiceRoom,
@@ -249,10 +248,11 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const joinButton = (
         <Button
-            success
-            text={translate('common.join')}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={join}
-        />
+        >
+            <Button.Text>{translate('common.join')}</Button.Text>
+        </Button>
     );
 
     const renderAdditionalText = () => {
@@ -274,7 +274,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     );
 
     const shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
-    const defaultSubscriptSize = isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const brickRoadIndicator = hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, isParticipantOptimistic);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
@@ -315,7 +314,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const multipleAvatars = (
         <ReportActionAvatars
             reportID={report?.reportID}
-            size={shouldShowSubscript ? defaultSubscriptSize : undefined}
             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
         />
     );

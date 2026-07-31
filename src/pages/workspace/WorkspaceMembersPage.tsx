@@ -22,6 +22,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,6 +42,7 @@ import {
     updateWorkspaceMembersRole,
 } from '@libs/actions/Policy/Member';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
+import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import {getConnectedHRProvider, showMergeHRManualSyncLimitModalIfReached} from '@libs/HRUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -56,6 +58,7 @@ import {
     canMemberWrite,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
+    getReimburserEmail,
     isControlPolicy,
     isDeletedPolicyEmployee,
     isExpensifyTeam,
@@ -108,6 +111,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
@@ -265,6 +269,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      * Show the modal to confirm removal of the selected members
      */
     const askForConfirmationToRemove = useCallback(() => {
+        const isRuleBotSelected = selectedEmployees.some((email) => isRuleBotEnforcingRules(policyMemberEmailsToAccountIDs[email], policy));
+        if (isRuleBotSelected) {
+            showRuleBotGuardModal('remove', policyID);
+            return;
+        }
+
         showConfirmModal({
             danger: true,
             title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
@@ -278,7 +288,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
             removeUsers();
         });
-    }, [confirmModalPrompt, removeUsers, selectedEmployees.length, showConfirmModal, translate]);
+    }, [confirmModalPrompt, removeUsers, selectedEmployees, policyMemberEmailsToAccountIDs, policy, policyID, showConfirmModal, showRuleBotGuardModal, translate]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
@@ -489,6 +499,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     });
 
     const changeUserRole = (role: ValueOf<typeof CONST.POLICY.ROLE>) => {
+        if (role !== CONST.POLICY.ROLE.ADMIN && selectedEmployees.some((email) => isRuleBotEnforcingRules(policyMemberEmailsToAccountIDs[email], policy))) {
+            showRuleBotGuardModal('changeRole', policyID);
+            return;
+        }
         const loginsToUpdate = selectedEmployees.filter((login) => {
             return policy?.employeeList?.[login]?.role !== role;
         });
@@ -563,14 +577,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const hasAtLeastOneNonPaymentsAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PAYMENTS_ADMIN);
         const hasAtLeastOneNonMemberRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.USER);
         const hasAtLeastOneNonAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.ADMIN);
-        const isReimbursementEnabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-        const hasAtLeastOnePayer = isReimbursementEnabled && policy?.achAccount?.reimburser ? selectedEmployees.includes(policy?.achAccount?.reimburser) : false;
+        const reimburserEmail = getReimburserEmail(policy);
+        const hasAtLeastOnePayer = !!reimburserEmail && selectedEmployees.includes(reimburserEmail);
 
         if (hasAtLeastOneNonMemberRole && !hasAtLeastOnePayer && canManageSelectedEmployees && canMemberAssignRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.USER)) {
             options.push(memberOption);
         }
 
-        if (hasAtLeastOneNonAdminRole && canAssignElevatedRoles) {
+        if (hasAtLeastOneNonAdminRole && !hasAtLeastOnePayer && canAssignElevatedRoles) {
             options.push(adminOption);
         }
 
