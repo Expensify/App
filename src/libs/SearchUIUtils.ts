@@ -371,8 +371,8 @@ const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithd
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: 'debitPosted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'state' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'formattedWithdrawalID' as const,
-    // The backend picks which groups belong on the page by converting every conversion amount to one currency, then
-    // the page is ordered by the amounts as shown, the way the total column already behaves.
+    // Both the backend page selection and this local sort rank the amounts as stored, without converting between
+    // currencies, so a group can outrank one that is worth more in another currency.
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'debitedAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'creditedAmount' as const,
     ...transactionGroupBaseSortingProperties,
