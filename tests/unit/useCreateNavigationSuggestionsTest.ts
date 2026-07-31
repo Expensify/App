@@ -1,0 +1,240 @@
+import {act, renderHook} from '@testing-library/react-native';
+
+import useCreateNavigationSuggestions from '@components/Search/SearchRouter/useCreateNavigationSuggestions';
+
+import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
+import {createNewReport, startNewChat} from '@libs/actions/Report';
+import Navigation from '@libs/Navigation/Navigation';
+
+import {clearLastSearchParams} from '@userActions/ReportNavigation';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+type MockUseCreateReportParams = {
+    onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => void;
+    groupPoliciesWithChatEnabled: unknown[] | readonly never[];
+    onNavigateToWorkspaceSelection: () => void;
+    shouldHandleNavigationBack: boolean;
+};
+
+type MockOnyxOptions = {
+    selector?: (value: unknown) => unknown;
+};
+
+const mockCreateReport = jest.fn();
+let mockCreateReportIsVisible = true;
+const mockUseCreateReport = jest.fn<{createReport: typeof mockCreateReport; isVisible: boolean}, [MockUseCreateReportParams]>(() => ({
+    createReport: mockCreateReport,
+    isVisible: mockCreateReportIsVisible,
+}));
+const mockUseOnyx = jest.fn<unknown[], [key: string, options?: MockOnyxOptions]>();
+const mockIsBetaEnabled = jest.fn((beta: string) => beta !== CONST.BETAS.SUBMIT_2026);
+const mockCanSendInvoice = jest.fn<boolean, unknown[]>(() => false);
+const mockGetDefaultChatEnabledPolicy = jest.fn((policies: unknown[]) => (policies.length === 1 ? policies.at(0) : undefined));
+const mockGetGroupPoliciesWhereReportCanBeCreated = jest.fn<unknown[], [policies: unknown, isSubmit2026BetaEnabled: boolean, currentUserLogin?: string]>();
+const mockShouldShowPolicy = jest.fn<boolean, unknown[]>(() => true);
+const mockIcon = () => null;
+
+jest.mock('@hooks/useCreateReport', () => ({
+    __esModule: true,
+    default: (params: MockUseCreateReportParams) => mockUseCreateReport(params),
+}));
+
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    __esModule: true,
+    default: () => ({accountID: 1, login: 'test@example.com'}),
+}));
+
+jest.mock('@hooks/useLazyAsset', () => ({
+    useMemoizedLazyExpensifyIcons: () => ({
+        Document: mockIcon,
+        Location: mockIcon,
+        ChatBubble: mockIcon,
+        InvoiceGeneric: mockIcon,
+        NewWorkspace: mockIcon,
+    }),
+}));
+
+jest.mock('@hooks/useLocalize', () => ({
+    __esModule: true,
+    default: () => ({translate: (key: string) => key}),
+}));
+
+jest.mock('@hooks/useNetwork', () => ({
+    __esModule: true,
+    default: () => ({isOffline: false}),
+}));
+
+jest.mock('@hooks/useOnyx', () => ({
+    __esModule: true,
+    default: (key: string, options?: MockOnyxOptions) => mockUseOnyx(key, options),
+}));
+
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: mockIsBetaEnabled}),
+}));
+
+jest.mock('@hooks/usePreferredPolicy', () => ({
+    __esModule: true,
+    default: () => ({isRestrictedPolicyCreation: false}),
+}));
+
+jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
+    startDistanceRequest: jest.fn(),
+    startMoneyRequest: jest.fn(),
+}));
+
+jest.mock('@libs/actions/Report', () => ({
+    createNewReport: jest.fn(() => ({reportID: 'created-report'})),
+    startNewChat: jest.fn(),
+}));
+
+jest.mock('@libs/getIconForAction', () => ({
+    __esModule: true,
+    default: () => mockIcon,
+}));
+
+jest.mock('@libs/interceptAnonymousUser', () => ({
+    __esModule: true,
+    default: (action: () => void) => action(),
+}));
+
+jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () => ({
+    __esModule: true,
+    default: () => 'workspace-confirmation',
+}));
+
+jest.mock('@libs/Navigation/helpers/getCreateReportRoute', () => ({
+    __esModule: true,
+    default: ({reportID}: {reportID: string}) => `report/${reportID}`,
+    getReportsRootRoute: () => 'reports',
+    navigateToCreateReportWorkspaceSelection: jest.fn(),
+}));
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    __esModule: true,
+    default: {
+        dismissModal: jest.fn(),
+        isTopmostRouteModalScreen: jest.fn(() => false),
+        navigate: jest.fn(),
+        setNavigationActionToMicrotaskQueue: jest.fn((action: () => void) => action()),
+    },
+}));
+
+jest.mock('@libs/PolicyUtils', () => ({
+    canSendInvoice: (...args: unknown[]) => mockCanSendInvoice(...args),
+    getDefaultChatEnabledPolicy: (policies: unknown[]) => mockGetDefaultChatEnabledPolicy(policies),
+    getGroupPoliciesWhereReportCanBeCreated: (policies: unknown, isSubmit2026BetaEnabled: boolean, currentUserLogin?: string) =>
+        mockGetGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, currentUserLogin),
+    shouldShowPolicy: (...args: unknown[]) => mockShouldShowPolicy(...args),
+}));
+
+jest.mock('@libs/ReportUtils', () => ({
+    generateReportID: jest.fn(() => 'draft-report'),
+    hasViolations: jest.fn(() => false),
+}));
+
+jest.mock('@navigation/helpers/isOnSearchMoneyRequestReportPage', () => ({
+    __esModule: true,
+    default: () => false,
+}));
+
+jest.mock('@userActions/ReportNavigation', () => ({
+    clearLastSearchParams: jest.fn(),
+}));
+
+const submitPolicy = {id: 'submit-policy', type: CONST.POLICY.TYPE.SUBMIT};
+const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`]: submitPolicy};
+const session = {accountID: 1, email: 'test@example.com'};
+
+function setupUseOnyx() {
+    const values = new Map<string, unknown>([
+        [ONYXKEYS.COLLECTION.POLICY, policies],
+        [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {}],
+        [ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP],
+        [ONYXKEYS.SESSION, session],
+        [ONYXKEYS.BETAS, []],
+        [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {}],
+        [ONYXKEYS.NVP_ACTIVE_POLICY_ID, submitPolicy.id],
+        [`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, submitPolicy],
+        [ONYXKEYS.NVP_INTRO_SELECTED, false],
+        [ONYXKEYS.IS_LOADING_APP, false],
+    ]);
+
+    mockUseOnyx.mockImplementation((key, options) => {
+        const value = values.get(key);
+        return [options?.selector ? options.selector(value) : value, {status: 'loaded'}];
+    });
+}
+
+describe('useCreateNavigationSuggestions', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        setupUseOnyx();
+        mockCanSendInvoice.mockReturnValue(false);
+        mockShouldShowPolicy.mockReturnValue(true);
+        mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([]);
+        mockIsBetaEnabled.mockImplementation((beta) => beta !== CONST.BETAS.SUBMIT_2026);
+        mockCreateReportIsVisible = true;
+    });
+
+    it('uses beta-aware report policies and renders only available Create actions', () => {
+        mockCreateReportIsVisible = false;
+        const {result} = renderHook(() => useCreateNavigationSuggestions());
+
+        expect(mockGetGroupPoliciesWhereReportCanBeCreated).toHaveBeenCalledWith(policies, false, session.email);
+        expect(mockUseCreateReport).toHaveBeenCalledWith(
+            expect.objectContaining({
+                groupPoliciesWithChatEnabled: [],
+                shouldHandleNavigationBack: false,
+            }),
+        );
+        expect(result.current.map((item) => item.keyForList)).toEqual(['create_expense', 'create_trackDistance', 'create_chat']);
+    });
+
+    it('passes Submit eligibility and exposes permission-gated actions', () => {
+        mockIsBetaEnabled.mockReturnValue(true);
+        mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([submitPolicy]);
+        mockCanSendInvoice.mockReturnValue(true);
+        mockShouldShowPolicy.mockReturnValue(false);
+
+        const {result} = renderHook(() => useCreateNavigationSuggestions());
+
+        expect(mockGetGroupPoliciesWhereReportCanBeCreated).toHaveBeenCalledWith(policies, true, session.email);
+        expect(mockUseCreateReport).toHaveBeenCalledWith(expect.objectContaining({groupPoliciesWithChatEnabled: [submitPolicy]}));
+        expect(result.current.map((item) => item.keyForList)).toEqual(['create_expense', 'create_report', 'create_trackDistance', 'create_chat', 'create_invoice', 'create_workspace']);
+
+        act(() => result.current.find((item) => item.keyForList === 'create_invoice')?.action?.());
+        act(() => result.current.find((item) => item.keyForList === 'create_workspace')?.action?.());
+
+        expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.INVOICE, 'draft-report', expect.anything(), undefined, undefined, undefined, true);
+        expect(Navigation.navigate).toHaveBeenCalledWith('workspace-confirmation');
+    });
+
+    it('reuses the generated report ID and saved distance type for Create actions', () => {
+        const {result} = renderHook(() => useCreateNavigationSuggestions());
+
+        act(() => result.current.find((item) => item.keyForList === 'create_expense')?.action?.());
+        act(() => result.current.find((item) => item.keyForList === 'create_trackDistance')?.action?.());
+        act(() => result.current.find((item) => item.keyForList === 'create_chat')?.action?.());
+
+        expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, 'draft-report', expect.anything(), undefined, undefined, undefined, true);
+        expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, 'draft-report', expect.anything(), CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, undefined, undefined, true);
+        expect(startNewChat).toHaveBeenCalledTimes(1);
+    });
+
+    it('creates a report and navigates through the Reports root', () => {
+        mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([submitPolicy]);
+        renderHook(() => useCreateNavigationSuggestions());
+
+        const onCreateReport = mockUseCreateReport.mock.calls.at(0)?.at(0)?.onCreateReport;
+        act(() => onCreateReport?.(true));
+
+        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, [], false, false, true);
+        expect(clearLastSearchParams).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: false});
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: false});
+    });
+});
