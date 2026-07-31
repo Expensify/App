@@ -239,6 +239,7 @@
     "@callstack/reassure-compare": "^1.0.0-rc.4",
     "@callstack/repack": "^5.2.5",
     "@callstack/repack-plugin-expo-modules": "^5.2.5",
+    "@callstack/repack-plugin-reanimated": "^5.2.5",
     "@dword-design/eslint-plugin-import-alias": "^5.0.0",
     "@fullstory/babel-plugin-annotate-react": "^2.4.0",
     "@fullstory/babel-plugin-react-native": "^1.5.2",

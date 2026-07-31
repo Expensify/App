@@ -1,5 +1,6 @@
 import * as Repack from '@callstack/repack';
 import {ExpoModulesPlugin} from '@callstack/repack-plugin-expo-modules';
+import {ReanimatedPlugin} from '@callstack/repack-plugin-reanimated';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
 import {SwcJsMinimizerRspackPlugin} from '@rspack/core';
 import path from 'node:path';
@@ -25,10 +26,24 @@ export default Repack.defineRspackConfig((env) => {
     return {
         context: projectRoot,
         entry: './index.js',
-        experiments: {
-            cache: {
-                type: 'persistent',
-            },
+        cache: {
+            type: 'persistent',
+            // `buildDependencies` defaults to [] and rspack cannot see files that loaders read at runtime, so
+            // without this the cache silently reuses stale transform output after a babel/loader/.env change —
+            buildDependencies: [
+                path.resolve(projectRoot, 'babel.config.js'),
+                path.resolve(projectRoot, 'config/babel/reactCompilerConfig.js'),
+                path.resolve(projectRoot, 'config/repack/rspack.config.mjs'),
+                path.resolve(projectRoot, 'config/repack/swc-lazy-imports-loader.mjs'),
+                path.resolve(projectRoot, 'config/repack/expoVirtualEnv.ts'),
+                path.resolve(projectRoot, 'config/rsbuild/loaders/fullstory-annotation-loader.mjs'),
+                path.resolve(projectRoot, 'config/rsbuild/loaders/oxc-react-compiler-loader.mjs'),
+                path.resolve(projectRoot, 'config/rsbuild/loaders/worklets-loader.mjs'),
+                // babel.config.js inlines EXPO_PUBLIC_* values from .env at transform time.
+                path.resolve(projectRoot, '.env'),
+                // node_modules is a `snapshot.managedPaths` entry, so dependency changes are otherwise invisible.
+                path.resolve(projectRoot, 'package-lock.json'),
+            ],
         },
         devServer: {
             // keep using `/.expo/.virtual-metro-entry` as entrypoint
@@ -115,7 +130,9 @@ export default Repack.defineRspackConfig((env) => {
                 }),
             ],
         },
-        plugins: [new Repack.RepackPlugin(), new ExpoModulesPlugin(), process.env.RSDOCTOR && new RsdoctorRspackPlugin()].filter(Boolean),
+        plugins: [new Repack.RepackPlugin(), new ExpoModulesPlugin(), new ReanimatedPlugin({unstable_disableTransform: true}), process.env.RSDOCTOR && new RsdoctorRspackPlugin()].filter(
+            Boolean,
+        ),
         ignoreWarnings: [
             // React Compiler bailouts on rule-violating components — silenced the same way as web.
             /oxc-react-compiler-loader:/,
