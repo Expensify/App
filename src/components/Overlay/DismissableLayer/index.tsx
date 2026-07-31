@@ -6,7 +6,7 @@ import useCallbackRef, {useRefMirror} from '@hooks/useCallbackRef';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import React, {useEffect, useState, useSyncExternalStore} from 'react';
+import React, {useEffect, useLayoutEffect, useState, useSyncExternalStore} from 'react';
 import {BackHandler, StyleSheet, View} from 'react-native';
 
 import type {DismissableLayerProps} from './types';
@@ -24,7 +24,8 @@ function useDismissableLayerWorker(kind: DismissableLayerKind, {onDismiss, escap
     const top = useSyncExternalStore(dismissableLayerStore.subscribe, () => selectTopLayer(dismissableLayerStore.getSnapshot()));
     const isTop = top === entry;
 
-    useEffect(() => pushDismissableLayer(entry), [entry]);
+    // Layout phase (not passive) so the layer is registered on the first committed frame, released synchronously on unmount, matching useOverlayEntry + the web layer.
+    useLayoutEffect(() => pushDismissableLayer(entry), [entry]);
 
     useEffect(() => {
         // Defensive — RNModal suppresses BackHandler, so this only fires for standalone DismissableLayer use.

@@ -15,7 +15,7 @@ import Log from '@libs/Log';
 
 import type {ReactNode} from 'react';
 
-import React, {useEffect, useRef, useState, useSyncExternalStore} from 'react';
+import React, {useLayoutEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {View} from 'react-native';
 
 import type {DismissableLayerProps} from './types';
@@ -30,7 +30,8 @@ function useLayerEntry(kind: DismissableLayerKind): DismissableLayerEntry {
         kind,
         mountId: nextLayerMountId(),
     }));
-    useEffect(() => pushDismissableLayer(entry), [entry]);
+    // Layout phase (not passive) so the layer is topmost on the first committed frame — Escape/outside/aria-hide active immediately and released synchronously on unmount, matching useOverlayEntry.
+    useLayoutEffect(() => pushDismissableLayer(entry), [entry]);
     return entry;
 }
 
