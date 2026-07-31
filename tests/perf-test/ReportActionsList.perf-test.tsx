@@ -110,7 +110,6 @@ function ReportActionsListWrapper() {
                     <ActionListContext.Provider value={actionListContextValue}>
                         <ReportActionsList
                             reportID={REPORT_ID}
-                            isReportLoadPending={false}
                             onLayout={mockOnLayout}
                         />
                     </ActionListContext.Provider>

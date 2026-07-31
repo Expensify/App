@@ -2,6 +2,7 @@ import ScrollView from '@components/ScrollView';
 
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useIsReportActionsLoaded from '@hooks/useIsReportActionsLoaded';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
@@ -92,14 +93,11 @@ const DELAY_FOR_SCROLLING_TO_END = 100;
 const BACKFILL_MIN_ACTIONS_THRESHOLD = 50;
 
 type MoneyRequestReportListProps = {
-    /** Whether the OpenReport request or its deferred updates are pending for this report */
-    isReportLoadPending: boolean;
-
     /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-function MoneyRequestReportActionsList({isReportLoadPending, onLayout}: MoneyRequestReportListProps) {
+function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -130,6 +128,7 @@ function MoneyRequestReportActionsList({isReportLoadPending, onLayout}: MoneyReq
     const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportIDFromRoute = route?.params?.reportID;
+    const isReportLoadPending = useIsReportLoadPending(reportIDFromRoute);
 
     // Self-subscribe to report, policy, metadata, actions, transactions
     // report is guaranteed to exist — callers only render this component when report is loaded

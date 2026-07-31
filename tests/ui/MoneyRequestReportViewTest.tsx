@@ -195,7 +195,6 @@ describe('MoneyRequestReportView', () => {
         renderMoneyRequestReportView(jest.fn());
 
         expect(mockMoneyRequestReportActionsList).toHaveBeenCalled();
-        expect(mockMoneyRequestReportActionsList.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({isReportLoadPending: false}));
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
         expect(mockUserTypingEventListener).not.toHaveBeenCalled();
     });

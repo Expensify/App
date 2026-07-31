@@ -282,15 +282,11 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
                     <AgentZeroStatusProvider reportID={report.reportID}>
                         <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
                             {shouldDisplayMoneyRequestActionsList ? (
-                                <MoneyRequestReportActionsList
-                                    isReportLoadPending={isReportLoadPending}
-                                    onLayout={onLayout}
-                                />
+                                <MoneyRequestReportActionsList onLayout={onLayout} />
                             ) : (
                                 <>
                                     <ReportActionsList
                                         reportID={report.reportID}
-                                        isReportLoadPending={isReportLoadPending}
                                         onLayout={onLayout}
                                     />
                                     <UserTypingEventListener report={report} />

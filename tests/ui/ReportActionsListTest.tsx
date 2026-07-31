@@ -1,6 +1,9 @@
 import {render, screen} from '@testing-library/react-native';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
+import type * as InFlightRequests from '@hooks/useInFlightRequests';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -23,7 +26,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import type * as ReactNavigation from '@react-navigation/native';
 
 import React from 'react';
@@ -47,6 +49,10 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@hooks/useNetwork', () => jest.fn());
+jest.mock('@hooks/useInFlightRequests', () => ({
+    ...jest.requireActual<typeof InFlightRequests>('@hooks/useInFlightRequests'),
+    useIsReportLoadPending: jest.fn(),
+}));
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@hooks/useTransactionsAndViolationsForReport', () => jest.fn());
@@ -65,6 +71,7 @@ jest.mock('@pages/inbox/ConciergeDraftContext', () => ({
 }));
 
 const mockUseNetwork = useNetwork as jest.MockedFunction<typeof useNetwork>;
+const mockUseIsReportLoadPending = useIsReportLoadPending as jest.MockedFunction<typeof useIsReportLoadPending>;
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
 const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 const mockUseTransactionsAndViolationsForReport = useTransactionsAndViolationsForReport as jest.MockedFunction<typeof useTransactionsAndViolationsForReport>;
@@ -226,14 +233,9 @@ const mockReportActions: OnyxTypes.ReportAction[] = [
     },
 ];
 
-const renderReportActionsList = (props: {reportID?: string; isReportLoadPending?: boolean} = {}) => {
+const renderReportActionsList = (props: {reportID?: string} = {}) => {
     const reportID = props.reportID ?? mockReport.reportID;
-    return render(
-        <ReportActionsList
-            reportID={reportID}
-            isReportLoadPending={props.isReportLoadPending ?? false}
-        />,
-    );
+    return render(<ReportActionsList reportID={reportID} />);
 };
 
 describe('ReportActionsList (body)', () => {
@@ -245,6 +247,7 @@ describe('ReportActionsList (body)', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockUseIsReportLoadPending.mockReturnValue(false);
 
         mockUseCurrentUserPersonalDetails.mockReturnValue({
             accountID: 100,
@@ -375,24 +378,27 @@ describe('ReportActionsList (body)', () => {
     });
 
     describe('Skeleton Loading States', () => {
-        it('uses a supplied true report pending value for the initial skeleton decision', () => {
+        it('derives a true report pending value for the initial skeleton decision', () => {
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUsePaginatedReportActions.mockReturnValue(defaultPaginatedReportActionsResult);
+            mockUseIsReportLoadPending.mockReturnValue(true);
 
-            renderReportActionsList({isReportLoadPending: true});
+            renderReportActionsList();
 
             expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
             expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport, {warm: false});
+            expect(mockUseIsReportLoadPending).toHaveBeenCalledWith(mockReport.reportID);
         });
 
-        it('uses a supplied false report pending value for the initial skeleton decision', () => {
+        it('derives a false report pending value for the initial skeleton decision', () => {
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUsePaginatedReportActions.mockReturnValue(defaultPaginatedReportActionsResult);
 
-            renderReportActionsList({isReportLoadPending: false});
+            renderReportActionsList();
 
             expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
             expect(mockMarkOpenReportEnd).not.toHaveBeenCalledWith(mockReport, {warm: false});
+            expect(mockUseIsReportLoadPending).toHaveBeenCalledWith(mockReport.reportID);
         });
 
         it('should show skeleton when shouldShowSkeletonForAppLoad is true (isLoadingApp is true and isOffline is false)', () => {

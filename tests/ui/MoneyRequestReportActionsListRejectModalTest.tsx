@@ -7,6 +7,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 
+import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
+import type * as InFlightRequests from '@hooks/useInFlightRequests';
 import useNetwork from '@hooks/useNetwork';
 
 import CONST from '@src/CONST';
@@ -45,6 +47,10 @@ jest.mock('@react-navigation/core', () => ({
 }));
 
 jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
+jest.mock('@hooks/useInFlightRequests', () => ({
+    ...jest.requireActual<typeof InFlightRequests>('@hooks/useInFlightRequests'),
+    useIsReportLoadPending: jest.fn(),
+}));
 jest.mock('@hooks/useNetwork', () => jest.fn());
 
 jest.mock('@rnmapbox/maps', () => ({
@@ -116,6 +122,7 @@ jest.mock('@components/ButtonWithDropdownMenu', () => {
 });
 
 const mockOriginalRejectOnSelected = jest.fn();
+const mockUseIsReportLoadPending = jest.mocked(useIsReportLoadPending);
 const mockUseNetwork = jest.mocked(useNetwork);
 jest.mock('@hooks/useSelectedTransactionsActions', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -212,12 +219,12 @@ const mockReportAction: ReportAction = {
     childReportID: 'CHILD_001',
 } as unknown as ReportAction;
 
-const renderComponent = (isReportLoadPending = false) => {
+const renderComponent = () => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <SearchContextProvider>
                 <ScreenWrapper testID="test">
-                    <MoneyRequestReportActionsList isReportLoadPending={isReportLoadPending} />
+                    <MoneyRequestReportActionsList />
                 </ScreenWrapper>
             </SearchContextProvider>
         </ComposeProviders>,
@@ -240,6 +247,7 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
+        mockUseIsReportLoadPending.mockReturnValue(false);
         mockUseNetwork.mockReturnValue({isOffline: false});
         await act(async () => {
             await Onyx.clear();
@@ -308,7 +316,7 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
             });
         });
 
-        renderComponent(false);
+        renderComponent();
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockSearchMoneyRequestReportEmptyState')).toBeTruthy();
@@ -325,12 +333,14 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
             });
         });
 
-        renderComponent(true);
+        mockUseIsReportLoadPending.mockReturnValue(true);
+        renderComponent();
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockMoneyRequestReportTransactionList')).toBeTruthy();
         expect(screen.getByTestId('MockInitialReportActionsSkeleton')).toBeTruthy();
         expect(screen.queryByTestId('MockSearchMoneyRequestReportEmptyState')).toBeNull();
+        expect(mockUseIsReportLoadPending).toHaveBeenCalledWith(FAKE_REPORT_ID);
     });
 
     it('shows a warm empty report without a skeleton or loading list while a report request is pending', async () => {
@@ -343,7 +353,8 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
             });
         });
 
-        renderComponent(true);
+        mockUseIsReportLoadPending.mockReturnValue(true);
+        renderComponent();
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockSearchMoneyRequestReportEmptyState')).toBeTruthy();
@@ -353,6 +364,7 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
 
     it('shows cached empty behavior for an offline queued report load', async () => {
         mockUseNetwork.mockReturnValue({isOffline: true});
+        mockUseIsReportLoadPending.mockReturnValue(true);
         await act(async () => {
             await Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
@@ -362,7 +374,7 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
             });
         });
 
-        renderComponent(true);
+        renderComponent();
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockSearchMoneyRequestReportEmptyState')).toBeTruthy();

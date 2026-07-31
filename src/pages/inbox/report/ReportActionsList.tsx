@@ -81,10 +81,7 @@ type ReportActionsListContentProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-type ReportActionsListProps = ReportActionsListContentProps & {
-    /** Whether the OpenReport request or its deferred updates are pending for this report */
-    isReportLoadPending: boolean;
-};
+type ReportActionsListProps = ReportActionsListContentProps;
 
 /**
  * Create a unique key for each action in the FlatList.
@@ -510,12 +507,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
  * Public report-actions list. Thin composition that wraps the content in `ReportActionsSkeletonGuard`,
  * which owns the data pipeline + skeleton decision and only mounts the content once it is ready.
  */
-function ReportActionsList({reportID, onLayout, isReportLoadPending}: ReportActionsListProps) {
+function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     return (
-        <ReportActionsSkeletonGuard
-            reportID={reportID}
-            isReportLoadPending={isReportLoadPending}
-        >
+        <ReportActionsSkeletonGuard reportID={reportID}>
             <ReportActionsListContent
                 reportID={reportID}
                 onLayout={onLayout}

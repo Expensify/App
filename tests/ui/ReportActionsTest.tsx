@@ -177,7 +177,6 @@ describe('ReportActions (orchestrator)', () => {
         render(<ReportActions />);
 
         expect(mockMoneyRequestList).toHaveBeenCalled();
-        expect(mockMoneyRequestList.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({isReportLoadPending: false}));
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
         expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
     });

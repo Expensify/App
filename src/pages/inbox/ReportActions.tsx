@@ -82,7 +82,7 @@ function ReportActions() {
     }
 
     if (shouldDisplayMoneyRequestActionsList) {
-        return <MoneyRequestReportActionsList isReportLoadPending={isReportLoadPending} />;
+        return <MoneyRequestReportActionsList />;
     }
 
     if (shouldShowAppLoadSkeleton) {
@@ -99,7 +99,6 @@ function ReportActions() {
             <ReportActionsList
                 key={report.reportID}
                 reportID={report.reportID}
-                isReportLoadPending={isReportLoadPending}
             />
             <UserTypingEventListener report={report} />
         </>

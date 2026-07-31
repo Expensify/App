@@ -1,4 +1,5 @@
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import useReportActionsListModel from '@hooks/useReportActionsListModel';
@@ -17,9 +18,6 @@ type ReportActionsSkeletonGuardProps = {
     /** The ID of the report to display actions for */
     reportID: string;
 
-    /** Whether the OpenReport request or its deferred updates are pending for this report */
-    isReportLoadPending: boolean;
-
     /** The report-actions list content, rendered only once content is ready */
     children: ReactNode;
 };
@@ -32,7 +30,8 @@ type ReportActionsSkeletonGuardProps = {
  * list's UI-close hooks live in `children`, so they can't run while the skeleton shows.
  *
  */
-function ReportActionsSkeletonGuard({reportID, isReportLoadPending, children}: ReportActionsSkeletonGuardProps) {
+function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonGuardProps) {
+    const isReportLoadPending = useIsReportLoadPending(reportID);
     const {readinessSignals, state, actions} = useReportActionsListModel(reportID, isReportLoadPending);
     const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton, shouldShowInitialSkeleton} = computeReportActionsSkeletonState(readinessSignals);
 
