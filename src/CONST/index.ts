@@ -995,6 +995,8 @@ const CONST = {
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
+        GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
     },
     BUTTON_STATES: {
@@ -4077,6 +4079,10 @@ const CONST = {
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
+        GLOBAL_REIMBURSEMENT_FX_PREFERENCE: {
+            COMPANY: 'company',
+            EMPLOYEE: 'employee',
+        },
         CASH_EXPENSE_REIMBURSEMENT_CHOICES: {
             REIMBURSABLE_DEFAULT: 'reimbursableDefault', // Reimbursable by default
             NON_REIMBURSABLE_DEFAULT: 'nonReimbursableDefault', // Non-reimbursable by default
@@ -4220,6 +4226,7 @@ const CONST = {
             AUTOREPORTING: 'autoReporting',
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
+            GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
             GENERAL_SETTINGS: 'generalSettings',
         },
         EXPENSE_REPORT_RULES: {
@@ -8884,6 +8891,7 @@ const CONST = {
             },
             WORKFLOWS: {
                 AUTO_REPORTING_FREQUENCY: 'WorkspaceWorkflows-AutoReportingFrequency',
+                CURRENCY_CONVERSION_FEES: 'WorkspaceWorkflows-CurrencyConversionFees',
                 ADD_APPROVAL: 'WorkspaceWorkflows-AddApproval',
                 MORE_DROPDOWN: 'WorkspaceWorkflows-MoreDropdown',
                 LOAD_MORE_APPROVALS: 'WorkspaceWorkflows-LoadMoreApprovals',
