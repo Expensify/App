@@ -495,4 +495,17 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/456/expense-report-edit?action=edit&iouType=submit&reportID=456')).toBe(undefined);
         expect(getMatchingNewRoute('/r/456/expense-tag?action=edit&iouType=submit&orderWeight=0&transactionID=123&reportID=456')).toBe(undefined);
     });
+
+    it('redirects legacy per diem time step to the new destination-based dynamic route (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/time/123/456')).toBe('/create/submit/destination/123/456/per-diem-time');
+    });
+
+    it('redirects legacy per diem time edit step to the new confirmation-based dynamic route (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/time/123/456/edit')).toBe('/create/submit/confirmation/123/456/per-diem-time-edit');
+    });
+
+    it('does not redirect the already-migrated per diem time dynamic routes (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-destination/per-diem-time')).toBe(undefined);
+        expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-time-edit')).toBe(undefined);
+    });
 });
