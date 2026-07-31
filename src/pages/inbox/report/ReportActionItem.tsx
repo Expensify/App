@@ -124,7 +124,7 @@ type ReportActionItemProps = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    /** Whether the action should render as an inline, avatarless system message. */
+    /** Whether the action should render as an inline system message without an avatar. */
     displayAsSystemMessage?: boolean;
 
     /** Should we display the new marker on top of the comment? */

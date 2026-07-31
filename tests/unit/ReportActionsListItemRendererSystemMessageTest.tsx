@@ -53,7 +53,7 @@ describe('ReportActionsListItemRenderer system-message presentation', () => {
         expect(mockReportActionItem).toHaveBeenCalledWith(expect.objectContaining({displayAsSystemMessage: false}));
     });
 
-    it('uses the avatarless path only when the money-request audit list opts in', () => {
+    it('uses the path without an avatar only when the money-request audit list opts in', () => {
         renderItem(true);
 
         expect(mockReportActionItem).toHaveBeenCalledWith(expect.objectContaining({displayAsSystemMessage: true}));

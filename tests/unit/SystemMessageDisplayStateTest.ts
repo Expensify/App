@@ -90,7 +90,7 @@ describe('system message presentation', () => {
             expect(isCollapsibleSystemMessageAction(integrationFailure)).toBe(false);
         });
 
-        it('keeps reimbursement setup actions avatarless but outside collapsed runs', () => {
+        it('keeps reimbursement setup actions without avatars but outside collapsed runs', () => {
             const reimbursementQueued = makeAction('1', CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED);
 
             expect(isSystemMessageAction(reimbursementQueued)).toBe(true);
@@ -107,7 +107,7 @@ describe('system message presentation', () => {
             expect(isSystemMessageAction(unhandledDisabledFieldsAction)).toBe(false);
         });
 
-        it('keeps reasoned system messages avatarless but outside collapsed runs', () => {
+        it('keeps reasoned system messages without avatars but outside collapsed runs', () => {
             const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>['originalMessage'] = {reasoning: 'The expense was changed automatically.'};
             const reasonedAction = makeAction('1', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
                 originalMessage,

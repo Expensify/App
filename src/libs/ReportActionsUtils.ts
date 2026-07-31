@@ -641,7 +641,7 @@ function isSimpleMessageAction(reportAction: OnyxInputOrEntry<ReportAction>): bo
 }
 
 /**
- * Whether an action is passive audit-trail content that should use the avatarless system-message presentation.
+ * Whether an action is passive audit-trail content that should use the system-message presentation without an avatar.
  * Structural previews and interactive/actionable rows are deliberately excluded so new action types opt in explicitly.
  */
 function isSystemMessageAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction {
@@ -660,7 +660,7 @@ function isSystemMessageAction(reportAction: OnyxInputOrEntry<ReportAction>): re
 
 /**
  * Whether a system message may be hidden inside an expandable run.
- * Error/status actions remain avatarless but standalone so their feedback and recovery affordances stay visible.
+ * Error/status actions remain without an avatar but standalone so their feedback and recovery controls stay visible.
  */
 function isCollapsibleSystemMessageAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction {
     return (
@@ -5382,4 +5382,4 @@ export {
     isPolicyCopyReportAction,
 };
 
-export type {CompanyAddressOriginalMessage, LastVisibleMessage, SystemMessageDisplayState, SystemMessageRun, UpdateACHAccountOriginalMessage};
+export type {CompanyAddressOriginalMessage, LastVisibleMessage, UpdateACHAccountOriginalMessage};

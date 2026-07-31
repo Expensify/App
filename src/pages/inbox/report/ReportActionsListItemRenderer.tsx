@@ -33,7 +33,7 @@ type ReportActionsListItemRendererProps = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    /** Whether the content should use the inline, avatarless system-message presentation. */
+    /** Whether the content should use the inline system-message presentation without an avatar. */
     displayAsSystemMessage?: boolean;
 
     /** If the thread divider line should be hidden */
