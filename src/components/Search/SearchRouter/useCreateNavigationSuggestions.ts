@@ -19,7 +19,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSendInvoice, getDefaultChatEnabledPolicy, isGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, shouldShowPolicy} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
@@ -33,11 +33,10 @@ import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
 import {emailSelector, sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useState} from 'react';
 
@@ -49,28 +48,6 @@ type CreateNavigationItem = {
     icon: IconAsset;
     action: () => void;
     keyForList: string;
-};
-
-const MAX_CHAT_ENABLED_POLICIES_TO_EVALUATE = 2;
-
-const chatEnabledGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin: string | undefined) => {
-    if (isEmptyObject(policies)) {
-        return getEmptyArray<OnyxTypes.Policy>();
-    }
-
-    const result: OnyxTypes.Policy[] = [];
-    for (const policy of Object.values(policies)) {
-        if (!policy?.isPolicyExpenseChatEnabled || policy.isJoinRequestPending || !isGroupPolicy(policy) || !shouldShowPolicy(policy, false, currentUserLogin)) {
-            continue;
-        }
-
-        result.push(policy);
-        if (result.length === MAX_CHAT_ENABLED_POLICIES_TO_EVALUATE) {
-            break;
-        }
-    }
-
-    return result;
 };
 
 function buildCreateNavigationItems(items: CreateNavigationItem[]): NavigationSuggestionSourceItem[] {
@@ -99,6 +76,7 @@ function useCreateNavigationSuggestions(): SearchQueryItem[] {
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle', 'Location', 'Document', 'ChatBubble', 'InvoiceGeneric', 'NewWorkspace']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
+    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const {isOffline} = useNetwork();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -112,12 +90,12 @@ function useCreateNavigationSuggestions(): SearchQueryItem[] {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [groupPoliciesWithChatEnabled = getEmptyArray<OnyxTypes.Policy>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies: Parameters<typeof chatEnabledGroupPoliciesSelector>[0]) => chatEnabledGroupPoliciesSelector(policies, session?.email),
+        selector: (policies: OnyxCollection<OnyxTypes.Policy>) => getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, session?.email),
     });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
-    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled, activePolicy);
+    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const isReportInSearch = isOnSearchMoneyRequestReportPage();
     const isInvoiceVisible = canSendInvoice(allPolicies ?? null, sessionEmail);
