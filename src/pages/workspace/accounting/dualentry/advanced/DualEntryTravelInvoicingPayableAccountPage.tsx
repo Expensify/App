@@ -1,0 +1,66 @@
+import type {SelectorType} from '@components/SelectionScreen';
+
+import {clearDualEntryErrorField, updateDualEntryTravelInvoicingPayableAccount} from '@libs/actions/connections/DualEntry';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
+
+import Navigation from '@navigation/Navigation';
+
+import TravelInvoicingPayableAccountSelectPage from '@pages/workspace/accounting/common/TravelInvoicingPayableAccountSelectPage';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
+function DualEntryTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
+    const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
+    const dualentryConfig = policy?.connections?.dualentry?.config;
+    const dualentryData = policy?.connections?.dualentry?.data;
+    const travelInvoicingPayableAccountID = dualentryConfig?.export?.travelInvoicingPayableAccountID;
+    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID) : undefined;
+
+    const data: Array<SelectorType<string>> =
+        dualentryData?.accounts
+            ?.filter(
+                (accountItem) =>
+                    accountItem.isActive &&
+                    (accountItem.accountType === CONST.DUALENTRY_ACCOUNT_TYPE.ACCOUNTS_PAYABLE ||
+                        accountItem.accountType === CONST.DUALENTRY_ACCOUNT_TYPE.CREDIT_CARD ||
+                        accountItem.accountType === CONST.DUALENTRY_ACCOUNT_TYPE.OTHER_CURRENT_LIABILITY),
+            )
+            .map((accountItem) => ({
+                value: accountItem.id,
+                text: `${accountItem.id} ${accountItem.name}`,
+                keyForList: accountItem.id,
+                isSelected: travelInvoicingPayableAccountID === accountItem.id,
+            })) ?? [];
+
+    const setPayableAccount = (item: SelectorType<string>) => {
+        if (item.value !== travelInvoicingPayableAccountID && policyID) {
+            updateDualEntryTravelInvoicingPayableAccount(policyID, item.value, travelInvoicingPayableAccountID);
+        }
+        Navigation.goBack(backPath);
+    };
+
+    return (
+        <TravelInvoicingPayableAccountSelectPage
+            policyID={policyID}
+            title="workspace.dualentry.travelInvoicingPayableAccount.label"
+            displayName="DualEntryTravelInvoicingPayableAccountSelectPage"
+            data={data}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.DUALENTRY}
+            emptyStateTitle="workspace.dualentry.noAccountsFound"
+            emptyStateSubtitle="workspace.dualentry.noAccountsFoundDescription"
+            onSelect={setPayableAccount}
+            onBack={() => Navigation.goBack(backPath)}
+            pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT_ID], dualentryConfig?.pendingFields)}
+            errors={getLatestErrorField(dualentryConfig, CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT_ID)}
+            onClose={() => clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT_ID)}
+        />
+    );
+}
+
+export default withPolicyConnections(DualEntryTravelInvoicingPayableAccountSelectPage);

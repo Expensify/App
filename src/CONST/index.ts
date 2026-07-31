@@ -3585,6 +3585,8 @@ const CONST = {
         EXPENSE: 'expense',
         CREDIT_CARD: 'credit_card',
         BANK: 'bank',
+        ACCOUNTS_PAYABLE: 'accounts_payable',
+        OTHER_CURRENT_LIABILITY: 'other_current_liability',
     },
 
     UPDATE_PERSONAL_BANK_ACCOUNT: {
