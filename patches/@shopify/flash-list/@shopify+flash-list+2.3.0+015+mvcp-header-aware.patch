@@ -1,0 +1,358 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+index 063fd1a..c37ff3a 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+@@ -349,8 +349,27 @@ const RecyclerViewComponent = (props, ref) => {
+             recyclerViewContext.layout();
+         }
+     }, [recyclerViewContext, recyclerViewManager]);
++    // The ListHeaderComponent can resize on its own (async content settling inside it) without this component
++    // re-rendering — firstItemOffset is only re-measured in this component's layout effects, so items would keep
++    // stale on-screen positions and applyOffsetCorrection would never see the header delta. Trigger a layout pass
++    // when the header's main-axis size changes. Inverted lists skip this: firstItemOffset is forced to 0 there,
++    // so a header resize cannot shift item positions.
++    const lastHeaderSizeRef = useRef(-1);
++    const onHeaderLayout = useCallback((event) => {
++        if (inverted) {
++            return;
++        }
++        const headerSize = horizontal
++            ? event.nativeEvent.layout.width
++            : event.nativeEvent.layout.height;
++        if (lastHeaderSizeRef.current >= 0 &&
++            areDimensionsNotEqual(lastHeaderSizeRef.current, headerSize)) {
++            recyclerViewContext.layout();
++        }
++        lastHeaderSizeRef.current = headerSize;
++    }, [horizontal, inverted, recyclerViewContext]);
+     // Get secondary props and components
+-    const { refreshControl, renderHeader, renderFooter, renderEmpty, CompatScrollView, renderStickyHeaderBackdrop, } = useSecondaryProps(props);
++    const { refreshControl, renderHeader, renderFooter, renderEmpty, CompatScrollView, renderStickyHeaderBackdrop, } = useSecondaryProps(props, onHeaderLayout);
+     if (!recyclerViewManager.getIsFirstLayoutComplete() &&
+         recyclerViewManager.getDataLength() > 0) {
+         parentRecyclerViewContext === null || parentRecyclerViewContext === void 0 ? void 0 : parentRecyclerViewContext.markChildLayoutAsPending(recyclerViewId);
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
+index 40bdddb..c505e59 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
+@@ -51,6 +51,10 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+     // Track the first visible item for maintaining scroll position
+     const firstVisibleItemKey = useRef(undefined);
+     const firstVisibleItemLayout = useRef(undefined);
++    // firstItemOffset (the ListHeaderComponent's size) at the time the anchor above was captured. Item layouts are
++    // header-relative, so a header resize shifts every item on screen without changing any tracked x/y — the delta
++    // must be captured separately or offset correction is blind to it.
++    const firstVisibleItemFirstItemOffset = useRef(0);
+     // Queue to store callbacks that should be executed after scroll offset updates
+     const pendingScrollCallbacks = useRef([]);
+     // Handle initial scroll position when the list first loads
+@@ -82,6 +86,16 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+             recyclerViewManager.hasStableDataKeys() &&
+             recyclerViewManager.getDataLength() > 0 &&
+             recyclerViewManager.shouldMaintainVisibleContentPosition()) {
++            // When the viewport top sits inside the ListHeaderComponent, the header — not any data item — is the
++            // user's visual anchor. The Math.max(0, startIndex) clamp below would otherwise anchor item 0 (which can
++            // be far below the fold) and "maintain" its position through header resizes or data prepends, yanking
++            // the viewport away from what the user is looking at. The header's own top never moves, so the correct
++            // correction while it is the anchor is none — drop the tracked item instead.
++            if (recyclerViewManager.getAbsoluteLastScrollOffset() <
++                recyclerViewManager.firstItemOffset) {
++                firstVisibleItemKey.current = undefined;
++                return;
++            }
+             // Update the tracked first visible item
+             const firstVisibleIndex = Math.max(0, recyclerViewManager.computeVisibleIndices().startIndex);
+             if (firstVisibleIndex !== undefined && firstVisibleIndex >= 0) {
+@@ -90,6 +104,7 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+                 firstVisibleItemLayout.current = {
+                     ...recyclerViewManager.getLayout(firstVisibleIndex),
+                 };
++                firstVisibleItemFirstItemOffset.current = recyclerViewManager.firstItemOffset;
+             }
+         }
+     }, [recyclerViewManager]);
+@@ -128,15 +143,21 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+                     : undefined);
+                 if (currentIndexOfFirstVisibleItem !== undefined &&
+                     currentIndexOfFirstVisibleItem >= 0) {
+-                    // Calculate the difference in position and apply the offset
+-                    const diff = horizontal
++                    // Calculate the difference in position and apply the offset. Item layouts are header-relative,
++                    // so a ListHeaderComponent resize shifts every item on screen by the same amount without
++                    // changing any layout — it is only observable as a firstItemOffset delta, tracked separately.
++                    const layoutDiff = horizontal
+                         ? recyclerViewManager.getLayout(currentIndexOfFirstVisibleItem).x -
+                             firstVisibleItemLayout.current.x
+                         : recyclerViewManager.getLayout(currentIndexOfFirstVisibleItem).y -
+                             firstVisibleItemLayout.current.y;
++                    const diff = layoutDiff +
++                        (recyclerViewManager.firstItemOffset -
++                            firstVisibleItemFirstItemOffset.current);
+                     firstVisibleItemLayout.current = {
+                         ...recyclerViewManager.getLayout(currentIndexOfFirstVisibleItem),
+                     };
++                    firstVisibleItemFirstItemOffset.current = recyclerViewManager.firstItemOffset;
+                     if (diff !== 0 &&
+                         !pauseOffsetCorrection.current &&
+                         !recyclerViewManager.animationOptimizationsEnabled) {
+@@ -147,13 +168,16 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+                         }
+                         else if (useAndroidInvertedFallback) {
+                             if (!shouldSkipAndroidInvertedCorrection) {
++                                // getAbsoluteLastScrollOffset() already reflects the current firstItemOffset (the
++                                // tracker's relative offset only resyncs on scroll events), so the header delta is
++                                // already embedded in it — add only the layout diff on scrollTo paths.
+                                 const scrollToParams = horizontal
+                                     ? {
+-                                        x: recyclerViewManager.getAbsoluteLastScrollOffset() + diff,
++                                        x: recyclerViewManager.getAbsoluteLastScrollOffset() + layoutDiff,
+                                         animated: false,
+                                     }
+                                     : {
+-                                        y: recyclerViewManager.getAbsoluteLastScrollOffset() + diff,
++                                        y: recyclerViewManager.getAbsoluteLastScrollOffset() + layoutDiff,
+                                         animated: false,
+                                     };
+                                 if (pendingAndroidInvertedRafId.current !== null) {
+@@ -169,17 +193,17 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+                         else {
+                             const scrollToParams = horizontal
+                                 ? {
+-                                    x: recyclerViewManager.getAbsoluteLastScrollOffset() + diff,
++                                    x: recyclerViewManager.getAbsoluteLastScrollOffset() + layoutDiff,
+                                     animated: false,
+                                 }
+                                 : {
+-                                    y: recyclerViewManager.getAbsoluteLastScrollOffset() + diff,
++                                    y: recyclerViewManager.getAbsoluteLastScrollOffset() + layoutDiff,
+                                     animated: false,
+                                 };
+                             (_c = scrollViewRef.current) === null || _c === void 0 ? void 0 : _c.scrollTo(scrollToParams);
+                         }
+                         if (hasDataChanged) {
+-                            updateScrollOffsetWithCallback(recyclerViewManager.getAbsoluteLastScrollOffset() + diff, () => { });
++                            updateScrollOffsetWithCallback(recyclerViewManager.getAbsoluteLastScrollOffset() + layoutDiff, () => { });
+                             recyclerViewManager.ignoreScrollEvents = true;
+                             setTimeout(() => {
+                                 recyclerViewManager.ignoreScrollEvents = false;
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useSecondaryProps.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useSecondaryProps.js
+index 4d7a945..26133d6 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useSecondaryProps.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useSecondaryProps.js
+@@ -21,7 +21,7 @@ import { getInvertedTransformStyle } from "../utils/getInvertedTransformStyle";
+  *   - renderStickyHeaderBackdrop: The sticky header backdrop component renderer
+  *   - CompatScrollView: The animated scroll component
+  */
+-export function useSecondaryProps(props) {
++export function useSecondaryProps(props, onHeaderLayout) {
+     const { ListHeaderComponent, ListHeaderComponentStyle, ListFooterComponent, ListFooterComponentStyle, ListEmptyComponent, ListEmptyComponentStyle, renderScrollComponent, refreshing, progressViewOffset, onRefresh, data, refreshControl: customRefreshControl, stickyHeaderConfig, inverted, horizontal, } = props;
+     const invertedTransformStyle = inverted
+         ? getInvertedTransformStyle(horizontal)
+@@ -45,8 +45,8 @@ export function useSecondaryProps(props) {
+         if (!ListHeaderComponent) {
+             return null;
+         }
+-        return (React.createElement(CompatView, { style: [ListHeaderComponentStyle, invertedTransformStyle] }, getValidComponent(ListHeaderComponent)));
+-    }, [ListHeaderComponent, ListHeaderComponentStyle, invertedTransformStyle]);
++        return (React.createElement(CompatView, { style: [ListHeaderComponentStyle, invertedTransformStyle], onLayout: onHeaderLayout }, getValidComponent(ListHeaderComponent)));
++    }, [ListHeaderComponent, ListHeaderComponentStyle, invertedTransformStyle, onHeaderLayout]);
+     /**
+      * Creates the footer component with optional styling.
+      */
+diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+index a7829d5..ec5d7b7 100644
+--- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
++++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+@@ -16,6 +16,7 @@ import React, {
+ import {
+   Animated,
+   I18nManager,
++  LayoutChangeEvent,
+   NativeScrollEvent,
+   NativeSyntheticEvent,
+   Platform,
+@@ -501,6 +502,31 @@ const RecyclerViewComponent = <T,>(
+     [recyclerViewContext, recyclerViewManager]
+   );
+ 
++  // The ListHeaderComponent can resize on its own (async content settling inside it) without this component
++  // re-rendering — firstItemOffset is only re-measured in this component's layout effects, so items would keep
++  // stale on-screen positions and applyOffsetCorrection would never see the header delta. Trigger a layout pass
++  // when the header's main-axis size changes. Inverted lists skip this: firstItemOffset is forced to 0 there,
++  // so a header resize cannot shift item positions.
++  const lastHeaderSizeRef = useRef(-1);
++  const onHeaderLayout = useCallback(
++    (event: LayoutChangeEvent) => {
++      if (inverted) {
++        return;
++      }
++      const headerSize = horizontal
++        ? event.nativeEvent.layout.width
++        : event.nativeEvent.layout.height;
++      if (
++        lastHeaderSizeRef.current >= 0 &&
++        areDimensionsNotEqual(lastHeaderSizeRef.current, headerSize)
++      ) {
++        recyclerViewContext.layout();
++      }
++      lastHeaderSizeRef.current = headerSize;
++    },
++    [horizontal, inverted, recyclerViewContext]
++  );
++
+   // Get secondary props and components
+   const {
+     refreshControl,
+@@ -509,7 +535,7 @@ const RecyclerViewComponent = <T,>(
+     renderEmpty,
+     CompatScrollView,
+     renderStickyHeaderBackdrop,
+-  } = useSecondaryProps(props);
++  } = useSecondaryProps(props, onHeaderLayout);
+ 
+   if (
+     !recyclerViewManager.getIsFirstLayoutComplete() &&
+diff --git a/node_modules/@shopify/flash-list/src/recyclerview/hooks/useRecyclerViewController.tsx b/node_modules/@shopify/flash-list/src/recyclerview/hooks/useRecyclerViewController.tsx
+index 3012391..7375752 100644
+--- a/node_modules/@shopify/flash-list/src/recyclerview/hooks/useRecyclerViewController.tsx
++++ b/node_modules/@shopify/flash-list/src/recyclerview/hooks/useRecyclerViewController.tsx
+@@ -57,6 +57,10 @@ export function useRecyclerViewController<T>(
+   // Track the first visible item for maintaining scroll position
+   const firstVisibleItemKey = useRef<string | undefined>(undefined);
+   const firstVisibleItemLayout = useRef<RVLayout | undefined>(undefined);
++  // firstItemOffset (the ListHeaderComponent's size) at the time the anchor above was captured. Item layouts are
++  // header-relative, so a header resize shifts every item on screen without changing any tracked x/y — the delta
++  // must be captured separately or offset correction is blind to it.
++  const firstVisibleItemFirstItemOffset = useRef(0);
+ 
+   // Queue to store callbacks that should be executed after scroll offset updates
+   const pendingScrollCallbacks = useRef<(() => void)[]>([]);
+@@ -96,6 +100,18 @@ export function useRecyclerViewController<T>(
+       recyclerViewManager.getDataLength() > 0 &&
+       recyclerViewManager.shouldMaintainVisibleContentPosition()
+     ) {
++      // When the viewport top sits inside the ListHeaderComponent, the header — not any data item — is the
++      // user's visual anchor. The Math.max(0, startIndex) clamp below would otherwise anchor item 0 (which can
++      // be far below the fold) and "maintain" its position through header resizes or data prepends, yanking
++      // the viewport away from what the user is looking at. The header's own top never moves, so the correct
++      // correction while it is the anchor is none — drop the tracked item instead.
++      if (
++        recyclerViewManager.getAbsoluteLastScrollOffset() <
++        recyclerViewManager.firstItemOffset
++      ) {
++        firstVisibleItemKey.current = undefined;
++        return;
++      }
+       // Update the tracked first visible item
+       const firstVisibleIndex = Math.max(
+         0,
+@@ -107,6 +123,8 @@ export function useRecyclerViewController<T>(
+         firstVisibleItemLayout.current = {
+           ...recyclerViewManager.getLayout(firstVisibleIndex),
+         };
++        firstVisibleItemFirstItemOffset.current =
++          recyclerViewManager.firstItemOffset;
+       }
+     }
+   }, [recyclerViewManager]);
+@@ -156,15 +174,23 @@ export function useRecyclerViewController<T>(
+           currentIndexOfFirstVisibleItem !== undefined &&
+           currentIndexOfFirstVisibleItem >= 0
+         ) {
+-          // Calculate the difference in position and apply the offset
+-          const diff = horizontal
++          // Calculate the difference in position and apply the offset. Item layouts are header-relative,
++          // so a ListHeaderComponent resize shifts every item on screen by the same amount without
++          // changing any layout — it is only observable as a firstItemOffset delta, tracked separately.
++          const layoutDiff = horizontal
+             ? recyclerViewManager.getLayout(currentIndexOfFirstVisibleItem).x -
+               firstVisibleItemLayout.current!.x
+             : recyclerViewManager.getLayout(currentIndexOfFirstVisibleItem).y -
+               firstVisibleItemLayout.current!.y;
++          const diff =
++            layoutDiff +
++            (recyclerViewManager.firstItemOffset -
++              firstVisibleItemFirstItemOffset.current);
+           firstVisibleItemLayout.current = {
+             ...recyclerViewManager.getLayout(currentIndexOfFirstVisibleItem),
+           };
++          firstVisibleItemFirstItemOffset.current =
++            recyclerViewManager.firstItemOffset;
+           if (
+             diff !== 0 &&
+             !pauseOffsetCorrection.current &&
+@@ -175,20 +201,27 @@ export function useRecyclerViewController<T>(
+               // console.log("scrollBy", diff);
+               scrollAnchorRef.current?.scrollBy(diff);
+             } else {
++              // getAbsoluteLastScrollOffset() already reflects the current firstItemOffset (the
++              // tracker's relative offset only resyncs on scroll events), so the header delta is
++              // already embedded in it — add only the layout diff on scrollTo paths.
+               const scrollToParams = horizontal
+                 ? {
+-                    x: recyclerViewManager.getAbsoluteLastScrollOffset() + diff,
++                    x:
++                      recyclerViewManager.getAbsoluteLastScrollOffset() +
++                      layoutDiff,
+                     animated: false,
+                   }
+                 : {
+-                    y: recyclerViewManager.getAbsoluteLastScrollOffset() + diff,
++                    y:
++                      recyclerViewManager.getAbsoluteLastScrollOffset() +
++                      layoutDiff,
+                     animated: false,
+                   };
+               scrollViewRef.current?.scrollTo(scrollToParams);
+             }
+             if (hasDataChanged) {
+               updateScrollOffsetWithCallback(
+-                recyclerViewManager.getAbsoluteLastScrollOffset() + diff,
++                recyclerViewManager.getAbsoluteLastScrollOffset() + layoutDiff,
+                 () => {}
+               );
+               recyclerViewManager.ignoreScrollEvents = true;
+diff --git a/node_modules/@shopify/flash-list/src/recyclerview/hooks/useSecondaryProps.tsx b/node_modules/@shopify/flash-list/src/recyclerview/hooks/useSecondaryProps.tsx
+index a64742c..7be3eb2 100644
+--- a/node_modules/@shopify/flash-list/src/recyclerview/hooks/useSecondaryProps.tsx
++++ b/node_modules/@shopify/flash-list/src/recyclerview/hooks/useSecondaryProps.tsx
+@@ -1,4 +1,4 @@
+-import { Animated, RefreshControl } from "react-native";
++import { Animated, LayoutChangeEvent, RefreshControl } from "react-native";
+ import React, { useMemo } from "react";
+ 
+ import { RecyclerViewProps } from "../RecyclerViewProps";
+@@ -24,7 +24,10 @@ import { getInvertedTransformStyle } from "../utils/getInvertedTransformStyle";
+  *   - renderStickyHeaderBackdrop: The sticky header backdrop component renderer
+  *   - CompatScrollView: The animated scroll component
+  */
+-export function useSecondaryProps<T>(props: RecyclerViewProps<T>) {
++export function useSecondaryProps<T>(
++  props: RecyclerViewProps<T>,
++  onHeaderLayout?: (event: LayoutChangeEvent) => void
++) {
+   const {
+     ListHeaderComponent,
+     ListHeaderComponentStyle,
+@@ -73,11 +76,19 @@ export function useSecondaryProps<T>(props: RecyclerViewProps<T>) {
+       return null;
+     }
+     return (
+-      <CompatView style={[ListHeaderComponentStyle, invertedTransformStyle]}>
++      <CompatView
++        style={[ListHeaderComponentStyle, invertedTransformStyle]}
++        onLayout={onHeaderLayout}
++      >
+         {getValidComponent(ListHeaderComponent)}
+       </CompatView>
+     );
+-  }, [ListHeaderComponent, ListHeaderComponentStyle, invertedTransformStyle]);
++  }, [
++    ListHeaderComponent,
++    ListHeaderComponentStyle,
++    invertedTransformStyle,
++    onHeaderLayout,
++  ]);
+ 
+   /**
+    * Creates the footer component with optional styling.
