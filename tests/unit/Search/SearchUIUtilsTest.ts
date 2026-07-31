@@ -9397,9 +9397,12 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should produce the same Card accruals hash for both call sites when they pass the same active Expensify Card feed', () => {
-            // SearchQueryProvider and the type menu must agree so the Card accruals tab highlights as active.
-            const fromMenu = SearchUIUtils.getSuggestedSearches(adminAccountID, companyFeedID, undefined, [], activeExpensifyCardFeedID);
+            // SearchQueryProvider and the type menu must agree so the Card accruals tab highlights as active. The two
+            // real call sites differ in the `defaultFeedID` and `shouldShowExpensifyCard` args, so mirror that here to
+            // prove Card accruals is driven purely by `activeExpensifyCardFeedID` and doesn't split on those inputs.
+            const otherCompanyFeedID = 'fund2_oauth.chase.com';
             const fromProvider = SearchUIUtils.getSuggestedSearches(adminAccountID, companyFeedID, undefined, [], activeExpensifyCardFeedID);
+            const fromMenu = SearchUIUtils.getSuggestedSearches(adminAccountID, otherCompanyFeedID, true, [], activeExpensifyCardFeedID);
             expect(fromMenu[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD].similarSearchHash).toBe(fromProvider[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD].similarSearchHash);
         });
     });

@@ -73,8 +73,9 @@ const getBankLinkedPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
 };
 
 /**
- * Selects all regular (non-travel) Expensify Card feeds for display. Callers scope to a specific
- * workspace by matching a feed's `fundID` against that policy's `policyAccountID`.
+ * Selects all regular (non-travel) Expensify Card feeds for display. Callers scope to a specific workspace by
+ * matching a feed's `fundID` against that workspace's candidate fund IDs — its primary feed (`linkedPolicyIDs`), a
+ * `preferredPolicy`-linked feed, or the policy's `policyAccountID` — via `getActiveExpensifyCardFeedID`.
  */
 const expensifyCardFeedsForDisplaySelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) =>
     Object.values(getExpensifyCardFeedsForDisplay(allCards ?? undefined, undefined)).filter((feed) => feed.country !== CONST.TRAVEL.PROGRAM_TRAVEL_US);
