@@ -1,4 +1,6 @@
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import Navigation from '@libs/Navigation/Navigation';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import '@libs/actions/IOU/MoneyRequest';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
@@ -7,7 +9,8 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {Policy, Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -16,7 +19,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
-import {createRandomReport} from '../../utils/collections/reports';
+import {createPolicyExpenseChat, createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -58,6 +61,7 @@ jest.mock('@src/libs/actions/Report', () => {
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
+const mockedIsReportTopmostSplitNavigator = jest.mocked(isReportTopmostSplitNavigator);
 // In production, requestMoney defers its API.write() call until the target screen's
 // content lays out (or a safety timeout fires). In tests there is no target component
 // to flush the deferred write, so we bypass the deferral by executing the callback immediately.
@@ -310,6 +314,177 @@ describe('actions/IOU', () => {
             });
 
             expect(Object.keys(transactionDrafts ?? {}).length).toBe(0);
+        });
+
+        describe('submitting a tracked expense to an employer', () => {
+            const POLICY_ID = 'policy-with-access';
+
+            async function setUpSelfDMTrackedExpense() {
+                const selfDMReport = createSelfDM(1, RORY_ACCOUNT_ID);
+                const policyExpenseChat: Report = {
+                    ...createPolicyExpenseChat(2),
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    policyID: POLICY_ID,
+                };
+                const trackedExpense: Transaction = {
+                    ...createRandomTransaction(1),
+                    transactionID: 'tracked-expense',
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${trackedExpense.transactionID}`, trackedExpense);
+                await waitForBatchedUpdates();
+
+                return {selfDMReport, policyExpenseChat, trackedExpense};
+            }
+
+            function getConfirmationRouteBackTo() {
+                const confirmationRoute = jest
+                    .mocked(Navigation.navigate)
+                    .mock.calls.map(([route]) => String(route))
+                    .find((route) => route.includes('confirmation'));
+                return new URLSearchParams(confirmationRoute?.split('?').at(1)).get('backTo');
+            }
+
+            async function getDraftTransaction(transactionID: string) {
+                let transactionDrafts: OnyxCollection<Transaction>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                    callback: (val) => {
+                        transactionDrafts = val;
+                    },
+                });
+                return transactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
+            }
+
+            it('should bind the draft transaction to the destination chat when exactly one workspace is accessible', async () => {
+                // Given a tracked self DM expense and a single workspace the user can submit to
+                const {selfDMReport, policyExpenseChat, trackedExpense} = await setUpSelfDMTrackedExpense();
+
+                // When the expense is submitted to the employer, skipping the destination picker
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                    filteredPoliciesCount: 1,
+                    firstPolicyID: POLICY_ID,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the draft is no longer unreported, so the confirmation page resolves the destination workspace
+                const draftTransaction = await getDraftTransaction(trackedExpense.transactionID);
+                expect(draftTransaction?.reportID).toBe(policyExpenseChat.reportID);
+                expect(draftTransaction?.participants?.at(0)?.reportID).toBe(policyExpenseChat.reportID);
+
+                // And the user lands on the confirmation page for that workspace
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.SUBMIT, CONST.IOU.TYPE.SUBMIT, trackedExpense.transactionID, policyExpenseChat.reportID),
+                );
+            });
+
+            it('should send the user back to the report they are viewing when a draft workspace is created', async () => {
+                // Given a tracked self DM expense the user drilled into, so the expense thread is the visible report
+                const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
+                mockedIsReportTopmostSplitNavigator.mockReturnValue(true);
+
+                // When the expense is submitted to the employer and there is no workspace to submit to
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                    defaultWorkspaceName: "Rory's Workspace",
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                // Then back from the confirmation page returns to the visible report, not the self DM the expense lives on
+                expect(getConfirmationRouteBackTo()).toBe(ROUTES.REPORT_WITH_ID.getRoute(topMostReportID));
+            });
+
+            it('should fall back to the expense report when no report is visible behind the confirmation page', async () => {
+                // Given the flow is started from somewhere other than a report, e.g. the Search tab
+                const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
+                mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
+
+                // When the expense is submitted to the employer and there is no workspace to submit to
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                    defaultWorkspaceName: "Rory's Workspace",
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                // Then back returns to the report the expense lives on
+                expect(getConfirmationRouteBackTo()).toBe(ROUTES.REPORT_WITH_ID.getRoute(selfDMReport.reportID));
+            });
+
+            it('should leave the draft transaction unreported when the destination picker is shown', async () => {
+                // Given a tracked self DM expense and more than one workspace the user can submit to
+                const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
+
+                // When the expense is submitted to the employer
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                    filteredPoliciesCount: 2,
+                    firstPolicyID: POLICY_ID,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the picker owns the binding, so the draft keeps the unreported ID it inherited
+                const draftTransaction = await getDraftTransaction(trackedExpense.transactionID);
+                expect(draftTransaction?.reportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, trackedExpense.transactionID, selfDMReport.reportID, undefined, CONST.IOU.ACTION.SUBMIT, true),
+                );
+            });
         });
     });
 });
