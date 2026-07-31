@@ -9146,7 +9146,7 @@ describe('actions/Report', () => {
 
     describe('buildOptimisticModifiedExpenseReportAction distance currency', () => {
         it('keeps the expense currency when a route switch leaves modifiedCurrency unset', () => {
-            const oldTransaction = {
+            const oldTransaction = createMock<OnyxTypes.Transaction>({
                 transactionID: '1',
                 reportID: '2',
                 amount: -1000,
@@ -9161,15 +9161,15 @@ describe('actions/Report', () => {
                         routeDistanceMeters: 10000,
                     },
                 },
-            } as unknown as OnyxTypes.Transaction;
+            });
 
             // A pure route switch recalculates the amount but not the currency, so `modifiedCurrency` stays unset.
-            const updatedTransaction = {
+            const updatedTransaction = createMock<OnyxTypes.Transaction>({
                 ...oldTransaction,
                 modifiedAmount: -2000,
                 modifiedMerchant: '20.00 km @ €1.00 / km',
                 comment: {customUnit: {...oldTransaction.comment?.customUnit, quantity: 20}},
-            } as unknown as OnyxTypes.Transaction;
+            });
 
             const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, oldTransaction, {selectedRouteKey: 'route1'}, true, undefined, undefined, updatedTransaction);
             const originalMessage = getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
