@@ -83,7 +83,7 @@ describe('useWalletPhoneValidateCode', () => {
         expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('routes to the magic-code screen when a phone number is set for the first time (none saved yet)', async () => {
+    it('routes to the validateCode screen when a phone number is set for the first time (none saved yet)', async () => {
         const {result} = await renderWalletPhoneValidateCode();
 
         act(() => {
