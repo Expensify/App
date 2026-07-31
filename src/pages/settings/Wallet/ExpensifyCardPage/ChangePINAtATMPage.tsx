@@ -14,7 +14,7 @@ function ChangePINAtATMPage() {
     return (
         <OutcomeScreenBase
             headerTitle={translate('cardPage.changePin')}
-            illustration="MagicCode"
+            illustration="ValidateCode"
             iconWidth={variables.modalTopIconWidth}
             iconHeight={variables.modalTopIconHeight}
             title={translate('cardPage.changePinAtATM')}

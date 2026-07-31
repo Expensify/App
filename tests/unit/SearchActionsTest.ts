@@ -1,6 +1,8 @@
-import {getExportTemplates, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
-import {write} from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {getExportTemplates, getFooterConvertedAmounts, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {read, write} from '@libs/API';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,6 +18,7 @@ jest.mock('@libs/Network/enhanceParameters', () => ({
 }));
 
 const mockWrite = jest.mocked(write);
+const mockRead = jest.mocked(read);
 
 function getWriteOptions(): {optimisticData: AnyOnyxUpdate[]; failureData: AnyOnyxUpdate[]} {
     const options = mockWrite.mock.calls.at(-1)?.at(2);
@@ -30,6 +33,30 @@ function getWriteOptions(): {optimisticData: AnyOnyxUpdate[]; failureData: AnyOn
         throw new Error('write was not called with optimistic options');
     }
     return {optimisticData: options.optimisticData, failureData: options.failureData};
+}
+
+function getReadOptions(): {optimisticData: AnyOnyxUpdate[]; failureData: AnyOnyxUpdate[]} {
+    const options = mockRead.mock.calls.at(-1)?.at(2);
+    if (
+        !options ||
+        typeof options !== 'object' ||
+        !('optimisticData' in options) ||
+        !Array.isArray(options.optimisticData) ||
+        !('failureData' in options) ||
+        !Array.isArray(options.failureData)
+    ) {
+        throw new Error('read was not called with optimistic options');
+    }
+    return {optimisticData: options.optimisticData, failureData: options.failureData};
+}
+
+function getQueryJSON() {
+    const queryJSON = buildSearchQueryJSON('');
+    if (!queryJSON) {
+        throw new Error('Query JSON should be defined for test setup');
+    }
+
+    return queryJSON;
 }
 
 describe('queueExportSearchItemsToCSV', () => {
@@ -119,6 +146,63 @@ describe('queueExportSearchWithTemplate', () => {
 
         const options = mockWrite.mock.calls.at(-1)?.at(2);
         expect(options).toEqual({});
+    });
+});
+
+describe('getFooterConvertedAmounts', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it('does not call API.read when the target currency is empty', () => {
+        getFooterConvertedAmounts({queryJSON: getQueryJSON(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES as SearchKey, targetCurrency: ''});
+
+        expect(mockRead).not.toHaveBeenCalled();
+    });
+
+    it('requests the whole-search conversion when no transaction or report IDs are given', () => {
+        getFooterConvertedAmounts({queryJSON: getQueryJSON(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES as SearchKey, targetCurrency: 'EUR'});
+
+        expect(mockRead).toHaveBeenCalledWith(
+            READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT,
+            expect.objectContaining({targetCurrency: 'EUR'}),
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            expect.objectContaining({optimisticData: expect.any(Array), failureData: expect.any(Array)}),
+        );
+
+        const params = mockRead.mock.calls.at(-1)?.at(1);
+        expect(params).not.toHaveProperty('transactionIDList');
+        expect(params).not.toHaveProperty('reportIDList');
+    });
+
+    it('scopes the request to the given transaction and report IDs', () => {
+        getFooterConvertedAmounts({
+            queryJSON: getQueryJSON(),
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES as SearchKey,
+            targetCurrency: 'EUR',
+            transactionIDList: '1,2',
+            reportIDList: '3,4',
+        });
+
+        expect(mockRead).toHaveBeenCalledWith(READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT, expect.objectContaining({transactionIDList: '1,2', reportIDList: '3,4'}), expect.anything());
+    });
+
+    it('optimistically stamps the sources and clears any prior failure for the target currency', () => {
+        const sources = {transactions: {transaction1: {USD: 42.5}}};
+
+        getFooterConvertedAmounts({queryJSON: getQueryJSON(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES as SearchKey, targetCurrency: 'EUR', sources});
+
+        const {optimisticData} = getReadOptions();
+        const conversionUpdate = optimisticData.find((update) => update.key === ONYXKEYS.SEARCH_FOOTER_CONVERSION);
+        expect(conversionUpdate).toBeDefined();
+        expect(conversionUpdate?.value).toEqual({sources, failedCurrencies: {EUR: null}});
+    });
+
+    it('marks the target currency as failed on failureData', () => {
+        getFooterConvertedAmounts({queryJSON: getQueryJSON(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES as SearchKey, targetCurrency: 'EUR'});
+
+        const {failureData} = getReadOptions();
+        const conversionUpdate = failureData.find((update) => update.key === ONYXKEYS.SEARCH_FOOTER_CONVERSION);
+        expect(conversionUpdate).toBeDefined();
+        expect(conversionUpdate?.value).toEqual({failedCurrencies: {EUR: true}});
     });
 });
 
