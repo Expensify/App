@@ -208,7 +208,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     subtitle={translate('workspace.rules.individualExpenseRules.eReceiptsHint')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
                     shouldParseSubtitle
-                    wrapperStyle={[styles.mt3]}
+                    wrapperStyle={[styles.pv3]}
                     isActive={areEReceiptsEnabled}
                     disabled={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
                     showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
@@ -220,7 +220,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     title={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
                     subtitle={translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
-                    wrapperStyle={[styles.mt3]}
+                    wrapperStyle={[styles.pv3]}
                     isActive={isAttendeeTrackingEnabledForPolicy}
                     disabled={!canWriteRules}
                     showLockIcon={!canWriteRules}

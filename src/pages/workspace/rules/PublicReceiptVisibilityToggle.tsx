@@ -66,7 +66,7 @@ function PublicReceiptVisibilityToggle({policyID, canWriteRules, withReadOnlyFal
                 isEnabled ? 'workspace.rules.individualExpenseRules.publicReceiptVisibilityHintEnabled' : 'workspace.rules.individualExpenseRules.publicReceiptVisibilityHintDisabled',
             )}
             switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.publicReceiptVisibility')}
-            wrapperStyle={[styles.mt3]}
+            wrapperStyle={[styles.pv3]}
             titleStyle={titleStyle}
             subtitleStyle={subtitleStyle}
             isActive={isEnabled}
