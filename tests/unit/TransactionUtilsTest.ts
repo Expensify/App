@@ -487,6 +487,98 @@ describe('TransactionUtils', () => {
             });
         });
 
+        it('recalculates amount/merchant on a rate change when waypoints are pending but the distance is known locally', () => {
+            // Given: a policy with two mileage rates
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {customUnitRateID: 'rate1', currency: CONST.CURRENCY.USD, rate: 1},
+                            rate2: {customUnitRateID: 'rate2', currency: CONST.CURRENCY.USD, rate: 2},
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            // And: a freshly created (not-yet-confirmed) waypoint expense — waypoints are pending on the server,
+            // but the route distance is already known locally (quantity).
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+                pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            });
+
+            // When: changing the rate while waypoints are still pending
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {customUnitRateID: 'rate2'},
+                personalPolicyOutputCurrency: undefined,
+            });
+
+            // Then: the amount/merchant are recalculated locally against the new rate (10 mi × rate2), not deferred to the server
+            expect(updatedTransaction.comment?.customUnit?.customUnitRateID).toBe('rate2');
+            expect(updatedTransaction.modifiedAmount).toBe(20);
+            expect(updatedTransaction.modifiedMerchant).toContain('mi');
+        });
+
+        it('defers amount/merchant recalculation on a rate change when waypoints are pending and no distance is known locally', () => {
+            // Given: a policy with two mileage rates
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {customUnitRateID: 'rate1', currency: CONST.CURRENCY.USD, rate: 1},
+                            rate2: {customUnitRateID: 'rate2', currency: CONST.CURRENCY.USD, rate: 2},
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            // And: waypoint addresses were just edited — the server is computing the route, so there is no
+            // local distance (no quantity, no routes) to recalculate from.
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+                pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            });
+
+            // When: changing the rate while waypoints are still pending
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {customUnitRateID: 'rate2'},
+                personalPolicyOutputCurrency: undefined,
+            });
+
+            // Then: the rate id updates, but amount/merchant recalculation is deferred to the server (no valid local mileage data)
+            expect(updatedTransaction.comment?.customUnit?.customUnitRateID).toBe('rate2');
+            expect(updatedTransaction.modifiedAmount).not.toBe(20);
+        });
+
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
             // A P2P distance expense (FAKE_P2P_ID) has no policy rate, so the mileage currency comes from the
             // resolved personal-policy currency that getUpdatedTransaction forwards to getRate. getRateForP2P only

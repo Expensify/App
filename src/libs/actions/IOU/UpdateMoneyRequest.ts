@@ -1685,6 +1685,10 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     // When distance is provided alongside waypoints (route was already calculated), we have valid
     // merchant/amount data to build the optimistic report action instead of waiting for the server.
     const hasDistanceWithWaypoints = hasPendingWaypoints && 'distance' in transactionChanges;
+    // A rate edit on a freshly created (but not-yet-confirmed) waypoint expense hits `pendingFields.waypoints`,
+    // but the route distance is already known locally, so we can still build a valid optimistic message
+    // (e.g. offline right after submitting, before the create response is received).
+    const hasLocallyKnownDistance = !!transaction?.comment?.customUnit?.quantity || !!transaction?.routes?.route0?.distance;
     if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
@@ -1711,7 +1715,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     // Step 3: Build the modified expense report actions
     // We don't create a modified report action if:
     // - we're updating the waypoints (unless it's a split transaction with computed merchant + amount)
-    // - we're updating the distance rate while the waypoints are still pending
+    // - we're updating the distance rate while the waypoints are still pending AND the distance isn't known locally
     // - we're merging two expenses (server does not create MODIFIED_EXPENSE in this flow)
     // In these cases, there isn't a valid optimistic mileage data we can use,
     // and the report action is created on the server with the distance-related response from the MapBox API.
@@ -1731,7 +1735,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         : null;
     if (
         (!hasPendingWaypoints || hasSplitDistanceMessageFields || hasDistanceWithWaypoints) &&
-        !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) &&
+        !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction) && !hasLocallyKnownDistance) &&
         updatedReportAction
     ) {
         apiParams.reportActionID = updatedReportAction.reportActionID;
@@ -2271,6 +2275,9 @@ function getUpdateTrackExpenseParams(
     const hasModifiedDistanceRate = 'customUnitRateID' in transactionChanges;
     const hasModifiedCreated = 'created' in transactionChanges;
     const hasModifiedDate = 'date' in transactionChanges;
+    // A rate edit on a freshly created (but not-yet-confirmed) waypoint expense hits `pendingFields.waypoints`,
+    // but the route distance is already known locally, so we can still build a valid optimistic message.
+    const hasLocallyKnownDistance = !!transaction?.comment?.customUnit?.quantity || !!transaction?.routes?.route0?.distance;
 
     let syncedOptimisticViolations: OnyxTypes.TransactionViolations | undefined;
     let currentTransactionViolationsForFailure: OnyxTypes.TransactionViolations | undefined;
@@ -2315,7 +2322,7 @@ function getUpdateTrackExpenseParams(
     // Step 3: Build the modified expense report actions
     // We don't create a modified report action if:
     // - we're updating the waypoints
-    // - we're updating the distance rate while the waypoints are still pending
+    // - we're updating the distance rate while the waypoints are still pending AND the distance isn't known locally
     // - we're merging two expenses (server does not create MODIFIED_EXPENSE in this flow)
     // In these cases, there isn't a valid optimistic mileage data we can use,
     // and the report action is created on the server with the distance-related response from the MapBox API
@@ -2323,7 +2330,7 @@ function getUpdateTrackExpenseParams(
     const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
         ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy, delegateAccountID, updatedTransaction, allowNegative)
         : null;
-    if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) && updatedReportAction) {
+    if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction) && !hasLocallyKnownDistance) && updatedReportAction) {
         apiParams.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({
