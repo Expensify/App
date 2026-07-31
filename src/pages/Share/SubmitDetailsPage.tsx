@@ -449,8 +449,11 @@ function SubmitDetailsPage({
             cleanupAndNavigateAfterExpenseCreate({...cleanupParams, shouldNavigate});
         };
 
+        // Share never calls startTracking, so cancel any stale span from a prior flow to avoid the warning
+        // at cleanupAndNavigateAfterExpenseCreate when shouldNavigate: false.
+        cancelTracking();
+
         if (preMountDestinationRoute) {
-            cancelTracking();
             performExpenseCreate();
             hasCalledReveal.current = true;
             revealPreMountDestination(() => {
