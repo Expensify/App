@@ -333,6 +333,13 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
         ...shared,
         source: {
             ...shared.source,
+            define: {
+                ...shared.source?.define,
+                // Did `@sentry/webpack-plugin` stamp `applicationKey` into the chunks? Gates
+                // `thirdPartyErrorFilterIntegration` in `src/libs/telemetry/integrations/index.web.ts`,
+                // which can only classify frames when it did.
+                __SENTRY_APPLICATION_KEY_STAMPED__: !!sentryWebpackPlugin,
+            },
             entry: {main: './index.js'},
         },
         output: {
@@ -557,6 +564,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                       filesToDeleteAfterUpload: './dist/**/*.map',
                                   },
                                   // Stamps every chunk so the SDK can tell our frames from injected ones at runtime.
+                                  // Reported to the app as `__SENTRY_APPLICATION_KEY_STAMPED__` (see `source.define`).
                                   applicationKey: SENTRY_APPLICATION_KEY,
                                   debug: false,
                                   telemetry: false,
