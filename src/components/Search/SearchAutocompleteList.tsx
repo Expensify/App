@@ -274,6 +274,7 @@ function SearchAutocompleteList({
             sortedActions,
             conciergeReportID,
             isTrackIntentUser,
+            translate,
         }).options;
     }, [
         listOptions,
@@ -290,6 +291,7 @@ function SearchAutocompleteList({
         sortedActions,
         conciergeReportID,
         isTrackIntentUser,
+        translate,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
