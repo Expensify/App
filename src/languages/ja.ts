@@ -1616,8 +1616,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: '承認のみ',
         holdEducationalTitle: 'この経費を保留しますか？',
         whatIsHoldExplain: '保留は、提出の準備ができるまで経費を「一時停止」しておくようなものです。',
+        whatIsHoldExplainDM: '保留は、送信の準備ができるまで経費を「一時停止」しておくようなものです。',
         holdIsLeftBehind: '保留中の経費は、レポート全体を提出してもそのまま残ります。',
+        holdIsLeftBehindDM: '保留中の経費は、保留を解除するまで送信されません。',
         unholdWhenReady: '提出の準備ができたら、経費の保留を解除してください。',
+        unholdWhenReadyDM: '送信の準備ができたら、経費の保留を解除してください。',
         changePolicyEducational: {
             title: 'このレポートを移動しました！',
             description: 'レポートを新しいワークスペースに移動すると変更されやすい、次の項目を再確認してください。',
@@ -4678,6 +4681,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             emptyList: {
                 title: '日当',
                 subtitle: '日当レートを設定して、従業員の1日あたりの支出を管理しましょう。スプレッドシートからレートをインポートして開始します。',
+            },
+            requestEmptyList: {
+                title: '日当レートがまだありません',
+                subtitle: 'このワークスペースには日当レートがありません。管理者に追加してもらってください。',
+                adminSubtitle: '日当額を追加して、支出を整理しましょう。',
             },
             importPerDiemRates: '日当レートをインポート',
             editPerDiemRate: '日当額を編集',

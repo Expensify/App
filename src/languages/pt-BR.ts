@@ -1630,8 +1630,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Apenas aprovar',
         holdEducationalTitle: 'Você deve reter esta despesa?',
         whatIsHoldExplain: 'Reter é como apertar “pausa” em uma despesa até que você esteja pronto para enviá-la.',
+        whatIsHoldExplainDM: "Reter e como apertar 'pausa' em uma despesa ate que voce esteja pronto para envia-la.",
         holdIsLeftBehind: 'Despesas em espera ficam de fora mesmo se você enviar um relatório inteiro.',
+        holdIsLeftBehindDM: 'Despesas retidas nao serao enviadas ate que voce remova a retencao.',
         unholdWhenReady: 'Desbloqueie as despesas quando estiver pronto para enviá-las.',
+        unholdWhenReadyDM: 'Remova a retencao das despesas quando estiver pronto para envia-las.',
         changePolicyEducational: {
             title: 'Você moveu este relatório!',
             description: 'Confira novamente estes itens, que tendem a mudar ao mover relatórios para um novo workspace.',
@@ -4708,6 +4711,11 @@ ${amount} para ${merchant} - ${date}`,
             emptyList: {
                 title: 'Diária',
                 subtitle: 'Defina taxas de diárias para controlar os gastos diários dos funcionários. Importe as taxas de uma planilha para começar.',
+            },
+            requestEmptyList: {
+                title: 'Ainda não há diárias',
+                subtitle: 'Este espaço de trabalho não tem nenhuma diária definida, peça para o seu administrador adicionar algumas.',
+                adminSubtitle: 'Adicione diárias para organizar seus gastos.',
             },
             importPerDiemRates: 'Importar tarifas de diária',
             editPerDiemRate: 'Editar diárias',

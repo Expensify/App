@@ -1604,8 +1604,11 @@ const translations: TranslationDeepObject<typeof en> = {
         unhold: 'Desbloquear',
         holdEducationalTitle: '¿Deberías retener este gasto?',
         whatIsHoldExplain: 'Retener es como presionar "pausa" en un gasto hasta que estés listo para enviarlo.',
+        whatIsHoldExplainDM: 'Retener es como presionar "pausa" en un gasto hasta que estés listo para enviarlo.',
         holdIsLeftBehind: 'Los gastos retenidos se quedan fuera incluso si envías un informe completo.',
+        holdIsLeftBehindDM: 'Los gastos retenidos no se enviarán hasta que los desbloquees.',
         unholdWhenReady: 'Desbloquea los gastos cuando estés listo para enviarlos.',
+        unholdWhenReadyDM: 'Desbloquea los gastos cuando estés listo para enviarlos.',
         changePolicyEducational: {
             title: '¡Has movido este informe!',
             description: 'Revisa cuidadosamente estos elementos, que tienden a cambiar al trasladar informes a un nuevo espacio de trabajo.',
@@ -4630,6 +4633,11 @@ ${amount} para ${merchant} - ${date}`,
             emptyList: {
                 title: 'Per diem',
                 subtitle: 'Establece dietas per diem para controlar el gasto diario de los empleados. Importa las tarifas desde una hoja de cálculo para comenzar.',
+            },
+            requestEmptyList: {
+                title: 'Aún no hay tasas de Per diem',
+                subtitle: 'Este espacio de trabajo no tiene ninguna tasa de per diem, pide a tu administrador que añada algunas.',
+                adminSubtitle: 'Añade tasas de per diem para organizar tus gastos.',
             },
             importPerDiemRates: 'Importar tasas de per diem',
             editPerDiemRate: 'Editar la tasa de per diem',

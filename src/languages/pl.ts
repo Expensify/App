@@ -1627,8 +1627,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Tylko zaakceptuj',
         holdEducationalTitle: 'Czy powinieneś wstrzymać ten wydatek?',
         whatIsHoldExplain: 'Wstrzymanie działa jak naciśnięcie „pauzy” na wydatku, dopóki nie będziesz gotowy, aby go przesłać.',
+        whatIsHoldExplainDM: "Wstrzymanie dziala jak nacisniecie 'pauzy' na wydatku, dopoki nie bedziesz gotowy(-a), aby go wyslac.",
         holdIsLeftBehind: 'Wstrzymane wydatki pozostają nieprzetworzone, nawet jeśli prześlesz cały raport.',
+        holdIsLeftBehindDM: 'Wstrzymane wydatki nie zostana wyslane, dopoki nie zdejmiesz wstrzymania.',
         unholdWhenReady: 'Zdejmij wstrzymanie z wydatków, gdy będziesz gotowy(-a) je przesłać.',
+        unholdWhenReadyDM: 'Zdejmij wstrzymanie z wydatkow, gdy bedziesz gotowy(-a) je wyslac.',
         changePolicyEducational: {
             title: 'Przeniesiono ten raport!',
             description: 'Sprawdź dokładnie te elementy, które zwykle się zmieniają podczas przenoszenia raportów do nowej przestrzeni roboczej.',
@@ -4699,6 +4702,11 @@ ${amount} dla ${merchant} - ${date}`,
             emptyList: {
                 title: 'Dieta',
                 subtitle: 'Ustaw stawki dzienne (ryczałty), aby kontrolować dziennie wydatki pracowników. Zaimportuj stawki z arkusza kalkulacyjnego, aby rozpocząć.',
+            },
+            requestEmptyList: {
+                title: 'Nie ma jeszcze stawek diet',
+                subtitle: 'W tym obszarze roboczym nie ma żadnych stawek diet, poproś swojego administratora o dodanie kilku.',
+                adminSubtitle: 'Dodaj stawki diet, żeby uporządkować swoje wydatki.',
             },
             importPerDiemRates: 'Zaimportuj stawki diet',
             editPerDiemRate: 'Edytuj stawkę diety',
