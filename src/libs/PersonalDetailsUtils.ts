@@ -37,7 +37,11 @@ Onyx.connect({
         allPersonalDetailLogins = personalDetails.map((detail) => detail?.login ?? '');
         emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
             if (detail?.login) {
-                acc[detail.login.toLowerCase()] = detail;
+                const key = detail.login.toLowerCase();
+                const existing = acc[key];
+                if (!existing || existing.isClosed || existing.isOptimisticPersonalDetail) {
+                    acc[key] = detail;
+                }
             }
             return acc;
         }, {});

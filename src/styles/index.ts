@@ -144,20 +144,24 @@ const picker = (theme: ThemeColors) =>
 const link = (theme: ThemeColors) =>
     ({
         color: theme.link,
-        textDecorationColor: theme.link,
         // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
-        // We do not want to have underline on links
-        textDecorationLine: 'none',
+        // In high-contrast themes, underline links so they are distinguishable by more than color (WCAG 1.4.1).
+        // Otherwise we do not want an underline on links. We deliberately omit textDecorationColor so the
+        // underline inherits the link's text color, keeping the two in sync in every context.
+        textDecorationLine: theme.isHighContrast ? 'underline' : 'none',
     }) satisfies ViewStyle & MixedStyleDeclaration;
 
 const emailLink = (theme: ThemeColors) =>
     ({
         color: theme.link,
-        textDecorationColor: theme.link,
         // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
         fontWeight: FontUtils.fontWeight.bold,
+        // In high-contrast themes, underline links so they are distinguishable by more than color (WCAG 1.4.1).
+        // Otherwise we do not want an underline on links. We deliberately omit textDecorationColor so the
+        // underline inherits the link's text color, keeping the two in sync in every context.
+        textDecorationLine: theme.isHighContrast ? 'underline' : 'none',
     }) satisfies ViewStyle & MixedStyleDeclaration;
 
 const baseCodeTagStyles = (theme: ThemeColors) =>
@@ -3232,26 +3236,26 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.checkBox,
         },
 
-        magicCodeInputContainer: {
+        validateCodeInputContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',
             height: variables.inputHeight,
         },
 
-        magicCodeInput: {
+        validateCodeInput: {
             fontSize: variables.fontSizeXLarge,
             color: theme.heading,
             lineHeight: variables.lineHeightXXXLarge,
         },
 
-        magicCodeInputValueContainer: {
+        validateCodeInputValueContainer: {
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
             position: 'relative',
         },
 
-        magicCodeInputCursorContainer: {
+        validateCodeInputCursorContainer: {
             position: 'absolute',
             textAlign: 'center',
             flexDirection: 'row',
@@ -3260,7 +3264,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
         },
 
-        magicCodeInputCursor: {
+        validateCodeInputCursor: {
             fontSize: 24,
             color: theme.heading,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
@@ -3777,6 +3781,27 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.sliderKnobSize / 2,
             left: -(variables.sliderKnobSize / 2),
             ...cursor.cursorPointer,
+        },
+
+        editedStopSliderKnob: {
+            position: 'absolute',
+            height: CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.height,
+            width: CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.width,
+            left: -(CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.width / 2),
+            top: -CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.xAxisLineHeight,
+            ...cursor.cursorPointer,
+        },
+
+        editStopSliderFilled: {
+            backgroundColor: colors.green400,
+            height: '100%',
+            borderRadius: variables.sliderBarHeight / 2,
+        },
+
+        editStopSliderBarContainer: {
+            height: 64,
+            paddingHorizontal: 20,
+            justifyContent: 'center',
         },
 
         sliderBar: {
@@ -4968,6 +4993,14 @@ const staticStyles = (theme: ThemeColors) =>
 
         receiptEmptyStateFullHeight: {height: '100%', borderRadius: 12},
 
+        receiptEmptyStateCompact: {
+            ...spacing.mh4,
+            overflow: 'hidden',
+            borderRadius: variables.componentBorderRadiusNormal,
+            height: 52,
+            maxWidth: '100%',
+        },
+
         moneyRequestAttachReceiptThumbnailIcon: {
             position: 'absolute',
             bottom: -4,
@@ -5201,6 +5234,12 @@ const staticStyles = (theme: ThemeColors) =>
         filterContentContainer: {
             flex: 1,
             minWidth: CONST.ADVANCED_FILTERS_CONTENT_WIDTH,
+        },
+
+        negatableFilterButtons: {
+            flexDirection: 'row',
+            minWidth: 180,
+            borderRadius: variables.buttonBorderRadius,
         },
 
         searchActionsBarContainer: {
@@ -6377,6 +6416,9 @@ const staticStyles = (theme: ThemeColors) =>
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
+        chartExpandedContent: {
+            transformOrigin: 'top left',
+        },
         chartContent: {
             height: CHART_CONTENT_MIN_HEIGHT,
         },
@@ -6833,6 +6875,12 @@ const dynamicStyles = (theme: ThemeColors) =>
             width: shouldUseNarrowLayout ? variables.componentSizeNormal : variables.h28,
             backgroundColor: shouldUseNarrowLayout ? undefined : theme.buttonDefaultBG,
             borderRadius: 999,
+        }),
+
+        // The 40px bulk-actions button swaps in for the table filter bar row (32px search bar on wide layouts, 44px on narrow),
+        // so offset its vertical margin to keep the row height identical and prevent the table from shifting (see searchBulkActionsButton).
+        tableBulkActionsButton: (shouldUseNarrowTableLayout: boolean) => ({
+            marginVertical: shouldUseNarrowTableLayout ? 2 : -4,
         }),
     }) satisfies DynamicStyles;
 

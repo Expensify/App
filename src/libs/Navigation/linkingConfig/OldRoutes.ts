@@ -1,5 +1,12 @@
 const oldRoutes: Record<string, string> = {
     /* eslint-disable @typescript-eslint/naming-convention */
+    // Per diem destination step migrated to dynamic routes (#83850). Dynamic suffixes are namespaced `per-diem-*` because
+    // dynamic route paths must be globally unique across DYNAMIC_ROUTES (react-navigation flattens them and a bare
+    // `destination` collides with Sage Intacct's existing `destination` suffix). Edit variant redirects to the
+    // confirmation-based suffix; the wizard variant to the start-based suffix. Query is not preserved (trailing wildcard
+    // would swallow it) - acceptable because callers no longer append `?backTo=`.
+    '/*/*/destination/*/*/edit': '/$1/$2/confirmation/$3/$4/per-diem-destination-edit',
+    '/*/*/destination/*/*': '/$1/$2/start/$3/$4/per-diem-destination',
     '/settings/*/category/*/edit': '/settings/$1/categories/category-settings/$2/category-edit',
     '/settings/*/category/*': '/settings/$1/categories/category-settings/$2',
     '/settings/*/tags/*/edit': '/settings/$1/tags/settings-tags-edit/$2',
@@ -28,6 +35,15 @@ const oldRoutes: Record<string, string> = {
     '/r/*/invite': '/r/$1/details/room-invite',
     '/r/*/notes/*/edit': '/r/$1/notes-edit/$2',
     '/r/*/notes': '/r/$1/details/notes',
+    '/r/*/duplicates/review/merchant': '/r/$1/merchant/$1',
+    '/r/*/duplicates/review/category': '/r/$1/transaction-duplicate-category/$1',
+    '/r/*/duplicates/review/tag': '/r/$1/transaction-duplicate-tag/$1',
+    '/r/*/duplicates/review/tax-code': '/r/$1/tax-code/$1',
+    '/r/*/duplicates/review/description': '/r/$1/transaction-duplicate-description/$1',
+    '/r/*/duplicates/review/reimbursable': '/r/$1/reimbursable/$1',
+    '/r/*/duplicates/review/billable': '/r/$1/billable/$1',
+    '/r/*/duplicates/review': '/r/$1/duplicates/review/$1',
+    '/r/*/duplicates/confirm': '/r/$1/confirm/$1',
     '/workspaces/*/overview/address': '/workspaces/$1/overview/workspace-address',
     '/workspaces/*/categories/settings': '/workspaces/$1/categories/categories-settings',
     '/workspaces/*/categories/new': '/workspaces/$1/categories/category-new',
@@ -65,6 +81,7 @@ const oldRoutes: Record<string, string> = {
     '/flag/*/*': '/r/$1/flag/$1/$2',
     '/r/*/details/shareCode': '/r/$1/share-code',
     '/e/*/details/shareCode': '/e/$1/share-code',
+    '/merge/*': '/search/merge/$1',
     '/referral/*': '/home/referral/$1',
     '/a/*/avatar': '/avatar/$1',
     '/settings/profile/contact-methods/verify': '/settings/profile/contact-methods/verify-account',
@@ -73,7 +90,10 @@ const oldRoutes: Record<string, string> = {
     '/new/task/title': '/task-details/task-confirm/task-title',
     '/new/task/description': '/task-details/task-confirm/task-description',
     '/new/task/assignee': '/task-details/task-confirm/task-assignee',
+    '/new/task/share-destination': '/task-details/task-confirm/task-share-destination',
     '/new/task': '/task-details/task-confirm',
+    '/create/*/from/*/*': '/create/$1/confirmation/$2/$3/send-from',
+    '/create/*/company-info/*/*': '/create/$1/confirmation/$2/$3/company-info',
     '/workspaces/*/company-cards/company-card-details/*/*/edit/export': '/workspaces/$1/company-cards/company-card-details/$2/$3/edit/export',
     '/workspaces/*/company-cards/company-card-details/*/*/edit/transaction-start-date': '/workspaces/$1/company-cards/company-card-details/$2/$3/edit/transaction-start-date',
     '/workspaces/*/company-cards/company-card-details/*/*/edit/name': '/workspaces/$1/company-cards/company-card-details/$2/$3/edit/name',
