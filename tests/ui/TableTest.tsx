@@ -1001,10 +1001,9 @@ describe('Table', () => {
             expect(measurementDataRow.props['aria-hidden']).toBe(true);
             expect(measurementDataRow.props.id).toBeUndefined();
             expect(measurementDataRow.props.inert).toBe(true);
-            expect(measurementDataRow.props['aria-disabled']).toBe(true);
-            expect(measurementDataRow.props.focusable).toBe(false);
             expect(measurementDataRow.props.tabIndex).toBe(-1);
             expect(measurementDataRow.props.onPress).toBeUndefined();
+            expect(within(screen.getByTestId('flash-list-measurement-2')).UNSAFE_queryAllByProps({tabIndex: 0})).toHaveLength(0);
             expect(
                 within(measurementHeader)
                     .UNSAFE_getAllByProps({accessibilityLabel: 'Name'})
