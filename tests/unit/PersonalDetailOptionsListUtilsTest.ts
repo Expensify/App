@@ -704,7 +704,7 @@ describe('PersonalDetailOptionsListUtils', () => {
             // When getting the valid options
             const results = getValidOptions(optionsWithStaleContact.options, currentUserLogin, formatPhoneNumber, 1);
 
-            // Then the loginless option should not be offered in either section
+            // Then the login-less option should not be offered in either section
             expect(results.recentOptions).not.toEqual(expect.arrayContaining([expect.objectContaining({accountID: staleAccountID})]));
             expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({accountID: staleAccountID})]));
         });
