@@ -445,6 +445,7 @@ type SearchFilterCommonProps<T> = {
     selectionListStyle?: SelectionListStyle;
     autoFocus?: boolean;
     ready?: boolean;
+    isNegatable?: boolean;
     footer?: React.ReactNode;
     onChange: (value: T) => void;
 };
