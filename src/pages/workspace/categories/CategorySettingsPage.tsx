@@ -1,4 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
