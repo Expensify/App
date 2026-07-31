@@ -233,7 +233,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                     onFocus={handleInputFocus}
                 />
             </OfflineWithFeedback>
-            <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2, styles.mb3]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
+            <Text style={[styles.textMicroSupporting, styles.mt1, styles.mb5]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
             <Button
                 success
                 text={showSavedConfirmation ? translate('profilePage.aiPromptSection.saved') : translate('common.save')}
