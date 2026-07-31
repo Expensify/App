@@ -2,7 +2,7 @@ import Hoverable from '@components/Hoverable';
 import useIsCompact from '@components/MenuItem/hooks/useIsCompact';
 import MenuItemAccessibilityContext, {useMenuItemAccessibility} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/MenuItem/MenuItemContext';
-import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -70,10 +70,10 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel}: Menu
         <MenuItemConfigContext.Provider value={{isDisabled, isInteractive}}>
             <Hoverable>
                 {(isHovered) => (
-                    <PressableWithSecondaryInteraction
+                    <PressableWithFeedback
                         onPress={onPressAction}
-                        activeOpacity={!isInteractive ? 1 : variables.pressDimValue}
-                        opacityAnimationDuration={variables.instantAnimationDuration}
+                        pressDimmingValue={!isInteractive ? 1 : variables.pressDimValue}
+                        dimAnimationDuration={variables.instantAnimationDuration}
                         style={({pressed}) =>
                             [
                                 styles.popoverMenuItem,
@@ -87,7 +87,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel}: Menu
                         disabled={isDisabled}
                         ref={pressableRef}
                         role={isInteractive ? CONST.ROLE.BUTTON : undefined}
-                        accessibilityLabel={accessibilityProps?.accessibilityLabel}
+                        accessibilityLabel={accessibilityProps.accessibilityLabel}
                         accessible
                         tabIndex={isInteractive ? 0 : -1}
                         sentryLabel={sentryLabel}
@@ -104,7 +104,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel}: Menu
                                 </MenuItemInteractionContext.Provider>
                             </MenuItemAccessibilityContext.Provider>
                         )}
-                    </PressableWithSecondaryInteraction>
+                    </PressableWithFeedback>
                 )}
             </Hoverable>
         </MenuItemConfigContext.Provider>
