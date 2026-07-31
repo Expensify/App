@@ -1,9 +1,11 @@
+import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
+
 import Log from '@libs/Log';
 
 import type {ActivityProps} from 'react';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useDeferredValue, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 import useIsWindowSizeChanging from './useIsWindowSizeChanging';
 
@@ -36,13 +38,14 @@ type ScreenActivityModeParams = {
  * - A window resize or an orientation change reveals every screen for the duration of the change, so hidden screens
  *   lay themselves out against the new size while they are still covered instead of doing it in front of the user.
  *
- * Hiding is urgent, revealing is deferred. Revealing a hidden screen re-renders its whole subtree and re-mounts
- * every effect in it, and deriving the mode directly from the navigation state would put all of that work into the
- * same synchronous commit as the navigation update that revealed the screen. On a pop that single commit blocked
- * the main thread for hundreds of milliseconds before the browser could paint. The reveal therefore follows the
- * navigation state through a deferred value, so it happens in a later, interruptible render. The screen stays
- * painted the whole time (CustomViewWrapper keeps hidden content visible), so the user sees it immediately and
- * only its updates arrive a moment later.
+ * Hiding is urgent, revealing waits for the navigation transition to end. Revealing a hidden screen re-renders
+ * its whole subtree and re-mounts every effect in it, and deriving the mode directly from the navigation state
+ * would put all of that work into the same synchronous commit as the navigation update that revealed the screen.
+ * On a pop that single commit blocked the main thread for hundreds of milliseconds before the browser could
+ * paint. useDeferVisibleUntilFocusTransitionEnd holds the reveal until the transition completes instead, so the
+ * pop commits cheaply and animates undisturbed, and a reveal that another navigation overtakes is cancelled
+ * before it costs anything. The screen stays painted the whole time (CustomViewWrapper keeps hidden content
+ * visible), so the user sees it immediately and only its updates arrive after the transition.
  */
 function useScreenActivityMode({isScreenBlurred, routeKey, routeName}: ScreenActivityModeParams): ActivityProps['mode'] {
     const isFocused = useIsFocused();
@@ -59,7 +62,7 @@ function useScreenActivityMode({isScreenBlurred, routeKey, routeName}: ScreenAct
     }, []);
 
     const navigationMode: ActivityProps['mode'] = isScreenBlurred || !isFocused ? 'hidden' : 'visible';
-    const deferredNavigationMode = useDeferredValue(navigationMode);
+    const isShownAfterTransition = useDeferVisibleUntilFocusTransitionEnd(navigationMode === 'visible');
     const isKeptVisible = !hasCompletedFirstRender || isWindowSizeChanging;
     const previousNavigationModeRef = useRef<ActivityProps['mode'] | null>(null);
 
@@ -82,7 +85,7 @@ function useScreenActivityMode({isScreenBlurred, routeKey, routeName}: ScreenAct
     if (isKeptVisible) {
         return 'visible';
     }
-    return navigationMode === 'hidden' ? 'hidden' : deferredNavigationMode;
+    return isShownAfterTransition ? 'visible' : 'hidden';
 }
 
 export default useScreenActivityMode;
