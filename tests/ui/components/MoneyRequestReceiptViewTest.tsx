@@ -366,7 +366,7 @@ describe('MoneyRequestReceiptView', () => {
             expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
         });
 
-        it("does not show action buttons when the expense's own report is read-only", async () => {
+        it("hides the add button but keeps the expand button when the expense's own report is read-only", async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, readOnlyMoneyRequestReport);
@@ -382,10 +382,10 @@ describe('MoneyRequestReceiptView', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
-            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
         });
 
-        it('does not show action buttons when the conversation above the expense is read-only', async () => {
+        it('hides the add button but keeps the expand button when the conversation above the expense is read-only', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, testMoneyRequestReport);
@@ -401,7 +401,7 @@ describe('MoneyRequestReceiptView', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
-            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
         });
 
         it('shows action buttons when every report above the expense allows writing', async () => {
