@@ -82,7 +82,7 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
             testID="WorkspaceTravelInvoicingSettlementFrequencyPage"
         >
