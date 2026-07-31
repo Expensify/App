@@ -1,5 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 
+import useReportActionAvatars from '@components/ReportActionAvatars/useReportActionAvatars';
 import Text from '@components/Text';
 
 import DelegateOnBehalfOfText from '@pages/inbox/report/DelegateOnBehalfOfText';
@@ -55,6 +56,7 @@ describe('ReportActionItemSystem', () => {
             <ReportActionItemSystem
                 action={action}
                 report={report}
+                shouldUseRealActor
             >
                 <Text>submitted</Text>
             </ReportActionItemSystem>,
@@ -62,6 +64,7 @@ describe('ReportActionItemSystem', () => {
 
         expect(screen.getByText('Todd Clyde ')).toBeOnTheScreen();
         expect(screen.getByText('submitted')).toBeOnTheScreen();
+        expect(jest.mocked(useReportActionAvatars)).toHaveBeenLastCalledWith(expect.objectContaining({shouldUseRealActor: true}));
     });
 
     it('preserves delegated actor attribution in the inline system row', () => {
@@ -80,6 +83,7 @@ describe('ReportActionItemSystem', () => {
             <ReportActionItemSystem
                 action={action}
                 report={report}
+                shouldUseRealActor={false}
             >
                 <Text>submitted</Text>
             </ReportActionItemSystem>,

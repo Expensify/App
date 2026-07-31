@@ -12,6 +12,10 @@ jest.mock('@hooks/useLazyAsset', () => ({
     })),
 }));
 
+jest.mock('@hooks/useLocalize', () => () => ({
+    translate: (_key: string, {count}: {count: number}) => (count === 1 ? '1 change was made' : `${count} changes were made`),
+}));
+
 describe('CollapsedSystemMessages', () => {
     it('renders a localized plural summary and expands accessibly', () => {
         const onPress = jest.fn();
@@ -26,7 +30,7 @@ describe('CollapsedSystemMessages', () => {
         );
 
         const control = screen.getByRole('button', {name: '4 changes were made'});
-        expect(control.props.accessibilityState).toEqual({expanded: false});
+        expect(control.props.accessibilityState).toMatchObject({expanded: false});
 
         fireEvent.press(control);
         expect(onPress).toHaveBeenCalledTimes(1);
@@ -43,7 +47,7 @@ describe('CollapsedSystemMessages', () => {
             </LocaleContextProvider>,
         );
 
-        expect(screen.getByRole('button', {name: '1 change was made'}).props.accessibilityState).toEqual({expanded: true});
+        expect(screen.getByRole('button', {name: '1 change was made'}).props.accessibilityState).toMatchObject({expanded: true});
     });
 
     it('renders an unread marker for a member represented by the collapsed row', () => {

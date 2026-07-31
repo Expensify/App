@@ -6,16 +6,23 @@ import MoneyRequestReportUnifiedList from '@components/MoneyRequestReportView/Mo
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
-import type {FlashListProps} from '@shopify/flash-list';
-import type {ViewToken} from 'react-native';
+import type {FlashListProps, ViewToken} from '@shopify/flash-list';
 
 import React from 'react';
+import {View} from 'react-native';
 
-const mockFlashList = jest.fn(() => null);
+type TestListItem = {
+    type: string;
+    action?: ReportAction;
+};
+
+type TestFlashListProps = FlashListProps<TestListItem>;
+
+const mockFlashList = jest.fn((_props: TestFlashListProps) => null);
 
 jest.mock('@components/FlashList', () => ({
     __esModule: true,
-    default: (props: FlashListProps<unknown>) => mockFlashList(props),
+    default: (props: TestFlashListProps) => mockFlashList(props),
 }));
 
 jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowHeight: 800})));
@@ -43,7 +50,7 @@ function makeAction(reportActionID: string): ReportAction {
 
 function makeController(overrides: Partial<MoneyRequestReportTransactionListController> = {}): MoneyRequestReportTransactionListController {
     return {
-        beforeListContent: <></>,
+        beforeListContent: <View />,
         tableColumnHeader: null,
         transactionListItems: [],
         renderTransactionListItem: jest.fn(() => null),
@@ -61,7 +68,7 @@ describe('MoneyRequestReportUnifiedList system-message presentation', () => {
     });
 
     it('uses the displayed action list and keeps inline transaction offsets aligned', () => {
-        const transactionItem = {type: 'transaction', transaction: {transactionID: 'transaction-1'}} as TransactionListItemData;
+        const transactionItem: TransactionListItemData = {type: 'transaction', transaction: {transactionID: 'transaction-1'}};
         const displayReportActions = [makeAction('1'), makeAction('3')];
         const renderReportAction = jest.fn(() => null);
         const onViewableItemsChanged = jest.fn();
@@ -92,24 +99,37 @@ describe('MoneyRequestReportUnifiedList system-message presentation', () => {
             />,
         );
 
-        const flashListProps = mockFlashList.mock.calls.at(-1)?.at(0) as FlashListProps<{
-            type: string;
-            action?: ReportAction;
-        }>;
+        const flashListProps = mockFlashList.mock.calls.at(-1)?.at(0);
+        expect(flashListProps).toBeDefined();
+        if (!flashListProps) {
+            throw new Error('Expected FlashList props');
+        }
         expect(flashListProps.data?.map((item) => item.type)).toEqual(['transaction', 'transactions-footer', 'report-action', 'report-action']);
         expect(flashListProps.data?.slice(2).map((item) => item.action?.reportActionID)).toEqual(['1', '3']);
         expect(flashListProps.initialScrollIndex).toBe(3);
         expect(onLastItemIndexChange).toHaveBeenLastCalledWith(3);
 
-        flashListProps.renderItem?.({item: flashListProps.data?.at(2), index: 2} as never);
+        const firstReportActionItem = flashListProps.data?.at(2);
+        expect(firstReportActionItem).toBeDefined();
+        if (!firstReportActionItem) {
+            throw new Error('Expected the first displayed report action');
+        }
+        flashListProps.renderItem?.({item: firstReportActionItem, index: 2, target: 'Cell'});
         expect(renderReportAction).toHaveBeenCalledWith(displayReportActions.at(0), 0);
 
+        const viewableItem: ViewToken<TestListItem> = {
+            item: firstReportActionItem,
+            key: 'report-action-1',
+            index: 2,
+            isViewable: true,
+            timestamp: 0,
+        };
         flashListProps.onViewableItemsChanged?.({
-            viewableItems: [{index: 2} as ViewToken],
+            viewableItems: [viewableItem],
             changed: [],
         });
         expect(onViewableItemsChanged).toHaveBeenCalledWith({
-            viewableItems: [{index: 0}],
+            viewableItems: [{...viewableItem, index: 0}],
             changed: [],
         });
     });
@@ -142,11 +162,20 @@ describe('MoneyRequestReportUnifiedList system-message presentation', () => {
             />,
         );
 
-        const flashListProps = mockFlashList.mock.calls.at(-1)?.at(0) as FlashListProps<{type: string; action?: ReportAction}>;
+        const flashListProps = mockFlashList.mock.calls.at(-1)?.at(0);
+        expect(flashListProps).toBeDefined();
+        if (!flashListProps) {
+            throw new Error('Expected FlashList props');
+        }
         expect(flashListProps.data?.map((item) => item.action?.reportActionID)).toEqual(['1', '2']);
         expect(flashListProps.initialScrollIndex).toBe(1);
 
-        flashListProps.renderItem?.({item: flashListProps.data?.at(1), index: 1} as never);
+        const secondReportActionItem = flashListProps.data?.at(1);
+        expect(secondReportActionItem).toBeDefined();
+        if (!secondReportActionItem) {
+            throw new Error('Expected the second displayed report action');
+        }
+        flashListProps.renderItem?.({item: secondReportActionItem, index: 1, target: 'Cell'});
         expect(renderReportAction).toHaveBeenCalledWith(displayReportActions.at(1), 1);
     });
 });

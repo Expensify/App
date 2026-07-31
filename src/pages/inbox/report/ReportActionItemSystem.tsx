@@ -30,12 +30,15 @@ type ReportActionItemSystemProps = {
 
     /** The IOU/Expense report associated with the action. */
     iouReport?: OnyxTypes.Report;
+
+    /** Whether the avatar resolver should attribute automatic actions to their real actor. */
+    shouldUseRealActor: boolean;
 };
 
-function ReportActionItemSystem({children, action, report, iouReport}: ReportActionItemSystemProps) {
+function ReportActionItemSystem({children, action, report, iouReport, shouldUseRealActor}: ReportActionItemSystemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {avatarType, avatars, details, reportPreviewSenderID} = useReportActionAvatars({report: iouReport ?? report, action});
+    const {avatarType, avatars, details, reportPreviewSenderID} = useReportActionAvatars({report: iouReport ?? report, action, shouldUseRealActor});
     const [primaryAvatar, secondaryAvatar] = avatars;
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
@@ -45,7 +48,8 @@ function ReportActionItemSystem({children, action, report, iouReport}: ReportAct
         ?.map((fragment) => fragment.text)
         .filter(Boolean)
         .join(' ');
-    const actorName = (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name) || fallbackActorName;
+    const avatarActorName = avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name;
+    const actorName = avatarActorName?.length ? avatarActorName : fallbackActorName;
 
     return (
         <View style={[styles.flexRow, styles.flexWrap, StyleUtils.getCompactContentContainerStyles()]}>

@@ -108,8 +108,9 @@ describe('system message presentation', () => {
         });
 
         it('keeps reasoned system messages avatarless but outside collapsed runs', () => {
+            const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>['originalMessage'] = {reasoning: 'The expense was changed automatically.'};
             const reasonedAction = makeAction('1', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
-                originalMessage: {reasoning: 'The expense was changed automatically.'} as ReportAction['originalMessage'],
+                originalMessage,
             });
 
             expect(isSystemMessageAction(reasonedAction)).toBe(true);
@@ -118,8 +119,13 @@ describe('system message presentation', () => {
 
         it('distinguishes chat comments from ADD_COMMENT task previews', () => {
             const chat = makeAction('1', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+            const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>['originalMessage'] = {
+                html: '',
+                whisperedTo: [],
+                taskReportID: 'task-report',
+            };
             const taskPreview = makeAction('2', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
-                originalMessage: {taskReportID: 'task-report'} as ReportAction['originalMessage'],
+                originalMessage,
             });
 
             expect(isChatMessageAction(chat)).toBe(true);
@@ -130,8 +136,13 @@ describe('system message presentation', () => {
             const systemAction = makeAction('1', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
             const firstChat = makeAction('2', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
             const secondChat = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+            const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>['originalMessage'] = {
+                html: '',
+                whisperedTo: [],
+                taskReportID: 'task-report',
+            };
             const taskPreview = makeAction('4', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
-                originalMessage: {taskReportID: 'task-report'} as ReportAction['originalMessage'],
+                originalMessage,
             });
 
             expect(canReportActionUseActorGrouping(firstChat, systemAction)).toBe(false);
@@ -187,8 +198,9 @@ describe('system message presentation', () => {
         it('uses reasoned system messages as run boundaries so their Explain control stays visible', () => {
             const first = systemAction('1');
             const second = systemAction('2');
+            const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>['originalMessage'] = {reasoning: 'The expense was changed automatically.'};
             const reasoned = systemAction('3', {
-                originalMessage: {reasoning: 'The expense was changed automatically.'} as ReportAction['originalMessage'],
+                originalMessage,
             });
             const fourth = systemAction('4');
             const fifth = systemAction('5');

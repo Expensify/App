@@ -536,6 +536,7 @@ function ReportActionItem({
                 action={action}
                 report={report}
                 iouReport={iouReport}
+                shouldUseRealActor={isOnSearch}
             >
                 {actionContent}
             </ReportActionItemSystem>

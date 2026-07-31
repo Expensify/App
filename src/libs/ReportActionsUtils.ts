@@ -723,11 +723,15 @@ function getSystemMessageDisplayState(
         runsByAnchorReportActionID.set(reportAction.reportActionID, {reportActionIDs, isExpanded});
 
         if (isExpanded) {
-            runActions.forEach(appendAction);
+            for (const runAction of runActions) {
+                appendAction(runAction);
+            }
         } else {
             const anchorDisplayIndex = displayReportActions.length;
             displayReportActions.push(reportAction);
-            reportActionIDs.forEach((reportActionID) => reportActionIDToDisplayIndex.set(reportActionID, anchorDisplayIndex));
+            for (const reportActionID of reportActionIDs) {
+                reportActionIDToDisplayIndex.set(reportActionID, anchorDisplayIndex);
+            }
         }
 
         index = runEndIndex;

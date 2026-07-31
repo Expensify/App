@@ -20,11 +20,12 @@ function useMoneyRequestReportActionsPresentation({visibleReportActions, linkedR
     const [forceExpandedLinkedReportActionID, setForceExpandedLinkedReportActionID] = useState(linkedReportActionID);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronize the one-shot expansion whenever the route targets a different action
         setForceExpandedLinkedReportActionID(linkedReportActionID);
     }, [linkedReportActionID]);
 
     const displayState = useMemo(
-        () => getSystemMessageDisplayState(visibleReportActions, expandedSystemMessageReportActionIDs, [forceExpandedLinkedReportActionID ?? '']),
+        () => getSystemMessageDisplayState(visibleReportActions, expandedSystemMessageReportActionIDs, forceExpandedLinkedReportActionID ? [forceExpandedLinkedReportActionID] : []),
         [expandedSystemMessageReportActionIDs, forceExpandedLinkedReportActionID, visibleReportActions],
     );
     const unreadMarkerReportActionIndex = unreadMarkerReportActionID ? (displayState.reportActionIDToDisplayIndex.get(unreadMarkerReportActionID) ?? -1) : -1;
@@ -37,13 +38,13 @@ function useMoneyRequestReportActionsPresentation({visibleReportActions, linkedR
 
             setExpandedSystemMessageReportActionIDs((previousReportActionIDs) => {
                 const nextReportActionIDs = new Set(previousReportActionIDs);
-                reportActionIDs.forEach((reportActionID) => {
+                for (const reportActionID of reportActionIDs) {
                     if (isExpanded) {
                         nextReportActionIDs.delete(reportActionID);
                     } else {
                         nextReportActionIDs.add(reportActionID);
                     }
-                });
+                }
                 return nextReportActionIDs;
             });
         },
