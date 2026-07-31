@@ -80,7 +80,7 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
         getRequireFieldsRuleBackToRoute({
             policyID,
             isEditing,
-            categoryName,
+            categoryName: isEditing ? categoryName : undefined,
         });
 
     const onSave = (value?: string) => {
