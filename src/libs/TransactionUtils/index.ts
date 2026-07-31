@@ -3195,8 +3195,9 @@ function getIsFromGlobalCreate(transaction: OnyxEntry<Transaction> | Partial<Tra
 }
 
 /**
- * Distance in meters of the alternate map route the user explicitly picked, or undefined when there is
- * nothing to send: the expense isn't a map distance request, the default route is selected.
+ * Distance in meters of the currently selected map route (the default route when the user hasn't picked an
+ * alternate one), or undefined when there is nothing to send: the expense isn't a map distance request, or the
+ * selected route has no distance.
  */
 function getSelectedRouteDistance(transaction: OnyxEntry<Transaction>): number | undefined {
     if (!isMapDistanceRequest(transaction)) {
@@ -3204,10 +3205,6 @@ function getSelectedRouteDistance(transaction: OnyxEntry<Transaction>): number |
     }
 
     const selectedRouteKey = getSelectedRouteKey(transaction);
-    if (selectedRouteKey === CONST.TRANSACTION.DEFAULT_ROUTE_KEY) {
-        return undefined;
-    }
-
     return transaction?.routes?.[selectedRouteKey]?.distance ?? undefined;
 }
 
