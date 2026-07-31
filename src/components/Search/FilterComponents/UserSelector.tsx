@@ -24,6 +24,7 @@ import React from 'react';
 import ListFilterWrapper from './ListFilterViewWrapper';
 
 type UserSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
+    /** The currently selected workspace filter, used to limit suggestions to those workspaces' members */
     policyID: Filter | undefined;
 };
 
