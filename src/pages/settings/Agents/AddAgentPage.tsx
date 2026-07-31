@@ -59,7 +59,6 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
-    const avatarStyle = [styles.avatarXLarge, styles.alignSelfCenter];
     const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
     const isDraftLoading = isLoadingOnyxValue(avatarDraftMetadata);
     const hasSubmittedRef = useRef(false);
@@ -155,8 +154,8 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                             text={translate('addAgentPage.editAvatar')}
                             source={avatarSource}
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR)}
-                            size={CONST.AVATAR_SIZE.X_LARGE}
-                            avatarStyle={avatarStyle}
+                            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                            avatarStyle={styles.alignSelfCenter}
                             editIcon={expensifyIcons.Pencil}
                             editIconStyle={styles.smallEditIconAccount}
                             sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}

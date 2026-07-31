@@ -18,6 +18,7 @@ import type {OnyxCollection} from 'react-native-onyx';
  * The primary purpose is to optimize performance by reducing redundant computations. More info can be found in the README.
  */
 import Onyx from 'react-native-onyx';
+import OnyxCache, {TASK} from 'react-native-onyx/dist/OnyxCache';
 import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
@@ -31,7 +32,7 @@ import {setDerivedValue} from './utils';
  * Using connectWithoutView in this function since this is only executed once while initializing the App.
  */
 function init() {
-    for (const [key, {compute, dependencies}] of ObjectUtils.typedEntries(ONYX_DERIVED_VALUES)) {
+    for (const [key, {compute, dependencies, onReset}] of ObjectUtils.typedEntries(ONYX_DERIVED_VALUES)) {
         let areAllConnectionsSet = false;
         let connectionsEstablishedCount = 0;
         const totalConnections = dependencies.length;
@@ -79,6 +80,21 @@ function init() {
             // against it to reconstruct the changed-member delta, instead of relying on Onyx's sourceValue.
             const lastFlushedCollectionValues = new Array<OnyxCollection<unknown>>(totalConnections);
             let hasFlushedOnce = false;
+
+            // Guard so the clear reset runs once per clear window (see recomputeDerivedValue), not on every recompute.
+            let clearHandled = false;
+
+            // Called when Onyx is cleared. Coalescing collapses the clear (deps ->
+            // undefined) and rehydrate (deps -> populated) into one flush, so the engine never observes the empty
+            // intermediate state and would otherwise keep diffing rehydrated data against pre-clear state. Drop the
+            // surviving derived value and delta baselines, and let the config reset its own module state, so the next
+            // flush computes from scratch with the rehydrated dependencies.
+            const resetForClear = () => {
+                derivedValue = undefined;
+                hasFlushedOnce = false;
+                lastFlushedCollectionValues.length = 0;
+                onReset?.();
+            };
 
             const runCompute = (sourceValues: Record<string, unknown> | undefined, triggeredKeys: Set<OnyxKey>) => {
                 context.currentValue = derivedValue;
@@ -189,6 +205,18 @@ function init() {
                 if (!areAllConnectionsSet) {
                     Log.info(`[OnyxDerived] not all connections set for ${key}, deferring Onyx write`);
                     return;
+                }
+
+                // Reset engine + config state once per cache clear. The clear notifies
+                // subscribers (deps -> undefined) while the CLEAR task is pending, so this fires during the clear;
+                // the guard makes it run exactly once, and it re-arms after the task finishes.
+                if (OnyxCache.hasPendingTask(TASK.CLEAR)) {
+                    if (!clearHandled) {
+                        clearHandled = true;
+                        resetForClear();
+                    }
+                } else {
+                    clearHandled = false;
                 }
 
                 pendingDependencyIndexes.add(triggeredByIndex);
