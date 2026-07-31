@@ -8,7 +8,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {createGuidesEmailsByReportSelector} from '@selectors/PersonalDetails';
@@ -104,11 +103,7 @@ function SidebarOrderedReportsContextProvider({
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const reportsDraftsUpdates = useCollectionDelta(reportsDrafts);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const computeGuidesEmailsByReport = useMemo(() => createGuidesEmailsByReportSelector(chatReports), [chatReports]);
-    const guidesEmailsByReportSelector = useCallback(
-        (personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>) => computeGuidesEmailsByReport(personalDetailsList),
-        [computeGuidesEmailsByReport],
-    );
+    const guidesEmailsByReportSelector = useMemo(() => createGuidesEmailsByReportSelector(chatReports), [chatReports]);
     const [guidesEmailsByReport] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: guidesEmailsByReportSelector,
     });
