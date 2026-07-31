@@ -121,6 +121,8 @@ function useCreateNavigationSuggestions(): SearchQueryItem[] {
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
+            // Navigate to the Reports page first so getCreateReportRoute() resolves against
+            // the Search/Reports fullscreen context before opening the created report modal.
             Navigation.navigate(getReportsRootRoute(), {forceReplace: isReportInSearch});
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.navigate(getCreateReportRoute({reportID: createdReportID}), {forceReplace: isReportInSearch});
