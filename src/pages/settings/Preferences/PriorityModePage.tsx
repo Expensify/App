@@ -60,7 +60,7 @@ function PriorityModePage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID="PriorityModePage"
         >
             <HeaderWithBackButton
@@ -75,6 +75,7 @@ function PriorityModePage() {
                 shouldSingleExecuteRowSelect
                 confirmButtonOptions={confirmButtonOptions}
                 initiallyFocusedItemKey={priorityModes.find((mode) => mode.isSelected)?.keyForList}
+                addBottomSafeAreaPadding
             />
         </ScreenWrapper>
     );

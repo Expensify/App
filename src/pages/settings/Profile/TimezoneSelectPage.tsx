@@ -103,7 +103,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID="TimezoneSelectPage"
         >
             <HeaderWithBackButton
@@ -121,6 +121,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 shouldShowTooltips={false}
                 shouldSingleExecuteRowSelect
                 showScrollIndicator
+                addBottomSafeAreaPadding
             />
         </ScreenWrapper>
     );

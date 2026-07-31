@@ -72,7 +72,7 @@ function ThemePage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID="ThemePage"
         >
             <HeaderWithBackButton
@@ -88,6 +88,7 @@ function ThemePage() {
                     shouldSingleExecuteRowSelect
                     confirmButtonOptions={confirmButtonOptions}
                     initiallyFocusedItemKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}
+                    addBottomSafeAreaPadding
                     listFooterContent={
                         <>
                             <View style={[styles.mh5, styles.borderTop]} />
