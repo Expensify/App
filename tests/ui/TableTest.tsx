@@ -188,7 +188,7 @@ jest.mock('@shopify/flash-list', () => {
                                   </RNView>
                               );
                           })}
-                    {stickyHeaderItem !== undefined && (
+                    {stickyHeaderItem !== undefined && stickyHeaderIndex !== undefined && (
                         <RNView testID="flash-list-sticky-header">
                             {props.renderItem?.({
                                 item: stickyHeaderItem,
@@ -548,9 +548,9 @@ describe('Table', () => {
                 </Table>,
             );
 
-            expect(screen.getByText('Name')).toBeTruthy();
-            expect(screen.getByText('Category')).toBeTruthy();
-            expect(screen.getByText('Value')).toBeTruthy();
+            expect(screen.getByLabelText('Name')).toBeTruthy();
+            expect(screen.getByLabelText('Category')).toBeTruthy();
+            expect(screen.getByLabelText('Value')).toBeTruthy();
         });
 
         it('should render empty state when no data', () => {
@@ -628,9 +628,9 @@ describe('Table', () => {
                 </Table>,
             );
 
-            expect(screen.getByText('Name')).toBeTruthy();
-            expect(screen.getByText('Category')).toBeTruthy();
-            expect(screen.getByText('Value')).toBeTruthy();
+            expect(screen.getByLabelText('Name')).toBeTruthy();
+            expect(screen.getByLabelText('Category')).toBeTruthy();
+            expect(screen.getByLabelText('Value')).toBeTruthy();
         });
 
         it('should render headerComponent and keep row indexes aligned with data rows', () => {
@@ -656,7 +656,7 @@ describe('Table', () => {
             );
 
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
-            expect(screen.getAllByText('Name').length).toBeGreaterThan(0);
+            expect(screen.getAllByLabelText('Name').length).toBeGreaterThan(0);
             expect(screen.getByTestId('row-index-1').props.children).toBe(0);
             expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeUndefined();
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
@@ -731,14 +731,19 @@ describe('Table', () => {
                 </Table>,
             );
 
-            const table = screen.getByRole(CONST.ROLE.TABLE);
-            const rowGroup = within(table).getByRole(CONST.ROLE.ROWGROUP);
+            const table = screen.getByLabelText('Members');
+            const [rowGroup] = table.children;
+            expect(rowGroup).toBeDefined();
+            expect(typeof rowGroup).not.toBe('string');
+            if (!rowGroup || typeof rowGroup === 'string') {
+                throw new Error('Expected the semantic table to contain a rowgroup');
+            }
             const ownedRowIDs = String(rowGroup.props['aria-owns']).split(' ');
-            const rows = screen.getAllByRole(CONST.ROLE.ROW);
+            const rows = screen.UNSAFE_getAllByProps({role: CONST.ROLE.ROW}).filter((row) => row.props['aria-hidden'] !== true);
 
             expect(within(table).queryByTestId('table-header-component')).toBeNull();
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
-            expect(ownedRowIDs).toEqual(rows.map((row) => row.props.id));
+            expect(ownedRowIDs).toEqual(rows.map((row) => String(row.props.id)));
             expect(table.props['aria-rowcount']).toBe(props.data.length + 1);
             expect(table.props['aria-colcount']).toBe(props.columns.length);
         });
@@ -760,18 +765,20 @@ describe('Table', () => {
                 </Table>,
             );
 
-            const initialHeader = screen.getAllByRole(CONST.ROLE.ROW).at(0);
-            const headerID: unknown = initialHeader?.props.id;
-            expect(headerID).toBeTruthy();
+            const initialHeaders = screen.UNSAFE_getAllByProps({role: CONST.ROLE.ROW}).filter((row) => row.props['aria-rowindex'] === 1 && row.props['aria-hidden'] !== true);
+            expect(initialHeaders).toHaveLength(1);
+            const headerID: unknown = initialHeaders.at(0)?.props.id;
+            expect(typeof headerID).toBe('string');
 
             activateStickyHeadersAfterListLoad();
             act(() => {
                 mockFlashListProps.at(-1)?.onChangeStickyIndex?.(1, -1);
             });
 
-            const accessibleHeaders = screen.getAllByRole(CONST.ROLE.ROW);
+            const accessibleHeaders = screen.UNSAFE_getAllByProps({role: CONST.ROLE.ROW}).filter((row) => row.props['aria-rowindex'] === 1 && row.props['aria-hidden'] !== true);
             expect(accessibleHeaders).toHaveLength(1);
-            expect(accessibleHeaders.at(0)?.props.id).toBe(headerID);
+            const accessibleHeaderID: unknown = accessibleHeaders.at(0)?.props.id;
+            expect(accessibleHeaderID).toBe(headerID);
             expect(screen.getByTestId('flash-list-sticky-header')).toBeTruthy();
         });
 
@@ -1776,13 +1783,13 @@ describe('Table', () => {
             );
 
             // Column headers should be rendered as buttons
-            const nameHeader = screen.getByText('Name');
+            const nameHeader = screen.getByLabelText('Name');
             expect(nameHeader).toBeTruthy();
 
-            const categoryHeader = screen.getByText('Category');
+            const categoryHeader = screen.getByLabelText('Category');
             expect(categoryHeader).toBeTruthy();
 
-            const valueHeader = screen.getByText('Value');
+            const valueHeader = screen.getByLabelText('Value');
             expect(valueHeader).toBeTruthy();
         });
 
@@ -1909,7 +1916,7 @@ describe('Table', () => {
                 </Table>,
             );
 
-            expect(screen.getByText('Name')).toBeTruthy();
+            expect(screen.getByLabelText('Name')).toBeTruthy();
             expect(screen.getByTestId('row-1')).toBeTruthy();
         });
 
@@ -1962,7 +1969,7 @@ describe('Table', () => {
             );
 
             expect(screen.getByTestId('search-input')).toBeTruthy();
-            expect(screen.getByText('Name')).toBeTruthy();
+            expect(screen.getByLabelText('Name')).toBeTruthy();
             expect(screen.getByTestId('row-1')).toBeTruthy();
         });
 
@@ -1983,7 +1990,7 @@ describe('Table', () => {
             );
 
             // All components should still render regardless of order
-            expect(screen.getByText('Name')).toBeTruthy();
+            expect(screen.getByLabelText('Name')).toBeTruthy();
             expect(screen.getByTestId('search-input')).toBeTruthy();
             expect(screen.getByTestId('row-1')).toBeTruthy();
         });

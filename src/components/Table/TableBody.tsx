@@ -288,7 +288,13 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             case 'data':
             default: {
                 const dataIndex = getDataIndex(info.index, renderedTableListMetadata);
-                const semanticRowID = !isTableSemanticsEnabled ? undefined : info.target !== 'Cell' ? null : shouldOwnRowsByID ? getTableDataRowID(semanticTableID, dataIndex) : undefined;
+                let semanticRowID: string | null | undefined;
+                if (isTableSemanticsEnabled) {
+                    semanticRowID = info.target === 'Cell' ? undefined : null;
+                    if (info.target === 'Cell' && shouldOwnRowsByID) {
+                        semanticRowID = getTableDataRowID(semanticTableID, dataIndex);
+                    }
+                }
                 return (
                     <TableRowSemanticIDContext.Provider value={semanticRowID}>
                         {renderItem?.({

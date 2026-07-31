@@ -224,7 +224,7 @@ export default function TableRow({
                 accessible={accessible}
                 accessibilityLabel={accessibilityLabel}
                 id={semanticRowID === null ? undefined : (semanticRowID ?? id ?? `table-row-${item.keyForList}`)}
-                aria-hidden={semanticRowID === null || ariaHidden || undefined}
+                aria-hidden={semanticRowID === null || ariaHidden === true ? true : undefined}
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={interactive}
