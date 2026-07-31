@@ -1909,24 +1909,23 @@ function openReport(params: OpenReportActionParams) {
             });
         }
 
-        if (shouldKeepPersonalDetailsOnFailure) {
-            failureData.push(
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        errorFields: {
-                            createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
-                        },
+        if (!isNewThread) {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    errorFields: {
+                        createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
                     },
                 },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                    value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
-                },
-            );
+            });
         }
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+        });
 
         // Add the createdReportActionID parameter to the API call
         parameters.createdReportActionID = optimisticCreatedAction.reportActionID;
