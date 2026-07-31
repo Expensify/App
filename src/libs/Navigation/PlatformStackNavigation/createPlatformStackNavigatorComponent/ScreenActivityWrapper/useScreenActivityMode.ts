@@ -3,7 +3,7 @@ import Log from '@libs/Log';
 import type {ActivityProps} from 'react';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useRef, useState} from 'react';
+import {useDeferredValue, useEffect, useRef, useState} from 'react';
 
 import useIsWindowSizeChanging from './useIsWindowSizeChanging';
 
@@ -35,6 +35,14 @@ type ScreenActivityModeParams = {
  *   gives its mount effects a frame to run. This matches how ScreenFreezeWrapper mounts unfrozen and freezes after.
  * - A window resize or an orientation change reveals every screen for the duration of the change, so hidden screens
  *   lay themselves out against the new size while they are still covered instead of doing it in front of the user.
+ *
+ * Hiding is urgent, revealing is deferred. Revealing a hidden screen re-renders its whole subtree and re-mounts
+ * every effect in it, and deriving the mode directly from the navigation state would put all of that work into the
+ * same synchronous commit as the navigation update that revealed the screen. On a pop that single commit blocked
+ * the main thread for hundreds of milliseconds before the browser could paint. The reveal therefore follows the
+ * navigation state through a deferred value, so it happens in a later, interruptible render. The screen stays
+ * painted the whole time (CustomViewWrapper keeps hidden content visible), so the user sees it immediately and
+ * only its updates arrive a moment later.
  */
 function useScreenActivityMode({isScreenBlurred, routeKey, routeName}: ScreenActivityModeParams): ActivityProps['mode'] {
     const isFocused = useIsFocused();
@@ -51,6 +59,7 @@ function useScreenActivityMode({isScreenBlurred, routeKey, routeName}: ScreenAct
     }, []);
 
     const navigationMode: ActivityProps['mode'] = isScreenBlurred || !isFocused ? 'hidden' : 'visible';
+    const deferredNavigationMode = useDeferredValue(navigationMode);
     const isKeptVisible = !hasCompletedFirstRender || isWindowSizeChanging;
     const previousNavigationModeRef = useRef<ActivityProps['mode'] | null>(null);
 
@@ -70,7 +79,10 @@ function useScreenActivityMode({isScreenBlurred, routeKey, routeName}: ScreenAct
         });
     }, [navigationMode, routeKey, routeName]);
 
-    return isKeptVisible ? 'visible' : navigationMode;
+    if (isKeptVisible) {
+        return 'visible';
+    }
+    return navigationMode === 'hidden' ? 'hidden' : deferredNavigationMode;
 }
 
 export default useScreenActivityMode;
