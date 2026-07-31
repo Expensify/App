@@ -10,6 +10,7 @@ import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/Worksp
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
@@ -25,6 +26,7 @@ import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Tran
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {navigateToCreatedReportInReports} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -42,7 +44,7 @@ import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
@@ -57,6 +59,7 @@ function DynamicIOURequestStepUpgrade({
     },
 }: DynamicIOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
+    const upgradeUnderlyingPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.path);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -227,7 +230,10 @@ function DynamicIOURequestStepUpgrade({
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
                 Navigation.goBack();
-                navigateWithMicrotask(upgradeBackTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                navigateWithMicrotask(
+                    upgradeBackTo ??
+                        createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID}), upgradeUnderlyingPath),
+                );
 
                 break;
             default:
@@ -236,6 +242,7 @@ function DynamicIOURequestStepUpgrade({
     }, [
         action,
         upgradeBackTo,
+        upgradeUnderlyingPath,
         navigateWithMicrotask,
         reportID,
         shouldSubmitExpense,

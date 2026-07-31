@@ -3,6 +3,7 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
@@ -26,7 +27,7 @@ import CategoryForm from '@pages/workspace/categories/CategoryForm';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 
@@ -40,23 +41,24 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepCategoryCreateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE> &
-    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE>;
+type DynamicIOURequestStepCategoryCreateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE>;
 
-function IOURequestStepCategoryCreate({
+function DynamicIOURequestStepCategoryCreate({
     report: reportReal,
     reportDraft,
     route: {
-        params: {transactionID, action, iouType, reportID, reportActionID, backTo},
+        params: {transactionID, action, iouType, reportID},
     },
     transaction,
-}: IOURequestStepCategoryCreateProps) {
+}: DynamicIOURequestStepCategoryCreateProps) {
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {currentSearchHash} = useSearchQueryContext();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.path);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -76,7 +78,7 @@ function IOURequestStepCategoryCreate({
 
     const report = reportReal ?? reportDraft;
 
-    // Mirror IOURequestStepCategory: for self-DM split edits the draft's reportID points to the
+    // Mirror DynamicIOURequestStepCategory: for self-DM split edits the draft's reportID points to the
     // self-DM (not UNREPORTED_REPORT_ID), so usePolicyForTransaction can't resolve a policy. Fall
     // back to policyForMovingExpenses so AccessOrNotFoundWrapper below has a real policyID instead
     // of rendering the "not here" page when the user taps "Add category" on a self-DM split.
@@ -175,14 +177,16 @@ function IOURequestStepCategoryCreate({
             setMoneyRequestCategory(transactionID, categoryName, policy);
         }
 
-        if (!isEditing && action === CONST.IOU.ACTION.CATEGORIZE && !backTo) {
+        // `action === CATEGORIZE` only ever occurs when categorizing a fresh tracked expense directly from a
+        // report (never from an existing Confirmation screen), so continue forward into Confirmation here.
+        if (!isEditing && action === CONST.IOU.ACTION.CATEGORIZE) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? reportID));
             return;
         }
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
-    const navigateBackToCategoryList = () => Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, backTo, reportActionID));
+    const navigateBackToCategoryList = () => Navigation.goBack(backPath);
 
     return (
         <AccessOrNotFoundWrapper
@@ -199,7 +203,7 @@ function IOURequestStepCategoryCreate({
                 headerTitle={translate('workspace.categories.addCategory')}
                 onBackButtonPress={navigateBackToCategoryList}
                 shouldShowWrapper
-                testID="IOURequestStepCategoryCreate"
+                testID="DynamicIOURequestStepCategoryCreate"
             >
                 <CategoryForm
                     onSubmit={createCategory}
@@ -211,6 +215,6 @@ function IOURequestStepCategoryCreate({
     );
 }
 
-const IOURequestStepCategoryCreateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCategoryCreate);
-const IOURequestStepCategoryCreateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepCategoryCreateWithFullTransactionOrNotFound);
-export default IOURequestStepCategoryCreateWithWritableReportOrNotFound;
+const DynamicIOURequestStepCategoryCreateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepCategoryCreate);
+const DynamicIOURequestStepCategoryCreateWithWritableReportOrNotFound = withWritableReportOrNotFound(DynamicIOURequestStepCategoryCreateWithFullTransactionOrNotFound);
+export default DynamicIOURequestStepCategoryCreateWithWritableReportOrNotFound;
