@@ -116,11 +116,11 @@ function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions,
         return [];
     }
 
-    // Only offer the statement when a whole settlement is selected, never a single transaction inside it. A settlement
-    // is selected either directly (its group key is in selectedTransactions, e.g. a collapsed row) or by selecting all
-    // of its transactions (each tagged with the group key), so we count tagged children and require the full count.
+    // A settlement can be selected two ways: its collapsed row is checked directly (its group key lands in
+    // selectedTransactions), or its row is expanded and its transactions are checked (each tagged with the group key).
+    // Collect both so we can tell, per settlement, whether the whole thing or only part of it is selected.
     const directlySelectedGroupKeys = new Set<string>();
-    const selectedCountByGroupKey = new Map<string, number>();
+    const selectedTransactionCountByGroupKey = new Map<string, number>();
     for (const [key, selection] of Object.entries(selectedTransactions)) {
         if (!selection?.isSelected) {
             continue;
@@ -129,26 +129,33 @@ function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions,
             directlySelectedGroupKeys.add(key);
         }
         if (selection.groupKey?.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-            selectedCountByGroupKey.set(selection.groupKey, (selectedCountByGroupKey.get(selection.groupKey) ?? 0) + 1);
+            selectedTransactionCountByGroupKey.set(selection.groupKey, (selectedTransactionCountByGroupKey.get(selection.groupKey) ?? 0) + 1);
         }
     }
 
     const settlementGroups: SearchWithdrawalIDGroup[] = [];
-    for (const [key, value] of Object.entries(searchData)) {
-        if (!isWithdrawalIDGroup(value)) {
+    for (const [groupKey, group] of Object.entries(searchData)) {
+        if (!isWithdrawalIDGroup(group)) {
             continue;
         }
-        const selectedCount = selectedCountByGroupKey.get(key) ?? 0;
-        const isWholeSettlementSelected = directlySelectedGroupKeys.has(key) || (value.count > 0 && selectedCount >= value.count);
-        if (isWholeSettlementSelected) {
-            settlementGroups.push(value);
+
+        const selectedTransactionCount = selectedTransactionCountByGroupKey.get(groupKey) ?? 0;
+        const isRowSelectedDirectly = directlySelectedGroupKeys.has(groupKey);
+        const areAllTransactionsSelected = group.count > 0 && selectedTransactionCount >= group.count;
+
+        // Whole settlement selected: include it in the statement.
+        if (isRowSelectedDirectly || areAllTransactionsSelected) {
+            settlementGroups.push(group);
             continue;
         }
-        // Some (but not all) of this settlement's transactions are selected, so the user narrowed the selection.
-        // Disqualify the whole action rather than silently exporting only the settlements that stayed fully selected.
-        if (selectedCount > 0) {
+
+        // Only some of this settlement's transactions are selected. The statement always covers the whole settlement,
+        // so a partial selection would export more than what's on screen. Hide the action entirely.
+        if (selectedTransactionCount > 0) {
             return undefined;
         }
+
+        // Otherwise the settlement isn't part of the selection at all, so leave it out.
     }
 
     return settlementGroups;
