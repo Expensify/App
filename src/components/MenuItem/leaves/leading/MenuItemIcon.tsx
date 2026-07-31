@@ -25,7 +25,10 @@ function MenuItemIcon({src}: MenuItemIconProps) {
     const {isHovered, isPressed} = useMenuItemInteraction();
     const isCompact = useIsCompact();
 
-    const iconFill = StyleUtils.getIconFillColor(getButtonState(isHovered, isPressed, false, isDisabled, isInteractive), true, true);
+    const isComplete = false;
+    const isMenuIcon = true;
+    const isPane = true;
+    const iconFill = StyleUtils.getIconFillColor(getButtonState(isHovered, isPressed, isComplete, isDisabled, isInteractive), isMenuIcon, isPane);
 
     return (
         <View style={[styles.popoverMenuIcon, isCompact && styles.wAuto]}>
