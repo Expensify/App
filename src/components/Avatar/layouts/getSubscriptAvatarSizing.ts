@@ -42,4 +42,3 @@ function getSubscriptAvatarSizing(size: AvatarSize): SubscriptAvatarSizing {
 }
 
 export default getSubscriptAvatarSizing;
-export type {SubscriptAvatarSizing};

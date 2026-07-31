@@ -94,7 +94,6 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
                 // Only the two rendered icons are passed: a longer array makes DiagonalAvatars replace the secondary avatar with a "+N" overflow count.
                 icons={[primaryIcon, secondaryIcon]}
                 isInReportAction={false}
-                shouldUseMidSubscriptSize={isInFocusMode}
                 secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBackgroundColor)}
             />
         );

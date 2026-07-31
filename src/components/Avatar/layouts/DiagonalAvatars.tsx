@@ -23,9 +23,6 @@ import DiagonalAvatarsFrame from './DiagonalAvatarsFrame';
 import getDiagonalAvatarSizing from './getDiagonalAvatarSizing';
 
 type DiagonalAvatarsProps = MultipleAvatarsProps & {
-    /** Whether to use the mid-subscript size for the avatars */
-    shouldUseMidSubscriptSize: boolean;
-
     /** Style for the secondary avatar container */
     secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
 
@@ -36,16 +33,7 @@ type DiagonalAvatarsProps = MultipleAvatarsProps & {
 /** `DiagonalAvatars` renders two avatars stacked diagonally — the primary in the top-left and the secondary in the bottom-right.
  * When more than two `icons` are passed, the secondary slot shows a "+N" overflow count instead of the second avatar.
  */
-function DiagonalAvatars({
-    size,
-    shouldShowTooltip,
-    icons,
-    isInReportAction,
-    shouldUseMidSubscriptSize,
-    secondaryAvatarContainerStyle,
-    isHovered = false,
-    fallbackDisplayName,
-}: DiagonalAvatarsProps) {
+function DiagonalAvatars({size, shouldShowTooltip, icons, isInReportAction, secondaryAvatarContainerStyle, isHovered = false, fallbackDisplayName}: DiagonalAvatarsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -56,7 +44,7 @@ function DiagonalAvatars({
 
     const tooltipTexts = shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name)) : [''];
 
-    const {avatarSize, singleAvatarStyleKey} = getDiagonalAvatarSizing(size, shouldUseMidSubscriptSize);
+    const {avatarSize, singleAvatarStyleKey} = getDiagonalAvatarSizing(size);
     const secondaryAvatarContainerStyles = secondaryAvatarContainerStyle ?? [StyleUtils.getBackgroundAndBorderStyle(isHovered ? theme.activeComponentBG : theme.componentBG)];
 
     return (

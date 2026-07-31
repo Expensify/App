@@ -45,7 +45,7 @@ function PressableDiagonalAvatars({size, primaryAvatar, secondaryAvatar, iconCou
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    const {avatarSize, singleAvatarStyleKey} = getDiagonalAvatarSizing(size, false);
+    const {avatarSize, singleAvatarStyleKey} = getDiagonalAvatarSizing(size);
 
     const getAccessibilityLabel = (avatar: IconType) => translate(avatar.type === CONST.ICON_TYPE_WORKSPACE ? 'common.workspaces' : 'common.profile');
 

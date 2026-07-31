@@ -58,7 +58,6 @@ function ExpenseReportListItemAvatar({item, showTooltip, isHovered = false, isFo
                 size={avatarSize}
                 icons={icons}
                 isInReportAction={false}
-                shouldUseMidSubscriptSize={false}
             />
         );
     } else if (primaryIcon) {

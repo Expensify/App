@@ -47,7 +47,7 @@ function DiagonalAvatarsFrame({size, iconCount, containerStyle, primaryIcon, sec
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const {singleAvatarStyleKey, secondAvatarStyleKey} = getDiagonalAvatarSizing(size, false);
+    const {singleAvatarStyleKey, secondAvatarStyleKey} = getDiagonalAvatarSizing(size);
 
     return (
         <View style={[containerStyle, iconCount === 2 && size === CONST.AVATAR_SIZE.XXXX_LARGE && styles.mr0]}>

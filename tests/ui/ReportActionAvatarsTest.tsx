@@ -543,8 +543,8 @@ describe('ReportActionAvatars', () => {
             isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR});
         });
 
-        it('renders diagonal avatars with mid-subscript sizing', async () => {
-            const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], useMidSubscriptSizeForMultipleAvatars: true});
+        it('renders diagonal avatars at small size', async () => {
+            const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], size: CONST.AVATAR_SIZE.SMALL});
             isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR});
         });
 

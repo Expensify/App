@@ -65,9 +65,6 @@ type ReportActionAvatarsProps = {
     /** Style for Second Avatar */
     secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether #focus mode is on */
-    useMidSubscriptSizeForMultipleAvatars?: boolean;
-
     /** Whether avatars are displayed within a reportAction */
     isInReportAction?: boolean;
 
@@ -128,7 +125,6 @@ function ReportActionAvatars({
     subscriptCardFeed,
     subscriptCardFeedIconSize,
     secondaryAvatarContainerStyle,
-    useMidSubscriptSizeForMultipleAvatars = false,
     isInReportAction = false,
     fallbackDisplayName,
     invitedEmailsToAccountIDs,
@@ -273,7 +269,6 @@ function ReportActionAvatars({
                 size={size}
                 icons={icons}
                 isInReportAction={isInReportAction}
-                shouldUseMidSubscriptSize={useMidSubscriptSizeForMultipleAvatars}
                 secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
                 isHovered={isHovered}
                 fallbackDisplayName={fallbackDisplayName}

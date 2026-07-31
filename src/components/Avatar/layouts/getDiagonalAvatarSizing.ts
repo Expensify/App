@@ -15,27 +15,11 @@ type DiagonalAvatarSizing = {
     secondAvatarStyleKey: 'secondAvatarXxxSmall' | 'secondAvatarXLarge' | 'secondAvatarXxLarge' | 'secondAvatarXSmall';
 };
 
-/**
- * Resolves the inner avatar size and container style keys for a diagonal avatar stack from the stack size.
- *
- * `shouldUseMidSubscriptSize` affects only `avatarSize` — the style keys depend solely on `size`, which lets
- * `DiagonalAvatarsFrame` resolve them without knowing about the mid-subscript mode.
- */
-function getDiagonalAvatarSizing(size: AvatarSize, shouldUseMidSubscriptSize: boolean): DiagonalAvatarSizing {
-    let avatarSize: AvatarSize;
-    if (shouldUseMidSubscriptSize) {
-        avatarSize = CONST.AVATAR_SIZE.XXX_SMALL;
-    } else if (size === CONST.AVATAR_SIZE.XXX_LARGE) {
-        avatarSize = CONST.AVATAR_SIZE.X_LARGE;
-    } else if (size === CONST.AVATAR_SIZE.XXXX_LARGE) {
-        avatarSize = CONST.AVATAR_SIZE.XX_LARGE;
-    } else {
-        avatarSize = CONST.AVATAR_SIZE.X_SMALL;
-    }
-
+/** Resolves the inner avatar size and container style keys for a diagonal avatar stack from the stack size. */
+function getDiagonalAvatarSizing(size: AvatarSize): DiagonalAvatarSizing {
     if (size === CONST.AVATAR_SIZE.SMALL) {
         return {
-            avatarSize,
+            avatarSize: CONST.AVATAR_SIZE.XXX_SMALL,
             singleAvatarStyleKey: 'singleAvatarXxxSmall',
             secondAvatarStyleKey: 'secondAvatarXxxSmall',
         };
@@ -43,7 +27,7 @@ function getDiagonalAvatarSizing(size: AvatarSize, shouldUseMidSubscriptSize: bo
 
     if (size === CONST.AVATAR_SIZE.XXX_LARGE) {
         return {
-            avatarSize,
+            avatarSize: CONST.AVATAR_SIZE.X_LARGE,
             singleAvatarStyleKey: 'singleAvatarXLarge',
             secondAvatarStyleKey: 'secondAvatarXLarge',
         };
@@ -51,18 +35,17 @@ function getDiagonalAvatarSizing(size: AvatarSize, shouldUseMidSubscriptSize: bo
 
     if (size === CONST.AVATAR_SIZE.XXXX_LARGE) {
         return {
-            avatarSize,
+            avatarSize: CONST.AVATAR_SIZE.XX_LARGE,
             singleAvatarStyleKey: 'singleAvatarXxLarge',
             secondAvatarStyleKey: 'secondAvatarXxLarge',
         };
     }
 
     return {
-        avatarSize,
+        avatarSize: CONST.AVATAR_SIZE.X_SMALL,
         singleAvatarStyleKey: 'singleAvatarXSmall',
         secondAvatarStyleKey: 'secondAvatarXSmall',
     };
 }
 
 export default getDiagonalAvatarSizing;
-export type {DiagonalAvatarSizing};
