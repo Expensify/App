@@ -3,17 +3,17 @@ import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {PropsWithChildren} from 'react';
-
 import React from 'react';
 
-type MenuItemDescriptionProps = PropsWithChildren;
+type MenuItemDescriptionProps = {
+    children: string | number;
+};
 
 /** The supporting text block of a `MenuItem.Content` */
 function MenuItemDescription({children}: MenuItemDescriptionProps) {
     const styles = useThemeStyles();
 
-    useMenuItemAccessibilityLabel('description', typeof children === 'string' || typeof children === 'number' ? String(children) : undefined);
+    useMenuItemAccessibilityLabel('description', String(children));
 
     return (
         <Text

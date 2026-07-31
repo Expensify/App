@@ -8,18 +8,18 @@ import convertToLTR from '@libs/convertToLTR';
 
 import CONST from '@src/CONST';
 
-import type {PropsWithChildren} from 'react';
-
 import React from 'react';
 
-type MenuItemTitleProps = PropsWithChildren;
+type MenuItemTitleProps = {
+    children: string | number;
+};
 
 /** The title block of a `MenuItem.Content`. Bold, single line */
 function MenuItemTitle({children}: MenuItemTitleProps) {
     const styles = useThemeStyles();
     const {isDisabled, isInteractive} = useMenuItemConfig();
 
-    useMenuItemAccessibilityLabel('title', typeof children === 'string' || typeof children === 'number' ? String(children) : undefined);
+    useMenuItemAccessibilityLabel('title', String(children));
 
     return (
         <Text
