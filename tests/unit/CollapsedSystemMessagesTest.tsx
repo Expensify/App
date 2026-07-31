@@ -13,7 +13,13 @@ jest.mock('@hooks/useLazyAsset', () => ({
 }));
 
 jest.mock('@hooks/useLocalize', () => () => ({
-    translate: (_key: string, {count}: {count: number}) => (count === 1 ? '1 change was made' : `${count} changes were made`),
+    translate: (_key: string, options?: {count?: number}) => {
+        const count = options?.count;
+        if (count === undefined) {
+            return 'New message line indicator';
+        }
+        return count === 1 ? '1 change was made' : `${count} changes were made`;
+    },
 }));
 
 describe('CollapsedSystemMessages', () => {

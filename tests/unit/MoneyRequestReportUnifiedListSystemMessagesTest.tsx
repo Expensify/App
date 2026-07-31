@@ -18,7 +18,7 @@ type TestListItem = {
 
 type TestFlashListProps = FlashListProps<TestListItem>;
 
-const mockFlashList = jest.fn((_props: TestFlashListProps) => null);
+const mockFlashList = jest.fn<null, [TestFlashListProps]>(() => null);
 
 jest.mock('@components/FlashList', () => ({
     __esModule: true,
