@@ -506,6 +506,20 @@ function SubmitDetailsPage({
             return;
         }
 
+        // Wide layout fallback: destination exists but is not topmost — reveal it via dismissal modal instead of pre-insert.
+        const topmostReportId = Navigation.getTopmostReportId();
+        if (topmostReportId !== postSubmitNavigationReportID) {
+            performExpenseCreate();
+            hasCalledReveal.current = true;
+            Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(postSubmitNavigationReportID), {
+                afterTransition: () => {
+                    cleanupAndNavigateAfterExpenseCreate({...cleanupParams, shouldNavigate: false});
+                    setIsConfirming(false);
+                },
+            });
+            return;
+        }
+
         runExpenseCreateAndCleanup(true);
     };
 
