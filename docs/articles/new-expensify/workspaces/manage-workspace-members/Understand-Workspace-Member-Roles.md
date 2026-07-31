@@ -5,6 +5,7 @@ keywords: [workspace member roles, workspace admin, people admin, card admin, pa
 internalScope: Audience is Workspace admins, People admins, and anyone managing workspace access. Covers workspace member roles and permissions. Does not cover changing member roles or managing workspace members.
 contentType: topic
 platform: new-expensify
+order: 1
 ---
 
 # Understand Workspace Member Roles
