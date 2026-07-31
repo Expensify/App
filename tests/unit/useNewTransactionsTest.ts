@@ -838,6 +838,58 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
         }
     });
 
+    it('schedules a fresh deletion when the same transaction is flagged again after the earlier flag was cleared', () => {
+        jest.useFakeTimers();
+        try {
+            const transactions = [baseTx, railTx];
+            const {rerender} = renderHook<Transaction[], {pendingNewTransactions: PendingNewTransactions | undefined}>(
+                (props) => useNewTransactions(true, transactions, props.pendingNewTransactions, 'report1', true),
+                {initialProps: {pendingNewTransactions: rail(['railTx'])}},
+            );
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledTimes(1);
+
+            rerender({pendingNewTransactions: undefined});
+            rerender({pendingNewTransactions: rail(['railTx'])});
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledTimes(2);
+            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', ['railTx']);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('sweeps a flag on the report switched into, even for a transaction already swept on the previous report', () => {
+        jest.useFakeTimers();
+        try {
+            const transactions = [baseTx, railTx];
+            const pendingNewTransactions = rail(['railTx']);
+            const {rerender} = renderHook<Transaction[], {reportID: string}>((props) => useNewTransactions(true, transactions, pendingNewTransactions, props.reportID, true), {
+                initialProps: {reportID: 'report1'},
+            });
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', ['railTx']);
+
+            rerender({reportID: 'report2'});
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report2', ['railTx']);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
     it('does not misattribute a same-length swap as new on the next addition', () => {
         const txA = {...baseTx, transactionID: 'A'};
         const txB = {...baseTx, transactionID: 'B'};

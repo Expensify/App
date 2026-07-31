@@ -34,7 +34,7 @@ function useNewTransactions(
     isReportVisible?: boolean,
 ) {
     const [hasSettledAfterInitialLoad, setHasSettledAfterInitialLoad] = useState(() => !!hasOnceLoadedReportActions);
-    const scheduledForDeletionIDs = useRef<Set<string>>(new Set());
+    const scheduledDeletions = useRef<{reportID: string | undefined; transactionIDs: Set<string>}>({reportID, transactionIDs: new Set()});
     const [highlightedDiffTransactionIDs, setHighlightedDiffTransactionIDs] = useState<Set<string>>(() => new Set());
     const [diffState, setDiffState] = useState<DiffState>(() => ({reportID, sourceIDs: undefined, addedIDs: EMPTY_TRANSACTION_IDS}));
     const trackedTransactionIDs = hasOnceLoadedReportActions && transactions ? transactions.map(({transactionID}) => transactionID) : undefined;
@@ -92,17 +92,30 @@ function useNewTransactions(
     }
 
     useEffect(() => {
+        if (scheduledDeletions.current.reportID !== reportID) {
+            scheduledDeletions.current = {reportID, transactionIDs: new Set()};
+        }
+        const scheduledIDs = scheduledDeletions.current.transactionIDs;
+        if (scheduledIDs.size) {
+            const flaggedIDs = pendingNewTransactions ? new Set([...Object.keys(pendingNewTransactions.activeIDs), ...pendingNewTransactions.expiredIDs]) : undefined;
+            for (const scheduledID of scheduledIDs) {
+                if (!flaggedIDs?.has(scheduledID)) {
+                    scheduledIDs.delete(scheduledID);
+                }
+            }
+        }
+
         if (isReportVisible === false || !pendingNewTransactions) {
             return;
         }
         const {activeIDs, expiredIDs} = pendingNewTransactions;
         const consumedIDs = newTransactions.filter(({transactionID}) => activeIDs[transactionID]).map(({transactionID}) => transactionID);
-        const idsToDelete = [...consumedIDs, ...expiredIDs].filter((transactionID) => !scheduledForDeletionIDs.current.has(transactionID));
+        const idsToDelete = [...consumedIDs, ...expiredIDs].filter((transactionID) => !scheduledIDs.has(transactionID));
         if (!idsToDelete.length) {
             return;
         }
         for (const transactionID of idsToDelete) {
-            scheduledForDeletionIDs.current.add(transactionID);
+            scheduledIDs.add(transactionID);
         }
 
         setTimeout(() => {
