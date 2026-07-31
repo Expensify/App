@@ -227,17 +227,22 @@ const testMoneyRequestReport: Report = {
     chatReportID: TEST_CHAT_REPORT_ID,
 };
 
-// A read-only conversation grants read but not write, which is what stops its members from posting.
-const readOnlyChatReport: Report = {
-    ...testReport,
-    reportID: TEST_CHAT_REPORT_ID,
-    type: CONST.REPORT.TYPE.CHAT,
+// Read but not write is what stops someone posting, and it is set on whichever report they were given limited
+// access to. When it lands on the expense's own report, the transaction thread below it still allows writing.
+const readOnlyMoneyRequestReport: Report = {
+    ...testMoneyRequestReport,
     permissions: [CONST.REPORT.PERMISSIONS.READ],
 };
 
-const writableChatReport: Report = {
-    ...readOnlyChatReport,
-    permissions: [CONST.REPORT.PERMISSIONS.READ, CONST.REPORT.PERMISSIONS.WRITE],
+const testChatReport: Report = {
+    ...testReport,
+    reportID: TEST_CHAT_REPORT_ID,
+    type: CONST.REPORT.TYPE.CHAT,
+};
+
+const readOnlyChatReport: Report = {
+    ...testChatReport,
+    permissions: [CONST.REPORT.PERMISSIONS.READ],
 };
 
 function Wrapper({children}: {children: React.ReactNode}) {
@@ -361,7 +366,26 @@ describe('MoneyRequestReceiptView', () => {
             expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
         });
 
-        it('does not show action buttons when the parent conversation is read-only', async () => {
+        it("does not show action buttons when the expense's own report is read-only", async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, readOnlyMoneyRequestReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, testChatReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+        });
+
+        it('does not show action buttons when the conversation above the expense is read-only', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, testMoneyRequestReport);
@@ -380,11 +404,11 @@ describe('MoneyRequestReceiptView', () => {
             expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
         });
 
-        it('shows action buttons when the parent conversation allows writing', async () => {
+        it('shows action buttons when every report above the expense allows writing', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, testMoneyRequestReport);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, writableChatReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, testChatReport);
             });
             await waitForBatchedUpdatesWithAct();
 

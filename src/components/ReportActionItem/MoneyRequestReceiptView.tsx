@@ -43,6 +43,7 @@ import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {
     canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    canWriteInReport as canWriteInReportReportUtils,
     getCreationReportErrors,
     isInvoiceReport,
     isTrackExpenseReportNew,
@@ -235,11 +236,11 @@ function MoneyRequestReceiptView({
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(report?.reportID);
-    // A conversation's read-only restriction lives on the parent conversation report, not on the transaction thread,
-    // so checking the thread alone lets someone who cannot post in the conversation still attach a receipt to it.
-    // Mirrors how the conversation composer is gated. Skipped when there is no parent conversation to check.
-    const canWriteInChatReport = !chatReport || !!canUserPerformWriteActionReportUtils(chatReport, isChatReportArchived);
-    const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && canWriteInChatReport && !readonly;
+    // A read-only conversation carries its restriction on the report the user was given limited access to - the expense's
+    // own report, or the conversation above it - while the transaction thread stays writable. Checking only the thread
+    // therefore still offers the receipt actions to someone who cannot post there. Same check that hides the composer.
+    const canWriteInAncestorReports = canWriteInReportReportUtils(parentReport) && canWriteInReportReportUtils(chatReport);
+    const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && canWriteInAncestorReports && !readonly;
     const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
