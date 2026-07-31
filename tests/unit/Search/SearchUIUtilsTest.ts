@@ -9683,11 +9683,7 @@ describe('SearchUIUtils', () => {
             expect(crossBorderColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
 
             // A group with no account number never reaches the list, so its amounts must not open a column either.
-            const unrenderedData: OnyxTypes.SearchResults['data'] = {
-                ...domesticData,
-                // @ts-expect-error minimal dataset for getColumnsToShow
-                [`group_${crossBorderGroup.entryID}`]: {...crossBorderGroup, accountNumber: ''},
-            };
+            const unrenderedData: OnyxTypes.SearchResults['data'] = {...domesticData, [`group_${crossBorderGroup.entryID}`]: {...crossBorderGroup, accountNumber: ''}};
             const unrenderedColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: unrenderedData, visibleColumns: [], groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID});
             expect(unrenderedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
             expect(unrenderedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
