@@ -66,6 +66,8 @@ export default function TableRow({
     rowFooter,
     id,
     'aria-hidden': ariaHidden,
+    focusable,
+    tabIndex,
     ...props
 }: TableRowProps) {
     const theme = useTheme();
@@ -76,6 +78,8 @@ export default function TableRow({
     const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled, shouldEnableSelectionInNarrowPaneModal = false} = useTableContext();
     const semanticRowID = useTableRowSemanticID();
     const semanticTableHasHeader = useTableRowHasHeader();
+    const isAccessibilityHidden = semanticRowID === null || ariaHidden === true;
+    const inertProps = isAccessibilityHidden ? {inert: true} : {};
 
     // Tables inside a narrow pane modal (RHP) opt into keying the selection UX off the real screen size (isSmallScreenWidth),
     // because shouldUseNarrowLayout is always true in an RHP and would otherwise suppress selection entirely. All other
@@ -89,7 +93,7 @@ export default function TableRow({
     const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
 
-    const isDisabled = !!disabled;
+    const isDisabled = !!disabled || isAccessibilityHidden;
     const isFirstRow = rowIndex === 0;
     const isLastRow = rowIndex === rowCount - 1;
 
@@ -171,9 +175,10 @@ export default function TableRow({
                 containerStyle={styles.m0}
                 style={styles.flex1}
                 isChecked={!!item.selected}
-                disabled={!!item.disabled || !!item.isSelectionDisabled}
+                disabled={isAccessibilityHidden || !!item.disabled || !!item.isSelectionDisabled}
                 accessibilityLabel={translate('common.select')}
                 onPress={(event) => handleCheckboxPress(event)}
+                tabIndex={isAccessibilityHidden ? -1 : undefined}
             />
         );
 
@@ -224,8 +229,8 @@ export default function TableRow({
             <PressableWithFeedback
                 accessible={accessible}
                 accessibilityLabel={accessibilityLabel}
-                id={semanticRowID === null ? undefined : (semanticRowID ?? id ?? `table-row-${item.keyForList}`)}
-                aria-hidden={semanticRowID === null || ariaHidden === true ? true : undefined}
+                id={isAccessibilityHidden ? undefined : (semanticRowID ?? id ?? `table-row-${item.keyForList}`)}
+                aria-hidden={isAccessibilityHidden ? true : undefined}
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={interactive}
@@ -256,6 +261,9 @@ export default function TableRow({
                 onPress={(event) => handleRowPress(event)}
                 onLongPress={handleRowLongPress}
                 {...props}
+                {...inertProps}
+                focusable={isAccessibilityHidden ? false : focusable}
+                tabIndex={isAccessibilityHidden ? -1 : tabIndex}
             >
                 {(state) => {
                     const rowCells = (

@@ -76,6 +76,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+    const inertProps = isAccessibilityHidden ? {inert: true} : {};
 
     if (shouldUseNarrowTableLayout && !title) {
         return null;
@@ -126,6 +127,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
             ]}
             {...getRowAccessibilityProps(isTableSemanticsEnabled, 0, true)}
             {...props}
+            {...inertProps}
         >
             {shouldUseNarrowTableLayout && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.gap3]}>

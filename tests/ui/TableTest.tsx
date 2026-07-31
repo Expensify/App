@@ -46,6 +46,7 @@ const mockTextInputNativeFocus = jest.fn();
 const mockTextInputNativeBlur = jest.fn();
 let mockNextTextInputInstanceID = 0;
 let mockFlashListProps: Array<MockFlashListProps<unknown>> = [];
+let mockFlashListMeasurementTargetIndexes: number[] = [];
 let mockShouldUseNarrowLayout = false;
 
 // Mock navigation
@@ -190,6 +191,25 @@ jest.mock('@shopify/flash-list', () => {
                                   </RNView>
                               );
                           })}
+                    {mockFlashListMeasurementTargetIndexes.map((index) => {
+                        const item = data.at(index);
+                        if (item === undefined) {
+                            return null;
+                        }
+
+                        return (
+                            <RNView
+                                key={`measurement-${index}`}
+                                testID={`flash-list-measurement-${index}`}
+                            >
+                                {props.renderItem?.({
+                                    item,
+                                    index,
+                                    target: 'Measurement',
+                                } as ListRenderItemInfo<unknown>)}
+                            </RNView>
+                        );
+                    })}
                     {stickyHeaderItem !== undefined && stickyHeaderIndex !== undefined && (
                         <RNView testID="flash-list-sticky-header">
                             {props.renderItem?.({
@@ -511,6 +531,12 @@ function getHostTableRows(): TestInstance[] {
     return screen.UNSAFE_getAllByProps({role: CONST.ROLE.ROW}).filter((row) => typeof row.type === 'string');
 }
 
+function getHostTableRowsWithin(container: TestInstance): TestInstance[] {
+    return within(container)
+        .UNSAFE_getAllByProps({role: CONST.ROLE.ROW})
+        .filter((row) => typeof row.type === 'string');
+}
+
 function expectNodeBefore(first: TestInstance, second: TestInstance) {
     const firstAncestors = new Set<TestInstance>();
     let ancestor = first.parent;
@@ -542,6 +568,7 @@ describe('Table', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockFlashListProps = [];
+        mockFlashListMeasurementTargetIndexes = [];
         mockShouldUseNarrowLayout = false;
     });
 
@@ -778,6 +805,11 @@ describe('Table', () => {
             expect(within(table).queryByTestId('table-header-component')).toBeNull();
             expect(table.props.style).toBeUndefined();
             expectNodeBefore(pageControls, table);
+            const firstOwnedRow = rows.at(0);
+            if (!firstOwnedRow) {
+                throw new Error('Expected the semantic table to own at least one row');
+            }
+            expectNodeBefore(table, firstOwnedRow);
             expect(ownedRowIDs).toEqual(rows.map((row) => String(row.props.id)));
             expect(table.props['aria-rowcount']).toBe(props.data.length + 1);
             expect(table.props['aria-colcount']).toBe(props.columns.length);
@@ -895,6 +927,116 @@ describe('Table', () => {
                     .some((node) => node.props.disabled === false && node.props.tabIndex === undefined),
             ).toBe(true);
             expect(screen.getByTestId('flash-list-sticky-header')).toBeTruthy();
+        });
+
+        it('should keep FlashList measurement copies inert without remounting the focused search input', () => {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive
+                    accessibilityLabel={item.name}
+                >
+                    <View role={CONST.ROLE.CELL}>
+                        <Text>{item.name}</Text>
+                    </View>
+                    <View role={CONST.ROLE.CELL}>
+                        <Text>{item.category}</Text>
+                    </View>
+                    <View role={CONST.ROLE.CELL}>
+                        <Text>{item.value}</Text>
+                    </View>
+                </Table.Row>
+            );
+            const renderTable = () => (
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                    headerComponent={
+                        <>
+                            <Text testID="table-header-component">Page controls</Text>
+                            <Table.FilterBar label="Search" />
+                        </>
+                    }
+                    shouldUseStickyColumnHeader
+                    title="Members"
+                    selectionEnabled
+                    selectedKeys={[]}
+                    onRowSelectionChange={jest.fn()}
+                >
+                    <Table.Body />
+                </Table>
+            );
+
+            // The synthetic page header is index 0, the column header is 1, and the first data row is 2.
+            mockFlashListMeasurementTargetIndexes = [1, 2];
+            const {rerender} = render(renderTable());
+
+            const table = screen.getByLabelText('Members');
+            const [rowGroup] = table.children;
+            if (!rowGroup || typeof rowGroup === 'string') {
+                throw new Error('Expected the semantic table to contain a rowgroup');
+            }
+            const ownedRowIDs = String(rowGroup.props['aria-owns']).split(' ');
+            const visibleRows = getHostTableRows().filter((row) => row.props['aria-hidden'] !== true);
+            const firstOwnedRow = visibleRows.at(0);
+            if (!firstOwnedRow) {
+                throw new Error('Expected the semantic table to own at least one visible row');
+            }
+            expectNodeBefore(screen.getByTestId('table-header-component'), table);
+            expectNodeBefore(table, firstOwnedRow);
+            expect(ownedRowIDs).toEqual(visibleRows.map((row) => String(row.props.id)));
+
+            const measurementHeader = getHostTableRowsWithin(screen.getByTestId('flash-list-measurement-1')).at(0);
+            const measurementDataRow = getHostTableRowsWithin(screen.getByTestId('flash-list-measurement-2')).at(0);
+            if (!measurementHeader || !measurementDataRow) {
+                throw new Error('Expected FlashList measurement copies for the header and first data row');
+            }
+            expect(measurementHeader.props['aria-hidden']).toBe(true);
+            expect(measurementHeader.props.id).toBeUndefined();
+            expect(measurementHeader.props.inert).toBe(true);
+            expect(measurementDataRow.props['aria-hidden']).toBe(true);
+            expect(measurementDataRow.props.id).toBeUndefined();
+            expect(measurementDataRow.props.inert).toBe(true);
+            expect(
+                within(measurementHeader)
+                    .UNSAFE_getAllByProps({accessibilityLabel: 'Name'})
+                    .some((node) => node.props.disabled === true && node.props.tabIndex === -1),
+            ).toBe(true);
+            expect(
+                within(measurementHeader)
+                    .UNSAFE_getAllByProps({accessibilityLabel: 'workspace.common.selectAll'})
+                    .some((node) => node.props.disabled === true && node.props.tabIndex === -1),
+            ).toBe(true);
+            expect(
+                within(measurementDataRow)
+                    .UNSAFE_getAllByProps({accessibilityLabel: 'Apple'})
+                    .some((node) => node.props.disabled === true && node.props.focusable === false && node.props.tabIndex === -1),
+            ).toBe(true);
+            expect(
+                within(measurementDataRow)
+                    .UNSAFE_getAllByProps({accessibilityLabel: 'common.select'})
+                    .some((node) => node.props.disabled === true && node.props.tabIndex === -1),
+            ).toBe(true);
+
+            const searchInput = screen.getByTestId('search-input');
+            const searchInputNativeID: unknown = searchInput.props.nativeID;
+            fireEvent(searchInput, 'focus');
+            fireEvent.changeText(searchInput, 'a');
+
+            mockFlashListMeasurementTargetIndexes = [];
+            rerender(renderTable());
+
+            expect(screen.getByTestId('search-input').props.nativeID).toBe(searchInputNativeID);
+            expect(screen.getByTestId('search-input').props.value).toBe('a');
+            expect(mockFlashListMount).toHaveBeenCalledTimes(1);
+            expect(mockFlashListUnmount).not.toHaveBeenCalled();
+            expect(mockTextInputMount).toHaveBeenCalledTimes(1);
+            expect(mockTextInputUnmount).not.toHaveBeenCalled();
+            expect(mockTextInputNativeBlur).not.toHaveBeenCalled();
         });
 
         it('should preserve a composed search slot when an earlier optional header slot toggles', () => {
