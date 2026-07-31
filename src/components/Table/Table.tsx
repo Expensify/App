@@ -26,7 +26,7 @@ import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
-import {getTableDataRowID, getTableHeaderRowID, shouldUseTableSemantics} from './tableAccessibility';
+import {shouldUseTableSemantics} from './tableAccessibility';
 import {doesBodyRenderWhenEmpty} from './TableBody';
 import TableContext from './TableContext';
 import TableEmptyState from './TableEmptyStates/TableEmptyState';
@@ -346,23 +346,19 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // The selection checkbox renders as an extra leading column when selection is enabled (always visible in the wide
     // web layout where semantics apply), so it has to be counted alongside the configured data columns.
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
-    const shouldOwnRowsByID = isTableSemanticsEnabled && tableListMetadata.hasPageHeader;
-    const semanticOwnedRowIDs = shouldOwnRowsByID ? [getTableHeaderRowID(semanticTableID), ...processedData.map((_, rowIndex) => getTableDataRowID(semanticTableID, rowIndex))] : undefined;
 
     // In the normal inline semantic layout, an empty body with a list slot still needs its enclosing table wrapper.
-    // Page-header tables use detached row ownership below, so their empty branch is handled separately.
+    // Page-header tables place their row owner after the controls inside TableBody, preserving accessibility order.
     const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps, headerComponent);
 
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
             <TableSemanticContainer
-                isEnabled={isTableSemanticsEnabled}
+                isEnabled={isTableSemanticsEnabled && !tableListMetadata.hasPageHeader}
                 title={title}
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
-                shouldOwnRowsByID={shouldOwnRowsByID}
-                ownedRowIDs={semanticOwnedRowIDs}
             >
                 {renderedChildren}
             </TableSemanticContainer>

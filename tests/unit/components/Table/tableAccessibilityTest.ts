@@ -32,6 +32,7 @@ const {
     getTableHeaderRowID,
     getTableDataRowID,
     getRowAccessibilityProps,
+    getVirtualizedRowSemanticID,
     getColumnHeaderAccessibilityProps,
     getCellAccessibilityProps,
     assignCellColumnIndexes,
@@ -98,6 +99,10 @@ describe('tableAccessibility', () => {
                 'aria-colcount': 4,
             });
         });
+
+        it('reports only data rows when the current layout has no exposed header', () => {
+            expect(getTableContainerAccessibilityProps(true, 'Members', 3, 4, false)['aria-rowcount']).toBe(3);
+        });
     });
 
     describe('getRowGroupAccessibilityProps', () => {
@@ -142,6 +147,26 @@ describe('tableAccessibility', () => {
                 'aria-rowindex': 2,
             });
             expect(getRowAccessibilityProps(true, 5)['aria-rowindex']).toBe(7);
+        });
+
+        it('starts data rows at index 1 when the current layout has no exposed header', () => {
+            expect(getRowAccessibilityProps(true, 0, false, false)).toEqual({
+                role: CONST.ROLE.ROW,
+                'aria-rowindex': 1,
+            });
+            expect(getRowAccessibilityProps(true, 5, false, false)['aria-rowindex']).toBe(6);
+        });
+    });
+
+    describe('getVirtualizedRowSemanticID', () => {
+        it('assigns the owned ID only to the real cell and hides virtualization clones', () => {
+            expect(getVirtualizedRowSemanticID(true, 'Cell', 'members-data-row-0')).toBe('members-data-row-0');
+            expect(getVirtualizedRowSemanticID(true, 'Measurement', 'members-data-row-0')).toBeNull();
+            expect(getVirtualizedRowSemanticID(true, 'StickyHeader', 'members-data-row-0')).toBeNull();
+        });
+
+        it('leaves row semantics untouched when table semantics are disabled', () => {
+            expect(getVirtualizedRowSemanticID(false, 'Measurement', 'members-data-row-0')).toBeUndefined();
         });
     });
 

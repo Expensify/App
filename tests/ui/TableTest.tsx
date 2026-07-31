@@ -9,6 +9,7 @@ import type Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ReactTestInstance} from 'react-test-renderer';
 
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
@@ -505,6 +506,37 @@ function activateStickyHeadersAfterListLoad() {
     requestAnimationFrameSpy.mockRestore();
 }
 
+function getHostTableRows(): ReactTestInstance[] {
+    return screen.UNSAFE_getAllByProps({role: CONST.ROLE.ROW}).filter((row) => typeof row.type === 'string');
+}
+
+function expectNodeBefore(first: ReactTestInstance, second: ReactTestInstance) {
+    const firstAncestors = new Set<ReactTestInstance>();
+    let ancestor = first.parent;
+    while (ancestor) {
+        firstAncestors.add(ancestor);
+        ancestor = ancestor.parent;
+    }
+
+    let commonAncestor = second.parent;
+    while (commonAncestor && !firstAncestors.has(commonAncestor)) {
+        commonAncestor = commonAncestor.parent;
+    }
+    if (!commonAncestor) {
+        throw new Error('Expected both nodes to have a common rendered ancestor');
+    }
+
+    const getBranchBelow = (node: ReactTestInstance) => {
+        let branch = node;
+        while (branch.parent && branch.parent !== commonAncestor) {
+            branch = branch.parent;
+        }
+        return branch;
+    };
+    const siblings = commonAncestor.children.filter((child): child is ReactTestInstance => typeof child !== 'string');
+    expect(siblings.indexOf(getBranchBelow(first))).toBeLessThan(siblings.indexOf(getBranchBelow(second)));
+}
+
 describe('Table', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -739,13 +771,62 @@ describe('Table', () => {
                 throw new Error('Expected the semantic table to contain a rowgroup');
             }
             const ownedRowIDs = String(rowGroup.props['aria-owns']).split(' ');
-            const rows = screen.UNSAFE_getAllByProps({role: CONST.ROLE.ROW}).filter((row) => row.props['aria-hidden'] !== true);
+            const rows = getHostTableRows().filter((row) => row.props['aria-hidden'] !== true);
+            const pageControls = screen.getByTestId('table-header-component');
 
             expect(within(table).queryByTestId('table-header-component')).toBeNull();
-            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expectNodeBefore(pageControls, table);
             expect(ownedRowIDs).toEqual(rows.map((row) => String(row.props.id)));
             expect(table.props['aria-rowcount']).toBe(props.data.length + 1);
             expect(table.props['aria-colcount']).toBe(props.columns.length);
+        });
+
+        it('should expose only data rows when a page-header table has no active column header', () => {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive={false}
+                    accessibilityLabel={item.name}
+                >
+                    <View role={CONST.ROLE.CELL}>
+                        <Text>{item.name}</Text>
+                    </View>
+                    <View role={CONST.ROLE.CELL}>
+                        <Text>{item.category}</Text>
+                    </View>
+                    <View role={CONST.ROLE.CELL}>
+                        <Text>{item.value}</Text>
+                    </View>
+                </Table.Row>
+            );
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                    headerComponent={<Text testID="table-header-component">Page controls</Text>}
+                    title="Members"
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            const table = screen.getByLabelText('Members');
+            const [rowGroup] = table.children;
+            if (!rowGroup || typeof rowGroup === 'string') {
+                throw new Error('Expected the semantic table to contain a rowgroup');
+            }
+            const ownedRowIDs = String(rowGroup.props['aria-owns']).split(' ');
+            const rows = getHostTableRows().filter((row) => row.props['aria-hidden'] !== true);
+
+            expectNodeBefore(screen.getByTestId('table-header-component'), table);
+            expect(ownedRowIDs).toEqual(rows.map((row) => String(row.props.id)));
+            expect(ownedRowIDs.some((id) => id.endsWith('-header-row'))).toBe(false);
+            expect(table.props['aria-rowcount']).toBe(props.data.length);
+            expect(rows.at(0)?.props['aria-rowindex']).toBe(1);
         });
 
         it('should transfer the semantic header ID to the sticky clone without exposing a duplicate row', () => {
@@ -760,12 +841,15 @@ describe('Table', () => {
                     headerComponent={<Text>Page controls</Text>}
                     shouldUseStickyColumnHeader
                     title="Members"
+                    selectionEnabled
+                    selectedKeys={[]}
+                    onRowSelectionChange={jest.fn()}
                 >
                     <Table.Body />
                 </Table>,
             );
 
-            const initialHeaders = screen.UNSAFE_getAllByProps({role: CONST.ROLE.ROW}).filter((row) => row.props['aria-rowindex'] === 1 && row.props['aria-hidden'] !== true);
+            const initialHeaders = getHostTableRows().filter((row) => row.props['aria-rowindex'] === 1 && row.props['aria-hidden'] !== true);
             expect(initialHeaders).toHaveLength(1);
             const headerID: unknown = initialHeaders.at(0)?.props.id;
             expect(typeof headerID).toBe('string');
@@ -775,10 +859,25 @@ describe('Table', () => {
                 mockFlashListProps.at(-1)?.onChangeStickyIndex?.(1, -1);
             });
 
-            const accessibleHeaders = screen.UNSAFE_getAllByProps({role: CONST.ROLE.ROW}).filter((row) => row.props['aria-rowindex'] === 1 && row.props['aria-hidden'] !== true);
+            const allHeaders = getHostTableRows().filter((row) => row.props['aria-rowindex'] === 1);
+            const accessibleHeaders = allHeaders.filter((row) => row.props['aria-hidden'] !== true);
+            const hiddenHeaders = allHeaders.filter((row) => row.props['aria-hidden'] === true);
             expect(accessibleHeaders).toHaveLength(1);
+            expect(hiddenHeaders).toHaveLength(1);
             const accessibleHeaderID: unknown = accessibleHeaders.at(0)?.props.id;
             expect(accessibleHeaderID).toBe(headerID);
+
+            const hiddenHeader = hiddenHeaders.at(0);
+            const accessibleHeader = accessibleHeaders.at(0);
+            if (!hiddenHeader || !accessibleHeader) {
+                throw new Error('Expected one hidden and one accessible table header');
+            }
+            expect(hiddenHeader.findAllByProps({accessibilityLabel: 'Name'}).some((node) => node.props.disabled === true && node.props.tabIndex === -1)).toBe(true);
+            expect(hiddenHeader.findAllByProps({accessibilityLabel: 'workspace.common.selectAll'}).some((node) => node.props.disabled === true && node.props.tabIndex === -1)).toBe(true);
+            expect(accessibleHeader.findAllByProps({accessibilityLabel: 'Name'}).some((node) => node.props.disabled === false && node.props.tabIndex === undefined)).toBe(true);
+            expect(
+                accessibleHeader.findAllByProps({accessibilityLabel: 'workspace.common.selectAll'}).some((node) => node.props.disabled === false && node.props.tabIndex === undefined),
+            ).toBe(true);
             expect(screen.getByTestId('flash-list-sticky-header')).toBeTruthy();
         });
 

@@ -16,9 +16,10 @@ import {StyleSheet, View} from 'react-native';
 import type {TableData} from '.';
 
 import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getSyntheticRowKind} from './buildTableListData';
-import {getRowGroupAccessibilityProps, getTableDataRowID, getTableHeaderRowID, shouldUseTableSemantics} from './tableAccessibility';
-import {TableRowSemanticIDContext, useTableContext} from './TableContext';
+import {getRowGroupAccessibilityProps, getTableDataRowID, getTableHeaderRowID, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
+import {TableRowHasHeaderContext, TableRowSemanticIDContext, useTableContext} from './TableContext';
 import TableHeader from './TableHeader';
+import {TableSemanticRowOwner} from './TableSemanticContainer';
 
 /**
  * Props for the TableBody component.
@@ -82,6 +83,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         listRef,
         listContainerRef,
         trackScrollOffset,
+        title,
+        columns,
+        selectionEnabled,
         shouldUseNarrowTableLayout,
         headerComponent,
         emptyStateElement,
@@ -125,6 +129,11 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
     const shouldOwnRowsByID = isTableSemanticsEnabled && tableListMetadata.hasPageHeader;
     const shouldApplyBodyRowGroup = isTableSemanticsEnabled && !shouldOwnRowsByID;
+    const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
+    const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
+    const semanticOwnedRowIDs = shouldOwnRowsByID
+        ? [...(semanticTableHasHeader ? [getTableHeaderRowID(semanticTableID)] : []), ...filteredAndSortedData.map((_, rowIndex) => getTableDataRowID(semanticTableID, rowIndex))]
+        : undefined;
     const [previousHasRows, setPreviousHasRows] = useState(hasRows);
     if (previousHasRows !== hasRows) {
         setPreviousHasRows(hasRows);
@@ -178,6 +187,14 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         <View>
             {renderListComponent(ListHeaderComponent)}
             {headerComponent}
+            <TableSemanticRowOwner
+                isEnabled={shouldOwnRowsByID}
+                title={title}
+                rowCount={filteredAndSortedData.length}
+                columnCount={semanticColumnCount}
+                hasHeaderRow={semanticTableHasHeader}
+                ownedRowIDs={semanticOwnedRowIDs}
+            />
         </View>
     );
 
@@ -277,31 +294,29 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 return pageHeaderElement;
             case 'tableHeader': {
                 const isAccessibleTableHeader = info.target === (isTableHeaderSticky ? 'StickyHeader' : 'Cell');
+                const isAccessibilityHidden = isTableSemanticsEnabled && !isAccessibleTableHeader;
                 return (
                     <TableHeader
                         isStickyListHeader
                         id={shouldOwnRowsByID && isAccessibleTableHeader ? getTableHeaderRowID(semanticTableID) : undefined}
-                        aria-hidden={isTableSemanticsEnabled && !isAccessibleTableHeader ? true : undefined}
+                        aria-hidden={isAccessibilityHidden ? true : undefined}
+                        isAccessibilityHidden={isAccessibilityHidden}
                     />
                 );
             }
             case 'data':
             default: {
                 const dataIndex = getDataIndex(info.index, renderedTableListMetadata);
-                let semanticRowID: string | null | undefined;
-                if (isTableSemanticsEnabled) {
-                    semanticRowID = info.target === 'Cell' ? undefined : null;
-                    if (info.target === 'Cell' && shouldOwnRowsByID) {
-                        semanticRowID = getTableDataRowID(semanticTableID, dataIndex);
-                    }
-                }
+                const semanticRowID = getVirtualizedRowSemanticID(isTableSemanticsEnabled, info.target, shouldOwnRowsByID ? getTableDataRowID(semanticTableID, dataIndex) : undefined);
                 return (
-                    <TableRowSemanticIDContext.Provider value={semanticRowID}>
-                        {renderItem?.({
-                            ...info,
-                            index: dataIndex,
-                        }) ?? null}
-                    </TableRowSemanticIDContext.Provider>
+                    <TableRowHasHeaderContext.Provider value={semanticTableHasHeader}>
+                        <TableRowSemanticIDContext.Provider value={semanticRowID}>
+                            {renderItem?.({
+                                ...info,
+                                index: dataIndex,
+                            }) ?? null}
+                        </TableRowSemanticIDContext.Provider>
+                    </TableRowHasHeaderContext.Provider>
                 );
             }
         }

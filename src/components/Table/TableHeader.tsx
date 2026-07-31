@@ -35,6 +35,9 @@ const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
 type TableHeaderProps = ViewProps & {
     /** Whether this header is rendered as a sticky FlashList item. */
     isStickyListHeader?: boolean;
+
+    /** Whether this duplicate sticky-header render must be hidden and removed from keyboard focus. */
+    isAccessibilityHidden?: boolean;
 };
 
 /**
@@ -60,7 +63,7 @@ type TableHeaderProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, isStickyListHeader = false, ...props}: TableHeaderProps) {
+function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, isStickyListHeader = false, isAccessibilityHidden = false, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -129,11 +132,12 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                     {!!isSelectionCheckboxVisible && (
                         <Checkbox
                             containerStyle={styles.m0}
-                            disabled={!hasSelectableRows}
+                            disabled={isAccessibilityHidden || !hasSelectableRows}
                             isChecked={isEverySelectableRowSelected}
                             isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
                             onPress={tableMethods.handleSelectAll}
                             accessibilityLabel={translate('workspace.common.selectAll')}
+                            tabIndex={isAccessibilityHidden ? -1 : undefined}
                             style={styles.pl1}
                         />
                     )}
@@ -156,11 +160,12 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                         // accessibility props are empty otherwise, leaving the checkbox's layout unchanged.
                         <View {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, 1)}>
                             <Checkbox
-                                disabled={!hasSelectableRows}
+                                disabled={isAccessibilityHidden || !hasSelectableRows}
                                 isChecked={isEverySelectableRowSelected}
                                 isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
                                 onPress={tableMethods.handleSelectAll}
                                 accessibilityLabel={translate('workspace.common.selectAll')}
+                                tabIndex={isAccessibilityHidden ? -1 : undefined}
                             />
                         </View>
                     )}
@@ -170,6 +175,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                             <TableHeaderColumn
                                 column={column}
                                 isTableSemanticsEnabled={isTableSemanticsEnabled}
+                                isAccessibilityHidden={isAccessibilityHidden}
                                 // 1-based, and offset by the leading selection column (column 1) when present, so it
                                 // aligns with the matching data cell's aria-colindex.
                                 columnIndex={index + 1 + (isSelectionCheckboxVisible ? 1 : 0)}
@@ -198,10 +204,12 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
 function TableHeaderColumn<DataType extends TableData, ColumnKey extends string = string>({
     column,
     isTableSemanticsEnabled,
+    isAccessibilityHidden,
     columnIndex,
 }: {
     column: TableColumn<ColumnKey>;
     isTableSemanticsEnabled: boolean;
+    isAccessibilityHidden: boolean;
     columnIndex: number;
 }) {
     const theme = useTheme();
@@ -280,7 +288,8 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             accessible
             accessibilityLabel={column.label}
             accessibilityRole="button"
-            disabled={!column.sortable}
+            disabled={isAccessibilityHidden || !column.sortable}
+            tabIndex={isAccessibilityHidden ? -1 : undefined}
             sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
             // In the semantic path the column's flex sizing lives on the columnheader cell wrapper below, so the button
             // just fills it — `flex1` on both the pressable and its OpacityView wrapper (`wrapperStyle`) so neither

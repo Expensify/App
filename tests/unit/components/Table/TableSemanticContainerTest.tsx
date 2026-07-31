@@ -2,7 +2,7 @@ import {render, screen, within} from '@testing-library/react-native';
 
 import TableBody from '@components/Table/TableBody';
 import TableHeader from '@components/Table/TableHeader';
-import TableSemanticContainer from '@components/Table/TableSemanticContainer';
+import TableSemanticContainer, {TableSemanticRowOwner} from '@components/Table/TableSemanticContainer';
 
 import CONST from '@src/CONST';
 
@@ -29,13 +29,7 @@ jest.mock('@components/Table/TableBody', () => {
 
 function renderContainer(
     children: React.ReactNode,
-    {
-        isEnabled = true,
-        rowCount = 3,
-        rendersBodyWhenEmpty = false,
-        shouldOwnRowsByID = false,
-        ownedRowIDs,
-    }: {isEnabled?: boolean; rowCount?: number; rendersBodyWhenEmpty?: boolean; shouldOwnRowsByID?: boolean; ownedRowIDs?: string[]} = {},
+    {isEnabled = true, rowCount = 3, rendersBodyWhenEmpty = false}: {isEnabled?: boolean; rowCount?: number; rendersBodyWhenEmpty?: boolean} = {},
 ) {
     render(
         <TableSemanticContainer
@@ -44,8 +38,6 @@ function renderContainer(
             rowCount={rowCount}
             columnCount={4}
             rendersBodyWhenEmpty={rendersBodyWhenEmpty}
-            shouldOwnRowsByID={shouldOwnRowsByID}
-            ownedRowIDs={ownedRowIDs}
         >
             {children}
         </TableSemanticContainer>,
@@ -88,16 +80,27 @@ describe('TableSemanticContainer', () => {
         expect(within(table).getByTestId('stub-header')).toBeTruthy();
     });
 
-    it('keeps a scrolling page header and body outside the table while owning only its virtualized rows', () => {
-        const pageControls = React.createElement(View, {key: 'controls', testID: 'page-controls'});
+    it('places a page-header row owner after controls without affecting layout', () => {
         const ownedRowIDs = ['members-header-row', 'members-data-row-0', 'members-data-row-1', 'members-data-row-2'];
-        renderContainer([pageControls, React.createElement(TableHeader, {key: 'h'}), React.createElement(TableBody, {key: 'b'})], {
-            shouldOwnRowsByID: true,
-            ownedRowIDs,
-        });
+        render(
+            <View testID="semantic-order">
+                <View testID="page-controls" />
+                <TableSemanticRowOwner
+                    isEnabled
+                    title="Members"
+                    rowCount={3}
+                    columnCount={4}
+                    hasHeaderRow
+                    ownedRowIDs={ownedRowIDs}
+                />
+                <View testID="virtualized-rows" />
+            </View>,
+        );
 
         const table = screen.getByLabelText('Members');
         expect(table.props.style).toBeUndefined();
+        expect(table.props['aria-rowcount']).toBe(4);
+        expect(table.props['aria-colcount']).toBe(4);
         const [rowGroup] = table.children;
         expect(rowGroup).toBeDefined();
         expect(typeof rowGroup).not.toBe('string');
@@ -107,25 +110,59 @@ describe('TableSemanticContainer', () => {
         expect(rowGroup.props.role).toBe(CONST.ROLE.ROWGROUP);
         expect(rowGroup.props['aria-owns']).toBe(ownedRowIDs.join(' '));
 
+        const pageControls = screen.getByTestId('page-controls');
+        const virtualizedRows = screen.getByTestId('virtualized-rows');
         expect(within(table).queryByTestId('page-controls')).toBeNull();
-        expect(within(table).queryByTestId('stub-header')).toBeNull();
-        expect(within(table).queryByTestId('stub-body')).toBeNull();
-        expect(screen.getByTestId('page-controls')).toBeTruthy();
-        expect(screen.getByTestId('stub-header')).toBeTruthy();
-        expect(screen.getByTestId('stub-body')).toBeTruthy();
+        expect(within(table).queryByTestId('virtualized-rows')).toBeNull();
+        expect(table.parent).toBe(pageControls.parent);
+        expect(table.parent).toBe(virtualizedRows.parent);
+        const siblingOrder = table.parent?.children ?? [];
+        expect(siblingOrder.indexOf(pageControls)).toBeLessThan(siblingOrder.indexOf(table));
+        expect(siblingOrder.indexOf(table)).toBeLessThan(siblingOrder.indexOf(virtualizedRows));
     });
 
-    it('does not expose an empty detached table for page-header controls', () => {
-        renderContainer([React.createElement(View, {key: 'controls', testID: 'page-controls'}), React.createElement(TableBody, {key: 'b'})], {
-            rowCount: 0,
-            rendersBodyWhenEmpty: true,
-            shouldOwnRowsByID: true,
-            ownedRowIDs: [],
-        });
+    it('does not reserve a header row when a page-header table has no active column header', () => {
+        const ownedRowIDs = ['members-data-row-0', 'members-data-row-1', 'members-data-row-2'];
+        render(
+            <TableSemanticRowOwner
+                isEnabled
+                title="Members"
+                rowCount={3}
+                columnCount={4}
+                hasHeaderRow={false}
+                ownedRowIDs={ownedRowIDs}
+            />,
+        );
+
+        const table = screen.getByLabelText('Members');
+        const [rowGroup] = table.children;
+        expect(table.props['aria-rowcount']).toBe(3);
+        expect(typeof rowGroup).not.toBe('string');
+        if (!rowGroup || typeof rowGroup === 'string') {
+            throw new Error('Expected the semantic table to contain a rowgroup');
+        }
+        expect(rowGroup.props['aria-owns']).toBe(ownedRowIDs.join(' '));
+    });
+
+    it('does not expose an empty page-header row owner', () => {
+        render(
+            <View>
+                <View testID="page-controls" />
+                <TableSemanticRowOwner
+                    isEnabled
+                    title="Members"
+                    rowCount={0}
+                    columnCount={4}
+                    hasHeaderRow
+                    ownedRowIDs={[]}
+                />
+                <View testID="virtualized-rows" />
+            </View>,
+        );
 
         expect(screen.queryByLabelText('Members')).toBeNull();
         expect(screen.getByTestId('page-controls')).toBeTruthy();
-        expect(screen.getByTestId('stub-body')).toBeTruthy();
+        expect(screen.getByTestId('virtualized-rows')).toBeTruthy();
     });
 
     it('skips the table wrapper for an empty table when the body renders nothing', () => {

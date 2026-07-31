@@ -147,6 +147,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
 
 const TableContext = createContext(defaultTableContextValue);
 const TableRowSemanticIDContext = createContext<string | null | undefined>(undefined);
+const TableRowHasHeaderContext = createContext(true);
 
 /**
  * Hook to access the Table context.
@@ -179,6 +180,10 @@ function useTableRowSemanticID() {
     return useContext(TableRowSemanticIDContext);
 }
 
+function useTableRowHasHeader() {
+    return useContext(TableRowHasHeaderContext);
+}
+
 export default TableContext;
-export {TableRowSemanticIDContext, useTableContext, useTableRowSemanticID};
+export {TableRowHasHeaderContext, TableRowSemanticIDContext, useTableContext, useTableRowHasHeader, useTableRowSemanticID};
 export type {TableContextValue};
