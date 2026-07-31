@@ -7,11 +7,11 @@ import * as Member from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
 import type {NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -21,6 +21,7 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -35,8 +36,8 @@ describe('actions/PolicyMember', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.createGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -47,10 +48,8 @@ describe('actions/PolicyMember', () => {
                 ...createRandomReport(0, undefined),
                 policyID: fakePolicy.id,
             };
-            const fakeReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
-            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
+            const fakeReportAction = createRandomReportAction(0);
+            fakeReportAction.actionName = CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST;
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
@@ -66,12 +65,19 @@ describe('actions/PolicyMember', () => {
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
 
-                        const reportAction = reportActions?.[fakeReportAction.reportActionID] as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
+                        const reportAction = reportActions?.[fakeReportAction.reportActionID];
 
-                        if (!isEmptyObject(reportAction)) {
-                            expect(ReportActionsUtils.getOriginalMessage(reportAction)?.choice)?.toBe(CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT);
-                            expect(reportAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        if (!reportAction) {
+                            throw new Error('Expected the optimistic report action to exist');
                         }
+                        if (isEmptyObject(reportAction)) {
+                            throw new Error('Expected the optimistic report action to be populated');
+                        }
+                        if (!ReportActionsUtils.isActionableJoinRequest(reportAction)) {
+                            throw new Error('Expected the optimistic report action to be an actionable join request');
+                        }
+                        expect(ReportActionsUtils.getOriginalMessage(reportAction)?.choice).toBe(CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT);
+                        expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         resolve();
                     },
                 });
@@ -715,17 +721,18 @@ describe('actions/PolicyMember', () => {
                 );
 
             type BuildResult = ReturnType<typeof buildForCurrentUser>;
+            type ReportActionsUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
+            type ReportActionsValueUpdate = Extract<ReportActionsUpdate, {onyxMethod: typeof Onyx.METHOD.SET | typeof Onyx.METHOD.MERGE}>;
+            type ReportActionsValue = NonNullable<ReportActionsValueUpdate['value']>;
+            type ReportActionUpdateEntry = NonNullable<ReportActionsValue[string]>;
 
-            const findOptimisticCreatedAction = (optimisticData: BuildResult['optimisticData']) => {
-                for (const update of optimisticData) {
-                    if (!update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
-                        continue;
-                    }
-                    const value = update.value as Record<string, ReportAction> | null | undefined;
-                    if (!value) {
-                        continue;
-                    }
-                    const createdAction = Object.values(value).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+            const findOptimisticCreatedAction = (optimisticData: BuildResult['optimisticData']): ReportActionUpdateEntry | undefined => {
+                const reportActionsUpdates = optimisticData.filter(
+                    (update): update is ReportActionsValueUpdate =>
+                        (update.onyxMethod === Onyx.METHOD.SET || update.onyxMethod === Onyx.METHOD.MERGE) && update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS),
+                );
+                for (const update of reportActionsUpdates) {
+                    const createdAction = Object.values(update.value ?? {}).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
                     if (createdAction) {
                         return createdAction;
                     }
@@ -870,14 +877,14 @@ describe('actions/PolicyMember', () => {
                     [userEmail]: {role: CONST.POLICY.ROLE.USER},
                 },
                 connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: createMock<NetSuiteConnection>({
                         verified: true,
                         accountID: '123456',
                         options: {
-                            data: {} as NetSuiteConnectionData,
-                            config: {
+                            data: createMock<NetSuiteConnectionData>({}),
+                            config: createMock<NetSuiteConnectionConfig>({
                                 exporter: adminEmail,
-                            } as NetSuiteConnectionConfig,
+                            }),
                         },
                         lastSync: {
                             errorDate: '',
@@ -888,7 +895,7 @@ describe('actions/PolicyMember', () => {
                             source: 'NEWEXPENSIFY',
                             successfulDate: '',
                         },
-                    } as NetSuiteConnection,
+                    }),
                 },
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
@@ -1261,12 +1268,12 @@ describe('actions/PolicyMember', () => {
             await waitForBatchedUpdates();
 
             // Then the draft should be saved to the correct Onyx key
-            const draft = await new Promise<typeof invitedEmailsToAccountIDs | null | undefined>((resolve) => {
+            const draft = await new Promise<InvitedEmailsToAccountIDs | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as typeof invitedEmailsToAccountIDs | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1307,7 +1314,7 @@ describe('actions/PolicyMember', () => {
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1343,7 +1350,7 @@ describe('actions/PolicyMember', () => {
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1375,7 +1382,7 @@ describe('actions/PolicyMember', () => {
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID1}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1385,7 +1392,7 @@ describe('actions/PolicyMember', () => {
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID2}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1417,7 +1424,7 @@ describe('actions/PolicyMember', () => {
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1448,7 +1455,7 @@ describe('actions/PolicyMember', () => {
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
