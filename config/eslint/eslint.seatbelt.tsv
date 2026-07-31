@@ -328,7 +328,6 @@
 "../../src/components/ReportActionItem/MoneyReportView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/components/ReportActionItem/MoneyRequestReportPreview/useReportPreviewActionDecision.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/ReportActionItem/MoneyRequestView.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	2
 "../../src/components/ReportActionItem/TaskPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TaskView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -562,7 +561,6 @@
 "../../src/hooks/usePrevious.ts"	"react-hooks/refs"	1
 "../../src/hooks/useReceiptScanDrop.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useReportScrollManager/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useReportTransactionViolations.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/hooks/useResetBankAccountModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResponsiveLayout/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResponsiveLayout/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1343,7 +1341,6 @@
 "../../src/pages/settings/Wallet/ExpensifyCardPage/ChangePINPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/PersonalInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/substeps/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/substeps/AddressStep.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1376,7 +1373,6 @@
 "../../src/pages/signin/SignUpWelcomeForm.tsx"	"no-restricted-imports"	1
 "../../src/pages/signin/ValidateCodeForm/BaseValidateCodeForm.tsx"	"no-restricted-imports"	1
 "../../src/pages/signin/ValidateCodeForm/BaseValidateCodeForm.tsx"	"react-hooks/set-state-in-effect"	4
-"../../src/pages/tasks/DynamicNewTaskDetailsPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/tasks/DynamicTaskShareDestinationSelectorModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/wallet/WalletStatementPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/DynamicWorkspaceConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
