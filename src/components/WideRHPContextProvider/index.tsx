@@ -15,7 +15,7 @@ import type {Report} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
@@ -51,6 +51,38 @@ const animatedWideRHPWidth = new Animated.Value(wideRHPWidth);
 // The left position values of overlays displayed in ModalStackNavigators. A detailed description of how these positions are calculated can be found in src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx
 const modalStackOverlayWideRHPPositionLeft = new Animated.Value(superWideRHPWidth - wideRHPWidth);
 const modalStackOverlaySuperWideRHPPositionLeft = new Animated.Value(superWideRHPWidth - singleRHPWidth);
+
+let visibleRHPRouteKeys: {wide: string[]; superWide: string[]} = {wide: [], superWide: []};
+const visibleRHPRouteKeysListeners = new Set<() => void>();
+
+function setVisibleRHPRouteKeysSnapshot(wide: string[], superWide: string[]) {
+    if (visibleRHPRouteKeys.wide === wide && visibleRHPRouteKeys.superWide === superWide) {
+        return;
+    }
+    visibleRHPRouteKeys = {wide, superWide};
+    for (const listener of visibleRHPRouteKeysListeners) {
+        listener();
+    }
+}
+
+function subscribeToVisibleRHPRouteKeys(listener: () => void): () => void {
+    visibleRHPRouteKeysListeners.add(listener);
+    return () => visibleRHPRouteKeysListeners.delete(listener);
+}
+
+/** Snapshot read for useSyncExternalStore: the width class a route is currently displayed at, if any. */
+function getVisibleRHPRouteWidth(routeKey: string | undefined): Exclude<RHPWidth, 'narrow'> | undefined {
+    if (!routeKey) {
+        return undefined;
+    }
+    if (visibleRHPRouteKeys.superWide.includes(routeKey)) {
+        return 'super-wide';
+    }
+    if (visibleRHPRouteKeys.wide.includes(routeKey)) {
+        return 'wide';
+    }
+    return undefined;
+}
 
 const WideRHPStateContext = createContext<WideRHPStateContextType>(defaultWideRHPStateContextValue);
 const WideRHPActionsContext = createContext<WideRHPActionsContextType>(defaultWideRHPActionsContextValue);
@@ -169,6 +201,11 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         syncRHPKeys();
     }, [allSuperWideRHPRouteKeys, allWideRHPRouteKeys, syncRHPKeys]);
+
+    // Layout effect so per-route subscribers see the flip before paint, same as context consumers would.
+    useLayoutEffect(() => {
+        setVisibleRHPRouteKeysSnapshot(wideRHPRouteKeys, superWideRHPRouteKeys);
+    }, [wideRHPRouteKeys, superWideRHPRouteKeys]);
 
     /**
      * Effect that manages the secondary overlay animation for single RHP displayed on Super Wide RHP and rendering state.
@@ -349,5 +386,7 @@ export {
     thirdOverlayProgress,
     useWideRHPState,
     useWideRHPActions,
+    subscribeToVisibleRHPRouteKeys,
+    getVisibleRHPRouteWidth,
 };
 export type {RHPWidth} from './types';

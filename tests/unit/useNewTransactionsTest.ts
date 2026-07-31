@@ -877,6 +877,73 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
     });
 });
 
+describe('useNewTransactions across report switches', () => {
+    const buildTransaction = (transactionID: string, reportID: string): Transaction => ({
+        transactionID,
+        amount: 100,
+        created: '2023-10-01',
+        currency: 'USD',
+        reportID,
+        merchant: '',
+    });
+    const reportATransactions = [buildTransaction('A1', 'reportA'), buildTransaction('A2', 'reportA')];
+    const reportBTransactions = [buildTransaction('B1', 'reportB'), buildTransaction('B2', 'reportB'), buildTransaction('B3', 'reportB')];
+
+    it('does not highlight anything when the same consumer switches to an already-loaded report with more transactions', () => {
+        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; reportID: string}>(
+            (props) => useNewTransactions(true, props.transactions, undefined, props.reportID, true),
+            {initialProps: {transactions: reportATransactions, reportID: 'reportA'}},
+        );
+
+        rerender({transactions: reportBTransactions, reportID: 'reportB'});
+        expect(result.current).toEqual([]);
+
+        const addedTransaction = buildTransaction('B4', 'reportB');
+        rerender({transactions: [...reportBTransactions, addedTransaction], reportID: 'reportB'});
+        expect(result.current).toEqual([addedTransaction]);
+    });
+
+    it('treats growth right after switching to a not-yet-loaded report as hydration, not an add', () => {
+        const [firstTransaction, secondTransaction, thirdTransaction] = reportBTransactions;
+        const {rerender, result} = renderHook<Transaction[], {hasOnceLoadedReportActions: boolean; transactions: Transaction[]; reportID: string}>(
+            (props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, undefined, props.reportID, true),
+            {initialProps: {hasOnceLoadedReportActions: true, transactions: reportATransactions, reportID: 'reportA'}},
+        );
+
+        rerender({hasOnceLoadedReportActions: false, transactions: [], reportID: 'reportB'});
+        rerender({hasOnceLoadedReportActions: true, transactions: [firstTransaction], reportID: 'reportB'});
+        rerender({hasOnceLoadedReportActions: true, transactions: [firstTransaction, secondTransaction], reportID: 'reportB'});
+        expect(result.current).toEqual([]);
+
+        rerender({hasOnceLoadedReportActions: true, transactions: [firstTransaction, secondTransaction, thirdTransaction], reportID: 'reportB'});
+        expect(result.current).toEqual([thirdTransaction]);
+    });
+
+    it('highlights a transaction again when it is removed and later re-added while the consumer stays mounted', () => {
+        jest.useFakeTimers();
+        try {
+            const [baseTransaction, readdedTransaction] = reportATransactions;
+            const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]}>((props) => useNewTransactions(true, props.transactions, undefined, 'reportA', true), {
+                initialProps: {transactions: [baseTransaction]},
+            });
+
+            rerender({transactions: [baseTransaction, readdedTransaction]});
+            expect(result.current).toEqual([readdedTransaction]);
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+            expect(result.current).toEqual([]);
+
+            rerender({transactions: [baseTransaction]});
+            rerender({transactions: [baseTransaction, readdedTransaction]});
+            expect(result.current).toEqual([readdedTransaction]);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+});
+
 afterAll(() => {
     jest.restoreAllMocks();
 });

@@ -3,7 +3,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
 import NAVIGATORS from '@src/NAVIGATORS';
 
 import {useRoute} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
+import {useEffect, useEffectEvent} from 'react';
 
 import type {RHPWidth} from '..';
 
@@ -25,19 +25,15 @@ function useRHPWidth(width: RHPWidth) {
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
     const {setRHPWidth, removeRHPRouteKey, getReportRHPWidthHint, unmarkReportRHPWidth} = useWideRHPActions();
 
-    const onClose = () => {
+    const onClose = useEffectEvent(() => {
         removeRHPRouteKey(route);
         // When the RHP has been closed, expandedRHPProgress should be set to 0.
         if (navigationRef?.getRootState()?.routes?.at(-1)?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             expandedRHPProgress.setValue(0);
         }
-    };
+    });
 
-    const onCloseRef = useRef(onClose);
-    useEffect(() => {
-        onCloseRef.current = onClose;
-    }, [onClose]);
-    useEffect(() => () => onCloseRef.current(), []);
+    useEffect(() => () => onClose(), []);
 
     // Register the width; a higher hint outranks the caller so the screen opens pre-marked before its data loads.
     useEffect(() => {

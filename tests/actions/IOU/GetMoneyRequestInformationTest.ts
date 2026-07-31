@@ -2,7 +2,7 @@ import {getMoneyRequestInformation} from '@libs/actions/IOU/MoneyRequestBuilder'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, PolicyTagLists, Report} from '@src/types/onyx';
+import type {Beta, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -219,12 +219,38 @@ describe('getMoneyRequestInformation', () => {
     describe('pendingNewTransactionIDs metadata rail', () => {
         const FLAGGED_AT = 1700000000000;
         let dateNowSpy: jest.SpyInstance;
-        beforeEach(() => {
+        beforeEach(async () => {
             dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(FLAGGED_AT);
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: PAYEE_ACCOUNT_ID, email: 'payee@example.com'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, type: CONST.POLICY.TYPE.CORPORATE, name: 'Test Policy'});
+            await waitForBatchedUpdates();
         });
         afterEach(() => {
             dateNowSpy.mockRestore();
         });
+
+        const buildExistingIOUReport = (reportID: string, transactionCount?: number): Report => ({
+            reportID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: PAYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            currency: 'USD',
+            total: 0,
+            ...(transactionCount !== undefined && {transactionCount}),
+        });
+
+        const setReportTransaction = (transactionID: string, reportID: string, pendingAction?: Transaction['pendingAction']) =>
+            Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                transactionID,
+                reportID,
+                amount: 500,
+                created: '2024-01-01',
+                currency: 'USD',
+                merchant: 'Existing Merchant',
+                ...(pendingAction && {pendingAction}),
+            });
 
         it('does not flag the first transaction of a report', () => {
             const result = getMoneyRequestInformation(baseParams);
@@ -238,22 +264,9 @@ describe('getMoneyRequestInformation', () => {
             );
         });
 
-        it('flags the transaction when the target report already holds a transaction', async () => {
-            await Onyx.set(ONYXKEYS.SESSION, {accountID: PAYEE_ACCOUNT_ID, email: 'payee@example.com'});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, type: CONST.POLICY.TYPE.CORPORATE, name: 'Test Policy'});
-            await waitForBatchedUpdates();
+        it('flags the transaction when the target report already holds a transaction', () => {
             const moneyRequestReportID = 'iou-report-rail-1';
-            const existingIOUReport = {
-                reportID: moneyRequestReportID,
-                policyID: POLICY_ID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: PAYEE_ACCOUNT_ID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                currency: 'USD',
-                total: 0,
-                transactionCount: 1,
-            };
+            const existingIOUReport = buildExistingIOUReport(moneyRequestReportID, 1);
 
             const result = getMoneyRequestInformation({...baseParams, existingIOUReport, moneyRequestReportID});
             const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
@@ -272,28 +285,9 @@ describe('getMoneyRequestInformation', () => {
         it('does not flag a transaction that is already on the target report', async () => {
             const moneyRequestReportID = 'iou-report-rail-3';
             const existingTransactionID = 'edit-tx-1';
-            await Onyx.set(ONYXKEYS.SESSION, {accountID: PAYEE_ACCOUNT_ID, email: 'payee@example.com'});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, type: CONST.POLICY.TYPE.CORPORATE, name: 'Test Policy'});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`, {
-                transactionID: existingTransactionID,
-                reportID: moneyRequestReportID,
-                amount: 500,
-                created: '2024-01-01',
-                currency: 'USD',
-                merchant: 'Existing Merchant',
-            });
+            await setReportTransaction(existingTransactionID, moneyRequestReportID);
             await waitForBatchedUpdates();
-            const existingIOUReport = {
-                reportID: moneyRequestReportID,
-                policyID: POLICY_ID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: PAYEE_ACCOUNT_ID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                currency: 'USD',
-                total: 0,
-                transactionCount: 2,
-            };
+            const existingIOUReport = buildExistingIOUReport(moneyRequestReportID, 2);
 
             const result = getMoneyRequestInformation({...baseParams, existingIOUReport, moneyRequestReportID, existingTransactionID});
             const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
@@ -308,33 +302,32 @@ describe('getMoneyRequestInformation', () => {
 
         it('flags the transaction even when the target report has no transaction count', async () => {
             const moneyRequestReportID = 'iou-report-rail-2';
-            await Onyx.set(ONYXKEYS.SESSION, {accountID: PAYEE_ACCOUNT_ID, email: 'payee@example.com'});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, type: CONST.POLICY.TYPE.CORPORATE, name: 'Test Policy'});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}existing-tx-1`, {
-                transactionID: 'existing-tx-1',
-                reportID: moneyRequestReportID,
-                amount: 500,
-                created: '2024-01-01',
-                currency: 'USD',
-                merchant: 'Existing Merchant',
-            });
+            await setReportTransaction('existing-tx-1', moneyRequestReportID);
             await waitForBatchedUpdates();
-            const existingIOUReport = {
-                reportID: moneyRequestReportID,
-                policyID: POLICY_ID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: PAYEE_ACCOUNT_ID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                currency: 'USD',
-                total: 0,
-            };
+            const existingIOUReport = buildExistingIOUReport(moneyRequestReportID);
 
             const result = getMoneyRequestInformation({...baseParams, existingIOUReport, moneyRequestReportID});
             const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
             const newTxID = result.transaction.transactionID;
 
             expect(result.onyxData.optimisticData ?? []).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: FLAGGED_AT})})}),
+                ]),
+            );
+        });
+
+        it('does not flag when the only existing transaction is pending deletion, even though the transaction count still includes it', async () => {
+            const moneyRequestReportID = 'iou-report-rail-4';
+            await setReportTransaction('deleted-tx-1', moneyRequestReportID, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            await waitForBatchedUpdates();
+            const existingIOUReport = buildExistingIOUReport(moneyRequestReportID, 1);
+
+            const result = getMoneyRequestInformation({...baseParams, existingIOUReport, moneyRequestReportID});
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
+            const newTxID = result.transaction.transactionID;
+
+            expect(result.onyxData.optimisticData ?? []).not.toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: FLAGGED_AT})})}),
                 ]),

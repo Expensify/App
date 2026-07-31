@@ -681,7 +681,9 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const addMakesReportMultiTransaction =
         isMoneyRequestReport(iou.report) &&
         !isTransactionAlreadyOnReport &&
-        ((iou.report?.transactionCount ?? 0) >= 2 || existingReportTransactions.some((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
+        (existingReportTransactions.length > 0
+            ? existingReportTransactions.some((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            : (iou.report?.transactionCount ?? 0) >= 2);
     if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && addMakesReportMultiTransaction) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,

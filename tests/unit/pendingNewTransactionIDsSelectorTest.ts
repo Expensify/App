@@ -16,10 +16,10 @@ describe('pendingNewTransactionIDsSelector', () => {
         expect(pendingNewTransactionIDsSelector(metadata)).toEqual({activeIDs: {fresh: true}, expiredIDs: ['stale']});
     });
 
-    it('classifies a pre-migration boolean flag as expired', () => {
+    it('keeps a pre-migration boolean flag active so it still delivers its one-shot highlight before being consumed', () => {
         const metadata: ReportMetadata = {pendingNewTransactionIDs: {legacy: true}};
 
-        expect(pendingNewTransactionIDsSelector(metadata)).toEqual({activeIDs: {}, expiredIDs: ['legacy']});
+        expect(pendingNewTransactionIDsSelector(metadata)).toEqual({activeIDs: {legacy: true}, expiredIDs: []});
     });
 
     it('returns undefined when there is nothing to show or sweep', () => {

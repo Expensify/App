@@ -34,7 +34,7 @@ const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetada
         if (flaggedAt == null) {
             continue;
         }
-        if (typeof flaggedAt === 'number' && now - flaggedAt < CONST.PENDING_TRANSACTION_FRESHNESS_WINDOW) {
+        if (flaggedAt === true || now - flaggedAt < CONST.PENDING_TRANSACTION_FRESHNESS_WINDOW) {
             activeIDs[transactionID] = true;
         } else {
             expiredIDs.push(transactionID);
