@@ -6089,7 +6089,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
 
     if (report.isWaitingOnBankAccount) {
         const submitterDisplayName = getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
-        return `started payment, but is waiting for ${submitterDisplayName} to add a bank account.`;
+        return `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`;
     }
 
     const lastActorID = iouReportAction?.actorAccountID;
