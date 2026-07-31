@@ -167,6 +167,10 @@ function ReportActionEditMessageContextProviderForNestedThread({children}: Props
     return <ReportActionEditMessageContextProvider reportID={nestedThreadReport.reportID}>{children}</ReportActionEditMessageContextProvider>;
 }
 
+function ReportActionEditMessageContextProviderForThread({children}: PropsWithChildren) {
+    return <ReportActionEditMessageContextProvider reportID={threadReport.reportID}>{children}</ReportActionEditMessageContextProvider>;
+}
+
 function ReportScreenProviders({children}: PropsWithChildren) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider, ReportActionEditMessageContextProviderForReport]}>{children}</ComposeProviders>;
 }
@@ -270,6 +274,16 @@ function renderNestedThreadNarrowMessageCompose() {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider, ReportActionEditMessageContextProviderForNestedThread]}>
             <ReportActionCompose reportID={nestedThreadReport.reportID} />
+        </ComposeProviders>,
+    );
+}
+
+function renderThreadNarrowMessageCompose() {
+    mockUseResponsiveLayout.mockReturnValue(narrowLayout);
+    mockRouteReportID.current = threadReport.reportID;
+    return render(
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider, ReportActionEditMessageContextProviderForThread]}>
+            <ReportActionCompose reportID={threadReport.reportID} />
         </ComposeProviders>,
     );
 }
@@ -469,6 +483,31 @@ describe('ReportActionMessageEdit layout and draft (narrow vs wide)', () => {
 
         expect(await getReportActionDraftMessage(rootChatReport.reportID, rootChatMessageAction.reportActionID)).toBe('Parent body, edited');
         expect(await getReportActionDraftMessage(nestedThreadReport.reportID, rootChatMessageAction.reportActionID)).toBeUndefined();
+    });
+
+    it('keeps a direct-parent edit draft on the parent report when editing from inside its own thread', async () => {
+        await seedNestedThreadHierarchyWithAncestorEditDraft('Parent body');
+        await waitForBatchedUpdatesWithAct();
+
+        renderThreadNarrowMessageCompose();
+        await waitForBatchedUpdatesWithAct();
+
+        const mainRoot = screen.getByTestId(testIds.REPORT_ACTION_COMPOSE);
+        const composer = within(mainRoot).getByTestId(CONST.COMPOSER.NATIVE_ID);
+        expect(screen.getByTestId(testIds.EDITING_MESSAGE_ACTION_ROW)).toBeOnTheScreen();
+        expect(composer.props.value).toBe('Parent body');
+
+        fireEvent.changeText(composer, 'Parent body, edited');
+        await act(async () => {
+            jest.advanceTimersByTime(CONST.TIMING.DRAFT_SAVE_DEBOUNCE_TIME + 1);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // The edited action's childReportID is the thread being viewed, so this is the shape that makes
+        // getOriginalReportID's isThreadReportParentAction branch evaluable. The draft must still resolve
+        // to the parent's own report, not to that report's parentReportID.
+        expect(await getReportActionDraftMessage(rootChatReport.reportID, rootChatMessageAction.reportActionID)).toBe('Parent body, edited');
+        expect(await getReportActionDraftMessage(threadReport.reportID, rootChatMessageAction.reportActionID)).toBeUndefined();
     });
 
     it('cancel in narrow main composer returns to normal draft action row', async () => {
