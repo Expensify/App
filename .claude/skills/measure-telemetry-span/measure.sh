@@ -19,6 +19,14 @@ APP_ID="${APP_ID:-com.expensify.chat.dev}"
 LOG_PID=""
 FLOW_ENV_ARGS=()
 RESET_FLOW=""
+# The repository replay wrapper enforces this deadline outside the Agent Device daemon.
+REPLAY_TIMEOUT_MS="${REPLAY_TIMEOUT_MS:-120000}"
+export AGENT_DEVICE_STATE_DIR="${AGENT_DEVICE_STATE_DIR:-$HOME/.agent-device-expensify-headless}"
+
+if ! [[ "$REPLAY_TIMEOUT_MS" =~ ^[0-9]+$ ]] || [[ "$REPLAY_TIMEOUT_MS" -lt 1 ]]; then
+  echo "REPLAY_TIMEOUT_MS must be a positive integer." >&2
+  exit 1
+fi
 
 if [[ "$PLATFORM" != "ios" && "$PLATFORM" != "android" ]]; then
   echo "Platform must be 'ios' or 'android'." >&2
@@ -32,17 +40,31 @@ fi
 
 REPO="$(git rev-parse --show-toplevel)"
 FLOWS_DIR="$REPO/.claude/skills/agent-device/flows"
+REPLAY_RUNNER="$REPO/.claude/skills/agent-device/scripts/replay-with-deadline.mjs"
 FLOW=""
+MATCHING_FLOWS=()
+CANONICAL_FLOWS=()
 while IFS= read -r -d '' candidate; do
   if grep -q "^# @tag[[:space:]]\+sentry-${SPAN}\$" "$candidate" 2>/dev/null; then
-    FLOW="$candidate"
-    break
+    MATCHING_FLOWS+=("$candidate")
+    if grep -q '^# @measure[[:space:]]\+canonical$' "$candidate" 2>/dev/null; then
+      CANONICAL_FLOWS+=("$candidate")
+    fi
   fi
 done < <(find "$FLOWS_DIR" -name '*.ad' -type f -print0 2>/dev/null)
 
-if [[ -z "$FLOW" ]]; then
+if [[ "${#MATCHING_FLOWS[@]}" -eq 0 ]]; then
   echo "No flow declares '@tag sentry-$SPAN'. Available:" >&2
   find "$FLOWS_DIR" -name '*.ad' -type f -exec grep -h '^# @tag[[:space:]]\+sentry-' {} + 2>/dev/null | sed 's/.*sentry-//' | sort -u >&2
+  exit 1
+fi
+if [[ "${#MATCHING_FLOWS[@]}" -eq 1 ]]; then
+  FLOW="${MATCHING_FLOWS[0]}"
+elif [[ "${#CANONICAL_FLOWS[@]}" -eq 1 ]]; then
+  FLOW="${CANONICAL_FLOWS[0]}"
+else
+  echo "Multiple flows declare '@tag sentry-$SPAN' without one '# @measure canonical':" >&2
+  printf '  %s\n' "${MATCHING_FLOWS[@]}" >&2
   exit 1
 fi
 
@@ -101,10 +123,31 @@ start_log() {
   echo $!
 }
 
+run_replay() {
+  local flow="$1"
+  shift
+  node "$REPLAY_RUNNER" "$flow" --timeout "$REPLAY_TIMEOUT_MS" "$@"
+}
+
+dismiss_react_native_overlays() {
+  local output
+  for _ in $(seq 1 5); do
+    output="$(agent-device react-native dismiss-overlay 2>&1)"
+    printf '%s\n' "$output" >&2
+    if [[ "$output" == *"verified gone"* || "$output" == *"No React Native overlay detected"* ]]; then
+      return
+    fi
+    sleep 1
+  done
+
+  echo "React Native overlay still present after 5 dismissal attempts." >&2
+  return 1
+}
+
 reset_if_needed() {
   if [[ -n "$RESET_FLOW" ]]; then
     echo "Resetting with: $RESET_FLOW" >&2
-    agent-device replay "$RESET_FLOW" >&2
+    run_replay "$RESET_FLOW" >&2
     return
   fi
 
@@ -115,6 +158,7 @@ reset_if_needed() {
   if [[ "$PLATFORM" == "android" ]]; then
     wait_until_android_ui_ready
   fi
+  dismiss_react_native_overlays
 }
 
 # After --relaunch on Android, UIAutomator often returns Snapshot: 0 nodes briefly; warmup replay then fails @pre.
@@ -144,15 +188,16 @@ measure_current_branch() {
   if [[ "$PLATFORM" == "android" ]]; then
     wait_until_android_ui_ready
   fi
+  dismiss_react_native_overlays
 
   LOG_PID=$(start_log "$raw")
-  agent-device replay "$FLOW" ${FLOW_ENV_ARGS[@]+"${FLOW_ENV_ARGS[@]}"} >&2 # warmup
+  run_replay "$FLOW" ${FLOW_ENV_ARGS[@]+"${FLOW_ENV_ARGS[@]}"} >&2 # warmup
   reset_if_needed
   sleep 1
 
   for i in $(seq 1 "$RUNS"); do
     echo "Run $i/$RUNS" >&2
-    agent-device replay "$FLOW" ${FLOW_ENV_ARGS[@]+"${FLOW_ENV_ARGS[@]}"} >&2
+    run_replay "$FLOW" ${FLOW_ENV_ARGS[@]+"${FLOW_ENV_ARGS[@]}"} >&2
     reset_if_needed
     sleep 1
   done

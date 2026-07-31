@@ -17,14 +17,14 @@ allowed-tools: Bash(.claude/skills/measure-telemetry-span/measure.sh) Read Grep 
 
 | Argument       | Default | Description                                                                 |
 | -------------- | ------- | --------------------------------------------------------------------------- |
-| `<span-name>`  | —       | Must match `# @tag sentry-<span-name>` on a flow under `.claude/skills/agent-device/flows/tests/` (sentry-tagged QA scenarios live there; the script searches `flows/` recursively, so `flows/macros/` is also scanned for completeness). |
+| `<span-name>`  | —       | Must match `# @tag sentry-<span-name>` on a scenario under `.claude/skills/agent-device/flows/scenarios/` (the script searches `flows/` recursively, so `flows/macros/` is also scanned for completeness). |
 | `[runs]`       | `10`    | Measured replays after **one** warmup inside the script.                    |
 | `[platform]`   | `ios`   | `ios` or `android` — must match the simulator/emulator you use.          |
 | `--boot`       | off     | Before `open`, runs `agent-device boot --platform <platform>` so a simulator/emulator is started when nothing was connected (`adb devices` empty, etc.). |
 
 To pick a **specific** Android AVD or iOS simulator, use the same global flags `agent-device` already supports (for example `--device "Pixel_7_API_34"`) on **`boot`** and on later commands — either run `agent-device boot --platform android --device "…"` yourself before `measure.sh`, or rely on `agent-device` config (`~/.agent-device/config.json`). `--boot` inside this script only passes `--platform` through to `boot`.
 
-**Environment:** `APP_ID` overrides app bundle (default `com.expensify.chat.dev`). If the flow declares `# @param KEY …`, set **`AD_KEY`** to pass `-e KEY=VALUE` to replay.
+**Environment:** `APP_ID` overrides the app bundle (default `com.expensify.chat.dev`). `REPLAY_TIMEOUT_MS` sets the per-replay wall-clock deadline and defaults to `120000`. The repository wrapper enforces it outside the Agent Device daemon and exits with code 124 on timeout, including on Agent Device 0.20.1 through 0.20.3 where the CLI timeout can leave the request running. `AGENT_DEVICE_STATE_DIR` selects the isolated session directory and defaults to `$HOME/.agent-device-expensify-headless`; do not point it at an interactive daemon because timeout cleanup stops that daemon. If the scenario declares `# @param KEY …`, set **`AD_KEY`** to pass `-e KEY=VALUE` to replay.
 
 **Output:** table + `Samples: …ms` line; stderr has progress (`Using flow:`, runs, optional reset).
 
@@ -46,6 +46,7 @@ If you see **no Android device** (`adb devices` empty): append **`--boot`** to t
 
 - App logs: `[Sentry][<SpanName>] Ending span (<N>ms)` via `console.debug`.
 - Flow file includes `# @tag sentry-<SpanName>` (same name, case-sensitive).
+- If multiple flows declare the same Sentry tag, exactly one includes `# @measure canonical`; the runner fails instead of choosing by filesystem order.
 - Optional flow headers: `@reset <path.ad>` (run by the script after warmup and each measured replay; if absent, the script relaunches the app instead so each run starts from `@pre`); `@param` keys overridable via `AD_*` (passed as `-e KEY=VALUE` to replay).
 - **Parsing:** stats take the **last** `RUNS` matching log lines from the capture. That matches one sample per measured replay only if each replay emits **one** such line for this span name. Extra matches (duplicate logs, nested/sub-spans with the same message pattern, noisy startup logging) can shift which samples are included—fix the app logging or tighten the grep if that happens.
 
@@ -53,7 +54,7 @@ If you see **no Android device** (`adb devices` empty): append **`--boot`** to t
 
 `measure.sh` replays the **same** tagged flow every iteration. Treat `@reset` as “return to a known anchor,” not a second copy of the whole scenario:
 
-- Prefer a **short** reset flow (tabs to Inbox, dismiss sheet, etc.). When agent-device splits **macros** vs **tests**, point `@reset` at a **macro** path so one file stays the source of truth.
+- Prefer a **short** reset flow (tabs to Inbox, dismiss sheet, etc.). Point `@reset` at a **macro** path so one file stays the source of truth.
 - If runs are flaky locally but fine for others, walk the bring-up checklist in `.claude/skills/agent-device/SKILL.md` (Metro, dev build, device boot, iOS + DevTools for `console.debug`) before blaming selectors.
 
 Optional: keep a tiny markdown table in your team notes mapping `SpanName` → one-line intent + `@pre` anchor; the span name still drives which `.ad` is picked — no need to repeat long repro prose in every chat.
@@ -63,7 +64,7 @@ Optional: keep a tiny markdown table in your team notes mapping `SpanName` → o
 | Symptom | Action |
 | ------- | ------ |
 | `No captured runs` | iOS: DevTools. Android: log level / package. Retry after clearing log pipeline. |
-| `SESSION_NOT_FOUND` / empty `adb devices` | Use **`--boot`** on the measure script, or `agent-device boot --platform android|ios` (see `--device` if multiple AVDs/simulators). Then `open` again if needed. |
+| `SESSION_NOT_FOUND` / empty `adb devices` | Confirm `AGENT_DEVICE_STATE_DIR` matches the directory used to open the session — `agent-device session state-dir` prints the effective one, and each state directory runs its own daemon with its own sessions. Then use **`--boot`** or `agent-device boot --platform android|ios` if no device is connected, and reopen the app if needed. |
 | Fewer samples than `runs` | Span not emitted or flow flaky — `agent-device replay <flow> --debug`; fix selectors (`ad-flow-author`). |
 
 For another app bundle, export `APP_ID` before the command.
