@@ -51,13 +51,30 @@ function InfoPopover() {
 
 ```tsx
 import type {ReactNode} from 'react';
+import {useId} from 'react';
 import AnimatedSurface, {FADE_ONLY_ENTER_SPEC, FADE_ONLY_EXIT} from '@components/Overlay/AnimatedSurface';
 import DismissableLayer from '@components/Overlay/DismissableLayer';
+import useOverlayEntry from '@components/Overlay/hooks/useOverlayEntry';
+import type {ModalOverlayEntry} from '@components/Overlay/libs/overlayStore';
 import Portal from '@components/Overlay/Portal';
 import Presence from '@components/Overlay/Presence';
 import CONST from '@src/CONST';
 
 function CustomModal({isOpen, onClose, children}: {isOpen: boolean; onClose: () => void; children: ReactNode}) {
+    const stackId = useId();
+
+    // Publish a modal entry so the cover selectors (useIsModalCovering / useIsAnyModalActive) see it — DismissableLayer.Modal only handles dismissal.
+    useOverlayEntry(
+        isOpen
+            ? ({
+                  kind: CONST.MODAL.MODAL_TYPE.CENTERED,
+                  id: stackId,
+                  close: onClose,
+                  escapeBehavior: 'dismiss',
+              } satisfies ModalOverlayEntry)
+            : null,
+    );
+
     return (
         <Presence present={isOpen}>
             <Portal>
@@ -78,7 +95,7 @@ function CustomModal({isOpen, onClose, children}: {isOpen: boolean; onClose: () 
 }
 ```
 
-`DismissableLayer.Modal` handles Escape/back and locks body scroll. The scrim, centering, and chrome are yours.
+`DismissableLayer.Modal` handles Escape/back and locks body scroll. `useOverlayEntry` publishes the modal to the cover selectors (`useIsModalCovering` / `useIsAnyModalActive`) so covered popovers and shortcuts react. The scrim, centering, and chrome are yours.
 
 ### Accessible dialog naming — `createHeadingSystem`
 

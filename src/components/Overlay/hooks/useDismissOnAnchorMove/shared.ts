@@ -13,4 +13,3 @@ function anchorBoxChanged(a: RectEdges, b: RectEdges): boolean {
 }
 
 export default anchorBoxChanged;
-export type {RectEdges};
