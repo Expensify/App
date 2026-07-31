@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
-index 1de10b4..3ce8b9b 100644
+index 1de10b4..e177d42 100644
 --- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
 +++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
 @@ -2,6 +2,7 @@
@@ -31,7 +31,7 @@ index 1de10b4..3ce8b9b 100644
      // Render only two top-most active headers as a workaround for
      // https://github.com/react-navigation/react-navigation/issues/12456.
      // If the header is persisted, it might be placed incorrectly when navigating back
-@@ -439,8 +447,20 @@ export class CardStack extends React.Component {
+@@ -439,8 +447,18 @@ export class CardStack extends React.Component {
            const isTopmost = index === routes.length - 1;
            const isBeforeLast = index === routes.length - 2;
  
@@ -47,13 +47,11 @@ index 1de10b4..3ce8b9b 100644
 +
            // Keep animating and the last two rendered routes visible for smoother transitions
 -          const isVisible = focused ||
-+          const isVisible = dontDetachScreen ||
-+          // PATCHED: keep screens paused while covered visible instead of hiding them
-+          pauseWhenCovered && isCovered || focused ||
++          const isVisible = dontDetachScreen || focused ||
            // React native destroys the view when hidden
            // So we keep retained screens visible
            // This makes sure any videos being played don't stop etc.
-@@ -455,8 +475,12 @@ export class CardStack extends React.Component {
+@@ -455,8 +473,12 @@ export class CardStack extends React.Component {
            // Preloaded screens should stay mounted, but remain hidden until focused
            !isPreloaded && index >= routes.length - 2);
            const activityMode =
