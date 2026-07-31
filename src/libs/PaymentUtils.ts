@@ -53,6 +53,7 @@ type SelectPaymentTypeParams = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
 };
 
@@ -227,6 +228,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         amountOwed,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        isTrackIntentUser,
         ownerLogin,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
@@ -263,6 +265,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 ownerLogin,
                 full: true,
                 delegateEmail,
+                isTrackIntentUser,
             });
         }
         return;

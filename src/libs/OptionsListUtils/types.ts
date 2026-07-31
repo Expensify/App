@@ -123,6 +123,7 @@ type OptionTree = {
     isDisabled: boolean;
     isSelected: boolean;
     pendingAction?: PendingAction;
+    shouldHideSelectionButton?: boolean;
 } & Option;
 
 type PayeePersonalDetails = {

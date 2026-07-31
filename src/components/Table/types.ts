@@ -200,6 +200,9 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
 
         /** Callback when an option is selected */
         onRowSelectionChange?: (selectedRowKeys: string[]) => void;
+
+        /** Optional callback fired when the active search string changes. */
+        onSearchStringChange?: (searchString: string) => void;
     }>;
 
 export type {

@@ -50,7 +50,7 @@ jobs:
     name: Build iOS HybridApp
     runs-on: blacksmith-12vcpu-macos-latest
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
       PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
     outputs:
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
@@ -60,7 +60,8 @@ jobs:
       SOURCEMAP_FILENAME: main.jsbundle.map
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        # Upstream checkout on macOS - Blacksmith's git-mirror cache can't work there (see workflows/README.md)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           submodules: true
           ref: ${{ inputs.ref }}

@@ -29,7 +29,15 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     const navigateToItem = () => {
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(item.route));
+        if (item.onPress) {
+            item.onPress();
+            return;
+        }
+        const {route} = item;
+        if (!route) {
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
     };
 
     return (

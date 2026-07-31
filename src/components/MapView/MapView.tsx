@@ -31,6 +31,7 @@ import type {MapViewProps} from './MapViewTypes';
 
 import Compass from './Compass';
 import Direction from './Direction';
+import MapMarkerIcon from './MapMarkerIcon';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
@@ -117,11 +118,7 @@ function MapView({
 
             // Only read the device location when permission is ALREADY granted. We never request it here,
             // so opening the map cannot trigger an OS permission prompt without a prior explicit user action.
-            let ignore = false;
             getForegroundPermissionsAsync().then(({granted}) => {
-                if (ignore) {
-                    return;
-                }
                 if (!granted) {
                     // Pass the permission-denied error so any stale cached location is cleared and the map falls back to initialState.
                     setCurrentPositionToInitialState({
@@ -132,9 +129,6 @@ function MapView({
                 }
 
                 getCurrentPosition((params) => {
-                    if (ignore) {
-                        return;
-                    }
                     const currentCoords = {
                         longitude: params.coords.longitude,
                         latitude: params.coords.latitude,
@@ -142,10 +136,6 @@ function MapView({
                     setUserLocation(currentCoords);
                 }, setCurrentPositionToInitialState);
             });
-
-            return () => {
-                ignore = true;
-            };
         }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
     );
 
@@ -331,8 +321,7 @@ function MapView({
                         />
                     </MarkerView>
                 )}
-                {waypoints?.map(({coordinate, markerComponent, id}) => {
-                    const MarkerComponent = markerComponent;
+                {waypoints?.map(({coordinate, markerType, id}) => {
                     if (
                         utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) &&
                         interactive &&
@@ -348,7 +337,7 @@ function MapView({
                             coordinate={coordinate}
                             allowOverlap
                         >
-                            <MarkerComponent />
+                            <MapMarkerIcon markerType={markerType} />
                         </MarkerView>
                     );
                 })}

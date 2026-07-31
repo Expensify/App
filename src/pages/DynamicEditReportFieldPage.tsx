@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
-import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     getReportFieldKey,
     getTitleFieldWithFallback,
@@ -39,6 +39,7 @@ import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import reportByIDsSelector from '@selectors/ReportAttributes';
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
@@ -78,12 +79,13 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
-    const reportFieldsEnabled = ((isGroupPolicyExpenseReport(report) || isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
+    const reportFieldsEnabled = ((isGroupPolicyExpenseReport(report, policy?.type) || isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
     const hasOtherViolations =
         report?.fieldList && Object.entries(report.fieldList).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy));
 
@@ -126,7 +128,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     // Provide a default when the report name and the policy field list are empty
 
     const fieldValue = isReportFieldTitle
-        ? getReportNameFromReportNameUtils(report, reportAttributesByReportID) || (isPolicyFieldListEmpty(policy) ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '')
+        ? deprecatedGetReportName(report, reportAttributesByReportID) || (isPolicyFieldListEmpty(policy) ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '')
         : (reportField.value ?? reportField.defaultValue);
 
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
@@ -152,6 +154,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
                     hasViolationsParam: hasViolations,
                     recentlyUsedReportFields,
                     shouldFixViolations: hasOtherViolations ?? false,
+                    isTrackIntentUser,
                 });
             }
             goBack();

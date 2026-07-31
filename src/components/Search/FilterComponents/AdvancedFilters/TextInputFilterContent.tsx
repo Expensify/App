@@ -1,5 +1,7 @@
 import Button from '@components/Button';
+import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
+import type {ReportFieldTextKey, SearchTextFilterKeys} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
@@ -20,30 +22,35 @@ import React, {Fragment, useState} from 'react';
 import {View} from 'react-native';
 
 type TextInputFilterContentProps = {
-    filterKey:
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID;
+    baseFilterKey: Exclude<SearchTextFilterKeys, typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT | ReportFieldTextKey>;
     value: string | undefined;
+    isNegated: boolean;
     largeButton?: boolean;
     autoFocus?: boolean;
     style?: StyleProp<ViewStyle>;
     merchantOperator?: MerchantMatchType;
-    onChange: (value: string | undefined, merchantOperator?: MerchantMatchType) => void;
+    onChange: (value: string | undefined, isNegated: boolean, merchantOperator?: MerchantMatchType) => void;
 };
 
 function isTextInput(element: BaseTextInputRef | RNTextInput | null): element is RNTextInput {
     return !!element && 'isFocused' in element;
 }
 
-function TextInputFilterContent({filterKey, value: initialValue, autoFocus, largeButton, style, merchantOperator: initialMerchantOperator, onChange}: TextInputFilterContentProps) {
+function TextInputFilterContent({
+    baseFilterKey,
+    value: initialValue,
+    isNegated: initialIsNegated,
+    autoFocus,
+    largeButton,
+    style,
+    merchantOperator: initialMerchantOperator,
+    onChange,
+}: TextInputFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
-    const shouldShowMerchantMatchType = filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
+    const [isNegated, setIsNegated] = useState(initialIsNegated);
+    const shouldShowMerchantMatchType = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
     const [merchantOperator, setMerchantOperator] = useState<MerchantMatchType>(initialMerchantOperator ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
     const merchantMatchTypeItems: Array<ListItem<MerchantMatchType>> = [
         {
@@ -58,9 +65,9 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, larg
         },
     ];
 
-    const label = translate(FILTER_VIEW_MAP[filterKey].labelKey);
+    const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
     const {inputCallbackRef} = useAutoFocusInput();
-    const error = useTextFilterValidation(filterKey, value);
+    const error = useTextFilterValidation(baseFilterKey, value);
 
     const filterInput = (
         <TextInput
@@ -83,21 +90,27 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, larg
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
-            <View>
-                {shouldShowMerchantMatchType
-                    ? merchantMatchTypeItems.map((item) => (
-                          <Fragment key={item.keyForList}>
-                              <SingleSelectListItem
-                                  item={item}
-                                  showTooltip={false}
-                                  keyForList={item.keyForList}
-                                  onSelectRow={() => setMerchantOperator(item.keyForList)}
-                              />
-                              {item.isSelected && filterInput}
-                          </Fragment>
-                      ))
-                    : filterInput}
-            </View>
+            <NegatableFilter
+                baseFilterKey={baseFilterKey}
+                isNegated={isNegated}
+                onNegationChange={setIsNegated}
+            >
+                <View>
+                    {shouldShowMerchantMatchType
+                        ? merchantMatchTypeItems.map((item) => (
+                              <Fragment key={item.keyForList}>
+                                  <SingleSelectListItem
+                                      item={item}
+                                      showTooltip={false}
+                                      keyForList={item.keyForList}
+                                      onSelectRow={() => setMerchantOperator(item.keyForList)}
+                                  />
+                                  {item.isSelected && filterInput}
+                              </Fragment>
+                          ))
+                        : filterInput}
+                </View>
+            </NegatableFilter>
             <Button
                 style={[styles.ph5, styles.pb5]}
                 success
@@ -108,7 +121,7 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, larg
                     if (error) {
                         return;
                     }
-                    onChange(value, shouldShowMerchantMatchType ? merchantOperator : undefined);
+                    onChange(value, isNegated, shouldShowMerchantMatchType ? merchantOperator : undefined);
                 }}
             />
         </View>

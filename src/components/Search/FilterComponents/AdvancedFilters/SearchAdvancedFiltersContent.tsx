@@ -1,3 +1,6 @@
+import type {ListFilterContentProps} from '@components/Search/FilterComponents/ListFilterContent';
+
+import {getFilterFormValues} from '@libs/SearchQueryUtils';
 import {getFilterNegatableValue, isAmountFilterKey, isDateFilterKey, isTextFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
@@ -7,19 +10,21 @@ import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
 import React from 'react';
 
-import type {FilterComponentsProps} from '..';
 import type {AmountFilterContentProps} from './AmountFilterContent';
 import type {DateFilterContentProps} from './DateFilterContent';
 import type {ReportFieldFilterContentProps} from './ReportFieldFilterContent';
 import type {TextInputFilterContentProps} from './TextInputFilterContent';
 
-type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'filterKey' | 'value' | 'merchantOperator' | 'onChange'>;
-type AmountFilterContentWrapperProps = Pick<AmountFilterContentProps, 'filterKey' | 'value' | 'onChange'>;
-type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'filterKey' | 'value' | 'hasFeed' | 'onChange'>;
+type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'baseFilterKey' | 'value' | 'isNegated' | 'merchantOperator' | 'onChange'>;
+type AmountFilterContentWrapperProps = Pick<AmountFilterContentProps, 'baseFilterKey' | 'value' | 'onChange'>;
+type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'baseFilterKey' | 'value' | 'hasFeed' | 'onChange'>;
 type ReportFieldFilterContentWrapperProps = Pick<ReportFieldFilterContentProps, 'values' | 'onChange'>;
-type CommonFilterContentWrapperProps = Omit<FilterComponentsProps, 'selectionListTextInputStyle' | 'selectionListStyle' | 'autoFocus' | 'footer'>;
+type ListFilterContentWrapperProps = Omit<ListFilterContentProps, 'onChange' | 'onNegationChange' | 'selectionListTextInputStyle' | 'selectionListStyle' | 'autoFocus' | 'footer'> & {
+    onChange: (value: ListFilterContentProps['value'], isNegated: boolean) => void;
+};
+
 type SearchAdvancedFiltersContentProps = {
-    filterKey: SearchFilter['key'];
+    baseFilterKey: SearchFilter['key'];
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     ready?: boolean;
     components: {
@@ -27,55 +32,30 @@ type SearchAdvancedFiltersContentProps = {
         Amount: React.ComponentType<AmountFilterContentWrapperProps>;
         Date: React.ComponentType<DateFilterContentWrapperProps>;
         ReportField: React.ComponentType<ReportFieldFilterContentWrapperProps>;
-        Common: React.ComponentType<CommonFilterContentWrapperProps>;
+        List: React.ComponentType<ListFilterContentWrapperProps>;
     };
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function getFilterFormValue<K extends FilterComponentsProps['filterKey']>(filterKey: K, value: SearchAdvancedFiltersForm[K] | undefined): Partial<SearchAdvancedFiltersForm> {
-    const update: Partial<SearchAdvancedFiltersForm> = {};
-    update[filterKey] = value;
-    return update;
-}
-
-function SearchAdvancedFiltersContent({filterKey, values, ready, components, onChange}: SearchAdvancedFiltersContentProps) {
-    const {Text: TextFilter, Amount: AmountFilter, Date: DateFilter, ReportField: ReportFieldFilter, Common: CommonFilter} = components;
-    const isMerchantFilter = filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
-    const merchantOperator = values?.[FILTER_KEYS.MERCHANT_OPERATOR] ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
-
-    if (isTextFilterKey(filterKey)) {
-        return (
-            <TextFilter
-                key={`${filterKey}-${values?.[filterKey] ?? ''}-${isMerchantFilter ? merchantOperator : ''}`}
-                filterKey={filterKey}
-                value={values?.[filterKey]}
-                merchantOperator={isMerchantFilter ? merchantOperator : undefined}
-                onChange={(newValue, newMerchantOperator) =>
-                    onChange({
-                        [filterKey]: newValue,
-                        ...(isMerchantFilter ? {[FILTER_KEYS.MERCHANT_OPERATOR]: newMerchantOperator ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO} : {}),
-                    })
-                }
-            />
-        );
-    }
-
-    if (isAmountFilterKey(filterKey)) {
+function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components, onChange}: SearchAdvancedFiltersContentProps) {
+    if (isAmountFilterKey(baseFilterKey)) {
+        const AmountFilter = components.Amount;
         return (
             <AmountFilter
-                key={filterKey}
-                filterKey={filterKey}
+                key={baseFilterKey}
+                baseFilterKey={baseFilterKey}
                 value={{
-                    [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: values?.[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`],
-                    [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: values?.[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`],
-                    [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: values?.[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`],
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: values?.[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`],
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: values?.[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`],
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: values?.[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`],
                 }}
                 onChange={onChange}
             />
         );
     }
 
-    if (isDateFilterKey(filterKey)) {
+    if (isDateFilterKey(baseFilterKey)) {
+        const DateFilter = components.Date;
         const onModifier = CONST.SEARCH.DATE_MODIFIERS.ON;
         const afterModifier = CONST.SEARCH.DATE_MODIFIERS.AFTER;
         const beforeModifier = CONST.SEARCH.DATE_MODIFIERS.BEFORE;
@@ -83,28 +63,29 @@ function SearchAdvancedFiltersContent({filterKey, values, ready, components, onC
 
         return (
             <DateFilter
-                key={filterKey}
-                filterKey={filterKey}
+                key={baseFilterKey}
+                baseFilterKey={baseFilterKey}
                 value={{
-                    [onModifier]: values?.[`${filterKey}${onModifier}`],
-                    [afterModifier]: values?.[`${filterKey}${afterModifier}`],
-                    [beforeModifier]: values?.[`${filterKey}${beforeModifier}`],
-                    [rangeModifier]: values?.[`${filterKey}${rangeModifier}`],
+                    [onModifier]: values?.[`${baseFilterKey}${onModifier}`],
+                    [afterModifier]: values?.[`${baseFilterKey}${afterModifier}`],
+                    [beforeModifier]: values?.[`${baseFilterKey}${beforeModifier}`],
+                    [rangeModifier]: values?.[`${baseFilterKey}${rangeModifier}`],
                 }}
                 hasFeed={!!values?.feed}
                 onChange={(newValues) =>
                     onChange({
-                        [`${filterKey}${onModifier}`]: newValues[onModifier],
-                        [`${filterKey}${afterModifier}`]: newValues[afterModifier],
-                        [`${filterKey}${beforeModifier}`]: newValues[beforeModifier],
-                        [`${filterKey}${rangeModifier}`]: newValues[rangeModifier],
+                        [`${baseFilterKey}${onModifier}`]: newValues[onModifier],
+                        [`${baseFilterKey}${afterModifier}`]: newValues[afterModifier],
+                        [`${baseFilterKey}${beforeModifier}`]: newValues[beforeModifier],
+                        [`${baseFilterKey}${rangeModifier}`]: newValues[rangeModifier],
                     })
                 }
             />
         );
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
+    if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
+        const ReportFieldFilter = components.ReportField;
         return (
             <ReportFieldFilter
                 values={values}
@@ -113,18 +94,43 @@ function SearchAdvancedFiltersContent({filterKey, values, ready, components, onC
         );
     }
 
+    if (isTextFilterKey(baseFilterKey)) {
+        const {isNegated, value} = getFilterNegatableValue(baseFilterKey, values);
+        const TextFilter = components.Text;
+        const isMerchantFilter = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
+        const merchantOperator = values?.[FILTER_KEYS.MERCHANT_OPERATOR] ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
+        return (
+            <TextFilter
+                key={isMerchantFilter ? `${baseFilterKey}-${merchantOperator}` : baseFilterKey}
+                baseFilterKey={baseFilterKey}
+                value={value}
+                isNegated={isNegated}
+                merchantOperator={isMerchantFilter ? merchantOperator : undefined}
+                onChange={(newValue, negated, newMerchantOperator) =>
+                    onChange({
+                        ...getFilterFormValues(baseFilterKey, newValue, negated),
+                        ...(isMerchantFilter ? {[FILTER_KEYS.MERCHANT_OPERATOR]: newMerchantOperator ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO} : {}),
+                    })
+                }
+            />
+        );
+    }
+
+    const {isNegated, value} = getFilterNegatableValue(baseFilterKey, values);
+    const ListFilter = components.List;
     return (
-        <CommonFilter
-            key={filterKey}
-            filterKey={filterKey}
-            value={values?.[filterKey]}
+        <ListFilter
+            key={baseFilterKey}
+            baseFilterKey={baseFilterKey}
+            value={value}
             type={values?.type}
             policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, values)}
             ready={ready}
-            onChange={(newValue) => onChange(getFilterFormValue(filterKey, newValue))}
+            isNegated={isNegated}
+            onChange={(newValue, negated) => onChange(getFilterFormValues(baseFilterKey, newValue, negated))}
         />
     );
 }
 
 export default SearchAdvancedFiltersContent;
-export type {TextInputFilterContentWrapperProps, AmountFilterContentWrapperProps, DateFilterContentWrapperProps, ReportFieldFilterContentWrapperProps, CommonFilterContentWrapperProps};
+export type {TextInputFilterContentWrapperProps, AmountFilterContentWrapperProps, DateFilterContentWrapperProps, ReportFieldFilterContentWrapperProps, ListFilterContentWrapperProps};

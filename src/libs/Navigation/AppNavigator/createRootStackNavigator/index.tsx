@@ -4,7 +4,13 @@ import addRootHistoryRouterExtension from '@libs/Navigation/AppNavigator/routerE
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
-import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState, PlatformStackRouterFactory} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {
+    CustomEffectsHookProps,
+    PlatformStackNavigationEventMap,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationState,
+    PlatformStackRouterFactory,
+} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
 
@@ -13,11 +19,18 @@ import {createNavigatorFactory} from '@react-navigation/native';
 import RootStackRouter from './RootStackRouter';
 import useCustomRootStackNavigatorState from './useCustomRootStackNavigatorState';
 
+function RootStackNavigatorEffects(props: CustomEffectsHookProps) {
+    useNavigationResetOnLayoutChange(props);
+    // Returning null makes Babel skip memoization for this Effects slot; an empty fragment is required.
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <></>;
+}
+
 const RootStackNavigatorComponent = createPlatformStackNavigatorComponent('RootStackNavigator', {
     createRouter: addRootHistoryRouterExtension(RootStackRouter as PlatformStackRouterFactory<ParamListBase>),
     defaultScreenOptions: defaultPlatformStackScreenOptions,
-    useCustomEffects: useNavigationResetOnLayoutChange,
-    useCustomState: useCustomRootStackNavigatorState,
+    Effects: RootStackNavigatorEffects,
+    getCustomState: useCustomRootStackNavigatorState,
     ExtraContent: RootNavigatorExtraContent,
 });
 
