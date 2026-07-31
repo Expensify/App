@@ -21,8 +21,6 @@ import lazyRetry from '@src/utils/lazyRetry';
 
 import type {ComponentType} from 'react';
 
-type ComponentImport<T> = () => Promise<{default: T}>;
-
 const mockClearWorkboxRecoveryCaches = jest.fn();
 jest.mock('@libs/clearWorkboxRecoveryCaches', () => ({
     __esModule: true,
@@ -133,7 +131,7 @@ describe('ChunkLoadError recovery', () => {
 
         it('plain-reloads on the first failure without clearing caches', async () => {
             sessionStorage.removeItem(stateKey);
-            const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
+            const failingImport = jest.fn<Promise<{default: ComponentType}>, []>().mockRejectedValue(chunkError);
 
             lazyRetry(failingImport, RETRY_KEY);
             await flushMicrotasks();
@@ -146,7 +144,7 @@ describe('ChunkLoadError recovery', () => {
         it('clears SW caches before reloading on the second ChunkLoadError failure when online', async () => {
             sessionStorage.setItem(stateKey, 'true');
             jest.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
-            const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
+            const failingImport = jest.fn<Promise<{default: ComponentType}>, []>().mockRejectedValue(chunkError);
 
             lazyRetry(failingImport, RETRY_KEY);
             await flushMicrotasks();
@@ -159,7 +157,7 @@ describe('ChunkLoadError recovery', () => {
         it('rejects to the error boundary on second ChunkLoadError failure when offline to preserve the offline cache', async () => {
             sessionStorage.setItem(stateKey, 'true');
             jest.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
-            const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
+            const failingImport = jest.fn<Promise<{default: ComponentType}>, []>().mockRejectedValue(chunkError);
 
             await expect(lazyRetry(failingImport, RETRY_KEY)).rejects.toBeDefined();
             await flushMicrotasks();
@@ -171,7 +169,7 @@ describe('ChunkLoadError recovery', () => {
         it('rejects to the error boundary on second failure when the error is not a ChunkLoadError', async () => {
             sessionStorage.setItem(stateKey, 'true');
             const networkError = new Error('Failed to fetch');
-            const failingImport = jest.fn().mockRejectedValue(networkError) as unknown as ComponentImport<ComponentType>;
+            const failingImport = jest.fn<Promise<{default: ComponentType}>, []>().mockRejectedValue(networkError);
 
             await expect(lazyRetry(failingImport, RETRY_KEY)).rejects.toThrow('Failed to fetch');
             await flushMicrotasks();
@@ -182,7 +180,7 @@ describe('ChunkLoadError recovery', () => {
 
         it('rejects to the error boundary on the third failure to prevent an infinite reload loop', async () => {
             sessionStorage.setItem(stateKey, 'cache-cleared');
-            const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
+            const failingImport = jest.fn<Promise<{default: ComponentType}>, []>().mockRejectedValue(chunkError);
 
             await expect(lazyRetry(failingImport, RETRY_KEY)).rejects.toBeDefined();
             await flushMicrotasks();
@@ -194,7 +192,7 @@ describe('ChunkLoadError recovery', () => {
         it('keeps each import retry state isolated so a sibling success does not reset it', async () => {
             // 'other' chunk already reloaded once; a successful 'test' chunk import must not reset it.
             sessionStorage.setItem(`${CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED}:other`, 'true');
-            const successfulImport = jest.fn().mockResolvedValue({default: () => null}) as unknown as ComponentImport<ComponentType>;
+            const successfulImport = jest.fn<Promise<{default: ComponentType}>, []>().mockResolvedValue({default: () => null});
 
             await lazyRetry(successfulImport, RETRY_KEY);
             await flushMicrotasks();
@@ -204,7 +202,7 @@ describe('ChunkLoadError recovery', () => {
 
         it('does not reload on successful import', async () => {
             sessionStorage.removeItem(stateKey);
-            const successfulImport = jest.fn().mockResolvedValue({default: () => null}) as unknown as ComponentImport<ComponentType>;
+            const successfulImport = jest.fn<Promise<{default: ComponentType}>, []>().mockResolvedValue({default: () => null});
 
             await lazyRetry(successfulImport, RETRY_KEY);
             await flushMicrotasks();
