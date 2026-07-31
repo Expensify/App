@@ -15,6 +15,8 @@ import type {
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {fromZonedTime} from 'date-fns-tz';
+
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
@@ -425,16 +427,18 @@ function isCancelPaymentAction(
     const allActionsArray = Object.values(allReportActions);
     const payActions = allActionsArray.filter((action): action is ReportAction => !!action && isPayAction(action));
 
-    // Check if payment was made via bank account (not elsewhere)
-    // If no pay actions exist, we can't determine the payment type, so we assume it was NOT a bank payment
-    const isPaidViaBankAccount =
-        payActions.length > 0 &&
-        payActions.every((action) => {
-            const originalMessage = getOriginalMessage(action);
-            return originalMessage && 'paymentType' in originalMessage && originalMessage.paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
-        });
+    // Until the pay action is loaded we can't tell a bank payment from an elsewhere payment, so don't offer a cancellation the backend may reject
+    if (payActions.length === 0) {
+        return false;
+    }
 
-    // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
+    // Check if payment was made via bank account (not elsewhere)
+    const isPaidViaBankAccount = payActions.every((action) => {
+        const originalMessage = getOriginalMessage(action);
+        return originalMessage && 'paymentType' in originalMessage && originalMessage.paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+    });
+
+    // For reports marked as paid elsewhere, show cancel button
     if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED && !isPaidViaBankAccount) {
         return true;
     }
@@ -451,7 +455,7 @@ function isCancelPaymentAction(
 
     const hasDailyNachaCutoffPassed = payActions.some((action) => {
         const now = new Date();
-        const paymentDatetime = new Date(action.created);
+        const paymentDatetime = fromZonedTime(action.created, 'UTC');
         const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
         const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
         return nowUTC.getTime() > cutoffTimeUTC.getTime();

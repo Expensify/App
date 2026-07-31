@@ -1699,7 +1699,48 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
 
-    it('includes CANCEL_PAYMENT option for report paid elsewhere', () => {
+    it('includes CANCEL_PAYMENT option for report paid elsewhere', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        });
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
+    it('does not include CANCEL_PAYMENT option for reimbursed report when no pay action is loaded', () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1727,7 +1768,52 @@ describe('getSecondaryAction', () => {
             policy,
             isProduction: false,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+    });
+
+    it('does not include CANCEL_PAYMENT option for bank payment after the NACHA cutoff has passed', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        });
+        const ACTION_ID = 'action_id';
+        // Paid two days ago, stored in the DB datetime format (UTC, no timezone suffix), so that day's 23:45 UTC NACHA cutoff has passed
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        const createdAtUTC = `${twoDaysAgo.toISOString().slice(0, 10)} 20:00:00.000`;
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: createdAtUTC,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
 
     it('includes CANCEL_PAYMENT option for report before nacha cutoff', async () => {
