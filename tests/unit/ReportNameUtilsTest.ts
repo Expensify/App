@@ -1,5 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {translate} from '@libs/Localize';
 import {
     buildReportNameFromParticipantNames,
@@ -466,6 +467,50 @@ describe('ReportNameUtils', () => {
                 currentUserAccountID,
             );
             expect(name).toBe(expected);
+        });
+        test('Cross-border pay parent action', () => {
+            // Given a thread on a payment that converted currency for the employee
+            const thread: Report = createWorkspaceThread(60);
+            const parentAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                    creditedAmount: 1340,
+                    creditedCurrency: 'GBP',
+                    debitBankAccountLast4: '6789',
+                    creditBankAccountLast4: '3335',
+                },
+            };
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
+                    [actionId]: parentAction,
+                },
+            };
+
+            // When the thread is named
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+
+            // Then it names the credited amount and both accounts rather than only the company account
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'iou.reimbursedCrossBorder', {amount: convertToDisplayString(1340, 'GBP'), debitBankAccount: '6789', creditBankAccount: '3335'}));
         });
         test('Hold parent action', () => {
             const thread: Report = createWorkspaceThread(52);
