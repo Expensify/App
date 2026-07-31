@@ -236,7 +236,7 @@ function renderSubmitDetailsPage() {
 
 function resetNavigationMocksForSubmitDetailsPageTests() {
     jest.mocked(Navigation.getTopmostReportId).mockReturnValue('report-share-1');
-    jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+    jest.mocked(getIsNarrowLayout).mockReturnValue(true);
     jest.mocked(Navigation.getIsFullscreenPreInsertedUnderRHP).mockReturnValue(false);
     jest.mocked(Navigation.preInsertFullscreenUnderRHP).mockImplementation(() => {
         jest.mocked(Navigation.getIsFullscreenPreInsertedUnderRHP).mockReturnValue(true);
@@ -362,7 +362,6 @@ describe('SubmitDetailsPage', () => {
     // Error #5b — narrow layout headline: pre-insert destination, then submit resolves via dismissModal.
     it('narrow layout: pre-inserts destination and dismisses modal when another report is topmost', async () => {
         jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
-        jest.mocked(getIsNarrowLayout).mockReturnValue(true);
 
         await renderAndConfirm();
 
@@ -402,7 +401,6 @@ describe('SubmitDetailsPage', () => {
     // leaves a stale pre-insert flag under the RHP.
     it('does not arm pre-mount after the optimistic destination lands on the pending-navigation path', async () => {
         jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
-        jest.mocked(getIsNarrowLayout).mockReturnValue(true);
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SHARED_REPORT_ID}`, null);
         });
@@ -431,7 +429,6 @@ describe('SubmitDetailsPage', () => {
     // or the stale route can flash behind the next modal dismiss.
     it('cleans up a pre-inserted destination route before goBack when the user backs out without submitting', async () => {
         jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
-        jest.mocked(getIsNarrowLayout).mockReturnValue(true);
 
         renderSubmitDetailsPage();
         await waitForBatchedUpdatesWithAct();
@@ -496,7 +493,6 @@ describe('SubmitDetailsPage', () => {
     // Pre-insert should not happen, but submit must still complete without crashing.
     it('narrow layout: handles confirm before scheduleWhenIdle fires pre-insert setup', async () => {
         jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
-        jest.mocked(getIsNarrowLayout).mockReturnValue(true);
 
         // scheduleWhenIdle callback never fires — pre-insert setup won't run
         jest.mocked(Scheduler.scheduleWhenIdle).mockImplementation(() => ({cancel: jest.fn()}));
