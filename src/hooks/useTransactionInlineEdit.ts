@@ -1,6 +1,6 @@
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 
-import type {TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
+import type {TransactionAmountInlineEditParams} from '@libs/actions/TransactionInlineEdit';
 import {
     editTransactionAmountInline,
     editTransactionCategoryInline,
@@ -175,7 +175,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const wasEditingOnMouseDownRef = useRef(false);
 
-    const getEditParams = (): TransactionInlineEditParams => {
+    const getEditParams = (): TransactionAmountInlineEditParams => {
         return {
             hash,
             transactionID,

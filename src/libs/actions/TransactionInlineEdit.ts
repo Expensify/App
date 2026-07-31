@@ -196,13 +196,17 @@ type GetIouParamsInput = {
     personalDetailsList: OnyxEntry<PersonalDetailsList>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
     hash: number | undefined;
     isOffline: boolean;
+};
+
+type TransactionAmountInlineEditParams = TransactionInlineEditParams & {
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 /**
@@ -364,7 +368,7 @@ function editTransactionCategoryInline(params: TransactionInlineEditParams, newC
 }
 
 /** Updates the amount and currency of an expense from the Search results table or the Expense Report page. */
-function editTransactionAmountInline(params: TransactionInlineEditParams, newAmount: number) {
+function editTransactionAmountInline(params: TransactionAmountInlineEditParams, newAmount: number) {
     const iouParams = getIouParamsForTransaction(params);
     const iouType = isInvoiceReport(params.parentReport) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
     const allowNegative = shouldEnableNegative(params.parentReport, iouParams.policy, iouType);
@@ -550,4 +554,4 @@ export {
     getTransactionEditPermissions,
 };
 
-export type {TransactionEditPermissions, TransactionInlineEditParams, TransactionEditPermissionsParams};
+export type {TransactionAmountInlineEditParams, TransactionEditPermissions, TransactionInlineEditParams, TransactionEditPermissionsParams};
