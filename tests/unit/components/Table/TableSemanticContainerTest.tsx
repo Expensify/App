@@ -97,6 +97,7 @@ describe('TableSemanticContainer', () => {
         });
 
         const table = screen.getByLabelText('Members');
+        expect(table.props.style).toBeUndefined();
         const [rowGroup] = table.children;
         expect(rowGroup).toBeDefined();
         expect(typeof rowGroup).not.toBe('string');
