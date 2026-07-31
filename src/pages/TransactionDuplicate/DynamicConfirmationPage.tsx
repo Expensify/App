@@ -1,6 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
+import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
@@ -44,7 +45,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 function DynamicConfirmationPage() {
@@ -96,6 +97,7 @@ function DynamicConfirmationPage() {
         };
     }, [reviewDuplicatesTaxCode, reviewDuplicatesTaxAmount, taxRates, duplicatedTransactionTaxCode]);
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
+    const [mergeErrorMessage, setMergeErrorMessage] = useState('');
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserLogin = currentUserPersonalDetails?.login;
     const childReportID = reportAction?.childReportID;
@@ -204,14 +206,36 @@ function DynamicConfirmationPage() {
                         </ShowContextMenuStateContext.Provider>
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
+                        {!!mergeErrorMessage && (
+                            <FormHelpMessage
+                                message={mergeErrorMessage}
+                                style={styles.mb3}
+                            />
+                        )}
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => {
-                                isDismissingRef.current = true;
+                                // With every duplicate filtered out (e.g. all on approved/closed/reimbursed reports) there
+                                // is nothing to act on: merging would be rejected by Auth and resolving would only clear
+                                // the kept transaction, leaving the duplicate violation one-sided. Guard both paths.
+                                if (transactionsMergeParams.transactionIDList.length === 0) {
+                                    setMergeErrorMessage(translate('violations.cannotMergeDuplicates'));
+                                    return;
+                                }
                                 if (!isReportOwner) {
+                                    setMergeErrorMessage('');
+                                    isDismissingRef.current = true;
                                     handleResolveDuplicates();
                                     return;
                                 }
+                                // Auth's MergeTransactions also rejects a merge when the kept expense's report is no
+                                // longer editable, so block it here and explain rather than failing server-side.
+                                if (!TransactionUtils.canMergeDuplicates(iouReport, transactionsMergeParams.transactionIDList)) {
+                                    setMergeErrorMessage(translate('violations.cannotMergeDuplicates'));
+                                    return;
+                                }
+                                setMergeErrorMessage('');
+                                isDismissingRef.current = true;
                                 handleMergeDuplicates();
                             }}
                             size={CONST.BUTTON_SIZE.LARGE}
