@@ -73,7 +73,9 @@ In the exported file:
 
 > **Note:** If you expand the groups and select the individual expenses instead of the groups, each expense is exported as its own row without grouping.
 
-You can also mix both types of selection. If you select some groups and also expand a group to select only certain expenses within it, the exported file includes every expense from the fully selected groups and only the specific expenses you selected from the expanded group. The other expenses in the expanded group are not exported.
+You can also mix both types of selection. If you select some groups and also expand a group to select only certain expenses within it, the exported file includes:
+- Every expense from the fully selected groups.
+- Only the specific expenses you selected from an expanded group (other expenses in that group are not exported).
 
 # Export as PDF
 
