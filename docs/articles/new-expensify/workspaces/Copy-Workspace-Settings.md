@@ -1,5 +1,5 @@
 ---
-title: Copy Workspace Wettings
+title: Copy Workspace Settings
 description: Learn how Workspace Admins can copy settings from one workspace to one or more existing workspaces in New Expensify.
 keywords: [New Expensify, copy settings, copy workspace settings, workspace settings, apply settings to workspaces, workspace admin]
 internalScope: Audience is Workspace Admins. Covers how to copy settings from a source workspace onto one or more existing destination workspaces, which settings can be copied, and what happens after copying. Does not cover duplicating a workspace to create a new one.
