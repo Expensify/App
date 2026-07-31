@@ -266,6 +266,10 @@ describe('MoneyRequestReceiptView', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithoutReceipt);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {id: TEST_POLICY_ID});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${TEST_POLICY_ID}`, {});
+            // The reports above the expense are loaded and writable unless a test says otherwise, matching a
+            // conversation the user can post in. Receipt actions stay hidden while these are still loading.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, testMoneyRequestReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, testChatReport);
         });
         await waitForBatchedUpdatesWithAct();
     });
@@ -402,6 +406,24 @@ describe('MoneyRequestReceiptView', () => {
 
             expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
             expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
+        });
+
+        it('hides the add button while a report above the expense is still loading', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                // The expense points at a conversation that Onyx has not delivered yet, as after a deep link or a cache clear.
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, null);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
         });
 
         it('shows action buttons when every report above the expense allows writing', async () => {

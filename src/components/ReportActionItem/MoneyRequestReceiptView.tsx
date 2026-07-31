@@ -239,7 +239,11 @@ function MoneyRequestReceiptView({
     // A read-only conversation carries its restriction on the report the user was given limited access to - the expense's
     // own report, or the conversation above it - while the transaction thread stays writable. Checking only the thread
     // therefore still offers the receipt actions to someone who cannot post there. Same check that hides the composer.
-    const canWriteInAncestorReports = canWriteInReportReportUtils(parentReport) && canWriteInReportReportUtils(chatReport);
+    // A report we expect but have not loaded yet must not read as writable: permissions arrive with the report, so
+    // treating it as missing would leave the add control live on a read-only conversation until Onyx catches up.
+    const isParentReportPending = !!parentReportID && !parentReport;
+    const isChatReportPending = !!parentReport?.parentReportID && !chatReport;
+    const canWriteInAncestorReports = !isParentReportPending && !isChatReportPending && canWriteInReportReportUtils(parentReport) && canWriteInReportReportUtils(chatReport);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && canWriteInAncestorReports && !readonly;
     const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
