@@ -53,12 +53,14 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {ValueOf} from 'type-fest';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type MerchantRulePageBaseProps = {
     policyID: string;
     ruleID?: string;
+    /** Pre-scopes the category default when creating a rule (e.g. from the category details RHP). */
+    initialCategoryName?: string;
     titleKey: TranslationPaths;
     testID: string;
 };
@@ -108,7 +110,7 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
     return translate('workspace.rules.merchantRules.confirmError');
 };
 
-function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRulePageBaseProps) {
+function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, testID}: MerchantRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
@@ -129,32 +131,43 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const [shouldShowError, setShouldShowError] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
+    const didInitializeCreateDraftRef = useRef(false);
 
     // Get the existing rule from the policy (for edit mode)
     const existingRule = ruleID ? policy?.rules?.codingRules?.[ruleID] : undefined;
 
-    // Initialize the form with existing rule data (for edit mode)
+    // Initialize the form with existing rule data (for edit mode), or a pre-scoped category for create
     useEffect(() => {
-        if (!isEditing || !existingRule) {
+        if (isEditing) {
+            if (!existingRule) {
+                return;
+            }
+            // Convert the operator to matchType for the form
+            // 'eq' = exact match, 'contains' = contains match
+            const matchType = existingRule.filters?.operator;
+            // Convert HTML comment back to markdown for editing
+            const commentMarkdown = existingRule.comment ? Parser.htmlToMarkdown(existingRule.comment) : undefined;
+            setDraftMerchantRule({
+                merchantToMatch: existingRule.filters?.right,
+                matchType,
+                merchant: existingRule.merchant,
+                category: existingRule.category,
+                tag: existingRule.tag,
+                tax: existingRule.tax?.field_id_TAX?.externalID,
+                comment: commentMarkdown,
+                reimbursable: existingRule.reimbursable,
+                billable: existingRule.billable,
+            });
             return;
         }
-        // Convert the operator to matchType for the form
-        // 'eq' = exact match, 'contains' = contains match
-        const matchType = existingRule.filters?.operator;
-        // Convert HTML comment back to markdown for editing
-        const commentMarkdown = existingRule.comment ? Parser.htmlToMarkdown(existingRule.comment) : undefined;
-        setDraftMerchantRule({
-            merchantToMatch: existingRule.filters?.right,
-            matchType,
-            merchant: existingRule.merchant,
-            category: existingRule.category,
-            tag: existingRule.tag,
-            tax: existingRule.tax?.field_id_TAX?.externalID,
-            comment: commentMarkdown,
-            reimbursable: existingRule.reimbursable,
-            billable: existingRule.billable,
-        });
-    }, [isEditing, existingRule]);
+
+        if (!initialCategoryName || didInitializeCreateDraftRef.current) {
+            return;
+        }
+
+        didInitializeCreateDraftRef.current = true;
+        setDraftMerchantRule({category: initialCategoryName});
+    }, [isEditing, existingRule, initialCategoryName]);
 
     // Clear the form on unmount
     useEffect(() => () => clearDraftMerchantRule(), []);

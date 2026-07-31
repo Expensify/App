@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Responsable',
         dateFormat: 'AAAA-MM-JJ',
         calendarOpened: 'calendrier ouvert',
+        dialogOpened: 'dialogue',
         send: 'Envoyer',
         na: 'N/D',
         noResultsFound: 'Aucun résultat trouvé',
@@ -5890,7 +5891,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             directFeed: 'Flux direct',
             whoNeedsCardAssigned: 'Qui doit se voir assigner une carte ?',
             chooseTheCardholder: 'Choisir le titulaire de la carte',
-            pleaseSelectACardholder: 'Veuillez sélectionner un titulaire de carte pour continuer',
             chooseCard: 'Choisir une carte',
             chooseCardFor: (assignee: string) =>
                 `Choisissez une carte pour <strong>${assignee}</strong>. Vous ne trouvez pas la carte que vous cherchez ? <concierge-link>Dites-le-nous.</concierge-link>`,
@@ -6695,8 +6695,6 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             peopleAdmins: 'Administrateurs des personnes',
             paymentsAdmins: 'Administrateurs des paiements',
             members: 'Membres',
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `Vous ne pouvez pas supprimer ${memberName} de cet espace de travail tant qu’iel possède une Carte Expensify. Veuillez désactiver sa carte dans Espace de travail > Carte Expensify, puis réessayer.`,
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
@@ -7720,6 +7718,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 defaultTaxRate: 'Taux de taxe par défaut',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Allez dans [Plus de fonctionnalités](${moreFeaturesLink}) et activez les workflows, puis ajoutez des approbations pour déverrouiller cette fonctionnalité.`,
+                createNewRule: 'Créer une nouvelle règle',
+                contextualFlagForReview: (amount: string) => `Si le montant est supérieur à ${amount}, signaler pour examen`,
+                contextualFlagForReviewDaily: (amount: string) => `Si le total quotidien de la catégorie est supérieur à ${amount}, signaler pour examen`,
             },
             customRules: {
                 title: 'Politique de dépenses',

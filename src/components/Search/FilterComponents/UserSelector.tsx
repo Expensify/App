@@ -27,7 +27,7 @@ type UserSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
     policyID: Filter | undefined;
 };
 
-function UserSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
+function UserSelector({value = [], isNegatable, policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
@@ -124,6 +124,7 @@ function UserSelector({value = [], policyID, selectionListTextInputStyle, select
         <ListFilterWrapper
             itemCount={listData.length}
             isSearchable={shouldShowSearchInput}
+            isNegatable={isNegatable}
         >
             <SelectionList
                 data={listData}
