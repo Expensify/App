@@ -43,6 +43,8 @@ export type {default as UpdateRilletCreditCardAccountParams} from './UpdateRille
 export type {default as UpdateRilletDefaultVendorParams} from './UpdateRilletDefaultVendorParams';
 export type {default as UpdateRilletExportDateParams} from './UpdateRilletExportDateParams';
 export type {default as UpdateRilletExporterParams} from './UpdateRilletExporterParams';
+export type {default as UpdateRilletExportToMultipleAccountsParams} from './UpdateRilletExportToMultipleAccountsParams';
+export type {default as UpdateRilletCardProgramAccountParams} from './UpdateRilletCardProgramAccountParams';
 export type {default as UpdateRilletAutoSyncParams} from './UpdateRilletAutoSyncParams';
 export type {default as UpdateRilletAccountingMethodParams} from './UpdateRilletAccountingMethodParams';
 export type {default as UpdateRilletSyncReimbursedReportsParams} from './UpdateRilletSyncReimbursedReportsParams';
@@ -70,6 +72,7 @@ export type {default as GetMissingOnyxMessagesParams} from './GetMissingOnyxMess
 export type {default as GetNewerActionsParams} from './GetNewerActionsParams';
 export type {default as GetOlderActionsParams} from './GetOlderActionsParams';
 export type {default as GetPolicyCategoriesParams} from './GetPolicyCategories';
+export type {default as GetAgentRuleSuggestionsParams} from './GetAgentRuleSuggestionsParams';
 export type {default as GetReportPrivateNoteParams} from './GetReportPrivateNoteParams';
 export type {default as GetRouteParams} from './GetRouteParams';
 export type {default as CreateAppReportParams} from './CreateAppReportParams';
@@ -249,6 +252,7 @@ export type {default as UpdatePolicyCategoryPayrollCodeParams} from './UpdatePol
 export type {default as UpdatePolicyCategoryGLCodeParams} from './UpdatePolicyCategoryGLCodeParams';
 export type {default as SetWorkspaceAutoHarvestingParams} from './SetWorkspaceAutoHarvestingParams';
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
+export type {default as SetGlobalReimbursementFXPreferenceParams} from './SetGlobalReimbursementFXPreferenceParams';
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
 export type {default as DisablePolicyApprovalsParams} from './DisablePolicyApprovalsParams';
@@ -328,6 +332,7 @@ export type {default as LeavePolicyParams} from './LeavePolicyParams';
 export type {default as OpenPolicyAccountingPageParams} from './OpenPolicyAccountingPageParams';
 export type {default as DismissViolationParams} from './DismissViolationParams';
 export type {default as SearchParams} from './Search';
+export type {default as GetTransactionsConvertedAmountParams} from './GetTransactionsConvertedAmount';
 export type {default as SendInvoiceParams} from './SendInvoiceParams';
 export type {default as PayInvoiceParams} from './PayInvoiceParams';
 export type {default as MarkAsCashParams} from './MarkAsCashParams';
@@ -426,6 +431,7 @@ export type {default as RemovePolicyCategoryItemizedReceiptsRequiredParams} from
 export type {default as UpdateQuickbooksOnlineAutoCreateVendorParams} from './UpdateQuickbooksOnlineAutoCreateVendorParams';
 export type {default as ImportCategoriesSpreadsheetParams} from './ImportCategoriesSpreadsheet';
 export type {default as ImportMembersSpreadsheetParams} from './ImportMembersSpreadsheet';
+export type {default as ImportMerchantRulesSpreadsheetParams} from './ImportMerchantRulesSpreadsheet';
 export type {default as ExportMembersSpreadsheetParams} from './ExportMembersSpreadsheetParams';
 export type {default as ImportTagsSpreadsheetParams} from './ImportTagsSpreadsheet';
 export type {default as ExportCategoriesSpreadsheetParams} from './ExportCategoriesSpreadsheet';
@@ -442,6 +448,7 @@ export type {default as ToggleTravelInvoicingContinuousReconciliationParams} fro
 export type {default as UpdateTravelInvoicingMonthlyLimitParams} from './UpdateTravelInvoicingMonthlyLimitParams';
 export type {default as UpdateTravelInvoicingSettlementFrequencyParams} from './UpdateTravelInvoicingSettlementFrequencyParams';
 export type {default as RetryTravelCardsProvisioningParams} from './RetryTravelCardsProvisioningParams';
+export type {default as GetExpensifyCardStatementPDFParams} from './GetExpensifyCardStatementPDFParams';
 export type {default as GetTravelInvoiceStatementPDFParams} from './GetTravelInvoiceStatementPDFParams';
 export type {default as ExportTravelInvoiceStatementCSVParams} from './ExportTravelInvoiceStatementCSVParams';
 export type {default as SetCompanyCardFeedName} from './SetCompanyCardFeedName';
@@ -495,6 +502,7 @@ export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboard
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
 export type {default as DeleteAppReportParams} from './DeleteAppReportParams';
+export type {default as MergeReportsParams} from './MergeReportsParams';
 export type {default as SaveCorpayOnboardingDirectorInformationParams} from './SaveCorpayOnboardingDirectorInformationParams';
 export type {default as AskForCorpaySignerInformationParams} from './AskForCorpaySignerInformationParams';
 export type {default as MoveIOUReportToPolicyAndInviteSubmitterParams} from './MoveIOUReportToPolicyAndInviteSubmitterParams';
@@ -572,7 +580,9 @@ export type {default as UpdateAgentNameParams} from './UpdateAgentNameParams';
 export type {default as UpdateAgentPromptParams} from './UpdateAgentPromptParams';
 export type {default as UpdateAgentAvatarParams} from './UpdateAgentAvatarParams';
 export type {default as DeleteAgentParams} from './DeleteAgentParams';
+export type {default as ResendValidateCodeParams} from './ResendValidateCodeParams';
 export type {default as SendExportFileFromConciergeParams} from './SendExportFileFromConciergeParams';
 export type {default as ClearExportDownloadParams} from './ClearExportDownloadParams';
 export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
 export type {default as UploadUserKYBDocsParams} from './UploadUserKYBDocsParams';
+export type {default as JoinReportViaSecureLinkParams} from './JoinReportViaSecureLinkParams';

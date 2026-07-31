@@ -3,17 +3,19 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {
     buildNextStepMessage,
     buildNextStepNew,
+    buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
     getReportNextStep,
     buildOptimisticNextStep,
+    shouldShowDynamicExternalWorkflowApproveErrorNextStep,
 } from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
@@ -142,6 +144,7 @@ describe('libs/NextStepUtils', () => {
                     shouldFixViolations: false,
                     isUnapprove: false,
                     isReopen: false,
+                    isTrackIntentUser: false,
                 });
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -178,6 +181,7 @@ describe('libs/NextStepUtils', () => {
                     shouldFixViolations: true,
                     isUnapprove: false,
                     isReopen: false,
+                    isTrackIntentUser: false,
                 });
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -216,6 +220,7 @@ describe('libs/NextStepUtils', () => {
                     shouldFixViolations: false,
                     isUnapprove: false,
                     isReopen: false,
+                    isTrackIntentUser: false,
                 });
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -268,6 +273,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -312,6 +318,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -357,6 +364,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -403,6 +411,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -449,6 +458,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -494,6 +504,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -539,6 +550,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -582,6 +594,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -623,6 +636,7 @@ describe('libs/NextStepUtils', () => {
                     shouldFixViolations: false,
                     isUnapprove: false,
                     isReopen: false,
+                    isTrackIntentUser: false,
                 });
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -667,6 +681,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -720,6 +735,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -768,6 +784,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: true,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -796,6 +813,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -839,6 +857,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -882,6 +901,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -911,6 +931,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -940,6 +961,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -982,6 +1004,7 @@ describe('libs/NextStepUtils', () => {
                     shouldFixViolations: false,
                     isUnapprove: false,
                     isReopen: false,
+                    isTrackIntentUser: false,
                 });
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -1030,6 +1053,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -1055,6 +1079,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -1100,6 +1125,56 @@ describe('libs/NextStepUtils', () => {
         });
     });
 
+    describe('buildOptimisticNextStepForDynamicExternalWorkflowApproveError', () => {
+        test('should return alert next step with error message when DEW approve fails', () => {
+            const result = buildOptimisticNextStepForDynamicExternalWorkflowApproveError();
+
+            expect(result).toEqual({
+                type: 'alert',
+                icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
+                message: [
+                    {
+                        text: "This report can't be approved. Please review the comments to resolve.",
+                        type: 'alert-text',
+                    },
+                ],
+            });
+        });
+    });
+
+    describe('shouldShowDynamicExternalWorkflowApproveErrorNextStep', () => {
+        const createDEWApproveFailedAction = (automaticAction?: boolean): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> => ({
+            actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+            reportActionID: '1',
+            created: '2026-01-01 00:00:00.000',
+            message: [],
+            originalMessage: {
+                message: 'DEW blocked approval',
+                automaticAction,
+            },
+        });
+
+        it('returns true for manual approve failures when the current user is the approver', () => {
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(false), true, true)).toBe(true);
+        });
+
+        it('returns true when automaticAction is absent (treated as manual failure)', () => {
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(), true, true)).toBe(true);
+        });
+
+        it('returns false for auto-approve failures so the normal workflow next step is kept', () => {
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(true), true, true)).toBe(false);
+        });
+
+        it('returns false when the current user is not the approver', () => {
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(false), true, false)).toBe(false);
+        });
+
+        it('returns false when there is no active DEW approve failure', () => {
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(false), false, true)).toBe(false);
+        });
+    });
+
     describe('getReportNextStep', () => {
         const currentUserEmail = 'current-user@expensify.com';
         const currentUserAccountID = 37;
@@ -1140,7 +1215,7 @@ describe('libs/NextStepUtils', () => {
                 message: [{text: 'Current next step'}],
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID);
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false);
             expect(result).toBe(currentNextStep);
         });
 
@@ -1186,6 +1261,7 @@ describe('libs/NextStepUtils', () => {
                 transactionViolations,
                 currentUserEmail,
                 currentUserAccountID,
+                false,
             );
 
             expect(result).toEqual({
@@ -1236,7 +1312,7 @@ describe('libs/NextStepUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
-            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID);
+            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, false);
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
 
@@ -1306,6 +1382,7 @@ describe('libs/NextStepUtils', () => {
                 transactionViolations,
                 currentUserEmail,
                 currentUserAccountID,
+                false,
             );
 
             expect(result).toEqual({
@@ -1343,7 +1420,7 @@ describe('libs/NextStepUtils', () => {
                 actorAccountID: currentUserAccountID,
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, reportNextStep);
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
             expect(result).toBe(reportNextStep);
         });
 
@@ -1375,8 +1452,41 @@ describe('libs/NextStepUtils', () => {
                 actorAccountID: currentUserAccountID,
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, reportNextStep);
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
             expect(result).toBe(currentNextStep);
+        });
+
+        it('prefers the report-embedded next step over the deprecated value', () => {
+            const embeddedNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-7',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                nextStep: embeddedNextStep,
+            } as Report;
+
+            const currentNextStep: ReportNextStepDeprecated = {
+                type: 'neutral',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                message: [{text: 'Stale deprecated message'}],
+            };
+
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, report.nextStep);
+            expect(result).toBe(embeddedNextStep);
         });
 
         it('prioritizes a higher-priority override over the new translatable next step', async () => {
@@ -1428,7 +1538,7 @@ describe('libs/NextStepUtils', () => {
             await waitForBatchedUpdates();
 
             // Even though a translatable next step is supplied, the prevent-self-approval override must still win.
-            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, reportNextStep);
+            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
     });

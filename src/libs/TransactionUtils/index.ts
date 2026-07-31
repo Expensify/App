@@ -14,7 +14,6 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getDistanceRateCustomUnit,
@@ -33,8 +32,8 @@ import {
     isCurrentUserSubmitter,
     isInvoiceReport,
     isOpenExpenseReport,
+    isOpenReport,
     isProcessingReport,
-    isReportIDApproved,
     isSelfDM,
     isSettled,
     isThread,
@@ -608,6 +607,7 @@ function getUpdatedTransaction({
     isFromExpenseReport,
     shouldUpdateReceiptState = true,
     policy = undefined,
+    policies = undefined,
     isSplitTransaction = false,
     personalPolicyOutputCurrency,
 }: {
@@ -616,6 +616,7 @@ function getUpdatedTransaction({
     isFromExpenseReport: boolean;
     shouldUpdateReceiptState?: boolean;
     policy?: OnyxEntry<Policy>;
+    policies?: OnyxCollection<Policy>;
     isSplitTransaction?: boolean;
     personalPolicyOutputCurrency: string | undefined;
 }): Transaction {
@@ -738,7 +739,26 @@ function getUpdatedTransaction({
             // When the waypoints are being fetched from the server, we have no information about the distance, and cannot recalculate the updated amount.
             // Otherwise, recalculate the fields based on the new rate.
 
-            const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
+            let updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
+
+            // The provided `policy` may not own the new rate, leaving the amount at 0. Fall back to
+            // resolving the rate across every policy the user belongs to.
+            if (!updatedMileageRate.rate && transactionChanges.customUnitRateID) {
+                const rateFromAnyPolicy = DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(transactionChanges.customUnitRateID, policies);
+                if (rateFromAnyPolicy?.rate) {
+                    updatedMileageRate = rateFromAnyPolicy;
+
+                    // The fallback rate wasn't known when the distance unit/quantity were set above from the
+                    // (rate-less) provided policy, so redo that conversion against the fallback rate's actual unit.
+                    if (rateFromAnyPolicy.unit && rateFromAnyPolicy.unit !== newDistanceUnit && !isOdometerDistanceRequest(transaction)) {
+                        lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', rateFromAnyPolicy.unit);
+                        const fallbackConversionFactor =
+                            newDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
+                        const currentQuantity = updatedTransaction?.comment?.customUnit?.quantity ?? 0;
+                        lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(currentQuantity * fallbackConversionFactor));
+                    }
+                }
+            }
             const {unit, rate} = updatedMileageRate;
 
             const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
@@ -1644,7 +1664,7 @@ function getTransactionViolations(
 
     const violations =
         transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]?.filter(
-            (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy, iouReportOwnerLogin),
+            (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
         ) ?? [];
 
     return violations;
@@ -1767,7 +1787,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
                 return false;
             }
 
-            if (isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy, reportOwnerLogin)) {
+            if (isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy)) {
                 return false;
             }
 
@@ -1818,7 +1838,7 @@ function getVisibleTransactionViolations(
     return mergeProhibitedViolations(
         transactionViolations.filter(
             (violation) =>
-                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy, iouReportOwnerLogin) &&
+                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy) &&
                 shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
         ),
     );
@@ -2036,8 +2056,8 @@ function isDuplicate(
         currentUserEmail,
         currentUserAccountID,
         iouReport,
-        policy,
         iouReportOwnerLogin,
+        policy,
     );
 
     return hasDuplicatedTransactionViolation && !isDuplicatedTransactionViolationDismissed;
@@ -2063,8 +2083,8 @@ function isViolationDismissed(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
-    iouReportOwnerLogin?: string,
 ): boolean {
     if (!transaction || !violation) {
         return false;
@@ -2095,11 +2115,8 @@ function isViolationDismissed(
     const isSubmitter = iouReport.ownerAccountID === currentUserAccountID;
     const shouldViewAsSubmitter = !isSubmitter && isOpenExpenseReport(iouReport);
 
-    if (shouldViewAsSubmitter && iouReport.ownerAccountID) {
-        const reportOwnerEmail = iouReportOwnerLogin ?? getLoginsByAccountIDs([iouReport.ownerAccountID]).at(0);
-        if (reportOwnerEmail && dismissedByEmails.includes(reportOwnerEmail)) {
-            return true;
-        }
+    if (shouldViewAsSubmitter && iouReportOwnerLogin && dismissedByEmails.includes(iouReportOwnerLogin)) {
+        return true;
     }
 
     return false;
@@ -2124,6 +2141,7 @@ function hasViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     showInReview?: boolean,
 ): boolean {
@@ -2136,7 +2154,7 @@ function hasViolation(
         (violation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
+            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
     );
 }
 
@@ -2176,6 +2194,7 @@ function hasNoticeTypeViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     showInReview?: boolean,
 ): boolean {
@@ -2188,7 +2207,7 @@ function hasNoticeTypeViolation(
         (violation: TransactionViolation) =>
             violation.type === CONST.VIOLATION_TYPES.NOTICE &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
+            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
     );
 }
 
@@ -2201,6 +2220,7 @@ function hasWarningTypeViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     showInReview?: boolean,
 ): boolean {
@@ -2214,7 +2234,7 @@ function hasWarningTypeViolation(
             (violation: TransactionViolation) =>
                 violation.type === CONST.VIOLATION_TYPES.WARNING &&
                 (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
+                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
         ) ?? [];
 
     return warningTypeViolations.length > 0;
@@ -2590,8 +2610,30 @@ function removeTransactionFromDuplicateTransactionViolation(
     }
 }
 
+/**
+ * Whether a report is still editable for a duplicate merge, i.e. one that Auth's MergeTransactions command would
+ * accept. A report is mergeable when it is open, awaiting first-level approval, or unresolved (unreported expenses
+ * stay editable in Auth). Anything approved, closed (Submit & Close), or reimbursed is rejected server-side.
+ */
+function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
+    return !report || isOpenReport(report) || isProcessingReport(report);
+}
+
+/**
+ * Keeps only transactions that Auth's MergeTransactions command would accept, so filtering here prevents sending a
+ * merge request that would fail server-side.
+ */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
-    return transactions.filter((transaction) => !!transaction && !isSettled(transaction?.reportID) && !isReportIDApproved(transaction?.reportID)) as Transaction[];
+    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport(transaction.reportID))) as Transaction[];
+}
+
+/**
+ * Whether a duplicate merge can be submitted. Auth's MergeTransactions rejects the merge when the kept expense's
+ * report is no longer editable or when there are no duplicates left to merge, so callers should block the request
+ * in those cases.
+ */
+function canMergeDuplicates(keptReport: OnyxEntry<Report>, transactionIDList: string[]): boolean {
+    return isReportMergeableForDuplicates(keptReport) && transactionIDList.length > 0;
 }
 
 /**
@@ -2886,6 +2928,15 @@ function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction
 
 function isSplitChildTransaction(transaction: OnyxEntry<Transaction> | Transaction): boolean {
     return transaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
+}
+
+/**
+ * The original (container) transaction of a split lives in SPLIT_REPORT_ID while the split exists, so it's
+ * hidden and has no dismiss UI of its own. Used to decide whether a split failure error on the original
+ * should be cleared alongside the visible child's error.
+ */
+function isSplitContainerTransaction(transaction: OnyxEntry<Transaction> | Transaction): boolean {
+    return transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID;
 }
 
 function hasSplitExpenseInSelection(transactions: Transaction[]): boolean {
@@ -3242,6 +3293,7 @@ export {
     getTransactionID,
     buildNewTransactionAfterReviewingDuplicates,
     buildMergeDuplicatesParams,
+    canMergeDuplicates,
     getReimbursable,
     isPayAtEndExpense,
     removeSettledAndApprovedTransactions,
@@ -3275,6 +3327,7 @@ export {
     isExpenseSplit,
     hasSplitExpenseInSelection,
     isSplitChildTransaction,
+    isSplitContainerTransaction,
     getAttendeesListDisplayString,
     isCorporateCardTransaction,
     isExpenseUnreported,

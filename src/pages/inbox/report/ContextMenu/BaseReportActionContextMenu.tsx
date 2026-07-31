@@ -7,6 +7,7 @@ import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
@@ -33,8 +34,10 @@ import {
     getReportAction,
     isActionOfType,
     isDeletedAction,
+    isMemberChangeAction,
     withDEWRoutedActionsObject,
 } from '@libs/ReportActionsUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     chatIncludesChronosWithID,
     getHarvestOriginalReportID,
@@ -161,7 +164,8 @@ function BaseReportActionContextMenu({
         'Trashcan',
     ]);
     const StyleUtils = useStyleUtils();
-    const {translate, getLocalDateFromDatetime} = useLocalize();
+    const {translate, getLocalDateFromDatetime, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
@@ -283,6 +287,9 @@ function BaseReportActionContextMenu({
     const isUnreadChat = isUnread(report, lhnOneTransactionThreadReport, isOriginalReportArchived);
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     const isHarvestReport = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
+    const memberChangeLogReportActionMessage = isMemberChangeAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
+    const [memberChangeLogRoomReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(`${memberChangeLogReportActionMessage?.reportID}`)}`);
+    const memberChangeLogRoomReportName = deprecatedGetReportName(memberChangeLogRoomReport, reportAttributes) || memberChangeLogReportActionMessage?.roomName;
 
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
@@ -398,6 +405,7 @@ function BaseReportActionContextMenu({
                             const closePopup = !isMini;
                             const payload: ContextMenuActionPayload = {
                                 reportActions,
+                                childReportActions,
                                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                                 reportAction: (reportAction ?? null) as ReportAction,
                                 reportID,
@@ -424,6 +432,8 @@ function BaseReportActionContextMenu({
                                 policy,
                                 policyTags,
                                 translate,
+                                convertToDisplayString,
+                                formatPhoneNumber,
                                 harvestReport,
                                 harvestReportOriginalID,
                                 introSelected,
@@ -443,6 +453,7 @@ function BaseReportActionContextMenu({
                                 delegateAccountID,
                                 reportAttributes,
                                 originalReportOfUnapprovedTransaction,
+                                memberChangeLogRoomReportName,
                             };
 
                             if ('renderContent' in contextAction) {

@@ -1,8 +1,9 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import Popover from '@components/Popover';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -19,7 +20,9 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getCardSettings} from '@libs/CardUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
+import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import variables from '@styles/variables';
@@ -30,6 +33,7 @@ import {navigateToConciergeChat} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -121,6 +125,17 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         queueExpensifyCardForBilling(CONST.COUNTRY.US, defaultFundID);
     };
 
+    const handleViewTransactionsPress = () => {
+        const fundIDForFeedKey = defaultFundID === CONST.DEFAULT_NUMBER_ID ? undefined : String(defaultFundID);
+        const feedKey = fundIDForFeedKey ? `${fundIDForFeedKey}_${CONST.EXPENSIFY_CARD.BANK}` : CONST.EXPENSIFY_CARD.BANK;
+        const query = buildQueryStringFromFilterFormValues({
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            feed: [feedKey],
+            withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.NEVER, CONST.SEARCH.SETTLEMENT_STATUS.PENDING],
+        });
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+    };
+
     return (
         <View style={styles.flex1}>
             <View style={styles.flex1}>
@@ -149,13 +164,21 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                         <View style={[styles.mr2, isLessThanMediumScreen && styles.mb3]}>
                             <Button
                                 onPress={handleSettleBalanceButtonClick}
-                                text={translate('workspace.expensifyCard.settleBalance')}
                                 innerStyles={[styles.buttonSmall]}
-                                textStyles={[styles.buttonSmallText]}
-                            />
+                            >
+                                <Button.Text style={[styles.buttonSmallText]}>{translate('workspace.expensifyCard.settleBalance')}</Button.Text>
+                            </Button>
                         </View>
                     )}
                 </View>
+                {isCurrentBalanceType && (
+                    <TextLink
+                        onPress={handleViewTransactionsPress}
+                        style={styles.mt1}
+                    >
+                        {translate('workspace.common.viewTransactions')}
+                    </TextLink>
+                )}
             </View>
             {isSettleDateTextDisplayed && <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{translate('workspace.expensifyCard.balanceWillBeSettledOn', settlementDate)}</Text>}
             <Popover
@@ -179,9 +202,10 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                         <View style={[styles.flexRow, styles.mt3]}>
                             <Button
                                 onPress={requestLimitIncrease}
-                                text={translate('workspace.expensifyCard.requestLimitIncrease')}
                                 style={shouldUseNarrowLayout && styles.flex1}
-                            />
+                            >
+                                <Button.Text>{translate('workspace.expensifyCard.requestLimitIncrease')}</Button.Text>
+                            </Button>
                         </View>
                     )}
                 </View>

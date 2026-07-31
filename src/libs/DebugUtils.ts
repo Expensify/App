@@ -1385,6 +1385,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 comment: 'string',
                 cardID: 'number',
                 missingFields: 'array',
+                isSupplierViolation: 'boolean',
                 startDate: 'string',
                 endDate: 'string',
             });
@@ -1555,6 +1556,7 @@ function getReasonAndReportActionForRBRInLHNRow(
     hasViolations: boolean,
     reportErrors: Errors,
     isOffline: boolean,
+    currentUserAccountID: number,
     isArchivedReport = false,
 ): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
@@ -1566,6 +1568,7 @@ function getReasonAndReportActionForRBRInLHNRow(
             reportErrors,
             transactions,
             isOffline,
+            currentUserAccountID,
             transactionViolations,
             isArchivedReport,
         ) ?? {};
