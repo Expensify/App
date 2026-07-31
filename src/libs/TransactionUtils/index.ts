@@ -735,14 +735,10 @@ function getUpdatedTransaction({
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         }
 
-        // A freshly created (but not-yet-confirmed) waypoint expense still has `pendingFields.waypoints`
-        // set, yet its route distance is already known locally (quantity/routes). In that case we can
-        // recalculate the amount/merchant for the new rate right away instead of waiting for the server.
         const hasLocallyKnownDistance = !!transaction?.comment?.customUnit?.quantity || !!transaction?.routes?.route0?.distance;
         if (!isFetchingWaypointsFromServer(transaction) || hasLocallyKnownDistance) {
             // When the waypoints are being fetched from the server and we have no local distance, we cannot
             // recalculate the updated amount. Otherwise, recalculate the fields based on the new rate.
-
             let updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
 
             // The provided `policy` may not own the new rate, leaving the amount at 0. Fall back to

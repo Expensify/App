@@ -1685,9 +1685,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     // When distance is provided alongside waypoints (route was already calculated), we have valid
     // merchant/amount data to build the optimistic report action instead of waiting for the server.
     const hasDistanceWithWaypoints = hasPendingWaypoints && 'distance' in transactionChanges;
-    // A rate edit on a freshly created (but not-yet-confirmed) waypoint expense hits `pendingFields.waypoints`,
-    // but the route distance is already known locally, so we can still build a valid optimistic message
-    // (e.g. offline right after submitting, before the create response is received).
     const hasLocallyKnownDistance = !!transaction?.comment?.customUnit?.quantity || !!transaction?.routes?.route0?.distance;
     if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -2275,8 +2272,6 @@ function getUpdateTrackExpenseParams(
     const hasModifiedDistanceRate = 'customUnitRateID' in transactionChanges;
     const hasModifiedCreated = 'created' in transactionChanges;
     const hasModifiedDate = 'date' in transactionChanges;
-    // A rate edit on a freshly created (but not-yet-confirmed) waypoint expense hits `pendingFields.waypoints`,
-    // but the route distance is already known locally, so we can still build a valid optimistic message.
     const hasLocallyKnownDistance = !!transaction?.comment?.customUnit?.quantity || !!transaction?.routes?.route0?.distance;
 
     let syncedOptimisticViolations: OnyxTypes.TransactionViolations | undefined;
