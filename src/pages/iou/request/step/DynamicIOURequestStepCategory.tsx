@@ -223,6 +223,11 @@ function DynamicIOURequestStepCategory({
         // `action === CATEGORIZE` only ever occurs when categorizing a fresh tracked expense directly from a
         // report (never from an existing Confirmation screen), so continue forward into Confirmation here.
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
+            if (backPath.includes('/confirmation/')) {
+                saveAndNavigateBack();
+                return;
+            }
+
             if (report?.reportID) {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report.reportID));
             }

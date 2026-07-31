@@ -142,6 +142,8 @@ const oldRoutes: Record<string, string> = {
     '/settings/wallet/enable-payments/terms*': '/settings/wallet/enable-payments/fees-and-terms/terms$1',
     '/missing-personal-details/*': '/settings/wallet/missing-personal-details/$1',
     '/workspaces/*/workflows/approvals/expenses-from': '/workspaces/$1/workflows/approvals/new/expenses-from',
+    '/*/*/category/new/*/*': '/r/$4/category/add-category?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/category/*/*': '/r/$4/category?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/taxRate/*/*': '/r/$4/taxRate?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/taxAmount/*/*': '/r/$4/taxAmount?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/attendees/*/*': '/r/$4/attendees?action=$1&iouType=$2&transactionID=$3&reportID=$4',
