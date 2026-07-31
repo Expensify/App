@@ -390,6 +390,5 @@ export type {
     DomainSettings,
     CombinedCardFeed,
     CombinedCardFeeds,
-    TravelInvoicingProvisioningError,
     TravelInvoicingProvisioningErrors,
 };
