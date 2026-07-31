@@ -495,6 +495,25 @@ function removeMembers(
     ];
     successData.push(...(announceRoomMembers.successData ?? []), ...(adminRoomMembers.successData ?? []), ...(preferredExporterOnyxData.successData ?? []));
 
+    const workflowEmployeeFields = ['submitsTo', 'forwardsTo', 'approvalLimit', 'overLimitForwardsTo'] as const;
+    const failureWorkflowEmployees = Object.fromEntries(
+        Object.entries(workflowEmployees).map(([email, updatedEmployee]) => {
+            const previousEmployee = policy.employeeList?.[email];
+            const restoredWorkflowFields = Object.fromEntries(workflowEmployeeFields.filter((field) => field in updatedEmployee).map((field) => [field, previousEmployee?.[field] ?? null]));
+            const updatedPendingFieldKeys = workflowEmployeeFields.filter((field) => field in (updatedEmployee.pendingFields ?? {}));
+            const restoredPendingFields = Object.fromEntries(updatedPendingFieldKeys.map((field) => [field, previousEmployee?.pendingFields?.[field] ?? null]));
+
+            return [
+                email,
+                {
+                    ...restoredWorkflowFields,
+                    pendingAction: previousEmployee?.pendingAction ?? null,
+                    ...(updatedPendingFieldKeys.length > 0 ? {pendingFields: restoredPendingFields} : {}),
+                },
+            ];
+        }),
+    );
+
     const failureData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
     > = [
@@ -502,7 +521,7 @@ function removeMembers(
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {
-                employeeList: hasWorkflowUpdates ? {...previousEmployeeList, ...failureMembersState} : failureMembersState,
+                employeeList: hasWorkflowUpdates ? {...failureWorkflowEmployees, ...failureMembersState} : failureMembersState,
                 approver: policy?.approver,
                 ...(hasWorkflowUpdates ? {approvalMode: policy.approvalMode} : {}),
                 rules: policy?.rules,
