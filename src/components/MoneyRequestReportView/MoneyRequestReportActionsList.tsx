@@ -33,11 +33,13 @@ import {
     getFirstVisibleReportActionID,
     getOneTransactionThreadReportID,
     hasNextActionMadeBySameActor,
+    canReportActionUseActorGrouping,
     isCurrentActionUnread,
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
     isMoneyRequestAction,
     isReportActionVisible,
+    isSystemMessageAction,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread, shouldShowMarkAsDone} from '@libs/ReportUtils';
@@ -74,10 +76,12 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, View} from 'react-native';
 
+import CollapsedSystemMessages from './CollapsedSystemMessages';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 import SelectionToolbar from './SelectionToolbar';
+import useMoneyRequestReportActionsPresentation from './useMoneyRequestReportActionsPresentation';
 
 /**
  * In this view we are not handling the special single transaction case, we're just handling the report
@@ -450,7 +454,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     /**
      * The reportActionID the unread marker should display above
      */
-    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = getUnreadMarkerReportAction({
+    const [unreadMarkerReportActionID] = getUnreadMarkerReportAction({
         visibleReportActions,
         earliestReceivedOfflineMessageIndex,
         currentUserAccountID,
@@ -461,6 +465,14 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         isReversed: true,
         hasWindowFocus: Visibility.hasFocus(),
     });
+
+    const {displayReportActions, runsByAnchorReportActionID, unreadMarkerReportActionIndex, expandedSystemMessageReportActionIDs, toggleSystemMessageRun} =
+        useMoneyRequestReportActionsPresentation({
+            visibleReportActions,
+            linkedReportActionID,
+            unreadMarkerReportActionID,
+        });
+    const visibleReportActionIndexByID = useMemo(() => new Map(visibleReportActions.map((reportAction, index) => [reportAction.reportActionID, index])), [visibleReportActions]);
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report?.reportID ?? reportIDFromRoute ?? '',
@@ -631,12 +643,19 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const renderReportAction = useCallback(
         (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => {
-            const displayAsGroup =
-                !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, indexWithinReportActions, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                hasNextActionMadeBySameActor(visibleReportActions, indexWithinReportActions, isOffline);
+            const isSystemMessage = isSystemMessageAction(reportAction);
+            const indexWithinVisibleReportActions = visibleReportActionIndexByID.get(reportAction.reportActionID) ?? -1;
+            const previousVisibleReportAction = visibleReportActions.at(indexWithinVisibleReportActions - 1);
+            const canDisplayAsGroup =
+                indexWithinVisibleReportActions >= 0 &&
+                !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, indexWithinVisibleReportActions, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                hasNextActionMadeBySameActor(visibleReportActions, indexWithinVisibleReportActions, isOffline);
+            const displayAsGroup = isSystemMessage || (canDisplayAsGroup && canReportActionUseActorGrouping(reportAction, previousVisibleReportAction));
             const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
+            const systemMessageRun = runsByAnchorReportActionID.get(reportAction.reportActionID);
+            const shouldDisplayUnreadMarker = indexWithinReportActions === unreadMarkerReportActionIndex;
 
-            return (
+            const reportActionItem = (
                 <ReportActionIndexContext.Provider value={indexWithinReportActions}>
                     <ReportActionsListItemRenderer
                         reportAction={reportAction}
@@ -646,7 +665,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         transactionThreadReport={transactionThreadReport}
                         chatReport={chatReport}
                         displayAsGroup={displayAsGroup}
-                        shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                        displayAsSystemMessage={isSystemMessage}
+                        shouldDisplayNewMarker={shouldDisplayUnreadMarker && (!systemMessageRun || systemMessageRun.isExpanded)}
                         shouldDisplayReplyDivider={visibleReportActions.length > 1}
                         isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                         shouldHideThreadDividerLine
@@ -656,9 +676,32 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     />
                 </ReportActionIndexContext.Provider>
             );
+
+            if (!systemMessageRun) {
+                return reportActionItem;
+            }
+
+            const collapsedSystemMessages = (
+                <CollapsedSystemMessages
+                    count={systemMessageRun.reportActionIDs.length}
+                    isExpanded={systemMessageRun.isExpanded}
+                    onPress={() => toggleSystemMessageRun(systemMessageRun.reportActionIDs, systemMessageRun.isExpanded)}
+                    unreadMarkerReportActionID={!systemMessageRun.isExpanded && shouldDisplayUnreadMarker ? unreadMarkerReportActionID : undefined}
+                />
+            );
+
+            if (!systemMessageRun.isExpanded) {
+                return collapsedSystemMessages;
+            }
+
+            return (
+                <>
+                    {collapsedSystemMessages}
+                    {reportActionItem}
+                </>
+            );
         },
         [
-            visibleReportActions,
             parentReportAction,
             reportStable,
             chatReport,
@@ -670,10 +713,18 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             shouldShowHarvestCreatedAction,
             draftReportActionID,
             isDraftPendingCompletion,
+            unreadMarkerReportActionIndex,
+            runsByAnchorReportActionID,
+            toggleSystemMessageRun,
+            visibleReportActionIndexByID,
+            visibleReportActions,
         ],
     );
 
-    const reportActionsExtraData = useMemo(() => [draftReportActionID, isDraftPendingCompletion], [draftReportActionID, isDraftPendingCompletion]);
+    const reportActionsExtraData = useMemo(
+        () => [draftReportActionID, isDraftPendingCompletion, expandedSystemMessageReportActionIDs, unreadMarkerReportActionID],
+        [draftReportActionID, expandedSystemMessageReportActionIDs, isDraftPendingCompletion, unreadMarkerReportActionID],
+    );
 
     const scrollToLatestMessages = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);
@@ -793,7 +844,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         policy={policy}
                         hasComments={visibleReportActions.length > 0}
                         isLoadingInitialReportActions={showReportActionsLoadingState}
-                        visibleReportActions={visibleReportActions}
+                        displayReportActions={displayReportActions}
                         renderReportAction={renderReportAction}
                         reportActionsExtraData={reportActionsExtraData}
                         linkedReportActionID={linkedReportActionID}

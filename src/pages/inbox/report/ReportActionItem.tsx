@@ -96,6 +96,7 @@ import LinkPreviewer from './LinkPreviewer';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 import ReportActionItemContentCreated from './ReportActionItemContentCreated';
 import ReportActionItemFrame from './ReportActionItemFrame';
+import ReportActionItemSystem from './ReportActionItemSystem';
 import ReportActionItemThread from './ReportActionItemThread';
 import SearchActionHeader from './SearchActionHeader';
 import TripSummary from './TripSummary';
@@ -122,6 +123,9 @@ type ReportActionItemProps = {
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
+
+    /** Whether the action should render as an inline, avatarless system message. */
+    displayAsSystemMessage?: boolean;
 
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: boolean;
@@ -170,6 +174,7 @@ function ReportActionItem({
     chatReport,
     linkedReportActionID,
     displayAsGroup,
+    displayAsSystemMessage = false,
     parentReportAction,
     shouldDisplayNewMarker,
     shouldHideThreadDividerLine = false,
@@ -498,6 +503,45 @@ function ReportActionItem({
     const plainMessage = getReportActionText(action);
     const accessibilityLabel = `${actorDisplayName ?? ''}, ${formattedTimestamp}, ${plainMessage}`;
 
+    const renderActionContent = (isHoveredOrActive: boolean) => {
+        const actionContent = (
+            <ActionContentRouter
+                action={action}
+                report={report}
+                chatReport={chatReport}
+                reportID={reportID}
+                originalReportID={originalReportID}
+                iouReport={iouReport}
+                displayAsGroup={displayAsGroup}
+                draftMessage={draftMessage}
+                isWhisper={isWhisper}
+                hovered={isHoveredOrActive}
+                isHidden={isHidden}
+                updateHiddenState={updateHiddenState}
+                isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
+                isTrackIntentUser={isTrackIntentUser}
+                isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
+                shouldShowBorder={shouldShowBorder}
+                isOnSearch={isOnSearch}
+                setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
+            />
+        );
+
+        if (!displayAsSystemMessage) {
+            return actionContent;
+        }
+
+        return (
+            <ReportActionItemSystem
+                action={action}
+                report={report}
+                iouReport={iouReport}
+            >
+                {actionContent}
+            </ReportActionItemSystem>
+        );
+    };
+
     return (
         <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
             <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
@@ -610,26 +654,7 @@ function ReportActionItem({
                                                             hovered={isHoveredOrActive}
                                                             isActive={isReportActionActive && !isContextMenuActive}
                                                         >
-                                                            <ActionContentRouter
-                                                                action={action}
-                                                                report={report}
-                                                                chatReport={chatReport}
-                                                                reportID={reportID}
-                                                                originalReportID={originalReportID}
-                                                                iouReport={iouReport}
-                                                                displayAsGroup={displayAsGroup}
-                                                                draftMessage={draftMessage}
-                                                                isWhisper={isWhisper}
-                                                                hovered={isHoveredOrActive}
-                                                                isHidden={isHidden}
-                                                                updateHiddenState={updateHiddenState}
-                                                                isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
-                                                                isTrackIntentUser={isTrackIntentUser}
-                                                                isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
-                                                                shouldShowBorder={shouldShowBorder}
-                                                                isOnSearch={isOnSearch}
-                                                                setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
-                                                            />
+                                                            {renderActionContent(isHoveredOrActive)}
                                                             {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
                                                                 <View style={hasDraft ? styles.chatItemReactionsDraftRight : {}}>
                                                                     <LinkPreviewer linkMetadata={action.linkMetadata?.filter((item) => !isEmptyObject(item))} />

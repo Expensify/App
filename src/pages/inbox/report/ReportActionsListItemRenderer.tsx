@@ -33,6 +33,9 @@ type ReportActionsListItemRendererProps = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
+    /** Whether the content should use the inline, avatarless system-message presentation. */
+    displayAsSystemMessage?: boolean;
+
     /** If the thread divider line should be hidden */
     shouldHideThreadDividerLine: boolean;
 
@@ -68,6 +71,7 @@ function ReportActionsListItemRenderer({
     transactionThreadReport,
     chatReport,
     displayAsGroup,
+    displayAsSystemMessage = false,
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
     linkedReportActionID = '',
@@ -181,6 +185,7 @@ function ReportActionsListItemRenderer({
             action={action}
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
+            displayAsSystemMessage={displayAsSystemMessage}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
