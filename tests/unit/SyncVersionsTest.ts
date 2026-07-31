@@ -33,6 +33,14 @@ function git(cwd: string, ...args: string[]): string {
     return execFileSync('git', args, {cwd, encoding: 'utf-8', env: {...process.env, ...GIT_ALLOW_FILE_TRANSPORT}}).trim();
 }
 
+function readVersion(filePath: string): unknown {
+    const parsed: unknown = JSON.parse(fs.readFileSync(filePath, {encoding: 'utf-8'}));
+    if (typeof parsed !== 'object' || parsed === null || !('version' in parsed)) {
+        throw new Error(`Expected ${filePath} to contain a version field`);
+    }
+    return parsed.version;
+}
+
 function writeJSON(filePath: string, contents: Record<string, unknown>) {
     fs.mkdirSync(path.dirname(filePath), {recursive: true});
     fs.writeFileSync(filePath, `${JSON.stringify(contents, null, 4)}\n`);
@@ -116,12 +124,13 @@ function setUpFixture(appVersion: string, mobileExpensifyVersion: string, fullSy
             return;
         }
 
+        // `npm version` refuses to update a lockfile that isn't there, and rewrites the root package entry itself
         writeJSON(path.join(workingDir, 'package-lock.json'), {
             name: 'new.expensify',
             version: appVersion,
             lockfileVersion: 3,
             requires: true,
-            packages: {'': {name: 'new.expensify', version: appVersion}},
+            packages: Object.fromEntries([['', {name: 'new.expensify', version: appVersion}]]),
         });
         fs.mkdirSync(path.join(workingDir, 'android/app'), {recursive: true});
         fs.writeFileSync(
@@ -275,7 +284,7 @@ describeMacOS('syncVersions.sh sync (full version)', () => {
         expect(result.status).toBe(0);
         expect(result.outputs.POST_SYNC_APP_VERSION).toBe('9.3.11-48');
 
-        expect((JSON.parse(fs.readFileSync(path.join(appDir, 'package.json'), {encoding: 'utf-8'})) as {version: string}).version).toBe('9.3.11-48');
+        expect(readVersion(path.join(appDir, 'package.json'))).toBe('9.3.11-48');
 
         const buildGradle = fs.readFileSync(path.join(appDir, 'android/app/build.gradle'), {encoding: 'utf-8'});
         expect(buildGradle).toContain('versionName "9.3.11-48"');
