@@ -9,7 +9,7 @@ import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
-import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isExpenseReport, isIOUReport, isSelfDM} from '@libs/ReportUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {
@@ -352,10 +352,13 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 // through the track-expense flow, which resolves the self-DM report actions and the whisper.
                 if (isSelfDM(candidateIOUReport) && isTrackExpenseAction(action)) {
                     // The Onyx collection can be missing the self-DM actions when the delete comes from Search, where
-                    // they are read from the search snapshot instead, so the ones passed in fill the gaps.
+                    // they are read from the search snapshot instead, so the ones passed in fill the gaps. Actionable
+                    // track expense whispers are matched on their own since they are built without a `reportID`.
                     const selfDMReportActions: ReportActions = {
                         ...Object.fromEntries(
-                            reportActions.filter((chatAction) => chatAction.reportID === candidateIOUReport?.reportID).map((chatAction) => [chatAction.reportActionID, chatAction]),
+                            reportActions
+                                .filter((chatAction) => chatAction.reportID === candidateIOUReport?.reportID || isActionableTrackExpense(chatAction))
+                                .map((chatAction) => [chatAction.reportActionID, chatAction]),
                         ),
                         ...allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${candidateIOUReport?.reportID}`],
                     };
