@@ -46,7 +46,13 @@ import {
 import {setDraftValues} from '@userActions/FormActions';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
-import {cancelChangingToNewBankAccount, clearReimbursementAccount, clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {
+    cancelChangingToNewBankAccount,
+    clearReimbursementAccount,
+    clearReimbursementAccountBackup,
+    clearReimbursementAccountDraft,
+    restoreReimbursementAccountBackup,
+} from '@userActions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -97,6 +103,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
     const [isChangingToNewBankAccount] = useOnyx(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT);
+    const [reimbursementAccountBackup] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP);
 
     const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name ?? '';
@@ -277,20 +284,43 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingWorkspaceReimbursement, prevIsLoadingWorkspaceReimbursement]);
 
-    // A pushed "change bank account" instance and its setup steps mutate the shared reimbursement account. When focus
-    // returns to this connected (non-changing) screen and the shared data has been clobbered, reload it so the
-    // "you're all set" page is shown again instead of the setup entry.
+    const isBackupMatchRoute =
+        (bankAccountIDParam !== undefined && reimbursementAccountBackup?.achData?.bankAccountID === Number(bankAccountIDParam)) ||
+        (!!policyIDParam && reimbursementAccountBackup?.achData?.policyID === policyIDParam);
+
+    // A "change bank account" flow clears the shared reimbursement account. When focus returns to this (non-changing)
+    // screen, restore the original account if the user backed out instead of showing the abandoned setup.
     useEffect(() => {
-        if (isConnectedVerifiedBankAccountData && !isChangingBankAccount) {
-            hasShownConnectedBankAccountRef.current = true;
+        if (isChangingBankAccount || !isFocused) {
             return;
         }
-        if (isFocused && !isChangingBankAccount && hasShownConnectedBankAccountRef.current && !isConnectedVerifiedBankAccountData) {
+
+        if (reimbursementAccountBackup && !isBackupMatchRoute) {
+            clearReimbursementAccountBackup();
+        }
+        const hasRestorableBackup = !!reimbursementAccountBackup && isBackupMatchRoute;
+
+        // A fully connected account is shown (original untouched, or the replacement finished) — drop the stale backup.
+        if (isConnectedVerifiedBankAccountData) {
+            hasShownConnectedBankAccountRef.current = true;
+            if (hasRestorableBackup) {
+                clearReimbursementAccountBackup();
+            }
+            return;
+        }
+
+        // A backup means the user backed out of a change flow; restore the original account (preferred over any
+        // in-progress replacement) instantly, without a refetch.
+        if (hasRestorableBackup) {
+            restoreReimbursementAccountBackup(reimbursementAccountBackup);
+            return;
+        }
+        if (!shouldShowContinueSetupButtonValue && hasShownConnectedBankAccountRef.current) {
             fetchData();
         }
-        // fetchData is intentionally omitted; this must react to the connected data being clobbered, not to fetchData's identity.
+        // fetchData is intentionally omitted; this must react to the shared data being clobbered, not to fetchData's identity.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused, isChangingBankAccount, isConnectedVerifiedBankAccountData]);
+    }, [isFocused, isChangingBankAccount, isConnectedVerifiedBankAccountData, shouldShowContinueSetupButtonValue, reimbursementAccountBackup, isBackupMatchRoute]);
 
     useEffect(() => {
         // Consume this route intent only once so the response changing isPreviousPolicy does not trigger another request.
