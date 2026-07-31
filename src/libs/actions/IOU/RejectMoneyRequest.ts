@@ -230,6 +230,8 @@ function prepareRejectMoneyRequestData(
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID: null,
+                        errors: null,
+                        errorFields: {reject: null},
                         ...(transactionCommentCleanup ?? {}),
                     },
                 },
@@ -261,9 +263,7 @@ function prepareRejectMoneyRequestData(
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     reportID: transaction?.reportID ?? reportID,
-                    errorFields: {
-                        partial: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense'),
-                    },
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense'),
                 },
             });
 
@@ -468,9 +468,7 @@ function prepareRejectMoneyRequestData(
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
-                        errorFields: {
-                            partial: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense'),
-                        },
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense'),
                     },
                 },
             );
@@ -1205,5 +1203,15 @@ function rejectExpenseReport(
     API.write(WRITE_COMMANDS.REJECT_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-export {dismissRejectUseExplanation, prepareRejectMoneyRequestData, rejectMoneyRequest, markRejectViolationAsResolved, rejectExpenseReport};
+/**
+ * Dismiss the "this expense has already been moved" error by dropping the stale local copy of the expense.
+ *
+ * The reject failed because the server no longer has the expense on the report it was rejected from, so it should
+ * stop showing there.
+ */
+function dismissRejectExpenseError(transactionID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
+}
+
+export {dismissRejectExpenseError, dismissRejectUseExplanation, prepareRejectMoneyRequestData, rejectMoneyRequest, markRejectViolationAsResolved, rejectExpenseReport};
 export type {RejectMoneyRequestData};
