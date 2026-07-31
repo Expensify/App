@@ -40,7 +40,7 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const dualentryConfig = policy?.connections?.dualentry?.config;
     const dualentryData = policy?.connections?.dualentry?.data;
-    const autoSync = dualentryConfig?.autoSync?.enabled ?? true;
+    const autoSync = dualentryConfig?.autoSync?.enabled ?? false;
     const accountingMethod = dualentryConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL;
     const syncReimbursedReports = dualentryConfig?.sync?.syncReimbursedReports ?? true;
     const billPaymentAccount = dualentryData?.accounts?.find((account) => account.id === dualentryConfig?.sync?.billPaymentAccountID);

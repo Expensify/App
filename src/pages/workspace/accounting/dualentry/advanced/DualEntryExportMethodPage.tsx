@@ -33,7 +33,7 @@ function DualEntryExportMethodPage({policy}: WithPolicyConnectionsProps) {
     const accountingMethod = dualentryConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID) : undefined;
 
-    const autoSync = dualentryConfig?.autoSync?.enabled ?? true;
+    const autoSync = dualentryConfig?.autoSync?.enabled ?? false;
     const shouldBeBlocked = !autoSync;
 
     const data: AccountingMethodListItem[] = Object.values(COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD).map((accountingMethodItem) => ({
