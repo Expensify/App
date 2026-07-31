@@ -154,3 +154,77 @@ describe('getExportMenuItem - QBD credit card account resolution', () => {
         }
     });
 });
+
+const QBO_CREDIT_CARDS = [
+    {id: '101', name: 'Business Credit Card', currency: 'USD'},
+    {id: '102', name: 'Corporate Amex', currency: 'USD'},
+];
+const QBO_BANK_ACCOUNTS = [
+    {id: '201', name: 'Checking', currency: 'USD'},
+    {id: '202', name: 'Savings', currency: 'USD'},
+];
+
+function createQBOPolicy(nonReimbursableExpensesExportDestination: string): Policy {
+    return {
+        id: MOCK_POLICY_ID,
+        name: 'Test Policy',
+        type: CONST.POLICY.TYPE.TEAM,
+        role: CONST.POLICY.ROLE.ADMIN,
+        owner: 'test@qbocc.com',
+        ownerAccountID: 1,
+        isPolicyExpenseChatEnabled: false,
+        outputCurrency: 'USD',
+        connections: {
+            quickbooksOnline: {
+                config: {
+                    nonReimbursableExpensesExportDestination,
+                    reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
+                },
+                data: {
+                    creditCards: QBO_CREDIT_CARDS,
+                    bankAccounts: QBO_BANK_ACCOUNTS,
+                },
+            },
+        },
+    } as unknown as Policy;
+}
+
+describe('getExportMenuItem - QBO company card export destination', () => {
+    const translate = translateLocal as unknown as LocaleContextProps['translate'];
+    const emptyCard = {cardID: 1001, nameValuePairs: {}} as unknown as Card;
+
+    it('lists credit card accounts and shows the menu item for a credit card destination', () => {
+        const policy = createQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
+
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBO, MOCK_POLICY_ID, translate, {} as ThemeStyles, policy, emptyCard);
+
+        expect(result?.shouldShowMenuItem).toBe(true);
+        expect(result?.exportType).toBe(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT);
+        for (const account of QBO_CREDIT_CARDS) {
+            expect(result?.data?.some((option) => option.value === account.id)).toBe(true);
+        }
+    });
+
+    it('lists bank accounts and shows the menu item for a debit card destination', () => {
+        const policy = createQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD);
+
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBO, MOCK_POLICY_ID, translate, {} as ThemeStyles, policy, emptyCard);
+
+        expect(result?.shouldShowMenuItem).toBe(true);
+        expect(result?.exportType).toBe(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT_DEBIT);
+        for (const account of QBO_BANK_ACCOUNTS) {
+            expect(result?.data?.some((option) => option.value === account.id)).toBe(true);
+        }
+    });
+
+    it('does not surface any per-card account list for a vendor bill destination', () => {
+        const policy = createQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL);
+
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBO, MOCK_POLICY_ID, translate, {} as ThemeStyles, policy, emptyCard);
+
+        // Vendor bill has no per-card export account, so the menu item is hidden and the credit card list must not leak through.
+        expect(result?.shouldShowMenuItem).toBe(false);
+        expect(result?.exportType).toBeUndefined();
+        expect(result?.data).toEqual([]);
+    });
+});
