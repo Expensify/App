@@ -111,7 +111,7 @@ function isWithdrawalIDGroup(value: SearchResultDataType[keyof SearchResultDataT
     return typeof value === 'object' && value !== null && 'entryID' in value && typeof value.entryID === 'number';
 }
 
-function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchWithdrawalIDGroup[] {
+function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchWithdrawalIDGroup[] | undefined {
     if (!searchData) {
         return [];
     }
@@ -138,11 +138,17 @@ function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions,
         if (!isWithdrawalIDGroup(value)) {
             continue;
         }
-        const isWholeSettlementSelected = directlySelectedGroupKeys.has(key) || (value.count > 0 && (selectedCountByGroupKey.get(key) ?? 0) >= value.count);
-        if (!isWholeSettlementSelected) {
+        const selectedCount = selectedCountByGroupKey.get(key) ?? 0;
+        const isWholeSettlementSelected = directlySelectedGroupKeys.has(key) || (value.count > 0 && selectedCount >= value.count);
+        if (isWholeSettlementSelected) {
+            settlementGroups.push(value);
             continue;
         }
-        settlementGroups.push(value);
+        // Some (but not all) of this settlement's transactions are selected, so the user narrowed the selection.
+        // Disqualify the whole action rather than silently exporting only the settlements that stayed fully selected.
+        if (selectedCount > 0) {
+            return undefined;
+        }
     }
 
     return settlementGroups;
@@ -170,7 +176,7 @@ function getExpensifyCardStatementSelection(
     }
 
     const selectedSettlementGroups = getSelectedSettlementGroups(selectedTransactions, searchData);
-    if (selectedSettlementGroups.length === 0) {
+    if (!selectedSettlementGroups || selectedSettlementGroups.length === 0) {
         return undefined;
     }
 
