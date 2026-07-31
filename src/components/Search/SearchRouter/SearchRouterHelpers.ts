@@ -18,7 +18,7 @@ const GO_TO_PREFIX = /^go\s+to\s+/i;
 const GO_PREFIX = /^go\s+/i;
 
 function stripNavigationIntentPrefix(query: string) {
-    const trimmedQuery = query.trim();
+    const trimmedQuery = query.trim().replaceAll(/\s+/g, ' ');
     if (GO_TO_PREFIX.test(trimmedQuery)) {
         return trimmedQuery.replace(GO_TO_PREFIX, '').trim();
     }

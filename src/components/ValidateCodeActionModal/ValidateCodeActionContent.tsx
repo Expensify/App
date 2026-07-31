@@ -46,7 +46,7 @@ function ValidateCodeActionContent({
         }
         firstRenderRef.current = false;
 
-        // The magic code is account-level, so skip sending if one was already requested within the resend window (e.g. a page reload)
+        // The validateCode is account-level, so skip sending if one was already requested within the resend window (e.g. a page reload)
         const requestedAt = validateCodeAction?.lastValidateCodeRequestedAt;
         const sentRecently = !!requestedAt && Date.now() - requestedAt < CONST.REQUEST_CODE_DELAY * CONST.MILLISECONDS_PER_SECOND;
         if (sentRecently) {
