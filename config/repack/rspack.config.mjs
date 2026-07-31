@@ -39,7 +39,7 @@ export default Repack.defineRspackConfig((env) => {
                 path.resolve(projectRoot, 'config/rsbuild/loaders/fullstory-annotation-loader.mjs'),
                 path.resolve(projectRoot, 'config/rsbuild/loaders/oxc-react-compiler-loader.mjs'),
                 path.resolve(projectRoot, 'config/rsbuild/loaders/worklets-loader.mjs'),
-                // babel.config.js inlines EXPO_PUBLIC_* values from .env at transform time.
+                // babel.config.js bakes EXPO_PUBLIC_* values from .env into the output at transform time.
                 path.resolve(projectRoot, '.env'),
                 // node_modules is a `snapshot.managedPaths` entry, so dependency changes are otherwise invisible.
                 path.resolve(projectRoot, 'package-lock.json'),
