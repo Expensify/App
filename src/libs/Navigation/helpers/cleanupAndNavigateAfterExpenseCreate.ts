@@ -22,7 +22,9 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
     action: DeepValueOf<typeof CONST.IOU.ACTION>;
     /** When false, runs cleanup only — use when dismiss/reveal already handled navigation.
-     * IMPORTANT: Caller must own telemetry span (see useExpenseSubmission:882-883).
+     * IMPORTANT: Caller must own telemetry span lifecycle. SubmitExpenseOrchestrator starts
+     * SPAN_SUBMIT_EXPENSE before calling createTransaction; when shouldNavigate=false, caller
+     * is responsible for ending the span (see useExpenseSubmission createTransaction).
      * Skips shouldWaitForUpcomingTransition, so transition never arrives (no 1s timeout).
      */
     shouldNavigate?: boolean;
