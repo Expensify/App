@@ -50,6 +50,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
         <Button
             size={CONST.BUTTON_SIZE.SMALL}
             style={style}
+            // Restores the 12px horizontal padding from the legacy implementation.
             innerStyles={styles.ph3}
             onPress={() => setIsHidden(!isHidden)}
             testID="moderationButton"

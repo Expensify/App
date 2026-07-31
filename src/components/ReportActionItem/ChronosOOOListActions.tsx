@@ -63,6 +63,7 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
                             <Button
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 style={styles.pl2}
+                                // Restores the 12px horizontal padding from the legacy implementation.
                                 innerStyles={styles.ph3}
                                 onPress={() => removeEvent(reportID, action.reportActionID, event.id, events)}
                             >

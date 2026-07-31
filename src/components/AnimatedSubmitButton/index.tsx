@@ -22,7 +22,7 @@ import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from '
 import {scheduleOnRN} from 'react-native-worklets';
 
 type AnimatedSubmitButtonProps = WithSentryLabel & {
-    // Visual variant of the button (only success is supported)
+    // Submit buttons support the default and success styles; danger is not a valid submit state.
     variant?: typeof CONST.BUTTON_VARIANT.SUCCESS;
 
     // Text to show on the button

@@ -21,7 +21,7 @@ import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 
 type FloatingPillButtonProps = {
-    /** Inner button variant **/
+    /** Inner button variant */
     variant?: ButtonVariant;
 
     /** Callback when the button is pressed */
@@ -49,8 +49,9 @@ function FloatingPillButton({variant, onPress, icon, iconFill, label, textStyle}
             size={CONST.BUTTON_SIZE.SMALL}
             onPress={onPress}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.FLOATING_MESSAGE_COUNTER}
+            innerStyles={styles.ph1}
         >
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph1]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Icon
                     size={CONST.ICON_SIZE.SMALL}
                     src={icon}
