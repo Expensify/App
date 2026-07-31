@@ -774,7 +774,7 @@ describe('actions/IOU/Hold', () => {
             };
         };
 
-        const buildScanFailedScenario = (iouReportOverrides: Partial<Report>, scanFailedAmount: number) => {
+        const buildScanFailedScenario = (iouReportOverrides: Partial<Report>, scanFailedAmount: number, validAmount: number) => {
             const baseIouReport = buildOptimisticIOUReport(1, 2, iouReportOverrides.total ?? 0, '99', 'USD');
             const iouReport: Report = {
                 ...baseIouReport,
@@ -783,18 +783,26 @@ describe('actions/IOU/Hold', () => {
             const chatReport: Report = {
                 reportID: '99',
                 iouReportID: iouReport.reportID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 lastVisibleActionCreated: '2026-01-01 00:00:00.000',
             } as Report;
 
             const scanFailedTransaction = buildScanFailedTransaction(iouReport.reportID, scanFailedAmount);
-            const scanFailedIouAction = buildOptimisticIOUReportAction({
-                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                amount: scanFailedTransaction.amount,
-                currency: 'USD',
-                comment: '',
-                participants: [],
-                transactionID: scanFailedTransaction.transactionID,
+            const validTransaction = buildOptimisticTransaction({
+                transactionParams: {amount: validAmount, currency: 'USD', reportID: iouReport.reportID, merchant: 'Valid merchant'},
             });
+
+            const buildIouAction = (transactionID: string, amount: number) =>
+                buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount,
+                    currency: 'USD',
+                    comment: '',
+                    participants: [],
+                    transactionID,
+                });
+            const scanFailedIouAction = buildIouAction(scanFailedTransaction.transactionID, scanFailedTransaction.amount);
+            const validIouAction = buildIouAction(validTransaction.transactionID, validTransaction.amount);
 
             const reportCollection: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
@@ -802,21 +810,35 @@ describe('actions/IOU/Hold', () => {
             };
             const transactionCollection: TransactionCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`]: scanFailedTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${validTransaction.transactionID}`]: validTransaction,
             };
             const actionCollection: ReportActionsCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {
                     [scanFailedIouAction.reportActionID]: scanFailedIouAction,
+                    [validIouAction.reportActionID]: validIouAction,
                 },
             };
 
-            return {chatReport, iouReport, scanFailedTransaction, reportCollection, transactionCollection, actionCollection};
+            return {chatReport, iouReport, scanFailedTransaction, validTransaction, reportCollection, transactionCollection, actionCollection};
         };
 
-        test('should move scan-failed transactions to a new report when shouldMoveScanFailedTransactions is enabled', () => {
-            const {chatReport, iouReport, scanFailedTransaction, reportCollection, transactionCollection, actionCollection} = buildScanFailedScenario(
-                {total: 250, nonReimbursableTotal: 0, reimbursableTotal: 250},
-                0,
+        const buildMixedExpenseReportScenario = () =>
+            buildScanFailedScenario(
+                {
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    total: -8000,
+                    nonReimbursableTotal: 0,
+                    reimbursableTotal: -8000,
+                    unheldTotal: -8000,
+                    unheldNonReimbursableTotal: 0,
+                    unheldReimbursableTotal: -8000,
+                },
+                -5000,
+                -3000,
             );
+
+        test('should move only the scan-failed transactions and keep both reports totals in sync', () => {
+            const {chatReport, iouReport, scanFailedTransaction, validTransaction, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario();
 
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
@@ -832,27 +854,81 @@ describe('actions/IOU/Hold', () => {
                     });
 
                     const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
-                    expect(transactionUpdate?.value).toEqual(
-                        expect.objectContaining({
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`]: expect.objectContaining({reportID: result.optimisticHoldReportID}),
-                        }),
-                    );
+                    expect(transactionUpdate?.value).toEqual({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`]: {reportID: result.optimisticHoldReportID},
+                    });
+                    expect(Object.keys(transactionUpdate?.value ?? {})).not.toContain(`${ONYXKEYS.COLLECTION.TRANSACTION}${validTransaction.transactionID}`);
 
                     const newReportUpdate = result.optimisticData.find(
                         (entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticHoldReportID}`,
                     );
-                    expect(newReportUpdate?.value).toEqual(expect.objectContaining({total: 0}));
+                    expect(newReportUpdate?.value).toEqual(
+                        expect.objectContaining({
+                            total: -5000,
+                            unheldTotal: -5000,
+                            unheldReimbursableTotal: -5000,
+                        }),
+                    );
 
                     const totalsUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
-                    expect(totalsUpdate?.value).toEqual({total: 250, nonReimbursableTotal: 0, reimbursableTotal: 250});
+                    expect(totalsUpdate?.value).toEqual({
+                        total: -3000,
+                        nonReimbursableTotal: 0,
+                        reimbursableTotal: -3000,
+                        unheldTotal: -3000,
+                        unheldNonReimbursableTotal: 0,
+                        unheldReimbursableTotal: -3000,
+                    });
+                });
+        });
+
+        test('should drop the optimistic report on success because the backend creates its own report', () => {
+            const {chatReport, iouReport, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario();
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const result = getReportFromHoldRequestsOnyxData({
+                        chatReport,
+                        iouReport,
+                        recipient: {accountID: 1},
+                        policy: undefined,
+                        betas: [],
+                        shouldMoveHeldTransactions: false,
+                        shouldMoveScanFailedTransactions: true,
+                    });
+
+                    expect(result.successData).toEqual(
+                        expect.arrayContaining([
+                            expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticHoldReportID}`, value: null}),
+                            expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.optimisticHoldReportID}`, value: null}),
+                        ]),
+                    );
+                });
+        });
+
+        test('should keep the optimistic report on success when only held transactions are moved', () => {
+            const {chatReport, iouReport, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario();
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const result = getReportFromHoldRequestsOnyxData({
+                        chatReport,
+                        iouReport,
+                        recipient: {accountID: 1},
+                        policy: undefined,
+                        betas: [],
+                    });
+
+                    expect(result.successData).not.toEqual(
+                        expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticHoldReportID}`, value: null})]),
+                    );
                 });
         });
 
         test('should not move scan-failed transactions when shouldMoveScanFailedTransactions is disabled', () => {
-            const {chatReport, iouReport, scanFailedTransaction, reportCollection, transactionCollection, actionCollection} = buildScanFailedScenario(
-                {total: 250, nonReimbursableTotal: 0, reimbursableTotal: 250},
-                0,
-            );
+            const {chatReport, iouReport, scanFailedTransaction, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario();
 
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
@@ -867,42 +943,6 @@ describe('actions/IOU/Hold', () => {
 
                     const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
                     expect(Object.keys(transactionUpdate?.value ?? {})).not.toContain(`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`);
-                });
-        });
-
-        test('should compute moved and remaining totals from the moved transactions for a non-zero scan-failed expense', () => {
-            const {chatReport, iouReport, scanFailedTransaction, reportCollection, transactionCollection, actionCollection} = buildScanFailedScenario(
-                {type: CONST.REPORT.TYPE.EXPENSE, total: -5000, nonReimbursableTotal: 0, reimbursableTotal: -5000},
-                -5000,
-            );
-
-            return waitForBatchedUpdates()
-                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
-                .then(() => {
-                    const result = getReportFromHoldRequestsOnyxData({
-                        chatReport,
-                        iouReport,
-                        recipient: {accountID: 1},
-                        policy: undefined,
-                        betas: [],
-                        shouldMoveHeldTransactions: false,
-                        shouldMoveScanFailedTransactions: true,
-                    });
-
-                    const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
-                    expect(transactionUpdate?.value).toEqual(
-                        expect.objectContaining({
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`]: expect.objectContaining({reportID: result.optimisticHoldReportID}),
-                        }),
-                    );
-
-                    const newReportUpdate = result.optimisticData.find(
-                        (entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticHoldReportID}`,
-                    );
-                    expect(newReportUpdate?.value).toEqual(expect.objectContaining({total: 5000}));
-
-                    const totalsUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
-                    expect(totalsUpdate?.value).toEqual({total: 0, nonReimbursableTotal: 0, reimbursableTotal: 0});
                 });
         });
     });

@@ -3977,3 +3977,29 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
         expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(true);
     });
 });
+
+describe('shouldSplitScanFailedTransactions', () => {
+    const report = {...createRandomReport(1), type: CONST.REPORT.TYPE.EXPENSE, currency: 'USD'} as Report;
+    const scanFailedTransaction = generateTransaction({
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
+    });
+    const validTransaction = generateTransaction({merchant: 'Valid merchant'});
+
+    it('returns true when a scan-failed expense can be moved out and another expense stays behind', () => {
+        expect(TransactionUtils.shouldSplitScanFailedTransactions([validTransaction, scanFailedTransaction], report)).toBe(true);
+    });
+
+    it('returns false when every expense in the report is scan-failed', () => {
+        expect(TransactionUtils.shouldSplitScanFailedTransactions([scanFailedTransaction], report)).toBe(false);
+    });
+
+    it('returns false when the report has no scan-failed expense', () => {
+        expect(TransactionUtils.shouldSplitScanFailedTransactions([validTransaction], report)).toBe(false);
+    });
+
+    it('returns false for an empty report', () => {
+        expect(TransactionUtils.shouldSplitScanFailedTransactions([], report)).toBe(false);
+    });
+});

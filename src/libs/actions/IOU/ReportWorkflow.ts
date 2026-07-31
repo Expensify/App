@@ -64,9 +64,7 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
-    getScanFailedTransactionsMovedTotals,
     hasAnyTransactionWithoutRTERViolation,
-    hasSmartScanFailedWithMissingFields,
     isDuplicate,
     isOnHold,
     isPending,
@@ -488,12 +486,6 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     if (hasHeldExpenses && !full && !!unheldTotal) {
         total = unheldTotal;
     }
-
-    const shouldMoveScanFailedTransactions = hasSmartScanFailedWithMissingFields(reportTransactions, expenseReport);
-    if (shouldMoveScanFailedTransactions) {
-        const movedTotals = getScanFailedTransactionsMovedTotals(reportTransactions, expenseReport, !!full);
-        total -= movedTotals.reimbursable + movedTotals.nonReimbursable;
-    }
     const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID, currentUserAccountIDParam, delegateEmail);
 
     const isDEWPolicy = hasDynamicExternalWorkflow(expenseReportPolicy);
@@ -760,7 +752,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     let optimisticHoldReportExpenseActionIDs;
     let optimisticReportActionCopyIDs;
     let optimisticCreatedReportForUnapprovedTransactionsActionID;
-    if ((!full || shouldMoveScanFailedTransactions) && !!chatReport && !!expenseReport) {
+    if (!full && !!chatReport && !!expenseReport) {
         const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
             chatReport,
@@ -770,8 +762,6 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             createdTimestamp: originalCreated,
             isApprovalFlow: true,
             betas,
-            shouldMoveHeldTransactions: !full,
-            shouldMoveScanFailedTransactions,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);

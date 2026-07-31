@@ -26,7 +26,7 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getScanFailedTransactionsMovedTotals, hasSmartScanFailedWithMissingFields} from '@libs/TransactionUtils';
+import {getScanFailedTransactionsMovedTotals, shouldSplitScanFailedTransactions} from '@libs/TransactionUtils';
 
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
@@ -276,9 +276,10 @@ function getPayMoneyRequestParams({
         total = unheldReimbursableTotal;
     }
 
-    const shouldMoveScanFailedTransactions = hasSmartScanFailedWithMissingFields(reportTransactions, iouReport);
+    const shouldMoveScanFailedTransactions = !!full && shouldSplitScanFailedTransactions(reportTransactions, iouReport);
     if (shouldMoveScanFailedTransactions) {
-        total -= getScanFailedTransactionsMovedTotals(reportTransactions, iouReport, full).reimbursable;
+        const movedReimbursableTotal = getScanFailedTransactionsMovedTotals(reportTransactions, iouReport).reimbursable;
+        total -= isExpenseReport(iouReport) ? -movedReimbursableTotal : movedReimbursableTotal;
     }
 
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({

@@ -3173,15 +3173,13 @@ function getTransactionAmountInReportCurrency(transaction: Transaction, report: 
 }
 
 /**
- * Sums, in the report's currency, the amounts of the scan-failed transactions that get moved to a new report on
- * pay/approve. `includeHeld` should be false for partial flows, where held transactions are already excluded from the
- * report total via the unheld* totals and must not be subtracted twice.
+ * Sums, in the report's currency, the amounts of the scan-failed transactions that get moved to a new report on payment.
  */
-function getScanFailedTransactionsMovedTotals(transactions: Transaction[], report: OnyxEntry<Report>, includeHeld: boolean): {reimbursable: number; nonReimbursable: number} {
+function getScanFailedTransactionsMovedTotals(transactions: Transaction[], report: OnyxEntry<Report>): {reimbursable: number; nonReimbursable: number} {
     let reimbursable = 0;
     let nonReimbursable = 0;
     for (const transaction of transactions) {
-        if (!hasSmartScanFailedWithMissingFields([transaction], report) || (!includeHeld && isOnHold(transaction))) {
+        if (!hasSmartScanFailedWithMissingFields([transaction], report)) {
             continue;
         }
         const amount = getTransactionAmountInReportCurrency(transaction, report);
@@ -3192,6 +3190,22 @@ function getScanFailedTransactionsMovedTotals(transactions: Transaction[], repor
         }
     }
     return {reimbursable, nonReimbursable};
+}
+
+/**
+ * Whether the report has scan-failed expenses to move out and at least one other expense left behind to pay.
+ */
+function shouldSplitScanFailedTransactions(transactions: Transaction[], report: OnyxEntry<Report>): boolean {
+    let hasScanFailedTransaction = false;
+    let hasRemainingTransaction = false;
+    for (const transaction of transactions) {
+        if (hasSmartScanFailedWithMissingFields([transaction], report)) {
+            hasScanFailedTransaction = true;
+        } else {
+            hasRemainingTransaction = true;
+        }
+    }
+    return hasScanFailedTransaction && hasRemainingTransaction;
 }
 
 function getDistanceRequestType(transaction: OnyxEntry<Transaction>): string | undefined {
@@ -3365,6 +3379,7 @@ export {
     hasSmartScanFailedWithMissingFields,
     getScanFailedTransactionsMovedTotals,
     getTransactionAmountInReportCurrency,
+    shouldSplitScanFailedTransactions,
     isDeletedTransaction,
     getDistanceRequestType,
     isUnreportedManagedCardTransaction,
