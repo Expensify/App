@@ -1764,9 +1764,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
-        formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber: (phoneNumber: string) => phoneNumber,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -1974,7 +1974,7 @@ function convertBulkTrackedExpensesToIOU({
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     selfDMReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     delegateAccountID: number | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     isTrackIntentUser: boolean | undefined;
 }) {
     const iouReportID = iouReport?.reportID;
@@ -2095,8 +2095,8 @@ function convertBulkTrackedExpensesToIOU({
                 policyTagList,
             },
             delegateAccountID,
-            formatPhoneNumber,
             isTrackIntentUser,
+            formatPhoneNumber: (phoneNumber: string) => phoneNumber,
         });
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);

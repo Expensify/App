@@ -188,7 +188,7 @@ type RequestMoneyInformation = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     shouldDeferAutoSubmit?: boolean;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
