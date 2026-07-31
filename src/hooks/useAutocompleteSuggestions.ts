@@ -26,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -66,11 +67,6 @@ type UseAutocompleteSuggestionsParams = {
     /** Map of display values to IDs for filters (e.g. workspace name → policy ID); used to exclude by ID when names duplicate */
     autocompleteSubstitutions?: SubstitutionMap;
 };
-
-// Stable empty result so the no-suggestions cases (notably the empty-query open) return the same
-// reference every render, instead of a fresh [] that invalidates the consumer's `sections` memo and
-// forces the list to re-render on every parent render.
-const EMPTY_SUGGESTIONS: AutocompleteItemData[] = [];
 
 // Static autocomplete lists derived from CONST values, computed once at module load
 const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
@@ -153,7 +149,8 @@ function useAutocompleteSuggestions({
     }
 
     if (!autocompleteKey) {
-        return EMPTY_SUGGESTIONS;
+        // Returns the same array reference on every render, so the consumer's `sections` memo stays valid and the list doesn't re-render.
+        return getEmptyArray<AutocompleteItemData>();
     }
 
     const alreadyAutocompletedKeys = new Set(
