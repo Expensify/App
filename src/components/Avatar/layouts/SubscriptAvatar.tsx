@@ -1,18 +1,10 @@
-import Icon from '@components/Icon';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
-import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCardFeedIcon} from '@libs/CardUtils';
-
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
-import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
@@ -34,36 +26,15 @@ type SubscriptAvatarProps = BaseAvatarProps & {
     /** Border color for the subscript avatar */
     subscriptAvatarBorderColor?: ColorValue;
 
-    /** Card feed to display as the subscript instead of the secondary avatar */
-    subscriptCardFeed?: CardFeed;
-
-    /** Size of the subscript card feed icon */
-    subscriptCardFeedIconSize?: {width: number; height: number};
-
     /** Style for  avatar container */
     containerStyle?: StyleProp<ViewStyle>;
 };
 
-/** `SubscriptAvatar` renders a primary avatar with a smaller secondary avatar (or a card-feed icon) overlaid as a subscript in the bottom-right corner. */
-function SubscriptAvatar({
-    primaryAvatar,
-    secondaryAvatar,
-    size,
-    shouldShowTooltip,
-    subscriptAvatarBorderColor,
-    subscriptCardFeed,
-    fallbackDisplayName,
-    containerStyle,
-    subscriptCardFeedIconSize = {
-        width: variables.cardAvatarWidth,
-        height: variables.cardAvatarHeight,
-    },
-}: SubscriptAvatarProps) {
+/** `SubscriptAvatar` renders a primary avatar with a smaller secondary avatar overlaid as a subscript in the bottom-right corner. */
+function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, shouldShowTooltip, subscriptAvatarBorderColor, fallbackDisplayName, containerStyle}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const illustrations = useThemeIllustrations();
-    const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
 
@@ -106,7 +77,7 @@ function SubscriptAvatar({
                     />
                 </View>
             </UserDetailsTooltip>
-            {!!secondaryAvatar && !subscriptCardFeed && (
+            {!!secondaryAvatar && (
                 <UserDetailsTooltip
                     shouldRender={shouldShowTooltip}
                     accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
@@ -132,26 +103,6 @@ function SubscriptAvatar({
                         />
                     </View>
                 </UserDetailsTooltip>
-            )}
-            {!!subscriptCardFeed && (
-                <View
-                    style={[
-                        // Nullish coalescing thinks that empty strings are truthy, thus I'm using OR operator
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor || theme.sidebar),
-                        StyleUtils.getAvatarSubscriptIconContainerStyle(subscriptCardFeedIconSize.width, subscriptCardFeedIconSize.height),
-                        styles.dFlex,
-                        styles.justifyContentCenter,
-                    ]}
-                >
-                    <Icon
-                        src={getCardFeedIcon(subscriptCardFeed, illustrations, companyCardFeedIcons)}
-                        width={subscriptCardFeedIconSize.width}
-                        height={subscriptCardFeedIconSize.height}
-                        additionalStyles={styles.alignSelfCenter}
-                        testID="ReportActionAvatars-Subscript-CardIcon"
-                    />
-                </View>
             )}
         </View>
     );

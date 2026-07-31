@@ -4,6 +4,7 @@ import HorizontalAvatars from '@components/Avatar/layouts/HorizontalAvatars';
 import type {HorizontalStackingOptions} from '@components/Avatar/layouts/HorizontalAvatars';
 import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
+import SubscriptCardFeedAvatar from '@components/Avatar/layouts/SubscriptCardFeedAvatar';
 import type {AvatarIcon} from '@components/Avatar/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
@@ -224,6 +225,21 @@ function ReportActionAvatars({
               }
             : primaryAvatar;
 
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT_CARD_FEED && subscriptCardFeed) {
+        return (
+            <SubscriptCardFeedAvatar
+                primaryAvatar={primaryAvatar}
+                cardFeed={subscriptCardFeed}
+                cardFeedIconSize={subscriptCardFeedIconSize}
+                size={size}
+                shouldShowTooltip={shouldShowTooltip}
+                containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
+                subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+                fallbackDisplayName={fallbackDisplayName}
+            />
+        );
+    }
+
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT) {
         return (
             <SubscriptAvatar
@@ -233,8 +249,6 @@ function ReportActionAvatars({
                 shouldShowTooltip={shouldShowTooltip}
                 containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
-                subscriptCardFeed={subscriptCardFeed}
-                subscriptCardFeedIconSize={subscriptCardFeedIconSize}
                 fallbackDisplayName={fallbackDisplayName}
             />
         );

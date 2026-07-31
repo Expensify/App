@@ -15,7 +15,7 @@ type GetAvatarLayoutParams = {
     /** When true and avatarType is MULTIPLE, resolves to MULTIPLE_HORIZONTAL instead of MULTIPLE_DIAGONAL */
     shouldStackHorizontally?: boolean;
 
-    /** When true, subscript layout is allowed even if the secondary icon has no name */
+    /** When true, a requested subscript layout resolves to SUBSCRIPT_CARD_FEED (a card-feed icon replaces the secondary avatar, which may be absent or nameless) */
     hasCardFeed?: boolean;
 
     /**
@@ -50,8 +50,15 @@ function getAvatarLayout({icons, avatarType, shouldStackHorizontally = false, ha
     const hasRenderableSecondaryIcon = shouldRequireSecondaryIconName ? !!secondaryIcon?.name : !!secondaryIcon;
 
     if (resolvedType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT) {
+        let subscriptLayout: AvatarLayout = CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
+        if (hasCardFeed) {
+            subscriptLayout = CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT_CARD_FEED;
+        } else if (hasRenderableSecondaryIcon) {
+            subscriptLayout = CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT;
+        }
+
         return {
-            layout: hasRenderableSecondaryIcon || hasCardFeed ? CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT : CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE,
+            layout: subscriptLayout,
             primaryIcon,
             secondaryIcon,
         };

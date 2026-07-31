@@ -51,7 +51,7 @@ describe('getAvatarLayout', () => {
             ).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT);
         });
 
-        it('returns SUBSCRIPT when hasCardFeed is true even if the secondary icon has no name', () => {
+        it('returns SUBSCRIPT_CARD_FEED when hasCardFeed is true even if the secondary icon has no name', () => {
             expect(
                 getAvatarLayout({
                     icons: [primaryIcon, namelessSecondaryIcon],
@@ -59,7 +59,17 @@ describe('getAvatarLayout', () => {
                     hasCardFeed: true,
                     shouldRequireSecondaryIconName: true,
                 }).layout,
-            ).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT);
+            ).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT_CARD_FEED);
+        });
+
+        it('returns SUBSCRIPT_CARD_FEED over SUBSCRIPT when hasCardFeed is true and the secondary icon has a name', () => {
+            expect(
+                getAvatarLayout({
+                    icons: [primaryIcon, secondaryIcon],
+                    avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
+                    hasCardFeed: true,
+                }).layout,
+            ).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT_CARD_FEED);
         });
 
         it('returns SUBSCRIPT when the secondary icon has no name and a name is not required', () => {
