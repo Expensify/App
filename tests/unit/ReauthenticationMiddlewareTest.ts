@@ -128,6 +128,25 @@ describe('Reauthentication middleware', () => {
             });
     });
 
+    test('rejects a queued write when reauthentication gives up so the queue keeps it', () => {
+        jest.mocked(reauthenticate).mockResolvedValueOnce(false);
+
+        const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+            command: 'TestCommand',
+            data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE},
+        };
+
+        return expect(
+            Reauthentication(
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                }),
+                request,
+                true,
+            ),
+        ).rejects.toThrow('Failed to reauthenticate');
+    });
+
     test('resolves Authenticate HTTP failures as auth responses instead of retryable errors', () => {
         const resolve = jest.fn();
         const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
