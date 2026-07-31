@@ -3,11 +3,11 @@ import {act, render, screen} from '@testing-library/react-native';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
+import type * as SearchContext from '@components/Search/SearchContext';
 import type {SearchQueryContextValue} from '@components/Search/types';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import {getSuggestedSearches, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 
 import StaticSearchTypeMenu from '@pages/Search/SearchPageNarrow/StaticSearchTypeMenu';
 import SearchTypeMenuNarrow from '@pages/Search/SearchTypeMenuNarrow';
@@ -37,7 +37,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@components/Search/SearchContext', () => {
-    const actualSearchContext = jest.requireActual('@components/Search/SearchContext');
+    const actualSearchContext: typeof SearchContext = jest.requireActual('@components/Search/SearchContext');
     return {
         __esModule: true,
         ...actualSearchContext,
@@ -45,7 +45,7 @@ jest.mock('@components/Search/SearchContext', () => {
     };
 });
 
-const mockedUseSearchQueryContext = useSearchQueryContext as jest.MockedFunction<typeof useSearchQueryContext>;
+const mockedUseSearchQueryContext = jest.mocked(useSearchQueryContext);
 
 const defaultSearchContext: SearchQueryContextValue = {
     currentSearchHash: -1,
@@ -55,7 +55,7 @@ const defaultSearchContext: SearchQueryContextValue = {
     currentDefaultSearchQueryString: undefined,
     currentDefaultSearchQueryJSON: undefined,
     currentDefaultSearchQueryFilterKeys: new Set(),
-    suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
+    suggestedSearches: getSuggestedSearches(),
     shouldResetSearchQuery: false,
 };
 
