@@ -35,6 +35,7 @@ import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction, hasVirtualExpensifyCardMissingPersonalDetails} from '@libs/CardUtils';
+import {showPermissionErrorAlert} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
@@ -278,8 +279,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     // Save must complete before the forced-signout branch dispatches `Onyx.clear`, which wipes the persisted queue that holds these local file paths.
     const saveReceipts = async (saveableReceipts: ReturnType<typeof getSaveablePendingReceiptRequests>) => {
         try {
-            const {savedCount, failedCount} = await saveReceiptsToGallery(saveableReceipts);
-            Log.info('[Receipt] Saved pending receipts to gallery before sign-out', false, {savedCount, failedCount});
+            const {savedCount, failedCount, permissionDenied} = await saveReceiptsToGallery(saveableReceipts);
+            Log.info('[Receipt] Saved pending receipts to gallery before sign-out', false, {savedCount, failedCount, permissionDenied});
+            // When the OS denied gallery access the receipts could not be saved. Point the user to Settings with the same alert the manual download flow uses, then let sign-out proceed.
+            if (permissionDenied) {
+                showPermissionErrorAlert(translate);
+            }
         } catch (error) {
             Log.alert('[Receipt] Unexpected rejection from saveReceiptsToGallery; sign-out continued', {error});
         }
