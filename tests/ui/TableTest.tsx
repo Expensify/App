@@ -1001,6 +1001,10 @@ describe('Table', () => {
             expect(measurementDataRow.props['aria-hidden']).toBe(true);
             expect(measurementDataRow.props.id).toBeUndefined();
             expect(measurementDataRow.props.inert).toBe(true);
+            expect(measurementDataRow.props['aria-disabled']).toBe(true);
+            expect(measurementDataRow.props.focusable).toBe(false);
+            expect(measurementDataRow.props.tabIndex).toBe(-1);
+            expect(measurementDataRow.props.onPress).toBeUndefined();
             expect(
                 within(measurementHeader)
                     .UNSAFE_getAllByProps({accessibilityLabel: 'Name'})
@@ -1010,11 +1014,6 @@ describe('Table', () => {
                 within(measurementHeader)
                     .UNSAFE_getAllByProps({accessibilityLabel: 'workspace.common.selectAll'})
                     .some((node) => node.props.disabled === true && node.props.tabIndex === -1),
-            ).toBe(true);
-            expect(
-                within(measurementDataRow)
-                    .UNSAFE_getAllByProps({accessibilityLabel: 'Apple'})
-                    .some((node) => node.props.disabled === true && node.props.focusable === false && node.props.tabIndex === -1),
             ).toBe(true);
             expect(
                 within(measurementDataRow)
