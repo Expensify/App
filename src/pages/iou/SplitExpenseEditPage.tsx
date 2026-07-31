@@ -33,6 +33,7 @@ import {getDecodedLeafCategoryName, isCategoryDescriptionRequired, isCategoryMis
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
@@ -48,7 +49,7 @@ import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, getTaxName, is
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -479,12 +480,9 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 numberOfLinesTitle={2}
                                 onPress={() => {
                                     Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
-                                            CONST.IOU.ACTION.EDIT,
-                                            CONST.IOU.TYPE.SPLIT,
-                                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                            reportID,
-                                            Navigation.getActiveRoute(),
+                                        createDynamicRoute(
+                                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SPLIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID),
+                                            ROUTES.REPORT_WITH_ID.getRoute(reportID),
                                         ),
                                     );
                                 }}
