@@ -39,11 +39,15 @@ function useDismissOnAnchorMove(anchor: AnchorNode | null, onDismiss: () => void
             }
         };
 
-        // Dismiss on resize only if the anchor actually moved — ignores mobile keyboard / URL-bar resizes.
+        // Dismiss on resize only if the anchor's box actually changed (position or size) — ignores mobile keyboard / URL-bar resizes that leave it in place.
         const baseline = anchorHost.getBoundingClientRect();
+        const boxChanged = (next: DOMRect) =>
+            Math.abs(next.left - baseline.left) > ANCHOR_MOVE_EPSILON_PX ||
+            Math.abs(next.top - baseline.top) > ANCHOR_MOVE_EPSILON_PX ||
+            Math.abs(next.right - baseline.right) > ANCHOR_MOVE_EPSILON_PX ||
+            Math.abs(next.bottom - baseline.bottom) > ANCHOR_MOVE_EPSILON_PX;
         const onResize = () => {
-            const next = anchorHost.getBoundingClientRect();
-            if (Math.abs(next.left - baseline.left) <= ANCHOR_MOVE_EPSILON_PX && Math.abs(next.top - baseline.top) <= ANCHOR_MOVE_EPSILON_PX) {
+            if (!boxChanged(anchorHost.getBoundingClientRect())) {
                 return;
             }
             dismissOnce();
@@ -60,6 +64,10 @@ function useDismissOnAnchorMove(anchor: AnchorNode | null, onDismiss: () => void
                       (entries) => {
                           if (!sawInitialObservation) {
                               sawInitialObservation = true;
+                              // An off-screen-but-connected anchor at open must not self-dismiss; a detached one is orphaned, so dismiss it.
+                              if (!anchorHost.isConnected) {
+                                  dismissOnce();
+                              }
                               return;
                           }
                           if (entries.every((entry) => entry.isIntersecting)) {

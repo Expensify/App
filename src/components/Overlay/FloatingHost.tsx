@@ -111,8 +111,11 @@ function FloatingHost({isOpen, anchor, anchorRect, alignment, offsetPx, fadeDura
     useDismissOnAnchorMove(anchor, onDismiss, isOpen && anchor !== null);
 
     const inner = (
-        // absoluteFill bridges FocusTrap's block div back to a sized containing block for the flex:1 child below.
-        <View style={StyleSheet.absoluteFill}>
+        // absoluteFill bridges FocusTrap's block div to a sized containing block; box-none keeps the blank overlay area click-through (outside-press + the underlying anchor) while children stay interactive.
+        <View
+            style={StyleSheet.absoluteFill}
+            pointerEvents="box-none"
+        >
             <DismissableLayer.Floating
                 onDismiss={onDismiss}
                 additionalAnchors={anchor ? [anchor] : []}

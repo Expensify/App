@@ -5,8 +5,8 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useDismissOnAnchorMove from '@components/Overlay/hooks/useDismissOnAnchorMove/index.web';
 
-function rectAt(left: number, top: number): DOMRect {
-    return {x: left, y: top, left, top, right: left + 100, bottom: top + 40, width: 100, height: 40, toJSON: () => ({})};
+function rectAt(left: number, top: number, width = 100, height = 40): DOMRect {
+    return {x: left, y: top, left, top, right: left + width, bottom: top + height, width, height, toJSON: () => ({})};
 }
 
 function setupAnchor(scrollContainer?: HTMLElement): {anchor: HTMLDivElement; cleanup: () => void} {
@@ -62,6 +62,19 @@ describe('useDismissOnAnchorMove (web)', () => {
             window.dispatchEvent(new Event('resize'));
         });
         expect(onDismiss).not.toHaveBeenCalled();
+        cleanup();
+    });
+
+    it('dismisses on resize when the anchor changed size but not position (right/bottom edges)', () => {
+        const {anchor, cleanup} = setupAnchor();
+        const onDismiss = jest.fn();
+        anchor.getBoundingClientRect = jest.fn(() => rectAt(10, 20, 100, 40));
+        renderHook(() => useDismissOnAnchorMove(anchor, onDismiss, true));
+        anchor.getBoundingClientRect = jest.fn(() => rectAt(10, 20, 200, 40));
+        act(() => {
+            window.dispatchEvent(new Event('resize'));
+        });
+        expect(onDismiss).toHaveBeenCalledTimes(1);
         cleanup();
     });
 
@@ -198,17 +211,24 @@ describe('useDismissOnAnchorMove (web) — anchor leaves viewport / is removed',
         const {anchor, cleanup} = setupAnchor();
         const onDismiss = jest.fn();
         renderHook(() => useDismissOnAnchorMove(anchor, onDismiss, true));
-
-        // First (initial) observation is the current state, not a transition — off-screen here must not dismiss.
         act(() => ioCallback?.([{isIntersecting: false}]));
         expect(onDismiss).not.toHaveBeenCalled();
-
-        // A later transition out of the viewport does dismiss.
         act(() => ioCallback?.([{isIntersecting: true}]));
         act(() => ioCallback?.([{isIntersecting: false}]));
         expect(onDismiss).toHaveBeenCalledTimes(1);
 
         restoreIO();
         cleanup();
+    });
+
+    it('DOES dismiss on the initial observation when the anchor is already detached (removed before open)', () => {
+        const restoreIO = installMockIntersectionObserver();
+        const anchor = document.createElement('div');
+        const onDismiss = jest.fn();
+        renderHook(() => useDismissOnAnchorMove(anchor, onDismiss, true));
+        act(() => ioCallback?.([{isIntersecting: false}]));
+        expect(onDismiss).toHaveBeenCalledTimes(1);
+
+        restoreIO();
     });
 });

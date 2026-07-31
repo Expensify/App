@@ -399,3 +399,34 @@ describe('FloatingHost — focus trap gating', () => {
         expect(mockFocusTrapAllowOutsideClick.current).toBe(true);
     });
 });
+
+describe('FloatingHost — hit-testing', () => {
+    it('renders the full-viewport wrapper as box-none so blank-area clicks pass through to the page/anchor behind', () => {
+        const {root} = render(
+            <FloatingHost
+                isOpen
+                containFocus={false}
+                anchor={null}
+                anchorRect={{
+                    top: 0,
+                    bottom: 40,
+                    left: 0,
+                    right: 100,
+                    width: 100,
+                    height: 40,
+                }}
+                alignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
+                onDismiss={jest.fn()}
+                stackId="test-host"
+            >
+                <Text>menu</Text>
+            </FloatingHost>,
+        );
+
+        const boxNone = root.findAll((node) => Reflect.get(node.props as Record<string, unknown>, 'pointerEvents') === 'box-none');
+        expect(boxNone.length).toBeGreaterThan(0);
+    });
+});
