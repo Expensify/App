@@ -26,7 +26,7 @@ You can:
 - **Save searches you run often.** Turn any filtered view into a saved search and reopen it with one click. [Learn how to save a search](/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#how-to-save-a-search).
 - **Filter by exports.** Use the **Exported to** filter to find expenses exported during a specific date range or sent to a particular destination, such as an accounting integration or export template. [Learn more about accounting search shortcuts](/articles/new-expensify/reports-and-expenses/Accounting-Search-Shortcuts).
 
-![The Spend tab with a filtered view as a saved search]({{site.url}}/assets/images/ExpensiHelp-Spend-page-with-a-custom-search){:width="100%"}
+![The Spend tab with a filtered view as a saved search]({{site.url}}/assets/images/ExpensiHelp-Spend-page-with-a-custom-search.png){:width="100%"}
 
 ### Comment on individual expenses
 
@@ -60,7 +60,7 @@ You can group expenses by person, category, merchant, tag, week, month, quarter,
 
 [Learn how to use Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
 
-![An Insights view a bar chart displayed.]({{site.url}}/assets/images/ExpensiHelp-Insights-view.png){:width="100%"}
+![An Insights view with a bar chart displayed.]({{site.url}}/assets/images/ExpensiHelp-Insights-view.png){:width="100%"}
 
 ### Create mileage expenses from a map on mobile
 
