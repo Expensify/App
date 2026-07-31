@@ -308,7 +308,7 @@ function TransactionPreviewContent({
                                         participantFromDisplayName={from.displayName ?? from.login ?? translate('common.hidden')}
                                         participantToDisplayName={to.displayName ?? to.login ?? translate('common.hidden')}
                                         participantTo={to}
-                                        avatarSize="mid-subscript"
+                                        avatarSize={CONST.AVATAR_SIZE.XXX_SMALL}
                                         infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
                                         infoCellsAvatarStyle={styles.pr1}
                                         style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}
@@ -325,7 +325,7 @@ function TransactionPreviewContent({
                                                         shouldUseCardBackground: true,
                                                     }}
                                                     sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.ID}
-                                                    size={CONST.AVATAR_SIZE.SUBSCRIPT}
+                                                    size={CONST.AVATAR_SIZE.XX_SMALL}
                                                 />
                                             </View>
                                         )}
