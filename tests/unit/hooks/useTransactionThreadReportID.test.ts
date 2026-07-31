@@ -91,7 +91,7 @@ function makeSentMoneyPayAction(extra: Partial<ReportAction> = {}): ReportAction
     } as ReportAction;
 }
 
-const loadedReportMetadata: ResultMetadata<Report> = {status: 'loaded'};
+const loadedReportMetadata: ResultMetadata = {status: 'loaded'};
 
 function asReportOnyxResult(report: Report | undefined): UseOnyxResult<Report> {
     return [report, loadedReportMetadata];

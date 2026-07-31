@@ -88,6 +88,7 @@ function ShareTab() {
               sortedActions,
               conciergeReportID,
               isTrackIntentUser,
+              translate,
           }).options
         : defaultListOptions;
 
