@@ -32,7 +32,7 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<TabNavigato
                     name={SCREENS.SEARCH.ROOT}
                     getComponent={loadSearchPage}
                     initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
-                    options={{animation: Animations.NONE, web: {pauseWhenCovered: true}, native: {pauseWhenCovered: true}}}
+                    options={{animation: Animations.NONE, web: {inactiveBehavior: 'pauseWhenCovered'}, native: {inactiveBehavior: 'pauseWhenCovered'}}}
                 />
             </Stack.Navigator>
         </FreezeWrapper>

@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js b/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js
-index c701cb9..39e4d8f 100644
+index c701cb9..b8dac0b 100644
 --- a/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js
 +++ b/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js
 @@ -2,7 +2,7 @@
@@ -19,38 +19,33 @@ index c701cb9..39e4d8f 100644
    onWillDisappear,
    onWillAppear,
    onAppear,
-@@ -198,7 +199,18 @@ const SceneView = ({
+@@ -198,7 +199,14 @@ const SceneView = ({
        }
      }
    });
-+  // PATCHED (Expensify RN8 PoC): `pauseWhenCovered` (screen option) — pause this screen whenever it
-+  // is covered, including the two positions stock hard-codes to 'normal': under a transparent next
-+  // screen and before-last. Skips sheet/iPad-modal covers (screen behind stays partially visible) and
-+  // inactive (dismissing) screens. ActivityView's native keep-visible + 500ms delay keep the content
-+  // painted through transitions. Mirrors the CardStack patch in @react-navigation/stack.
-+  const pauseWhenCovered = options.pauseWhenCovered === true;
++  // PATCHED: `inactiveBehavior: 'pauseWhenCovered'` (upstream proposal)
++  const pauseWhenCovered = inactiveBehavior === 'pauseWhenCovered';
++  // Whether the screen is covered: by the screen above it in this stack,
++  // or by a screen covering the navigator it's in
++  const isCovered = focused ? isCoveredExternally : !isInactive && (isNextScreenTransparent || isBeforeLast);
    const activityMode =
-+  // PATCHED (Expensify RN8 PoC): external cover — this screen is stack-focused but an ancestor
-+  // navigator's focus is elsewhere (e.g. root-stack RHP over tab-nested content).
-+  pauseWhenCovered && focused && isCoveredExternally ? 'paused' :
-+  // PATCHED (Expensify RN8 PoC): in-stack cover.
-+  pauseWhenCovered && !focused && !isInactive && !isNextScreenSheet && !(isNextScreenModal && !isModal) && (isNextScreenTransparent || isBeforeLast) ? 'paused' :
++  // PATCHED: pause covered screens, including covers that leave them visible, e.g. sheets
++  pauseWhenCovered && isCovered ? 'paused' :
    // Render focused screens normally
    // Unpause preloaded and retained screens so updates are visible
    // Unpause previous screen so update isn't delayed for swipe back
-@@ -338,6 +350,11 @@ export function NativeStackView({
+@@ -338,6 +346,10 @@ export function NativeStackView({
    navigation,
    descriptors
  }) {
-+  // PATCHED (Expensify RN8 PoC): IsFocusedContext is provided per screen by NavigationProvider and
-+  // composes the parent chain — false exactly when any ancestor navigator has focus elsewhere.
-+  // undefined (root navigator, no provider above) is treated as focused.
-+  const isParentFocused = React.use(IsFocusedContext);
-+  const isCoveredExternally = isParentFocused === false;
++  // PATCHED: whether a navigator above this one is covered, e.g. by a modal in a parent stack
++  // The context composes the parent chain, so it's `false` if any ancestor is blurred
++  // It's `undefined` in the root navigator, which is always considered focused
++  const isCoveredExternally = React.use(IsFocusedContext) === false;
    const {
      setNextDismissedKey
    } = useDismissedRouteError(state);
-@@ -374,6 +391,7 @@ export function NativeStackView({
+@@ -374,6 +386,7 @@ export function NativeStackView({
            isNextScreenModal: isNextScreenModal,
            isInactive: index > state.index,
            isBeforeLast: index === activeRoutes.length - 2,
@@ -58,3 +53,16 @@ index c701cb9..39e4d8f 100644
            onWillDisappear: () => {
              navigation.emit({
                type: 'transitionStart',
+diff --git a/node_modules/@react-navigation/native-stack/lib/typescript/src/types.d.ts b/node_modules/@react-navigation/native-stack/lib/typescript/src/types.d.ts
+index 464d831..0b5d0b0 100644
+--- a/node_modules/@react-navigation/native-stack/lib/typescript/src/types.d.ts
++++ b/node_modules/@react-navigation/native-stack/lib/typescript/src/types.d.ts
+@@ -771,7 +771,7 @@ export type NativeStackNavigationOptions = {
+      *
+      * Screens with nested navigators and last 2 screens won't be unmounted.
+      */
+-    inactiveBehavior?: 'pause' | 'unmount' | 'none' | undefined;
++    inactiveBehavior?: 'pause' | 'pauseWhenCovered' | 'unmount' | 'none' | undefined;
+ };
+ type IconIOS = Extract<Icon, {
+     type: 'image' | 'sfSymbol';

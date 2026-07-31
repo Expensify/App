@@ -92,13 +92,13 @@ function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<Tab
                 <Split.Screen
                     name={SCREENS.REPORT}
                     initialParams={reportScreenInitialParams}
-                    // RN8 PoC: pauseWhenCovered targeted at the report screen only (not navigator-wide) — it
+                    // RN8 PoC: inactiveBehavior: 'pauseWhenCovered' targeted at the report screen only (not navigator-wide) — it
                     // renders the heavy chat list. Pauses (kept painted, subscriptions unmounted, renders
                     // deferred) whenever covered: by another central report in this split (central-over-central,
                     // where stock v8 would keep it hidden-but-live) or externally by an ancestor stack's cover
                     // (RHP over the tab — the send-message perf scenario; needs the CardStack external-cover
                     // patch extension, see patches/react-navigation). Other splits' central screens stay stock.
-                    options={{web: {pauseWhenCovered: true}, native: {pauseWhenCovered: true}}}
+                    options={{web: {inactiveBehavior: 'pauseWhenCovered'}, native: {inactiveBehavior: 'pauseWhenCovered'}}}
                 >
                     {(screenProps: ReportScreenProps) => {
                         const ReportScreen = loadReportScreen();

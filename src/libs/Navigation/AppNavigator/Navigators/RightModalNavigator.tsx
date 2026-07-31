@@ -443,7 +443,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 name={SCREENS.RIGHT_MODAL.SCHEDULE_CALL}
                                 component={ModalStackNavigators.ScheduleCallModalStackNavigator}
                             />
-                            {/* RN8 PoC: the three report screens below opt into pauseWhenCovered per-screen — they
+                            {/* RN8 PoC: the three report screens below opt into inactiveBehavior: 'pauseWhenCovered' per-screen — they
                                 render heavy report/transaction lists that would otherwise re-render synchronously
                                 ('inert') on every Onyx write while covered by the next RHP screen (e.g. sending a
                                 message in a transaction thread opened from a wide report). Deliberately NOT set for
@@ -457,8 +457,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                     return {
                                         ...options,
                                         animation: animationEnabledOnSearchReport ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
-                                        web: {...options.web, pauseWhenCovered: true},
-                                        native: {...options.native, pauseWhenCovered: true},
+                                        web: {...options.web, inactiveBehavior: 'pauseWhenCovered'},
+                                        native: {...options.native, inactiveBehavior: 'pauseWhenCovered'},
                                     };
                                 }}
                             />
@@ -470,8 +470,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                     return {
                                         ...options,
                                         animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
-                                        web: {...options.web, pauseWhenCovered: true},
-                                        native: {...options.native, pauseWhenCovered: true},
+                                        web: {...options.web, inactiveBehavior: 'pauseWhenCovered'},
+                                        native: {...options.native, inactiveBehavior: 'pauseWhenCovered'},
                                     };
                                 }}
                             />
@@ -483,8 +483,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                     return {
                                         ...options,
                                         animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
-                                        web: {...options.web, pauseWhenCovered: true},
-                                        native: {...options.native, pauseWhenCovered: true},
+                                        web: {...options.web, inactiveBehavior: 'pauseWhenCovered'},
+                                        native: {...options.native, inactiveBehavior: 'pauseWhenCovered'},
                                     };
                                 }}
                             />
