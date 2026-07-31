@@ -71,7 +71,7 @@ describe('MoneyRequestReportUnifiedList system-message presentation', () => {
             <MoneyRequestReportUnifiedList
                 controller={makeController({transactionListItems: [transactionItem], isEmptyTransactions: false})}
                 report={{reportID: 'report-1'}}
-                displayReportActions={displayReportActions}
+                visibleReportActions={displayReportActions}
                 renderReportAction={renderReportAction}
                 reportActionsExtraData={undefined}
                 linkedReportActionID="3"
@@ -122,7 +122,7 @@ describe('MoneyRequestReportUnifiedList system-message presentation', () => {
             <MoneyRequestReportUnifiedList
                 controller={makeController({shouldScrollHorizontally: true, isEmptyTransactions: false})}
                 report={{reportID: 'report-1'}}
-                displayReportActions={displayReportActions}
+                visibleReportActions={displayReportActions}
                 renderReportAction={renderReportAction}
                 reportActionsExtraData={undefined}
                 linkedReportActionID="2"

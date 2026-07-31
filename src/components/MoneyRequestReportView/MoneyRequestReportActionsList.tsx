@@ -229,6 +229,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const listRef = useActionListRef();
 
     const scrollingVerticalBottomOffset = useRef(0);
+    const [isScrolledOverUnreadMarkerThreshold, setIsScrolledOverUnreadMarkerThreshold] = useState(false);
     const readActionSkipped = useRef(false);
     const stickToBottomRef = useRef(false);
     const stickToBottomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -282,12 +283,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     // where the previous one left off, until the cursor stops advancing (gap filled).
     const prevBackfillCursorRef = useRef<string | undefined>(undefined);
     const isBackfillingRef = useRef(false);
-    const prevBackfillReportIDRef = useRef(reportID);
-    if (prevBackfillReportIDRef.current !== reportID) {
-        prevBackfillReportIDRef.current = reportID;
+    useEffect(() => {
         prevBackfillCursorRef.current = undefined;
         isBackfillingRef.current = false;
-    }
+    }, [reportID]);
     useEffect(() => {
         if (!hasFinishedInitialLoad || isOffline || hasNewerActions || reportLoadingState?.isLoadingNewerReportActions || reportLoadingState?.isLoadingOlderReportActions) {
             return;
@@ -460,7 +459,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         currentUserAccountID,
         prevSortedVisibleReportActionsObjects: prevVisibleActionsMap,
         unreadMarkerTime,
-        isScrolledOverThreshold: scrollingVerticalBottomOffset.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD,
+        isScrolledOverThreshold: isScrolledOverUnreadMarkerThreshold,
         isOffline,
         isReversed: true,
         hasWindowFocus: Visibility.hasFocus(),
@@ -495,12 +494,14 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
              * Count the diff between current scroll position and the bottom of the list.
              * Diff == (height of all items in the list) - (height of the layout with the list) - (how far user scrolled)
              */
-            scrollingVerticalBottomOffset.current = fullContentHeight - layoutMeasurement.height - contentOffset.y;
-            scrollOffsetRef.current = scrollingVerticalBottomOffset.current;
+            const verticalBottomOffset = fullContentHeight - layoutMeasurement.height - contentOffset.y;
+            scrollingVerticalBottomOffset.current = verticalBottomOffset;
+            scrollOffsetRef.current = verticalBottomOffset;
+            setIsScrolledOverUnreadMarkerThreshold(verticalBottomOffset >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
             // Mark the report as read only once the scroll has actually reached the bottom. The jump fired by
             // "Latest messages" settles over several frames as deferred items hydrate, so we wait for the real end.
-            if (pendingMarkAsReadRef.current && scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
+            if (pendingMarkAsReadRef.current && verticalBottomOffset < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
                 pendingMarkAsReadRef.current = false;
                 readActionSkipped.current = false;
                 readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
@@ -844,7 +845,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         policy={policy}
                         hasComments={visibleReportActions.length > 0}
                         isLoadingInitialReportActions={showReportActionsLoadingState}
-                        displayReportActions={displayReportActions}
+                        visibleReportActions={displayReportActions}
                         renderReportAction={renderReportAction}
                         reportActionsExtraData={reportActionsExtraData}
                         linkedReportActionID={linkedReportActionID}

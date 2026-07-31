@@ -76,8 +76,8 @@ type MoneyRequestReportUnifiedListProps = {
     /** Policy the report belongs to. */
     policy?: OnyxTypes.Policy;
 
-    /** Presentation report actions to render below the transactions. */
-    displayReportActions: OnyxTypes.ReportAction[];
+    /** Report actions to render below the transactions. */
+    visibleReportActions: OnyxTypes.ReportAction[];
 
     /** Renders a single report action. */
     renderReportAction: (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => React.ReactElement;
@@ -142,7 +142,7 @@ function MoneyRequestReportUnifiedList({
     controller,
     report,
     policy,
-    displayReportActions,
+    visibleReportActions,
     renderReportAction,
     reportActionsExtraData,
     linkedReportActionID,
@@ -172,7 +172,7 @@ function MoneyRequestReportUnifiedList({
     const isHorizontalTable = controller.shouldScrollHorizontally && !controller.isEmptyTransactions;
     const shouldInlineTransactions = !isHorizontalTable && !controller.isEmptyTransactions;
 
-    const reportActionItems: UnifiedListItem[] = displayReportActions.map((action) => ({type: 'report-action', action}));
+    const reportActionItems: UnifiedListItem[] = visibleReportActions.map((action) => ({type: 'report-action', action}));
     const data: UnifiedListItem[] = shouldInlineTransactions ? [...controller.transactionListItems, TRANSACTIONS_FOOTER_ITEM, ...reportActionItems] : reportActionItems;
 
     // Report actions load separately from transactions. When transactions are inlined, `data` is already non-empty
@@ -229,7 +229,7 @@ function MoneyRequestReportUnifiedList({
         onLayout();
     };
 
-    // The hook compares unreadMarkerReportActionIndex (0-based within displayReportActions) against
+    // The hook compares unreadMarkerReportActionIndex (0-based within visibleReportActions) against
     // raw FlashList indices. When transactions are present, report actions start at reportActionIndexOffset,
     // so we shift all viewable indices down before forwarding so the comparison is apples-to-apples.
     const onViewableItemsChangedAdjusted = (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
@@ -259,11 +259,11 @@ function MoneyRequestReportUnifiedList({
         }
     };
 
-    const linkedActionLocalIndex = linkedReportActionID ? displayReportActions.findIndex((action) => action.reportActionID === linkedReportActionID) : -1;
+    const linkedActionLocalIndex = linkedReportActionID ? visibleReportActions.findIndex((action) => action.reportActionID === linkedReportActionID) : -1;
     const initialScrollIndex = linkedActionLocalIndex >= 0 ? linkedActionLocalIndex + reportActionIndexOffset : undefined;
 
     // FlashList's `initialScrollIndex` is captured once at mount. On a cold deep-link open the linked action is
-    // often not in `displayReportActions` yet (it paginates in after mount), so the mount-only hint resolves to
+    // often not in `visibleReportActions` yet (it paginates in after mount), so the mount-only hint resolves to
     // undefined and the list never anchors on the linked message. Re-anchor imperatively once the linked action is
     // present. Guarded so it fires exactly once per linked target and never yanks the user after they've scrolled.
     const hasAnchoredLinkedActionRef = useRef(false);

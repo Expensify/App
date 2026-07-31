@@ -192,8 +192,8 @@ type MoneyRequestReportTransactionListProps = {
     /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 
-    /** Presentation list of report actions to render below the transactions section in the unified list. */
-    displayReportActions: OnyxTypes.ReportAction[];
+    /** Reversed list of report actions to render below the transactions section in the unified list. */
+    visibleReportActions: OnyxTypes.ReportAction[];
 
     /** Renders a single report action row in the unified list. */
     renderReportAction: (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => React.ReactElement;
@@ -263,7 +263,7 @@ function MoneyRequestReportTransactionList({
     hasComments,
     onLayout,
     isLoadingInitialReportActions = false,
-    displayReportActions,
+    visibleReportActions,
     renderReportAction,
     reportActionsExtraData,
     linkedReportActionID,
@@ -1103,7 +1103,7 @@ function MoneyRequestReportTransactionList({
                 controller={controller}
                 report={report}
                 policy={policy}
-                displayReportActions={displayReportActions}
+                visibleReportActions={visibleReportActions}
                 renderReportAction={renderReportAction}
                 reportActionsExtraData={reportActionsExtraData}
                 linkedReportActionID={linkedReportActionID}
