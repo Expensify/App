@@ -76,7 +76,7 @@ function SettlementAccountSelector({
     };
 
     // Render "Add new bank account" as list footer when enabled
-    const listFooterContent =
+    const addNewBankAccountIfEnabled =
         showAddNewAccountOption && onAddNewBankAccount ? (
             <MenuItemStandard
                 icon={icons.Plus}
@@ -90,11 +90,7 @@ function SettlementAccountSelector({
         return (
             <View style={styles.flex1}>
                 {customHeaderContent}
-                <MenuItemStandard
-                    icon={icons.Plus}
-                    title={translate('workspace.expensifyCard.addNewBankAccount')}
-                    onPress={onAddNewBankAccount}
-                />
+                {addNewBankAccountIfEnabled}
             </View>
         );
     }
@@ -108,7 +104,7 @@ function SettlementAccountSelector({
             shouldSingleExecuteRowSelect
             initiallyFocusedItemKey={initiallyFocusedItemKey}
             customListHeaderContent={customHeaderContent}
-            listFooterContent={listFooterContent}
+            listFooterContent={addNewBankAccountIfEnabled}
         />
     );
 }
