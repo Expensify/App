@@ -1544,7 +1544,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
                 parentReportActionID: transactionThreadReport?.parentReportActionID,
                 parentReportID: transactionThreadReport?.parentReportID,
                 chatReportID: transactionThreadReport?.chatReportID,
-                policyID: transactionThreadReport?.policyID,
+                policyID: transactionThreadReport?.policyID ?? null,
             },
         });
     }
