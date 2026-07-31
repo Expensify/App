@@ -2,7 +2,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import Button from '@components/Button';
-import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -82,7 +81,6 @@ function ProfilePage() {
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const isAgentAccount = useIsAgentAccount();
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
-    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart];
     const {asset: Profile} = useMemoizedLazyAsset(() => loadIllustration('Profile' as IllustrationName));
     const icons = useMemoizedLazyExpensifyIcons(['QrCode']);
 
@@ -199,23 +197,21 @@ function ProfilePage() {
             testID="ProfilePage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
-                <HeaderWithBackButton
-                    title={translate('common.profile')}
-                    onBackButtonPress={() => {
-                        if (route.params?.backTo) {
-                            Navigation.goBack(route.params?.backTo);
-                            return;
-                        }
-                        Navigation.goBack();
-                    }}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplaySearchRouter
-                    shouldDisplayHelpButton
-                    icon={Profile}
-                    shouldUseHeadlineHeader
-                />
-            </CollapsibleHeaderOnKeyboard>
+            <HeaderWithBackButton
+                title={translate('common.profile')}
+                onBackButtonPress={() => {
+                    if (route.params?.backTo) {
+                        Navigation.goBack(route.params?.backTo);
+                        return;
+                    }
+                    Navigation.goBack();
+                }}
+                shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
+                shouldDisplayHelpButton
+                icon={Profile}
+                shouldUseHeadlineHeader
+            />
             <ScrollView
                 ref={scrollViewRef}
                 style={styles.pt3}
@@ -236,7 +232,7 @@ function ProfilePage() {
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
                                     <AvatarSkeleton
-                                        size={CONST.AVATAR_SIZE.X_LARGE}
+                                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                         reasonAttributes={{
                                             context: 'ProfilePage',
                                             isPersonalDetailsEmpty: isEmptyObject(currentUserPersonalDetails),
@@ -256,8 +252,8 @@ function ProfilePage() {
                                                 source={avatarURL}
                                                 avatarID={accountID}
                                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
-                                                size={CONST.AVATAR_SIZE.X_LARGE}
-                                                avatarStyle={avatarStyle}
+                                                size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                                                avatarStyle={styles.alignSelfStart}
                                                 pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                                 fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                                                 editIconStyle={styles.profilePageAvatar}
