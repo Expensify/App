@@ -22,6 +22,9 @@ function DualEntryTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyCo
     const travelInvoicingPayableAccountID = dualentryConfig?.export?.travelInvoicingPayableAccountID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID) : undefined;
 
+    const syncTravelInvoicingSettlements = dualentryConfig?.sync?.syncTravelInvoicingSettlements ?? true;
+    const shouldBeBlocked = !syncTravelInvoicingSettlements;
+
     const data: Array<SelectorType<string>> =
         dualentryData?.accounts
             ?.filter(
@@ -48,6 +51,8 @@ function DualEntryTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyCo
     return (
         <TravelInvoicingPayableAccountSelectPage
             policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            shouldBeBlocked={shouldBeBlocked}
             title="workspace.dualentry.travelInvoicingPayableAccount.label"
             displayName="DualEntryTravelInvoicingPayableAccountSelectPage"
             data={data}
