@@ -10,6 +10,7 @@ import {setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Pol
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getOFXColumnRoles, parseOFXToSpreadsheetRows} from '@libs/OFXUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -45,9 +46,12 @@ type ImportSpreadsheetProps = {
 
     /** Whether the spreadsheet is importing multi-level tags */
     isImportingMultiLevelTags?: boolean;
+
+    /** Whether the spreadsheet is importing card transactions, which also accepts OFX/QFX bank statements */
+    isImportingTransactions?: boolean;
 };
 
-function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, isImportingMultiLevelTags}: ImportSpreadsheetProps) {
+function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, isImportingMultiLevelTags, isImportingTransactions}: ImportSpreadsheetProps) {
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const icons = useMemoizedLazyExpensifyIcons(['SpreadsheetComputer']);
     const styles = useThemeStyles();
@@ -76,9 +80,19 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
         });
     };
 
+    const getAllowedExtensions = (): readonly string[] => {
+        if (isImportingMultiLevelTags) {
+            return CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS;
+        }
+        if (isImportingTransactions) {
+            return CONST.ALLOWED_TRANSACTION_IMPORT_EXTENSIONS;
+        }
+        return CONST.ALLOWED_SPREADSHEET_EXTENSIONS;
+    };
+
     const validateFile = (file: FileObject) => {
         const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-        const allowedExtensions: readonly string[] = isImportingMultiLevelTags ? CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS : CONST.ALLOWED_SPREADSHEET_EXTENSIONS;
+        const allowedExtensions = getAllowedExtensions();
 
         if (!allowedExtensions.includes(fileExtension.toLowerCase())) {
             showUploadFileError('attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
@@ -108,6 +122,28 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
         const shouldReadAsText = CONST.TEXT_SPREADSHEET_EXTENSIONS.includes(fileExtension as TupleToUnion<typeof CONST.TEXT_SPREADSHEET_EXTENSIONS>);
 
         setIsReadingFile(true);
+
+        if (CONST.OFX_STATEMENT_EXTENSIONS.includes(fileExtension.toLowerCase() as TupleToUnion<typeof CONST.OFX_STATEMENT_EXTENSIONS>)) {
+            fetch(fileURI)
+                .then((data) => data.text())
+                .then((text) => {
+                    const rows = parseOFXToSpreadsheetRows(text);
+                    if (!rows) {
+                        throw new Error('No transactions found in the statement');
+                    }
+                    return setSpreadsheetData(rows, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false, importedSpreadsheet?.importTransactionSettings, getOFXColumnRoles());
+                })
+                .then(() => {
+                    Navigation.navigate(goTo, {forceReplace: shouldForceReplaceNavigation});
+                })
+                .catch(() => {
+                    showUploadFileError('spreadsheet.importFailedTitle', 'spreadsheet.invalidFileMessage');
+                })
+                .finally(() => {
+                    setIsReadingFile(false);
+                });
+            return;
+        }
 
         import('xlsx')
             .then((XLSX) => {
@@ -179,9 +215,9 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
         return text;
     };
 
-    const acceptableFileTypes = isImportingMultiLevelTags
-        ? CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',')
-        : CONST.ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',');
+    const acceptableFileTypes = getAllowedExtensions()
+        .map((extension) => `.${extension}`)
+        .join(',');
 
     const desktopView = (
         <>
