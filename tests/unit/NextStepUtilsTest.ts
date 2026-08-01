@@ -1529,8 +1529,16 @@ describe('libs/NextStepUtils', () => {
                 actorAccountID: currentUserAccountID,
                 requiredDepositCurrency,
             };
+            const translateWithDepositCurrency: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'nextStep.message.waitingForSubmitterAccount') {
+                    const currency = parameters.at(4);
+                    const account = currency ? `${String(currency)} bank account` : 'bank account';
+                    return `Waiting for <strong>you</strong> to add a ${account}.`;
+                }
+                return translateLocal(path, ...parameters);
+            };
 
-            const message = buildNextStepMessage(nextStep, translateLocal, currentUserAccountID);
+            const message = buildNextStepMessage(nextStep, translateWithDepositCurrency, currentUserAccountID);
             expect(message).toBe(`<next-step>Waiting for <strong>you</strong> to add a ${expectedAccount}.</next-step>`);
         });
     });
