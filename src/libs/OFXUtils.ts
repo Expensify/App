@@ -1,7 +1,11 @@
 import CONST from '@src/CONST';
 
-// Kept untranslated because they are persisted in the saved column layout and matched by name on a later import.
-const OFX_COLUMN_HEADERS = ['Date', 'Merchant', 'Amount'];
+// The headers stay untranslated because they are persisted in the saved column layout and matched by name on a later import.
+const OFX_COLUMNS = [
+    {header: 'Date', role: CONST.CSV_IMPORT_COLUMNS.DATE},
+    {header: 'Merchant', role: CONST.CSV_IMPORT_COLUMNS.MERCHANT},
+    {header: 'Amount', role: CONST.CSV_IMPORT_COLUMNS.AMOUNT},
+];
 
 const STATEMENT_TRANSACTION_REGEX = /<STMTTRN>([\s\S]*?)<\/STMTTRN>/gi;
 
@@ -58,18 +62,14 @@ function parseOFXToSpreadsheetRows(fileContent: string): string[][] | null {
         return null;
     }
 
-    return [OFX_COLUMN_HEADERS, ...rows];
+    return [OFX_COLUMNS.map(({header}) => header), ...rows];
 }
 
 /**
  * The OFX grid always has the same columns, so the mapping step is filled in instead of being left to the user.
  */
 function getOFXColumnRoles(): Record<number, string> {
-    return {
-        0: CONST.CSV_IMPORT_COLUMNS.DATE,
-        1: CONST.CSV_IMPORT_COLUMNS.MERCHANT,
-        2: CONST.CSV_IMPORT_COLUMNS.AMOUNT,
-    };
+    return Object.fromEntries(OFX_COLUMNS.map(({role}, columnIndex) => [columnIndex, role]));
 }
 
 export {parseOFXToSpreadsheetRows, getOFXColumnRoles};
