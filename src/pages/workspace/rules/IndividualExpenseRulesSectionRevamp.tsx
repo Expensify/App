@@ -25,6 +25,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
+import PublicReceiptVisibilityToggle from './PublicReceiptVisibilityToggle';
+
 type IndividualExpenseRulesSectionRevampProps = {
     policyID: string;
     canWriteRules: boolean;
@@ -56,7 +58,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users', 'Eye']);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -233,9 +235,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     subtitle={translate('workspace.rules.individualExpenseRules.eReceiptsHint')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
                     shouldParseSubtitle
-                    wrapperStyle={[styles.mt3]}
-                    shouldPlaceSubtitleBelowSwitch
-                    shouldUseCompactSubtitleSpacing
+                    wrapperStyle={[styles.pv3]}
                     isActive={areEReceiptsEnabled}
                     disabled={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD || isCollect}
                     showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD || isCollect}
@@ -248,9 +248,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     title={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
                     subtitle={translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
-                    wrapperStyle={[styles.mt3]}
-                    shouldPlaceSubtitleBelowSwitch
-                    shouldUseCompactSubtitleSpacing
+                    wrapperStyle={[styles.pv3]}
                     isActive={isAttendeeTrackingEnabledForPolicy}
                     disabled={!canWriteRules || isCollect}
                     showLockIcon={!canWriteRules || isCollect}
@@ -258,6 +256,11 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
                     rowIcon={icons.Users}
+                />
+                <PublicReceiptVisibilityToggle
+                    policyID={policyID}
+                    canWriteRules={canWriteRules}
+                    rowIcon={icons.Eye}
                 />
             </View>
         </Section>

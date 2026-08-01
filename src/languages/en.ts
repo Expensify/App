@@ -1710,8 +1710,11 @@ const translations = {
         approveOnly: 'Approve only',
         holdEducationalTitle: 'Should you hold this expense?',
         whatIsHoldExplain: "Hold is like hitting “pause” on an expense until you're ready to submit it.",
+        whatIsHoldExplainDM: "Hold is like hitting 'pause' on an expense until you're ready to send it.",
         holdIsLeftBehind: 'Held expenses are left behind even if you submit an entire report.',
+        holdIsLeftBehindDM: "Held expenses won't be sent until you remove the hold.",
         unholdWhenReady: "Unhold expenses when you're ready to submit them.",
+        unholdWhenReadyDM: "Unhold expenses when you're ready to send them.",
         changePolicyEducational: {
             title: 'You moved this report!',
             description: 'Double-check these items, which tend to change when moving reports to a new workspace.',
@@ -4857,6 +4860,11 @@ const translations = {
                 title: 'Per diem',
                 subtitle: 'Set per diem rates to control daily employee spend. Import rates from a spreadsheet to get started.',
             },
+            requestEmptyList: {
+                title: 'No per diem rates yet',
+                subtitle: "This workspace doesn't have any per diem rates, ask your Admin to add some.",
+                adminSubtitle: 'Add per diem rates to organize your spend.',
+            },
             importPerDiemRates: 'Import per diem rates',
             editPerDiemRate: 'Edit per diem rate',
             editPerDiemRates: 'Edit per diem rates',
@@ -7540,6 +7548,12 @@ const translations = {
                 onlyAvailableOnPlanUnlimited: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Unlimited access to rules is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            publicReceiptVisibility: {
+                title: 'Public receipt visibility',
+                description: 'If you want to make your receipt links accessible to anyone, such as a client or external accountant, this feature is for you.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Public receipt visibility is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             perDiem: {
                 title: 'Per diem',
                 description:
@@ -7824,6 +7838,9 @@ const translations = {
                 eReceiptsHint: `eReceipts are auto-created [for most USD credit transactions](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Attendee tracking',
                 attendeeTrackingHint: 'Track the per-person cost for every expense.',
+                publicReceiptVisibility: 'Public receipt visibility',
+                publicReceiptVisibilityHintEnabled: 'Receipts are viewable by anyone with the URL. Access to the report with the receipt is not required.',
+                publicReceiptVisibilityHintDisabled: 'Receipts are only viewable by Expensify members with access to the report containing the receipt.',
                 prohibitedDefaultDescription: 'Flag receipts with these line items for manual review.',
                 prohibitedExpenses: 'Prohibited expenses',
                 alcohol: 'Alcohol',

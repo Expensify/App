@@ -1637,8 +1637,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Nur genehmigen',
         holdEducationalTitle: 'Soll diese Ausgabe zurückgestellt werden?',
         whatIsHoldExplain: 'Hold ist wie ein „Pause“-Knopf für eine Ausgabe, bis du bereit bist, sie einzureichen.',
+        whatIsHoldExplainDM: 'Hold ist wie ein „Pause“-Knopf für eine Ausgabe, bis du bereit bist, sie zu senden.',
         holdIsLeftBehind: 'Zurückgehaltene Ausgaben werden ausgelassen, selbst wenn du einen gesamten Bericht einreichst.',
+        holdIsLeftBehindDM: 'Zurückgehaltene Ausgaben werden erst gesendet, wenn du die Zurückstellung aufhebst.',
         unholdWhenReady: 'Gib Ausgaben wieder frei, wenn du bereit bist, sie einzureichen.',
+        unholdWhenReadyDM: 'Hebe die Zurückstellung auf, wenn du bereit bist, die Ausgaben zu senden.',
         changePolicyEducational: {
             title: 'Du hast diesen Bericht verschoben!',
             description: 'Überprüfe diese Punkte sorgfältig, da sie sich beim Verschieben von Berichten in einen neuen Workspace häufig ändern.',
@@ -4742,6 +4745,11 @@ ${amount} für ${merchant} – ${date}`,
                 title: 'Tagegeld',
                 subtitle: 'Legen Sie Pauschalbeträge fest, um die täglichen Ausgaben der Mitarbeitenden zu steuern. Importieren Sie zu Beginn die Sätze aus einer Tabellenkalkulation.',
             },
+            requestEmptyList: {
+                title: 'Noch keine Pauschalbeträge',
+                subtitle: 'In diesem Workspace sind keine Pauschalen hinterlegt, bitten Sie Ihre Admin, welche hinzuzufügen.',
+                adminSubtitle: 'Fügen Sie Pauschalen hinzu, um Ihre Ausgaben zu organisieren.',
+            },
             importPerDiemRates: 'Tagespauschalen importieren',
             editPerDiemRate: 'Tagessatz bearbeiten',
             editPerDiemRates: 'Pauschalvergütungssätze bearbeiten',
@@ -7487,6 +7495,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     `<muted-text>Spezialisierte Arbeitsbereichsrollen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             unlockFeatures: 'Schalten Sie diese Funktionen frei!',
+            publicReceiptVisibility: {
+                title: 'Öffentliche Belegsichtbarkeit',
+                description:
+                    'Wenn Sie Ihre Beleglinks für alle zugänglich machen möchten, zum Beispiel für einen Kunden oder eine externe Buchhalterin bzw. einen externen Buchhalter, ist diese Funktion genau das Richtige für Sie.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Die öffentliche Belegsichtbarkeit ist nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7593,6 +7608,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 requireCompanyCard: 'Firmenkarten für alle Käufe vorschreiben',
                 requireCompanyCardDescription: 'Kennzeichne alle Barausgaben, einschließlich Kilometer- und Tagegeldspesen.',
                 requireCompanyCardDisabledTooltip: 'Aktiviere Firmenkarten (unter Weitere Funktionen), um dies freizuschalten.',
+                publicReceiptVisibility: 'Öffentliche Belegsichtbarkeit',
+                publicReceiptVisibilityHintEnabled: 'Belege sind für alle sichtbar, die über die URL verfügen. Der Zugriff auf den Bericht mit dem Beleg ist nicht erforderlich.',
+                publicReceiptVisibilityHintDisabled: 'Belege können nur von Expensify-Mitgliedern eingesehen werden, die Zugriff auf den Bericht haben, der den Beleg enthält.',
                 enableTagsToUnlockTitle: 'Tags aktivieren?',
                 enableTagsToUnlockPrompt: 'Aktivieren Sie Tags (unter Weitere Funktionen), um dies freizuschalten.',
                 enableTagsAndRequirePrompt: 'Sind Sie sicher, dass Sie Tags aktivieren und für alle Ausgaben verpflichtend machen möchten?',

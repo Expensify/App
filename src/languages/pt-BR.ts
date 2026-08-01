@@ -1630,8 +1630,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Apenas aprovar',
         holdEducationalTitle: 'Você deve reter esta despesa?',
         whatIsHoldExplain: 'Reter é como apertar “pausa” em uma despesa até que você esteja pronto para enviá-la.',
+        whatIsHoldExplainDM: "Reter e como apertar 'pausa' em uma despesa ate que voce esteja pronto para envia-la.",
         holdIsLeftBehind: 'Despesas em espera ficam de fora mesmo se você enviar um relatório inteiro.',
+        holdIsLeftBehindDM: 'Despesas retidas nao serao enviadas ate que voce remova a retencao.',
         unholdWhenReady: 'Desbloqueie as despesas quando estiver pronto para enviá-las.',
+        unholdWhenReadyDM: 'Remova a retencao das despesas quando estiver pronto para envia-las.',
         changePolicyEducational: {
             title: 'Você moveu este relatório!',
             description: 'Confira novamente estes itens, que tendem a mudar ao mover relatórios para um novo workspace.',
@@ -4709,6 +4712,11 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Diária',
                 subtitle: 'Defina taxas de diárias para controlar os gastos diários dos funcionários. Importe as taxas de uma planilha para começar.',
             },
+            requestEmptyList: {
+                title: 'Ainda não há diárias',
+                subtitle: 'Este espaço de trabalho não tem nenhuma diária definida, peça para o seu administrador adicionar algumas.',
+                adminSubtitle: 'Adicione diárias para organizar seus gastos.',
+            },
             importPerDiemRates: 'Importar tarifas de diária',
             editPerDiemRate: 'Editar diárias',
             editPerDiemRates: 'Editar diárias',
@@ -7438,6 +7446,12 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     `<muted-text>Funções especializadas no espaço de trabalho estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
             unlockFeatures: 'Desbloqueie estes recursos!',
+            publicReceiptVisibility: {
+                title: 'Visibilidade pública do recibo',
+                description: 'Se você quer tornar os links dos seus recibos acessíveis para qualquer pessoa, como um cliente ou contador externo, este recurso é para você.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>A visibilidade pública de recibos está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7544,6 +7558,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 requireCompanyCard: 'Exigir cartões corporativos para todas as compras',
                 requireCompanyCardDescription: 'Sinalize todos os gastos em dinheiro, incluindo despesas com quilometragem e diárias.',
                 requireCompanyCardDisabledTooltip: 'Ative Cartões corporativos (em Mais recursos) para desbloquear.',
+                publicReceiptVisibility: 'Visibilidade pública do recibo',
+                publicReceiptVisibilityHintEnabled: 'Comprovantes podem ser visualizados por qualquer pessoa que tenha a URL. Não é necessário ter acesso ao relatório com o comprovante.',
+                publicReceiptVisibilityHintDisabled: 'Os recibos só podem ser vistos por membros da Expensify com acesso ao relatório que contém o recibo.',
                 enableTagsToUnlockTitle: 'Ativar tags?',
                 enableTagsToUnlockPrompt: 'Ative as Tags (em Mais recursos) para desbloquear.',
                 enableTagsAndRequirePrompt: 'Tem certeza de que quer ativar etiquetas e exigi-las para todas as despesas?',

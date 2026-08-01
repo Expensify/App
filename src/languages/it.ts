@@ -1635,8 +1635,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Solo approva',
         holdEducationalTitle: 'Dovresti tenere in sospeso questa spesa?',
         whatIsHoldExplain: 'La funzione “Metti in sospeso” è come premere “pausa” su una spesa finché non sei prontə a inviarla.',
+        whatIsHoldExplainDM: "La funzione 'Metti in sospeso' e come premere 'pausa' su una spesa finche non sei prontə a inviarla.",
         holdIsLeftBehind: 'Le spese in sospeso vengono lasciate indietro anche se invii un intero resoconto.',
+        holdIsLeftBehindDM: 'Le spese in sospeso non verranno inviate finche non rimuovi la sospensione.',
         unholdWhenReady: 'Sblocca le spese quando sei pronto a inviarle.',
+        unholdWhenReadyDM: 'Rimuovi la sospensione dalle spese quando sei prontə a inviarle.',
         changePolicyEducational: {
             title: 'Hai spostato questo report!',
             description: 'Ricontrolla questi elementi, che tendono a cambiare quando si spostano i report in un nuovo workspace.',
@@ -4717,6 +4720,11 @@ ${amount} per ${merchant} - ${date}`,
                 title: 'Diaria',
                 subtitle: 'Imposta le tariffe di diaria per controllare la spesa giornaliera dei dipendenti. Importa le tariffe da un foglio di calcolo per iniziare.',
             },
+            requestEmptyList: {
+                title: 'Ancuna nessuna tariffa di diaria',
+                subtitle: 'Questo spazio di lavoro non ha nessuna diaria, chiedi al tuo amministratore di aggiungerne.',
+                adminSubtitle: 'Aggiungi le tariffe giornaliere per organizzare le tue spese.',
+            },
             importPerDiemRates: 'Importa tariffe di diaria',
             editPerDiemRate: 'Modifica tariffa diaria',
             editPerDiemRates: 'Modifica le tariffe di diaria',
@@ -7459,6 +7467,12 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     `<muted-text>I ruoli specializzati dello spazio di lavoro sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             unlockFeatures: 'Sblocca queste funzionalità!',
+            publicReceiptVisibility: {
+                title: 'Visibilità pubblica della ricevuta',
+                description: 'Se vuoi rendere i link alle tue ricevute accessibili a chiunque, ad esempio a un cliente o a un commercialista esterno, questa funzione fa per te.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>La visibilità pubblica delle ricevute è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7565,6 +7579,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 requireCompanyCard: 'Richiedi le carte aziendali per tutti gli acquisti',
                 requireCompanyCardDescription: 'Contrassegna tutte le spese in contanti, inclusi chilometraggio e indennità giornaliere.',
                 requireCompanyCardDisabledTooltip: 'Abilita Carte aziendali (in Altre funzionalità) per sbloccare.',
+                publicReceiptVisibility: 'Visibilità pubblica della ricevuta',
+                publicReceiptVisibilityHintEnabled: 'Le ricevute sono visibili a chiunque abbia l’URL. Non è richiesto l’accesso al report che contiene la ricevuta.',
+                publicReceiptVisibilityHintDisabled: 'Le ricevute possono essere visualizzate solo dai membri di Expensify che hanno accesso al report che contiene la ricevuta.',
                 enableTagsToUnlockTitle: 'Abilitare i tag?',
                 enableTagsToUnlockPrompt: 'Attiva i Tag (in Altre funzionalità) per sbloccare.',
                 enableTagsAndRequirePrompt: 'Sei sicuro di voler abilitare le etichette e renderle obbligatorie per tutte le spese?',
