@@ -13,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksOnlineSyncClasses, updateQuickbooksOnlineSyncCustomers, updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -46,13 +45,14 @@ import {
     isCurrencySupportedForDirectReimbursement,
     setPolicyPreventMemberCreatedTitle,
     setPolicyPreventSelfApproval,
+    setPolicyReceiptVisibilityPublic,
     setWorkspaceApprovalMode,
     setWorkspaceReimbursement,
     upgradeSubmit,
     upgradeToCorporate,
 } from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
@@ -169,9 +169,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     }
                 }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)));
-                return;
+                return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
+                return Navigation.goBack(route.params.backTo ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:
@@ -250,6 +250,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
                 enablePolicyRules(policy, true, false, policyDataRef.current);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:
+                setPolicyReceiptVisibilityPublic(policyID, true, policy?.isReceiptVisibilityPublic);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:

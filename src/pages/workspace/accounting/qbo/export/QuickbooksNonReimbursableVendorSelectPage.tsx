@@ -58,8 +58,15 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
             isSelected: vendor.id === currentVendor,
         })) ?? [];
 
+    // Only the CC/DC export path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only allow clearing on that configKey.
+    const canClearByReSelecting = configKey === CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR;
+
     const selectVendor = (row: CardListItem) => {
-        if (row.value !== currentVendor) {
+        if (row.value === currentVendor) {
+            if (canClearByReSelecting) {
+                updateVendor(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE, currentVendor);
+            }
+        } else {
             updateVendor(policyID, row.value, currentVendor);
         }
         Navigation.goBack();

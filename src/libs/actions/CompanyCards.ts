@@ -5,6 +5,7 @@ import type {CombinedCardFeeds} from '@hooks/useCardFeeds';
 import * as API from '@libs/API';
 import type {
     AssignCompanyCardParams,
+    GetExpensifyCardStatementPDFParams,
     ImportCSVCompanyCardsParams,
     OpenPolicyAddCardFeedPageParams,
     OpenPolicyCompanyCardsFeedParams,
@@ -36,6 +37,7 @@ import type {
     AddNewCardFeedStep,
     CardFeedData,
     CardFeedDetails,
+    CardFeedWithNumber,
     CompanyCardFeed,
     CompanyCardFeedWithDomainID,
     CompanyCardFeedWithNumber,
@@ -965,7 +967,7 @@ function setCompanyCardExportAccount(policyID: string, domainOrWorkspaceAccountI
     });
 }
 
-function clearCompanyCardErrorField(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeedWithNumber, fieldName: string, isRootLevel?: boolean) {
+function clearCompanyCardErrorField(domainOrWorkspaceAccountID: number, cardID: string, bankName: CardFeedWithNumber, fieldName: string, isRootLevel?: boolean) {
     if (isRootLevel) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`, {
             [cardID]: {
@@ -1428,6 +1430,47 @@ function linkCardFeedToPolicy(domainAccountID: number, policyID: string, feedTyp
             .catch(() => reject('common.genericErrorMessage'));
     });
 }
+
+function getExpensifyCardStatementPDF(policyID: string | undefined, feedCountry: string | undefined, entryIDs: number[]) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.EXPENSIFY_CARD_STATEMENT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.EXPENSIFY_CARD_STATEMENT,
+            value: {
+                isGenerating: true,
+            },
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.EXPENSIFY_CARD_STATEMENT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.EXPENSIFY_CARD_STATEMENT,
+            value: {
+                isGenerating: false,
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.EXPENSIFY_CARD_STATEMENT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.EXPENSIFY_CARD_STATEMENT,
+            value: {
+                isGenerating: false,
+            },
+        },
+    ];
+
+    const params: GetExpensifyCardStatementPDFParams = {
+        entryIDs: entryIDs.join(','),
+        ...(policyID ? {policyID} : {}),
+        ...(feedCountry ? {feedCountry} : {}),
+    };
+
+    // makeRequestWithSideEffects is used so callers can read statementKey from the response.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_EXPENSIFY_CARD_STATEMENT_PDF, params, {optimisticData, successData, failureData});
+}
+
 export {
     setWorkspaceCompanyCardFeedName,
     deleteWorkspaceCompanyCardFeed,
@@ -1455,4 +1498,5 @@ export {
     linkCardFeedToPolicy,
     seedCardFeedRefresh,
     startCardFeedRefresh,
+    getExpensifyCardStatementPDF,
 };
