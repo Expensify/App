@@ -33,7 +33,6 @@ import {useCallback} from 'react';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useEnvironment from './useEnvironment';
-import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -103,7 +102,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
-    const {formatPhoneNumber} = useLocalize();
 
     const getSplitExpenseEditTransactionOnDelete = useCallback(
         (transactionIDs: string[]): Transaction | undefined => {
@@ -334,7 +332,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     expenseReport,
                     isOffline,
                     delegateAccountID,
-                    formatPhoneNumber,
                     isTrackIntentUser,
                 });
             }
@@ -409,7 +406,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             getSplitExpenseEditTransactionOnDelete,
             isOffline,
             isProduction,
-            formatPhoneNumber,
             personalPolicy?.outputCurrency,
             delegateAccountID,
             isTrackIntentUser,

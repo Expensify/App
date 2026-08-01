@@ -89,7 +89,7 @@ const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + varia
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
@@ -401,7 +401,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             expenseReport,
             isOffline,
             delegateAccountID,
-            formatPhoneNumber,
             isTrackIntentUser,
         });
     };

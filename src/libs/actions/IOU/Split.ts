@@ -911,7 +911,6 @@ function completeSplitBill({
     delegateAccountID,
     isTrackIntentUser,
     sessionEmail,
-    formatPhoneNumber,
 }: CompleteSplitBillActionParams) {
     if (!reportAction) {
         return;

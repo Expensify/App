@@ -6,7 +6,6 @@ import type {Beta, PolicyTagLists, Report} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {formatPhoneNumber} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -69,7 +68,6 @@ const baseParams = {
     quickAction: undefined,
     policyRecentlyUsedCurrencies: [] as string[],
     personalDetails: {},
-    formatPhoneNumber,
     delegateAccountID: undefined,
     isTrackIntentUser: false,
 } as const;

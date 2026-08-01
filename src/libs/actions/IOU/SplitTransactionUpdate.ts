@@ -1,4 +1,3 @@
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
 
 import {write as apiWrite} from '@libs/API';
@@ -119,7 +118,6 @@ type UpdateSplitTransactionsParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     isOffline: boolean;
     delegateAccountID: number | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -201,7 +199,6 @@ function updateSplitTransactions({
     expenseReport: expenseReportFromParams,
     isOffline,
     delegateAccountID,
-    formatPhoneNumber,
     isTrackIntentUser,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -664,7 +661,6 @@ function updateSplitTransactions({
             betas,
             personalDetails,
             delegateAccountID,
-            formatPhoneNumber,
             isTrackIntentUser,
         } as MoneyRequestInformationParams;
 
@@ -779,7 +775,6 @@ function updateSplitTransactions({
             betas,
             personalDetails,
             delegateAccountID,
-            formatPhoneNumber,
             isTrackIntentUser,
         });
 

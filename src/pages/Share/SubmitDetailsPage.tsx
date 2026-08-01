@@ -77,7 +77,7 @@ function SubmitDetailsPage({
     },
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
@@ -375,7 +375,6 @@ function SubmitDetailsPage({
                 optimisticTransactionID,
                 isTrackIntentUser,
                 delegateAccountID,
-                formatPhoneNumber,
             });
         }
         cleanupAndNavigateAfterExpenseCreate({

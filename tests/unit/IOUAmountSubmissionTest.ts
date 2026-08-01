@@ -12,7 +12,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
-import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_ACCOUNT_ID = 5;
@@ -219,7 +219,6 @@ describe('AmountSubmission', () => {
                 ownerBillingGracePeriodEnd: undefined,
                 conciergeReportID: undefined,
                 isTrackIntentUser: false,
-                formatPhoneNumber,
                 ...overrides,
             };
         };

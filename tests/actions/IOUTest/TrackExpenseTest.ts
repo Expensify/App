@@ -2826,7 +2826,6 @@ describe('actions/IOU/TrackExpense', () => {
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
-                    formatPhoneNumber,
                 });
             }).not.toThrow();
         });
@@ -2901,7 +2900,6 @@ describe('actions/IOU/TrackExpense', () => {
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
-                    formatPhoneNumber,
                 });
             }).not.toThrow();
         });
@@ -2946,7 +2944,6 @@ describe('actions/IOU/TrackExpense', () => {
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
-                    formatPhoneNumber,
                 });
             }).not.toThrow();
         });
@@ -2991,7 +2988,6 @@ describe('actions/IOU/TrackExpense', () => {
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
-                    formatPhoneNumber,
                 });
             }).not.toThrow();
         });

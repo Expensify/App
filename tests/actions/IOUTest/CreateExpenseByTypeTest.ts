@@ -17,7 +17,6 @@ import Onyx from 'react-native-onyx';
 import currencyList from '../../unit/currencyList.json';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
-import {formatPhoneNumber} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/IOU/TrackExpense', () => ({
@@ -132,7 +131,6 @@ describe('actions/IOU/createExpenseByType', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: undefined,
-            formatPhoneNumber,
         };
 
         return {transaction, transactionDetails, params};
@@ -149,7 +147,7 @@ describe('actions/IOU/createExpenseByType', () => {
             personalDetails: {},
             recentWaypoints: undefined,
             isTrackIntentUser: undefined,
-            formatPhoneNumber,
+            formatPhoneNumber: (phoneNumber: string) => phoneNumber,
             ...overrides,
         });
     }

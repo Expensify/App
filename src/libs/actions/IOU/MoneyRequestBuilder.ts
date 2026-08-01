@@ -5,6 +5,7 @@ import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
+import {formatPhoneNumber as formatPhoneNumberWithLocaleFallback} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
@@ -188,7 +189,6 @@ type RequestMoneyInformation = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     shouldDeferAutoSubmit?: boolean;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
@@ -225,7 +225,7 @@ type MoneyRequestInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
 };
@@ -1292,7 +1292,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         quickAction,
         policyRecentlyUsedCurrencies,
         personalDetails,
-        formatPhoneNumber,
+        formatPhoneNumber = formatPhoneNumberWithLocaleFallback,
         betas,
         delegateAccountID,
         isTrackIntentUser,
