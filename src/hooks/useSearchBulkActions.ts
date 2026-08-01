@@ -139,6 +139,15 @@ type UseSearchBulkActionsParams = {
     queryJSON: SearchQueryJSON | undefined;
 };
 
+function getReportsFromSearchData(searchData: SearchResults['data'] | undefined): Report[] {
+    return searchData
+        ? Object.keys(searchData)
+              .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+              .map((key) => searchData[key as keyof typeof searchData] as Report)
+              .filter((report): report is Report => report != null && 'reportID' in report)
+        : [];
+}
+
 function getRestrictedPolicyID(
     items: Array<{policyID?: string}>,
     billingGracePeriods: OnyxCollection<BillingGraceEndPeriod>,
@@ -1488,13 +1497,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return false;
         }
 
-        const searchData = currentSearchResults?.data;
-        const reports: Report[] = searchData
-            ? Object.keys(searchData)
-                  .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
-                  .map((key) => searchData[key as keyof typeof searchData] as Report)
-                  .filter((report): report is Report => report != null && 'reportID' in report)
-            : [];
+        const reports = getReportsFromSearchData(currentSearchResults?.data);
 
         return (
             selectedTransactionReportIDs.length > 0 &&
@@ -1503,6 +1506,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             })
         );
     }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID, currentSearchResults?.data, allReports]);
+
+    const areAllTransactionsFromDMReports = useMemo(() => {
+        const reports = getReportsFromSearchData(currentSearchResults?.data);
+
+        return (
+            selectedTransactionReportIDs.length > 0 &&
+            selectedTransactionReportIDs.every((id) => {
+                const iouReport = getReportOrDraftReport(id, reports, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]);
+                if (!iouReport?.chatReportID) {
+                    return false;
+                }
+                const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
+                return isDM(chatReport);
+            })
+        );
+    }, [selectedTransactionReportIDs, currentSearchResults?.data, allReports]);
 
     const duplicateHandlerRef = useRef<() => void>(() => {});
     const setDuplicateHandler = useCallback((handler: () => void) => {
@@ -1670,7 +1689,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const connectedIntegration = getConnectedIntegration(policy);
             const isReportsTab = isExpenseReportType;
-            const includesGroupExport = Object.entries(selectedTransactions).some(([key, selectedTransaction]) => isGroupSelection(key, selectedTransaction));
+            const includesGroupExport = isGroupedSearch && Object.entries(selectedTransactions).some(([key, selectedTransaction]) => isGroupSelection(key, selectedTransaction));
 
             const canReportBeExported = (report: (typeof selectedReports)[0], exportOption: ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>) => {
                 if (!report.reportID) {
@@ -2179,11 +2198,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
 
-                    const isDismissed = areAllTransactionsFromSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+                    const shouldShowHoldEducationalModal = areAllTransactionsFromSubmitter || areAllTransactionsFromDMReports;
+                    const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                     if (isDismissed) {
                         navigateToSearchRHP(ROUTES.TRANSACTION_HOLD_REASON_SEARCH, ROUTES.TRANSACTION_HOLD_REASON_RHP);
-                    } else if (areAllTransactionsFromSubmitter) {
+                    } else if (shouldShowHoldEducationalModal) {
                         setIsHoldEducationalModalVisible(true);
                     } else {
                         setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
@@ -2422,6 +2442,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         bulkPayButtonOptions,
         onBulkPaySelected,
         areAllTransactionsFromSubmitter,
+        areAllTransactionsFromDMReports,
         dismissedHoldUseExplanation,
         localeCompare,
         firstTransaction,
@@ -2523,6 +2544,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
         isHoldEducationalModalVisible,
+        areAllTransactionsFromDMReports,
         rejectModalAction,
         emptyReportsCount,
         handleOfflineModalClose,
