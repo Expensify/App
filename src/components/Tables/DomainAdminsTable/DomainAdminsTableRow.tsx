@@ -1,17 +1,23 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {DomainAdminRowData} from '.';
 
 type DomainAdminsTableRowProps = {
@@ -32,6 +38,8 @@ export default function DomainAdminsTableRow({item, rowIndex, shouldUseNarrowTab
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const primaryContactLabel = item.isPrimaryContact ? translate('domain.admins.primaryContact') : '';
     const accessibilityLabel = [item.name, item.email, primaryContactLabel].filter(Boolean).join(', ');
@@ -47,7 +55,6 @@ export default function DomainAdminsTableRow({item, rowIndex, shouldUseNarrowTab
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'domainAdminsTableRow'}}
             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.ROW}
             offlineWithFeedback={{
                 errors: item.errors,
@@ -58,7 +65,10 @@ export default function DomainAdminsTableRow({item, rowIndex, shouldUseNarrowTab
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                    <View
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         <ReportActionAvatars
                             size={avatarSize}
                             accountIDs={[item.accountID]}
@@ -80,7 +90,10 @@ export default function DomainAdminsTableRow({item, rowIndex, shouldUseNarrowTab
                         </View>
                     </View>
 
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
+                    <View
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         {item.isPrimaryContact && (
                             <Badge
                                 text={translate('domain.admins.primaryContact')}

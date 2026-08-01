@@ -1,8 +1,12 @@
-import React from 'react';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React from 'react';
+
 import SageIntacctAutoSyncPageBase from './SageIntacctAutoSyncPageBase';
 
 function SageIntacctAutoSyncPage({policy}: WithPolicyConnectionsProps) {

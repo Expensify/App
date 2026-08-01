@@ -1,22 +1,35 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxCollectionInputValue} from 'react-native-onyx';
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {buildAvatarCropResult} from '@libs/AvatarCropUtils';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 function openAgentsPage() {
-    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null);
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_AGENTS_LOADED>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ARE_AGENTS_LOADED,
+            value: true,
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null, {finallyData});
 }
 
 function openProfilePage() {
@@ -92,12 +105,24 @@ function createAgent(
     ];
 
     write(
+        // Flag this as the user's personal agent; the backend makes personal agents a full co-pilot of the creator.
         WRITE_COMMANDS.CREATE_AGENT,
-        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID)},
+        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true},
         {optimisticData, successData, failureData},
     );
 
     return {optimisticAccountID, avatarURI};
+}
+
+/**
+ * Stash the template chosen in the "New agent" picker so the custom-agent builder can open pre-filled.
+ */
+function setNewAgentTemplate(template: NewAgentTemplate) {
+    return Onyx.set(ONYXKEYS.NEW_AGENT_TEMPLATE, template);
+}
+
+function clearNewAgentTemplate() {
+    return Onyx.set(ONYXKEYS.NEW_AGENT_TEMPLATE, null);
 }
 
 function clearAgentError(optimisticAccountID: number) {
@@ -262,7 +287,7 @@ function updateAgentAvatar(
     write(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, params, {optimisticData, successData, failureData});
 }
 
-function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxCollection<Policy>) {
+function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxCollection<Policy>, shouldNavigateBack = true) {
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -289,7 +314,7 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
             value: {
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                pendingAction: null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
@@ -321,13 +346,64 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
     }
 
     write(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: accountID}, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_AGENTS);
+
+    // Callers that end the copilot session right after deleting (e.g. deleting the agent you're copiloting into)
+    // don't want the extra navigation, since the delegate transition resets navigation on its own.
+    if (shouldNavigateBack) {
+        Navigation.goBack(ROUTES.SETTINGS_AGENTS);
+    }
+}
+
+/** Persists an uploaded agent avatar photo in a serialized form that survives a page refresh */
+function setNewAgentUploadedAvatar(image: File | CustomRNImageManipulatorResult) {
+    return buildAvatarCropResult(image).then((uploadedAvatar) => Onyx.set(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT, {uploadedAvatar}));
+}
+
+/** Persists a preset agent avatar choice */
+function setNewAgentAvatarPreset(customExpensifyAvatarID: string) {
+    return Onyx.set(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT, {customExpensifyAvatarID});
+}
+
+/** Clears the agent avatar draft */
+function clearNewAgentAvatarDraft() {
+    return Onyx.set(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT, null);
+}
+
+/**
+ * Fetches ready-made agent templates.
+ */
+function getAgentTemplates() {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_TEMPLATES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_TEMPLATES,
+            value: true,
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_TEMPLATES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_TEMPLATES,
+            value: false,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_AGENT_TEMPLATES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_AGENT_TEMPLATES,
+            value: false,
+        },
+    ];
+
+    read(READ_COMMANDS.GET_AGENT_TEMPLATES, null, {optimisticData, successData, failureData});
 }
 
 export {
     openAgentsPage,
     openProfilePage,
     createAgent,
+    setNewAgentTemplate,
+    clearNewAgentTemplate,
     clearAgentError,
     clearAgentUpdateError,
     clearAgentNameUpdateError,
@@ -338,4 +414,8 @@ export {
     updateAgentPrompt,
     updateAgentAvatar,
     deleteAgent,
+    setNewAgentUploadedAvatar,
+    setNewAgentAvatarPreset,
+    clearNewAgentAvatarDraft,
+    getAgentTemplates,
 };

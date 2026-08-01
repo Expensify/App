@@ -1,25 +1,28 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useMapMarkers from '@hooks/useMapMarkers';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getDistanceInMeters, getWaypointIndex, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const MAX_WAYPOINTS = 25;
 
@@ -44,7 +47,6 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const getMapMarkerIconComponent = useMapMarkers();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -76,7 +78,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
         waypointMarkers.push({
             id: `${waypoint.lng},${waypoint.lat},${index}`,
             coordinate: [waypoint.lng, waypoint.lat] as const,
-            markerComponent: (): ReactNode => getMapMarkerIconComponent(markerType),
+            markerType,
         });
     }
 

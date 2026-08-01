@@ -1,11 +1,14 @@
-import {getLastClosedReportAction} from '@selectors/ReportAction';
-import Onyx from 'react-native-onyx';
-import {measureFunction} from 'reassure';
 import {getLastVisibleAction, getLastVisibleMessage, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
+
+import {getLastClosedReportAction} from '@selectors/ReportAction';
+import Onyx from 'react-native-onyx';
+import {measureFunction} from 'reassure';
+
 import createCollection from '../utils/collections/createCollection';
 import createRandomReportAction from '../utils/collections/reportActions';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';

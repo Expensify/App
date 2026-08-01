@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Type of account linked to user's wallet */

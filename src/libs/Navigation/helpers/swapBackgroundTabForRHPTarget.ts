@@ -1,11 +1,15 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import type {NavigationState} from '@react-navigation/native';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationPartialRoute, StackNavigationAction} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
+
+import type {NavigationState} from '@react-navigation/native';
+
+import {findFocusedRoute} from '@react-navigation/native';
+
 import {getMatchingFullScreenRoute} from './getAdaptedStateFromPath';
 import getStateFromPath from './getStateFromPath';
 import {shouldChangeToMatchingFullScreen} from './linkTo';

@@ -1,19 +1,27 @@
-import {act, cleanup, render} from '@testing-library/react-native';
-import {Str} from 'expensify-common';
-import {Linking} from 'react-native';
-import type {OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import {act, cleanup, render, waitFor} from '@testing-library/react-native';
+
 import * as AppActions from '@libs/actions/App';
+import * as Device from '@libs/actions/Device';
 import {hasAuthToken} from '@libs/actions/Session';
 import * as Session from '@libs/actions/Session';
+import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentUserEmail, setLastShortAuthToken} from '@libs/Network/NetworkStore';
+
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import {Linking} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import {createRandomReport} from '../utils/collections/reports';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -34,6 +42,10 @@ const TEST_AUTH_TOKEN_2 = 'zxcvbnm';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(120000);
+
+// Full-App integration tests below render <App /> and drain the entire React/Onyx work queue via act().
+// With coverage enabled and other tests in the same CI shard competing for CPU, they can exceed 4 minutes.
+const FULL_APP_UI_TEST_TIMEOUT_MS = 6 * 60 * 1000;
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
@@ -48,6 +60,20 @@ function getInitialURL() {
 
     const deeplinkUrl = `${CONST.DEEPLINK_BASE_URL}/transition?${params.toString()}`;
     return deeplinkUrl;
+}
+
+// cspell:disable-next-line
+const TEST_SUPPORT_AUTH_TOKEN = 'supporttoken123';
+
+function getSupportAuthURL() {
+    const params = new URLSearchParams();
+
+    params.set('email', TEST_USER_LOGIN_1);
+    params.set('delegatorEmail', TEST_USER_LOGIN_2);
+    params.set('shortLivedAuthToken', TEST_SUPPORT_AUTH_TOKEN);
+    params.set('authTokenType', CONST.AUTH_TOKEN_TYPES.SUPPORT);
+
+    return `${CONST.DEEPLINK_BASE_URL}/transition?${params.toString()}`;
 }
 
 describe('Deep linking', () => {
@@ -97,7 +123,7 @@ describe('Deep linking', () => {
 
         // Set the keys the app needs to finish loading rather than going through
         // getPolicyParamsForOpenOrReconnect + writeWithNoDuplicatesConflictAction(OPEN_APP),
-        // which adds a policy-collection read, an isReadyToOpenApp gate, and a full
+        // which adds a policy-collection read, and a full
         // request-queue round-trip with optimistic→network→finally Onyx data.
         // NVP_ONBOARDING suppresses the onboarding flow that would otherwise render
         // extra screens and inflate the React work queue drained by act().
@@ -132,7 +158,7 @@ describe('Deep linking', () => {
     });
 
     // This test renders the full App and processes a deep-link sign-in flow, so it runs
-    // significantly longer than the suite default on loaded CI runners.
+    // significantly longer than the suite default on loaded CI runners (see FULL_APP_UI_TEST_TIMEOUT_MS).
     it(
         'should not remember the report path of the last deep link login after signing out and in again',
         async () => {
@@ -167,11 +193,11 @@ describe('Deep linking', () => {
             await waitForBatchedUpdatesWithAct();
             await waitForNetworkPromises();
         },
-        4 * 60 * 1000,
+        FULL_APP_UI_TEST_TIMEOUT_MS,
     );
 
     // This test renders the full App three times, so it runs significantly longer than
-    // the suite default on loaded CI runners.
+    // the suite default on loaded CI runners (see FULL_APP_UI_TEST_TIMEOUT_MS).
     it(
         'should not reuse the last deep link and log in again when signing out',
         async () => {
@@ -220,6 +246,190 @@ describe('Deep linking', () => {
             await waitForBatchedUpdatesWithAct();
             await waitForNetworkPromises();
         },
-        4 * 60 * 1000,
+        FULL_APP_UI_TEST_TIMEOUT_MS,
     );
+});
+
+describe('Support auth token login', () => {
+    beforeEach(() => {
+        jest.restoreAllMocks();
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+
+        jest.spyOn(Session, 'signInWithSupportAuthToken').mockImplementation(() => {});
+
+        // Set the keys the app needs to finish loading rather than going through a full OpenApp round-trip.
+        jest.spyOn(AppActions, 'openApp').mockImplementation(() =>
+            Onyx.multiSet({
+                [ONYXKEYS.IS_LOADING_APP]: false,
+                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                [ONYXKEYS.HAS_LOADED_APP]: true,
+                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
+            }),
+        );
+    });
+
+    afterEach(async () => {
+        cleanup();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
+        PusherHelper.teardown();
+        jest.clearAllMocks();
+        Linking.setInitialURL('');
+        setLastShortAuthToken(null);
+    });
+
+    // Renders the full App and processes a supportal transition, so it runs longer than the suite default (see FULL_APP_UI_TEST_TIMEOUT_MS).
+    it(
+        'does not fire the support sign-in again when LogOutPreviousUserPage re-processes an already-handled token',
+        async () => {
+            expect(hasAuthToken()).toBe(false);
+
+            // Sign in so the app is on AuthScreens, where LogOutPreviousUserPage owns the /transition route.
+            const {unmount: unmount1} = render(<App />);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_2, TEST_USER_LOGIN_2, undefined, TEST_AUTH_TOKEN_2);
+
+            await waitForBatchedUpdatesWithAct();
+
+            expect(hasAuthToken()).toBe(true);
+            unmount1();
+
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+
+            // The public transition page (LogInWithShortLivedAuthTokenPage) records the support token when it
+            // fires the sign-in. Simulate that, then re-process the SAME support deep link, which lands on
+            // LogOutPreviousUserPage. It must skip the duplicate sign-in; before the fix it fired
+            // unconditionally and tripped the support-token rate limit.
+            setLastShortAuthToken(TEST_SUPPORT_AUTH_TOKEN);
+            Linking.setInitialURL(getSupportAuthURL());
+            const {unmount: unmount2} = render(<App />);
+
+            await waitForBatchedUpdatesWithAct();
+
+            expect(Session.signInWithSupportAuthToken).not.toHaveBeenCalled();
+
+            unmount2();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+        },
+        FULL_APP_UI_TEST_TIMEOUT_MS,
+    );
+});
+
+describe('SAML re-fire loop guard', () => {
+    beforeEach(() => {
+        jest.restoreAllMocks();
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+    });
+
+    afterEach(async () => {
+        cleanup();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
+        PusherHelper.teardown();
+        jest.clearAllMocks();
+        Linking.setInitialURL('');
+        setLastShortAuthToken(null);
+    });
+
+    // The short-lived-token exchange (SignInWithShortLivedAuthToken, kicked off on the /transition redirect-back) sets
+    // account.isLoading — the same signal that drives SignInPage's shouldInitiateSAMLLogin. Re-initiating SAML while
+    // that exchange is in flight does a full-page redirect that tears the page down before the token can be redeemed,
+    // so the session never sticks and the user loops back to their IdP. The RAM-only
+    // IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN flag is set only while the exchange is in flight; SignInPage must not
+    // re-initiate SAML while it is set.
+    it(
+        'does not re-initiate SAML while a short-lived-token exchange is in flight',
+        async () => {
+            const navigateSpy = jest.spyOn(Navigation, 'navigate');
+
+            // SAML-required user, mid short-lived-token exchange (isLoading + the RAM-only flag both set).
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.CREDENTIALS]: {login: TEST_USER_LOGIN_1},
+                    [ONYXKEYS.ACCOUNT]: {isSAMLRequired: true, isLoading: true, validated: true},
+                    [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: true,
+                });
+            });
+
+            const {unmount} = render(<App />);
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+
+            // Exchange in flight → SAML must NOT be re-initiated (this is the guard).
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SAML_SIGN_IN);
+
+            // Positive control: once the exchange is no longer in flight, SAML initiates as normal — proving the guard
+            // (and not the harness failing to reach the decision) is what suppressed the navigation above.
+            navigateSpy.mockClear();
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SAML_SIGN_IN));
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+        },
+        FULL_APP_UI_TEST_TIMEOUT_MS,
+    );
+});
+
+describe('signInWithShortLivedAuthToken', () => {
+    beforeEach(() => {
+        jest.restoreAllMocks();
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+    });
+
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdates();
+        jest.clearAllMocks();
+        setLastShortAuthToken(null);
+    });
+
+    // The RAM-only in-flight guard that SignInPage reads must be set SYNCHRONOUSLY, not deferred behind
+    // Device.getDeviceInfoWithID(). If it were only set inside that promise's .then (via the redeem's optimisticData),
+    // the /transition -> HOME navigation could remount SignInPage before the flag is set while account.isLoading is
+    // still true, and SAML would re-fire -> loop. Here getDeviceInfoWithID is made to hang so the redeem's
+    // optimisticData never runs; the flag can therefore only be true if it was set synchronously.
+    it('sets the in-flight guard synchronously, before the device-info promise resolves', async () => {
+        let resolveDeviceInfo!: (value: string) => void;
+        jest.spyOn(Device, 'getDeviceInfoWithID').mockReturnValue(
+            new Promise<string>((resolve) => {
+                resolveDeviceInfo = resolve;
+            }),
+        );
+
+        Session.signInWithShortLivedAuthToken('token', true);
+        await waitForBatchedUpdates();
+
+        let isAuthenticating: boolean | undefined;
+        const connectionID = Onyx.connect({
+            key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+            callback: (value) => {
+                isAuthenticating = value;
+            },
+        });
+        await waitForBatchedUpdates();
+        Onyx.disconnect(connectionID);
+
+        // Guard is already set even though getDeviceInfoWithID (and thus the redeem's optimisticData) has NOT resolved.
+        expect(isAuthenticating).toBe(true);
+
+        // Settle the pending promise so it doesn't leak, then drain the resulting redeem work.
+        resolveDeviceInfo('');
+        await waitForBatchedUpdates();
+        await waitForNetworkPromises();
+    });
 });

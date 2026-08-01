@@ -1,33 +1,43 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
+import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePolicy from '@hooks/usePolicy';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isAllowedToApproveExpenseReport, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
-import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
+import {isPending} from '@libs/TransactionUtils';
+
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
+
 import useConfirmApproval from './useConfirmApproval';
 import useTransactionThreadData from './useTransactionThreadData';
 
@@ -41,6 +51,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
@@ -57,6 +68,8 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
 
     const activePolicy = usePolicy(activePolicyID);
@@ -64,13 +77,15 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
+    const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
     const {convertToDisplayString} = useCurrencyListActions();
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
     const {transactions: reportTransactionsMap} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactionsMap);
-    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
     const nonPendingDeleteTransactions = transactions.filter((t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
 
     const canIOUBePaid = canIOUBePaidAction(
@@ -143,9 +158,13 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 methodID,
                 paymentMethod,
                 activePolicy,
+                conciergeChat,
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
+                chatReportActions: getChatReportActions(payAsBusiness),
+                delegateAccountID,
+                isTrackIntentUser,
             });
         } else {
             startAnimation();
@@ -167,6 +186,9 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 onPaid: startAnimation,
+                chatReportActions: getChatReportActions(false),
+                delegateAccountID,
+                isTrackIntentUser,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -185,6 +207,8 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
         <AnimatedSettlementButton
             isPaidAnimationRunning={isPaidAnimationRunning}
             isApprovedAnimationRunning={isApprovedAnimationRunning}
+            isDEWApproval={hasDynamicExternalWorkflow(policy)}
+            reportID={moneyRequestReport?.reportID}
             onAnimationFinish={stopAnimation}
             formattedAmount={totalAmount}
             canIOUBePaid

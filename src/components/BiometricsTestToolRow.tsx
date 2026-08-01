@@ -1,13 +1,17 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import useBiometricRegistrationStatus, {REGISTRATION_STATUS} from '@hooks/useBiometricRegistrationStatus';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
 import {useMultifactorAuthentication} from './MultifactorAuthentication/Context';
 import TestToolRow from './TestToolRow';

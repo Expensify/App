@@ -1,10 +1,13 @@
-import React, {useLayoutEffect, useMemo, useRef} from 'react';
-import Animated, {cancelAnimation, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useLayoutEffect, useMemo, useRef} from 'react';
+import Animated, {cancelAnimation, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
@@ -26,6 +29,9 @@ type SwitchProps = {
 
     /** Callback to fire when the switch is toggled in disabled state */
     disabledAction?: () => void | Promise<void>;
+
+    /** Whether the switch is nested inside another pressable */
+    isNested?: boolean;
 };
 
 const OFFSET_X = {
@@ -33,7 +39,7 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction}: SwitchProps) {
+function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction, isNested}: SwitchProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
@@ -99,7 +105,16 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
     return (
         <PressableWithFeedback
             disabled={!disabledAction && disabled}
+            isNested={isNested}
             onPress={handleSwitchPress}
+            onMouseDown={(e) => {
+                if (!isNested) {
+                    return;
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+            }}
             onLongPress={handleSwitchPress}
             role={CONST.ROLE.SWITCH}
             aria-checked={isOn}
@@ -113,6 +128,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
                 <Animated.View style={[styles.switchThumb, animatedThumbStyle]}>
                     {(!!disabled || !!showLockIcon) && (
                         <Icon
+                            testID={CONST.SWITCH_LOCK_ICON_TEST_ID}
                             src={expensifyIcons.Lock}
                             fill={isOn ? theme.text : theme.icon}
                             width={styles.toggleSwitchLockIcon.width}

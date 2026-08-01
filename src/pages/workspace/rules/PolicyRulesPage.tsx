@@ -1,47 +1,64 @@
-import React, {useCallback, useEffect} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import SpendRulesSection from '@components/SpendRules/SpendRulesSection';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
 import {openPolicyRulesPage} from '@libs/actions/Policy/Rules';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useEffect} from 'react';
+import {View} from 'react-native';
+
 import AgentRulesSection from './AgentRulesSection';
+import getImportMerchantRulesOption from './getImportMerchantRulesOption';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 import MerchantRulesSection from './MerchantRulesSection';
+import PolicyRulesPageRevamp from './PolicyRulesPageRevamp';
 
 type PolicyRulesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
 
 const agentsRulesBannerDismissedSelector = (value: OnyxEntry<DismissedProductTraining>): boolean => !!value?.[CONST.AGENTS_RULES_BANNER];
 
-function PolicyRulesPage({route}: PolicyRulesPageProps) {
+function PolicyRulesPage(props: PolicyRulesPageProps) {
+    const {route} = props;
     const {translate} = useLocalize();
     const {policyID} = route.params;
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const illustrations = useMemoizedLazyIllustrations(['Rules']);
+    const icons = useMemoizedLazyExpensifyIcons(['Table']);
     const {canWrite: canWriteRules, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
 
@@ -50,8 +67,33 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     }, [policyID]);
 
     useEffect(() => {
+        // PolicyRulesPageRevamp fetches rules on its own mount — skip here to avoid duplicate OpenPolicyRulesPage calls.
+        if (isRulesRevampEnabled) {
+            return;
+        }
         fetchRules();
-    }, [fetchRules]);
+    }, [fetchRules, isRulesRevampEnabled]);
+
+    if (isRulesRevampEnabled) {
+        return <PolicyRulesPageRevamp {...props} />;
+    }
+
+    const moreOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
+        getImportMerchantRulesOption({policyID, canWriteRules, showReadOnlyModal, translate, icon: icons.Table}),
+    ];
+
+    const headerButtons = (
+        <ButtonWithDropdownMenu
+            onPress={() => {}}
+            shouldAlwaysShowDropdownMenu
+            customText={translate('common.more')}
+            options={moreOptions}
+            isSplitButton={false}
+            wrapperStyle={styles.flexGrow0}
+            style={[shouldDisplayButtonsInSeparateLine && styles.w100]}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.IMPORT_MERCHANT_RULES}
+        />
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -71,7 +113,9 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
                 addBottomSafeAreaPadding
+                headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             >
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {isCustomAgentBetaEnabled && !isAgentsRulesBannerDismissed && (
                         <AgentPromotionalBanner

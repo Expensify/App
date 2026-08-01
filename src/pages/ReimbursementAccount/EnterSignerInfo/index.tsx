@@ -1,17 +1,25 @@
-import React, {useCallback, useEffect} from 'react';
-import type {ComponentType} from 'react';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import useSubPage from '@hooks/useSubPage';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountEnterSignerInfoNavigatorParamList} from '@navigation/types';
+
 import {clearEnterSignerInformationFormSave, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useCallback, useEffect} from 'react';
+
 import Address from './subSteps/Address';
 import Confirmation from './subSteps/Confirmation';
 import DateOfBirth from './subSteps/DateOfBirth';
@@ -22,9 +30,20 @@ import getSignerDetailsAndSignerFiles from './utils/getSignerDetailsAndSignerFil
 
 type EnterSignerInfoProps = PlatformStackScreenProps<ReimbursementAccountEnterSignerInfoNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO>;
 
-type EnterSignerInfoFormSubStepProps = SubStepProps & {policyID: string};
+type EnterSignerInfoFormSubPageProps = SubPageProps & {policyID: string};
 
-const bodyContent: Array<ComponentType<EnterSignerInfoFormSubStepProps>> = [Name, JobTitle, DateOfBirth, Address, UploadDocuments, Confirmation];
+const SUB_PAGE_NAMES = CONST.ENTER_SIGNER_INFO.SUB_PAGE_NAMES;
+
+const pages = [
+    {pageName: SUB_PAGE_NAMES.NAME, component: Name},
+    {pageName: SUB_PAGE_NAMES.JOB_TITLE, component: JobTitle},
+    {pageName: SUB_PAGE_NAMES.DATE_OF_BIRTH, component: DateOfBirth},
+    {pageName: SUB_PAGE_NAMES.ADDRESS, component: Address},
+    {pageName: SUB_PAGE_NAMES.UPLOAD_DOCUMENTS, component: UploadDocuments},
+    {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: Confirmation},
+];
+
+const confirmationIndex = pages.findIndex((page) => page.pageName === SUB_PAGE_NAMES.CONFIRMATION);
 
 function EnterSignerInfo({route}: EnterSignerInfoProps) {
     const {translate} = useLocalize();
@@ -44,15 +63,18 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         });
     }, [account?.primaryLogin, bankAccountID, enterSignerInfoFormDraft]);
 
+    const buildRoute = (pageName: string, action?: 'edit') =>
+        ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, route.params.bankAccountID, route.params.isCompleted === 'true', pageName, action);
+
     const {
-        componentToRender: EnterSignerInfoForm,
+        CurrentPage: EnterSignerInfoForm,
         isEditing,
-        screenIndex,
-        nextScreen,
-        prevScreen,
+        pageIndex,
+        nextPage,
+        prevPage,
         moveTo,
-        goToTheLastStep,
-    } = useSubStep<EnterSignerInfoFormSubStepProps>({bodyContent, startFrom: 0, onFinished: submit});
+        isRedirecting,
+    } = useSubPage<EnterSignerInfoFormSubPageProps>({pages, startFrom: 0, onFinished: submit, buildRoute});
 
     useEffect(() => {
         if (enterSignerInfoForm?.errors || enterSignerInfoForm?.isSavingSignerInformation || !enterSignerInfoForm?.isSuccess) {
@@ -76,16 +98,25 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
     const handleBackButtonPress = useCallback(() => {
         clearErrors(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
         if (isEditing) {
-            goToTheLastStep();
+            moveTo(confirmationIndex, false);
             return;
         }
 
-        if (screenIndex > 0) {
-            prevScreen();
+        if (pageIndex > 0) {
+            prevPage();
         } else {
             Navigation.goBack();
         }
-    }, [goToTheLastStep, isEditing, prevScreen, screenIndex]);
+    }, [isEditing, moveTo, pageIndex, prevPage]);
+
+    if (isRedirecting) {
+        return (
+            <FullScreenLoadingIndicator
+                shouldUseGoBackButton
+                reasonAttributes={{context: 'EnterSignerInfo', isRedirecting}}
+            />
+        );
+    }
 
     return (
         <InteractiveStepWrapper
@@ -95,7 +126,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         >
             <EnterSignerInfoForm
                 isEditing={isEditing}
-                onNext={nextScreen}
+                onNext={nextPage}
                 onMove={moveTo}
                 policyID={policyID}
             />

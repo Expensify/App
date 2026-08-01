@@ -1,5 +1,7 @@
-import CLI from '@scripts/utils/CLI';
+import CLI from 'expensify-common/CLI';
+
 import loadChartFontsForCli from './loadChartFontsForCli';
+import log from './log';
 import parseChartXml from './parseChartXml';
 import renderChartToPng from './renderChartToPng';
 import resolveCanvasSize from './resolveCanvasSize';
@@ -22,18 +24,49 @@ const cli = new CLI({
     },
 });
 
+const renderStartedAt = Date.now();
+
 try {
     const xmlString = cli.namedArgs['chart-xml'];
     const outPath = cli.namedArgs.out;
+
+    log.info('Victory chart render started', true, {
+        outPath,
+        xmlLength: xmlString.length,
+    });
+
     const tnode = parseChartXml(xmlString);
     const canvasSize = resolveCanvasSize(tnode);
     const fonts = await loadChartFontsForCli();
 
+    log.info('Victory chart render prepared', true, {
+        width: canvasSize.width,
+        height: canvasSize.height,
+        hasFontManager: fonts.fontManager !== null,
+    });
+
     await renderChartToPng(tnode, fonts, canvasSize, outPath);
+
+    log.info('Victory chart rendered successfully', true, {
+        outPath,
+        width: canvasSize.width,
+        height: canvasSize.height,
+        durationMs: Date.now() - renderStartedAt,
+    });
 
     // Onyx and network modules register listeners/timers during init; exit explicitly so CI smoke tests do not hang.
     process.exit(0);
 } catch (error) {
-    console.error(error instanceof Error ? error.message : error);
+    const message = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : undefined;
+
+    // Always surface a plain-text error on stderr for local/CLI visibility, independent of
+    // whether the rsyslog socket is reachable in this environment.
+    console.error(message);
+    log.alert('Victory chart render failed', {
+        message,
+        stack,
+        durationMs: Date.now() - renderStartedAt,
+    });
     process.exit(1);
 }

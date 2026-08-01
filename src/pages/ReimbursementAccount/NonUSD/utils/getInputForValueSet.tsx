@@ -1,10 +1,12 @@
+import InputWrapper from '@components/Form/InputWrapper';
+import PushRowWithModal from '@components/PushRowWithModal';
+
+import type {ThemeStyles} from '@src/styles';
+import type {CorpayFormField} from '@src/types/onyx';
+
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import InputWrapper from '@components/Form/InputWrapper';
-import PushRowWithModal from '@components/PushRowWithModal';
-import type {ThemeStyles} from '@src/styles';
-import type {CorpayFormField} from '@src/types/onyx';
 
 type ValueToMap = {
     code?: string;

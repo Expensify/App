@@ -1,9 +1,3 @@
-import {Str} from 'expensify-common';
-import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
-import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -20,6 +14,7 @@ import {ACTIVE_LABEL_SCALE, ACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_SCALE, INAC
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
+
 import useHtmlPaste from '@hooks/useHtmlPaste';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -27,12 +22,23 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
 import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {RefObject} from 'react';
+import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 
 function BaseTextInput({
     label = '',
@@ -85,6 +91,7 @@ function BaseTextInput({
     onClearInput,
     iconContainerStyle,
     clearButtonStyle,
+    clearButtonIconSize,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
@@ -110,7 +117,6 @@ function BaseTextInput({
     const initialValue = value || defaultValue || '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter || !!suffixCharacter;
 
-    const [isFocused, setIsFocused] = useState(false);
     const [passwordHidden, setPasswordHidden] = useState(inputProps.secureTextEntry);
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
@@ -138,6 +144,35 @@ function BaseTextInput({
         // We only want this to run on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Derive `isFocused` from the actual DOM focus state instead of mirroring it into local state.
+    // The React `onFocus`/`onBlur` synthetic events can be dropped when the input is focused
+    // programmatically (e.g. via a ref) while the component is mid-remount, which would leave a
+    // mirrored `isFocused` stuck on `false`: the focus border never shows and the label never floats
+    // even though the caret is in the field. Subscribing to the native focus/blur events directly on
+    // the element and reading `document.activeElement` as the snapshot makes the visual state
+    // authoritative regardless of remount timing — including focus that landed before we subscribed.
+    // See https://github.com/Expensify/App/issues/94233
+    const subscribeToInputFocus = useCallback((onStoreChange: () => void) => {
+        const inputElement = input.current;
+        if (!inputElement) {
+            return () => {};
+        }
+
+        inputElement.addEventListener('focus', onStoreChange);
+        inputElement.addEventListener('blur', onStoreChange);
+
+        return () => {
+            inputElement.removeEventListener('focus', onStoreChange);
+            inputElement.removeEventListener('blur', onStoreChange);
+        };
+    }, []);
+
+    const isFocused = useSyncExternalStore(
+        subscribeToInputFocus,
+        () => typeof document !== 'undefined' && document.activeElement === input.current,
+        () => false,
+    );
 
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
@@ -180,12 +215,10 @@ function BaseTextInput({
     }, [animateLabel, forceActiveLabel, prefixCharacter, suffixCharacter, value]);
 
     const onFocus = (event: FocusEvent) => {
-        setIsFocused(true);
         inputProps.onFocus?.(event);
     };
 
     const onBlur = (event: BlurEvent) => {
-        setIsFocused(false);
         inputProps.onBlur?.(event);
     };
 
@@ -452,7 +485,6 @@ function BaseTextInput({
 
                                     input.current = element as HTMLInputElement | null;
                                 }}
-                                // eslint-disable-next-line
                                 {...inputProps}
                                 // Filter out role="presentation" so it doesn't strip the native
                                 // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
@@ -531,6 +563,7 @@ function BaseTextInput({
                                             setValue('');
                                             onClearInput?.();
                                         }}
+                                        iconSize={clearButtonIconSize}
                                         style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
                                         sentryLabel={sentryLabel ? `${sentryLabel}-ClearButton` : undefined}
                                     />

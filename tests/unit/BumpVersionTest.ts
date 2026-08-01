@@ -1,6 +1,7 @@
 import fs from 'fs';
 import {vol} from 'memfs';
 import path from 'path';
+
 import {generateAndroidVersionCode, updateAndroid} from '../../scripts/bumpVersion';
 
 const BUILD_GRADLE_PATH = path.resolve(__dirname, '../../android/app/build.gradle');

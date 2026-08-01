@@ -1,10 +1,15 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+
 import type {DynamicRouteSuffix} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 jest.mock('@hooks/useRootNavigationState', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/getPathFromState', () => jest.fn());
+jest.mock('@libs/Navigation/linkingConfig/config', () => ({
+    dynamicTabPatternToTabPaths: new Map(),
+}));
 jest.mock('@src/ROUTES', () => ({
     default: {
         HOME: 'home',

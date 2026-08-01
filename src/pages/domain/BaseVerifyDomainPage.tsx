@@ -1,7 +1,3 @@
-import {Str} from 'expensify-common';
-import type {PropsWithChildren} from 'react';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -13,19 +9,33 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDomainValidationCode, resetDomainValidationError, validateDomain} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import {isAdminSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {PropsWithChildren} from 'react';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {Str} from 'expensify-common';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 function OrderedListRow({index, children}: PropsWithChildren<{index: number}>) {
     const styles = useThemeStyles();
@@ -49,10 +59,14 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
     const doesDomainExist = !!domain;
+
+    // A domain admin has nothing to verify once the domain is validated, so keep them out of the flow if they deep-link; non-admins still land here to re-verify
+    const isVerifiedDomainAdmin = !!domain?.validated && isAdminSelector(currentUserAccountID)(domain);
 
     const {asset: Exclamation} = useMemoizedLazyAsset(() => loadExpensifyIcon('Exclamation'));
 
@@ -63,12 +77,12 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(forwardTo, {forceReplace: true}));
     }, [domainAccountID, domain?.hasValidationSucceeded, forwardTo]);
 
-    useEffect(() => {
-        if (!doesDomainExist) {
+    useFocusEffect(() => {
+        if (isVerifiedDomainAdmin || !doesDomainExist || domain?.validateCode || domain?.isValidateCodeLoading || domain?.validateCodeError) {
             return;
         }
         getDomainValidationCode(domainAccountID, domainName);
-    }, [domainAccountID, domainName, doesDomainExist]);
+    });
 
     useEffect(() => {
         if (!doesDomainExist) {
@@ -88,6 +102,15 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
 
     if (!domain) {
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
+    }
+
+    if (isVerifiedDomainAdmin) {
+        return (
+            <NotFoundPage
+                onLinkPress={() => Navigation.dismissModal()}
+                shouldForceFullScreen
+            />
+        );
     }
 
     return (
@@ -131,6 +154,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
                                         <CopyableTextField
                                             value={domain.validateCode}
                                             isLoading={domain.isValidateCodeLoading}
+                                            style={styles.copyableTextFieldMinHeight}
                                         />
                                     )}
                                 </View>
@@ -140,7 +164,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
                                 <FormHelpMessageRowWithRetryButton
                                     message={getLatestErrorMessage({errors: domain.validateCodeError})}
                                     onRetry={() => getDomainValidationCode(domainAccountID, domainName)}
-                                    isButtonSmall
+                                    size={CONST.BUTTON_SIZE.SMALL}
                                 />
                             )}
                         </View>
@@ -155,7 +179,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
                             <Icon
                                 src={Exclamation}
                                 fill={theme.icon}
-                                medium
+                                size={CONST.ICON_SIZE.MEDIUM}
                             />
 
                             <View style={styles.flex1}>

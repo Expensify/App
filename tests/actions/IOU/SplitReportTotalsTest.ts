@@ -1,15 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxMergeCollectionInput} from 'react-native-onyx';
-import '@libs/actions/IOU/MoneyRequest';
 import {handleNavigateAfterExpenseCreate} from '@libs/actions/IOU/NavigationHelpers';
 import {addPendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
+import '@libs/actions/IOU/MoneyRequest';
 import {createSplitsAndOnyxData} from '@libs/actions/IOU/Split';
 import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -18,8 +17,14 @@ import type {PersonalDetailsList, Policy, PolicyTagLists, Report} from '@src/typ
 import type {Participant as IOUParticipant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Participant} from '@src/types/onyx/Report';
 import type {SplitShares} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry, OnyxMergeCollectionInput} from 'react-native-onyx';
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import Onyx from 'react-native-onyx';
+
 import currencyList from '../../unit/currencyList.json';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {getGlobalFetchMock, formatPhoneNumber} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -501,6 +506,9 @@ describe('actions/IOU', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             participantsPolicyTags: overrides.participantsPolicyTags ?? {},
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         it('returns valid splitData with chatReportID, transactionID, and reportActionID', () => {
@@ -739,6 +747,7 @@ describe('actions/IOU', () => {
             return {
                 allTransactionsList: {},
                 allReportsList: {},
+                allReportActionsList: {},
                 allReportNameValuePairsList: {},
                 transactionData: {
                     reportID: EXPENSE_REPORT_ID,
@@ -758,11 +767,13 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 iouReportNextStep: undefined,
                 betas: [],
-                policyTags: {},
+                allPolicyTags: {},
                 personalDetails: undefined,
                 transactionReport: {reportID: 'tx-report-1', parentReportID: 'parent-report-1'},
                 expenseReport: {reportID: EXPENSE_REPORT_ID, parentReportID: 'parent-report-1', chatReportID: 'chat-report-1'},
                 isOffline: false,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
                 ...overrides,
             };
         }
@@ -872,6 +883,72 @@ describe('actions/IOU', () => {
 
             // Then nothing is registered — the list navigates away before any highlight could render
             expect(addPendingNewTransactionIDs).not.toHaveBeenCalled();
+        });
+
+        it('registers the search-route highlight (not report metadata) when splitting from the Search/Spend page', async () => {
+            // Given the user is on the Search (Spend > Expenses) page, where the expense report is never opened
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
+            const params = buildBaseParams({
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [
+                        {transactionID: 'new-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                    ],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the split from the Search page
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then the report-metadata highlight is skipped — the report is never mounted, so those flags would
+            // never be cleared and would incorrectly highlight rows when the report is later opened from the Inbox.
+            expect(addPendingNewTransactionIDs).not.toHaveBeenCalled();
+
+            // And instead the new IDs are registered on the search-route highlight, keyed by the current search type.
+            // This mechanism highlights optimistically without a server re-search, so it works offline too.
+            expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(
+                'expense',
+                Object.fromEntries([
+                    ['new-tx-1', true],
+                    ['new-tx-2', true],
+                ]),
+            );
+
+            spyOnMergeTransactionIdsHighlightOnSearchRoute.mockRestore();
+        });
+
+        it('skips the search-route highlight during a reverse split from the Search/Spend page', async () => {
+            // Given the user is on the Search page and this is a reverse split (1 expense, existing child present)
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
+            const existingChildTx = {
+                transactionID: 'child-tx-1',
+                reportID: EXPENSE_REPORT_ID,
+                comment: {originalTransactionID: ORIGINAL_TX_ID, source: CONST.IOU.TYPE.SPLIT},
+            };
+            const params = buildBaseParams({
+                allTransactionsList: {[`${ONYXKEYS.COLLECTION.TRANSACTION}child-tx-1`]: existingChildTx},
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [{transactionID: 'new-merged-tx', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 1000, created: '2024-01-01'}],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the reverse split
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then nothing is highlighted — reverse splits create no new transactions
+            expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).not.toHaveBeenCalled();
+
+            spyOnMergeTransactionIdsHighlightOnSearchRoute.mockRestore();
         });
     });
 });

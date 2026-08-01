@@ -1,23 +1,29 @@
-import {hasServicesEnabledAsync, startLocationUpdatesAsync} from 'expo-location';
-import React, {useState} from 'react';
-import {Linking, View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
+
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {initGpsDraft, resumeGpsTrip as resumeGpsTripUtil} from '@libs/actions/GPSDraftDetails';
 import {isTripStopped as isTripStoppedUtil, stopGpsTrip as stopGpsTripUtil} from '@libs/GPSDraftDetailsUtils';
+
 import BackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow';
 import {BACKGROUND_LOCATION_TASK_OPTIONS, BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {startGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
 import type {Unit} from '@src/types/onyx/Policy';
+
+import {hasServicesEnabledAsync, startLocationUpdatesAsync} from 'expo-location';
+import React, {useState} from 'react';
+import {Linking, View} from 'react-native';
+
 import GPSTooltip from './GPSTooltip';
 import openSettings from './openSettings';
 

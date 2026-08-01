@@ -1,15 +1,20 @@
-import {defaultSecurityGroupIDSelector, selectGroupByID} from '@selectors/Domain';
-import React from 'react';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import {deleteDomainSecurityGroup} from '@userActions/Domain';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import {defaultSecurityGroupIDSelector, selectGroupByID} from '@selectors/Domain';
+import React from 'react';
 
 type DeleteGroupRowProps = {
     /** The account ID of the domain */

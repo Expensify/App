@@ -1,8 +1,11 @@
-import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import {verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
+
 import type {HeicConverterFunction} from './types';
 
 /**

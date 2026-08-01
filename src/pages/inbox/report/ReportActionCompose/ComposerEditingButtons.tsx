@@ -1,7 +1,10 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
+
 import {useComposerEditActions, useComposerState} from './ComposerContext';
 import ComposerExpandCollapseButton from './ComposerExpandCollapseButton';
 import MessageEditCancelButton from './MessageEditCancelButton';
