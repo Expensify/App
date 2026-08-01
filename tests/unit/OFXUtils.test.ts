@@ -52,7 +52,7 @@ describe('OFXUtils', () => {
             ]);
         });
 
-        it('parses an OFX 2.x credit card statement, including a time zone suffix and a PAYEE merchant', () => {
+        it('parses an OFX 2.x credit card statement, including a time zone suffix, an escaped merchant and a PAYEE merchant', () => {
             // cspell:disable
             const statement = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?OFX OFXHEADER="200" VERSION="211" SECURITY="NONE"?>
@@ -63,7 +63,7 @@ describe('OFXUtils', () => {
       <STMTTRN>
         <DTPOSTED>20260715120000.000[-5:EST]</DTPOSTED>
         <TRNAMT>-42.50</TRNAMT>
-        <NAME>COFFEE SHOP</NAME>
+        <NAME>AT&amp;T WIRELESS</NAME>
       </STMTTRN>
       <STMTTRN>
         <DTPOSTED>20260716</DTPOSTED>
@@ -77,7 +77,7 @@ describe('OFXUtils', () => {
 
             expect(parseOFXToSpreadsheetRows(statement)).toEqual([
                 ['Date', 'Merchant', 'Amount'],
-                ['2026-07-15', 'COFFEE SHOP', '42.5'],
+                ['2026-07-15', 'AT&T WIRELESS', '42.5'],
                 ['2026-07-16', 'BAKERY', '7.25'],
             ]);
         });
