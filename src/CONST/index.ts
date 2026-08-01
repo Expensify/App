@@ -963,6 +963,14 @@ const CONST = {
     },
     ENTER_SIGNER_INFO: {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
+        SUB_PAGE_NAMES: {
+            NAME: 'name',
+            JOB_TITLE: 'job-title',
+            DATE_OF_BIRTH: 'date-of-birth',
+            ADDRESS: 'address',
+            UPLOAD_DOCUMENTS: 'upload-documents',
+            CONFIRMATION: 'confirmation',
+        },
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
@@ -995,6 +1003,8 @@ const CONST = {
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
+        GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
     },
     BUTTON_STATES: {
@@ -3663,14 +3673,14 @@ const CONST = {
                 MINIMUM_FEE: 0,
             },
         },
-        // Error field used by the magic code prompt shown when changing the phone number protected for card 3DS verification
+        // Error field used by the validateCode prompt shown when changing the phone number protected for card 3DS verification
         VALIDATE_CODE_ERROR_FIELD: 'walletPhoneNumber',
         ERROR: {
             // If these get updated, we need to update the codes on the Web side too
             SSN: 'ssnError',
             KBA: 'kbaNeeded',
             KYC: 'kycFailed',
-            INCORRECT_MAGIC_CODE: 'incorrectMagicCode',
+            INCORRECT_VALIDATE_CODE: 'incorrectValidateCode',
             FULL_SSN_NOT_FOUND: 'Full SSN not found',
             MISSING_FIELD: 'Missing required additional details fields',
             WRONG_ANSWERS: 'Wrong answers',
@@ -4077,6 +4087,10 @@ const CONST = {
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
+        GLOBAL_REIMBURSEMENT_FX_PREFERENCE: {
+            COMPANY: 'company',
+            EMPLOYEE: 'employee',
+        },
         CASH_EXPENSE_REIMBURSEMENT_CHOICES: {
             REIMBURSABLE_DEFAULT: 'reimbursableDefault', // Reimbursable by default
             NON_REIMBURSABLE_DEFAULT: 'nonReimbursableDefault', // Non-reimbursable by default
@@ -4220,6 +4234,7 @@ const CONST = {
             AUTOREPORTING: 'autoReporting',
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
+            GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
             GENERAL_SETTINGS: 'generalSettings',
         },
         EXPENSE_REPORT_RULES: {
@@ -7778,6 +7793,15 @@ const CONST = {
                 icon: 'Rules',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
+            publicReceiptVisibility: {
+                id: 'publicReceiptVisibility' as const,
+                alias: 'public-receipt-visibility',
+                name: 'Public receipt visibility',
+                title: 'workspace.upgrade.publicReceiptVisibility.title' as const,
+                description: 'workspace.upgrade.publicReceiptVisibility.description' as const,
+                icon: 'ReportReceipt',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
             perDiem: {
                 id: 'perDiem' as const,
                 alias: 'per-diem',
@@ -8884,6 +8908,7 @@ const CONST = {
             },
             WORKFLOWS: {
                 AUTO_REPORTING_FREQUENCY: 'WorkspaceWorkflows-AutoReportingFrequency',
+                CURRENCY_CONVERSION_FEES: 'WorkspaceWorkflows-CurrencyConversionFees',
                 ADD_APPROVAL: 'WorkspaceWorkflows-AddApproval',
                 MORE_DROPDOWN: 'WorkspaceWorkflows-MoreDropdown',
                 LOAD_MORE_APPROVALS: 'WorkspaceWorkflows-LoadMoreApprovals',
@@ -9242,6 +9267,12 @@ const CONST = {
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
         ANNOUNCEMENTS: [
             {
+                title: 'Scoped admin roles, plus HR & AI updates',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-july-2026-product-update',
+                publishedDate: '2026-07-28',
+            },
+            {
                 title: 'The Expensify Card: Now in the UK & EU',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
@@ -9252,12 +9283,6 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260713695836/en/Expensify-Launches-Consolidated-Travel-Billing-to-Simplify-How-Companies-Pay-for-Business-Travel',
                 publishedDate: '2026-07-13',
-            },
-            {
-                title: 'More Concierge AI upgrades, plus agent beta',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260701645763/en/Expensifys-AI-Expands-to-Expense-Automation-Spend-Insights-and-Agents',
-                publishedDate: '2026-07-01',
             },
         ],
     },

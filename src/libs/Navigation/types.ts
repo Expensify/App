@@ -206,7 +206,7 @@ type SettingsNavigatorParamList = {
         subPage?: EnablePaymentsSubPageType;
         action?: 'edit';
     };
-    [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE]: undefined;
+    [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE]: undefined;
     [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
         bankAccountID: string;
     };
@@ -2330,12 +2330,14 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME]: {
+    [SCREENS.MONEY_REQUEST.STEP_TIME]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
         backToReport?: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo: Routes | undefined;
     };
     [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -2354,12 +2356,14 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT]: {
+    [SCREENS.MONEY_REQUEST.STEP_TIME_EDIT]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
         backToReport?: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo: Routes | undefined;
     };
     [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -2543,6 +2547,8 @@ type ReimbursementAccountEnterSignerInfoNavigatorParamList = {
         policyID: string;
         bankAccountID: string;
         isCompleted: string;
+        subPage?: string;
+        action?: 'edit';
     };
 };
 
@@ -2925,6 +2931,9 @@ type WorkspaceSplitNavigatorParamList = {
         approverIndex: number;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_CURRENCY_CONVERSION_FEES]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {

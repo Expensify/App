@@ -1631,8 +1631,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Alleen goedkeuren',
         holdEducationalTitle: 'Moet je deze uitgave aanhouden?',
         whatIsHoldExplain: 'Pauzeren is alsof je een uitgave op “pauze” zet totdat je klaar bent om die in te dienen.',
+        whatIsHoldExplainDM: "Aanhouden is alsof je een uitgave op 'pauze' zet totdat je klaar bent om die te verzenden.",
         holdIsLeftBehind: 'Geblokkeerde uitgaven blijven achter, zelfs als je een volledig rapport indient.',
+        holdIsLeftBehindDM: 'Aangehouden uitgaven worden niet verzonden totdat je de aanhouding opheft.',
         unholdWhenReady: 'Haal de blokkering van de uitgaven wanneer je klaar bent om ze in te dienen.',
+        unholdWhenReadyDM: 'Hef de aanhouding van uitgaven op wanneer je klaar bent om ze te verzenden.',
         changePolicyEducational: {
             title: 'Je hebt dit rapport verplaatst!',
             description: 'Controleer deze onderdelen goed; ze veranderen vaak wanneer rapporten naar een nieuwe workspace worden verplaatst.',
@@ -2806,6 +2809,14 @@ ${amount} voor ${merchant} - ${date}`,
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Indienfrequentie kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
         monthlyOffsetErrorMessage: 'Maandelijkse frequentie kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
+    },
+    workflowsCurrencyConversionFeesPage: {
+        title: 'Valutaomrekeningskosten',
+        subtitle:
+            'Bij vergoedingen in een andere valuta kunnen omrekeningskosten van toepassing zijn. Selecteer hieronder wie de kosten betaalt. Dit geldt alleen voor grensoverschrijdende omrekeningen.',
+        companyPays: 'Bedrijf betaalt',
+        employeePays: 'Werknemer betaalt',
+        errorMessage: 'De voorkeur voor valutaomrekeningskosten kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
     },
     workflowsCreateApprovalsPage: {
         title: 'Bevestigen',
@@ -4705,6 +4716,11 @@ ${amount} voor ${merchant} - ${date}`,
                 title: 'Dagvergoeding',
                 subtitle: 'Stel dagvergoedingen in om de dagelijkse uitgaven van medewerkers te beheersen. Importeer tarieven uit een spreadsheet om te beginnen.',
             },
+            requestEmptyList: {
+                title: 'Nog geen dagvergoedingen',
+                subtitle: 'Deze workspace heeft geen dagvergoedingen, vraag je admin om er een paar toe te voegen.',
+                adminSubtitle: 'Voeg dagvergoedingen toe om je uitgaven te organiseren.',
+            },
             importPerDiemRates: 'Daggeldtarieven importeren',
             editPerDiemRate: 'Dagvergoeding bewerken',
             editPerDiemRates: 'Dagvergoedingen bewerken',
@@ -5611,7 +5627,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
         rillet: {
             rilletSetup: 'Rillet-instelling',
             enterCredentials: 'Voer je Rillet API-sleutel in',
-            howToFindAPIKey: '<strong>Je API-sleutel vinden.</strong><ol><li>Log in bij Rillet</li><li>Ga naar Account -> Instellingen</li><li>Kopieer de API-sleutel hieronder</li></ol>',
+            howToFindAPIKey:
+                '<strong>Je API-sleutel vinden.</strong><ol><li>Log in bij Rillet</li><li>Ga naar [organisatienaam] -> Organisatie-instellingen -> API-toegang</li><li>Maak een API-sleutel aan</li><li>Plak de API-sleutel hieronder</li></ol>',
             subsidiary: 'Dochteronderneming',
             subsidiarySelectDescription: 'Kies het dochterbedrijf in Rillet waarvan je gegevens wilt importeren.',
             noSubsidiariesFound: 'Geen dochterondernemingen gevonden',
@@ -7281,6 +7298,8 @@ ${reportName}`,
 Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaardwaarden in, en automatiseer goedkeuringen en betalingen – allemaal op één plek.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Regels zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                onlyAvailableOnPlanUnlimited: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Onbeperkte toegang tot regels is alleen beschikbaar met het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             perDiem: {
                 title: 'Dagvergoeding',
@@ -7431,6 +7450,12 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     `<muted-text>Gespecialiseerde werkruimterollen zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             unlockFeatures: 'Ontgrendel deze functies!',
+            publicReceiptVisibility: {
+                title: 'Openbare bonzichtbaarheid',
+                description: 'Als je je bonlinks toegankelijk wilt maken voor iedereen, zoals een klant of externe boekhouder, dan is deze functie iets voor jou.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Publieke bonzichtbaarheid is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7537,6 +7562,15 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 requireCompanyCard: 'Verplicht bedrijfskaarten voor alle aankopen',
                 requireCompanyCardDescription: 'Markeer alle contante uitgaven, inclusief kilometer- en dagvergoedingen.',
                 requireCompanyCardDisabledTooltip: 'Schakel Bedrijfskaarten in (onder Meer functies) om te ontgrendelen.',
+                publicReceiptVisibility: 'Openbare bonzichtbaarheid',
+                publicReceiptVisibilityHintEnabled: 'Bonnetjes zijn zichtbaar voor iedereen met de URL. Toegang tot het rapport met het bonnetje is niet vereist.',
+                publicReceiptVisibilityHintDisabled: 'Bonnetjes zijn alleen zichtbaar voor Expensify-leden met toegang tot het rapport dat het bonnetje bevat.',
+                enableTagsToUnlockTitle: 'Tags inschakelen?',
+                enableTagsToUnlockPrompt: 'Schakel Labels in (onder Meer functies) om te ontgrendelen.',
+                enableTagsAndRequirePrompt: 'Weet je zeker dat je tags wilt inschakelen en ze verplicht wilt maken voor alle uitgaven?',
+                enableCategoriesToUnlockTitle: 'Categorieën inschakelen?',
+                enableCategoriesToUnlockPrompt: 'Schakel Categorieën (onder Meer functies) in om te ontgrendelen.',
+                enableCategoriesAndRequirePrompt: 'Weet je zeker dat je categorieën wilt inschakelen en ze verplicht wilt maken voor alle uitgaven?',
             },
             expenseReportRules: {
                 title: 'Geavanceerd',

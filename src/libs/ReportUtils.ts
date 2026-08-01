@@ -8765,7 +8765,11 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
     };
 }
 
-function buildOptimisticChangeApproverReportAction(managerID: number, actorAccountID: number): OptimisticChangedApproverReportAction {
+function buildOptimisticChangeApproverReportAction(
+    managerID: number,
+    actorAccountID: number,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): OptimisticChangedApproverReportAction {
     const created = DateUtils.getDBTime();
     return {
         actionName: managerID === actorAccountID ? CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL : CONST.REPORT.ACTIONS.TYPE.REROUTE,
@@ -8775,7 +8779,7 @@ function buildOptimisticChangeApproverReportAction(managerID: number, actorAccou
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: `changed the approver to ${getDisplayNameForParticipant({accountID: managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils})}`,
+                text: `changed the approver to ${getDisplayNameForParticipant({accountID: managerID, formatPhoneNumber})}`,
                 html: `changed the approver to <mention-user accountID="${managerID}"/>`,
             },
         ],
@@ -11074,7 +11078,9 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>, isReportArchived = false
  * A "root" group chat is the top level group chat and does not refer to any threads off of a Group Chat
  */
 function isRootGroupChat(report: OnyxEntry<Report>, isReportArchived = false): boolean {
-    return !isChatThread(report) && (isGroupChat(report) || isDeprecatedGroupDM(report, isReportArchived));
+    // Excluded via `isThread` rather than `isChatThread`: the backend gives a task the parent's chatType, and
+    // `isChatThread` only matches type CHAT, so a task off a group chat would otherwise read as the root chat.
+    return !isThread(report) && (isGroupChat(report) || isDeprecatedGroupDM(report, isReportArchived));
 }
 
 /**
