@@ -2,7 +2,7 @@
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
 keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card spend rules, block transactions, approve transactions]
-internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, merchant rules, prohibited expenses, category rules, tag rules, report rules, and Expensify Card spend rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
+internalScope: Audience is Workspace Admins. Full rule management requires the Control plan; Collect plan workspaces can enable Rules and configure Billable expenses and Require fields, while all other rules require upgrading to Control. Covers enabling and managing workspace-level rules such as expense rules, merchant rules, prohibited expenses, category rules, tag rules, report rules, and Expensify Card spend rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
 # Workspace Rules 
@@ -21,6 +21,17 @@ To activate Rules for your workspace:
 2. Click your **workspace name**.
 3. Click **More Features**.
 4. Under the **Manage** section, toggle on **Rules**.
+
+---
+
+## What rules are available on the Collect plan
+
+Workspaces on the **Collect** plan can enable **Rules** and configure two settings:
+
+- **Billable expenses** – Set whether expenses are billable by default.
+- **Require fields** – Require specific fields to be completed on expenses.
+
+All other rules, including creating a new rule and the other Rules tabs, require [upgrading to the Control plan](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Change-Your-Workspace-Plan). Selecting a Control-only rule prompts you to upgrade.
 
 ---
 
@@ -182,7 +193,7 @@ You can set workspace-wide defaults to automate categorization and tagging.
 
 ## Who can manage workspace rules?
 
-Only Workspace Admins on the **Control** plan can enable, update, or disable workspace rules.
+Workspace Admins on the **Control** plan can enable, update, or disable all workspace rules. Workspace Admins on the **Collect** plan can enable **Rules** and configure **Billable expenses** and **Require fields**; all other rules require upgrading to the Control plan.
 
 ## What happens if I turn workspace rules off?
 
