@@ -3,6 +3,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import SafeTriangle from '@components/SafeTriangle';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
+import SearchNLFilterContent from '@components/Search/FilterComponents/AdvancedFilters/SearchNLFilterContent';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
@@ -25,7 +26,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -47,23 +48,46 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const [selectedFilter, setSelectedFilter] = useState<SearchFilter['key']>(CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE);
+    const [isDescribeMode, setIsDescribeMode] = useState(false);
+    const [isDescribeButtonHovered, setIsDescribeButtonHovered] = useState(false);
     const filterContentRef = useRef<View>(null);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
 
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
 
+    const handleFilterHoverIn = (key: SearchFilter['key']) => {
+        setIsDescribeMode(false);
+        setSelectedFilter(key);
+    };
+
+    const getDescribeButtonBackground = (pressed: boolean) => {
+        if (pressed || isDescribeButtonHovered) {
+            return styles.buttonHoveredBG;
+        }
+        if (isDescribeMode) {
+            return styles.hoveredComponentBG;
+        }
+        return undefined;
+    };
+
+    const handleNLSuccess = (route: Route) => {
+        Navigation.navigate(route);
+    };
+
     return (
         <SafeTriangle submenuRef={filterContentRef}>
             <View style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT))]}>
                 <View style={[styles.typeFiltersPopupContainer]}>
                     <PressableWithFeedback
-                        style={({pressed}) => [styles.typeFilterMenu, pressed ? styles.buttonHoveredBG : undefined]}
+                        style={({pressed}) => [styles.typeFilterMenu, getDescribeButtonBackground(pressed)]}
                         accessible
                         accessibilityLabel={translate('search.filters.describeSearch.title')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel="SearchAdvancedFiltersPopup-DescribeSearch"
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIBE)}
+                        onHoverIn={() => setIsDescribeButtonHovered(true)}
+                        onHoverOut={() => setIsDescribeButtonHovered(false)}
+                        onPress={() => setIsDescribeMode(true)}
                     >
                         {({pressed}) => (
                             <>
@@ -76,7 +100,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                                 <Text style={[styles.flex1]}>{translate('search.filters.describeSearch.title')}</Text>
                                 <Icon
                                     src={icons.ArrowRight}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(false, pressed))}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(isDescribeMode, pressed))}
                                     width={variables.iconSizeNormal}
                                     height={variables.iconSizeNormal}
                                 />
@@ -90,27 +114,31 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                     <FilterList
                         type={searchAdvancedFiltersForm?.type}
                         policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, searchAdvancedFiltersForm)}
-                        selectedFilter={selectedFilter}
-                        onHoverIn={setSelectedFilter}
-                        onFocus={setSelectedFilter}
+                        selectedFilter={isDescribeMode ? undefined : selectedFilter}
+                        onHoverIn={handleFilterHoverIn}
+                        onFocus={handleFilterHoverIn}
                     />
                 </View>
                 <View
                     ref={filterContentRef}
                     style={[styles.filterContentContainer]}
                 >
-                    <SearchAdvancedFiltersContent
-                        values={searchAdvancedFiltersForm}
-                        baseFilterKey={selectedFilter}
-                        components={{
-                            List: ListFilterContentPopupWrapper,
-                            Text: TextInputFilterContentPopupWrapper,
-                            Amount: AmountFilterContentPopupWrapper,
-                            Date: DateFilterContentPopupWrapper,
-                            ReportField: ReportFieldFilterContentPopupWrapper,
-                        }}
-                        onChange={updateFilterQueryParams}
-                    />
+                    {isDescribeMode ? (
+                        <SearchNLFilterContent onSuccess={handleNLSuccess} />
+                    ) : (
+                        <SearchAdvancedFiltersContent
+                            values={searchAdvancedFiltersForm}
+                            baseFilterKey={selectedFilter}
+                            components={{
+                                List: ListFilterContentPopupWrapper,
+                                Text: TextInputFilterContentPopupWrapper,
+                                Amount: AmountFilterContentPopupWrapper,
+                                Date: DateFilterContentPopupWrapper,
+                                ReportField: ReportFieldFilterContentPopupWrapper,
+                            }}
+                            onChange={updateFilterQueryParams}
+                        />
+                    )}
                 </View>
             </View>
         </SafeTriangle>
