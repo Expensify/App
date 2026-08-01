@@ -1001,6 +1001,7 @@ const CONST = {
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
+        INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',

@@ -127,7 +127,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [cardLists] = useCardsLists();
 
     const canUseRilletIntegration = isBetaEnabled(CONST.BETAS.RILLET) || !!policy?.connections?.rillet;
-    const canUseIntuitEnterpriseSuiteIntegration = isCollectPolicy(policy) || isControlPolicy(policy);
+    const canUseIntuitEnterpriseSuiteIntegration = isBetaEnabled(CONST.BETAS.INTUIT_ENTERPRISE_SUITE) && (isCollectPolicy(policy) || isControlPolicy(policy));
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
