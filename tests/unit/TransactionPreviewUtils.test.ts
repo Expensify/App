@@ -1,4 +1,4 @@
-import {convertAmountToDisplayString, convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
     compareByRBR,
@@ -18,6 +18,7 @@ import type {ReportActions, Transaction} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import {convertToDisplayString} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
@@ -698,7 +699,7 @@ describe('TransactionPreviewUtils', () => {
             });
 
             const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], undefined, undefined, {}, fakeReport);
-            expect(route).toContain('duplicates/confirm');
+            expect(route).toContain('backRoute/confirm');
         });
 
         it('should navigate to merchant review page when merchants differ', () => {
@@ -716,7 +717,7 @@ describe('TransactionPreviewUtils', () => {
             };
 
             const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], undefined, undefined, {}, fakeReport);
-            expect(route).toContain('duplicates/review/merchant');
+            expect(route).toContain('backRoute/merchant');
         });
 
         it('should navigate to tag review page when tags differ with single-level policyTags', () => {
@@ -747,7 +748,7 @@ describe('TransactionPreviewUtils', () => {
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
             const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], fakePolicy, undefined, policyTags, fakeReport);
-            expect(route).toContain('duplicates/review/tag');
+            expect(route).toContain('backRoute/transaction-duplicate-tag');
         });
 
         it('should skip tag review when policyTags filters out disabled tags', () => {
@@ -779,7 +780,7 @@ describe('TransactionPreviewUtils', () => {
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
             const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], fakePolicy, undefined, policyTags, fakeReport);
             // Since Marketing is disabled, only 1 enabled tag available, so tag review is skipped
-            expect(route).toContain('duplicates/confirm');
+            expect(route).toContain('backRoute/confirm');
         });
     });
 

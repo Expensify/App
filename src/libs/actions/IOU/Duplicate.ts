@@ -59,27 +59,27 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {buildParticipantsPolicyTags, getAllReportActionsFromIOU, getAllReports, getAllTransactions} from '.';
+import {buildParticipantsPolicyTags, getAllReports, getAllTransactions} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
 import {createDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
-function getIOUActionForTransactions(transactionIDList: Array<string | undefined>, iouReportID: string | undefined): Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
-    const allReportActions = getAllReportActionsFromIOU();
-    return Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? {})?.filter(
-        (reportAction): reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
-            if (!isMoneyRequestAction(reportAction)) {
-                return false;
-            }
-            const message = getOriginalMessage(reportAction);
-            if (!message?.IOUTransactionID) {
-                return false;
-            }
-            return transactionIDList.includes(message.IOUTransactionID);
-        },
-    );
+function getIOUActionForTransactions(
+    transactionIDList: Array<string | undefined>,
+    iouReportActions: OnyxEntry<OnyxTypes.ReportActions>,
+): Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
+    return Object.values(iouReportActions ?? {})?.filter((reportAction): reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
+        if (!isMoneyRequestAction(reportAction)) {
+            return false;
+        }
+        const message = getOriginalMessage(reportAction);
+        if (!message?.IOUTransactionID) {
+            return false;
+        }
+        return transactionIDList.includes(message.IOUTransactionID);
+    });
 }
 
 type DiscardedSource = {
@@ -174,6 +174,7 @@ type MergeDuplicatesFuncParams = MergeDuplicatesParams & {
     taxAmount?: number;
     taxValue?: string;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
 };
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
@@ -184,6 +185,7 @@ function mergeDuplicates({
     taxAmount,
     taxValue,
     allTransactionViolations,
+    allReportActionsList,
     ...params
 }: MergeDuplicatesFuncParams) {
     const allParams: MergeDuplicatesParams = {...params};
@@ -255,7 +257,7 @@ function mergeDuplicates({
         if (transaction.reimbursable) {
             entry.reimbursableAmount += transaction.amount;
         }
-        entry.actions.push(...getIOUActionForTransactions([id], transaction.reportID));
+        entry.actions.push(...getIOUActionForTransactions([id], allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`]));
         sources.set(transaction.reportID, entry);
     }
     const deletedTime = DateUtils.getDBTime();
@@ -312,7 +314,10 @@ function mergeDuplicates({
     const optimisticReportAction = buildOptimisticResolvedDuplicatesReportAction();
 
     const transactionThreadReportID =
-        optimisticTransactionThreadReportID ?? (params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined);
+        optimisticTransactionThreadReportID ??
+        (params.reportID
+            ? getIOUActionForTransactions([params.transactionID], allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`]).at(0)?.childReportID
+            : undefined);
     const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
@@ -431,12 +436,14 @@ function resolveDuplicates({
     taxValue,
     transactionThreadReportIDMap,
     allTransactionViolations,
+    allReportActionsList,
     ...params
 }: MergeDuplicatesParams & {
     taxAmount?: number;
     taxValue?: string;
     transactionThreadReportIDMap: Record<string, string | undefined>;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
 }) {
     if (!params.transactionID) {
         return;
@@ -497,8 +504,8 @@ function resolveDuplicates({
             continue;
         }
 
-        const transactionThreadReportID = transactionThreadReportIDMap[transactionID];
-        if (!transactionThreadReportID) {
+        const iouAction = getIOUActionForTransactions([transactionID], allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`]).at(0);
+        if (!iouAction) {
             continue;
         }
 
@@ -519,10 +526,15 @@ function resolveDuplicates({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 comment: {
-                    hold: null,
+                    hold: transaction.comment?.hold ?? null,
                 },
             },
         });
+
+        const transactionThreadReportID = transactionThreadReportIDMap[transactionID] ?? iouAction.childReportID;
+        if (!transactionThreadReportID) {
+            continue;
+        }
         optimisticHoldActions.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
@@ -541,33 +553,36 @@ function resolveDuplicates({
         });
     }
 
-    const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined;
+    const keptTransactionThreadReportID = params.reportID
+        ? getIOUActionForTransactions([params.transactionID], allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`]).at(0)?.childReportID
+        : undefined;
     const optimisticReportAction = buildOptimisticDismissedViolationReportAction({
         reason: 'manual',
         violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     });
 
-    const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-        value: {
-            [optimisticReportAction.reportActionID]: optimisticReportAction,
-        },
-    };
-
-    const failureReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-        value: {
-            [optimisticReportAction.reportActionID]: null,
-        },
-    };
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
 
-    optimisticData.push(optimisticTransactionData, ...optimisticTransactionViolations, ...optimisticHoldActions, ...optimisticHoldTransactionActions, optimisticReportActionData);
-    failureData.push(failureTransactionData, ...failureTransactionViolations, ...failureHoldActions, ...failureHoldTransactionActions, failureReportActionData);
+    optimisticData.push(optimisticTransactionData, ...optimisticTransactionViolations, ...optimisticHoldActions, ...optimisticHoldTransactionActions);
+    failureData.push(failureTransactionData, ...failureTransactionViolations, ...failureHoldActions, ...failureHoldTransactionActions);
+
+    if (keptTransactionThreadReportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${keptTransactionThreadReportID}`,
+            value: {
+                [optimisticReportAction.reportActionID]: optimisticReportAction,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${keptTransactionThreadReportID}`,
+            value: {
+                [optimisticReportAction.reportActionID]: null,
+            },
+        });
+    }
     const {reportID, transactionIDList, receiptID, ...otherParams} = params;
 
     const parameters: ResolveDuplicatesParams = {
@@ -721,6 +736,7 @@ function createExpenseByType({
                 hasViolations: false,
                 customUnitPolicyID,
                 isTrackIntentUser,
+                formatPhoneNumber,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -871,6 +887,8 @@ function duplicateExpenseTransaction({
             isDraftPolicy: false,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
             introSelected,
+            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+            conciergeChat: undefined,
             quickAction,
             recentWaypoints,
             betas,
