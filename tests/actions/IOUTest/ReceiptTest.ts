@@ -584,7 +584,7 @@ describe('actions/IOU/Receipt', () => {
         it('should create an optimistic report action and update report timestamps', async () => {
             await seedOnyx();
 
-            detachReceipt(transaction, undefined, undefined, undefined, undefined);
+            detachReceipt(transaction, undefined, undefined, undefined, report);
             await waitForBatchedUpdates();
 
             // Then a new report action should be created on the report
