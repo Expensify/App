@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: '所有者',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: '日历已打开',
+        dialogOpened: '对话框',
         send: '发送',
         na: '不适用',
         noResultsFound: '未找到结果',
@@ -1414,6 +1415,8 @@ const translations: TranslationDeepObject<typeof en> = {
         paidThisBill: '已支付此账单',
         reimbursedOnBehalfOf: (actor: string) => `代表 ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `从尾号为 ${debitBankAccount} 的银行账户`,
+        reimbursedCrossBorder: ({amount, debitBankAccount, creditBankAccount}: {amount: string; debitBankAccount: string; creditBankAccount: string}) =>
+            `已支付 ${amount}，从账户 ${debitBankAccount} 到账户 ${creditBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} 已添加银行账户，报告已解除挂起。已发起报销`,
         reimbursedWithFastACH: ({
             isCurrentUser,
@@ -1574,8 +1577,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: '仅批准',
         holdEducationalTitle: '你要暂时保留这笔报销吗？',
         whatIsHoldExplain: '“暂缓”就像对一笔报销按下“暂停键”，直到你准备好提交它。',
+        whatIsHoldExplainDM: '“暂缓”就像对一笔报销按下“暂停键”，直到你准备好发送它。',
         holdIsLeftBehind: '即使您提交整份报表，被暂挂的报销也会被保留在外。',
+        holdIsLeftBehindDM: '被暂缓的报销在你解除暂缓之前不会被发送。',
         unholdWhenReady: '准备报销时，解除报销的暂挂状态。',
+        unholdWhenReadyDM: '准备发送时，解除报销的暂缓状态。',
         changePolicyEducational: {
             title: '你已移动此报表！',
             description: '请仔细检查这些项目，它们在将报表移动到新工作区时往往会发生变化。',
@@ -2708,6 +2714,13 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提交频率无法更改。请重试或联系支持团队。',
         monthlyOffsetErrorMessage: '无法更改每月频率。请重试或联系支持。',
+    },
+    workflowsCurrencyConversionFeesPage: {
+        title: '货币兑换费用',
+        subtitle: '以不同货币报销时，可能会产生兑换费用。请在下方选择由谁支付这些费用。此设置仅适用于跨境兑换。',
+        companyPays: '公司支付',
+        employeePays: '员工支付',
+        errorMessage: '无法更改货币兑换费用偏好设置。请重试或联系支持团队。',
     },
     workflowsCreateApprovalsPage: {
         title: '确认',
@@ -4566,6 +4579,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 title: '每日津贴',
                 subtitle: '设置每日津贴标准以控制员工每日支出。可从电子表格导入标准以开始使用。',
             },
+            requestEmptyList: {title: '尚未设置每日津贴费率', subtitle: '此工作区尚未设置任何每日津贴费率，请联系管理员添加。', adminSubtitle: '添加每日津贴标准，以整理您的支出。'},
             importPerDiemRates: '导入每日津贴费率',
             editPerDiemRate: '编辑每日补贴费率',
             editPerDiemRates: '编辑每日津贴费率',
@@ -5438,7 +5452,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         rillet: {
             rilletSetup: 'Rillet 设置',
             enterCredentials: '输入你的 Rillet API 密钥',
-            howToFindAPIKey: '<strong>查找您的 API 密钥。</strong><ol><li>登录 Rillet</li><li>前往“账号”->“设置”</li><li>复制下面的 API 密钥</li></ol>',
+            howToFindAPIKey:
+                '<strong>查找您的 API 密钥。</strong><ol><li>登录 Rillet</li><li>依次前往 [organization name] -> Organization settings -> API access</li><li>创建 API 密钥</li><li>将 API 密钥粘贴到下方</li></ol>',
             subsidiary: '子公司',
             subsidiarySelectDescription: '请选择要从中导入数据的 Rillet 子公司。',
             noSubsidiariesFound: '未找到子公司',
@@ -5666,7 +5681,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             directFeed: '直接连接',
             whoNeedsCardAssigned: '谁需要分配一张卡？',
             chooseTheCardholder: '选择持卡人',
-            pleaseSelectACardholder: '请选择持卡人以继续',
             chooseCard: '选择一张卡片',
             chooseCardFor: (assignee: string) => `为 <strong>${assignee}</strong> 选择一张卡片。找不到需要的卡片？<concierge-link>告诉我们。</concierge-link>`,
             noActiveCards: '此信息源中没有活动卡片',
@@ -5963,9 +5977,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 assignedCards: '已分配',
                 unassignedCards: '未分配',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} 导出` : `${integration} 导出`),
-                integrationExportTitleXero: (integration: string) => `选择要导出交易的 ${integration} 账户。`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `选择要导出交易的 ${integration} 账户。选择其他<a href="${exportPageLink}">导出选项</a>以更改可用账户。`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `选择要导出交易的 ${integration} 账户。${exportPageLink ? `选择其他<a href="${exportPageLink}">导出选项</a>以更改可用账户。` : ''}`,
                 lastUpdated: '最近更新',
                 transactionStartDate: '交易开始日期',
                 updateCard: '更新卡片',
@@ -6418,8 +6431,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             peopleAdmins: '人员管理员',
             paymentsAdmins: '付款管理员',
             members: '成员',
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `在 ${memberName} 仍持有 Expensify 卡时，您无法将其从此工作区中移除。请在“工作区 > Expensify 卡”中停用其卡片后重试。`,
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
@@ -7054,6 +7065,8 @@ ${reportName}`,
 你可以要求报销包含收据和说明等详细信息，设置限额和默认值，并将审批和付款流程自动化——全部在一个地方完成。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>规则仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                onlyAvailableOnPlanUnlimited: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>仅在 Control 方案中可享受无限制规则访问，起价为<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             perDiem: {
                 title: '每日津贴',
@@ -7198,6 +7211,12 @@ ${reportName}`,
                     `<muted-text>专用工作区角色仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             unlockFeatures: '解锁这些功能！',
+            publicReceiptVisibility: {
+                title: '公开报销单可见性',
+                description: '如果你希望让你的收据链接对任何人可访问，例如客户或外部会计，那么这个功能就是为你准备的。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>公开收据可见性仅适用于 Control 方案，起价为<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7300,6 +7319,15 @@ ${reportName}`,
                 requireCompanyCard: '所有消费均需使用公司卡',
                 requireCompanyCardDescription: '标记所有现金支出，包括里程和每日津贴报销。',
                 requireCompanyCardDisabledTooltip: '启用“公司卡”（位于“更多功能”下）以解锁。',
+                publicReceiptVisibility: '公开报销单可见性',
+                publicReceiptVisibilityHintEnabled: '任何拥有该 URL 的人都可以查看收据。无需访问包含该收据的报表。',
+                publicReceiptVisibilityHintDisabled: '只有拥有包含该收据的报表访问权限的 Expensify 成员才能查看收据。',
+                enableTagsToUnlockTitle: '启用标签？',
+                enableTagsToUnlockPrompt: '启用“标签”（位于“更多功能”下）以解锁。',
+                enableTagsAndRequirePrompt: '确定要启用标签，并将其设为所有报销的必填项吗？',
+                enableCategoriesToUnlockTitle: '启用类别？',
+                enableCategoriesToUnlockPrompt: '启用“类别”（位于“更多功能”下）以解锁。',
+                enableCategoriesAndRequirePrompt: '确定要启用类别，并要求所有报销都必须选择类别吗？',
             },
             expenseReportRules: {
                 title: '高级',
@@ -7402,6 +7430,9 @@ ${reportName}`,
                 },
                 defaultTaxRate: '默认税率',
                 enableWorkflows: (moreFeaturesLink: string) => `前往 [更多功能](${moreFeaturesLink}) 并启用工作流，然后添加审批以解锁此功能。`,
+                createNewRule: '创建新规则',
+                contextualFlagForReview: (amount: string) => `如果金额高于 ${amount}，标记以供审核`,
+                contextualFlagForReviewDaily: (amount: string) => `如果每日类别总额高于 ${amount}，标记以供审核`,
             },
             customRules: {
                 title: '报销政策',
@@ -9417,6 +9448,7 @@ ${reportName}`,
         customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `费率仅在 ${startDate} 至 ${endDate} 期间有效`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `费率仅自 ${startDate} 起有效`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `该费率仅在 ${endDate} 之前有效`,
+        cannotMergeDuplicates: '您只能在草稿或未结报销单中合并报销。请先撤回后重试。',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} 为必填项`,
