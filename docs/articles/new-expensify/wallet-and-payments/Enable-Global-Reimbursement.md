@@ -65,4 +65,7 @@ If your workspace and employees use different currencies, the reimbursement amou
 
 If a payment bounces and must be returned to the business bank account, the conversion fee is incurred again. This means the returned payment will be credited to your business bank account for an amount different from the original withdrawal. Track and reconcile these differences using the 'International Reimbursement ID' stored in each report's details.
 
+## Why does the payment message on a cross-border report show a different amount than the report total?
+When a report is paid across borders from a business bank account, the payment message on the report names the exact amount credited to the employee in their own deposit currency, along with the last four digits of the account the payment was sent from and the account it was deposited into. This credited amount can differ from the report total because of the currency conversion and any FX fees described above. Same-currency reimbursements continue to show the report total.
+
 </div>
