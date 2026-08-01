@@ -120,6 +120,16 @@ To remove, demote, or delete RuleBot:
 
 1. Delete every Agent rule in the workspace by following the steps to [delete an Agent rule](#how-to-delete-an-agent-rule) above.
 2. Once no Agent rules remain, remove RuleBot from the workspace, change its role, or delete the agent as needed.
+## How to review Agent rule changes in the #admins room
+
+Whenever an Agent rule is added, updated, or deleted, Expensify records a system message in your workspace's **#admins** room so admins have a visible history of the change.
+
+ - **Added** and **updated** messages show the rule's title and its full prompt.
+ - **Deleted** messages show the rule's title.
+
+Because the **#admins** room is visible only to Workspace Admins, this history stays private to your admin team. To review it, open your workspace's **#admins** room and find the relevant system message.
+
+Learn more about the [#admins room](/articles/new-expensify/chat/Expensify-Chat-Rooms-for-Admins).
 
 ---
 
