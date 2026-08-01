@@ -286,12 +286,13 @@ function useSyncSelectedReports(data: SearchData) {
 }
 
 /** Narrow per-row selection read: whether the row for `keyForList` is selected (or covered by select-all). */
-function useRowSelection(keyForList: string | undefined): {isSelected: boolean} {
+function useRowSelection(keyForList: string | undefined, parentGroupKey?: string): {isSelected: boolean} {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
     if (!keyForList) {
         return {isSelected: false};
     }
-    return {isSelected: (areAllMatchingItemsSelected && !Object.hasOwn(excludedTransactions, keyForList)) || !!selectedTransactions[keyForList]?.isSelected};
+    const isExcluded = Object.hasOwn(excludedTransactions, keyForList) || (!!parentGroupKey && Object.hasOwn(excludedTransactions, parentGroupKey));
+    return {isSelected: (areAllMatchingItemsSelected && !isExcluded) || !!selectedTransactions[keyForList]?.isSelected};
 }
 
 /** Aggregate count of currently-selected transactions, for the selection top bar. */

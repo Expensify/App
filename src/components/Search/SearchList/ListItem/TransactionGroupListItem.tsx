@@ -154,6 +154,7 @@ function TransactionGroupListItemImpl({
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const groupKey = groupItem.keyForList;
 
     let transactions: TransactionListItemType[];
     if (isExpenseReportType) {
@@ -179,6 +180,7 @@ function TransactionGroupListItemImpl({
             ...transactionItem,
             // The whole group being selected implies every child is, even though only the group key is stored
             isSelected: isGroupSelected || selectedTransactionIDsSet.has(transactionItem.transactionID),
+            selectionGroupKey: groupKey,
         }));
     }
 

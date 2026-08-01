@@ -2,7 +2,7 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {SearchQueryContext} from '@components/Search/SearchContextDefinitions';
-import {SearchSelectionProvider} from '@components/Search/SearchSelectionProvider';
+import {SearchSelectionProvider, useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchQueryContextValue, SelectedTransactions} from '@components/Search/types';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -66,6 +66,7 @@ function renderSelection() {
         () => ({
             state: useSearchSelectionContext(),
             actions: useSearchSelectionActions(),
+            groupedChildState: useRowSelection('tx_1', 'group_1'),
         }),
         {wrapper},
     );
@@ -121,6 +122,24 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         expect(Object.keys(result.current.state.excludedTransactions)).toEqual(['tx_1', 'tx_2']);
         expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
         expect(result.current.state.hasSelectedTransactions).toBe(true);
+    });
+
+    it('does not visually reselect a lazy child whose parent group is excluded', () => {
+        const {result} = renderSelection();
+        act(() => {
+            result.current.actions.selectAllMatchingItems(true);
+            result.current.actions.setSelectedTransactions(buildSelected('group_1'));
+        });
+        act(() => {
+            result.current.actions.applySelection(() => ({}), {
+                totalSelectableItemsCount: 1,
+                shouldPreserveAllMatchingSelection: true,
+            });
+        });
+
+        expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
+        expect(Object.keys(result.current.state.excludedTransactions)).toEqual(['group_1']);
+        expect(result.current.groupedChildState.isSelected).toBe(false);
     });
 
     it('clears all-matching selection when every result is excluded', () => {
