@@ -105,7 +105,7 @@ describe('useDeleteTransactions - offline invoice delete', () => {
         const transaction = {...createRandomTransaction(Number(transactionID)), transactionID, reportID: invoiceReportID, comment: {}};
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, invoiceRoom);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, invoiceReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
