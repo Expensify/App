@@ -60,7 +60,12 @@ To choose an avatar instead of a photo:
 
 To update your timezone:
 1. Go to **Account > Profile**.
-2. Click **Timezone** and select the correct time zone from the list.
+2. Click **Timezone**.
+3. Turn off **Automatically determine your location**.
+4. Select the correct time zone from the list.
+5. Click **Save**.
+
+**Note:** While **Automatically determine your location** is on, the time zone list and the **Save** button are disabled, and Expensify updates your time zone based on your location.
 
 ## Language
 To change your language:
@@ -102,9 +107,12 @@ To update your pronouns:
 To change the app’s appearance:
 1. Go to **Account > Preferences**.
 2. Click **Theme** and choose from:
-   - **Dark Mode**
-   - **Light Mode**
-   - **Use Device Settings**
+   - **Light**
+   - **Dark**
+   - **Use device settings**
+3. Click **Save**.
+
+The theme is applied only after you click **Save**.
 
 ## How to enable high contrast mode
 
@@ -113,6 +121,7 @@ High contrast mode increases the visual contrast of UI elements, making text and
 1. Go to **Account > Preferences**.
 2. Click **Theme**.
 3. Toggle **High contrast mode** on.
+4. Click **Save**.
 
 You can also enable high contrast mode from the [login page](https://new.expensify.com/) by selecting **Enable high contrast**.
 

@@ -11,8 +11,8 @@ Customize your Expensify chat inbox to stay focused on what matters most. To org
 # Ways to Organize Your Inbox
 
 - **Pin**: Keep important chats at the top of your inbox for quick access.
-- **Priority Mode**: Choose how your chats are sorted:
-  - **Most Recent** – Displays all chats sorted by the most recent activity. Pinned chats remain at the top.
+- **Priority mode**: Choose how your chats are sorted:
+  - **Most recent** – Displays all chats sorted by the most recent activity. Pinned chats remain at the top.
   - **#focus** – Displays only unread and pinned chats, sorted alphabetically.
 
 ---
@@ -29,13 +29,14 @@ To unpin a chat, repeat the same action and select **Unpin**.
 
 ---
 
-# Change Priority Mode
+# Change Priority mode
 
 To adjust how chats are sorted in your inbox:
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Preferences**.
-2. Click or tap **Priority Mode**.
-3. Select either **#focus** or **Most Recent**.
+2. Click or tap **Priority mode**.
+3. Select either **#focus** or **Most recent**.
+4. Click or tap **Save**.
 
-🧠 **Note:** Choose **#focus** for a distraction-free inbox with only unread and pinned chats, or stick with **Most Recent** to see everything chronologically.
+🧠 **Note:** Choose **#focus** for a distraction-free inbox with only unread and pinned chats, or stick with **Most recent** to see everything chronologically. The change is applied only after you tap **Save**.
 
