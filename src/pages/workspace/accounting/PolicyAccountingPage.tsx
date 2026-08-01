@@ -50,6 +50,7 @@ import {
     getXeroTenants,
     hasAccountingConnections,
     hasSupportedOnlyOnOldDotIntegration,
+    isCollectPolicy,
     isControlPolicy,
     settingsPendingAction,
     shouldShowSyncError,
@@ -78,12 +79,13 @@ import type {MenuItemData, PolicyAccountingPageProps} from './types';
 
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
 import {isCertiniaSRPConnection} from './certinia/utils';
-import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
+import {getAccountingIntegrationData, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from './utils';
 
 type RouteParams = {
     newConnectionName?: ConnectionName;
     integrationToDisconnect?: ConnectionName;
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
+    isIntuitEnterpriseSuite?: boolean | string;
 };
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
@@ -104,7 +106,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
-    const {popoverAnchorRefs} = useAccountingState();
+    const {activeIntegration, popoverAnchorRefs} = useAccountingState();
     const {startIntegrationFlow} = useAccountingActions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -113,6 +115,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const newConnectionName = params?.newConnectionName;
     const integrationToDisconnect = params?.integrationToDisconnect;
     const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
+    const isIntuitEnterpriseSuite = params?.isIntuitEnterpriseSuite === true || params?.isIntuitEnterpriseSuite === 'true';
     const policyID = policy?.id;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
@@ -124,6 +127,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [cardLists] = useCardsLists();
 
     const canUseRilletIntegration = isBetaEnabled(CONST.BETAS.RILLET) || !!policy?.connections?.rillet;
+    const canUseIntuitEnterpriseSuiteIntegration = isCollectPolicy(policy) || isControlPolicy(policy);
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
@@ -134,8 +138,18 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             }),
         [canUseRilletIntegration],
     );
+    const accountingIntegrationOptions = useMemo(
+        () =>
+            accountingIntegrations.flatMap((name) => [
+                {name},
+                ...(name === CONST.POLICY.CONNECTIONS.NAME.QBO && canUseIntuitEnterpriseSuiteIntegration ? [{name, isIntuitEnterpriseSuite: true}] : []),
+            ]),
+        [accountingIntegrations, canUseIntuitEnterpriseSuiteIntegration],
+    );
     const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
+    const isConnectedToIntuitEnterpriseSuite =
+        connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBO && (isIntuitEnterpriseSuiteConnection(policy) || !!activeIntegration?.isIntuitEnterpriseSuite);
     const hasAccountingConnection = hasAccountingConnections(policy);
     const {canWrite: canWriteAccounting, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
@@ -258,10 +272,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
             startIntegrationFlow({
                 name: newConnectionName,
+                isIntuitEnterpriseSuite,
                 integrationToDisconnect,
                 shouldDisconnectIntegrationBeforeConnecting,
             });
-        }, [newConnectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, policy, startIntegrationFlow, canWriteAccounting]),
+        }, [newConnectionName, isIntuitEnterpriseSuite, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, policy, startIntegrationFlow, canWriteAccounting]),
     );
 
     useEffect(() => {
@@ -413,8 +428,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (!hasAccountingConnection && !isSyncInProgress && policyID) {
-            return accountingIntegrations
-                .map((integration) => {
+            return accountingIntegrationOptions
+                .map(({name: integration, isIntuitEnterpriseSuite}) => {
                     const integrationData = getAccountingIntegrationData(
                         integration,
                         policyID,
@@ -433,6 +448,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         accountingIcons,
                         cardFeeds,
                         cardLists,
+                        isIntuitEnterpriseSuite,
                     );
                     if (!integrationData) {
                         return undefined;
@@ -473,7 +489,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                         showReadOnlyModal();
                                         return;
                                     }
-                                    startIntegrationFlow({name: integration});
+                                    startIntegrationFlow({name: integration, isIntuitEnterpriseSuite});
                                 }}
                                 text={translate('workspace.accounting.setup')}
                                 style={styles.justifyContentCenter}
@@ -485,7 +501,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     if (!popoverAnchorRefs?.current) {
                                         return;
                                     }
-                                    popoverAnchorRefs.current[integration].current = ref;
+                                    const integrationKey = isIntuitEnterpriseSuite ? CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE : integration;
+                                    popoverAnchorRefs.current[integrationKey].current = ref;
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
                             />
@@ -517,6 +534,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             accountingIcons,
             cardFeeds,
             cardLists,
+            isConnectedToIntuitEnterpriseSuite,
         );
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
@@ -658,7 +676,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         synchronizationError,
         overflowMenu,
         integrationSpecificMenuItems,
-        accountingIntegrations,
+        accountingIntegrationOptions,
+        isConnectedToIntuitEnterpriseSuite,
         shouldUseNarrowLayout,
         isOffline,
         startIntegrationFlow,
@@ -676,11 +695,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         if ((!hasAccountingConnection && !isSyncInProgress) || !policyID) {
             return;
         }
-        const otherIntegrations = accountingIntegrations.filter(
-            (integration) => (isSyncInProgress && integration !== connectionSyncProgress?.connectionName) || integration !== connectedIntegration,
+        const otherIntegrations = accountingIntegrationOptions.filter(
+            ({name, isIntuitEnterpriseSuite}) => name !== connectedIntegration || !!isIntuitEnterpriseSuite !== isConnectedToIntuitEnterpriseSuite,
         );
         return otherIntegrations
-            .map((integration) => {
+            .map(({name: integration, isIntuitEnterpriseSuite}) => {
                 const integrationData = getAccountingIntegrationData(
                     integration,
                     policyID,
@@ -699,6 +718,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     accountingIcons,
                     cardFeeds,
                     cardLists,
+                    isIntuitEnterpriseSuite,
                 );
                 if (!integrationData) {
                     return undefined;
@@ -718,6 +738,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 }
                                 startIntegrationFlow({
                                     name: integration,
+                                    isIntuitEnterpriseSuite,
                                     integrationToDisconnect: connectedIntegration,
                                     shouldDisconnectIntegrationBeforeConnecting: true,
                                 });
@@ -732,7 +753,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 if (!popoverAnchorRefs?.current) {
                                     return;
                                 }
-                                popoverAnchorRefs.current[integration].current = r;
+                                const integrationKey = isIntuitEnterpriseSuite ? CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE : integration;
+                                popoverAnchorRefs.current[integrationKey].current = r;
                             }}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
                         />
@@ -750,9 +772,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     }, [
         hasAccountingConnection,
         isSyncInProgress,
-        accountingIntegrations,
-        connectionSyncProgress?.connectionName,
+        accountingIntegrationOptions,
         connectedIntegration,
+        isConnectedToIntuitEnterpriseSuite,
         policyID,
         translate,
         hasReusablePoliciesConnectedToSageIntacct,

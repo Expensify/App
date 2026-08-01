@@ -1,5 +1,6 @@
 import useLocalize from '@hooks/useLocalize';
 
+import CONST from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import React from 'react';
@@ -7,7 +8,7 @@ import React from 'react';
 import ConfirmModal from './ConfirmModal';
 
 type AccountingConnectionConfirmationModalProps = {
-    integrationToConnect: ConnectionName;
+    integrationToConnect: ConnectionName | typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE;
     onConfirm: () => void;
     onCancel: () => void;
 };

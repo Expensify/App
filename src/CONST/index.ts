@@ -4277,6 +4277,9 @@ const CONST = {
             },
         },
         CONNECTIONS: {
+            ACCOUNTING_INTEGRATION_ALIASES: {
+                INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
+            },
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
@@ -4309,6 +4312,7 @@ const CONST = {
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
                 quickbooksOnline: 'QuickBooks Online',
+                intuitEnterpriseSuite: 'Intuit Enterprise Suite',
                 quickbooksDesktop: 'QuickBooks Desktop',
                 xero: 'Xero',
                 intacct: 'Sage Intacct',

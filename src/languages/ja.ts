@@ -6651,6 +6651,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             title: '接続',
             subtitle: '会計ソフトを接続して、自動同期を行いましょう。',
             qbo: 'QuickBooks Online',
+            intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',

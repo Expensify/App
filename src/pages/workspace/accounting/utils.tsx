@@ -52,6 +52,12 @@ import {
 } from './netsuite/utils';
 import getQuickbooksDesktopSetupEntryRoute from './qbd/utils';
 
+const INTUIT_ENTERPRISE_SUITE_SCOPE = 'app-foundations.custom-dimensions.read';
+
+function isIntuitEnterpriseSuiteConnection(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.quickbooksOnline?.config?.credentials?.scope?.includes(INTUIT_ENTERPRISE_SUITE_SCOPE);
+}
+
 // eslint-disable-next-line @typescript-eslint/max-params
 function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
@@ -66,9 +72,11 @@ function getAccountingIntegrationData(
     expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare', IconAsset>,
     cardFeeds?: CombinedCardFeeds,
     cardList?: Record<string, WorkspaceCardsList | undefined>,
+    isIntuitEnterpriseSuite = false,
 ): AccountingIntegration | undefined {
     const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    const shouldUseIntuitEnterpriseSuite = isIntuitEnterpriseSuite || isIntuitEnterpriseSuiteConnection(policy);
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
     const getBackToAfterWorkspaceUpgradeRouteForIntacct = () => {
@@ -111,11 +119,12 @@ function getAccountingIntegrationData(
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return {
-                title: translate('workspace.accounting.qbo'),
+                title: translate(shouldUseIntuitEnterpriseSuite ? 'workspace.accounting.intuitEnterpriseSuite' : 'workspace.accounting.qbo'),
                 icon: expensifyIcons?.QBOSquare,
                 setupConnectionFlow: (
                     <ConnectToQuickbooksOnlineFlow
                         policyID={policyID}
+                        isIntuitEnterpriseSuite={shouldUseIntuitEnterpriseSuite}
                         key={key}
                     />
                 ),
@@ -158,6 +167,20 @@ function getAccountingIntegrationData(
                 ],
                 pendingFields: {...qboConfig?.pendingFields, ...policy?.connections?.quickbooksOnline?.config?.pendingFields},
                 errorFields: {...qboConfig?.errorFields, ...policy?.connections?.quickbooksOnline?.config?.errorFields},
+                ...(shouldUseIntuitEnterpriseSuite
+                    ? {
+                          workspaceUpgradeNavigationDetails: {
+                              integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias,
+                              backToAfterWorkspaceUpgradeRoute: ROUTES.POLICY_ACCOUNTING.getRoute(
+                                  policyID,
+                                  connectionName,
+                                  integrationToDisconnect,
+                                  shouldDisconnectIntegrationBeforeConnecting,
+                                  true,
+                              ),
+                          },
+                      }
+                    : {}),
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
@@ -529,4 +552,4 @@ function getQBDReimbursableAccounts(
     return accounts;
 }
 
-export {getAccountingIntegrationData, getSynchronizationErrorMessage, getQBDReimbursableAccounts};
+export {getAccountingIntegrationData, getSynchronizationErrorMessage, getQBDReimbursableAccounts, isIntuitEnterpriseSuiteConnection};

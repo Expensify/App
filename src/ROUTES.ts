@@ -2656,7 +2656,8 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_SETUP: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/setup',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/setup` as const,
+        getRoute: (policyID: string, isIntuitEnterpriseSuite = false) =>
+            `workspaces/${policyID}/accounting/quickbooks-online/setup${isIntuitEnterpriseSuite ? '?isIntuitEnterpriseSuite=true' : ''}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_CONFIGURATION: {
         route: 'workspaces/:policyID/accounting/netsuite/export/travel-invoicing',
@@ -2929,7 +2930,13 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING: {
         route: 'workspaces/:policyID/accounting',
-        getRoute: (policyID: string | undefined, newConnectionName?: ConnectionName, integrationToDisconnect?: ConnectionName, shouldDisconnectIntegrationBeforeConnecting?: boolean) => {
+        getRoute: (
+            policyID: string | undefined,
+            newConnectionName?: ConnectionName,
+            integrationToDisconnect?: ConnectionName,
+            shouldDisconnectIntegrationBeforeConnecting?: boolean,
+            isIntuitEnterpriseSuite?: boolean,
+        ) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING route');
             }
@@ -2942,6 +2949,9 @@ const ROUTES = {
                 }
                 if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
                     queryParams += `&shouldDisconnectIntegrationBeforeConnecting=${shouldDisconnectIntegrationBeforeConnecting}`;
+                }
+                if (isIntuitEnterpriseSuite !== undefined) {
+                    queryParams += `&isIntuitEnterpriseSuite=${isIntuitEnterpriseSuite}`;
                 }
             }
             return `workspaces/${policyID}/accounting${queryParams}` as const;

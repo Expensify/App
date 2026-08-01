@@ -9,7 +9,7 @@ import {useEffect} from 'react';
 
 import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 
-function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlowProps) {
+function ConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite}: ConnectToQuickbooksOnlineFlowProps) {
     const {environmentURL} = useEnvironment();
 
     useEffect(() => {
@@ -17,7 +17,7 @@ function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlow
         enablePolicyTaxes(policyID, false);
         // On web the setup opens OldDot in a new browser tab. Open it inline here (within the connect click's
         // user-gesture window) instead of navigating to a setup screen, otherwise the popup blocker stops the tab.
-        openLink(getQuickbooksOnlineSetupLink(policyID), environmentURL);
+        openLink(getQuickbooksOnlineSetupLink(policyID, isIntuitEnterpriseSuite), environmentURL);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

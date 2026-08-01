@@ -6860,6 +6860,7 @@ const translations = {
             title: 'Connections',
             subtitle: 'Connect your accounting software for an automatic sync.',
             qbo: 'QuickBooks Online',
+            intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
