@@ -32,6 +32,7 @@ import type {CreateDraftTransactionParams} from '@libs/ReportUtils';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
+import {isSplitChildTransaction} from '@libs/TransactionUtils';
 
 import {dismissTrackExpenseActionableWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
 
@@ -42,7 +43,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
-import {createFilteredPoliciesInfoSelector} from '@selectors/Policy';
+import {createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
 
@@ -62,9 +63,9 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const actionOwnerReport = originalReport ?? report;
     const personalDetail = useCurrentUserPersonalDetails();
-    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const {isBetaEnabled} = usePermissions();
-    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -75,11 +76,12 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(personalDetail.email)}, [personalDetail.email]);
+    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(personalDetail.email)});
     const filteredPoliciesCount = filteredPoliciesInfo?.filteredPoliciesCount ?? 0;
     const firstPolicyID = filteredPoliciesInfo?.firstPolicyID;
     const trackExpenseTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
     const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(trackExpenseTransactionID)}`);
+    const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasWorkspaceToSubmitToSelector(personalDetail.login, isSubmit2026BetaEnabled)});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const delegateAccountID = useDelegateAccountID();
 
@@ -216,6 +218,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                     });
                 },
             });
+            const isSplitExpense = isSplitChildTransaction(trackExpenseTransaction);
             // On the Submit (submit2026) plan, "Submit it to someone" splits into two destinations:
             // submit to an individual ("a friend") or route to a submit-enabled workspace ("my employer").
             const prepareSubmitDestinationButton = (destination: ValueOf<typeof CONST.IOU.SUBMIT_DESTINATION>, textKey: 'submitToFriend' | 'submitToEmployer'): ActionableItem => ({
@@ -232,9 +235,9 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                     });
                 },
             });
-            const submitButtons: ActionableItem[] = canUseSubmit2026
+            const submitButtons: ActionableItem[] = isSubmit2026BetaEnabled
                 ? [
-                      prepareSubmitDestinationButton(CONST.IOU.SUBMIT_DESTINATION.FRIEND, 'submitToFriend'),
+                      ...(isSplitExpense ? [] : [prepareSubmitDestinationButton(CONST.IOU.SUBMIT_DESTINATION.FRIEND, 'submitToFriend')]),
                       prepareSubmitDestinationButton(CONST.IOU.SUBMIT_DESTINATION.EMPLOYER, 'submitToEmployer'),
                   ]
                 : [
@@ -243,7 +246,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                           preferredPolicyID,
                       }),
                   ];
-            const options = [...submitButtons];
+            const options = !isSplitExpense || hasWorkspaceToSubmitTo ? [...submitButtons] : [];
 
             if (Permissions.canUseTrackFlows()) {
                 options.push(prepareTrackExpenseButton('categorize'), prepareTrackExpenseButton('share'));

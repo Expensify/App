@@ -155,7 +155,7 @@ function useReportActionAvatars({
 
     if (passedPolicyID) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const workspaceAvatar = policyChatReport ? getWorkspaceIcon(policyChatReport, policy) : {source: policy?.avatarURL || getDefaultWorkspaceAvatar(policy?.name)};
+        const workspaceAvatar = policyChatReport ? getWorkspaceIcon(policyChatReport, translate, policy) : {source: policy?.avatarURL || getDefaultWorkspaceAvatar(policy?.name)};
         const policyChatReportAvatar = policy ? {...workspaceAvatar, id: policyID, name: policy.name, type: CONST.ICON_TYPE_WORKSPACE} : fallbackWorkspaceAvatar;
         const firstAccountAvatar = avatarsForAccountIDs.at(0);
 
@@ -352,7 +352,7 @@ function useReportActionAvatars({
             avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT;
         }
     } else if (isUserWithWorkspaceAvatar && wasReportPreviewMovedToDifferentPolicy) {
-        const policyChatReportIcon = {...getWorkspaceIcon(policyChatReport, policy), id: policyID, name: policy?.name};
+        const policyChatReportIcon = {...getWorkspaceIcon(policyChatReport, translate, policy), id: policyID, name: policy?.name};
         const [firstAvatar] = avatars;
         avatars = [firstAvatar, policyChatReportIcon];
     }

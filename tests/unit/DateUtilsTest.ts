@@ -36,6 +36,7 @@ describe('DateUtils', () => {
                             // UTC is not recognized as a valid timezone but
                             // in these tests we want to use it to avoid issues
                             // because of daylight saving time
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                             selected: UTC as SelectedTimezone,
                         },
                     },
@@ -84,30 +85,37 @@ describe('DateUtils', () => {
     });
 
     it('should fallback to current date when getLocalDateFromDatetime is failing', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, 'InvalidTimezone' as SelectedTimezone, undefined);
         expect(localDate.getTime()).not.toBeNaN();
     });
 
     it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
         const today = setMinutes(setHours(new Date(), 14), 32).toString();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         expect(DateUtils.datetimeToCalendarTime(LOCALE, today, UTC as SelectedTimezone, false)).toBe('Today at 2:32 PM');
 
         const tomorrow = addDays(setMinutes(setHours(new Date(), 14), 32), 1).toString();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         expect(DateUtils.datetimeToCalendarTime(LOCALE, tomorrow, UTC as SelectedTimezone, false)).toBe('Tomorrow at 2:32 PM');
 
         const yesterday = setMinutes(setHours(subDays(new Date(), 1), 7), 43).toString();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday, UTC as SelectedTimezone, false)).toBe('Yesterday at 7:43 AM');
 
         const date = setMinutes(setHours(new Date('2022-11-05'), 10), 17).toString();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         expect(DateUtils.datetimeToCalendarTime(LOCALE, date, UTC as SelectedTimezone, false)).toBe('Nov 5, 2022 at 10:17 AM');
 
         const todayLowercaseDate = setMinutes(setHours(new Date(), 14), 32).toString();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, UTC as SelectedTimezone, false, true)).toBe('today at 2:32 PM');
     });
 
     it('should update timezone if automatic and selected timezone do not match', async () => {
         jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
             () =>
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 ({
                     resolvedOptions: () => ({timeZone: 'America/Chicago'}),
                 }) as Intl.DateTimeFormat,
@@ -124,6 +132,7 @@ describe('DateUtils', () => {
     it('should not update timezone if automatic and selected timezone match', async () => {
         jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
             () =>
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 ({
                     resolvedOptions: () => ({timeZone: UTC}),
                 }) as Intl.DateTimeFormat,
@@ -156,12 +165,15 @@ describe('DateUtils', () => {
 
     it('should return the date in calendar time when calling datetimeToRelative', () => {
         const aFewSecondsAgo = subSeconds(new Date(), 10).toString();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo, UTC as SelectedTimezone)).toBe('less than a minute ago');
 
         const aMinuteAgo = subMinutes(new Date(), 1).toString();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo, UTC as SelectedTimezone)).toBe('1 minute ago');
 
         const anHourAgo = subHours(new Date(), 1).toString();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo, UTC as SelectedTimezone)).toBe('about 1 hour ago');
     });
 
@@ -494,14 +506,17 @@ describe('DateUtils', () => {
         });
 
         it('should return empty string when utcDateTime is empty', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             expect(DateUtils.formatUTCDateTimeToDateInTimezone('', UTC as SelectedTimezone)).toBe('');
         });
 
         it('should return empty string when timeZone is empty', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             expect(DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00', '' as SelectedTimezone)).toBe('');
         });
 
         it('should return date in yyyy-MM-dd format when timeZone is UTC', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00', UTC as SelectedTimezone);
             expect(result).toBe('2024-01-15');
         });
@@ -521,17 +536,65 @@ describe('DateUtils', () => {
         });
 
         it('should handle UTC datetime with milliseconds', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00.000', UTC as SelectedTimezone);
             expect(result).toBe('2024-01-15');
         });
 
         it('should handle date-only format (parses as midnight UTC)', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15', UTC as SelectedTimezone);
             expect(result).toBe('2024-01-15');
         });
 
         it('should return empty string for invalid date', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const result = DateUtils.formatUTCDateTimeToDateInTimezone('invalid-date', UTC as SelectedTimezone);
+            expect(result).toBe('');
+        });
+    });
+
+    describe('formatViolationSnapshotStartedAtDate', () => {
+        const originalTZ = process.env.TZ;
+
+        beforeEach(() => {
+            process.env.TZ = 'UTC';
+        });
+
+        afterEach(() => {
+            process.env.TZ = originalTZ;
+        });
+
+        it('should return empty string when violationSnapshotStartedAt is empty', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            expect(DateUtils.formatViolationSnapshotStartedAtDate('', UTC as SelectedTimezone)).toBe('');
+        });
+
+        it('should return empty string when timeZone is undefined', () => {
+            expect(DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', undefined)).toBe('');
+        });
+
+        it('should format a date-only value in the target timezone', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', UTC as SelectedTimezone);
+            expect(result).toBe('June 20th, 2026');
+        });
+
+        it('should format a UTC datetime value in the target timezone', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20 00:00:00', UTC as SelectedTimezone);
+            expect(result).toBe('June 20th, 2026');
+        });
+
+        it('should format a UTC datetime using the target timezone date', () => {
+            const americaNewYork = 'America/New_York' as SelectedTimezone;
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20 02:00:00', americaNewYork);
+            expect(result).toBe('June 19th, 2026');
+        });
+
+        it('should return empty string for invalid date', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('invalid-date', UTC as SelectedTimezone);
             expect(result).toBe('');
         });
     });
@@ -548,12 +611,14 @@ describe('DateUtils', () => {
         });
 
         it('should return midnight local time as UTC in DB format when timeZone is UTC', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const result = DateUtils.normalizeDateToStartOfDay('2024-01-15', UTC as SelectedTimezone);
             expect(result).toBe('2024-01-15 00:00:00');
         });
 
         it('should match getDBTime of startOfDay for the parsed date (without milliseconds)', () => {
             const dateStr = '2022-11-07';
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const result = DateUtils.normalizeDateToStartOfDay(dateStr, UTC as SelectedTimezone);
             const expected = DateUtils.getDBTime(fromZonedTime(startOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf()).replace(/\.\d{3}$/, '');
             expect(result).toBe(expected);
@@ -579,12 +644,14 @@ describe('DateUtils', () => {
         });
 
         it('should return end of day local time as UTC in DB format when timeZone is UTC', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const result = DateUtils.normalizeDateToEndOfDay('2024-01-15', UTC as SelectedTimezone);
             expect(result).toBe('2024-01-15 23:59:59');
         });
 
         it('should match getDBTime of endOfDay for the parsed date (without milliseconds)', () => {
             const dateStr = '2022-11-07';
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const result = DateUtils.normalizeDateToEndOfDay(dateStr, UTC as SelectedTimezone);
             const expected = DateUtils.getDBTime(fromZonedTime(endOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf()).replace(/\.\d{3}$/, '');
             expect(result).toBe(expected);

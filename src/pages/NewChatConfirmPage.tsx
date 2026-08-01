@@ -56,7 +56,7 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
     const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
     const icons = useMemoizedLazyExpensifyIcons(['Camera']);
-    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(formatPhoneNumber, newGroupDraft?.participants);
+    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(formatPhoneNumber, translate, newGroupDraft?.participants);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
 
@@ -96,8 +96,7 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
                         setAvatarFile(undefined);
                         setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
-                    avatarStyle={styles.avatarXLarge}
+                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
                     editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     style={styles.w100}

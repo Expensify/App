@@ -8,8 +8,6 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
-import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-
 import type {OnboardingModalNavigatorParamList} from '@navigation/types';
 
 import OnboardingEmployees from '@pages/OnboardingEmployees';
@@ -20,6 +18,7 @@ import SCREENS from '@src/SCREENS';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -40,7 +39,7 @@ jest.mock('@rnmapbox/maps', () => {
 
 TestHelper.setupGlobalFetchMock();
 
-const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
+const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 
 const renderOnboardingEmployeesPage = (initialRouteName: typeof SCREENS.ONBOARDING.EMPLOYEES, initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.EMPLOYEES]) => {
     return render(
@@ -134,13 +133,13 @@ describe('OnboardingEmployees Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should hide the back button for VSB when employees is the first onboarding step', async () => {
+    it('should hide the back button for SMB when employees is the first onboarding step', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: false,
-                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
             });
         });
 
@@ -157,13 +156,13 @@ describe('OnboardingEmployees Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should show the back button for VSB when employees is not the first onboarding step', async () => {
+    it('should show the back button for SMB when employees is not the first onboarding step', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: false,
-                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
             });
             await Onyx.merge(ONYXKEYS.ACCOUNT, {
                 hasAccessibleDomainPolicies: true,
@@ -183,13 +182,13 @@ describe('OnboardingEmployees Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should hide the back button for a public-domain VSB user who skipped the work email step', async () => {
+    it('should hide the back button for a public-domain SMB user who skipped the work email step', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: false,
-                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
                 isMergeAccountStepSkipped: true,
             });
             await Onyx.merge(ONYXKEYS.ACCOUNT, {
