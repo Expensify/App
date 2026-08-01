@@ -212,6 +212,8 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
         let text = '';
         if (isImportingMultiLevelTags) {
             text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheetMultiLevelTag') : translate('spreadsheet.dragAndDropMultiLevelTag');
+        } else if (isImportingTransactions) {
+            text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheetTransactions') : translate('spreadsheet.dragAndDropTransactions');
         } else {
             text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheet') : translate('spreadsheet.dragAndDrop');
         }
