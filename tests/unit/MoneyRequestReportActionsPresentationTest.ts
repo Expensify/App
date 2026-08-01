@@ -71,13 +71,14 @@ describe('useMoneyRequestReportActionsPresentation', () => {
     });
 
     it('forgets a manual collapse after the route stops targeting the linked action', () => {
+        const initialProps: {linkedReportActionID?: string} = {linkedReportActionID: '2'};
         const {result, rerender} = renderHook(
             (props: {linkedReportActionID?: string}) =>
                 useMoneyRequestReportActionsPresentation({
                     visibleReportActions,
                     linkedReportActionID: props.linkedReportActionID,
                 }),
-            {initialProps: {linkedReportActionID: '2'}},
+            {initialProps},
         );
 
         act(() => {
