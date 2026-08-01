@@ -3,7 +3,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -21,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
-import {navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding, navigateToRootRouteBeforeOnboardingUnmount} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasURL} from '@libs/Url';
@@ -30,7 +29,7 @@ import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils
 
 import {clearPersonalDetailsDraft, setPersonalDetails} from '@userActions/Onboarding';
 import {setDisplayName, updateDisplayName} from '@userActions/PersonalDetails';
-import {completeOnboarding as completeOnboardingReport, extractRHPVariantFromResponse} from '@userActions/Report';
+import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
@@ -97,25 +96,20 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             setIsLoading(true);
             let didNavigateToPendingDeepLink = false;
             try {
-                const response = await completeOnboardingReport({
+                await completeOnboardingReport({
                     engagementChoice: onboardingPurposeSelected,
                     onboardingMessage: onboardingMessages[onboardingPurposeSelected],
                     firstName,
                     lastName,
                     adminsChatReportID: onboardingAdminsChatReportID,
                     onboardingPolicyID,
-                    shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
                     introSelected,
                     isSelfTourViewed,
                     conciergeChat,
                     onBeforeOnboardingModalUnmount: () => {
                         didNavigateToPendingDeepLink = navigateToPendingDeepLinkAfterOnboarding(conciergeChatReportID);
-                        if (!didNavigateToPendingDeepLink) {
-                            navigateToRootRouteBeforeOnboardingUnmount();
-                        }
                     },
                 });
-                const rhpVariant = isSidePanelReportSupported ? extractRHPVariantFromResponse(response) : undefined;
 
                 setOnboardingAdminsChatReportID();
                 setOnboardingPolicyID();
@@ -133,9 +127,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     onboardingPolicyID,
                     mergedAccountConciergeReportID,
                     false,
-                    {
-                        variantOverride: rhpVariant,
-                    },
                 );
                 setIsLoading(false);
             } catch (error) {

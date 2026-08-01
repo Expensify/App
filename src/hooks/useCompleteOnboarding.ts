@@ -5,7 +5,7 @@ import {completeOnboarding, extractRHPVariantFromResponse} from '@libs/actions/R
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import type {OnboardingFeatureMapItem} from '@libs/actions/Welcome/OnboardingFeatures';
 import Log from '@libs/Log';
-import {navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding, navigateToRootRouteBeforeOnboardingUnmount} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 
@@ -121,9 +121,6 @@ function useCompleteOnboarding() {
                 adminsChatReport,
                 onBeforeOnboardingModalUnmount: () => {
                     didNavigateToPendingDeepLink = navigateToPendingDeepLinkAfterOnboarding(conciergeReportID);
-                    if (!didNavigateToPendingDeepLink) {
-                        navigateToRootRouteBeforeOnboardingUnmount();
-                    }
                 },
             });
             const rhpVariant = isSidePanelReportSupported ? extractRHPVariantFromResponse(response) : undefined;

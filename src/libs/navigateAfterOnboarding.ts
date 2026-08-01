@@ -17,7 +17,7 @@ import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostS
 import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
-import {consumePendingConciergeDeepLink, consumePendingHomeDeepLink, consumeRootClearedPendingConciergeDeepLink} from './PendingConciergeDeepLink';
+import {consumePendingConciergeDeepLink} from './PendingConciergeDeepLink';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
 
 let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
@@ -34,13 +34,7 @@ type NavigateAfterOnboardingOptions = {
 };
 
 function getPendingDeepLinkRouteAfterOnboarding(conciergeReportID?: string): Route | undefined {
-    const shouldNavigateHomeFromDeepLink = consumePendingHomeDeepLink();
     const shouldNavigateToConciergeFromDeepLink = consumePendingConciergeDeepLink();
-
-    if (shouldNavigateHomeFromDeepLink) {
-        // The latest explicit non-Concierge route should win before onboarding variants can open Concierge, an admin room, or a workspace.
-        return ROUTES.HOME;
-    }
 
     if (shouldNavigateToConciergeFromDeepLink) {
         // The report ID can still be unavailable immediately after signup refresh, so fall back to the Concierge route.
@@ -58,15 +52,6 @@ function navigateToPendingDeepLinkAfterOnboarding(conciergeReportID?: string) {
 
     setDisableDismissOnEscape(false);
     Navigation.navigate(pendingDeepLinkRoute);
-    return true;
-}
-
-function navigateToRootRouteBeforeOnboardingUnmount() {
-    if (!consumeRootClearedPendingConciergeDeepLink()) {
-        return false;
-    }
-
-    Navigation.navigate(ROUTES.HOME);
     return true;
 }
 
@@ -123,8 +108,6 @@ function navigateAfterOnboarding(
         return;
     }
 
-    const shouldUseStandardRouteAfterRootClearedConcierge = consumeRootClearedPendingConciergeDeepLink();
-
     // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
     // should navigate directly to the Concierge DM (which contains onboarding tasks).
     // This check is outside shouldOpenRHPVariant because that function returns false on native
@@ -138,7 +121,7 @@ function navigateAfterOnboarding(
     }
 
     if (shouldOpenRHPVariant(variantOverride)) {
-        handleRHPVariantNavigation(onboardingPolicyID, variantOverride, navigationOptions, shouldUseStandardRouteAfterRootClearedConcierge ? false : undefined);
+        handleRHPVariantNavigation(onboardingPolicyID, variantOverride, navigationOptions);
         return;
     }
 
@@ -153,7 +136,7 @@ function navigateAfterOnboarding(
     );
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), navigationOptions);
-    } else if (shouldUseStandardRouteAfterRootClearedConcierge || !isReportTopmostSplitNavigator()) {
+    } else if (!isReportTopmostSplitNavigator()) {
         // Navigate to home to trigger guard evaluation
         Navigation.navigate(ROUTES.HOME, navigationOptions);
     }
@@ -232,10 +215,4 @@ function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: s
     });
 }
 
-export {
-    navigateAfterOnboarding,
-    navigateAfterOnboardingWithMicrotaskQueue,
-    navigateToPendingDeepLinkAfterOnboarding,
-    navigateToRootRouteBeforeOnboardingUnmount,
-    navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue,
-};
+export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue};

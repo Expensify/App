@@ -1,9 +1,5 @@
 import Log from '@libs/Log';
-import {
-    navigateToPendingDeepLinkAfterOnboarding,
-    navigateToRootRouteBeforeOnboardingUnmount,
-    navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue,
-} from '@libs/navigateAfterOnboarding';
+import {navigateToPendingDeepLinkAfterOnboarding, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {canEditWorkspaceSettings, isGroupPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 
@@ -108,9 +104,6 @@ function useAutoCreateSubmitWorkspace() {
                         conciergeChat,
                         onBeforeOnboardingModalUnmount: () => {
                             didNavigateToPendingDeepLink = navigateToPendingDeepLinkAfterOnboarding(conciergeReportID);
-                            if (!didNavigateToPendingDeepLink) {
-                                navigateToRootRouteBeforeOnboardingUnmount();
-                            }
                         },
                     });
                 } catch (error) {

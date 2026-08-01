@@ -1,4 +1,4 @@
-import {canAnonymousUserAccessRoute, isAnonymousUser, waitForUserSignIn} from '@libs/actions/Session';
+import {canAnonymousUserAccessRoute, isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -7,7 +7,7 @@ import * as Url from '@libs/Url';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import {openLink, openReportFromDeepLink} from '@src/libs/actions/Link';
+import {openLink} from '@src/libs/actions/Link';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -58,7 +58,6 @@ const mockedNavigation = jest.mocked(Navigation);
 const mockedNavigationRef = jest.mocked(navigationRef);
 const mockedCanAnonymousUserAccessRoute = jest.mocked(canAnonymousUserAccessRoute);
 const mockedIsAnonymousUser = jest.mocked(isAnonymousUser);
-const mockedWaitForUserSignIn = jest.mocked(waitForUserSignIn);
 
 function buildNavigationState(key: string, routes: NavigationState['routes'], index = routes.length - 1): NavigationState {
     return {
@@ -349,12 +348,5 @@ describe('Link.openLink', () => {
                 'true',
             ),
         );
-    });
-
-    it('does not queue post-signup navigation for an unauthenticated root URL', () => {
-        openReportFromDeepLink('https://dev.new.expensify.com:8082/', {}, false, undefined, undefined, undefined, undefined);
-
-        expect(mockedWaitForUserSignIn).not.toHaveBeenCalled();
-        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 });

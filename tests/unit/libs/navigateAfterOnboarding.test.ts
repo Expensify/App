@@ -1,6 +1,6 @@
 import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import {clearPendingConciergeDeepLink, consumePendingConciergeDeepLink, setPendingConciergeDeepLink, updatePendingConciergeDeepLinkForRoute} from '@libs/PendingConciergeDeepLink';
+import {clearPendingConciergeDeepLink, consumePendingConciergeDeepLink, setPendingConciergeDeepLink} from '@libs/PendingConciergeDeepLink';
 
 import ROUTES from '@src/ROUTES';
 
@@ -80,16 +80,5 @@ describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
         expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
         expect(navigationMock.navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACES_LIST.route)}`);
         expect(consumePendingConciergeDeepLink()).toBe(true);
-    });
-
-    it('navigates to Workspace Categories when root clears pending Concierge', () => {
-        setPendingConciergeDeepLink();
-        updatePendingConciergeDeepLinkForRoute('', false);
-
-        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue('test-policy-id', false, 'concierge-report-id');
-
-        expect(navigationMock.dismissModal).toHaveBeenCalledTimes(1);
-        expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
-        expect(navigationMock.navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACES_LIST.route)}`);
     });
 });

@@ -1,16 +1,7 @@
 import {openReportFromDeepLink} from '@libs/actions/Link';
-import SidePanelActions from '@libs/actions/SidePanel';
-import {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue, navigateToRootRouteBeforeOnboardingUnmount} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import {
-    clearPendingConciergeDeepLink,
-    consumePendingConciergeDeepLink,
-    consumePendingHomeDeepLink,
-    consumeRootClearedPendingConciergeDeepLink,
-    setPendingConciergeDeepLink,
-    setPendingHomeDeepLinkIfNoPendingConcierge,
-    updatePendingConciergeDeepLinkForRoute,
-} from '@libs/PendingConciergeDeepLink';
+import {clearPendingConciergeDeepLink, consumePendingConciergeDeepLink, setPendingConciergeDeepLink, updatePendingConciergeDeepLinkForRoute} from '@libs/PendingConciergeDeepLink';
 import type * as PendingConciergeDeepLink from '@libs/PendingConciergeDeepLink';
 import type * as ReportUtils from '@libs/ReportUtils';
 
@@ -31,7 +22,6 @@ const ONBOARDING_ADMINS_CHAT_REPORT_ID = '1';
 const ONBOARDING_POLICY_ID = '2';
 const REPORT_ID = '3';
 const USER_ID = '4';
-const PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY = 'PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN';
 const mockFindLastAccessedReport = jest.fn<OnyxEntry<Report>, Parameters<typeof ReportUtils.findLastAccessedReport>>();
 const mockShouldOpenOnAdminRoom = jest.fn();
 const mockIsReportTopmostSplitNavigator = jest.fn(() => false);
@@ -67,22 +57,6 @@ function mockBrowserReloadNavigation(useLegacyFallback = false) {
             Object.defineProperty(window.performance, 'navigation', originalNavigation);
         } else {
             Reflect.deleteProperty(window.performance, 'navigation');
-        }
-    };
-}
-
-function mockDocumentHidden(isHidden: boolean) {
-    const originalHidden = Object.getOwnPropertyDescriptor(document, 'hidden');
-    Object.defineProperty(document, 'hidden', {
-        configurable: true,
-        value: isHidden,
-    });
-
-    return () => {
-        if (originalHidden) {
-            Object.defineProperty(document, 'hidden', originalHidden);
-        } else {
-            Reflect.deleteProperty(document, 'hidden');
         }
     };
 }
@@ -161,7 +135,6 @@ describe('navigateAfterOnboarding', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        window.localStorage.removeItem(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY);
         clearPendingConciergeDeepLink();
         mockIsReportTopmostSplitNavigator.mockReturnValue(false);
         return Onyx.clear();
@@ -288,16 +261,6 @@ describe('navigateAfterOnboarding', () => {
         expect(setNavigationActionToMicrotaskQueue).not.toHaveBeenCalled();
     });
 
-    it('should move the hidden root signup background to Home before onboarding unmounts', () => {
-        const navigate = jest.spyOn(Navigation, 'navigate');
-
-        updatePendingConciergeDeepLinkForRoute('', false);
-
-        expect(navigateToRootRouteBeforeOnboardingUnmount()).toBe(true);
-        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
-        expect(consumeRootClearedPendingConciergeDeepLink()).toBe(false);
-    });
-
     it('should navigate to Concierge instead of the onboarding admin room when a pending Concierge deep link is available', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         setPendingConciergeDeepLink();
@@ -363,196 +326,12 @@ describe('navigateAfterOnboarding', () => {
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
     });
 
-    it('should not let an ambiguous home fallback override a pending Concierge deep link', () => {
-        const navigate = jest.spyOn(Navigation, 'navigate');
-        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
-        setPendingConciergeDeepLink();
-
-        setPendingHomeDeepLinkIfNoPendingConcierge();
-        navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, undefined);
-
-        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
-        expect(navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
-    });
-
-    it('should clear pending Concierge without forcing Home for an unauthenticated root route', () => {
-        setPendingConciergeDeepLink();
-
-        updatePendingConciergeDeepLinkForRoute('', false);
-
-        expect(consumePendingHomeDeepLink()).toBe(false);
-        expect(consumePendingConciergeDeepLink()).toBe(false);
-        expect(consumeRootClearedPendingConciergeDeepLink()).toBe(true);
-    });
-
-    it('should clear pending Concierge without forcing Home for an authenticated root route before onboarding finishes', () => {
-        setPendingConciergeDeepLink();
-
-        updatePendingConciergeDeepLinkForRoute('', true);
-
-        expect(consumePendingHomeDeepLink()).toBe(false);
-        expect(consumePendingConciergeDeepLink()).toBe(false);
-        expect(consumeRootClearedPendingConciergeDeepLink()).toBe(true);
-    });
-
-    it('should not force Home after onboarding for a normal root signup without a pending Concierge intent', () => {
-        updatePendingConciergeDeepLinkForRoute('', false);
-
-        expect(consumePendingHomeDeepLink()).toBe(false);
-        expect(consumePendingConciergeDeepLink()).toBe(false);
-        expect(consumeRootClearedPendingConciergeDeepLink()).toBe(true);
-    });
-
-    it('should clear stale Home intent so a normal root signup can use standard onboarding navigation', () => {
-        window.sessionStorage.setItem('PENDING_HOME_DEEP_LINK', 'true');
-
-        updatePendingConciergeDeepLinkForRoute('', false);
-
-        expect(consumePendingHomeDeepLink()).toBe(false);
-        expect(consumePendingConciergeDeepLink()).toBe(false);
-    });
-
-    it('should use standard RHP variant routing after an explicit root route without a pending Concierge intent', () => {
-        const navigate = jest.spyOn(Navigation, 'navigate');
-
-        updatePendingConciergeDeepLinkForRoute('', false);
-        navigateAfterOnboarding(false, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, undefined, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE});
-
-        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
-        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
-    });
-
-    it('should use standard fallback routing after an explicit root route without an RHP variant', () => {
-        const navigate = jest.spyOn(Navigation, 'navigate');
-        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
-
-        updatePendingConciergeDeepLinkForRoute('', false);
-        navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, undefined);
-
-        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
-        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
-    });
-
-    it('should not publish a cross-tab cancellation token for background root route replays', () => {
-        const restoreDocumentHidden = mockDocumentHidden(true);
-        window.localStorage.setItem(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY, 'existing-token');
-
-        try {
-            updatePendingConciergeDeepLinkForRoute('', true);
-
-            expect(window.localStorage.getItem(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY)).toBe('existing-token');
-        } finally {
-            restoreDocumentHidden();
-        }
-    });
-
     it('should preserve pending Concierge intent when an authenticated onboarding route is replayed after refresh', () => {
         setPendingConciergeDeepLink();
 
         updatePendingConciergeDeepLinkForRoute(ROUTES.ONBOARDING_PURPOSE.route, true);
 
         expect(consumePendingConciergeDeepLink()).toBe(true);
-        expect(consumePendingHomeDeepLink()).toBe(false);
-    });
-
-    it('should publish a cross-tab cancellation token for unauthenticated internal routes', () => {
-        updatePendingConciergeDeepLinkForRoute(`${ROUTES.REPORT}/123`, false);
-
-        expect(window.localStorage.getItem(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY)).toEqual(expect.any(String));
-    });
-
-    it('should publish a cross-tab cancellation token for authenticated internal routes before onboarding finishes', () => {
-        updatePendingConciergeDeepLinkForRoute(`${ROUTES.REPORT}/123`, true);
-
-        expect(window.localStorage.getItem(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY)).toEqual(expect.any(String));
-    });
-
-    it('should preserve pending Concierge intent when authenticated Concierge is reprocessed', () => {
-        setPendingConciergeDeepLink();
-
-        updatePendingConciergeDeepLinkForRoute(ROUTES.CONCIERGE, true);
-
-        expect(consumePendingConciergeDeepLink()).toBe(true);
-        expect(consumePendingHomeDeepLink()).toBe(false);
-    });
-
-    it('should preserve a pending Concierge intent for generated Home routes', () => {
-        setPendingConciergeDeepLink();
-
-        updatePendingConciergeDeepLinkForRoute(ROUTES.HOME, false);
-
-        expect(consumePendingConciergeDeepLink()).toBe(true);
-        expect(consumePendingHomeDeepLink()).toBe(false);
-    });
-
-    it('should use standard RHP variant routing after an explicit root route clears pending Concierge', () => {
-        const navigate = jest.spyOn(Navigation, 'navigate');
-        setPendingConciergeDeepLink();
-
-        updatePendingConciergeDeepLinkForRoute('', false);
-        navigateAfterOnboarding(false, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, undefined, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE});
-
-        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
-        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
-    });
-
-    it('should use standard home RHP routing after an explicit root route clears pending Concierge', async () => {
-        const navigate = jest.spyOn(Navigation, 'navigate');
-        setPendingConciergeDeepLink();
-        await Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, CONST.ONBOARDING_COMPANY_SIZE.MICRO);
-        await waitForBatchedUpdates();
-
-        updatePendingConciergeDeepLinkForRoute('', false);
-        navigateAfterOnboarding(false, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, undefined, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE});
-
-        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
-        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
-    });
-
-    it('should block stale Concierge intent in another tab after an explicit non-Concierge deep link', () => {
-        const navigate = jest.spyOn(Navigation, 'navigate');
-        const openSidePanel = jest.mocked(SidePanelActions.openSidePanel);
-        setPendingConciergeDeepLink();
-
-        window.localStorage.setItem(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY, 'non-concierge-opened-in-another-tab');
-        navigateAfterOnboarding(false, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, undefined, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE});
-
-        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
-        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
-        expect(openSidePanel).not.toHaveBeenCalled();
-    });
-
-    it('should allow a new Concierge intent after an older cross-tab Home cancellation', () => {
-        window.localStorage.setItem(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY, 'older-cancel');
-
-        setPendingConciergeDeepLink();
-
-        expect(consumePendingConciergeDeepLink()).toBe(true);
-        expect(consumePendingHomeDeepLink()).toBe(false);
-    });
-
-    it('should not navigate to Concierge after an explicit root route clears pending Concierge', async () => {
-        const navigate = jest.spyOn(Navigation, 'navigate');
-        setPendingConciergeDeepLink();
-        await Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, CONST.ONBOARDING_COMPANY_SIZE.MICRO);
-        await waitForBatchedUpdates();
-
-        updatePendingConciergeDeepLinkForRoute('', false);
-        navigateAfterOnboarding(false, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, undefined, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM});
-
-        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
-    });
-
-    it('should clear a stale pending Concierge deep link without forcing Home when opening root before onboarding finishes', () => {
-        const navigate = jest.spyOn(Navigation, 'navigate');
-        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
-        setPendingConciergeDeepLink();
-
-        openReportFromDeepLink(`${CONST.NEW_EXPENSIFY_URL}/`, {}, false, REPORT_ID, undefined, undefined, undefined);
-        navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, undefined);
-
-        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
-        expect(navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
     });
 
     it('should preserve a pending Concierge deep link when root is replayed during a browser reload', () => {
@@ -587,17 +366,5 @@ describe('navigateAfterOnboarding', () => {
         } finally {
             restoreBrowserNavigation();
         }
-    });
-
-    it('should use standard onboarding routing after root clears a stale pending Concierge deep link', () => {
-        const navigate = jest.spyOn(Navigation, 'navigate');
-        setPendingConciergeDeepLink();
-
-        openReportFromDeepLink(`${CONST.NEW_EXPENSIFY_URL}/`, {}, false, REPORT_ID, undefined, undefined, undefined);
-        navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
-
-        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
-        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
-        expect(navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
     });
 });

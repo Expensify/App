@@ -17,12 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {
-    navigateAfterOnboardingWithMicrotaskQueue,
-    navigateToPendingDeepLinkAfterOnboarding,
-    navigateToRootRouteBeforeOnboardingUnmount,
-    navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue,
-} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
@@ -109,9 +104,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             conciergeChat,
             onBeforeOnboardingModalUnmount: () => {
                 didNavigateToPendingDeepLink = navigateToPendingDeepLinkAfterOnboarding(conciergeReportID);
-                if (!didNavigateToPendingDeepLink) {
-                    navigateToRootRouteBeforeOnboardingUnmount();
-                }
             },
         });
         setOnboardingAdminsChatReportID();
