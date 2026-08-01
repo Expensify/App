@@ -15,6 +15,7 @@ type QuickbooksOnlineSetupPageProps = PlatformStackScreenProps<SettingsNavigator
 function QuickbooksOnlineSetupPage({route}: QuickbooksOnlineSetupPageProps) {
     const policyID = route.params.policyID;
     const isIntuitEnterpriseSuite = route.params.isIntuitEnterpriseSuite === 'true';
+    const isSandbox = route.params.isSandbox === 'true';
 
     useEffect(() => {
         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
@@ -24,7 +25,7 @@ function QuickbooksOnlineSetupPage({route}: QuickbooksOnlineSetupPageProps) {
 
     return (
         <AccountingSetupWebViewPage
-            uri={getQuickbooksOnlineSetupLink(policyID, isIntuitEnterpriseSuite)}
+            uri={getQuickbooksOnlineSetupLink(policyID, isIntuitEnterpriseSuite, isSandbox)}
             testID="QuickbooksOnlineSetupPage"
             context="QuickbooksOnlineSetupPage"
             shouldAppendShortLivedAuthToken

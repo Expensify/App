@@ -6894,6 +6894,7 @@ const translations = {
                 `There's an error with a connection that's been set up in Expensify Classic. [Go to Expensify Classic to fix this issue.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Go to Expensify Classic to manage your settings.',
             setup: 'Connect',
+            connectToSandbox: 'Connect to sandbox',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             notSync: 'Not synced',
             import: 'Import',

@@ -19,10 +19,13 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-function getQuickbooksOnlineSetupLink(policyID: string, isIntuitEnterpriseSuite = false) {
+function getQuickbooksOnlineSetupLink(policyID: string, isIntuitEnterpriseSuite = false, isSandbox = false) {
     const params = new URLSearchParams({policyID});
     if (isIntuitEnterpriseSuite) {
         params.set('isIntuitEnterpriseSuite', 'true');
+    }
+    if (isSandbox) {
+        params.set('isSandbox', 'true');
     }
     const commandURL = getCommandURL({
         command: READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE,

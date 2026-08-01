@@ -2656,8 +2656,17 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_SETUP: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/setup',
-        getRoute: (policyID: string, isIntuitEnterpriseSuite = false) =>
-            `workspaces/${policyID}/accounting/quickbooks-online/setup${isIntuitEnterpriseSuite ? '?isIntuitEnterpriseSuite=true' : ''}` as const,
+        getRoute: (policyID: string, isIntuitEnterpriseSuite = false, isSandbox = false) => {
+            const params = new URLSearchParams();
+            if (isIntuitEnterpriseSuite) {
+                params.set('isIntuitEnterpriseSuite', 'true');
+            }
+            if (isSandbox) {
+                params.set('isSandbox', 'true');
+            }
+            const query = params.toString();
+            return `workspaces/${policyID}/accounting/quickbooks-online/setup${query ? `?${query}` : ''}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_CONFIGURATION: {
         route: 'workspaces/:policyID/accounting/netsuite/export/travel-invoicing',

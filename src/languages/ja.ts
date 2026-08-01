@@ -6685,6 +6685,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 `Expensify Classic で設定されている接続にエラーがあります。[この問題を解決するには Expensify Classic に移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classic に移動してください。',
             setup: '接続',
+            connectToSandbox: 'Sandbox に接続',
             lastSync: (relativeDate: string) => `最終同期：${relativeDate}`,
             notSync: '未同期',
             import: 'インポート',
