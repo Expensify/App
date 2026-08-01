@@ -22,8 +22,6 @@ function isReportRevealedInTopmostSplitNavigator(): boolean {
         return false;
     }
 
-    // Read the split's live inner routes first, then fall back to the preserved state keyed on the split
-    // route's key.
     const innerRoutes: ReadonlyArray<{name: string}> | undefined =
         topmostFullScreenRoute.state?.routes ?? (topmostFullScreenRoute.key ? getPreservedNavigatorState(topmostFullScreenRoute.key)?.routes : undefined);
 
