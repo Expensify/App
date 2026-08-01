@@ -71,11 +71,14 @@ describe('OFXUtils', () => {
     describe('import pipeline', () => {
         it('turns the parsed rows into transactions without any manual column mapping', () => {
             const rows = parseOFXToSpreadsheetRows(CITI_STATEMENT) ?? [];
-            const spreadsheet = {
-                data: rows.at(0)?.map((column, columnIndex) => rows.map((row) => row.at(columnIndex) ?? '')),
+            const spreadsheet: ImportedSpreadsheet = {
+                data: rows.at(0)?.map((column, columnIndex) => rows.map((row) => row.at(columnIndex) ?? '')) ?? [],
                 columns: getOFXColumnRoles(),
                 containsHeader: true,
-            } as ImportedSpreadsheet;
+                isImportingMultiLevelTags: false,
+                isImportingIndependentMultiLevelTags: false,
+                isGLAdjacent: false,
+            };
 
             const transactions = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
