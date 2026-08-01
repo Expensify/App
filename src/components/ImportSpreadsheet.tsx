@@ -85,7 +85,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
             return CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS;
         }
         if (isImportingTransactions) {
-            return CONST.ALLOWED_TRANSACTION_IMPORT_EXTENSIONS;
+            return [...CONST.ALLOWED_SPREADSHEET_EXTENSIONS, ...CONST.OFX_STATEMENT_EXTENSIONS];
         }
         return CONST.ALLOWED_SPREADSHEET_EXTENSIONS;
     };
