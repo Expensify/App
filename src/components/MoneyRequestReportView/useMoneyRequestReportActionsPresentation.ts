@@ -2,7 +2,7 @@ import {getSystemMessageDisplayState} from '@libs/ReportActionsUtils';
 
 import type {ReportAction} from '@src/types/onyx';
 
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 
 type MoneyRequestReportActionsPresentationProps = {
     /** Canonical filtered report actions in chronological order. */
@@ -18,15 +18,14 @@ type MoneyRequestReportActionsPresentationProps = {
 function useMoneyRequestReportActionsPresentation({visibleReportActions, linkedReportActionID, unreadMarkerReportActionID}: MoneyRequestReportActionsPresentationProps) {
     const [expandedSystemMessageReportActionIDs, setExpandedSystemMessageReportActionIDs] = useState<Set<string>>(() => new Set());
     const [manuallyCollapsedLinkedReportActionID, setManuallyCollapsedLinkedReportActionID] = useState<string>();
+    const [previousLinkedReportActionID, setPreviousLinkedReportActionID] = useState(linkedReportActionID);
 
-    useEffect(() => {
-        if (manuallyCollapsedLinkedReportActionID === undefined || manuallyCollapsedLinkedReportActionID === linkedReportActionID) {
-            return;
+    if (linkedReportActionID !== previousLinkedReportActionID) {
+        setPreviousLinkedReportActionID(linkedReportActionID);
+        if (manuallyCollapsedLinkedReportActionID !== undefined && manuallyCollapsedLinkedReportActionID !== linkedReportActionID) {
+            setManuallyCollapsedLinkedReportActionID(undefined);
         }
-
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- a manual collapse applies only while the route keeps targeting the same action
-        setManuallyCollapsedLinkedReportActionID(undefined);
-    }, [linkedReportActionID, manuallyCollapsedLinkedReportActionID]);
+    }
 
     const forceExpandedLinkedReportActionID = linkedReportActionID === manuallyCollapsedLinkedReportActionID ? undefined : linkedReportActionID;
 

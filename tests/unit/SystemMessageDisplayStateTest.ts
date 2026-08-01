@@ -1,7 +1,14 @@
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
-import {canReportActionUseActorGrouping, getSystemMessageDisplayState, isChatMessageAction, isCollapsibleSystemMessageAction, isSystemMessageAction} from '../../src/libs/ReportActionsUtils';
+import {
+    canReportActionUseActorGrouping,
+    getSystemMessageDisplayState,
+    isChatMessageAction,
+    isCollapsibleSystemMessageAction,
+    isSystemMessageAction,
+    withDEWRoutedActionsArray,
+} from '../../src/libs/ReportActionsUtils';
 
 function makeAction(reportActionID: string, actionName: ReportAction['actionName'], overrides: Partial<ReportAction> = {}): ReportAction {
     return {
@@ -22,6 +29,7 @@ describe('system message presentation', () => {
             CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
             CONST.REPORT.ACTIONS.TYPE.APPROVED,
             CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+            CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
             CONST.REPORT.ACTIONS.TYPE.HOLD,
             CONST.REPORT.ACTIONS.TYPE.REJECTED,
             CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
@@ -162,6 +170,26 @@ describe('system message presentation', () => {
             expect(state.displayReportActions).toEqual([action]);
             expect(state.runsByAnchorReportActionID.size).toBe(0);
             expect(state.reportActionIDToDisplayIndex.get('1')).toBe(0);
+        });
+
+        it.each([CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.FORWARDED])('collapses a dynamic external workflow %s action with its routed audit action', (actionName) => {
+            const sourceAction = makeAction('1', actionName, {
+                originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'workflow@example.com'},
+            });
+            const actions = withDEWRoutedActionsArray([sourceAction]);
+            const collapsedState = getSystemMessageDisplayState(actions, new Set());
+            const expandedState = getSystemMessageDisplayState(actions, new Set(['1DEW']));
+
+            expect(actions.map((action) => action.actionName)).toEqual([actionName, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED]);
+            expect(actions.every((action) => isSystemMessageAction(action))).toBe(true);
+            expect(actions.every((action) => isCollapsibleSystemMessageAction(action))).toBe(true);
+            expect(collapsedState.displayReportActions).toEqual([sourceAction]);
+            expect(collapsedState.runsByAnchorReportActionID.get('1')).toEqual({
+                reportActionIDs: ['1', '1DEW'],
+                isExpanded: false,
+            });
+            expect(expandedState.displayReportActions).toEqual(actions);
+            expect(expandedState.runsByAnchorReportActionID.get('1')?.isExpanded).toBe(true);
         });
 
         it('collapses maximal runs of two or more system messages to one anchor row', () => {

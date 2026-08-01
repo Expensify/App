@@ -70,6 +70,30 @@ describe('useMoneyRequestReportActionsPresentation', () => {
         displayStateSpy.mockRestore();
     });
 
+    it('forgets a manual collapse after the route stops targeting the linked action', () => {
+        const {result, rerender} = renderHook(
+            (props: {linkedReportActionID?: string}) =>
+                useMoneyRequestReportActionsPresentation({
+                    visibleReportActions,
+                    linkedReportActionID: props.linkedReportActionID,
+                }),
+            {initialProps: {linkedReportActionID: '2'}},
+        );
+
+        act(() => {
+            result.current.toggleSystemMessageRun(['1', '2', '3'], true);
+        });
+        expect(result.current.runsByAnchorReportActionID.get('1')?.isExpanded).toBe(false);
+
+        rerender({linkedReportActionID: undefined});
+        expect(result.current.runsByAnchorReportActionID.get('1')?.isExpanded).toBe(false);
+
+        rerender({linkedReportActionID: '2'});
+
+        expect(result.current.displayReportActions).toEqual(visibleReportActions);
+        expect(result.current.runsByAnchorReportActionID.get('1')?.isExpanded).toBe(true);
+    });
+
     it('keeps an unread member collapsed and maps its marker to the summary row', () => {
         const {result} = renderHook(() =>
             useMoneyRequestReportActionsPresentation({
