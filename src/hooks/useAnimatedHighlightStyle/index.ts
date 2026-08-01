@@ -74,6 +74,7 @@ export default function useAnimatedHighlightStyle({
 }: Props) {
     const prevShouldHighlightRef = useRef(false);
     const pendingPlayRef = useRef(false);
+    const isWaitingForFocusRef = useRef(false);
     const repeatableProgress = useSharedValue(0);
     const initialNonRepeatableProgressValue = skipInitialFade || !shouldHighlight ? 1 : 0;
     const nonRepeatableProgress = useSharedValue(initialNonRepeatableProgressValue);
@@ -97,19 +98,31 @@ export default function useAnimatedHighlightStyle({
     React.useEffect(() => {
         if (shouldHighlight && !prevShouldHighlightRef.current) {
             pendingPlayRef.current = true;
-        } else if (!shouldHighlight && pendingPlayRef.current) {
+        } else if (!shouldHighlight && pendingPlayRef.current && isWaitingForFocusRef.current) {
+            // Only the focus wait is unbounded, so a play waiting on the screen transition is kept and still runs.
             pendingPlayRef.current = false;
-            nonRepeatableProgress.set(withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}));
+            isWaitingForFocusRef.current = false;
         }
         prevShouldHighlightRef.current = shouldHighlight;
         if (!pendingPlayRef.current || !didScreenTransitionEnd) {
             return;
         }
-        const play = () => {
-            if (!pendingPlayRef.current) {
-                return;
-            }
-            pendingPlayRef.current = false;
+        const revealRow = () => {
+            scheduleOnRN(() => {
+                nonRepeatableProgress.set(withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}));
+            });
+        };
+        const playPulse = () => {
+            scheduleOnRN(() => {
+                repeatableProgress.set(
+                    withSequence(
+                        withDelay(highlightStartDelay, withTiming(1, {duration: highlightStartDuration, easing: Easing.inOut(Easing.ease)})),
+                        withDelay(highlightEndDelay, withTiming(0, {duration: highlightEndDuration, easing: Easing.inOut(Easing.ease)})),
+                    ),
+                );
+            });
+        };
+        const playEntryThenPulse = () => {
             scheduleOnRN(() => {
                 nonRepeatableProgress.set(
                     withDelay(
@@ -118,25 +131,29 @@ export default function useAnimatedHighlightStyle({
                             if (!finished) {
                                 return;
                             }
-
-                            repeatableProgress.set(
-                                withSequence(
-                                    withDelay(highlightStartDelay, withTiming(1, {duration: highlightStartDuration, easing: Easing.inOut(Easing.ease)})),
-                                    withDelay(highlightEndDelay, withTiming(0, {duration: highlightEndDuration, easing: Easing.inOut(Easing.ease)})),
-                                ),
-                            );
+                            scheduleOnRN(playPulse);
                         }),
                     ),
                 );
             });
         };
         if (!navigation || !shouldUseNarrowLayoutOnWideRHP || navigation.isFocused()) {
-            play();
+            pendingPlayRef.current = false;
+            playEntryThenPulse();
             return;
         }
+        // Reveal now: a row mounting highlighted starts at zero opacity/height, and focus may never arrive. Only the pulse waits.
+        isWaitingForFocusRef.current = true;
+        revealRow();
+        // Imperative rather than useIsScreenFocused: a table renders one of these per row, so re-rendering them all on every focus flip costs more.
         const unsubscribe = navigation.addListener('focus', () => {
-            play();
             unsubscribe();
+            isWaitingForFocusRef.current = false;
+            if (!pendingPlayRef.current) {
+                return;
+            }
+            pendingPlayRef.current = false;
+            playPulse();
         });
         return unsubscribe;
     }, [

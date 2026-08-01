@@ -259,7 +259,7 @@ describe('getMoneyRequestInformation', () => {
 
             expect(result.onyxData.optimisticData ?? []).not.toEqual(
                 expect.arrayContaining([
-                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: FLAGGED_AT})})}),
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
                 ]),
             );
         });
@@ -274,11 +274,13 @@ describe('getMoneyRequestInformation', () => {
 
             expect(result.onyxData.optimisticData ?? []).toEqual(
                 expect.arrayContaining([
-                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: FLAGGED_AT})})}),
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
                 ]),
             );
             expect(result.onyxData.failureData ?? []).toEqual(
-                expect.arrayContaining([expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: null})})})]),
+                expect.arrayContaining([
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: null})})}),
+                ]),
             );
         });
 
@@ -295,7 +297,10 @@ describe('getMoneyRequestInformation', () => {
             expect(result.transaction.transactionID).toBe(existingTransactionID);
             expect(result.onyxData.optimisticData ?? []).not.toEqual(
                 expect.arrayContaining([
-                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[existingTransactionID]: FLAGGED_AT})})}),
+                    expect.objectContaining({
+                        key: expectedKey,
+                        value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${existingTransactionID}:${FLAGGED_AT}`]: true})}),
+                    }),
                 ]),
             );
         });
@@ -312,7 +317,7 @@ describe('getMoneyRequestInformation', () => {
 
             expect(result.onyxData.optimisticData ?? []).toEqual(
                 expect.arrayContaining([
-                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: FLAGGED_AT})})}),
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
                 ]),
             );
         });
@@ -329,7 +334,7 @@ describe('getMoneyRequestInformation', () => {
 
             expect(result.onyxData.optimisticData ?? []).not.toEqual(
                 expect.arrayContaining([
-                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: FLAGGED_AT})})}),
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
                 ]),
             );
         });

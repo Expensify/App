@@ -7,6 +7,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
+import {buildClearedPendingNewTransactionFlags} from '@libs/PendingNewTransactionFlags';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isReportPreviewAction} from '@libs/ReportActionsUtils';
@@ -685,15 +686,17 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             ? existingReportTransactions.some((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             : (iou.report?.transactionCount ?? 0) >= 2);
     if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && addMakesReportMultiTransaction) {
+        // Built once so the rollback clears the same instance the optimistic write created.
+        const pendingNewTransactionFlag = buildPendingNewTransactionFlag(transaction.transactionID);
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
-            value: {pendingNewTransactionIDs: buildPendingNewTransactionFlag(transaction.transactionID)},
+            value: {pendingNewTransactionIDs: pendingNewTransactionFlag},
         });
         onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
-            value: {pendingNewTransactionIDs: {[transaction.transactionID]: null}},
+            value: {pendingNewTransactionIDs: buildClearedPendingNewTransactionFlags(Object.keys(pendingNewTransactionFlag))},
         });
     }
 

@@ -30,6 +30,7 @@ export default function useResponsiveLayoutOnWideRHP(): ResponsiveLayoutOnWideRH
     return {
         ...responsiveLayoutValues,
         shouldUseNarrowLayout,
+        shouldUseNarrowLayoutIgnoringWideRHP: responsiveLayoutValues.shouldUseNarrowLayout,
         isWideRHPDisplayedOnWideLayout,
         isSuperWideRHPDisplayedOnWideLayout,
     };

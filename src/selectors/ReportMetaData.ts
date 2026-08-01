@@ -1,6 +1,7 @@
+import {parsePendingNewTransactionFlagKey} from '@libs/PendingNewTransactionFlags';
+
 import CONST from '@src/CONST';
 import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
-import type {PendingNewTransactionFlag} from '@src/types/onyx/ReportMetadata';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -28,10 +29,11 @@ const isLoadingInitialReportActionsSelector = (loadingState: OnyxEntry<ReportLoa
 const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
     reportMetadata ? {pendingChatMembers: reportMetadata.pendingChatMembers} : undefined;
 
-// Flags keep the stamp they were written with, so a sweep can tell the instance it saw from a later one.
 type PendingNewTransactions = {
-    activeFlags: Record<string, PendingNewTransactionFlag>;
-    expiredFlags: Record<string, PendingNewTransactionFlag>;
+    /** Transaction ID mapped to the flag instance to sweep once highlighted, newest instance winning. */
+    activeFlagKeys: Record<string, string>;
+    /** Flag instances swept without highlighting, being stale, unreadable, or superseded by a newer instance. */
+    expiredFlagKeys: string[];
 };
 
 const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>): PendingNewTransactions | undefined => {
@@ -40,23 +42,35 @@ const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetada
         return undefined;
     }
     const now = Date.now();
-    const activeFlags: Record<string, PendingNewTransactionFlag> = {};
-    const expiredFlags: Record<string, PendingNewTransactionFlag> = {};
-    for (const [transactionID, flaggedAt] of Object.entries(pendingNewTransactionIDs)) {
-        if (flaggedAt == null) {
+    const activeFlagKeys: Record<string, string> = {};
+    const activeStamps: Record<string, number> = {};
+    const expiredFlagKeys: string[] = [];
+    for (const [flagKey, isFlagged] of Object.entries(pendingNewTransactionIDs)) {
+        if (!isFlagged) {
             continue;
         }
-        // Legacy `true` flags predate the timestamp scheme and persisted until consumed, so they never expire.
-        if (flaggedAt === true || now - flaggedAt < CONST.PENDING_TRANSACTION_FRESHNESS_WINDOW) {
-            activeFlags[transactionID] = flaggedAt;
-        } else {
-            expiredFlags[transactionID] = flaggedAt;
+        const flag = parsePendingNewTransactionFlagKey(flagKey);
+        // An unreadable key is swept rather than highlighted, so it can never linger past its window.
+        if (!flag || now - flag.flaggedAt >= CONST.PENDING_TRANSACTION_FRESHNESS_WINDOW) {
+            expiredFlagKeys.push(flagKey);
+            continue;
         }
+        const {transactionID, flaggedAt} = flag;
+        const previousFlagKey = activeFlagKeys[transactionID];
+        if (previousFlagKey === undefined) {
+            activeFlagKeys[transactionID] = flagKey;
+            activeStamps[transactionID] = flaggedAt;
+            continue;
+        }
+        const [newerFlagKey, olderFlagKey] = flaggedAt >= activeStamps[transactionID] ? [flagKey, previousFlagKey] : [previousFlagKey, flagKey];
+        activeFlagKeys[transactionID] = newerFlagKey;
+        activeStamps[transactionID] = Math.max(flaggedAt, activeStamps[transactionID]);
+        expiredFlagKeys.push(olderFlagKey);
     }
-    if (!Object.keys(activeFlags).length && !Object.keys(expiredFlags).length) {
+    if (!Object.keys(activeFlagKeys).length && !expiredFlagKeys.length) {
         return undefined;
     }
-    return {activeFlags, expiredFlags};
+    return {activeFlagKeys, expiredFlagKeys};
 };
 
 const isOptimisticReportSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.isOptimisticReport;

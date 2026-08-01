@@ -1,26 +1,21 @@
 import {deletePendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportMetadata} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORT_ID = 'report-sweep-1';
 const METADATA_KEY = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT_ID}` as const;
 
-function readFlags(): Promise<ReportMetadata['pendingNewTransactionIDs']> {
-    return new Promise((resolve) => {
-        const connection = Onyx.connectWithoutView({
-            key: METADATA_KEY,
-            callback: (reportMetadata) => {
-                Onyx.disconnect(connection);
-                resolve(reportMetadata?.pendingNewTransactionIDs);
-            },
-        });
-    });
-}
+const FLAG_A_EARLY = 'txA:1000';
+const FLAG_A_LATE = 'txA:3000';
+const FLAG_B = 'txB:1000';
+const FLAG_C = 'txC:1000';
+
+const readFlags = async () => (await getOnyxValue(METADATA_KEY))?.pendingNewTransactionIDs;
 
 describe('deletePendingNewTransactionIDs', () => {
     beforeAll(() => {
@@ -34,45 +29,52 @@ describe('deletePendingNewTransactionIDs', () => {
     });
 
     it('clears the flag instance it was scheduled for', async () => {
-        await Onyx.set(METADATA_KEY, {pendingNewTransactionIDs: {txA: 1000}});
+        await Onyx.set(METADATA_KEY, {pendingNewTransactionIDs: {[FLAG_A_EARLY]: true}});
         await waitForBatchedUpdates();
 
-        deletePendingNewTransactionIDs(REPORT_ID, {txA: 1000});
+        deletePendingNewTransactionIDs(REPORT_ID, [FLAG_A_EARLY]);
         await waitForBatchedUpdates();
 
         // Merging null removes the entry outright rather than leaving a tombstone.
-        expect((await readFlags())?.txA).toBeUndefined();
+        expect((await readFlags())?.[FLAG_A_EARLY]).toBeUndefined();
     });
 
-    it('leaves a newer flag for the same transaction untouched, so its highlight is not stolen by a stale sweep', async () => {
-        await Onyx.set(METADATA_KEY, {pendingNewTransactionIDs: {txA: 2000}});
+    it('leaves a flag written after the sweep was armed untouched, so its highlight is not stolen', async () => {
+        await Onyx.set(METADATA_KEY, {pendingNewTransactionIDs: {[FLAG_A_EARLY]: true}});
         await waitForBatchedUpdates();
 
-        deletePendingNewTransactionIDs(REPORT_ID, {txA: 1000});
-        await waitForBatchedUpdates();
-
-        expect((await readFlags())?.txA).toBe(2000);
-    });
-
-    it('clears only the instances that still match when a rail holds several flags', async () => {
-        await Onyx.set(METADATA_KEY, {pendingNewTransactionIDs: {txA: 1000, txB: 2000}});
-        await waitForBatchedUpdates();
-
-        deletePendingNewTransactionIDs(REPORT_ID, {txA: 1000, txB: 1000});
+        await Onyx.merge(METADATA_KEY, {pendingNewTransactionIDs: {[FLAG_A_LATE]: true}});
+        deletePendingNewTransactionIDs(REPORT_ID, [FLAG_A_EARLY]);
         await waitForBatchedUpdates();
 
         const flags = await readFlags();
-        expect(flags?.txA).toBeUndefined();
-        expect(flags?.txB).toBe(2000);
+        expect(flags?.[FLAG_A_EARLY]).toBeUndefined();
+        expect(flags?.[FLAG_A_LATE]).toBe(true);
     });
 
-    it('clears a legacy boolean flag it was scheduled for', async () => {
-        await Onyx.set(METADATA_KEY, {pendingNewTransactionIDs: {txA: true}});
+    it('leaves a flag written while the sweep is in flight untouched', async () => {
+        await Onyx.set(METADATA_KEY, {pendingNewTransactionIDs: {[FLAG_A_EARLY]: true}});
         await waitForBatchedUpdates();
 
-        deletePendingNewTransactionIDs(REPORT_ID, {txA: true});
+        deletePendingNewTransactionIDs(REPORT_ID, [FLAG_A_EARLY]);
+        Onyx.merge(METADATA_KEY, {pendingNewTransactionIDs: {[FLAG_A_LATE]: true}});
         await waitForBatchedUpdates();
 
-        expect((await readFlags())?.txA).toBeUndefined();
+        const flags = await readFlags();
+        expect(flags?.[FLAG_A_EARLY]).toBeUndefined();
+        expect(flags?.[FLAG_A_LATE]).toBe(true);
+    });
+
+    it('clears several instances at once and leaves unrelated ones alone', async () => {
+        await Onyx.set(METADATA_KEY, {pendingNewTransactionIDs: {[FLAG_A_EARLY]: true, [FLAG_B]: true, [FLAG_C]: true}});
+        await waitForBatchedUpdates();
+
+        deletePendingNewTransactionIDs(REPORT_ID, [FLAG_A_EARLY, FLAG_B]);
+        await waitForBatchedUpdates();
+
+        const flags = await readFlags();
+        expect(flags?.[FLAG_A_EARLY]).toBeUndefined();
+        expect(flags?.[FLAG_B]).toBeUndefined();
+        expect(flags?.[FLAG_C]).toBe(true);
     });
 });

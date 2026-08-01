@@ -3,7 +3,6 @@ import {deletePendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransa
 import CONST from '@src/CONST';
 import type {PendingNewTransactions} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
-import type {PendingNewTransactionFlag} from '@src/types/onyx/ReportMetadata';
 
 import {useEffect, useRef, useState} from 'react';
 
@@ -11,11 +10,13 @@ const EMPTY_TRANSACTIONS: Transaction[] = [];
 const EMPTY_TRANSACTION_IDS: string[] = [];
 
 type DiffState = {
-    /** Which report the baseline belongs to; a switch under the same mounted consumer resets the latch as a fresh mount would. */
+    /** Report the baseline belongs to, so a switch restarts the latch as a fresh mount would. */
     reportID: string | undefined;
-    /** Baseline transaction-ID sequence the next growth is diffed against. */
+
+    /** Baseline the next growth is diffed against, `undefined` until the report's own list arrives. */
     sourceIDs: string[] | undefined;
-    /** IDs of diff-detected adds currently eligible to highlight. */
+
+    /** Diff-detected adds still eligible to highlight, emptied once their window elapses. */
     addedIDs: string[];
 };
 
@@ -36,7 +37,6 @@ function useNewTransactions(
 ) {
     const [hasSettledAfterInitialLoad, setHasSettledAfterInitialLoad] = useState(() => !!hasOnceLoadedReportActions);
     const scheduledSweeps = useRef<Set<string>>(new Set());
-    const [highlightedDiffTransactionIDs, setHighlightedDiffTransactionIDs] = useState<Set<string>>(() => new Set());
     const [diffState, setDiffState] = useState<DiffState>(() => ({reportID, sourceIDs: undefined, addedIDs: EMPTY_TRANSACTION_IDS}));
     const trackedTransactionIDs = hasOnceLoadedReportActions && transactions ? transactions.map(({transactionID}) => transactionID) : undefined;
     const baselineSourceIDs = diffState.sourceIDs;
@@ -46,49 +46,41 @@ function useNewTransactions(
         baselineSourceIDs !== undefined &&
         trackedTransactionIDs.length === baselineSourceIDs.length &&
         trackedTransactionIDs.every((transactionID, index) => transactionID === baselineSourceIDs.at(index));
-    const isBaselineAdvance = trackedTransactionIDs !== baselineSourceIDs && !hasSameTransactionIDs;
-    if (isReportSwitch || isBaselineAdvance) {
+    if (isReportSwitch) {
+        // The list in hand can still be the outgoing report's, so let the incoming report's own list set the baseline.
+        setDiffState({reportID, sourceIDs: undefined, addedIDs: EMPTY_TRANSACTION_IDS});
+        if (hasSettledAfterInitialLoad !== !!hasOnceLoadedReportActions) {
+            setHasSettledAfterInitialLoad(!!hasOnceLoadedReportActions);
+        }
+    } else if (trackedTransactionIDs !== baselineSourceIDs && !hasSameTransactionIDs) {
         let addedIDs = EMPTY_TRANSACTION_IDS;
-        if (!isReportSwitch && baselineSourceIDs !== undefined && trackedTransactionIDs !== undefined && trackedTransactionIDs.length > baselineSourceIDs.length) {
-            if (hasSettledAfterInitialLoad) {
-                const baselineSet = new Set(baselineSourceIDs);
-                addedIDs = trackedTransactionIDs.filter((transactionID) => !baselineSet.has(transactionID));
-            } else {
+        if (baselineSourceIDs !== undefined && trackedTransactionIDs !== undefined && trackedTransactionIDs.length > baselineSourceIDs.length) {
+            const baselineSet = new Set(baselineSourceIDs);
+            // A longer list sharing nothing with a non-empty baseline replaced it, so re-baseline instead of calling it all new.
+            const hasReplacedBaseline = baselineSet.size > 0 && !trackedTransactionIDs.some((transactionID) => baselineSet.has(transactionID));
+            if (!hasSettledAfterInitialLoad) {
                 setHasSettledAfterInitialLoad(true);
+            } else if (!hasReplacedBaseline) {
+                addedIDs = trackedTransactionIDs.filter((transactionID) => !baselineSet.has(transactionID));
             }
         }
         setDiffState({reportID, sourceIDs: trackedTransactionIDs, addedIDs});
-        if (isReportSwitch) {
-            if (hasSettledAfterInitialLoad !== !!hasOnceLoadedReportActions) {
-                setHasSettledAfterInitialLoad(!!hasOnceLoadedReportActions);
-            }
-            if (highlightedDiffTransactionIDs.size) {
-                setHighlightedDiffTransactionIDs(new Set());
-            }
-        } else if (highlightedDiffTransactionIDs.size) {
-            // A tx removed from the report leaves the suppression set, so a later re-add can highlight again.
-            const presentIDs = new Set(trackedTransactionIDs);
-            const prunedIDs = new Set([...highlightedDiffTransactionIDs].filter((transactionID) => presentIDs.has(transactionID)));
-            if (prunedIDs.size !== highlightedDiffTransactionIDs.size) {
-                setHighlightedDiffTransactionIDs(prunedIDs);
-            }
-        }
     }
 
-    const activeFlags = pendingNewTransactions?.activeFlags;
-    const railTransactions = reportID && activeFlags && transactions?.length ? transactions.filter(({transactionID}) => activeFlags[transactionID]) : EMPTY_TRANSACTIONS;
+    const activeFlagKeys = pendingNewTransactions?.activeFlagKeys;
+    const railTransactions = reportID && activeFlagKeys && transactions?.length ? transactions.filter(({transactionID}) => activeFlagKeys[transactionID]) : EMPTY_TRANSACTIONS;
 
     let diffTransactions = EMPTY_TRANSACTIONS;
     if (diffState.addedIDs.length && transactions?.length) {
-        const eligibleAddedIDs = new Set(diffState.addedIDs.filter((transactionID) => !highlightedDiffTransactionIDs.has(transactionID)));
-        diffTransactions = eligibleAddedIDs.size ? transactions.filter(({transactionID}) => eligibleAddedIDs.has(transactionID)) : EMPTY_TRANSACTIONS;
+        const addedIDs = new Set(diffState.addedIDs);
+        diffTransactions = transactions.filter(({transactionID}) => addedIDs.has(transactionID));
     }
 
     let newTransactions = railTransactions;
     if (!railTransactions.length) {
         newTransactions = diffTransactions.length ? diffTransactions : EMPTY_TRANSACTIONS;
     } else {
-        const extraDiff = diffTransactions.filter(({transactionID}) => !activeFlags?.[transactionID]);
+        const extraDiff = diffTransactions.filter(({transactionID}) => !activeFlagKeys?.[transactionID]);
         newTransactions = extraDiff.length ? [...railTransactions, ...extraDiff] : railTransactions;
     }
 
@@ -96,52 +88,37 @@ function useNewTransactions(
         if (isReportVisible === false || !pendingNewTransactions) {
             return;
         }
-        const railFlags = pendingNewTransactions.activeFlags;
-        const consumedFlags = newTransactions
-            .filter(({transactionID}) => railFlags[transactionID])
-            .map(({transactionID}): [string, PendingNewTransactionFlag] => [transactionID, railFlags[transactionID]]);
+        const railFlagKeys = pendingNewTransactions.activeFlagKeys;
+        const consumedFlagKeys = newTransactions.map(({transactionID}) => railFlagKeys[transactionID]).filter(Boolean);
         const claimedKeys: string[] = [];
-        const flagsToClear: Record<string, PendingNewTransactionFlag> = {};
-        for (const [transactionID, flaggedAt] of [...consumedFlags, ...Object.entries(pendingNewTransactions.expiredFlags)]) {
-            const flagKey = `${reportID}:${transactionID}:${String(flaggedAt)}`;
-            if (scheduledSweeps.current.has(flagKey)) {
+        for (const flagKey of [...consumedFlagKeys, ...pendingNewTransactions.expiredFlagKeys]) {
+            const sweepKey = `${reportID}:${flagKey}`;
+            if (scheduledSweeps.current.has(sweepKey)) {
                 continue;
             }
-            scheduledSweeps.current.add(flagKey);
+            scheduledSweeps.current.add(sweepKey);
             claimedKeys.push(flagKey);
-            flagsToClear[transactionID] = flaggedAt;
         }
         if (!claimedKeys.length) {
             return;
         }
 
         setTimeout(() => {
-            for (const flagKey of claimedKeys) {
-                scheduledSweeps.current.delete(flagKey);
-            }
-            deletePendingNewTransactionIDs(reportID, flagsToClear);
+            deletePendingNewTransactionIDs(reportID, claimedKeys);
         }, CONST.PENDING_TRANSACTION_DELETION_DELAY);
     }, [isReportVisible, pendingNewTransactions, newTransactions, reportID]);
 
+    // Stop offering diff-detected adds once their window elapses, so a row remount can't replay one.
+    const addedDiffCount = diffState.addedIDs.length;
     useEffect(() => {
-        if (isReportVisible === false) {
-            return;
-        }
-        const diffIDsToExpire = diffState.addedIDs.filter((transactionID) => !highlightedDiffTransactionIDs.has(transactionID));
-        if (!diffIDsToExpire.length) {
+        if (isReportVisible === false || !addedDiffCount) {
             return;
         }
         const timer = setTimeout(() => {
-            setHighlightedDiffTransactionIDs((prev) => {
-                const next = new Set(prev);
-                for (const transactionID of diffIDsToExpire) {
-                    next.add(transactionID);
-                }
-                return next;
-            });
+            setDiffState((previousDiffState) => (previousDiffState.addedIDs.length ? {...previousDiffState, addedIDs: EMPTY_TRANSACTION_IDS} : previousDiffState));
         }, CONST.PENDING_TRANSACTION_DELETION_DELAY);
         return () => clearTimeout(timer);
-    }, [isReportVisible, diffState, highlightedDiffTransactionIDs]);
+    }, [isReportVisible, addedDiffCount]);
 
     useEffect(() => {
         if (!hasOnceLoadedReportActions || hasSettledAfterInitialLoad) {

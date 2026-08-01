@@ -4,9 +4,6 @@ import type {ValueOf} from 'type-fest';
 
 import type * as OnyxCommon from './OnyxCommon';
 
-/** Identifies one flag instance: the epoch-ms it was written at, or `true` for pre-timestamp flags. */
-type PendingNewTransactionFlag = number | true;
-
 /** The pending member of report */
 type PendingChatMember = {
     /** Account ID of the pending member */
@@ -35,10 +32,10 @@ type ReportMetadata = {
     /** Pending expense action for DEW policies (e.g., SUBMIT or APPROVE in progress) */
     pendingExpenseAction?: ValueOf<typeof CONST.EXPENSE_PENDING_ACTION>;
 
-    /** Transaction IDs that were just submitted/moved to this report and should be highlighted on first load */
-    pendingNewTransactionIDs?: Record<string, PendingNewTransactionFlag | null>;
+    /** Transactions just submitted/moved to this report, to highlight on first load. Keyed `${transactionID}:${flaggedAt}`. */
+    pendingNewTransactionIDs?: Record<string, true | null>;
 };
 
 export default ReportMetadata;
 
-export type {PendingChatMember, PendingNewTransactionFlag};
+export type {PendingChatMember};

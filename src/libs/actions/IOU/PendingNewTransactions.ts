@@ -1,10 +1,12 @@
+import {buildClearedPendingNewTransactionFlags, buildPendingNewTransactionFlagKey} from '@libs/PendingNewTransactionFlags';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PendingNewTransactionFlag} from '@src/types/onyx/ReportMetadata';
 
 import Onyx from 'react-native-onyx';
 
-function buildPendingNewTransactionFlag(transactionID: string): Record<string, number> {
-    return {[transactionID]: Date.now()};
+/** Builds the flag entry for one add, stamped at write time so each write is its own instance. */
+function buildPendingNewTransactionFlag(transactionID: string): Record<string, true> {
+    return {[buildPendingNewTransactionFlagKey(transactionID, Date.now())]: true};
 }
 
 function addPendingNewTransactionIDs(reportID: string | undefined, transactionID: string | undefined) {
@@ -16,30 +18,13 @@ function addPendingNewTransactionIDs(reportID: string | undefined, transactionID
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs: buildPendingNewTransactionFlag(transactionID)});
 }
 
-/** Clears only the flag instances passed in: a flag rewritten since carries a different stamp and must survive to play its own highlight. */
-function deletePendingNewTransactionIDs(reportID: string | undefined, flagsToClear: Record<string, PendingNewTransactionFlag>) {
-    if (!reportID || !Object.keys(flagsToClear).length) {
+/** Clears the given flag instances, leaving any flag written since untouched because it carries a different key. */
+function deletePendingNewTransactionIDs(reportID: string | undefined, flagKeys: string[]) {
+    if (!reportID || !flagKeys.length) {
         return;
     }
 
-    const metadataKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}` as const;
-    const connection = Onyx.connectWithoutView({
-        key: metadataKey,
-        callback: (reportMetadata) => {
-            Onyx.disconnect(connection);
-            const currentFlags = reportMetadata?.pendingNewTransactionIDs;
-            const clearedFlags: Record<string, null> = {};
-            for (const [transactionID, flaggedAt] of Object.entries(flagsToClear)) {
-                if (currentFlags?.[transactionID] === flaggedAt) {
-                    clearedFlags[transactionID] = null;
-                }
-            }
-            if (!Object.keys(clearedFlags).length) {
-                return;
-            }
-            Onyx.merge(metadataKey, {pendingNewTransactionIDs: clearedFlags});
-        },
-    });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs: buildClearedPendingNewTransactionFlags(flagKeys)});
 }
 
 export {addPendingNewTransactionIDs, buildPendingNewTransactionFlag, deletePendingNewTransactionIDs};

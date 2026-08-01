@@ -68,18 +68,18 @@ describe('useAnimatedHighlightStyle', () => {
         expect(playCount()).toBe(1);
     });
 
-    it('defers the play on a covered narrow screen until it regains focus, then plays exactly once across later refocuses', () => {
+    it('reveals a covered row immediately and defers only its pulse until the screen regains focus, then never replays', () => {
         const {setShouldHighlight} = renderHarness(false);
         act(() => {
             navigationRef.navigate('B');
         });
         setShouldHighlight(true);
-        expect(playCount()).toBe(0);
+        expect(playCount()).toBe(1);
 
         act(() => {
             navigationRef.goBack();
         });
-        expect(playCount()).toBe(1);
+        expect(playCount()).toBe(2);
 
         act(() => {
             navigationRef.navigate('B');
@@ -87,7 +87,7 @@ describe('useAnimatedHighlightStyle', () => {
         act(() => {
             navigationRef.goBack();
         });
-        expect(playCount()).toBe(1);
+        expect(playCount()).toBe(2);
     });
 
     it('plays in the background on a wide pane even while unfocused', () => {
@@ -105,7 +105,7 @@ describe('useAnimatedHighlightStyle', () => {
         expect(playCount()).toBe(1);
     });
 
-    it('does not play when the highlight is cleared before the screen regains focus', () => {
+    it('does not pulse when the highlight is cleared before the screen regains focus', () => {
         const {setShouldHighlight} = renderHarness(false);
         act(() => {
             navigationRef.navigate('B');
@@ -116,7 +116,7 @@ describe('useAnimatedHighlightStyle', () => {
         act(() => {
             navigationRef.goBack();
         });
-        expect(playCount()).toBe(0);
+        expect(playCount()).toBe(1);
     });
 
     it('does not replay while the highlight stays on, but plays again after it turns off and back on', () => {

@@ -8,16 +8,19 @@ import CONST from '@src/CONST';
 import type {PendingNewTransactions} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
 
-function rail(activeIDs: string[], expiredIDs: string[] = []): PendingNewTransactions {
+function rail(activeIDs: string[], expiredFlagKeys: string[] = []): PendingNewTransactions {
     return {
-        activeFlags: Object.fromEntries(activeIDs.map((id) => [id, true as const])),
-        expiredFlags: Object.fromEntries(expiredIDs.map((id) => [id, true as const])),
+        activeFlagKeys: Object.fromEntries(activeIDs.map((id) => [id, id])),
+        expiredFlagKeys,
     };
 }
 
-/** A rail whose flags carry distinct stamps, so the same transaction can be re-flagged as a new instance. */
-function stampedRail(activeFlags: Record<string, number>): PendingNewTransactions {
-    return {activeFlags, expiredFlags: {}};
+/** A rail whose flags carry distinct instance keys, so the same transaction can be re-flagged as a new instance. */
+function stampedRail(activeStamps: Record<string, number>): PendingNewTransactions {
+    return {
+        activeFlagKeys: Object.fromEntries(Object.entries(activeStamps).map(([id, stamp]) => [id, `${id}:${stamp}`])),
+        expiredFlagKeys: [],
+    };
 }
 
 jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
@@ -804,7 +807,7 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
             act(() => {
                 jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
             });
-            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', {railTx: true});
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', ['railTx']);
         } finally {
             jest.useRealTimers();
         }
@@ -820,7 +823,7 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
             act(() => {
                 jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
             });
-            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', {railTx: true, staleTx: true});
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', ['railTx', 'staleTx']);
         } finally {
             jest.useRealTimers();
         }
@@ -846,28 +849,49 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
         }
     });
 
-    it('schedules a fresh deletion when the same transaction is flagged again after the earlier flag was cleared', () => {
+    it('sweeps a re-flagged transaction again, because the new flag is a different instance', () => {
         jest.useFakeTimers();
         try {
             const transactions = [baseTx, railTx];
             const {rerender} = renderHook<Transaction[], {pendingNewTransactions: PendingNewTransactions | undefined}>(
                 (props) => useNewTransactions(true, transactions, props.pendingNewTransactions, 'report1', true),
-                {initialProps: {pendingNewTransactions: rail(['railTx'])}},
+                {initialProps: {pendingNewTransactions: stampedRail({railTx: 1000})}},
             );
 
             act(() => {
                 jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
             });
             expect(deletePendingNewTransactionIDs).toHaveBeenCalledTimes(1);
+            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', ['railTx:1000']);
 
             rerender({pendingNewTransactions: undefined});
-            rerender({pendingNewTransactions: rail(['railTx'])});
+            rerender({pendingNewTransactions: stampedRail({railTx: 2000})});
 
             act(() => {
                 jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
             });
             expect(deletePendingNewTransactionIDs).toHaveBeenCalledTimes(2);
-            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', {railTx: true});
+            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', ['railTx:2000']);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('does not sweep the same flag instance twice while it is still on the rail', () => {
+        jest.useFakeTimers();
+        try {
+            const pendingNewTransactions = stampedRail({railTx: 1000});
+            const {rerender} = renderHook<Transaction[], {transactions: Transaction[]}>((props) => useNewTransactions(true, props.transactions, pendingNewTransactions, 'report1', true), {
+                initialProps: {transactions: [baseTx, railTx]},
+            });
+
+            rerender({transactions: [{...baseTx, amount: 150}, railTx]});
+            rerender({transactions: [{...baseTx, amount: 175}, railTx]});
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY * 2);
+            });
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledTimes(1);
         } finally {
             jest.useRealTimers();
         }
@@ -885,14 +909,14 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
             act(() => {
                 jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
             });
-            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', {railTx: true});
+            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', ['railTx']);
 
             rerender({reportID: 'report2'});
 
             act(() => {
                 jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
             });
-            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report2', {railTx: true});
+            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report2', ['railTx']);
         } finally {
             jest.useRealTimers();
         }
@@ -917,7 +941,7 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
                 jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY * 2);
             });
             expect(deletePendingNewTransactionIDs).toHaveBeenCalledTimes(1);
-            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', {railTx: true});
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', ['railTx']);
         } finally {
             jest.useRealTimers();
         }
@@ -936,14 +960,14 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
             act(() => {
                 jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
             });
-            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', {railTx: 1000, otherTx: 1000});
+            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', ['railTx:1000', 'otherTx:1000']);
 
             rerender({pendingNewTransactions: stampedRail({railTx: 2000, otherTx: 1000})});
 
             act(() => {
                 jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
             });
-            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', expect.objectContaining({railTx: 2000}));
+            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', expect.arrayContaining(['railTx:2000']));
         } finally {
             jest.useRealTimers();
         }
@@ -1006,6 +1030,21 @@ describe('useNewTransactions across report switches', () => {
             {initialProps: {transactions: reportATransactions, reportID: 'reportA'}},
         );
 
+        rerender({transactions: reportBTransactions, reportID: 'reportB'});
+        expect(result.current).toEqual([]);
+
+        const addedTransaction = buildTransaction('B4', 'reportB');
+        rerender({transactions: [...reportBTransactions, addedTransaction], reportID: 'reportB'});
+        expect(result.current).toEqual([addedTransaction]);
+    });
+
+    it('does not highlight the incoming report when its transactions arrive a render after the reportID changes', () => {
+        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; reportID: string}>(
+            (props) => useNewTransactions(true, props.transactions, undefined, props.reportID, true),
+            {initialProps: {transactions: reportATransactions, reportID: 'reportA'}},
+        );
+
+        rerender({transactions: reportATransactions, reportID: 'reportB'});
         rerender({transactions: reportBTransactions, reportID: 'reportB'});
         expect(result.current).toEqual([]);
 
