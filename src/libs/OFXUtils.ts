@@ -1,5 +1,7 @@
 import CONST from '@src/CONST';
 
+import {Str} from 'expensify-common';
+
 // The headers stay untranslated because they are persisted in the saved column layout and matched by name on a later import.
 const OFX_COLUMNS = [
     {header: 'Date', role: CONST.CSV_IMPORT_COLUMNS.DATE},
@@ -55,7 +57,9 @@ function parseOFXToSpreadsheetRows(fileContent: string): string[][] | null {
 
         // Some banks leave NAME empty and put the merchant in MEMO instead.
         const merchant = getElementValue(statementTransaction, 'NAME') || getElementValue(statementTransaction, 'MEMO');
-        rows.push([date, merchant, amount]);
+
+        // OFX 2.x is XML, so a merchant like AT&T arrives escaped as AT&amp;T.
+        rows.push([date, Str.htmlDecode(merchant), amount]);
     }
 
     if (rows.length === 0) {
