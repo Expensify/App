@@ -4312,7 +4312,6 @@ const CONST = {
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
                 quickbooksOnline: 'QuickBooks Online',
-                intuitEnterpriseSuite: 'Intuit Enterprise Suite',
                 quickbooksDesktop: 'QuickBooks Desktop',
                 xero: 'Xero',
                 intacct: 'Sage Intacct',

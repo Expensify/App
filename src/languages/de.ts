@@ -6805,7 +6805,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'Integration';
                 return `${integrationName} trennen`;
             },
-            connectTitle: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'Buchhaltungsintegration'} verbinden`,
+            connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `${connectionName} verbinden`,
             syncError: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -6840,8 +6840,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'diese Integration';
                 return `Möchtest du ${integrationName} wirklich trennen?`;
             },
-            connectPrompt: ({connectionName}: ConnectionNameParams) =>
-                `Sind Sie sicher, dass Sie ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'diese Buchhaltungsintegration'} verbinden möchten? Dadurch werden alle bestehenden Buchhaltungsverbindungen entfernt.`,
+            connectPrompt: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Sind Sie sicher, dass Sie ${connectionName} verbinden möchten? Dadurch werden alle bestehenden Buchhaltungsverbindungen entfernt.`,
             enterCredentials: 'Gib deine Anmeldedaten ein',
             reconnect: 'Erneut verbinden',
             updateCredentials: 'Anmeldedaten aktualisieren',

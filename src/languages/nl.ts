@@ -6768,7 +6768,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integratie';
                 return `Verbinding met ${integrationName} verbreken`;
             },
-            connectTitle: ({connectionName}: ConnectionNameParams) => `Verbind ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'boekhoudintegratie'}`,
+            connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `Verbind ${connectionName}`,
             syncError: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -6803,8 +6803,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'deze integratie';
                 return `Weet je zeker dat je ${integrationName} wilt ontkoppelen?`;
             },
-            connectPrompt: ({connectionName}: ConnectionNameParams) =>
-                `Weet je zeker dat je ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'deze boekhoudkoppeling'} wilt koppelen? Hierdoor worden alle bestaande boekhoudkundige koppelingen verwijderd.`,
+            connectPrompt: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Weet je zeker dat je ${connectionName} wilt koppelen? Hierdoor worden alle bestaande boekhoudkundige koppelingen verwijderd.`,
             enterCredentials: 'Voer je inloggegevens in',
             reconnect: 'Opnieuw verbinden',
             updateCredentials: 'Inloggegevens bijwerken',

@@ -6782,7 +6782,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integrazione';
                 return `Disconnetti ${integrationName}`;
             },
-            connectTitle: ({connectionName}: ConnectionNameParams) => `Collega ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'integrazione contabile'}`,
+            connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `Collega ${connectionName}`,
             syncError: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -6817,8 +6817,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'questa integrazione';
                 return `Sei sicuro di voler disconnettere ${integrationName}?`;
             },
-            connectPrompt: ({connectionName}: ConnectionNameParams) =>
-                `Sei sicuro di voler collegare ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'questa integrazione contabile'}? Questo rimuoverà tutte le connessioni contabili esistenti.`,
+            connectPrompt: ({connectionName}: ConnectionDisplayNameParams) => `Sei sicuro di voler collegare ${connectionName}? Questo rimuoverà tutte le connessioni contabili esistenti.`,
             enterCredentials: 'Inserisci le tue credenziali',
             reconnect: 'Riconnetti',
             updateCredentials: 'Aggiorna credenziali',

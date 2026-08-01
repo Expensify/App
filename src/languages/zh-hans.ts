@@ -6546,7 +6546,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 const integrationName = connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : '集成';
                 return `断开连接 ${integrationName}`;
             },
-            connectTitle: ({connectionName}: ConnectionNameParams) => `连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '会计集成'}`,
+            connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `连接 ${connectionName}`,
             syncError: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -6581,8 +6581,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : '此集成';
                 return `你确定要断开与 ${integrationName} 的连接吗？`;
             },
-            connectPrompt: ({connectionName}: ConnectionNameParams) =>
-                `确定要连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '此会计集成'} 吗？这将删除所有现有的会计连接。`,
+            connectPrompt: ({connectionName}: ConnectionDisplayNameParams) => `确定要连接 ${connectionName} 吗？这将删除所有现有的会计连接。`,
             enterCredentials: '请输入您的凭证',
             reconnect: '重新连接',
             updateCredentials: '更新凭证',

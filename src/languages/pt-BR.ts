@@ -6764,7 +6764,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integração';
                 return `Desconectar ${integrationName}`;
             },
-            connectTitle: ({connectionName}: ConnectionNameParams) => `Conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'integração contábil'}`,
+            connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `Conectar ${connectionName}`,
             syncError: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -6799,8 +6799,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'esta integração';
                 return `Tem certeza de que deseja desconectar ${integrationName}?`;
             },
-            connectPrompt: ({connectionName}: ConnectionNameParams) =>
-                `Tem certeza de que deseja conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integração contábil'}? Isso removerá quaisquer conexões contábeis existentes.`,
+            connectPrompt: ({connectionName}: ConnectionDisplayNameParams) => `Tem certeza de que deseja conectar ${connectionName}? Isso removerá quaisquer conexões contábeis existentes.`,
             enterCredentials: 'Insira suas credenciais',
             reconnect: 'Reconectar',
             updateCredentials: 'Atualizar credenciais',

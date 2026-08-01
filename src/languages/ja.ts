@@ -6699,7 +6699,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 const integrationName = connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : '連携';
                 return `${integrationName}の接続を解除`;
             },
-            connectTitle: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '会計連携'} を接続`,
+            connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `${connectionName} を接続`,
             syncError: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -6734,8 +6734,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'この連携';
                 return `${integrationName} の接続を本当に解除しますか？`;
             },
-            connectPrompt: ({connectionName}: ConnectionNameParams) =>
-                `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'この会計連携'} を接続してもよろしいですか？これにより、既存の会計連携はすべて削除されます。`,
+            connectPrompt: ({connectionName}: ConnectionDisplayNameParams) => `${connectionName} を接続してもよろしいですか？これにより、既存の会計連携はすべて削除されます。`,
             enterCredentials: '認証情報を入力してください',
             reconnect: '再接続',
             updateCredentials: '認証情報を更新',

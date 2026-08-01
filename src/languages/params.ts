@@ -85,7 +85,7 @@ type UnsupportedFormulaValueErrorParams = {
 type UnshareParams = {to: string};
 
 type ConnectionNameParams = {
-    connectionName: AllConnectionName | 'intuitEnterpriseSuite';
+    connectionName: AllConnectionName;
 };
 
 type ConnectionDisplayNameParams = {

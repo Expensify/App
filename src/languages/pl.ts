@@ -6748,7 +6748,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integracja';
                 return `Odłącz ${integrationName}`;
             },
-            connectTitle: ({connectionName}: ConnectionNameParams) => `Połącz ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'integracja z księgowością'}`,
+            connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `Połącz ${connectionName}`,
             syncError: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -6783,8 +6783,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'ta integracja';
                 return `Czy na pewno chcesz odłączyć ${integrationName}?`;
             },
-            connectPrompt: ({connectionName}: ConnectionNameParams) =>
-                `Czy na pewno chcesz połączyć ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'ta integracja księgowa'}? Spowoduje to usunięcie wszystkich istniejących połączeń księgowych.`,
+            connectPrompt: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Czy na pewno chcesz połączyć ${connectionName}? Spowoduje to usunięcie wszystkich istniejących połączeń księgowych.`,
             enterCredentials: 'Wprowadź swoje dane logowania',
             reconnect: 'Połącz ponownie',
             updateCredentials: 'Zaktualizuj dane logowania',

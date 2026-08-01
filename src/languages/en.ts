@@ -6909,7 +6909,7 @@ const translations = {
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integration';
                 return `Disconnect ${integrationName}`;
             },
-            connectTitle: ({connectionName}: ConnectionNameParams) => `Connect ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'accounting integration'}`,
+            connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `Connect ${connectionName}`,
 
             syncError: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
@@ -6945,10 +6945,7 @@ const translations = {
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'this integration';
                 return `Are you sure you want to disconnect ${integrationName}?`;
             },
-            connectPrompt: ({connectionName}: ConnectionNameParams) =>
-                `Are you sure you want to connect ${
-                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'this accounting integration'
-                }? This will remove any existing accounting connections.`,
+            connectPrompt: ({connectionName}: ConnectionDisplayNameParams) => `Are you sure you want to connect ${connectionName}? This will remove any existing accounting connections.`,
             reconnect: 'Reconnect',
             enterCredentials: 'Enter your credentials',
             updateCredentials: 'Update credentials',

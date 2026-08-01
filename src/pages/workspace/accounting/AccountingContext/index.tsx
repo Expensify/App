@@ -175,9 +175,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                             removePolicyConnection(policy, activeIntegration?.integrationToDisconnect);
                             closeConfirmationModal();
                         }}
-                        integrationToConnect={
-                            activeIntegration.isIntuitEnterpriseSuite ? CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE : activeIntegration.name
-                        }
+                        integrationToConnect={activeIntegration.name}
+                        integrationDisplayName={activeIntegration.isIntuitEnterpriseSuite ? translate('workspace.accounting.intuitEnterpriseSuite') : undefined}
                         onCancel={() => {
                             setActiveIntegration(undefined);
                         }}
