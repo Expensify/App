@@ -1,8 +1,10 @@
-import {SafeString} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {EnterSignerInfoForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {SafeString} from 'expensify-common';
 
 const signerDetailsFields = [
     INPUT_IDS.SIGNER_FULL_NAME,

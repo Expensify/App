@@ -1,9 +1,12 @@
-import * as Sentry from '@sentry/react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, reportingObserverIntegration, tracingIntegration} from '@libs/telemetry/integrations';
 import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+
+import * as Sentry from '@sentry/react-native';
+
 import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 

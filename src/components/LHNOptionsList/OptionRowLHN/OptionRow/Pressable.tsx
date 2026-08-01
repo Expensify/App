@@ -1,6 +1,3 @@
-import type {ReactNode} from 'react';
-import React, {useRef, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, View} from 'react-native';
 import Hoverable from '@components/Hoverable';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import useLHNRowProductTrainingTooltip from '@components/LHNOptionsList/OptionRowLHN/useLHNRowProductTrainingTooltip';
@@ -8,18 +5,28 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import getActionBadgeText from '@components/utils/getActionBadgeText';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DomUtils from '@libs/DomUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
+import type {GestureResponderEvent, LayoutChangeEvent, View} from 'react-native';
+
+import React, {useRef, useState} from 'react';
 
 type PressableProps = {
     /** Option data for the row. Source of accessibility text and the report ID used by press/context-menu actions. */

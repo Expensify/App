@@ -1,6 +1,8 @@
-import {createNavigationContainerRef, StackActions} from '@react-navigation/native';
 import type {MultifactorAuthenticationModalNavigatorParamList} from '@libs/Navigation/types';
+
 import SCREENS from '@src/SCREENS';
+
+import {createNavigationContainerRef, StackActions} from '@react-navigation/native';
 
 /**
  * Internal placeholder used only as a mount-time buffer inside this module.
@@ -19,7 +21,7 @@ const mfaNavigationRef = createNavigationContainerRef<MultifactorAuthenticationM
 // render in the main RHP modal stack, not this tree.
 const MFA_OVERLAY_SCREENS = new Set<string>([
     MFA_INITIAL_SCREEN,
-    SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE,
+    SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE,
     SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT,
     SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS,
     SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE,

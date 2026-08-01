@@ -1,6 +1,3 @@
-import React from 'react';
-import type {TNode} from 'react-native-render-html';
-import {BarGroup} from 'victory-native';
 import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import {useVictoryChartRenderArgs} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
@@ -9,6 +6,11 @@ import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRendere
 import parseCornerRadius from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseCornerRadius';
 import parseOffset from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseOffset';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
+
+import type {TNode} from 'react-native-render-html';
+
+import React from 'react';
+import {BarGroup} from 'victory-native';
 
 type VictoryChartBarGroupProps = {
     tnode: TNode;

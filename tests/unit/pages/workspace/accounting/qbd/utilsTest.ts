@@ -1,5 +1,7 @@
 import getPlatform from '@libs/getPlatform';
+
 import getQuickbooksDesktopSetupEntryRoute from '@pages/workspace/accounting/qbd/utils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 

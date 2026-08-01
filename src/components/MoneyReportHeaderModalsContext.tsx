@@ -1,5 +1,7 @@
-import {createContext, useContext} from 'react';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import {createContext, useContext} from 'react';
+
 import type {ActionHandledType} from './Modal/Global/HoldMenuModalWrapper';
 import type {RejectModalAction} from './MoneyReportHeaderEducationalModals';
 
@@ -12,7 +14,7 @@ type HoldMenuParams = {
 
 type MoneyReportHeaderModalsContextValue = {
     openHoldMenu: (params: HoldMenuParams) => Promise<void>;
-    openPDFDownload: () => void;
+    openPDFDownload: (options?: {onCancel?: () => void}) => void;
     openHoldEducational: () => void;
     openRejectModal: (action: RejectModalAction) => void;
     showOfflineModal: () => void;

@@ -1,4 +1,5 @@
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+
 import CONST from '@src/CONST';
 
 type Item = {value: string; keyForList: string};

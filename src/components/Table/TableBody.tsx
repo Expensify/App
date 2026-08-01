@@ -1,13 +1,17 @@
-import {FlashList} from '@shopify/flash-list';
-import React from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
-import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
+
+import {FlashList} from '@shopify/flash-list';
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type {TableData} from '.';
+
+import {getRowGroupAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
 
 /**
@@ -17,6 +21,15 @@ type TableBodyProps = ViewProps & {
     /** Optional custom styles for the FlashList content container. */
     contentContainerStyle?: StyleProp<ViewStyle>;
 };
+
+/**
+ * Whether `TableBody` still renders (keeping its `role="rowgroup"`) when the table has no data rows — i.e. an
+ * empty-state (`ListEmptyComponent`) or header (`ListHeaderComponent`) list slot is supplied. Single source of truth
+ * for that condition, mirrored by the early `return null` below and read by `Table`.
+ */
+function doesBodyRenderWhenEmpty(listProps: {ListEmptyComponent?: unknown; ListHeaderComponent?: unknown} | undefined): boolean {
+    return !!listProps?.ListEmptyComponent || !!listProps?.ListHeaderComponent;
+}
 
 /**
  * Renders the table body using FlashList.
@@ -58,8 +71,9 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         hasActiveFilters,
         hasSearchString,
         isEmptyResult,
+        originalDataLength,
     } = useTableContext<DataType>();
-    const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
+    const {contentContainerStyle: listContentContainerStyle, ListEmptyComponent, ListHeaderComponent, ...restListProps} = listProps ?? {};
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -84,20 +98,14 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
-    const EmptyResultComponent = (
-        <View style={[styles.ph5, styles.pt3, styles.pb5]}>
-            <Text
-                style={[styles.textNormal, styles.colorMuted]}
-                aria-hidden
-            >
-                {message}
-            </Text>
-        </View>
-    );
+    if ((isEmptyResult || !originalDataLength) && !doesBodyRenderWhenEmpty(listProps)) {
+        return null;
+    }
 
     return (
         <View
             style={[styles.flex1, styles.mnh0, style]}
+            {...getRowGroupAccessibilityProps(shouldUseTableSemantics(shouldUseNarrowTableLayout))}
             {...props}
         >
             <FlashList<DataType>
@@ -106,7 +114,6 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                 style={[styles.flex1, styles.mnh0]}
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
-                ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
                 contentContainerStyle={[
                     filteredAndSortedData.length === 0 && styles.flexGrow1,
                     listContentContainerStyle,
@@ -117,6 +124,8 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                         typeof tableBodyBottomPadding === 'number' && {minHeight: contentMinHeight + tableBodyBottomPadding},
                 ]}
                 keyboardShouldPersistTaps="handled"
+                ListHeaderComponent={ListHeaderComponent}
+                ListEmptyComponent={ListEmptyComponent}
                 {...restListProps}
             />
         </View>
@@ -124,3 +133,4 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 }
 
 export default TableBody;
+export {doesBodyRenderWhenEmpty};

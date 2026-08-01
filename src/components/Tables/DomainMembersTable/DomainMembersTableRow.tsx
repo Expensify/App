@@ -1,15 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {DomainMemberRowData} from '.';
 
 type DomainMembersTableRowProps = {
@@ -31,6 +37,8 @@ export default function DomainMembersTableRow({item, rowIndex, shouldUseNarrowTa
     const styles = useThemeStyles();
     const styleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const shouldShowGroupInColumn = shouldShowGroupColumn && !shouldUseNarrowTableLayout;
@@ -61,7 +69,10 @@ export default function DomainMembersTableRow({item, rowIndex, shouldUseNarrowTa
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                    <View
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         <ReportActionAvatars
                             size={avatarSize}
                             accountIDs={[item.accountID]}
@@ -86,7 +97,10 @@ export default function DomainMembersTableRow({item, rowIndex, shouldUseNarrowTa
                     </View>
 
                     {shouldShowGroupInColumn && (
-                        <View style={[styles.justifyContentCenter, styles.flex1]}>
+                        <View
+                            style={[styles.justifyContentCenter, styles.flex1]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -96,13 +110,15 @@ export default function DomainMembersTableRow({item, rowIndex, shouldUseNarrowTa
                         </View>
                     )}
 
-                    <Icon
-                        src={icons.ArrowRight}
-                        fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
+                        <Icon
+                            src={icons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </View>
                 </>
             )}
         </Table.Row>

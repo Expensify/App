@@ -1,13 +1,17 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import {createOptionList} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData, PrivateIsArchivedMap} from '@libs/PersonalDetailOptionsListUtils/types';
 import {isOneOnOneChat, isSelfDM} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -123,7 +127,7 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
     const {enabled = true, shouldStoreReportErrors = false, shouldShowBrickRoadIndicator = false} = config;
 
     const {accountID} = useCurrentUserPersonalDetails();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
     const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
     const reportIDsSet = (() => {
         if (!reports) {
@@ -149,7 +153,7 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
     const filteredReportAttributes = filterReportAttributes(reportAttributes, reportIDsSet);
 
     const optionsData = !isLoading
-        ? createOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, filteredReportAttributes, privateIsArchivedMap, formatPhoneNumber, {
+        ? createOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, filteredReportAttributes, privateIsArchivedMap, formatPhoneNumber, translate, {
               shouldStoreReportErrors,
               shouldShowBrickRoadIndicator,
           })

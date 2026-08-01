@@ -1,9 +1,12 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {openReport} from '@libs/actions/Report';
 import {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup} from '@libs/actions/TransactionEdit';
 import {hasRoute} from '@libs/TransactionUtils';
+
 import type {Beta, IntroSelected, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
 
 type UseDistanceTransactionBackupParams = {
     /** The transaction the editor is operating on. */
@@ -54,7 +57,7 @@ function useDistanceTransactionBackup({transaction, isCreatingNewRequest, isEdit
             if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
-            openReport({reportID: transaction?.reportID, introSelected, betas});
+            openReport({reportID: transaction?.reportID, introSelected, betas, hasReportActions: true});
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount-only effect: backup on mount, restore-or-drop on unmount, never re-runs
     }, []);

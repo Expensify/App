@@ -1,5 +1,7 @@
 import type {SelectionListApprover} from '@components/WorkspaceMembersSelectionList';
+
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 describe('tokenizedSearch', () => {
@@ -13,6 +15,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example@test.com',
                 login: 'example@test.com',
+                value: 'example@test.com',
                 text: 'One Two Three',
             },
             {
@@ -21,6 +24,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example2@test.com',
                 login: 'example2@test.com',
+                value: 'example2@test.com',
                 text: 'Example Test',
             },
         ];
@@ -32,6 +36,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example@test.com',
                 login: 'example@test.com',
+                value: 'example@test.com',
                 text: 'One Two Three',
             },
         ];
@@ -50,6 +55,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example@test.com',
                 login: 'example@test.com',
+                value: 'example@test.com',
                 text: 'One Two Three',
             },
             {
@@ -58,6 +64,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example2@test.com',
                 login: 'example2@test.com',
+                value: 'example2@test.com',
                 text: 'Example Test',
             },
         ];
@@ -69,6 +76,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example@test.com',
                 login: 'example@test.com',
+                value: 'example@test.com',
                 text: 'One Two Three',
             },
         ];
@@ -130,6 +138,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example@test.com',
                 login: 'example@test.com',
+                value: 'example@test.com',
                 text: 'One Two Three',
             },
             {
@@ -138,6 +147,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example2@test.com',
                 login: 'example2@test.com',
+                value: 'example2@test.com',
                 text: 'Example Test',
             },
         ];
@@ -149,6 +159,7 @@ describe('tokenizedSearch', () => {
                 isSelected: false,
                 keyForList: 'example@test.com',
                 login: 'example@test.com',
+                value: 'example@test.com',
                 text: 'One Two Three',
             },
         ];

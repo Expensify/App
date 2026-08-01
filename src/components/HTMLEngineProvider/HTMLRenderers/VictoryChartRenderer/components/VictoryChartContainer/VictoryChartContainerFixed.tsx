@@ -1,19 +1,15 @@
-import React from 'react';
-import type {ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
+import {CHART_TYPE, POLAR_CONTAINER_HEIGHT_RATIO} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
-import useTheme from '@hooks/useTheme';
-import type {VictoryChartContainerLayout, VictoryChartContainerThemeStyles} from './types';
 
-/**
- * Polar charts are circular but their design canvas is often taller than the
- * visible content, leaving dead space at the bottom. We clip the container
- * (not the content) so the chart renders at full fidelity while the unused
- * bottom portion is hidden.
- */
-const POLAR_CONTAINER_HEIGHT_RATIO = 0.9;
+import useTheme from '@hooks/useTheme';
+
+import type {ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {VictoryChartContainerLayout, VictoryChartContainerThemeStyles} from './types';
 
 type VictoryChartContainerFixedProps = {
     children: React.ReactNode;

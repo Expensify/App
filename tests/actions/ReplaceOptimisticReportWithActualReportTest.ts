@@ -1,10 +1,13 @@
 import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
-import {DeviceEventEmitter} from 'react-native';
-import Onyx from 'react-native-onyx';
+
 import CONST from '@src/CONST';
 import {replaceOptimisticReportWithActualReport} from '@src/libs/actions/replaceOptimisticReportWithActualReport';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import {DeviceEventEmitter} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
@@ -1152,7 +1155,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // Then openReport should be called with the parent IOU report ID
-        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined});
+        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined, betas: undefined, hasReportActions: true});
 
         // And the optimistic report should be cleared
         const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
@@ -1204,7 +1207,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         expect(parentDraft).toBe(draftComment);
 
         // And openReport should be called after the draft is saved
-        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined});
+        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined, betas: undefined, hasReportActions: true});
 
         // And the optimistic report should be cleared
         const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
@@ -1251,7 +1254,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // Then openReport should be called with the parent IOU report ID
-        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined});
+        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined, betas: undefined, hasReportActions: true});
     });
 
     it('should transfer draft to parent IOU report and call openReport when user is on search report view with draft comment', async () => {
@@ -1299,7 +1302,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         expect(parentDraft).toBe(draftComment);
 
         // And openReport should be called after the draft is saved
-        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined});
+        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined, betas: undefined, hasReportActions: true});
 
         // And the optimistic report should be cleared
         const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);

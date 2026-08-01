@@ -1,7 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import useAttendees from '@hooks/useAttendees';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -13,6 +9,7 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
@@ -32,12 +29,22 @@ import {
     isGPSDistanceRequest as isGPSDistanceRequestUtil,
     isManualDistanceRequest as isManualDistanceRequestUtil,
 } from '@libs/TransactionUtils';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {MeasurableInput, SelectionListWithSectionsHandle} from './SelectionList/SelectionListWithSections/types';
+
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
 import buildConfirmAction from './MoneyRequestConfirmationList/confirmAction';
 import ConfirmationFooterContent from './MoneyRequestConfirmationList/ConfirmationFooterContent';
@@ -61,11 +68,10 @@ import TaxController from './MoneyRequestConfirmationList/TaxController';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import BareUserListItem from './SelectionList/ListItem/BareUserListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
-import type {MeasurableInput, SelectionListWithSectionsHandle} from './SelectionList/SelectionListWithSections/types';
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
-    onConfirm?: (selectedParticipants?: Participant[]) => void;
+    onConfirm?: () => void;
 
     /** When set, used in the new manual expense flow to open the parent-owned participant picker instead of navigating away */
     onOpenParticipantPicker?: () => void;
@@ -423,6 +429,7 @@ function MoneyRequestConfirmationList({
 
     const sections = useConfirmationSections({
         isTypeSplit,
+        isTypeInvoice,
         shouldHideToSection,
         shouldForceTopEmptySections,
         participantRowErrors,
@@ -475,6 +482,7 @@ function MoneyRequestConfirmationList({
         isDistanceRequest,
         isDistanceRequestWithPendingRoute,
         isPerDiemRequest,
+        isMovingTransactionFromTrackExpense,
         isTimeRequest,
         routeError,
         isNewManualExpenseFlowEnabled,
@@ -486,10 +494,8 @@ function MoneyRequestConfirmationList({
         iouType,
         policy,
         transactionID,
-        reportID,
         routeError,
         formError,
-        selectedParticipants,
         isDelegateAccessRestricted,
         validate,
         setFormError,
@@ -503,7 +509,7 @@ function MoneyRequestConfirmationList({
     const selectionListStyle = {
         containerStyle: [styles.flexBasisAuto],
         contentContainerStyle: isCompactMode ? [styles.flexGrow1] : undefined,
-        listFooterContentStyle: isCompactMode ? [styles.flex1, styles.mv3] : [styles.mv3],
+        listFooterContentStyle: isCompactMode ? [styles.flex1, styles.mb3] : [styles.mb3],
     };
 
     const footerContent = isReadOnly ? undefined : (

@@ -1,19 +1,24 @@
-import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearFinancialForceErrorField, updateFinancialForceSyncMilestones, updateFinancialForceSyncTax} from '@libs/actions/connections/FinancialForce';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+
 import {CERTINIA_DIMENSION_PARAMS, getDimensionLabel, getDisplayTypeLabel, getParentTagMappingLabel} from '@pages/workspace/accounting/certinia/utils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();

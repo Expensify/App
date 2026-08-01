@@ -1,5 +1,7 @@
 import type useConfirmModal from '@hooks/useConfirmModal';
+
 import CONST from '@src/CONST';
+
 import getPlatform from './getPlatform';
 import TransitionTracker from './Navigation/TransitionTracker';
 

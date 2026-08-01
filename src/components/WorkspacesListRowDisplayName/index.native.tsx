@@ -1,7 +1,11 @@
-import React from 'react';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getProcessedText, splitTextWithEmojis} from '@libs/EmojiUtils';
+
+import React from 'react';
+
 import type WorkspacesListRowDisplayNameProps from './types';
 
 function WorkspacesListRowDisplayName({isDeleted, ownerName}: WorkspacesListRowDisplayNameProps) {

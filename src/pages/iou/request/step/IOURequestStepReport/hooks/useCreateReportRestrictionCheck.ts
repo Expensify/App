@@ -1,9 +1,12 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
+
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 /**
  * @param session — current user session; provides the accountID used by `shouldRestrictUserBillableActions`.

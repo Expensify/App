@@ -1,7 +1,9 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
 import React from 'react';
 import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
-import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 

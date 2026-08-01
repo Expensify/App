@@ -1,9 +1,12 @@
-import React from 'react';
-import {View} from 'react-native';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const ILLUSTRATION_SIZE = 68;
 

@@ -1,14 +1,17 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {beginGoogleSignIn} from '@userActions/Session';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Response from '@src/types/modules/google';
 import type Locale from '@src/types/onyx/Locale';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 type GoogleSignInProps = {
     isDesktopFlow?: boolean;

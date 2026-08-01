@@ -1,11 +1,15 @@
-import {useEffect, useEffectEvent, useId, useRef, useSyncExternalStore} from 'react';
 import subscribeToRootNavigation from '@libs/Navigation/helpers/subscribeToRootNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import CONST from '@src/CONST';
+
+import {useEffect, useEffectEvent, useId, useRef, useSyncExternalStore} from 'react';
+
+import type {ModalGuardState} from './modalGuardState';
+
 import {EMPTY_MODAL_GUARD_SNAPSHOT_KEY, getModalGuardSnapshotKey, parseModalGuardSnapshotKey} from './modalGuardSnapshot';
 import reduceModalGuardState, {getModalGuardEventFromSnapshotChange, MODAL_GUARD_EFFECT, MODAL_GUARD_STATE} from './modalGuardState';
-import type {ModalGuardState} from './modalGuardState';
 
 type UseSyncModalWithHistoryParams = {
     /** Whether the modal is currently visible */

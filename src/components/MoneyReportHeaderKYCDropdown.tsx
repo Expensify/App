@@ -1,20 +1,26 @@
-import React, {memo} from 'react';
-import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isSecondaryActionAPaymentOption, isSecondaryActionAWorkspacePolicyOption} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {memo} from 'react';
+
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
-import KYCWall from './KYCWall';
 import type {KYCWallProps} from './KYCWall/types';
+
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import KYCWall from './KYCWall';
 
 type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enablePaymentsRoute'> & {
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
@@ -80,7 +86,7 @@ function MoneyReportHeaderKYCDropdown({
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
                     ref={dropdownMenuRef}
-                    success={shouldShowSuccessStyle ?? false}
+                    variant={(shouldShowSuccessStyle ?? false) ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                     onPress={() => {}}
                     onSubItemSelected={(item, _index, event) => {
                         if (isSecondaryActionAWorkspacePolicyOption(item)) {

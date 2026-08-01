@@ -1,11 +1,18 @@
-import {PermissionsAndroid, Platform} from 'react-native';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import fileURIToPath from '@libs/fileURIToPath';
+
+import CONST from '@src/CONST';
+
 import type {FetchBlobResponse} from 'react-native-blob-util';
+
+import {PermissionsAndroid, Platform} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import CONST from '@src/CONST';
-import {appendTimeToFileName, getFileName, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
+
 import type {FileDownload} from './types';
+
+import {appendTimeToFileName, getFileName, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
 
 /**
  * Android permission check to store images
@@ -48,7 +55,8 @@ function handleDownload(translate: LocalizedTranslate, url: string, fileName?: s
 
         const isLocalFile = url.startsWith('file://');
 
-        let attachmentPath = isLocalFile ? decodeURI(url) : undefined;
+        // copyToMediaStore and fs.unlink take a bare POSIX path, not a file:// URI.
+        let attachmentPath = isLocalFile ? fileURIToPath(url) : undefined;
         let fetchedAttachment: Promise<void | FetchBlobResponse> = Promise.resolve();
 
         if (!isLocalFile) {

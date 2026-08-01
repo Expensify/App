@@ -1,10 +1,13 @@
 import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
-import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {useCurrencyListActions} from './useCurrencyList';
 import useDefaultFundID from './useDefaultFundID';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -14,6 +17,7 @@ export default function useExpensifyCardRules(policyID: string) {
     const {isOffline} = useNetwork();
     const defaultFundID = useDefaultFundID(policyID);
     const {translate, localeCompare} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
@@ -47,7 +51,7 @@ export default function useExpensifyCardRules(policyID: string) {
                 }
 
                 const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
+                const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], defaultValue: '', shouldFallbackToHidden: false, translate});
                 cardNames.push(getCardDescriptionForSearchTable(card, translate, displayName || undefined) || cardID);
                 cardOwnerDisplayNames.push(displayName);
             }

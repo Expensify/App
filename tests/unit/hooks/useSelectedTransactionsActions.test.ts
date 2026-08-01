@@ -1,18 +1,25 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SelectedTransactions} from '@components/Search/types';
+
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
+
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction, Session} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
@@ -26,7 +33,31 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => []),
+    // Mirror the real getExportTemplates: templates are returned pre-grouped, and the basic export (CSV download) template
+    // is only included in the default group when includeBasicExport is true
+    getExportTemplates: jest.fn(
+        (
+            _integrations: unknown,
+            _layouts: unknown,
+            translate: (key: string) => string,
+            _localeCompare: unknown,
+            _policy: unknown,
+            _includeReportLevelExport: unknown,
+            includeBasicExport = false,
+        ) => ({
+            customTemplates: [],
+            defaultTemplates: includeBasicExport
+                ? [
+                      {
+                          templateName: 'downloadCSV',
+                          name: translate('export.basicExport'),
+                          type: 'integrations',
+                          description: '',
+                      },
+                  ]
+                : [],
+        }),
+    ),
 }));
 
 jest.mock('@libs/actions/SplitExpenses.ts', () => ({
@@ -691,7 +722,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, false, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined);
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, false, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined, false);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -745,7 +776,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, true, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined);
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, true, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined, false);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 

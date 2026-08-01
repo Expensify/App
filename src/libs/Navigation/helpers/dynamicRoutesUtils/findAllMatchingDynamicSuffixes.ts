@@ -1,5 +1,7 @@
 import {dynamicTabPatternToTabPaths} from '@libs/Navigation/linkingConfig/config';
+
 import type {CompiledEntry} from './compileDynamicRoutePattern';
+
 import {compiledOptionalParametricDynamicRoutes, compiledStrictParametricDynamicRoutes} from './compileDynamicRoutePattern';
 import {dynamicRoutePaths} from './isDynamicRouteSuffix';
 import splitPathAndQuery from './splitPathAndQuery';

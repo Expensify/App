@@ -1,7 +1,9 @@
-import {SafeString} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {CorpayFields, CorpayFormField} from '@src/types/onyx';
+
+import {SafeString} from 'expensify-common';
+
 import type {SubStepValues} from './getBankInfoStepValues';
 
 /**

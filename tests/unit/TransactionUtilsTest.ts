@@ -1,14 +1,19 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
-import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {Card, Policy, Report, Transaction} from '../../src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {Card, Policy, Report, ReviewDuplicates, Transaction} from '../../src/types/onyx';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
+
+import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -410,6 +415,7 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 policy: fakePolicy,
                 transactionChanges: {category},
+                personalPolicyOutputCurrency: undefined,
             });
 
             // Then the updated transaction should contain the tax from the matched rule
@@ -458,6 +464,7 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: false,
                 policy: fakePolicy,
                 transactionChanges: {distance: newDistance},
+                personalPolicyOutputCurrency: undefined,
             });
 
             // Then: quantity should be updated
@@ -480,6 +487,100 @@ describe('TransactionUtils', () => {
             });
         });
 
+        it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
+            // A P2P distance expense (FAKE_P2P_ID) has no policy rate, so the mileage currency comes from the
+            // resolved personal-policy currency that getUpdatedTransaction forwards to getRate. getRateForP2P only
+            // returns that resolved currency when the default P2P rate is loaded, so seed it here.
+            await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, {rate: 30, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+            await waitForBatchedUpdates();
+
+            try {
+                // transaction.currency is deliberately USD so a passing result proves the EUR came from
+                // personalPolicyOutputCurrency, not from the transaction itself.
+                const transaction = generateTransaction({
+                    currency: CONST.CURRENCY.USD,
+                    comment: {
+                        customUnit: {
+                            customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 10,
+                        },
+                    },
+                });
+
+                const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                    transaction,
+                    isFromExpenseReport: false,
+                    policy: undefined,
+                    transactionChanges: {distance: 20},
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+
+                // Currency + merchant follow the threaded personal currency (EUR), and amount = 20 mi × 30¢ = 600.
+                // (The merchant shows the "EUR" code rather than the € glyph because the currency list isn't loaded in this unit test.)
+                expect(updatedTransaction.modifiedCurrency).toBe('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('0.30');
+                expect(updatedTransaction.modifiedAmount).toBe(600);
+            } finally {
+                await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, null);
+                await waitForBatchedUpdates();
+            }
+        });
+
+        it('uses the resolved personal-policy currency (not transaction.currency) when recalculating a P2P expense from edited waypoints', async () => {
+            // Regression: the waypoint/route branch used to format the merchant with transaction.currency and never set
+            // modifiedCurrency, so a P2P expense whose personal currency differs from transaction.currency would show a
+            // rate in the old currency for an amount computed in the new one (visible offline / before the server responds).
+            await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, {rate: 30, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+            await waitForBatchedUpdates();
+
+            try {
+                const transaction = generateTransaction({
+                    currency: CONST.CURRENCY.USD,
+                    comment: {
+                        customUnit: {
+                            customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 10,
+                        },
+                        waypoints: {waypoint0: {address: 'Old A'}, waypoint1: {address: 'Old B'}},
+                    },
+                });
+
+                // 32186.88 m ≈ 20 mi; at the EUR P2P rate of 30¢ the amount is 600.
+                const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                    transaction,
+                    isFromExpenseReport: false,
+                    policy: undefined,
+                    transactionChanges: {
+                        waypoints: {waypoint0: {address: 'New A'}, waypoint1: {address: 'New B'}},
+                        routes: {
+                            route0: {
+                                distance: 32186.88,
+                                geometry: {
+                                    coordinates: [
+                                        [0, 0],
+                                        [1, 1],
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                    personalPolicyOutputCurrency: 'EUR',
+                });
+
+                // Merchant currency and modifiedCurrency both follow the EUR personal-policy rate, not the USD transaction currency.
+                expect(updatedTransaction.modifiedCurrency).toBe('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('EUR');
+                expect(updatedTransaction.modifiedMerchant).toContain('0.30');
+                expect(updatedTransaction.modifiedAmount).toBe(600);
+            } finally {
+                await Onyx.merge(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, null);
+                await waitForBatchedUpdates();
+            }
+        });
+
         it('should negate modifiedAmount when isFromExpenseReport is true', () => {
             const transaction = generateTransaction();
             const newAmount = 500;
@@ -488,6 +589,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: true,
                 transactionChanges: {amount: newAmount},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(-newAmount);
@@ -501,6 +603,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: false,
                 transactionChanges: {amount: newAmount},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(newAmount);
@@ -513,6 +616,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: true,
                 transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.taxValue).toBe('5%');
@@ -527,6 +631,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isFromExpenseReport: false,
                 transactionChanges: {taxValue: '5%'},
+                personalPolicyOutputCurrency: undefined,
             });
 
             expect(updatedTransaction.taxValue).toBe('10%');
@@ -750,6 +855,7 @@ describe('TransactionUtils', () => {
             };
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
                 [transaction1, transaction2],
+                undefined,
                 undefined,
                 policy,
                 transactionViolations,
@@ -1039,7 +1145,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When checking if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
 
                 // Then it should return true
                 expect(result).toBe(true);
@@ -1053,7 +1159,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When checking if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
 
                 // Then it should return false
                 expect(result).toBe(false);
@@ -1073,7 +1179,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When checking if violation is dismissed for current user
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
 
                 // Then it should return false since current user hasn't dismissed it
                 expect(result).toBe(false);
@@ -1102,7 +1208,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When current user (admin, not the owner) checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, OTHER_USER_EMAIL, undefined);
 
                 // Then it should return true because admin sees owner's perspective on open reports
                 expect(result).toBe(true);
@@ -1129,7 +1235,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When current user (admin, not the owner) checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined, undefined);
 
                 // Then it should return false because on processing reports, admin must dismiss separately
                 expect(result).toBe(false);
@@ -1156,7 +1262,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When current user (the submitter) checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined, undefined);
 
                 // Then it should return false (condition 2 doesn't apply to submitters)
                 expect(result).toBe(false);
@@ -1185,7 +1291,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
 
                 // When current user checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, policy);
 
                 // Then it should return true because on instant submit, anyone's dismissal counts
                 expect(result).toBe(true);
@@ -1212,7 +1318,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
 
                 // When current user checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, policy);
 
                 // Then it should return false because on non-instant submit, each person must dismiss separately
                 expect(result).toBe(false);
@@ -1239,7 +1345,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When current user checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, policy);
 
                 // Then it should return false because condition 3 only applies to RTER violations
                 expect(result).toBe(false);
@@ -1267,7 +1373,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
 
                 // When current user checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, policy);
 
                 // Then it should return true
                 expect(result).toBe(true);
@@ -1277,13 +1383,13 @@ describe('TransactionUtils', () => {
         describe('Edge cases and data validation', () => {
             it('should return false when transaction is null', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
-                const result = TransactionUtils.isViolationDismissed(undefined, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(undefined, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
                 expect(result).toBe(false);
             });
 
             it('should return false when violation is null', () => {
                 const transaction = generateTransaction({});
-                const result = TransactionUtils.isViolationDismissed(transaction, undefined, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, undefined, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
                 expect(result).toBe(false);
             });
 
@@ -1298,7 +1404,7 @@ describe('TransactionUtils', () => {
                     },
                 });
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
                 expect(result).toBe(false);
             });
         });
@@ -3217,6 +3323,155 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('buildMergeDuplicatesParams', () => {
+        const MERGE_KEPT_OPEN_REPORT_ID = 'mergeKeptOpenReport';
+        const MERGE_SUBMITTED_REPORT_ID = 'mergeSubmittedReport';
+        const MERGE_APPROVED_REPORT_ID = 'mergeApprovedReport';
+        const MERGE_CLOSED_REPORT_ID = 'mergeClosedReport';
+        const MERGE_REIMBURSED_REPORT_ID = 'mergeReimbursedReport';
+
+        beforeAll(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_KEPT_OPEN_REPORT_ID}`, {
+                reportID: MERGE_KEPT_OPEN_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_SUBMITTED_REPORT_ID}`, {
+                reportID: MERGE_SUBMITTED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_APPROVED_REPORT_ID}`, {
+                reportID: MERGE_APPROVED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            });
+            // Submit & Close workspaces leave the report approved but closed, the state from the reported bug.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_CLOSED_REPORT_ID}`, {
+                reportID: MERGE_CLOSED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_REIMBURSED_REPORT_ID}`, {
+                reportID: MERGE_REIMBURSED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        function buildReviewDuplicates(keptTransactionID: string, duplicateIDs: string[]): ReviewDuplicates {
+            return {
+                transactionID: keptTransactionID,
+                duplicates: duplicateIDs,
+                reportID: MERGE_KEPT_OPEN_REPORT_ID,
+                merchant: '',
+                category: '',
+                tag: '',
+                taxCode: '',
+                taxAmount: 0,
+                description: '',
+                comment: {},
+                reimbursable: true,
+                billable: false,
+            };
+        }
+
+        it('keeps only duplicates whose report is open or awaiting first approval', () => {
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const openDuplicate = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const submittedDuplicate = generateTransaction({reportID: MERGE_SUBMITTED_REPORT_ID});
+            const approvedDuplicate = generateTransaction({reportID: MERGE_APPROVED_REPORT_ID});
+            const closedDuplicate = generateTransaction({reportID: MERGE_CLOSED_REPORT_ID});
+            const reimbursedDuplicate = generateTransaction({reportID: MERGE_REIMBURSED_REPORT_ID});
+            const duplicates = [openDuplicate, submittedDuplicate, approvedDuplicate, closedDuplicate, reimbursedDuplicate];
+
+            const params = TransactionUtils.buildMergeDuplicatesParams(
+                buildReviewDuplicates(
+                    keptTransaction.transactionID,
+                    duplicates.map((transaction) => transaction.transactionID),
+                ),
+                duplicates,
+                keptTransaction,
+            );
+
+            expect(params.transactionIDList).toEqual([openDuplicate.transactionID, submittedDuplicate.transactionID]);
+        });
+
+        it('excludes a duplicate on a Submit & Close (approved and closed) report', () => {
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const closedDuplicate = generateTransaction({reportID: MERGE_CLOSED_REPORT_ID});
+
+            const params = TransactionUtils.buildMergeDuplicatesParams(
+                buildReviewDuplicates(keptTransaction.transactionID, [closedDuplicate.transactionID]),
+                [closedDuplicate],
+                keptTransaction,
+            );
+
+            expect(params.transactionIDList).toEqual([]);
+        });
+
+        it('returns an empty transactionIDList when every duplicate is non-editable', () => {
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const approvedDuplicate = generateTransaction({reportID: MERGE_APPROVED_REPORT_ID});
+            const reimbursedDuplicate = generateTransaction({reportID: MERGE_REIMBURSED_REPORT_ID});
+            const duplicates = [approvedDuplicate, reimbursedDuplicate];
+
+            const params = TransactionUtils.buildMergeDuplicatesParams(
+                buildReviewDuplicates(
+                    keptTransaction.transactionID,
+                    duplicates.map((transaction) => transaction.transactionID),
+                ),
+                duplicates,
+                keptTransaction,
+            );
+
+            expect(params.transactionIDList).toEqual([]);
+        });
+    });
+
+    describe('canMergeDuplicates', () => {
+        const DUPLICATE_IDS = ['1', '2'];
+
+        function buildReportWithState(stateNum: Report['stateNum'], statusNum: Report['statusNum']): Report {
+            return {...createRandomReport(1), stateNum, statusNum};
+        }
+
+        it('allows merging when the kept report is open and there are duplicates', () => {
+            const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
+            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(true);
+        });
+
+        it('allows merging when the kept report is awaiting first approval', () => {
+            const report = buildReportWithState(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED);
+            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(true);
+        });
+
+        it('allows merging when the kept expense is unreported (no resolvable report)', () => {
+            expect(TransactionUtils.canMergeDuplicates(undefined, DUPLICATE_IDS)).toBe(true);
+        });
+
+        it('blocks merging when the kept report is approved and closed (Submit & Close)', () => {
+            const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED);
+            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(false);
+        });
+
+        it('blocks merging when the kept report is reimbursed', () => {
+            const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED);
+            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(false);
+        });
+
+        it('blocks merging when there are no duplicates left to merge', () => {
+            const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
+            expect(TransactionUtils.canMergeDuplicates(report, [])).toBe(false);
+        });
+    });
+
     describe('buildNewTransactionAfterReviewingDuplicates', () => {
         it('preserves the kept transaction tax amount when the selected tax code matches the existing tax code', () => {
             const duplicatedTransaction = generateTransaction({
@@ -3527,6 +3782,41 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('isPending', () => {
+        it('returns true for a BYOC pending transaction (non-Expensify Card with status Pending)', () => {
+            const transaction = generateTransaction({
+                status: CONST.TRANSACTION.STATUS.PENDING,
+                bank: 'chase',
+            });
+            expect(TransactionUtils.isPending(transaction)).toBe(true);
+        });
+
+        it('returns true for an Expensify Card pending transaction', () => {
+            const transaction = generateTransaction({
+                status: CONST.TRANSACTION.STATUS.PENDING,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+            });
+            expect(TransactionUtils.isPending(transaction)).toBe(true);
+        });
+
+        it('returns false for a posted transaction', () => {
+            const transaction = generateTransaction({
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: 'chase',
+            });
+            expect(TransactionUtils.isPending(transaction)).toBe(false);
+        });
+
+        it('returns false for a transaction with no status', () => {
+            const transaction = generateTransaction();
+            expect(TransactionUtils.isPending(transaction)).toBe(false);
+        });
+
+        it('returns false for undefined transaction', () => {
+            expect(TransactionUtils.isPending(undefined)).toBe(false);
+        });
+    });
+
     describe('shouldClearConvertedAmount', () => {
         it('returns false when destinationCurrency is undefined', () => {
             const transaction = generateTransaction({currency: 'USD'});
@@ -3718,6 +4008,27 @@ describe('TransactionUtils', () => {
                 comment: {waypoints: {}},
             });
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
+        });
+    });
+
+    describe('isSplitContainerTransaction', () => {
+        it('returns true when the transaction lives in SPLIT_REPORT_ID (hidden container)', () => {
+            const transaction = generateTransaction({reportID: CONST.REPORT.SPLIT_REPORT_ID});
+            expect(TransactionUtils.isSplitContainerTransaction(transaction)).toBe(true);
+        });
+
+        it('returns false for a transaction in a normal report (e.g. restored original)', () => {
+            const transaction = generateTransaction({reportID: '123456'});
+            expect(TransactionUtils.isSplitContainerTransaction(transaction)).toBe(false);
+        });
+
+        it('returns false for an unreported transaction', () => {
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+            expect(TransactionUtils.isSplitContainerTransaction(transaction)).toBe(false);
+        });
+
+        it('returns false for undefined', () => {
+            expect(TransactionUtils.isSplitContainerTransaction(undefined)).toBe(false);
         });
     });
 });

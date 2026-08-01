@@ -1,14 +1,11 @@
-import {useRoute} from '@react-navigation/native';
-import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
-import React from 'react';
-import {Keyboard, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
 import OfflineIndicator from '@components/OfflineIndicator';
 import SwipeableView from '@components/SwipeableView';
+
+import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -18,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     canUserPerformWriteAction,
@@ -27,10 +25,18 @@ import {
     isPublicRoom,
     isSystemChat as isSystemChatUtil,
 } from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useRoute} from '@react-navigation/native';
+import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
+import React from 'react';
+import {Keyboard, View} from 'react-native';
+
 import EnableNotificationsBanner, {BANNER_COMPOSER_OVERLAP_PX} from './EnableNotificationsBanner';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
@@ -53,7 +59,11 @@ function ReportFooter() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // shouldUseNarrowLayout drives layout-only spacing, while the offline indicator keys off isSmallScreenWidth:
+    // only actual small screens get the page-level indicator from ScreenWrapper, so RHP footers on wide screens
+    // must keep rendering their own inline one.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
@@ -69,9 +79,7 @@ function ReportFooter() {
         selector: policyRoleSelector,
     });
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`);
-    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`, {
-        selector: isLoadingInitialReportActionsSelector,
-    });
+    const isLoadingInitialReportActions = useIsReportLoadPending(reportIDFromRoute);
 
     const isUserPolicyAdmin = policyRole === CONST.POLICY.ROLE.ADMIN;
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
@@ -117,7 +125,7 @@ function ReportFooter() {
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 <ArchivedReportFooter reportID={reportIDFromRoute} />
-                {!shouldUseNarrowLayout && (
+                {!isSmallScreenWidth && (
                     <View style={styles.offlineIndicatorContainer}>
                         <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
                     </View>
@@ -131,7 +139,7 @@ function ReportFooter() {
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 <AnonymousReportFooter reportID={reportIDFromRoute} />
-                {!shouldUseNarrowLayout && (
+                {!isSmallScreenWidth && (
                     <View style={styles.offlineIndicatorContainer}>
                         <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
                     </View>
@@ -145,7 +153,7 @@ function ReportFooter() {
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 <BlockedReportFooter />
-                {!shouldUseNarrowLayout && (
+                {!isSmallScreenWidth && (
                     <View style={styles.offlineIndicatorContainer}>
                         <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
                     </View>
@@ -159,7 +167,7 @@ function ReportFooter() {
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 <SystemChatReportFooterMessage />
-                {!shouldUseNarrowLayout && (
+                {!isSmallScreenWidth && (
                     <View style={styles.offlineIndicatorContainer}>
                         <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
                     </View>
@@ -187,7 +195,7 @@ function ReportFooter() {
                     icon={expensifyIcons.Lightbulb}
                     shouldShowIcon
                 />
-                {!shouldUseNarrowLayout && (
+                {!isSmallScreenWidth && (
                     <View style={styles.offlineIndicatorContainer}>
                         <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
                     </View>
@@ -211,7 +219,7 @@ function ReportFooter() {
                     icon={expensifyIcons.Lightbulb}
                     shouldShowIcon
                 />
-                {!shouldUseNarrowLayout && (
+                {!isSmallScreenWidth && (
                     <View style={styles.offlineIndicatorContainer}>
                         <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
                     </View>

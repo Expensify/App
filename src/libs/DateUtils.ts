@@ -1,3 +1,12 @@
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import CONST from '@src/CONST';
+import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
+import type Locale from '@src/types/onyx/Locale';
+import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+
+import type {ValueOf} from 'type-fest';
+
 import {
     addDays,
     addHours,
@@ -32,12 +41,7 @@ import {
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import throttle from 'lodash/throttle';
-import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import CONST from '@src/CONST';
-import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
-import type Locale from '@src/types/onyx/Locale';
-import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+
 import {setCurrentDate} from './actions/CurrentDate';
 import {translate as translateLocalize} from './Localize';
 import Log from './Log';
@@ -987,6 +991,23 @@ function formatUTCDateTimeToDateInTimezone(utcDateTime: string, timeZone: Select
 }
 
 /**
+ * Formats the violation snapshot start date for display in the user's timezone.
+ */
+function formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt: string, timeZone: SelectedTimezone | undefined): string {
+    if (!violationSnapshotStartedAt || !timeZone) {
+        return '';
+    }
+
+    try {
+        const date = violationSnapshotStartedAt.includes(' ') ? toDate(violationSnapshotStartedAt, {timeZone: 'UTC'}) : parse(violationSnapshotStartedAt, 'yyyy-MM-dd', new Date());
+        return formatInTimeZoneWithFallback(date, timeZone, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT);
+    } catch (error) {
+        Log.warn('[DateUtils] Failed to format violation snapshot started at date', {violationSnapshotStartedAt, timeZone, error});
+        return '';
+    }
+}
+
+/**
  * Backend expects datetime format without milliseconds in some cases (yyyy-MM-dd HH:mm:ss)
  */
 function formatDBTimeWithoutMilliseconds(timestamp: number): string {
@@ -1162,6 +1183,7 @@ const DateUtils = {
     getFormattedSplitDateRange,
     formatInTimeZoneWithFallback,
     formatUTCDateTimeToDateInTimezone,
+    formatViolationSnapshotStartedAtDate,
     normalizeDateToStartOfDay,
     normalizeDateToEndOfDay,
     getMonthDateRange,

@@ -1,20 +1,26 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+
 import {updateSelectedTimezone} from '@userActions/PersonalDetails';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import TIMEZONES from '@src/TIMEZONES';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo, useState} from 'react';
 
 type TimezoneSelectPageProps = Pick<WithCurrentUserPersonalDetailsProps, 'currentUserPersonalDetails'>;
 
@@ -42,8 +48,28 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     const [timezoneInputText, setTimezoneInputText] = useState('');
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
 
-    const saveSelectedTimezone = ({text}: {text: string}) => {
-        updateSelectedTimezone(text as SelectedTimezone, currentUserPersonalDetails.accountID);
+    const [selectedTimezone, setSelectedTimezone] = useState<SelectedTimezone>();
+    const currentSelectedTimezone = selectedTimezone ?? timezone.selected;
+
+    const timezoneData = timezoneOptions.map((tz) => ({...tz, isSelected: tz.text === currentSelectedTimezone}));
+
+    const selectTimezone = ({text}: {text: string}) => {
+        setSelectedTimezone(text as SelectedTimezone);
+    };
+
+    const saveSelectedTimezone = () => {
+        if (!currentSelectedTimezone) {
+            Navigation.goBack(ROUTES.SETTINGS_TIMEZONE);
+            return;
+        }
+        updateSelectedTimezone(currentSelectedTimezone, currentUserPersonalDetails.accountID);
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveSelectedTimezone,
+        isDisabled: !!timezone.automatic || currentSelectedTimezone === timezone.selected,
     };
 
     const filterShownTimezones = useCallback(
@@ -76,7 +102,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID="TimezoneSelectPage"
         >
             <HeaderWithBackButton
@@ -84,15 +110,17 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
             />
             <SelectionList
-                data={timezoneOptions}
+                data={timezoneData}
                 ListItem={SingleSelectListItem}
-                onSelectRow={saveSelectedTimezone}
+                onSelectRow={selectTimezone}
                 textInputOptions={textInputOptions}
+                confirmButtonOptions={confirmButtonOptions}
                 initiallyFocusedItemKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
                 isDisabled={!!timezone.automatic}
                 shouldShowTooltips={false}
                 shouldSingleExecuteRowSelect
                 showScrollIndicator
+                addBottomSafeAreaPadding
             />
         </ScreenWrapper>
     );

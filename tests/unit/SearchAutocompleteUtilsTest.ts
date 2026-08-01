@@ -1,7 +1,10 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+
 import {getSearchValueForConnection, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
 import {getTrimmedUserSearchQueryPreservingComma, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+
 import CONST from '@src/CONST';
+
 import createSharedValueMock from '../utils/createSharedValueMock';
 
 describe('SearchAutocompleteUtils', () => {

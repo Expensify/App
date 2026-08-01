@@ -1,4 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 
 type ShortcutCallback = () => void;

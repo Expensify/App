@@ -1,5 +1,6 @@
 import {CHART_FONT_FAMILY_NAMES} from '@components/Charts/utils/chartFontConstants';
 import type VictoryThemeType from '@components/Charts/VictoryTheme';
+
 import colors from '@styles/theme/colors';
 
 /**

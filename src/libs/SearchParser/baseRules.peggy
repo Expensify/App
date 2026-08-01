@@ -55,6 +55,9 @@ withdrawalType
 withdrawalStatus
   = "withdrawalStatus"
   / "withdrawal-status"i { return "withdrawalStatus"; }
+paidStatus
+  = "paidStatus"
+  / "paid-status"i { return "paidStatus"; }
 withdrawalID
   = "withdrawalID"i
   / "withdrawal-id"i { return "withdrawalID"; }
@@ -132,7 +135,7 @@ columnsValues
 
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
-originalAmount          = "original-amount"i &wordBoundary          { return "originalamount"; }
+originalAmount          = "purchase-amount"i &wordBoundary          { return "originalamount"; }
 taxAmount               = "tax"i &wordBoundary                      { return "taxAmount"; }
 taxRateValue            = "tax-rate"i &wordBoundary                 { return "taxrate"; }
 policyName              = "policy-name"i &wordBoundary              { return "policyname"; }

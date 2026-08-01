@@ -1,6 +1,8 @@
 import type {ReactNode} from 'react';
+
 import {useEffect, useRef} from 'react';
 import {AccessibilityInfo} from 'react-native';
+
 import type UseAccessibilityAnnouncementOptions from './types';
 
 function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, options?: UseAccessibilityAnnouncementOptions) {

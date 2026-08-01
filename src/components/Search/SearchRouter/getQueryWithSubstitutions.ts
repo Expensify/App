@@ -1,6 +1,8 @@
 import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 
 type SubstitutionMap = Record<string, string>;

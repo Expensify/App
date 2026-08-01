@@ -1,5 +1,7 @@
-import {useRef} from 'react';
 import type {View} from 'react-native';
+
+import {useRef} from 'react';
+
 import type {UseScrollToFocusedInput} from './types';
 
 const noop = () => {};

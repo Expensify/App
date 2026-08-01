@@ -1,10 +1,13 @@
-import {reportVisibleActionsSelector} from '@selectors/ReportAction';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {isCreatedAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
+import {isCreatedAction, isCurrentUserPendingAddAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+
+import {reportVisibleActionsSelector} from '@selectors/ReportAction';
+
 import useConciergeSidePanelReportActions from './useConciergeSidePanelReportActions';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
@@ -73,7 +76,12 @@ function useReportActionsVisibility({
 
     const hasUserSentMessage =
         isConciergeHiddenHistory && sessionStartTime
-            ? allReportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime)
+            ? allReportActions.some(
+                  (action) =>
+                      !isCreatedAction(action) &&
+                      action.actorAccountID === currentUserAccountID &&
+                      (isCurrentUserPendingAddAction(action, currentUserAccountID) || action.created >= sessionStartTime),
+              )
             : false;
 
     const {transactions: reportTransactions, isLoaded: areTransactionsLoaded} = useTransactionsAndViolationsForReport(reportID);

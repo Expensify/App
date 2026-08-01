@@ -1,7 +1,9 @@
-import React, {useMemo} from 'react';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useLocalize from '@hooks/useLocalize';
+
+import React, {useMemo} from 'react';
 
 type ReportFieldsInitialListValuePickerProps = {
     /** Options to select from if field is of type list */

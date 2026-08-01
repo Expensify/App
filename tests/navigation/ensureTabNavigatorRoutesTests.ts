@@ -1,6 +1,8 @@
-import type {NavigationRoute, ParamListBase} from '@react-navigation/native';
 import ensureTabNavigatorRoutes from '@libs/Navigation/AppNavigator/createRootStackNavigator/useCustomRootStackNavigatorState/ensureTabNavigatorRoutes';
+
 import NAVIGATORS from '@src/NAVIGATORS';
+
+import type {NavigationRoute, ParamListBase} from '@react-navigation/native';
 
 type Route = NavigationRoute<ParamListBase, string>;
 

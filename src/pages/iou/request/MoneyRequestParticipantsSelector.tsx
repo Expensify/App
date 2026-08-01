@@ -1,10 +1,20 @@
-import React, {useImperativeHandle, useRef, useState} from 'react';
-import type {Ref} from 'react';
+import DisplayContentsView from '@components/DisplayContentsView';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
+
+import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import getPlatform from '@libs/getPlatform';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import type {Ref} from 'react';
+
+import {useIsFocused} from '@react-navigation/native';
+import {Activity, useImperativeHandle, useRef, useState} from 'react';
+
 import ParticipantSearchResults from './ParticipantSearchResults';
 
 type MoneyRequestParticipantsSelectorProps = {
@@ -76,6 +86,9 @@ function MoneyRequestParticipantsSelector({
     onCloseParticipantPicker,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
+    const styles = useThemeStyles();
+    const isFocused = useIsFocused();
+    const isActivityVisible = useDeferVisibleUntilFocusTransitionEnd(isFocused);
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
@@ -91,26 +104,30 @@ function MoneyRequestParticipantsSelector({
     }));
 
     return (
-        <ParticipantSearchResults
-            iouType={iouType}
-            action={action}
-            participants={participants}
-            isWorkspacesOnly={isWorkspacesOnly}
-            isPerDiemRequest={isPerDiemRequest}
-            isTimeRequest={isTimeRequest}
-            isNative={isNative}
-            isTransactionFromCreditCardImport={isTransactionFromCreditCardImport}
-            shouldExcludeP2P={shouldExcludeP2P}
-            selectionListRef={selectionListRef}
-            textInputAutoFocus={textInputAutoFocus}
-            setTextInputAutoFocus={setTextInputAutoFocus}
-            onParticipantsAdded={onParticipantsAdded}
-            onFinish={onFinish}
-            initiallySelectedReportID={initiallySelectedReportID}
-            shouldMoveSelectedToTop={shouldMoveSelectedToTop}
-            onRestrictedParticipantSelected={onRestrictedParticipantSelected}
-            onCloseParticipantPicker={onCloseParticipantPicker}
-        />
+        <Activity mode={isActivityVisible ? 'visible' : 'hidden'}>
+            <DisplayContentsView style={styles.flex1}>
+                <ParticipantSearchResults
+                    iouType={iouType}
+                    action={action}
+                    participants={participants}
+                    isWorkspacesOnly={isWorkspacesOnly}
+                    isPerDiemRequest={isPerDiemRequest}
+                    isTimeRequest={isTimeRequest}
+                    isNative={isNative}
+                    isTransactionFromCreditCardImport={isTransactionFromCreditCardImport}
+                    shouldExcludeP2P={shouldExcludeP2P}
+                    selectionListRef={selectionListRef}
+                    textInputAutoFocus={textInputAutoFocus}
+                    setTextInputAutoFocus={setTextInputAutoFocus}
+                    onParticipantsAdded={onParticipantsAdded}
+                    onFinish={onFinish}
+                    initiallySelectedReportID={initiallySelectedReportID}
+                    shouldMoveSelectedToTop={shouldMoveSelectedToTop}
+                    onRestrictedParticipantSelected={onRestrictedParticipantSelected}
+                    onCloseParticipantPicker={onCloseParticipantPicker}
+                />
+            </DisplayContentsView>
+        </Activity>
     );
 }
 

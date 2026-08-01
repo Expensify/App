@@ -1,7 +1,10 @@
-import {getPathFromState as RNGetPathFromState} from '@react-navigation/native';
 import {config, normalizedConfigs, screensWithOnyxTabNavigator} from '@libs/Navigation/linkingConfig/config';
 import type {State} from '@libs/Navigation/types';
+
 import type {Screen} from '@src/SCREENS';
+
+import {getPathFromState as RNGetPathFromState} from '@react-navigation/native';
+
 import getDynamicRouteQueryParams from './dynamicRoutesUtils/getDynamicRouteQueryParams';
 import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
 import splitPathAndQuery from './dynamicRoutesUtils/splitPathAndQuery';
