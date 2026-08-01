@@ -8,7 +8,7 @@ keywords: [New Expensify, global reimbursement, deposit account, non-US bank acc
 
 You can add a personal bank account to receive reimbursements in over **190 countries**. All personal accounts are managed under **Account > Wallet > Bank Accounts**. The steps differ depending on whether you're connecting a **US** or **non-US** account.
 
-Your deposit account currency must match the currency your workspace reimburses in. A workspace that reimburses directly from a **USD** business bank account can only pay out to a **USD** deposit account, so if you add a deposit account in another currency (for example CAD), reimbursement won't be sent until you add a USD account. To be reimbursed into a non-USD deposit account, the workspace admin must [enable Global Reimbursement]({{site.url}}/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement) so cross-border payments are supported.
+Your deposit account currency must match the currency your Workspace uses for direct reimbursement. For example, a Workspace that reimburses directly from a **USD** business bank account can only pay out to a **USD** deposit account. If your current deposit account uses another currency, add a deposit account in the required currency.
 
 # Add a Non-U.S. Bank Account
 
@@ -51,7 +51,7 @@ Yes. You can add multiple accounts, but only one can be selected as the default 
 
 ## What if my deposit account is in a different currency than my reimbursement?
 
-Reimbursement is only sent when your deposit account currency matches the currency your workspace reimburses in. If your workspace reimburses directly from a USD business bank account but your only deposit account is in another currency (for example CAD), add a deposit account in the required currency. If you need to be paid in your local (non-USD) currency, ask your workspace admin to [enable Global Reimbursement]({{site.url}}/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement), which supports cross-border payments in supported currencies.
+Add a deposit account in the currency that your Workspace requires. For example, if your Workspace reimburses directly from a USD business bank account, add a USD deposit account.
 
 ## Can I delete a bank account?
 
