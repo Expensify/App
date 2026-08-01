@@ -50,7 +50,7 @@ Before adding any Onyx subscription, check whether the code can be a pure functi
 Any value used during render belongs in `useOnyx` so the UI updates when the value changes.
 
 ### - `Onyx.connectWithoutView` is ONLY for data that is never used during render
-It is appropriate for module-level state in actions/libraries that is read by non-render logic (e.g. event handlers or the `openApp`/`reconnectApp` flows), where `useOnyx` would add rerenders without affecting any View. See `src/libs/actions/App.ts` for examples — each connection there has a comment explaining why render never depends on the value.
+It is appropriate for module-level state in actions/libraries that is read by non-React logic (e.g. network layer, pusher subscriptions, test files, etc.), where `useOnyx` is not possible. 
 
 ### - Existing `Onyx.connectWithoutView` usage is NOT a template to copy
 Do not add a new `Onyx.connectWithoutView` just because nearby code uses it. Justify each new use on its own against the rule above; when in doubt, use a pure function or `useOnyx`.
