@@ -36,8 +36,8 @@ const MOUSE_ACTIVATION_EVENTS = ['pointerdown', 'mousedown', 'click'] as const;
 let lastMouseTrigger: HTMLElement | null = null;
 let lastInteractiveElement: HTMLElement | null = null;
 let lastMouseTriggerAt = 0;
-let lastKeyboardTrigger: HTMLElement | null = null;
-let lastKeyboardTriggerAt = 0;
+let lastKeyboardTriggerElement: HTMLElement | null = null;
+let lastKeyboardTriggerTime = 0;
 let pendingActivationKey: 'Enter' | 'Space' | null = null;
 
 function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
@@ -62,14 +62,15 @@ function captureTriggerForRoute(routeKey: string): void {
     const launcher = pickLauncher();
     let inner: HTMLElement | null;
     // Direct-only focusability recheck (form-submit spinners disable the trigger inline with dispatching nav); no ancestor `[aria-hidden]` walk — outgoing RHP panes transiently get it during forward-nav.
-    const keyboardTriggerFresh =
-        lastKeyboardTrigger !== null &&
-        performance.now() - lastKeyboardTriggerAt < KEYBOARD_TRIGGER_TTL_MS &&
-        document.contains(lastKeyboardTrigger) &&
-        !lastKeyboardTrigger.matches(':disabled') &&
-        lastKeyboardTrigger.getAttribute('aria-disabled') !== 'true';
-    if (keyboardTriggerFresh) {
-        inner = lastKeyboardTrigger;
+    const isWithinTTL = performance.now() - lastKeyboardTriggerTime < KEYBOARD_TRIGGER_TTL_MS;
+    const isStillFocusable =
+        lastKeyboardTriggerElement !== null &&
+        document.contains(lastKeyboardTriggerElement) &&
+        !lastKeyboardTriggerElement.matches(':disabled') &&
+        lastKeyboardTriggerElement.getAttribute('aria-disabled') !== 'true';
+    const isKeyboardTriggerFresh = isWithinTTL && isStillFocusable;
+    if (isKeyboardTriggerFresh) {
+        inner = lastKeyboardTriggerElement;
     } else if (getHadTabNavigation()) {
         const active = document.activeElement;
         const innerIsStale = lastInteractiveElement && active && active !== document.body && active !== lastInteractiveElement;
@@ -98,8 +99,8 @@ function captureTriggerForRoute(routeKey: string): void {
 
 /** Single-site latch reset — the three fields are always cleared together, and future additions (per-key TTL, modality tags) get one call site. */
 function clearKeyboardLatch(): void {
-    lastKeyboardTrigger = null;
-    lastKeyboardTriggerAt = 0;
+    lastKeyboardTriggerElement = null;
+    lastKeyboardTriggerTime = 0;
     pendingActivationKey = null;
 }
 
@@ -427,7 +428,7 @@ function setupNavigationFocusReturn(): void {
             }
             lastMouseTriggerAt = performance.now();
             // Preserve synthetic Enter/Space activation click on the latched element. Uses `.contains` (not FOCUSABLE_SELECTOR closest) so roving-tabindex ARIA widgets don't wrongly clear their own latch.
-            const clickOnLatch = e.type === 'click' && lastKeyboardTrigger !== null && (e.target === lastKeyboardTrigger || lastKeyboardTrigger.contains(e.target));
+            const clickOnLatch = e.type === 'click' && lastKeyboardTriggerElement !== null && (e.target === lastKeyboardTriggerElement || lastKeyboardTriggerElement.contains(e.target));
             if (!clickOnLatch) {
                 clearKeyboardLatch();
             }
@@ -443,16 +444,16 @@ function setupNavigationFocusReturn(): void {
             // Mirror isActivationKeydown — remapped `code='Space'`/`key='ñ'` is typing, not a rejected activation.
             const isSpace = e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey && e.key === CONST.KEYBOARD_SHORTCUTS.SPACE.trigger.DEFAULT.input;
             if (isActivationKeydown(e)) {
-                const active = document.activeElement;
+                const activeElement = document.activeElement;
                 const key = isEnter ? 'Enter' : 'Space';
-                if (active && active !== document.body && isActivatableTarget(active, key) && hasFocusableAttributes(active)) {
-                    lastKeyboardTrigger = active;
-                    lastKeyboardTriggerAt = performance.now();
+                if (activeElement && activeElement !== document.body && isActivatableTarget(activeElement, key) && hasFocusableAttributes(activeElement)) {
+                    lastKeyboardTriggerElement = activeElement;
+                    lastKeyboardTriggerTime = performance.now();
                     pendingActivationKey = key;
                     return;
                 }
-                // Only supersede when active === body (no target intent); an invalid HTMLElement preserves a prior in-flight latch (user retry while first activation's async is still en route).
-                if (active === null || active === document.body) {
+                // Only supersede when activeElement === body (no target intent); an invalid HTMLElement preserves a prior in-flight latch (user retry while first activation's async is still en route).
+                if (activeElement === null || activeElement === document.body) {
                     clearKeyboardLatch();
                 }
                 return;
@@ -485,15 +486,15 @@ function setupNavigationFocusReturn(): void {
                 return;
             }
             pendingActivationKey = null;
-            if (lastKeyboardTrigger === null) {
+            if (lastKeyboardTriggerElement === null) {
                 return;
             }
             // Mirror RNW's `isActiveElement`: mismatched target means onPress is canceled — clear the latch (not just skip refresh) so an unrelated nav within TTL can't pin the canceled control.
-            if (e.target !== lastKeyboardTrigger) {
+            if (e.target !== lastKeyboardTriggerElement) {
                 clearKeyboardLatch();
                 return;
             }
-            lastKeyboardTriggerAt = performance.now();
+            lastKeyboardTriggerTime = performance.now();
         };
         document.addEventListener('keyup', keyReleaseHandler, true);
     }
