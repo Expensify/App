@@ -3,7 +3,8 @@ import {getOFXColumnRoles, parseOFXToSpreadsheetRows} from '@libs/OFXUtils';
 
 import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
 
-const CITI_STATEMENT = `OFXHEADER:100
+// cspell:disable
+const PERSONAL_CARD_STATEMENT = `OFXHEADER:100
 DATA:OFXSGML
 VERSION:102
 
@@ -13,8 +14,8 @@ VERSION:102
 <STMTRS>
 <CURDEF>USD
 <BANKACCTFROM>
-<BANKID>073456789
-<ACCTID>XXXXXXXXXXXX5580
+<BANKID>000000000
+<ACCTID>XXXXXXXXXXXX0000
 <ACCTTYPE>CREDITLINE
 </BANKACCTFROM>
 <BANKTRANLIST>
@@ -25,28 +26,29 @@ VERSION:102
 <DTPOSTED>20260724090000
 <TRNAMT>-159.97
 <FITID>20260724090001
-<NAME>Audible*TD7RH43E3 888283505
+<NAME>Bookstore 12345
 </STMTTRN>
 <STMTTRN>
 <TRNTYPE>CREDIT
 <DTPOSTED>20260729090000
 <TRNAMT>49.00
 <FITID>20260729090003
-<NAME>WHOP*ENTREPRENEUR DINN Newa
+<NAME>Bookstore refund
 </STMTTRN>
 </BANKTRANLIST>
 </STMTRS>
 </STMTTRNRS>
 </BANKMSGSRSV1>
 </OFX>`;
+// cspell:enable
 
 describe('OFXUtils', () => {
     describe('parseOFXToSpreadsheetRows', () => {
         it('parses a bank statement into dated rows with the charge sign flipped', () => {
-            expect(parseOFXToSpreadsheetRows(CITI_STATEMENT)).toEqual([
+            expect(parseOFXToSpreadsheetRows(PERSONAL_CARD_STATEMENT)).toEqual([
                 ['Date', 'Merchant', 'Amount'],
-                ['2026-07-24', 'Audible*TD7RH43E3 888283505', '159.97'],
-                ['2026-07-29', 'WHOP*ENTREPRENEUR DINN Newa', '-49'],
+                ['2026-07-24', 'Bookstore 12345', '159.97'],
+                ['2026-07-29', 'Bookstore refund', '-49'],
             ]);
         });
 
@@ -70,7 +72,7 @@ describe('OFXUtils', () => {
 
     describe('import pipeline', () => {
         it('turns the parsed rows into transactions without any manual column mapping', () => {
-            const rows = parseOFXToSpreadsheetRows(CITI_STATEMENT) ?? [];
+            const rows = parseOFXToSpreadsheetRows(PERSONAL_CARD_STATEMENT) ?? [];
             const spreadsheet: ImportedSpreadsheet = {
                 data: rows.at(0)?.map((column, columnIndex) => rows.map((row) => row.at(columnIndex) ?? '')) ?? [],
                 columns: getOFXColumnRoles(),
@@ -83,8 +85,8 @@ describe('OFXUtils', () => {
             const transactions = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(transactions).toHaveLength(2);
-            expect(transactions.at(0)).toEqual(expect.objectContaining({created: '2026-07-24', merchant: 'Audible*TD7RH43E3 888283505', amount: 15997}));
-            expect(transactions.at(1)).toEqual(expect.objectContaining({created: '2026-07-29', merchant: 'WHOP*ENTREPRENEUR DINN Newa', amount: -4900}));
+            expect(transactions.at(0)).toEqual(expect.objectContaining({created: '2026-07-24', merchant: 'Bookstore 12345', amount: 15997}));
+            expect(transactions.at(1)).toEqual(expect.objectContaining({created: '2026-07-29', merchant: 'Bookstore refund', amount: -4900}));
         });
     });
 });
