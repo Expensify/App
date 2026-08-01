@@ -19,20 +19,20 @@ VERSION:102
 <ACCTTYPE>CREDITLINE
 </BANKACCTFROM>
 <BANKTRANLIST>
-<DTSTART>20260724000000
-<DTEND>20260729235959
+<DTSTART>20260301000000
+<DTEND>20260305235959
 <STMTTRN>
 <TRNTYPE>DEBIT
-<DTPOSTED>20260724090000
-<TRNAMT>-159.97
-<FITID>20260724090001
+<DTPOSTED>20260302103000
+<TRNAMT>-24.99
+<FITID>1000000001
 <NAME>Bookstore 12345
 </STMTTRN>
 <STMTTRN>
 <TRNTYPE>CREDIT
-<DTPOSTED>20260729090000
-<TRNAMT>49.00
-<FITID>20260729090003
+<DTPOSTED>20260304090000
+<TRNAMT>10.00
+<FITID>1000000002
 <NAME>Bookstore refund
 </STMTTRN>
 </BANKTRANLIST>
@@ -47,8 +47,8 @@ describe('OFXUtils', () => {
         it('parses a bank statement into dated rows with the charge sign flipped', () => {
             expect(parseOFXToSpreadsheetRows(PERSONAL_CARD_STATEMENT)).toEqual([
                 ['Date', 'Merchant', 'Amount'],
-                ['2026-07-24', 'Bookstore 12345', '159.97'],
-                ['2026-07-29', 'Bookstore refund', '-49'],
+                ['2026-03-02', 'Bookstore 12345', '24.99'],
+                ['2026-03-04', 'Bookstore refund', '-10'],
             ]);
         });
 
@@ -115,8 +115,8 @@ describe('OFXUtils', () => {
             const transactions = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(transactions).toHaveLength(2);
-            expect(transactions.at(0)).toEqual(expect.objectContaining({created: '2026-07-24', merchant: 'Bookstore 12345', amount: 15997}));
-            expect(transactions.at(1)).toEqual(expect.objectContaining({created: '2026-07-29', merchant: 'Bookstore refund', amount: -4900}));
+            expect(transactions.at(0)).toEqual(expect.objectContaining({created: '2026-03-02', merchant: 'Bookstore 12345', amount: 2499}));
+            expect(transactions.at(1)).toEqual(expect.objectContaining({created: '2026-03-04', merchant: 'Bookstore refund', amount: -1000}));
         });
     });
 });
