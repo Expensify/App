@@ -19,7 +19,7 @@ import usePrevious from './usePrevious';
  * Watches an HR provider's sync progress and automatically opens the HR sync results screen
  * when the sync transitions to the `JOB_DONE` stage with a result payload.
  */
-function useHRSyncResults(connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>, isFocused: boolean) {
+function useHRSyncResultsPage(connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>, isFocused: boolean) {
     const previousSyncProgress = usePrevious(connectionSyncProgress);
     const pendingSyncResultRef = useRef<Pick<PolicyConnectionSyncProgress, 'connectionName' | 'result'> | null>(null);
     const [isAnyModalActive] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
@@ -71,4 +71,4 @@ function useHRSyncResults(connectionSyncProgress: OnyxEntry<PolicyConnectionSync
     ]);
 }
 
-export default useHRSyncResults;
+export default useHRSyncResultsPage;

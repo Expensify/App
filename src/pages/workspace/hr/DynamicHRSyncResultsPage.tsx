@@ -3,7 +3,7 @@
  *
  * This used to be `HRSyncResultsModal`, a right-docked modal opened through the global modal
  * context. It is now a dynamic navigation screen so the results live in the navigation stack:
- * `useHRSyncResults` navigates here when a sync reaches `JOB_DONE`, from either the workspace HR
+ * `useHRSyncResultsPage` navigates here when a sync reaches `JOB_DONE`, from either the workspace HR
  * page or the members list. The sync payload is read back out of Onyx from the policy's connection
  * sync progress, so only the workspace's `policyID` travels through the route.
  */
@@ -24,10 +24,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getConnectedHRProvider} from '@libs/HRUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
-import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -72,66 +74,77 @@ function DynamicHRSyncResultsPage({route}: DynamicHRSyncResultsPageProps) {
     );
 
     return (
-        <ScreenWrapper
-            testID="DynamicHRSyncResultsPage"
-            enableEdgeToEdgeBottomSafeAreaPadding
+        // As a dynamic route this screen is deep-linkable, so it has to carry the same workspace/HR
+        // access checks the old modal inherited from its entry pages (WorkspaceHRPage). Without this
+        // a user who cannot open the workspace's HR settings could still reach this URL and read the
+        // skipped-employee list straight out of Onyx.
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
         >
-            <HeaderWithBackButton
-                title={translate('workspace.hr.syncResults.title', providerDisplayName)}
-                onBackButtonPress={goBack}
-            />
-            <ScrollView
-                contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb8]}
-                showsVerticalScrollIndicator={false}
+            <ScreenWrapper
+                testID="DynamicHRSyncResultsPage"
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <View style={[styles.alignItemsCenter, styles.mt4, styles.mb4, styles.pRelative]}>
-                    <Icon
-                        src={illustrations.SyncUsers}
-                        width={68}
-                        height={68}
-                    />
-                </View>
-                <Text style={[styles.textHeadlineH1, styles.mb8]}>{translate('workspace.hr.syncResults.successTitle', providerDisplayName)}</Text>
-                {renderResultSummary(translate('workspace.hr.syncResults.added'), addedCount)}
-                {renderResultSummary(translate('workspace.hr.syncResults.removed'), removedCount)}
-                <PressableWithoutFeedback
-                    accessibilityLabel={translate('workspace.hr.syncResults.skipped')}
-                    sentryLabel="DynamicHRSyncResultsPage-SkippedEmployees"
-                    role={CONST.ROLE.BUTTON}
-                    onPress={() => setIsSkippedSectionExpanded((isExpanded) => !isExpanded)}
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}
+                <HeaderWithBackButton
+                    title={translate('workspace.hr.syncResults.title', providerDisplayName)}
+                    onBackButtonPress={goBack}
+                />
+                <ScrollView
+                    contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb8]}
+                    showsVerticalScrollIndicator={false}
                 >
-                    <View>
-                        <Text style={[styles.textSupporting, styles.mb1]}>{translate('workspace.hr.syncResults.skipped')}</Text>
-                        <Text style={[styles.textNormalThemeText, styles.textStrong]}>{translate('workspace.hr.syncResults.employeeCount', {count: skippedCount})}</Text>
+                    <View style={[styles.alignItemsCenter, styles.mt4, styles.mb4, styles.pRelative]}>
+                        <Icon
+                            src={illustrations.SyncUsers}
+                            width={68}
+                            height={68}
+                        />
                     </View>
-                    <Icon
-                        src={icons.DownArrow}
-                        fill={theme.icon}
-                        additionalStyles={isSkippedSectionExpanded ? {transform: [{rotate: '180deg'}]} : undefined}
-                    />
-                </PressableWithoutFeedback>
-                {isSkippedSectionExpanded &&
-                    result?.skippedEmployees?.map((employee) => (
-                        <View
-                            key={employee.id}
-                            style={[styles.mt4]}
-                        >
-                            <Text style={[styles.textNormalThemeText, styles.textStrong]}>{employee.name}</Text>
-                            <Text style={[styles.textSupporting]}>{employee.reason}</Text>
+                    <Text style={[styles.textHeadlineH1, styles.mb8]}>{translate('workspace.hr.syncResults.successTitle', providerDisplayName)}</Text>
+                    {renderResultSummary(translate('workspace.hr.syncResults.added'), addedCount)}
+                    {renderResultSummary(translate('workspace.hr.syncResults.removed'), removedCount)}
+                    <PressableWithoutFeedback
+                        accessibilityLabel={translate('workspace.hr.syncResults.skipped')}
+                        sentryLabel="DynamicHRSyncResultsPage-SkippedEmployees"
+                        role={CONST.ROLE.BUTTON}
+                        onPress={() => setIsSkippedSectionExpanded((isExpanded) => !isExpanded)}
+                        style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}
+                    >
+                        <View>
+                            <Text style={[styles.textSupporting, styles.mb1]}>{translate('workspace.hr.syncResults.skipped')}</Text>
+                            <Text style={[styles.textNormalThemeText, styles.textStrong]}>{translate('workspace.hr.syncResults.employeeCount', {count: skippedCount})}</Text>
                         </View>
-                    ))}
-            </ScrollView>
-            <FixedFooter addBottomSafeAreaPadding>
-                <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={goBack}
-                >
-                    <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
-                </Button>
-            </FixedFooter>
-        </ScreenWrapper>
+                        <Icon
+                            src={icons.DownArrow}
+                            fill={theme.icon}
+                            additionalStyles={isSkippedSectionExpanded ? styles.flipUpsideDown : undefined}
+                        />
+                    </PressableWithoutFeedback>
+                    {isSkippedSectionExpanded &&
+                        result?.skippedEmployees?.map((employee) => (
+                            <View
+                                key={employee.id}
+                                style={[styles.mt4]}
+                            >
+                                <Text style={[styles.textNormalThemeText, styles.textStrong]}>{employee.name}</Text>
+                                <Text style={[styles.textSupporting]}>{employee.reason}</Text>
+                            </View>
+                        ))}
+                </ScrollView>
+                <FixedFooter addBottomSafeAreaPadding>
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        onPress={goBack}
+                    >
+                        <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                    </Button>
+                </FixedFooter>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
