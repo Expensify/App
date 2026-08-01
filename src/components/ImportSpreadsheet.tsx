@@ -123,7 +123,8 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
 
         setIsReadingFile(true);
 
-        if (CONST.OFX_STATEMENT_EXTENSIONS.includes(fileExtension.toLowerCase() as TupleToUnion<typeof CONST.OFX_STATEMENT_EXTENSIONS>)) {
+        const ofxExtensions: readonly string[] = CONST.OFX_STATEMENT_EXTENSIONS;
+        if (ofxExtensions.includes(fileExtension.toLowerCase())) {
             fetch(fileURI)
                 .then((data) => data.text())
                 .then((text) => {
