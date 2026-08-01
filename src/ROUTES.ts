@@ -260,14 +260,6 @@ const DYNAMIC_ROUTES = {
         path: 'per-diem-destination-edit',
         entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
     },
-    MONEY_REQUEST_STEP_TIME: {
-        path: 'per-diem-time',
-        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION, SCREENS.MONEY_REQUEST.CREATE],
-    },
-    MONEY_REQUEST_STEP_TIME_EDIT: {
-        path: 'per-diem-time-edit',
-        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
-    },
     PROFILE: {
         path: 'a/:accountID',
         entryScreens: ['*'],
@@ -1600,7 +1592,14 @@ const ROUTES = {
 
         getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`bank-account/${VERIFY_ACCOUNT}?policyID=${policyID}`, backTo),
     },
-    BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
+    BANK_ACCOUNT_PERSONAL: {
+        route: 'bank-account/personal-info/:subPage?/:action?',
+        getRoute: (subPage?: string, action?: 'edit') => {
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            return `bank-account/personal-info${subPagePart}${actionPart}` as const;
+        },
+    },
     // TODO: rename the route as no longer accepts step
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/new',
@@ -1620,12 +1619,14 @@ const ROUTES = {
         },
     },
     BANK_ACCOUNT_ENTER_SIGNER_INFO: {
-        route: 'bank-account/enter-signer-info',
-        getRoute: (policyID: string | undefined, bankAccountID: string | undefined, isCompleted: boolean) => {
+        route: 'bank-account/enter-signer-info/:subPage?/:action?',
+        getRoute: (policyID: string | undefined, bankAccountID: string | undefined, isCompleted: boolean, subPage?: string, action?: 'edit') => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_ENTER_SIGNER_INFO route');
             }
-            return `bank-account/enter-signer-info?policyID=${policyID}&bankAccountID=${bankAccountID}&isCompleted=${isCompleted}` as const;
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            return `bank-account/enter-signer-info${subPagePart}${actionPart}?policyID=${policyID}&bankAccountID=${bankAccountID}&isCompleted=${isCompleted}` as const;
         },
     },
     BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT: {
@@ -1808,7 +1809,14 @@ const ROUTES = {
             return getUrlWithBackToParam(`settings/wallet/add-bank-account/${subPage}${action ? `/${action}` : ''}`, backTo);
         },
     },
-    SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
+    SETTINGS_ADD_US_BANK_ACCOUNT: {
+        route: 'settings/wallet/add-us-bank-account/:subPage?/:action?',
+        getRoute: (subPage?: string, action?: 'edit') => {
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            return `settings/wallet/add-us-bank-account${subPagePart}${actionPart}` as const;
+        },
+    },
     SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'settings/wallet/add-us-bank-account/entry-point',
     SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT: {
         route: 'settings/wallet/update-personal-bank-account/:subPage?',
@@ -1832,9 +1840,9 @@ const ROUTES = {
             return `${base}${pagePart}${subPagePart}${actionPart}` as const;
         },
     },
-    SETTINGS_ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE: {
-        route: 'settings/wallet/enable-payments/confirm-magic-code',
-        getRoute: () => 'settings/wallet/enable-payments/confirm-magic-code' as const,
+    SETTINGS_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/wallet/enable-payments/confirm-validate-code',
+        getRoute: () => 'settings/wallet/enable-payments/confirm-validate-code' as const,
     },
     SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT: {
         route: 'settings/wallet/:bankAccountID/unshare-bank-account',
@@ -2251,10 +2259,20 @@ const ROUTES = {
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/vendor/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
+    MONEY_REQUEST_STEP_TIME: {
+        route: ':action/:iouType/time/:transactionID/:reportID/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string, backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/time/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}`, backTo),
+    },
     MONEY_REQUEST_STEP_SUBRATE: {
         route: ':action/:iouType/subrate/:transactionID/:reportID/:backToReport?/:pageIndex',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string, backTo = '') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/subrate/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/0`, backTo),
+    },
+    MONEY_REQUEST_STEP_TIME_EDIT: {
+        route: ':action/:iouType/time/:transactionID/:reportID/edit',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/time/${transactionID}/${reportID}/edit`, backTo),
     },
     MONEY_REQUEST_STEP_SUBRATE_EDIT: {
         route: ':action/:iouType/subrate/:transactionID/:reportID/edit/:pageIndex',
@@ -2834,6 +2852,15 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY route');
             }
             return `workspaces/${policyID}/workflows/auto-reporting-frequency` as const;
+        },
+    },
+    WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES: {
+        route: 'workspaces/:policyID/workflows/currency-conversion-fees',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES route');
+            }
+            return `workspaces/${policyID}/workflows/currency-conversion-fees` as const;
         },
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
