@@ -52,6 +52,36 @@ describe('OFXUtils', () => {
             ]);
         });
 
+        it('parses an OFX 2.x credit card statement, including a time zone suffix and a PAYEE merchant', () => {
+            // cspell:disable
+            const statement = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?OFX OFXHEADER="200" VERSION="211" SECURITY="NONE"?>
+<OFX>
+  <CREDITCARDMSGSRSV1><CCSTMTTRNRS><CCSTMTRS>
+    <CURDEF>USD</CURDEF>
+    <BANKTRANLIST>
+      <STMTTRN>
+        <DTPOSTED>20260715120000.000[-5:EST]</DTPOSTED>
+        <TRNAMT>-42.50</TRNAMT>
+        <NAME>COFFEE SHOP</NAME>
+      </STMTTRN>
+      <STMTTRN>
+        <DTPOSTED>20260716</DTPOSTED>
+        <TRNAMT>-7.25</TRNAMT>
+        <PAYEE><NAME>BAKERY</NAME><CITY>Denver</CITY></PAYEE>
+      </STMTTRN>
+    </BANKTRANLIST>
+  </CCSTMTRS></CCSTMTTRNRS></CREDITCARDMSGSRSV1>
+</OFX>`;
+            // cspell:enable
+
+            expect(parseOFXToSpreadsheetRows(statement)).toEqual([
+                ['Date', 'Merchant', 'Amount'],
+                ['2026-07-15', 'COFFEE SHOP', '42.5'],
+                ['2026-07-16', 'BAKERY', '7.25'],
+            ]);
+        });
+
         it('falls back to MEMO for the merchant and skips transactions missing a date or amount', () => {
             const statement = `<OFX><BANKTRANLIST>
 <STMTTRN><DTPOSTED>20260101<TRNAMT>-10.00<MEMO>CORNER STORE</STMTTRN>
