@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -31,6 +32,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getGroupPaidPolicies, isGroupPolicyByType, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import {getCurrency, getDistanceInMeters, getDistanceRateTaxUpdates, getRateID, isDistanceRequest as isDistanceRequestTransactionUtils, isExpenseUnreported} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -170,6 +172,13 @@ function IOURequestStepDistanceRate({
 
     const initiallyFocusedOption = options.find((item) => item.isSelected)?.keyForList;
 
+    // Pin the rate that was selected when the list opened to the top so it stays visible and doesn't move
+    // while browsing. Freeze it for the open cycle so picking an over-limit rate (which keeps the list
+    // mounted via pendingRateID) doesn't repin the list.
+    const initiallySelectedRateID = currentRateID || DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID;
+    const pinnedRateID = useInitialSelection(initiallySelectedRateID, {resetOnFocus: true});
+    const orderedOptions = moveInitialSelectionToTop(options, pinnedRateID ? [pinnedRateID] : []);
+
     function selectDistanceRate(customUnitRateID: string) {
         // Validate that the new rate combined with the existing distance doesn't exceed the backend limit.
         // This check runs before any state updates so that an invalid rate doesn't modify tax or rate state.
@@ -269,7 +278,7 @@ function IOURequestStepDistanceRate({
             )}
 
             <SelectionList
-                data={options}
+                data={orderedOptions}
                 ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => selectDistanceRate(value ?? '')}
                 shouldSingleExecuteRowSelect
