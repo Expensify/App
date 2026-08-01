@@ -137,20 +137,18 @@ function useAutoCreateTrackWorkspace() {
                 setOnboardingAdminsChatReportID();
                 setOnboardingPolicyID();
 
-                if (didNavigateToPendingDeepLink) {
-                    return;
+                if (!didNavigateToPendingDeepLink) {
+                    navigateAfterOnboardingWithMicrotaskQueue(
+                        shouldUseNarrowLayout,
+                        isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                        conciergeChatReportID,
+                        reportNameValuePairs,
+                        newPolicyID,
+                        mergedAccountConciergeReportID,
+                        false,
+                        {variantOverride: rhpVariant},
+                    );
                 }
-
-                navigateAfterOnboardingWithMicrotaskQueue(
-                    shouldUseNarrowLayout,
-                    isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                    conciergeChatReportID,
-                    reportNameValuePairs,
-                    newPolicyID,
-                    mergedAccountConciergeReportID,
-                    false,
-                    {variantOverride: rhpVariant},
-                );
             }
         },
         [
