@@ -4,6 +4,8 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal/index.web
 
 import {markActivePopoverLauncherDeactivated, setActivePopoverLauncher} from '@libs/LauncherStack';
 
+import type {FocusTrapProps} from 'focus-trap-react';
+
 import React from 'react';
 
 jest.mock('@libs/LauncherStack', () => ({
@@ -11,14 +13,17 @@ jest.mock('@libs/LauncherStack', () => ({
     markActivePopoverLauncherDeactivated: jest.fn(),
 }));
 
-let capturedOptions: {onActivate?: () => void; onPostDeactivate?: () => void} | null = null;
+let capturedOptions: FocusTrapProps['focusTrapOptions'] | null = null;
 
 jest.mock('focus-trap-react', () => ({
-    FocusTrap: ({focusTrapOptions, children}: {focusTrapOptions: unknown; children: React.ReactNode}) => {
-        capturedOptions = focusTrapOptions as typeof capturedOptions;
+    FocusTrap: ({focusTrapOptions, children}: Pick<FocusTrapProps, 'focusTrapOptions' | 'children'>) => {
+        capturedOptions = focusTrapOptions;
         return children;
     },
 }));
+
+const mockSetActivePopoverLauncher = jest.mocked(setActivePopoverLauncher);
+const mockMarkActivePopoverLauncherDeactivated = jest.mocked(markActivePopoverLauncherDeactivated);
 
 jest.mock('@libs/Accessibility/blurActiveElement', () => ({__esModule: true, default: jest.fn()}));
 
@@ -46,8 +51,8 @@ function withActiveElement<T>(element: HTMLElement, fn: () => T): T {
 describe('FocusTrapForModal — launcher capture', () => {
     beforeEach(() => {
         capturedOptions = null;
-        (setActivePopoverLauncher as jest.Mock).mockClear();
-        (markActivePopoverLauncherDeactivated as jest.Mock).mockClear();
+        mockSetActivePopoverLauncher.mockClear();
+        mockMarkActivePopoverLauncherDeactivated.mockClear();
         mockRestoreFocusWithModality.mockReset();
         document.body.innerHTML = '';
     });

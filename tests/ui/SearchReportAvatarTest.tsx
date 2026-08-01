@@ -29,7 +29,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 type AvatarData = {
     uri: string;
-    avatarID?: number;
+    avatarID?: number | string;
     name?: string;
     parent: string;
 };
@@ -40,8 +40,8 @@ const parseSource = (source: AvatarSource | IconAsset): string => {
     if (typeof source === 'string') {
         return source;
     }
-    if (typeof source === 'object' && 'name' in source) {
-        return source.name as string;
+    if (typeof source === 'object' && 'name' in source && typeof source.name === 'string') {
+        return source.name;
     }
     if (typeof source === 'object' && 'uri' in source) {
         return source.uri ?? 'No Source';
@@ -219,16 +219,39 @@ function renderSearchReportAvatar(props: {primaryAvatar?: Icon; secondaryAvatar?
     );
 }
 
+function parseRenderedAvatarData(dataSet: unknown): AvatarData {
+    if (typeof dataSet !== 'object' || dataSet === null || !('uri' in dataSet) || typeof dataSet.uri !== 'string' || !('parent' in dataSet) || typeof dataSet.parent !== 'string') {
+        throw new Error('Rendered avatar data is missing its URI or parent');
+    }
+
+    const avatarID = 'avatarID' in dataSet ? dataSet.avatarID : undefined;
+    const name = 'name' in dataSet ? dataSet.name : undefined;
+    if (avatarID !== undefined && typeof avatarID !== 'number' && typeof avatarID !== 'string') {
+        throw new Error('Rendered avatar data has an invalid avatar ID');
+    }
+    if (name !== undefined && typeof name !== 'string') {
+        throw new Error('Rendered avatar data has an invalid name');
+    }
+
+    return {uri: dataSet.uri, parent: dataSet.parent, avatarID, name};
+}
+
 async function retrieveAvatarData(props: {primaryAvatar?: Icon; secondaryAvatar?: Icon; avatarType?: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>; reportID: string}) {
     renderSearchReportAvatar(props);
 
     await waitForBatchedUpdatesWithAct();
 
     const images = screen.queryAllByTestId('MockedAvatarData');
-    const fragments = screen.queryAllByTestId('ReportActionAvatars-', {exact: false}).map((fragment) => fragment.props.testID as string);
+    const fragments = screen.queryAllByTestId('ReportActionAvatars-', {exact: false}).map((fragment) => {
+        const testID: unknown = fragment.props.testID;
+        if (typeof testID !== 'string') {
+            throw new Error('Rendered report action avatar fragment is missing its test ID');
+        }
+        return testID;
+    });
 
     return {
-        images: images.map((img) => img.props.dataSet as AvatarData),
+        images: images.map((img) => parseRenderedAvatarData(img.props.dataSet)),
         fragments,
     };
 }

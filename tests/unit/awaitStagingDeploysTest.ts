@@ -1,19 +1,22 @@
 import run from '@github/actions/javascript/awaitStagingDeploys/awaitStagingDeploys';
 import type CONST from '@github/libs/CONST';
-import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
 import asMutable from '@src/types/utils/asMutable';
 
-/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * @jest-environment node
  */
 import * as core from '@actions/core';
+import {GitHub} from '@actions/github/lib/utils';
+
+import createMock from '../utils/createMock';
+
+/* eslint-disable @typescript-eslint/naming-convention */
 
 type Workflow = {
     workflow_id: string;
-    branch: string;
+    branch?: string;
     owner: string;
 };
 
@@ -37,7 +40,7 @@ const mockGetInput = jest.fn();
 const mockListDeploysForTag: MockedFunctionListResponse = jest.fn();
 const mockListDeploys: MockedFunctionListResponse = jest.fn();
 const mockListPreDeploys: MockedFunctionListResponse = jest.fn();
-const mockListWorkflowRuns = jest.fn().mockImplementation((args: Workflow) => {
+const mockListWorkflowRuns = jest.fn<Promise<MockListResponse>, [Workflow]>().mockImplementation((args) => {
     const defaultReturn = Promise.resolve({data: {workflow_runs: []}});
 
     if (!args.workflow_id) {
@@ -59,6 +62,21 @@ const mockListWorkflowRuns = jest.fn().mockImplementation((args: Workflow) => {
     return defaultReturn;
 });
 
+type ListWorkflowRunsMethod = typeof GithubUtils.octokit.actions.listWorkflowRuns;
+
+function listWorkflowRuns(...parameters: Parameters<ListWorkflowRunsMethod>): ReturnType<ListWorkflowRunsMethod> {
+    const [args] = parameters;
+    if (!args) {
+        return Promise.resolve(createMock<Awaited<ReturnType<ListWorkflowRunsMethod>>>({data: {workflow_runs: []}}));
+    }
+
+    return mockListWorkflowRuns({
+        workflow_id: String(args.workflow_id),
+        branch: args.branch,
+        owner: args.owner,
+    }).then((response) => createMock<Awaited<ReturnType<ListWorkflowRunsMethod>>>(response));
+}
+
 jest.mock('@github/libs/CONST', () => ({
     ...jest.requireActual<typeof CONST>('@github/libs/CONST'),
     POLL_RATE: TEST_POLL_RATE,
@@ -69,16 +87,10 @@ beforeAll(() => {
     asMutable(core).getInput = mockGetInput;
 
     // Mock octokit module
-    const mockOctokit = {
-        rest: {
-            actions: {
-                ...(GithubUtils.internalOctokit as unknown as typeof GithubUtils.octokit.actions),
-                listWorkflowRuns: mockListWorkflowRuns as unknown as typeof GithubUtils.octokit.actions.listWorkflowRuns,
-            },
-        },
-    };
+    const mockOctokit = new GitHub();
+    jest.spyOn(mockOctokit.rest.actions, 'listWorkflowRuns').mockImplementation(listWorkflowRuns);
 
-    GithubUtils.internalOctokit = mockOctokit as InternalOctokit;
+    GithubUtils.internalOctokit = mockOctokit;
 });
 
 beforeEach(() => {
