@@ -1,5 +1,6 @@
 import CONST from '@src/CONST';
 import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
+import type {PendingNewTransactionFlag} from '@src/types/onyx/ReportMetadata';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -17,9 +18,10 @@ const isLoadingInitialReportActionsSelector = (loadingState: OnyxEntry<ReportLoa
 const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
     reportMetadata ? {pendingChatMembers: reportMetadata.pendingChatMembers} : undefined;
 
+// Flags keep the stamp they were written with, so a sweep can tell the instance it saw from a later one.
 type PendingNewTransactions = {
-    activeIDs: Record<string, true>;
-    expiredIDs: string[];
+    activeFlags: Record<string, PendingNewTransactionFlag>;
+    expiredFlags: Record<string, PendingNewTransactionFlag>;
 };
 
 const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>): PendingNewTransactions | undefined => {
@@ -28,22 +30,23 @@ const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetada
         return undefined;
     }
     const now = Date.now();
-    const activeIDs: Record<string, true> = {};
-    const expiredIDs: string[] = [];
+    const activeFlags: Record<string, PendingNewTransactionFlag> = {};
+    const expiredFlags: Record<string, PendingNewTransactionFlag> = {};
     for (const [transactionID, flaggedAt] of Object.entries(pendingNewTransactionIDs)) {
         if (flaggedAt == null) {
             continue;
         }
+        // Legacy `true` flags predate the timestamp scheme and persisted until consumed, so they never expire.
         if (flaggedAt === true || now - flaggedAt < CONST.PENDING_TRANSACTION_FRESHNESS_WINDOW) {
-            activeIDs[transactionID] = true;
+            activeFlags[transactionID] = flaggedAt;
         } else {
-            expiredIDs.push(transactionID);
+            expiredFlags[transactionID] = flaggedAt;
         }
     }
-    if (!Object.keys(activeIDs).length && !expiredIDs.length) {
+    if (!Object.keys(activeFlags).length && !Object.keys(expiredFlags).length) {
         return undefined;
     }
-    return {activeIDs, expiredIDs};
+    return {activeFlags, expiredFlags};
 };
 
 const isOptimisticReportSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.isOptimisticReport;

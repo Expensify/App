@@ -3,6 +3,7 @@ import {deletePendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransa
 import CONST from '@src/CONST';
 import type {PendingNewTransactions} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
+import type {PendingNewTransactionFlag} from '@src/types/onyx/ReportMetadata';
 
 import {useEffect, useRef, useState} from 'react';
 
@@ -34,7 +35,7 @@ function useNewTransactions(
     isReportVisible?: boolean,
 ) {
     const [hasSettledAfterInitialLoad, setHasSettledAfterInitialLoad] = useState(() => !!hasOnceLoadedReportActions);
-    const scheduledDeletions = useRef<{reportID: string | undefined; transactionIDs: Set<string>}>({reportID, transactionIDs: new Set()});
+    const scheduledSweeps = useRef<Set<string>>(new Set());
     const [highlightedDiffTransactionIDs, setHighlightedDiffTransactionIDs] = useState<Set<string>>(() => new Set());
     const [diffState, setDiffState] = useState<DiffState>(() => ({reportID, sourceIDs: undefined, addedIDs: EMPTY_TRANSACTION_IDS}));
     const trackedTransactionIDs = hasOnceLoadedReportActions && transactions ? transactions.map(({transactionID}) => transactionID) : undefined;
@@ -74,8 +75,8 @@ function useNewTransactions(
         }
     }
 
-    const activePendingIDs = pendingNewTransactions?.activeIDs;
-    const railTransactions = reportID && activePendingIDs && transactions?.length ? transactions.filter(({transactionID}) => activePendingIDs[transactionID]) : EMPTY_TRANSACTIONS;
+    const activeFlags = pendingNewTransactions?.activeFlags;
+    const railTransactions = reportID && activeFlags && transactions?.length ? transactions.filter(({transactionID}) => activeFlags[transactionID]) : EMPTY_TRANSACTIONS;
 
     let diffTransactions = EMPTY_TRANSACTIONS;
     if (diffState.addedIDs.length && transactions?.length) {
@@ -87,39 +88,38 @@ function useNewTransactions(
     if (!railTransactions.length) {
         newTransactions = diffTransactions.length ? diffTransactions : EMPTY_TRANSACTIONS;
     } else {
-        const extraDiff = diffTransactions.filter(({transactionID}) => !activePendingIDs?.[transactionID]);
+        const extraDiff = diffTransactions.filter(({transactionID}) => !activeFlags?.[transactionID]);
         newTransactions = extraDiff.length ? [...railTransactions, ...extraDiff] : railTransactions;
     }
 
     useEffect(() => {
-        if (scheduledDeletions.current.reportID !== reportID) {
-            scheduledDeletions.current = {reportID, transactionIDs: new Set()};
-        }
-        const scheduledIDs = scheduledDeletions.current.transactionIDs;
-        if (scheduledIDs.size) {
-            const flaggedIDs = pendingNewTransactions ? new Set([...Object.keys(pendingNewTransactions.activeIDs), ...pendingNewTransactions.expiredIDs]) : undefined;
-            for (const scheduledID of scheduledIDs) {
-                if (!flaggedIDs?.has(scheduledID)) {
-                    scheduledIDs.delete(scheduledID);
-                }
-            }
-        }
-
         if (isReportVisible === false || !pendingNewTransactions) {
             return;
         }
-        const {activeIDs, expiredIDs} = pendingNewTransactions;
-        const consumedIDs = newTransactions.filter(({transactionID}) => activeIDs[transactionID]).map(({transactionID}) => transactionID);
-        const idsToDelete = [...consumedIDs, ...expiredIDs].filter((transactionID) => !scheduledIDs.has(transactionID));
-        if (!idsToDelete.length) {
-            return;
+        const railFlags = pendingNewTransactions.activeFlags;
+        const consumedFlags = newTransactions
+            .filter(({transactionID}) => railFlags[transactionID])
+            .map(({transactionID}): [string, PendingNewTransactionFlag] => [transactionID, railFlags[transactionID]]);
+        const claimedKeys: string[] = [];
+        const flagsToClear: Record<string, PendingNewTransactionFlag> = {};
+        for (const [transactionID, flaggedAt] of [...consumedFlags, ...Object.entries(pendingNewTransactions.expiredFlags)]) {
+            const flagKey = `${reportID}:${transactionID}:${String(flaggedAt)}`;
+            if (scheduledSweeps.current.has(flagKey)) {
+                continue;
+            }
+            scheduledSweeps.current.add(flagKey);
+            claimedKeys.push(flagKey);
+            flagsToClear[transactionID] = flaggedAt;
         }
-        for (const transactionID of idsToDelete) {
-            scheduledIDs.add(transactionID);
+        if (!claimedKeys.length) {
+            return;
         }
 
         setTimeout(() => {
-            deletePendingNewTransactionIDs(reportID, idsToDelete);
+            for (const flagKey of claimedKeys) {
+                scheduledSweeps.current.delete(flagKey);
+            }
+            deletePendingNewTransactionIDs(reportID, flagsToClear);
         }, CONST.PENDING_TRANSACTION_DELETION_DELAY);
     }, [isReportVisible, pendingNewTransactions, newTransactions, reportID]);
 

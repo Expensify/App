@@ -43,7 +43,7 @@ const decorators = [
             ]}
         >
             <ScreenWrapperStatusContext.Provider
-                value={{didScreenTransitionEnd: true, shouldUseNarrowLayout: false, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}
+                value={{didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}
             >
                 <Story />
             </ScreenWrapperStatusContext.Provider>

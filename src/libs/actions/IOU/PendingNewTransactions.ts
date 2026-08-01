@@ -1,4 +1,5 @@
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PendingNewTransactionFlag} from '@src/types/onyx/ReportMetadata';
 
 import Onyx from 'react-native-onyx';
 
@@ -15,16 +16,30 @@ function addPendingNewTransactionIDs(reportID: string | undefined, transactionID
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs: buildPendingNewTransactionFlag(transactionID)});
 }
 
-function deletePendingNewTransactionIDs(reportID: string | undefined, transactionIDs: string[]) {
-    if (!reportID) {
+/** Clears only the flag instances passed in: a flag rewritten since carries a different stamp and must survive to play its own highlight. */
+function deletePendingNewTransactionIDs(reportID: string | undefined, flagsToClear: Record<string, PendingNewTransactionFlag>) {
+    if (!reportID || !Object.keys(flagsToClear).length) {
         return;
     }
 
-    const pendingNewTransactionIDs: Record<string, null> = {};
-    for (const transactionID of transactionIDs) {
-        Object.assign(pendingNewTransactionIDs, {[transactionID]: null});
-    }
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs});
+    const metadataKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}` as const;
+    const connection = Onyx.connectWithoutView({
+        key: metadataKey,
+        callback: (reportMetadata) => {
+            Onyx.disconnect(connection);
+            const currentFlags = reportMetadata?.pendingNewTransactionIDs;
+            const clearedFlags: Record<string, null> = {};
+            for (const [transactionID, flaggedAt] of Object.entries(flagsToClear)) {
+                if (currentFlags?.[transactionID] === flaggedAt) {
+                    clearedFlags[transactionID] = null;
+                }
+            }
+            if (!Object.keys(clearedFlags).length) {
+                return;
+            }
+            Onyx.merge(metadataKey, {pendingNewTransactionIDs: clearedFlags});
+        },
+    });
 }
 
 export {addPendingNewTransactionIDs, buildPendingNewTransactionFlag, deletePendingNewTransactionIDs};

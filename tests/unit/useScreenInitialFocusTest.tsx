@@ -59,7 +59,7 @@ type HarnessProps = {target: HTMLElement | null; didScreenTransitionEnd: boolean
 
 function MountedHarness({target, didScreenTransitionEnd, shouldSkip, shouldClaimOnlyForScreenReader}: HarnessProps) {
     const contextValue = useMemo(
-        () => ({didScreenTransitionEnd, shouldUseNarrowLayout: false, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}),
+        () => ({didScreenTransitionEnd, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}),
         [didScreenTransitionEnd],
     );
     return (

@@ -2,7 +2,7 @@ import {createContext} from 'react';
 
 type ScreenWrapperStatusContextType = {
     didScreenTransitionEnd: boolean;
-    shouldUseNarrowLayout: boolean;
+    shouldUseNarrowLayoutOnWideRHP: boolean;
     isSafeAreaTopPaddingApplied: boolean;
     isSafeAreaBottomPaddingApplied: boolean;
 };

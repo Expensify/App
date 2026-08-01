@@ -149,7 +149,7 @@ function ScreenWrapper({
     const isSafeAreaTopPaddingApplied = includePaddingTop;
     const {shouldUseNarrowLayout: shouldUseNarrowLayoutOnWideRHP} = useResponsiveLayoutOnWideRHP();
     const statusContextValue = useMemo(
-        () => ({didScreenTransitionEnd, shouldUseNarrowLayout: shouldUseNarrowLayoutOnWideRHP, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
+        () => ({didScreenTransitionEnd, shouldUseNarrowLayoutOnWideRHP, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
         [didScreenTransitionEnd, shouldUseNarrowLayoutOnWideRHP, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
     );
 

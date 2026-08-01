@@ -77,7 +77,7 @@ export default function useAnimatedHighlightStyle({
     const repeatableProgress = useSharedValue(0);
     const initialNonRepeatableProgressValue = skipInitialFade || !shouldHighlight ? 1 : 0;
     const nonRepeatableProgress = useSharedValue(initialNonRepeatableProgressValue);
-    const {didScreenTransitionEnd, shouldUseNarrowLayout} = useScreenWrapperTransitionStatus();
+    const {didScreenTransitionEnd, shouldUseNarrowLayoutOnWideRHP} = useScreenWrapperTransitionStatus();
     const navigation = useContext(NavigationContext);
     const theme = useTheme();
 
@@ -130,7 +130,7 @@ export default function useAnimatedHighlightStyle({
                 );
             });
         };
-        if (!navigation || !shouldUseNarrowLayout || navigation.isFocused()) {
+        if (!navigation || !shouldUseNarrowLayoutOnWideRHP || navigation.isFocused()) {
             play();
             return;
         }
@@ -143,7 +143,7 @@ export default function useAnimatedHighlightStyle({
         shouldHighlight,
         didScreenTransitionEnd,
         navigation,
-        shouldUseNarrowLayout,
+        shouldUseNarrowLayoutOnWideRHP,
         itemEnterDelay,
         itemEnterDuration,
         highlightStartDelay,

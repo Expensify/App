@@ -60,7 +60,7 @@ const playCount = () => jest.mocked(scheduleOnRN).mock.calls.length;
 describe('useAnimatedHighlightStyle', () => {
     beforeEach(() => {
         jest.mocked(scheduleOnRN).mockClear();
-        jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: true, shouldUseNarrowLayout: true});
+        jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: true});
     });
 
     it('plays immediately when the screen is focused', () => {
@@ -91,7 +91,7 @@ describe('useAnimatedHighlightStyle', () => {
     });
 
     it('plays in the background on a wide pane even while unfocused', () => {
-        jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: true, shouldUseNarrowLayout: false});
+        jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false});
         const {setShouldHighlight} = renderHarness(false);
         act(() => {
             navigationRef.navigate('B');
@@ -132,11 +132,11 @@ describe('useAnimatedHighlightStyle', () => {
     });
 
     it('waits for the screen transition to end before playing', () => {
-        jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: false, shouldUseNarrowLayout: true});
+        jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: false, shouldUseNarrowLayoutOnWideRHP: true});
         const {setShouldHighlight} = renderHarness(true);
         expect(playCount()).toBe(0);
 
-        jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: true, shouldUseNarrowLayout: true});
+        jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: true});
         setShouldHighlight(true);
         expect(playCount()).toBe(1);
     });
