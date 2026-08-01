@@ -1532,7 +1532,7 @@ describe('libs/NextStepUtils', () => {
             const translateWithDepositCurrency: LocalizedTranslate = (path, ...parameters) => {
                 if (path === 'nextStep.message.waitingForSubmitterAccount') {
                     const currency = parameters.at(4);
-                    const account = currency ? `${String(currency)} bank account` : 'bank account';
+                    const account = typeof currency === 'string' ? `${currency} bank account` : 'bank account';
                     return `Waiting for <strong>you</strong> to add a ${account}.`;
                 }
                 return translateLocal(path, ...parameters);
