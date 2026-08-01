@@ -52,7 +52,7 @@ type ImportSpreadsheetColumnsProps = {
 
     customHeaderText?: string;
 
-    // An optional boolean indicating whether the import button should be disabled while offline. Defaults to true.
+    /** An optional boolean indicating whether the import button should be disabled while offline. Defaults to true. */
     shouldDisableButtonWhenOffline?: boolean;
 };
 
