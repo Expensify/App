@@ -72,6 +72,12 @@ describe('DynamicReportDetailsPage', () => {
         });
     });
 
+    beforeEach(() => {
+        // Default the navigator check to false so a prior test's `mockReturnValue(true)` doesn't leak into the next
+        // one (individual tests override this when they need it to be true).
+        mockIsReportTopmostSplitNavigator.mockReturnValue(false);
+    });
+
     afterEach(async () => {
         await act(async () => {
             await Onyx.clear();
