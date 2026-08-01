@@ -579,7 +579,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         hasViolations,
         quickAction,
         personalDetails,
-        formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
     });

@@ -1158,7 +1158,6 @@ function completeSplitBill({
             },
             quickAction,
             personalDetails,
-            formatPhoneNumber,
             delegateAccountID,
             isTrackIntentUser,
         });
@@ -1899,7 +1898,6 @@ function createSplitsAndOnyxData({
             hasViolations,
             quickAction,
             personalDetails,
-            formatPhoneNumber,
             delegateAccountID,
             isTrackIntentUser,
         });

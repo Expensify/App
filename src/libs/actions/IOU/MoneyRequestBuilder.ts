@@ -188,7 +188,7 @@ type RequestMoneyInformation = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     shouldDeferAutoSubmit?: boolean;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
@@ -277,7 +277,6 @@ type BuildOnyxDataForMoneyRequestParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     delegateAccountID: number | undefined;
     personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     /** Whether this is a selfDM split transaction */
     isSelfDMSplit?: boolean;
     /** The selfDM report ID for split transactions */
@@ -444,7 +443,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         isSelfDMSplit,
         isReverseSplitOperation,
         selfDMReportID,
-        formatPhoneNumber,
         isTrackIntentUser,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -1703,7 +1701,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         hasViolations,
         quickAction,
         personalDetails,
-        formatPhoneNumber,
         delegateAccountID,
         isSelfDMSplit,
         selfDMReportID,

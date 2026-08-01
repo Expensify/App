@@ -774,6 +774,7 @@ describe('actions/IOU', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
                 ...overrides,
             };
         }

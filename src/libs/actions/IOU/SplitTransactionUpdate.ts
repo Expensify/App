@@ -119,7 +119,7 @@ type UpdateSplitTransactionsParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     isOffline: boolean;
     delegateAccountID: number | undefined;
-    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -779,7 +779,7 @@ function updateSplitTransactions({
             betas,
             personalDetails,
             delegateAccountID,
-            formatPhoneNumber: (phoneNumber: string) => phoneNumber,
+            formatPhoneNumber,
             isTrackIntentUser,
         });
 
