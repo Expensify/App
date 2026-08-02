@@ -10,6 +10,7 @@ import type {
     DeletePaymentBankAccountParams,
     EnableGlobalReimbursementsForUSDBankAccountParams,
     FinishCorpayBankAccountOnboardingParams,
+    LinkPlaidToBankAccountParams,
     OpenReimbursementAccountPageParams,
     SaveCorpayOnboardingBeneficialOwnerParams,
     SendReminderForCorpaySignerInformationParams,
@@ -1824,6 +1825,18 @@ function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: str
     return API.write(WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK, {bankAccountID, authToken, optimisticReportActionID}, onyxData);
 }
 
+/**
+ * Draft: link a Plaid Item to an existing OPEN BBA. Backend command is scoped to Expensify Card
+ * settlement BBAs and waitlist BBAs; response updates BANK_ACCOUNT_LIST and PLAID_RECONNECT_RESULT.
+ */
+function linkPlaidToBankAccount(bankAccountID: number, publicToken: string, plaidAccountID: string, mask: string, policyID?: string) {
+    const parameters: LinkPlaidToBankAccountParams = {bankAccountID, publicToken, plaidAccountID, mask};
+    if (policyID) {
+        parameters.policyID = policyID;
+    }
+    API.write(WRITE_COMMANDS.LINK_PLAID_TO_BANK_ACCOUNT, parameters);
+}
+
 function pressLockedBankAccount(bankAccountID: number, translate: LocalizedTranslate, conciergeReportID: string | undefined, delegateAccountID: number | undefined) {
     let optimisticReportActionID: string | undefined;
 
@@ -1930,4 +1943,5 @@ export {
     initiateBankAccountUnlock,
     pressLockedBankAccount,
     uploadUserKYBDocs,
+    linkPlaidToBankAccount,
 };
