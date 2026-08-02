@@ -129,12 +129,7 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(
-            session?.accountID,
-            session?.email,
-            () => topmostOneTransactionThreadReportIDRef.current,
-            () => reportAttributesRef.current,
-        );
+        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current);
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
@@ -157,12 +152,7 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(
-            session?.accountID,
-            session?.email,
-            () => topmostOneTransactionThreadReportIDRef.current,
-            () => reportAttributesRef.current,
-        ).finally(() => {
+        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 
