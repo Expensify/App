@@ -93,7 +93,7 @@ function AuthScreensInitHandler() {
     useReconcileHighContrastIntent();
     useAIFeaturesPromoModal(session);
 
-    const topmostReportID = useRootNavigationState(Navigation.getTopmostReportId);
+    const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
     const topmostOneTransactionThreadReportID = useOneTransactionThreadReportID(topmostReportID);
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const topmostOneTransactionThreadReportIDRef = useRef(topmostOneTransactionThreadReportID);
@@ -129,7 +129,12 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current);
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => topmostOneTransactionThreadReportIDRef.current,
+            () => reportAttributesRef.current,
+        );
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
@@ -152,7 +157,12 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current).finally(() => {
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => topmostOneTransactionThreadReportIDRef.current,
+            () => reportAttributesRef.current,
+        ).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 
