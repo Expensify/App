@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -491,7 +491,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             shouldBeBlocked={!!policy?.id && !canWriteSpendRules}
         >
             <ScreenWrapper
@@ -517,12 +517,13 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         footerContent={
                             isEditingRule ? (
                                 <Button
-                                    text={translate('workspace.rules.spendRules.deleteRule')}
+                                    size={CONST.BUTTON_SIZE.LARGE}
                                     onPress={deleteRule}
                                     style={[styles.mb4]}
-                                    large
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
-                                />
+                                >
+                                    <Button.Text>{translate('workspace.rules.spendRules.deleteRule')}</Button.Text>
+                                </Button>
                             ) : undefined
                         }
                     />
