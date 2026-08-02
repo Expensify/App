@@ -1,136 +1,260 @@
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
-import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import type useOnyx from '@hooks/useOnyx';
+
+import {WRITE_COMMANDS} from '@libs/API/types';
+import type * as NetworkStateModule from '@libs/NetworkState';
 
 import BaseSidebarScreen from '@pages/inbox/sidebar/BaseSidebarScreen';
-import SidebarLinksData from '@pages/inbox/sidebar/SidebarLinksData';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {AnyRequest} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@hooks/useOnyx', () => jest.fn());
-jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
+let mockHasLoadedAppStatus: 'loading' | 'loaded' = 'loaded';
 
-// The ScreenWrapper uses a render-prop that receives insets; render its children with stub insets so the
-// branch we care about (skeleton vs. SidebarLinksData) is exercised without the full wrapper machinery.
+jest.mock('@hooks/useOnyx', () => {
+    const actualUseOnyx = jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default;
+
+    return {
+        __esModule: true,
+        default: (...args: Parameters<typeof useOnyx>) => {
+            const result = actualUseOnyx(...args);
+            return args.at(0) === 'hasLoadedApp' ? [result.at(0), {status: mockHasLoadedAppStatus}] : result;
+        },
+    };
+});
+
+jest.mock('@libs/NetworkState', () => ({
+    ...jest.requireActual<typeof NetworkStateModule>('@libs/NetworkState'),
+    getIsOffline: () => true,
+}));
+
 jest.mock('@components/ScreenWrapper', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
-    function MockScreenWrapper({children}: {children: (args: {insets: {top: number; bottom: number; left: number; right: number}}) => React.ReactNode}) {
-        return ReactModule.createElement(ReactModule.Fragment, null, children({insets: {top: 0, bottom: 0, left: 0, right: 0}}));
-    }
-    return MockScreenWrapper;
+
+    return function MockScreenWrapper({children}: {children: (args: {insets: Record<string, number>}) => React.ReactNode}) {
+        return ReactModule.createElement('View', {testID: 'base-sidebar-screen'}, children({insets: {}}));
+    };
 });
-jest.mock('@components/Navigation/TopBarWithLoadingBar', () => jest.fn(() => null));
-jest.mock('@components/Navigation/TabBarBottomContent', () => jest.fn(() => null));
-jest.mock('@pages/inbox/sidebar/InboxTabSelector', () => jest.fn(() => null));
-// The children are mocked so the test asserts only the outer skeleton branching, not the list internals.
-// The skeleton view is stubbed with a testID so it can be observed without rendering the SVG skeleton.
+
+jest.mock('@components/Navigation/TopBarWithLoadingBar', () => () => null);
+jest.mock('@components/Navigation/TabBarBottomContent', () => () => null);
+jest.mock('@pages/inbox/sidebar/InboxTabSelector', () => () => null);
 jest.mock('@components/OptionsListSkeletonView', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
-    const {View} = jest.requireActual<{View: React.ComponentType<{testID?: string}>}>('react-native');
-    return jest.fn(() => ReactModule.createElement(View, {testID: 'OptionsListSkeletonView'}));
+    return () => ReactModule.createElement('View', {testID: 'sidebar-skeleton'});
 });
-jest.mock('@pages/inbox/sidebar/SidebarLinksData', () => jest.fn(() => null));
-
-const mockUseOnyx: jest.Mock = jest.mocked(useOnyx);
-const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
-const mockSidebarLinksData = jest.mocked(SidebarLinksData);
-
-/** Builds a complete ResponsiveLayoutResult so the mock return value matches the hook's contract without a narrowing assertion. */
-const buildResponsiveLayout = (overrides: Partial<ResponsiveLayoutResult> = {}): ResponsiveLayoutResult => ({
-    shouldUseNarrowLayout: false,
-    isSmallScreenWidth: false,
-    isInNarrowPaneModal: false,
-    isExtraSmallScreenHeight: false,
-    isMediumScreenWidth: false,
-    isLargeScreenWidth: false,
-    isExtraLargeScreenWidth: false,
-    isExtraSmallScreenWidth: false,
-    isSmallScreen: false,
-    onboardingIsMediumOrLargerScreenWidth: false,
-    isInLandscapeMode: false,
-    ...overrides,
+jest.mock('@pages/inbox/sidebar/SidebarLinksData', () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    return () => ReactModule.createElement('View', {testID: 'sidebar-content'});
 });
 
-/** Builds the keyed useOnyx mock BaseSidebarScreen reads: IS_LOADING_APP, HAS_LOADED_APP and the REPORT collection (via selector). */
-const setupUseOnyx = (options: {isLoadingApp?: boolean; hasReportData?: boolean; hasLoadedApp?: boolean} = {}) => {
-    const isLoadingApp = options.isLoadingApp ?? false;
-    const hasReportData = options.hasReportData ?? false;
-    const hasLoadedApp = options.hasLoadedApp ?? false;
-    mockUseOnyx.mockImplementation((key: string, onyxOptions?: {selector?: (value: unknown) => unknown}) => {
-        if (key === ONYXKEYS.IS_LOADING_APP) {
-            return [isLoadingApp, {status: 'loaded'}];
-        }
-        if (key === ONYXKEYS.HAS_LOADED_APP) {
-            return [hasLoadedApp, {status: 'loaded'}];
-        }
-        if (key === ONYXKEYS.COLLECTION.REPORT) {
-            // BaseSidebarScreen passes a selector that reduces the collection to a boolean. Feed it a
-            // representative collection so the real selector produces the value under test.
-            const reports = hasReportData ? {[`${ONYXKEYS.COLLECTION.REPORT}1`]: {reportID: '1'} as OnyxTypes.Report} : {};
-            const value = onyxOptions?.selector ? onyxOptions.selector(reports) : reports;
-            return [value, {status: 'loaded'}];
-        }
-        return [undefined, {status: 'loaded'}];
+const buildRequest = (command: AnyRequest['command'], initiatedOffline = false): AnyRequest => ({
+    command,
+    data: {},
+    initiatedOffline,
+});
+
+async function setAppLoadState({
+    hasLoadedApp,
+    isLoadingApp,
+    requests = [],
+    hasCachedReports = false,
+}: {
+    hasLoadedApp: boolean;
+    isLoadingApp: boolean;
+    requests?: AnyRequest[];
+    hasCachedReports?: boolean;
+}) {
+    await act(async () => {
+        await Onyx.multiSet({
+            [ONYXKEYS.HAS_LOADED_APP]: hasLoadedApp,
+            [ONYXKEYS.IS_LOADING_APP]: isLoadingApp,
+            [ONYXKEYS.PERSISTED_REQUESTS]: requests,
+            [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
+            ...(hasCachedReports ? {[`${ONYXKEYS.COLLECTION.REPORT}1`]: {reportID: '1'}} : {}),
+        });
     });
-};
+    await waitForBatchedUpdatesWithAct();
+}
 
-describe('BaseSidebarScreen (outer skeleton gate)', () => {
+describe('BaseSidebarScreen app load gate', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
 
     beforeEach(() => {
-        jest.clearAllMocks();
-        mockUseResponsiveLayout.mockReturnValue(buildResponsiveLayout());
-        setupUseOnyx();
+        mockHasLoadedAppStatus = 'loaded';
     });
 
     afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
         await waitForBatchedUpdatesWithAct();
-        await Onyx.clear();
     });
 
-    it('shows the full-page skeleton on a cold load with no cached reports', () => {
-        setupUseOnyx({isLoadingApp: true, hasReportData: false});
+    it('shows the skeleton during a cold OpenApp load', async () => {
+        await setAppLoadState({
+            hasLoadedApp: false,
+            isLoadingApp: false,
+            requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
+        });
 
         render(<BaseSidebarScreen />);
+        await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByTestId('OptionsListSkeletonView')).toBeTruthy();
-        expect(mockSidebarLinksData).not.toHaveBeenCalled();
+        expect(screen.getByTestId('sidebar-skeleton')).toBeOnTheScreen();
+        expect(screen.queryByTestId('sidebar-content')).not.toBeOnTheScreen();
     });
 
-    it('does not show the full-page skeleton when reports are cached from a prior full load, even while the app is loading', () => {
-        setupUseOnyx({isLoadingApp: true, hasReportData: true, hasLoadedApp: true});
+    it('keeps the skeleton visible while HAS_LOADED_APP is hydrating', async () => {
+        mockHasLoadedAppStatus = 'loading';
+        await setAppLoadState({
+            hasLoadedApp: false,
+            isLoadingApp: true,
+        });
 
         render(<BaseSidebarScreen />);
+        await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByTestId('OptionsListSkeletonView')).toBeNull();
-        expect(mockSidebarLinksData).toHaveBeenCalled();
+        expect(screen.getByTestId('sidebar-skeleton')).toBeOnTheScreen();
+        expect(screen.queryByTestId('sidebar-content')).not.toBeOnTheScreen();
     });
 
-    it('shows the full-page skeleton when reports are present but the app has never finished loading', () => {
-        setupUseOnyx({isLoadingApp: true, hasReportData: true, hasLoadedApp: false});
+    it('uses IS_LOADING_APP as a cold restart recovery fallback after HAS_LOADED_APP hydrates false', async () => {
+        mockHasLoadedAppStatus = 'loaded';
+        await setAppLoadState({
+            hasLoadedApp: false,
+            isLoadingApp: true,
+        });
 
         render(<BaseSidebarScreen />);
+        await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByTestId('OptionsListSkeletonView')).toBeTruthy();
-        expect(mockSidebarLinksData).not.toHaveBeenCalled();
+        expect(screen.getByTestId('sidebar-skeleton')).toBeOnTheScreen();
+        expect(screen.queryByTestId('sidebar-content')).not.toBeOnTheScreen();
     });
 
-    it('mounts SidebarLinksData once the app has finished loading', () => {
-        setupUseOnyx({isLoadingApp: false, hasReportData: true, hasLoadedApp: true});
+    it('shows content after loading settles without an OpenApp request', async () => {
+        mockHasLoadedAppStatus = 'loaded';
+        await setAppLoadState({
+            hasLoadedApp: false,
+            isLoadingApp: false,
+        });
 
         render(<BaseSidebarScreen />);
+        await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByTestId('OptionsListSkeletonView')).toBeNull();
-        expect(mockSidebarLinksData).toHaveBeenCalled();
+        expect(screen.queryByTestId('sidebar-skeleton')).not.toBeOnTheScreen();
+        expect(screen.getByTestId('sidebar-content')).toBeOnTheScreen();
+    });
+
+    it('does not show the skeleton on a cached start with a stranded loading flag', async () => {
+        mockHasLoadedAppStatus = 'loading';
+        await setAppLoadState({
+            hasLoadedApp: true,
+            isLoadingApp: true,
+        });
+
+        render(<BaseSidebarScreen />);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByTestId('sidebar-skeleton')).not.toBeOnTheScreen();
+        expect(screen.getByTestId('sidebar-content')).toBeOnTheScreen();
+    });
+
+    it('does not show the skeleton for a warm ReconnectApp', async () => {
+        await setAppLoadState({
+            hasLoadedApp: true,
+            isLoadingApp: true,
+            requests: [buildRequest(WRITE_COMMANDS.RECONNECT_APP)],
+        });
+
+        render(<BaseSidebarScreen />);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByTestId('sidebar-skeleton')).not.toBeOnTheScreen();
+        expect(screen.getByTestId('sidebar-content')).toBeOnTheScreen();
+    });
+
+    it('does not show the skeleton for an account switch after the app has loaded', async () => {
+        await setAppLoadState({
+            hasLoadedApp: true,
+            isLoadingApp: true,
+            requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
+        });
+
+        render(<BaseSidebarScreen />);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByTestId('sidebar-skeleton')).not.toBeOnTheScreen();
+        expect(screen.getByTestId('sidebar-content')).toBeOnTheScreen();
+    });
+
+    // HAS_LOADED_APP is written through queueFlushedData, so an interrupted session (e.g. the auto-reload after
+    // a deploy) can boot without it. reconnectApp then delegates to openApp, which drives every gate in
+    // useAppLoadSkeletonState. Cached reports mean we can render now, so the skeleton must stay away.
+    it('does not show the skeleton when reports are cached but HAS_LOADED_APP was lost during an OpenApp', async () => {
+        await setAppLoadState({
+            hasLoadedApp: false,
+            isLoadingApp: true,
+            requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
+            hasCachedReports: true,
+        });
+
+        render(<BaseSidebarScreen />);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByTestId('sidebar-skeleton')).not.toBeOnTheScreen();
+        expect(screen.getByTestId('sidebar-content')).toBeOnTheScreen();
+    });
+
+    it('does not show the skeleton when reports are cached while HAS_LOADED_APP is still hydrating', async () => {
+        mockHasLoadedAppStatus = 'loading';
+        await setAppLoadState({
+            hasLoadedApp: false,
+            isLoadingApp: true,
+            hasCachedReports: true,
+        });
+
+        render(<BaseSidebarScreen />);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByTestId('sidebar-skeleton')).not.toBeOnTheScreen();
+        expect(screen.getByTestId('sidebar-content')).toBeOnTheScreen();
+    });
+
+    it('still shows the skeleton on a genuine first load with no cached reports', async () => {
+        await setAppLoadState({
+            hasLoadedApp: false,
+            isLoadingApp: true,
+            requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
+            hasCachedReports: false,
+        });
+
+        render(<BaseSidebarScreen />);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('sidebar-skeleton')).toBeOnTheScreen();
+        expect(screen.queryByTestId('sidebar-content')).not.toBeOnTheScreen();
+    });
+
+    it('preserves the cold load skeleton for an OpenApp request initiated offline', async () => {
+        await setAppLoadState({
+            hasLoadedApp: false,
+            isLoadingApp: true,
+            requests: [buildRequest(WRITE_COMMANDS.OPEN_APP, true)],
+        });
+
+        render(<BaseSidebarScreen />);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('sidebar-skeleton')).toBeOnTheScreen();
     });
 });

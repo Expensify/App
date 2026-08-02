@@ -4,6 +4,7 @@ import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import {useAppLoadSkeletonState} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -21,38 +22,24 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 
 import InboxTabSelector from './InboxTabSelector';
 import SidebarLinksData from './SidebarLinksData';
 
 const hasAnyReportSelector = (reports: OnyxCollection<Report>): boolean => Object.keys(reports ?? {}).length > 0;
 
-// Once the app finishes loading for the first time, we never show the skeleton again
-// (even if isLoadingApp briefly flips back to true during a reconnect).
-// This uses a module-level variable + connectWithoutView instead of a ref because
-// a ref resets on unmount, so the skeleton would flash again when the component
-// remounts (e.g. navigating between tabs).
-let hasEverFinishedLoading = false;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.IS_LOADING_APP,
-    callback: (value) => {
-        if (value !== false) {
-            return;
-        }
-        hasEverFinishedLoading = true;
-    },
-});
-
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
+    // HAS_LOADED_APP is written through queueFlushedData, which is held in memory until the sequential queue
+    // flushes, so an interrupted session (e.g. the auto-reload after a deploy) can boot without it. reconnectApp
+    // then delegates to openApp, and every gate in useAppLoadSkeletonState keys off `!hasLoadedApp` — so the
+    // sidebar skeletons over reports that are already sitting in Onyx. Cached reports are the direct answer to
+    // "can we render?", so they suppress the skeleton regardless of how the loading flags ended up.
     const [hasReportData = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: hasAnyReportSelector});
-    const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
-    const shouldShowSkeleton = isLoadingApp && !hasEverFinishedLoading && !(hasReportData && hasLoadedApp);
+    const {shouldShowSkeleton, isAppLoadPending, hasLoadedApp, isLoadingHasLoadedApp, isColdRestartRecoveryFallback} = useAppLoadSkeletonState({hasCachedData: hasReportData});
 
     // Tag an in-flight inbox-tab navigation span when the app-loading skeleton is shown instead of the
     // report list, so durations that include the openApp wait can be queried separately in Sentry.
@@ -83,7 +70,16 @@ function BaseSidebarScreen() {
                         {shouldShowSkeleton ? (
                             <OptionsListSkeletonView
                                 shouldAnimate
-                                reasonAttributes={{context: 'BaseSidebarScreen', isLoadingApp, hasEverFinishedLoading, hasReportData, hasLoadedApp} satisfies SkeletonSpanReasonAttributes}
+                                reasonAttributes={
+                                    {
+                                        context: 'BaseSidebarScreen',
+                                        isAppLoadPending,
+                                        hasLoadedApp,
+                                        isLoadingHasLoadedApp,
+                                        isColdRestartRecoveryFallback,
+                                        hasReportData,
+                                    } satisfies SkeletonSpanReasonAttributes
+                                }
                             />
                         ) : (
                             <SidebarLinksData insets={insets} />
