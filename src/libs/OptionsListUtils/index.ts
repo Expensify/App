@@ -1671,6 +1671,8 @@ function clearFilteredOptionListCache() {
 // account, so drop them on sign-out instead of holding them until the next call.
 registerSessionCleanupCallback(() => filteredOptionListCache.clear());
 
+// TODO: Refactor to use options object parameter to reduce parameter count. Link to issue: https://github.com/Expensify/App/issues/66408
+// eslint-disable-next-line @typescript-eslint/max-params
 function createFilteredOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reports: OnyxCollection<Report>,
