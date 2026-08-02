@@ -107,11 +107,18 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
     const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
-    // A Travel Invoicing card is an Expensify-issued card that lives in the same cardsList bucket as real Expensify Cards, so the feature flag / raw list emptiness are not trustworthy signals. Only treat a genuine non-travel card as a real Expensify Card.
-    const hasRealExpensifyCards = hasExpensifyCardsEnabledOnWorkspace && Object.values(cardsList ?? {}).some((card) => isCard(card) && !isTravelCard(card));
     const hasTravelInvoicingEnabledOnWorkspace = getIsTravelInvoicingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
+    // A Travel Invoicing card is an Expensify-issued card that lives in the same cardsList bucket as real Expensify Cards, and that bucket also holds
+    // non-card assignment metadata, so neither the feature flags nor raw list emptiness tell us which kind of card is actually blocking the delete.
+    const workspaceCards = Object.values(cardsList ?? {}).filter(isCard);
+    const hasExpensifyCards = workspaceCards.some((card) => !isTravelCard(card));
+    const hasTravelCards = workspaceCards.some((card) => isTravelCard(card));
+    // The delete is blocked by Expensify Cards / Travel Invoicing only when the feature is enabled *and* the workspace still has a card of that kind.
+    // When both block the delete we surface the Expensify Cards copy first, and the Travel Invoicing one on the next attempt once Expensify Cards are turned off.
+    const isBlockedByExpensifyCards = hasExpensifyCardsEnabledOnWorkspace && hasExpensifyCards;
+    const isBlockedByTravelInvoicing = hasTravelInvoicingEnabledOnWorkspace && hasTravelCards;
     // While offline we can't get the real rejection reason from the backend, so if we already know locally that the workspace has active Expensify Cards, block the delete up front instead of queuing one that will fail on reconnect.
-    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCardsEnabledOnWorkspace && !isEmptyObject(cardsList) && !!isOffline;
+    const hasDeleteWorkspaceExpensifyCardsError = isBlockedByExpensifyCards && !!isOffline;
 
     const policyLatestErrorMessage = getLatestErrorMessage(policy);
     const isPendingDelete = isPendingDeletePolicy(policy);
@@ -140,11 +147,8 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
             prompt: (
                 <View style={[styles.renderHTML, styles.flexRow]}>
                     <RenderHTML
-                        // Show the Travel Invoicing copy only when Travel Invoicing is the actual blocker (no real Expensify Card but Travel Invoicing enabled).
-                        // A real Expensify Card takes priority, and any other case (e.g. the offline guard firing on retained cardList metadata) keeps the Expensify Cards copy.
-                        html={translate(
-                            !hasRealExpensifyCards && hasTravelInvoicingEnabledOnWorkspace ? 'workspace.common.deleteTravelInvoicingError' : 'workspace.common.deleteOpenExpensifyCardsError',
-                        )}
+                        // This modal is only shown when one of the two blockers applies, and Expensify Cards take priority when both do.
+                        html={translate(isBlockedByExpensifyCards ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelInvoicingError')}
                         onConciergeLinkPress={() => {
                             closeModal();
                             dismissDeleteWorkspaceFlow();
@@ -159,7 +163,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         }).then(() => {
             dismissDeleteWorkspaceFlow();
         });
-    }, [closeModal, dismissDeleteWorkspaceFlow, hasRealExpensifyCards, hasTravelInvoicingEnabledOnWorkspace, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate]);
+    }, [closeModal, dismissDeleteWorkspaceFlow, isBlockedByExpensifyCards, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate]);
 
     const showGenericDeleteWorkspaceErrorModal = useCallback(
         (errorMessage: string) => {
@@ -285,7 +289,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
 
         closeModal();
 
-        if (policyLatestErrorMessage && (hasExpensifyCardsEnabledOnWorkspace || hasTravelInvoicingEnabledOnWorkspace)) {
+        if (policyLatestErrorMessage && (isBlockedByExpensifyCards || isBlockedByTravelInvoicing)) {
             showDeleteWorkspaceErrorModal();
             return;
         }
@@ -302,8 +306,8 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         isPendingDelete,
         prevIsPendingDelete,
         policyLatestErrorMessage,
-        hasExpensifyCardsEnabledOnWorkspace,
-        hasTravelInvoicingEnabledOnWorkspace,
+        isBlockedByExpensifyCards,
+        isBlockedByTravelInvoicing,
         closeModal,
         onDeleteComplete,
         onDismiss,
