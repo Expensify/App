@@ -45,18 +45,6 @@ type WideRHPActionsContextType = {
 
     // Read the optimistic width hint for a reportID.
     getReportRHPWidthHint: (reportID: string) => RHPWidthHint | undefined;
-
-    // Sync super wide and wide RHP keys with the visible RHP screens
-    syncRHPKeys: () => void;
-
-    // Clear the arrays of wide and super wide rhp keys
-    clearWideRHPKeys: () => void;
-
-    // Set that wide rhp is closing
-    setIsWideRHPClosing: (isClosing: boolean) => void;
-
-    // Set that super wide rhp is closing
-    setIsSuperWideRHPClosing: (isClosing: boolean) => void;
 };
 
 export type {RHPWidth, RHPWidthHint, WideRHPStateContextType, WideRHPActionsContextType};

@@ -1,55 +1,63 @@
 import extractNavigationKeys from '@libs/Navigation/helpers/extractNavigationKeys';
 import getLastVisibleRHPRouteKey from '@libs/Navigation/helpers/getLastVisibleRHPRouteKey';
-import {navigationRef} from '@libs/Navigation/Navigation';
+
+import type {NavigationState} from '@react-navigation/native';
 
 type VisibleRHPKeys = {
     visibleWideRHPRouteKeys: string[];
     visibleSuperWideRHPRouteKeys: string[];
 };
 
+const EMPTY_ROUTE_KEYS: string[] = [];
+
 const emptyRHPKeysState: VisibleRHPKeys = {
-    visibleWideRHPRouteKeys: [],
-    visibleSuperWideRHPRouteKeys: [],
+    visibleWideRHPRouteKeys: EMPTY_ROUTE_KEYS,
+    visibleSuperWideRHPRouteKeys: EMPTY_ROUTE_KEYS,
 };
 
 /**
- * Extracts the keys of the screens that are currently displayed from the array of all Wide/Super Wide RHP keys
- *
- * @param allWideRHPKeys - an array of all Wide/Super Wide RHP keys
+ * Ordered child route keys of the RHP currently on screen, empty when a fullscreen navigator covers it.
+ * A pure snapshot of navigation state, so the visible keys can be derived during render instead of synced by hand.
  */
-function getVisibleRHPKeys(allSuperWideRHPKeys: string[], allWideRHPKeys: string[]): VisibleRHPKeys {
-    if (!navigationRef.isReady()) {
+function getVisibleRHPChildRouteKeys(state: NavigationState | undefined): string[] {
+    if (!state) {
+        return EMPTY_ROUTE_KEYS;
+    }
+
+    const lastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
+    if (!lastVisibleRHPRouteKey) {
+        return EMPTY_ROUTE_KEYS;
+    }
+
+    const lastRHPRoute = state.routes.find((route) => route.key === lastVisibleRHPRouteKey);
+    if (!lastRHPRoute?.state?.routes) {
+        return EMPTY_ROUTE_KEYS;
+    }
+
+    return [...extractNavigationKeys(lastRHPRoute.state.routes)];
+}
+
+/** Of the screens stacked in the visible RHP, only those from the widest one upwards are displayed at that width. */
+function selectVisibleRHPKeys(visibleRHPChildRouteKeys: string[], allWideRHPRouteKeys: string[], allSuperWideRHPRouteKeys: string[]): VisibleRHPKeys {
+    if (!visibleRHPChildRouteKeys.length) {
         return emptyRHPKeysState;
     }
 
-    const rootState = navigationRef.getRootState();
-    if (!rootState) {
-        return emptyRHPKeysState;
-    }
+    const superWideRHPIndex = visibleRHPChildRouteKeys.findLastIndex((key) => allSuperWideRHPRouteKeys.includes(key));
+    const wideRHPIndex = visibleRHPChildRouteKeys.findLastIndex((key) => allWideRHPRouteKeys.includes(key));
 
-    const lastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(rootState);
-    const lastRHPRoute = rootState.routes.find((route) => route.key === lastVisibleRHPRouteKey);
-
-    if (!lastRHPRoute) {
-        return emptyRHPKeysState;
-    }
-
-    const superWideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => route?.key && allSuperWideRHPKeys.includes(route.key)) ?? -1;
-    const wideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => route?.key && allWideRHPKeys.includes(route.key)) ?? -1;
-
-    let visibleRHPKeys;
+    let widestIndex = 0;
     if (superWideRHPIndex > -1) {
-        visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state?.routes.slice(superWideRHPIndex));
+        widestIndex = superWideRHPIndex;
     } else if (wideRHPIndex > -1) {
-        visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state?.routes.slice(wideRHPIndex));
-    } else {
-        visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state?.routes);
+        widestIndex = wideRHPIndex;
     }
+    const visibleKeys = new Set(visibleRHPChildRouteKeys.slice(widestIndex));
 
     return {
-        visibleWideRHPRouteKeys: allWideRHPKeys.filter((key) => visibleRHPKeys.has(key)),
-        visibleSuperWideRHPRouteKeys: allSuperWideRHPKeys.filter((key) => visibleRHPKeys.has(key)),
+        visibleWideRHPRouteKeys: allWideRHPRouteKeys.filter((key) => visibleKeys.has(key)),
+        visibleSuperWideRHPRouteKeys: allSuperWideRHPRouteKeys.filter((key) => visibleKeys.has(key)),
     };
 }
 
-export default getVisibleRHPKeys;
+export {getVisibleRHPChildRouteKeys, selectVisibleRHPKeys};
