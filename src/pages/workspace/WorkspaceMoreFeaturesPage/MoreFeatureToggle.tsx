@@ -26,7 +26,7 @@ type MoreFeatureToggleProps = {
     isActive: boolean;
 
     /** Pending Onyx action used to render optimistic UI states (e.g. offline pending). */
-    pendingAction: PendingAction | undefined;
+    pendingAction?: PendingAction;
 
     /** Called when the user flips the switch. Receives the next enabled state. */
     onToggle: (isEnabled: boolean) => void;
