@@ -219,8 +219,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE.route,
+                        [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE]: {
+                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
@@ -328,7 +328,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT,
+                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: {
@@ -440,10 +440,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.VERIFY_ACCOUNT.path,
                         [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path,
                         [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_PAYMENT_CARD_CURRENCY_SELECTOR]: DYNAMIC_ROUTES.PAYMENT_CARD_CURRENCY_SELECTOR.path,
-                        [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
-                            path: ROUTES.SETTINGS_CONTACT_METHODS.route,
-                            exact: true,
-                        },
+                        [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS]: DYNAMIC_ROUTES.CONTACT_METHODS.path,
                         [SCREENS.SETTINGS.PROFILE.AVATAR]: {
                             path: ROUTES.SETTINGS_AVATAR,
                             exact: true,
@@ -475,10 +472,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: DYNAMIC_ROUTES.ADDRESS_COUNTRY.path,
-                        [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: {
-                            path: ROUTES.SETTINGS_ADDRESS_STATE.route,
-                            exact: true,
-                        },
+                        [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_STATE]: DYNAMIC_ROUTES.ADDRESS_STATE.path,
                         [SCREENS.SETTINGS.DELEGATE.VERIFY_ACCOUNT]: {
                             path: ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT,
                             exact: true,
@@ -825,6 +819,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_CURRENCY_CONVERSION_FEES]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.route,
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET.route,
@@ -1799,18 +1796,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.path,
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.path,
-                        [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: {
-                            path: ROUTES.MONEY_REQUEST_STATE_SELECTOR.route,
-                            exact: true,
-                        },
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ATTENDEES]: DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.path,
                         [SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT]: ROUTES.MONEY_REQUEST_ACCOUNTANT.route,
                         [SCREENS.MONEY_REQUEST.STEP_UPGRADE]: ROUTES.MONEY_REQUEST_UPGRADE.route,
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
-                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path,
+                        [SCREENS.MONEY_REQUEST.STEP_TIME]: ROUTES.MONEY_REQUEST_STEP_TIME.route,
                         [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: ROUTES.MONEY_REQUEST_STEP_SUBRATE.route,
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path,
-                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.path,
+                        [SCREENS.MONEY_REQUEST.STEP_TIME_EDIT]: ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.route,
                         [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TIME_RATE]: ROUTES.MONEY_REQUEST_STEP_TIME_RATE.route,
                         [SCREENS.MONEY_REQUEST.STEP_HOURS]: ROUTES.MONEY_REQUEST_STEP_HOURS.route,
@@ -1892,7 +1885,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.ADD_PERSONAL_BANK_ACCOUNT]: {
                     screens: {
-                        [SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT]: ROUTES.BANK_ACCOUNT_PERSONAL,
+                        [SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT]: ROUTES.BANK_ACCOUNT_PERSONAL.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.ENABLE_PAYMENTS]: {

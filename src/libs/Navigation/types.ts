@@ -86,10 +86,11 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: {
         country?: string;
     };
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
+    [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_STATE]: {
+        state?: string;
+        label?: string;
     };
+    [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS]: undefined;
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
         contactMethod: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -205,7 +206,7 @@ type SettingsNavigatorParamList = {
         subPage?: EnablePaymentsSubPageType;
         action?: 'edit';
     };
-    [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE]: undefined;
+    [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE]: undefined;
     [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
         bankAccountID: string;
     };
@@ -238,7 +239,13 @@ type SettingsNavigatorParamList = {
         subPage?: string;
         action?: 'edit';
     };
-    [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
+        /** Name of the currently displayed sub page */
+        subPage?: string;
+
+        /** Whether the user is editing one of the sub pages */
+        action?: 'edit';
+    };
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: undefined;
     [SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT]: {
         subPage?: string;
@@ -2323,12 +2330,14 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME]: {
+    [SCREENS.MONEY_REQUEST.STEP_TIME]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
         backToReport?: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo: Routes | undefined;
     };
     [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -2347,12 +2356,14 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT]: {
+    [SCREENS.MONEY_REQUEST.STEP_TIME_EDIT]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
         backToReport?: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo: Routes | undefined;
     };
     [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -2487,7 +2498,13 @@ type SplitDetailsNavigatorParamList = {
 };
 
 type AddPersonalBankAccountNavigatorParamList = {
-    [SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT]: undefined;
+    [SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT]: {
+        /** Name of the currently displayed sub page */
+        subPage?: string;
+
+        /** Whether the user is editing one of the sub pages */
+        action?: 'edit';
+    };
 };
 
 type ReimbursementAccountNavigatorParamList = {
@@ -2526,6 +2543,8 @@ type ReimbursementAccountEnterSignerInfoNavigatorParamList = {
         policyID: string;
         bankAccountID: string;
         isCompleted: string;
+        subPage?: string;
+        action?: 'edit';
     };
 };
 
@@ -2908,6 +2927,9 @@ type WorkspaceSplitNavigatorParamList = {
         approverIndex: number;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_CURRENCY_CONVERSION_FEES]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
