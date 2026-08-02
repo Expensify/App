@@ -219,7 +219,31 @@ async function run() {
 
         // Safety check: Don't update if formatted body is identical to original
         if (formattedBody === commentBody) {
-            console.log('Formatted body is identical to original, no update needed');
+            console.log('Formatted body is identical to original, skipping update');
+            return;
+        }
+
+        // Update the comment
+        console.log(`Updating comment ${commentId}...`);
+        await GithubUtils.octokit.issues.updateComment({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            comment_id: commentId,
+            body: formattedBody,
+        });
+
+        console.log('Successfully updated CodeCov comment!');
+    } catch (error) {
+        console.error('An error occurred while formatting CodeCov comment:', error);
+        core.setFailed(error instanceof Error ? error.message : String(error));
+    }
+}
+
+if (require.main === module) {
+    run();
+}
+
+export default run;to original, no update needed');
             return;
         }
 
