@@ -3544,6 +3544,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         unlink: 'リンク解除',
         linkSent: 'リンクを送信しました！',
         successfullyUnlinkedLogin: 'セカンダリログインを正常に連携解除しました！',
+        unlinkError: 'セカンダリログインの連携解除に失敗しました。もう一度お試しください。',
     },
     emailDeliveryFailurePage: {
         ourEmailProvider: (login: string) =>

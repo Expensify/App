@@ -3463,6 +3463,7 @@ ${amount} para ${merchant} - ${date}`,
         unlink: 'Desvincular',
         linkSent: '¡Enlace enviado!',
         successfullyUnlinkedLogin: '¡Nombre de usuario secundario desvinculado correctamente!',
+        unlinkError: 'No se pudo desvincular tu nombre de usuario secundario. Por favor, inténtalo de nuevo.',
     },
     emailDeliveryFailurePage: {
         ourEmailProvider: (login) =>

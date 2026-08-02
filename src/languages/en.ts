@@ -3683,6 +3683,7 @@ const translations = {
         unlink: 'Unlink',
         linkSent: 'Link sent!',
         successfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
+        unlinkError: "Couldn't unlink your secondary login. Please try again.",
     },
     emailDeliveryFailurePage: {
         ourEmailProvider: (login: string) => `Our email provider has temporarily suspended emails to ${login} due to delivery issues. To unblock your login, please follow these steps:`,

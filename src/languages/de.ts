@@ -3587,6 +3587,7 @@ ${amount} für ${merchant} – ${date}`,
         unlink: 'Verknüpfung aufheben',
         linkSent: 'Link gesendet!',
         successfullyUnlinkedLogin: 'Sekundäres Login wurde erfolgreich getrennt!',
+        unlinkError: 'Sekundäres Login konnte nicht getrennt werden. Bitte versuchen Sie es erneut.',
     },
     emailDeliveryFailurePage: {
         ourEmailProvider: (login: string) =>
