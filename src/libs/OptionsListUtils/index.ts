@@ -1527,6 +1527,7 @@ function processReport(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
+    currentUserAccountID: number,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1567,6 +1568,7 @@ function processReport(
                 visibleReportActionsData,
                 isTrackIntentUser,
                 sortedActions,
+                currentUserAccountID,
             }),
         },
     };
@@ -1675,6 +1677,7 @@ function createFilteredOptionList(
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     privateIsArchivedMap: PrivateIsArchivedMap,
     policiesCollection: OnyxCollection<Policy>,
+    currentUserAccountID: number,
     options: {
         maxRecentReports?: number;
         includeP2P?: boolean;
@@ -1721,6 +1724,7 @@ function createFilteredOptionList(
         // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
         // so its reference signals that the underlying report actions changed.
         sortedActions,
+        currentUserAccountID,
     ];
     const cachedEntry = shouldUseCache ? filteredOptionListCache.get(cacheEntryKey) : undefined;
     if (cachedEntry && cacheInputs.every((value, index) => value === cachedEntry.inputs.at(index))) {
@@ -1779,6 +1783,7 @@ function createFilteredOptionList(
             personalDetails,
             privateIsArchived,
             policy,
+            currentUserAccountID,
             reportAttributesDerived,
             reportPolicyTags,
             visibleReportActionsData,
@@ -1827,6 +1832,7 @@ function createFilteredOptionList(
                       reportAttributesDerived,
                       policyTags: reportPolicyTags,
                       visibleReportActionsData,
+                      currentUserAccountID,
                   }),
               };
           })

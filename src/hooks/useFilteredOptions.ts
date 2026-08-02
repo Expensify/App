@@ -1,6 +1,7 @@
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
@@ -91,6 +92,8 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     // Sorted report actions from the RAM_ONLY_SORTED_REPORT_ACTIONS derived value; a new reference on
     // every recompute, so it doubles as the report-actions invalidation signal for the option-list cache.
     const sortedActions = useSortedActions();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
@@ -106,6 +109,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
                       reportAttributesDerived,
                       privateIsArchivedMap,
                       allPolicies,
+                      currentUserAccountID,
                       {
                           maxRecentReports: reportsLimit,
                           includeP2P,
@@ -133,6 +137,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
             preferredLocale,
             isTrackIntentUser,
             sortedActions,
+            currentUserAccountID,
         ],
     );
 
