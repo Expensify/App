@@ -33,11 +33,6 @@ function BaseSidebarScreen() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    // HAS_LOADED_APP is written through queueFlushedData, which is held in memory until the sequential queue
-    // flushes, so an interrupted session (e.g. the auto-reload after a deploy) can boot without it. reconnectApp
-    // then delegates to openApp, and every gate in useAppLoadSkeletonState keys off `!hasLoadedApp` — so the
-    // sidebar skeletons over reports that are already sitting in Onyx. Cached reports are the direct answer to
-    // "can we render?", so they suppress the skeleton regardless of how the loading flags ended up.
     const [hasReportData = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: hasAnyReportSelector});
     const {shouldShowSkeleton, isAppLoadPending, hasLoadedApp, isLoadingHasLoadedApp, isColdRestartRecoveryFallback} = useAppLoadSkeletonState({hasCachedData: hasReportData});
 

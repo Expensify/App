@@ -146,13 +146,6 @@ function useIsAppLoadPending(): boolean {
  *
  * HAS_LOADED_APP prevents the skeleton from returning after the first OpenApp completes. The legacy
  * IS_LOADING_APP flag only recovers interrupted cold starts after HAS_LOADED_APP hydrates false.
- *
- * Every gate below keys off `!hasLoadedApp`, but HAS_LOADED_APP is written through queueFlushedData, which
- * is held in memory until the sequential queue flushes (see getOnyxDataForOpenOrReconnect in
- * src/libs/actions/App.ts). A session interrupted in that window boots without it, reconnectApp delegates to
- * openApp, and the screen skeletons even though its data is already in Onyx. `hasCachedData` lets a caller
- * report that it has enough locally to render now, which short-circuits every gate: the flags describe
- * whether a fetch is outstanding, not whether there is anything to show.
  */
 function useAppLoadSkeletonState({isLoadingReportData = false, hasCachedData = false}: {isLoadingReportData?: boolean; hasCachedData?: boolean} = {}) {
     const isAppLoadPending = useIsAppLoadPending();
