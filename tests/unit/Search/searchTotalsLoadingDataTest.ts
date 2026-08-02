@@ -6,8 +6,6 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import Onyx from 'react-native-onyx';
-
 jest.mock('@libs/API', () => ({
     makeRequestWithSideEffects: jest.fn(),
     waitForWrites: jest.fn(),
@@ -32,16 +30,13 @@ type SearchLoadingState = {
     currency?: string | null;
 };
 
-type SearchOnyxUpdate = {
-    key: string;
-    value?: {
-        search?: SearchLoadingState;
-    };
-};
-
 type SearchRequestData = {
-    optimisticData?: SearchOnyxUpdate[];
-    finallyData?: SearchOnyxUpdate[];
+    optimisticData?: Array<{
+        key: string;
+        value?: {
+            search?: SearchLoadingState;
+        };
+    }>;
 };
 
 type SearchRequestParams = {
@@ -70,16 +65,6 @@ function getSearchLoadingUpdateForHash(hash: number) {
     const [, , requestData] = makeRequestWithSideEffectsMock.mock.calls.at(-1) ?? [];
     const optimisticData = requestData?.optimisticData ?? [];
     return optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` && !!update.value?.search?.isLoading)?.value?.search;
-}
-
-/** Narrows an Onyx.merge payload to the `{search: {isLoading: false}}` write that settles a snapshot. */
-function isLoadingClear(value: unknown) {
-    if (typeof value !== 'object' || value === null || !('search' in value)) {
-        return false;
-    }
-
-    const {search: searchValue} = value;
-    return typeof searchValue === 'object' && searchValue !== null && 'isLoading' in searchValue && searchValue.isLoading === false;
 }
 
 function getLastSearchRequestParams() {
@@ -198,29 +183,6 @@ describe('search loading totals handling', () => {
             await searchTwiceConcurrently(true, true);
 
             expect(makeRequestWithSideEffects).toHaveBeenCalledTimes(1);
-        });
-
-        it('does not hand the API layer a finallyData that would settle the snapshot mid-flight', async () => {
-            const queryJSON = getQueryJSON();
-
-            await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, shouldCalculateTotals: true, isLoading: false});
-
-            const [, , requestData] = getMakeRequestWithSideEffectsMock().mock.calls.at(-1) ?? [];
-            // finallyData still settles the terminal `state`, but only search() itself may clear `isLoading`.
-            expect(requestData?.finallyData?.some((update) => isLoadingClear(update.value))).toBe(false);
-        });
-
-        it('clears the snapshot loading state once the last overlapping request settles', async () => {
-            const queryJSON = getQueryJSON();
-            const onyxMergeSpy = jest.spyOn(Onyx, 'merge');
-
-            await searchTwiceConcurrently(false, true);
-
-            const loadingClears = onyxMergeSpy.mock.calls.filter(([key, value]) => key === `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` && isLoadingClear(value));
-
-            // Two requests overlap on one snapshot, but only the one that finishes last may report it as settled.
-            expect(loadingClears).toHaveLength(1);
-            onyxMergeSpy.mockRestore();
         });
     });
 

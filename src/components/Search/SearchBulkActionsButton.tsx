@@ -135,14 +135,12 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
     const hasSearchErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0;
+    // The server count is the only source for how many items "select all" covers, so keep the button loading until it
+    // arrives. Offline or on error it never will, so fall back to the count of the items we do have selected.
     const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !hasSearchErrors;
-    let selectionButtonText: string;
-    if (areAllMatchingItemsSelected) {
-        selectionButtonText =
-            typeof allMatchingItemsCount !== 'number' ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: allMatchingItemsCount});
-    } else {
-        selectionButtonText = translate('workspace.common.selected', {count: selectedItemsCount});
-    }
+    const selectionButtonText = translate('workspace.common.selected', {
+        count: areAllMatchingItemsSelected && typeof allMatchingItemsCount === 'number' ? allMatchingItemsCount : selectedItemsCount,
+    });
 
     return (
         <>

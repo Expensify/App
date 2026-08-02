@@ -680,11 +680,6 @@ function getOnyxLoadingData(
     isOffline?: boolean,
     isSearchAPI = false,
     shouldCalculateTotals?: boolean,
-    /**
-     * Whether finallyData may clear `search.isLoading`. search() opts out because several requests can share one
-     * snapshot, so it settles the loading flag itself once the last of them finishes.
-     */
-    shouldSettleLoading = true,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> {
     const shouldClearTotals = isSearchAPI && shouldCalculateTotals === false && offset === 0;
 
@@ -733,7 +728,7 @@ function getOnyxLoadingData(
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 search: {
-                    ...(isSearchAPI && shouldSettleLoading && {isLoading: false}),
+                    ...(isSearchAPI && {isLoading: false}),
                     ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type, hash}),
                 },
             },
@@ -971,20 +966,6 @@ function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPagePara
 // fire for the same query. Cleared when the request completes.
 const inFlightSearchRequests = new Set<string>();
 
-/**
- * Every request for a given hash writes the same snapshot, so `search.isLoading` belongs to the snapshot
- * rather than to any single request. Used to keep it set until the last overlapping request settles.
- */
-function hasInFlightSearchRequestForHash(hash: number) {
-    const prefix = `${hash}_`;
-    for (const key of inFlightSearchRequests) {
-        if (key.startsWith(prefix)) {
-            return true;
-        }
-    }
-    return false;
-}
-
 let shouldPreventSearchAPI = false;
 function handlePreventSearchAPI(hash: number | undefined) {
     if (typeof hash === 'undefined') {
@@ -1068,9 +1049,7 @@ function search({
     }
     inFlightSearchRequests.add(dedupeKey);
 
-    // finallyData still carries the terminal `state`, but not the `isLoading` clear: releaseRequest owns that so an
-    // early-finishing request cannot report the shared snapshot as settled while another one is still in flight.
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals, false);
+    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
     const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
@@ -1138,15 +1117,10 @@ function search({
                 await Onyx.update(failureData ?? []);
                 await Onyx.update(finallyData ?? []);
                 throw error;
+            })
+            .finally(() => {
+                inFlightSearchRequests.delete(dedupeKey);
             });
-
-    const releaseRequest = () => {
-        inFlightSearchRequests.delete(dedupeKey);
-
-        if (!hasInFlightSearchRequestForHash(queryJSON.hash)) {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {isLoading: false}});
-        }
-    };
 
     // Catch here so every caller (the page-load fire in useSearchPageSetup and the re-search handlers
     // in SearchPage/SearchPageNarrow) is covered without a separate catch each. Failure and terminal state
@@ -1159,10 +1133,10 @@ function search({
     };
 
     if (skipWaitForWrites) {
-        return startRequest().catch(handleSearchError).finally(releaseRequest);
+        return startRequest().catch(handleSearchError);
     }
 
-    return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest).catch(handleSearchError).finally(releaseRequest);
+    return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest).catch(handleSearchError);
 }
 
 /**
