@@ -697,7 +697,9 @@ const CONST = {
                 ADDRESS: 'address',
                 TYPE: 'type',
                 INCORPORATION_DATE: 'start-date',
-                INCORPORATION_STATE: 'state',
+                // Must not equal DYNAMIC_ROUTES.ADDRESS_STATE.path ('state'), or getStateFromPath.ts
+                // mistakes this sub-page URL for the dynamic state-picker route (see DynamicStateSelectionPage.tsx).
+                INCORPORATION_STATE: 'incorporation-state',
                 INCORPORATION_CODE: 'code',
                 CONFIRMATION: 'confirmation',
             },
