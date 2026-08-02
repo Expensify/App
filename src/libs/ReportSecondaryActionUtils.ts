@@ -445,9 +445,11 @@ function isCancelPaymentAction(
 
     // A bank reimbursement is only cancellable while the money hasn't moved. The report state can't tell us that
     // (e.g. fast ACH posts the credit immediately), so we rely on the backend's answer from GetReportCancelReimbursementStatus.
+    // The stored answer can go stale after a successful cancellation, so it only applies while the report is still reimbursed.
+    const isReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const isBankPaymentCancellable = !!reimbursementCancellableStatus?.canCancel;
 
-    return (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) || (isPaidViaBankAccount && isBankPaymentCancellable);
+    return (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) || (isReimbursed && isPaidViaBankAccount && isBankPaymentCancellable);
 }
 
 function isReceivedPaymentAction(report: Report, reportTransactions: Transaction[] = [], reportActions: ReportAction[] = [], policy?: Policy): boolean {

@@ -2,6 +2,7 @@ import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAu
 
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
+import type ReportCancelReimbursementStatus from './ReportCancelReimbursementStatus';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 
 /** Model of commands data */
@@ -128,13 +129,7 @@ type Response<TKey extends OnyxKey> = {
     statementKey?: string;
 
     /** Whether a report's bank reimbursement can still be canceled, from GetReportCancelReimbursementStatus */
-    reimbursementCancellableStatus?: {
-        /** Whether the reimbursement can still be canceled */
-        canCancel?: boolean;
-
-        /** Whether the reimbursement is waiting for the credit to post */
-        isWaitingForCreditToPost?: boolean;
-    };
+    reimbursementCancellableStatus?: ReportCancelReimbursementStatus;
 };
 
 export default Response;
