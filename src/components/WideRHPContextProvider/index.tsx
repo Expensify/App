@@ -25,7 +25,7 @@ import type {RHPWidth, RHPWidthHint, WideRHPActionsContextType, WideRHPStateCont
 
 import {defaultWideRHPActionsContextValue, defaultWideRHPStateContextValue} from './default';
 import getIsRHPDisplayedBelow from './getIsRHPDisplayedBelow';
-import {getVisibleRHPChildRouteKeys, selectVisibleRHPKeys} from './getVisibleRHPRouteKeys';
+import getVisibleRHPKeys from './getVisibleRHPRouteKeys';
 import useShouldRenderOverlay from './useShouldRenderOverlay';
 
 // 0 is folded/hidden, 1 is expanded/shown
@@ -51,8 +51,6 @@ const animatedWideRHPWidth = new Animated.Value(wideRHPWidth);
 // The left position values of overlays displayed in ModalStackNavigators. A detailed description of how these positions are calculated can be found in src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx
 const modalStackOverlayWideRHPPositionLeft = new Animated.Value(superWideRHPWidth - wideRHPWidth);
 const modalStackOverlaySuperWideRHPPositionLeft = new Animated.Value(superWideRHPWidth - singleRHPWidth);
-
-const EMPTY_ROUTE_KEYS: string[] = [];
 
 let visibleRHPRouteKeys: {wide: string[]; superWide: string[]} = {wide: [], superWide: []};
 const visibleRHPRouteKeysListeners = new Set<() => void>();
@@ -145,21 +143,21 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         selector: expenseReportSelector,
     });
 
-    const {focusedRoute, focusedNavigator, visibleRHPChildRouteKeys} = useRootNavigationState((state) => {
+    const {focusedRoute, focusedNavigator, rootNavigationState} = useRootNavigationState((state) => {
         if (!state) {
-            return {focusedRoute: undefined, focusedNavigator: undefined, visibleRHPChildRouteKeys: EMPTY_ROUTE_KEYS};
+            return {focusedRoute: undefined, focusedNavigator: undefined, rootNavigationState: undefined};
         }
 
         return {
             focusedRoute: findFocusedRoute(state),
             focusedNavigator: state.routes.at(-1)?.name,
-            visibleRHPChildRouteKeys: getVisibleRHPChildRouteKeys(state),
+            rootNavigationState: state,
         };
     });
 
     const allWideRHPRouteKeys = rhpWidthRegistrations.filter((registration) => registration.width === 'wide').map((registration) => registration.key);
     const allSuperWideRHPRouteKeys = rhpWidthRegistrations.filter((registration) => registration.width === 'super-wide').map((registration) => registration.key);
-    const {visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys} = selectVisibleRHPKeys(visibleRHPChildRouteKeys, allWideRHPRouteKeys, allSuperWideRHPRouteKeys);
+    const {visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys} = getVisibleRHPKeys(rootNavigationState, allWideRHPRouteKeys, allSuperWideRHPRouteKeys);
 
     const isWideRHPFocused = !!focusedRoute?.key && allWideRHPRouteKeys.includes(focusedRoute.key);
     const isSuperWideRHPFocused = !!focusedRoute?.key && allSuperWideRHPRouteKeys.includes(focusedRoute.key);

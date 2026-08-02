@@ -947,7 +947,7 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
         }
     });
 
-    it('releases the sweep claim for a re-flagged transaction while another flag on the same rail stays claimed', () => {
+    it('sweeps a re-flagged transaction while another flag on the same rail stays swept only once', () => {
         jest.useFakeTimers();
         try {
             const otherTx: Transaction = {...railTx, transactionID: 'otherTx'};

@@ -8,56 +8,44 @@ type VisibleRHPKeys = {
     visibleSuperWideRHPRouteKeys: string[];
 };
 
-const EMPTY_ROUTE_KEYS: string[] = [];
-
 const emptyRHPKeysState: VisibleRHPKeys = {
-    visibleWideRHPRouteKeys: EMPTY_ROUTE_KEYS,
-    visibleSuperWideRHPRouteKeys: EMPTY_ROUTE_KEYS,
+    visibleWideRHPRouteKeys: [],
+    visibleSuperWideRHPRouteKeys: [],
 };
 
 /**
- * Ordered child route keys of the RHP currently on screen, empty when a fullscreen navigator covers it.
- * A pure snapshot of navigation state, so the visible keys can be derived during render instead of synced by hand.
+ * Extracts the keys of the screens that are currently displayed from the arrays of all Wide/Super Wide RHP keys.
+ * Takes navigation state as an argument so the visible keys can be derived during render rather than synced by hand.
  */
-function getVisibleRHPChildRouteKeys(state: NavigationState | undefined): string[] {
+function getVisibleRHPKeys(state: NavigationState | undefined, allWideRHPKeys: string[], allSuperWideRHPKeys: string[]): VisibleRHPKeys {
     if (!state) {
-        return EMPTY_ROUTE_KEYS;
-    }
-
-    const lastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
-    if (!lastVisibleRHPRouteKey) {
-        return EMPTY_ROUTE_KEYS;
-    }
-
-    const lastRHPRoute = state.routes.find((route) => route.key === lastVisibleRHPRouteKey);
-    if (!lastRHPRoute?.state?.routes) {
-        return EMPTY_ROUTE_KEYS;
-    }
-
-    return [...extractNavigationKeys(lastRHPRoute.state.routes)];
-}
-
-/** Of the screens stacked in the visible RHP, only those from the widest one upwards are displayed at that width. */
-function selectVisibleRHPKeys(visibleRHPChildRouteKeys: string[], allWideRHPRouteKeys: string[], allSuperWideRHPRouteKeys: string[]): VisibleRHPKeys {
-    if (!visibleRHPChildRouteKeys.length) {
         return emptyRHPKeysState;
     }
 
-    const superWideRHPIndex = visibleRHPChildRouteKeys.findLastIndex((key) => allSuperWideRHPRouteKeys.includes(key));
-    const wideRHPIndex = visibleRHPChildRouteKeys.findLastIndex((key) => allWideRHPRouteKeys.includes(key));
+    // Undefined once a fullscreen navigator covers the RHP, which is what makes clearing the keys by hand unnecessary.
+    const lastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
+    const lastRHPRoute = state.routes.find((route) => route.key === lastVisibleRHPRouteKey);
 
-    let widestIndex = 0;
-    if (superWideRHPIndex > -1) {
-        widestIndex = superWideRHPIndex;
-    } else if (wideRHPIndex > -1) {
-        widestIndex = wideRHPIndex;
+    if (!lastRHPRoute) {
+        return emptyRHPKeysState;
     }
-    const visibleKeys = new Set(visibleRHPChildRouteKeys.slice(widestIndex));
+
+    const superWideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => route?.key && allSuperWideRHPKeys.includes(route.key)) ?? -1;
+    const wideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => route?.key && allWideRHPKeys.includes(route.key)) ?? -1;
+
+    let visibleRHPKeys;
+    if (superWideRHPIndex > -1) {
+        visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state?.routes.slice(superWideRHPIndex));
+    } else if (wideRHPIndex > -1) {
+        visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state?.routes.slice(wideRHPIndex));
+    } else {
+        visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state?.routes);
+    }
 
     return {
-        visibleWideRHPRouteKeys: allWideRHPRouteKeys.filter((key) => visibleKeys.has(key)),
-        visibleSuperWideRHPRouteKeys: allSuperWideRHPRouteKeys.filter((key) => visibleKeys.has(key)),
+        visibleWideRHPRouteKeys: allWideRHPKeys.filter((key) => visibleRHPKeys.has(key)),
+        visibleSuperWideRHPRouteKeys: allSuperWideRHPKeys.filter((key) => visibleRHPKeys.has(key)),
     };
 }
 
-export {getVisibleRHPChildRouteKeys, selectVisibleRHPKeys};
+export default getVisibleRHPKeys;
