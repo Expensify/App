@@ -41,9 +41,9 @@ function getAutocompleteInitialFocus(sections: InitialFocusSection[], recentRepo
     let flatIndex = 0;
 
     for (const section of sections) {
-        const hasData = (section.data?.length ?? 0) > 0;
-        const hasHeader = hasData && (section.title !== undefined || section.customHeader !== undefined);
-        if (hasHeader) {
+        const isDataPresent = (section.data?.length ?? 0) > 0;
+        const isHeaderPresent = isDataPresent && (section.title !== undefined || section.customHeader !== undefined);
+        if (isHeaderPresent) {
             flatIndex++;
         }
         for (const item of section.data ?? []) {
