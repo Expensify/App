@@ -30,6 +30,9 @@ type MultiSelectItem<T> = {
     icons?: Icon[];
     leftElement?: ReactNode;
     searchableText?: string;
+
+    /** Optional supporting text rendered on a second line beneath `text` */
+    alternateText?: string;
 };
 
 type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & {
@@ -83,6 +86,7 @@ function MultiSelect<T extends string>({
         : orderedItems;
     const listData: ListItem[] = filteredItems.map((item) => ({
         text: item.text,
+        alternateText: item.alternateText,
         keyForList: item.value,
         isSelected: !!selectedItems.find((i) => i.value === item.value),
         icons: item.icons,
