@@ -52,7 +52,7 @@ function IncorporationStateBusiness({onNext, isEditing}: SubPageProps) {
             isLoadingReimbursementAccount,
         };
         return (
-            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     reasonAttributes={reasonAttributes}
