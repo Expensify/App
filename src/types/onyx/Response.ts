@@ -126,6 +126,15 @@ type Response<TKey extends OnyxKey> = {
 
     /** Cache key returned from GetExpensifyCardStatementPDF */
     statementKey?: string;
+
+    /** Whether a report's bank reimbursement can still be canceled, from GetReportCancelReimbursementStatus */
+    reimbursementCancellableStatus?: {
+        /** Whether the reimbursement can still be canceled */
+        canCancel?: boolean;
+
+        /** Whether the reimbursement is waiting for the credit to post */
+        isWaitingForCreditToPost?: boolean;
+    };
 };
 
 export default Response;

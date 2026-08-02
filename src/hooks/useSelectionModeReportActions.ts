@@ -32,6 +32,7 @@ import useLifecycleActions from './useLifecycleActions';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import useReportCancelReimbursementStatus from './useReportCancelReimbursementStatus';
 import useReportIsArchived from './useReportIsArchived';
 import useSelectionModePayment from './useSelectionModePayment';
 
@@ -74,6 +75,7 @@ function useSelectionModeReportActions({
 
     const {isProduction} = useEnvironment();
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
+    const reimbursementCancellableStatus = useReportCancelReimbursementStatus(report);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'Cash', 'ArrowRight'] as const);
 
@@ -167,6 +169,7 @@ function useSelectionModeReportActions({
             outstandingReportsByPolicyID,
             isChatReportArchived,
             isProduction,
+            reimbursementCancellableStatus,
         });
     })();
 

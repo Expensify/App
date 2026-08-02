@@ -1,8 +1,8 @@
 import type {PaymentMethod} from '@components/KYCWall/types';
 
 import * as API from '@libs/API';
-import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import type {GetReportCancelReimbursementStatusParams, MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
@@ -754,6 +754,30 @@ function cancelPayment(
 }
 
 /**
+ * Fetches whether the backend can still cancel the report's bank reimbursement and stores it in Onyx,
+ * so the Cancel payment option is only offered when the cancellation can actually succeed.
+ */
+function getReportCancelReimbursementStatus(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    const params: GetReportCancelReimbursementStatusParams = {reportID};
+
+    // The response carries raw data instead of onyxData, so we have to read it here and write it to Onyx ourselves.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_REPORT_CANCEL_REIMBURSEMENT_STATUS, params).then((response) => {
+        const status = response?.reimbursementCancellableStatus;
+        if (!status) {
+            return;
+        }
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_CANCEL_REIMBURSEMENT_STATUS}${reportID}`, {
+            canCancel: !!status.canCancel,
+            isWaitingForCreditToPost: !!status.isWaitingForCreditToPost,
+        });
+    });
+}
+
+/**
  * Completes onboarding for invite link flow based on the selected payment option
  *
  * @param paymentSelected based on which we choose the onboarding choice and concierge message
@@ -1183,5 +1207,14 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, mergeAdditionalPayOnyxData, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export {
+    cancelPayment,
+    completePaymentOnboarding,
+    getReportCancelReimbursementStatus,
+    markReportPaymentReceived,
+    mergeAdditionalPayOnyxData,
+    payInvoice,
+    payMoneyRequest,
+    savePreferredPaymentMethod,
+};
 export type {AdditionalPayOnyxData};

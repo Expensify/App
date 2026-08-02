@@ -1771,7 +1771,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
 
-    it('does not include CANCEL_PAYMENT option for bank payment after the NACHA cutoff has passed', async () => {
+    it('does not include CANCEL_PAYMENT option for bank payment when the cancellable status is not loaded', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1786,9 +1786,6 @@ describe('getSecondaryAction', () => {
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
         });
         const ACTION_ID = 'action_id';
-        // Paid two days ago, stored in the DB datetime format (UTC, no timezone suffix), so that day's 23:45 UTC NACHA cutoff has passed
-        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
-        const createdAtUTC = `${twoDaysAgo.toISOString().slice(0, 10)} 20:00:00.000`;
         const reportAction = createMock<ReportAction>({
             reportActionID: ACTION_ID,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -1796,7 +1793,7 @@ describe('getSecondaryAction', () => {
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
-            created: createdAtUTC,
+            created: '2026-01-01 12:00:00.000',
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
@@ -1816,7 +1813,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
 
-    it('includes CANCEL_PAYMENT option for report before nacha cutoff', async () => {
+    it('includes CANCEL_PAYMENT option for report waiting on the payer bank account', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1834,9 +1831,6 @@ describe('getSecondaryAction', () => {
         const TRANSACTION_ID = 'transaction_id';
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        // Use tomorrow's date to ensure we're always before the NACHA cutoff (23:45 UTC)
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
         const ACTION_ID = 'action_id';
         const reportAction = createMock<ReportAction>({
             reportActionID: ACTION_ID,
@@ -1845,7 +1839,7 @@ describe('getSecondaryAction', () => {
                 IOUTransactionID: TRANSACTION_ID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
             },
-            created: tomorrow.toISOString(),
+            created: '2026-01-01 12:00:00.000',
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
@@ -1869,7 +1863,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
 
-    it('includes CANCEL_PAYMENT option for bank payment in BILLING state', async () => {
+    it('includes CANCEL_PAYMENT option for bank payment the backend reports as cancellable', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1886,9 +1880,6 @@ describe('getSecondaryAction', () => {
         const TRANSACTION_ID = 'transaction_id';
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        // Use tomorrow's date to ensure we're always before the NACHA cutoff (23:45 UTC)
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
         const ACTION_ID = 'action_id';
         const reportAction = createMock<ReportAction>({
             reportActionID: ACTION_ID,
@@ -1898,7 +1889,7 @@ describe('getSecondaryAction', () => {
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
-            created: tomorrow.toISOString(),
+            created: '2026-01-01 12:00:00.000',
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
@@ -1918,11 +1909,12 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             isProduction: false,
+            reimbursementCancellableStatus: {canCancel: true},
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
 
-    it('includes CANCEL_PAYMENT option for bank payment in APPROVED + REIMBURSED state', async () => {
+    it('does not include CANCEL_PAYMENT option for bank payment the backend reports as not cancellable', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1939,9 +1931,6 @@ describe('getSecondaryAction', () => {
         const TRANSACTION_ID = 'transaction_id';
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        // Use tomorrow's date to ensure we're always before the NACHA cutoff (23:45 UTC)
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
         const ACTION_ID = 'action_id';
         const reportAction = createMock<ReportAction>({
             reportActionID: ACTION_ID,
@@ -1951,7 +1940,7 @@ describe('getSecondaryAction', () => {
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
-            created: tomorrow.toISOString(),
+            created: '2026-01-01 12:00:00.000',
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
@@ -1971,61 +1960,9 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             isProduction: false,
+            reimbursementCancellableStatus: {canCancel: false},
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
-    });
-
-    it('includes CANCEL_PAYMENT option for auto-reimbursed payment', async () => {
-        const report = createMock<Report>({
-            reportID: REPORT_ID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.AUTOREIMBURSED,
-            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
-            managerID: EMPLOYEE_ACCOUNT_ID,
-        });
-        const policy = createMock<Policy>({
-            role: CONST.POLICY.ROLE.ADMIN,
-            type: CONST.POLICY.TYPE.TEAM,
-            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-        });
-        const TRANSACTION_ID = 'transaction_id';
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-
-        // Use tomorrow's date to ensure we're always before the NACHA cutoff (23:45 UTC)
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const ACTION_ID = 'action_id';
-        const reportAction = createMock<ReportAction>({
-            reportActionID: ACTION_ID,
-            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            message: {
-                IOUTransactionID: TRANSACTION_ID,
-                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
-                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
-            },
-            created: tomorrow.toISOString(),
-        });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
-
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [
-                createMock<Transaction>({
-                    transactionID: TRANSACTION_ID,
-                }),
-            ],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            isProduction: false,
-        });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
 
     it('includes RECEIVED_PAYMENT option for approved expense report submitter with reimbursable spend', () => {
