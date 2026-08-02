@@ -3,6 +3,8 @@ import type {NativeEventSubscription} from 'react-native';
 import {useCallback, useEffect, useRef} from 'react';
 import {Linking} from 'react-native';
 
+import type {Route} from './ROUTES';
+
 import CONST from './CONST';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useOnyx from './hooks/useOnyx';
@@ -15,7 +17,7 @@ import {setPendingConciergeDeepLink, setPendingHomeDeepLinkIfNoPendingConcierge}
 import {getReportIDFromLink} from './libs/ReportUtils';
 import {endSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
-import ROUTES, {type Route} from './ROUTES';
+import ROUTES from './ROUTES';
 import {hasSeenTourSelector} from './selectors/Onboarding';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
