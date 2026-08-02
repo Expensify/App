@@ -18,6 +18,7 @@ import reauthenticate from '@libs/Reauthentication';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import * as SessionUtil from '@src/libs/actions/Session';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import '@libs/Notification/PushNotification/subscribeToPushNotifications';
@@ -826,6 +827,8 @@ describe('Session', () => {
 
     describe('unlinkLogin', () => {
         test('sets account.errors when the request fails, without clearing credentials.login', async () => {
+            await IntlStore.load(CONST.LOCALES.EN);
+
             let account: OnyxEntry<Account>;
             Onyx.connect({
                 key: ONYXKEYS.ACCOUNT,
