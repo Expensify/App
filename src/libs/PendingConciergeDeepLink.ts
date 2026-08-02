@@ -138,7 +138,11 @@ function updatePendingConciergeDeepLinkForRoute(route: string, isAuthenticated: 
     }
 
     if (isAuthenticated) {
-        if (normalizedRoute === '/' || normalizedRoute === normalizePath(ROUTES.HOME) || isOnboardingRoute(normalizedRoute)) {
+        if (normalizedRoute === '/') {
+            clearPendingConciergeDeepLink();
+            return;
+        }
+        if (normalizedRoute === normalizePath(ROUTES.HOME) || isOnboardingRoute(normalizedRoute)) {
             return;
         }
         if (normalizedRoute !== normalizePath(ROUTES.CONCIERGE) && !isPublicScreenRoute(routeForPublicScreen)) {
@@ -149,7 +153,9 @@ function updatePendingConciergeDeepLinkForRoute(route: string, isAuthenticated: 
 
     if (normalizedRoute === normalizePath(ROUTES.CONCIERGE)) {
         setPendingConciergeDeepLink();
-    } else if ((normalizedRoute === '/' && isBrowserReload()) || normalizedRoute === normalizePath(ROUTES.HOME)) {
+    } else if (normalizedRoute === '/') {
+        clearPendingConciergeDeepLink();
+    } else if (normalizedRoute === normalizePath(ROUTES.HOME)) {
         setPendingHomeDeepLinkIfNoPendingConcierge();
     } else if (!isPublicScreenRoute(routeForPublicScreen)) {
         clearPendingConciergeDeepLink();
