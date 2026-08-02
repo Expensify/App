@@ -748,7 +748,11 @@ function getSuggestedSearches(
     defaultFeedID?: string,
     shouldShowExpensifyCard?: boolean,
     topSpendersPolicyIDs: string[] = [],
+    activeExpensifyCardFeedID?: string,
 ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
+    // Card accruals (UNAPPROVED_CARD) defaults to the active workspace's Expensify Card when it has one,
+    // falling back to the company/bank feed otherwise. Other feed-based searches keep using `defaultFeedID`.
+    const unapprovedCardFeedID = activeExpensifyCardFeedID ?? defaultFeedID;
     return {
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -936,7 +940,7 @@ function getSuggestedSearches(
             icon: 'CreditCardHourglass',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                feed: defaultFeedID ? [defaultFeedID] : [''],
+                feed: unapprovedCardFeedID ? [unapprovedCardFeedID] : [''],
                 groupBy: CONST.SEARCH.GROUP_BY.CARD,
                 status: [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED, CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
             }),
@@ -4745,6 +4749,7 @@ type TypeMenuSectionsParams = {
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>;
     isOffline: boolean;
     defaultExpensifyCard: CardFeedForDisplay | undefined;
+    activeExpensifyCardFeedID?: string;
     draftTransactionIDs: string[] | undefined;
     isTrackIntentUser: boolean;
     hasReportAwaitingApproval?: boolean;
@@ -4760,6 +4765,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         savedSearches,
         isOffline,
         defaultExpensifyCard,
+        activeExpensifyCardFeedID,
         draftTransactionIDs,
         isTrackIntentUser,
         hasReportAwaitingApproval = false,
@@ -4772,7 +4778,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         shouldShowExpensifyCard,
         topSpendersPolicyIDs,
     } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval);
-    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard, topSpendersPolicyIDs);
+    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard, topSpendersPolicyIDs, activeExpensifyCardFeedID);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
 
@@ -4980,7 +4986,7 @@ function isSearchPending(searchResults: SearchResults | undefined) {
 }
 
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
-    const queryJSONHash =
+    const responseAdjustedQueryHash =
         queryJSON && searchResults?.search
             ? getQueryHashes({
                   ...queryJSON,
@@ -4989,12 +4995,17 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
               }).primaryHash
             : queryJSON?.hash;
     const state = searchResults?.search?.state;
-    // A response can finish without writing data or errors, so `loaded` and `error` also count as resolved.
+    // A response can finish without writing data or errors, so `loaded` also counts as resolved.
     // The type and hash checks below keep results from an earlier query out.
-    const isTerminal = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED || state === CONST.SEARCH.SNAPSHOT_STATE.ERROR;
+    const isTerminal = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED;
     const hasResolved = searchResults?.data != null || searchResults?.errors != null || isTerminal;
+    const hasResponseSortMetadata = searchResults?.search?.sortBy !== undefined && searchResults.search.sortOrder !== undefined;
+    const hasMatchingRequestedHash = searchResults?.search?.hash === queryJSON?.hash;
+    // finallyData stores the requested hash when the request settles, so it remains authoritative even when cached data or old sort metadata remain.
+    const canUseRequestedHash = isTerminal || !hasResponseSortMetadata;
+    const hasMatchingHash = (canUseRequestedHash && hasMatchingRequestedHash) || searchResults?.search?.hash === responseAdjustedQueryHash;
 
-    return hasResolved && searchResults?.search?.type === queryJSON?.type && searchResults?.search?.hash === queryJSONHash;
+    return hasResolved && searchResults?.search?.type === queryJSON?.type && hasMatchingHash;
 }
 
 function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.GROUP_BY> | undefined {
