@@ -679,12 +679,13 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const reportTransactionsFromCache = iou.report?.reportID ? getReportTransactions(iou.report.reportID) : [];
     const isTransactionAlreadyOnReport = reportTransactionsFromCache.some((reportTransaction) => reportTransaction.transactionID === transaction.transactionID);
     const existingReportTransactions = reportTransactionsFromCache.filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID);
-    const addMakesReportMultiTransaction =
-        isMoneyRequestReport(iou.report) &&
-        !isTransactionAlreadyOnReport &&
-        (existingReportTransactions.length > 0
-            ? existingReportTransactions.some((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            : (iou.report?.transactionCount ?? 0) >= 2);
+    // What the report will hold once this add lands, from the cache when it has this report and otherwise from the server count every caller pre-increments.
+    const transactionCountAfterAdd =
+        existingReportTransactions.length > 0
+            ? existingReportTransactions.filter((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length + 1
+            : (iou.report?.transactionCount ?? 0);
+    // Flag for the highlight rail only when the add makes the report multi-tx (its table fresh-mounts with the tx present, so the diff misses it); never the first tx (0→1), which would leave a stale flag; no successData (races the mount).
+    const addMakesReportMultiTransaction = isMoneyRequestReport(iou.report) && !isTransactionAlreadyOnReport && transactionCountAfterAdd >= 2;
     if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && addMakesReportMultiTransaction) {
         // Built once so the rollback clears the same instance the optimistic write created.
         const pendingNewTransactionFlag = buildPendingNewTransactionFlag(transaction.transactionID);

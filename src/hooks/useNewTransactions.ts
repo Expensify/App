@@ -104,33 +104,50 @@ function useNewTransactions(
         }
 
         setTimeout(() => {
+            // Released before deleting, so a merge that never lands stays claimable.
+            for (const flagKey of claimedKeys) {
+                scheduledSweeps.current.delete(`${reportID}:${flagKey}`);
+            }
             deletePendingNewTransactionIDs(reportID, claimedKeys);
         }, CONST.PENDING_TRANSACTION_DELETION_DELAY);
     }, [isReportVisible, pendingNewTransactions, newTransactions, reportID]);
 
-    // Stop offering diff-detected adds once their window elapses, so a row remount can't replay one.
-    const addedDiffCount = diffState.addedIDs.length;
+    // Keyed on the latched set, so a later add with the same count opens its own window instead of inheriting this one.
+    const latchedAddedIDs = diffState.addedIDs;
     useEffect(() => {
-        if (isReportVisible === false || !addedDiffCount) {
+        if (isReportVisible === false || !latchedAddedIDs.length) {
             return;
         }
         const timer = setTimeout(() => {
-            setDiffState((previousDiffState) => (previousDiffState.addedIDs.length ? {...previousDiffState, addedIDs: EMPTY_TRANSACTION_IDS} : previousDiffState));
+            setDiffState((previousDiffState) => (previousDiffState.addedIDs === latchedAddedIDs ? {...previousDiffState, addedIDs: EMPTY_TRANSACTION_IDS} : previousDiffState));
         }, CONST.PENDING_TRANSACTION_DELETION_DELAY);
         return () => clearTimeout(timer);
-    }, [isReportVisible, addedDiffCount]);
+    }, [isReportVisible, latchedAddedIDs]);
 
     useEffect(() => {
         if (!hasOnceLoadedReportActions || hasSettledAfterInitialLoad) {
             return;
         }
+        let frame: number | undefined;
+        let isStale = false;
         new Promise<void>((resolve) => {
             resolve();
         }).then(() => {
-            requestAnimationFrame(() => {
+            if (isStale) {
+                return;
+            }
+            frame = requestAnimationFrame(() => {
                 setHasSettledAfterInitialLoad(true);
             });
         });
+        // Cancelled with the effect, so a frame queued for the outgoing report cannot re-latch the switch reset.
+        return () => {
+            isStale = true;
+            if (frame === undefined) {
+                return;
+            }
+            cancelAnimationFrame(frame);
+        };
     }, [hasOnceLoadedReportActions, hasSettledAfterInitialLoad]);
 
     return newTransactions;

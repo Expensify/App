@@ -51,11 +51,17 @@ const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetada
         }
         const flag = parsePendingNewTransactionFlagKey(flagKey);
         // An unreadable key is swept rather than highlighted, so it can never linger past its window.
-        if (!flag || now - flag.flaggedAt >= CONST.PENDING_TRANSACTION_FRESHNESS_WINDOW) {
+        if (!flag) {
             expiredFlagKeys.push(flagKey);
             continue;
         }
         const {transactionID, flaggedAt} = flag;
+        const age = now - flaggedAt;
+        // A stamp ahead of the clock would never age out, so it is swept alongside the stale ones.
+        if (age < 0 || age >= CONST.PENDING_TRANSACTION_FRESHNESS_WINDOW) {
+            expiredFlagKeys.push(flagKey);
+            continue;
+        }
         const previousFlagKey = activeFlagKeys[transactionID];
         if (previousFlagKey === undefined) {
             activeFlagKeys[transactionID] = flagKey;

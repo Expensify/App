@@ -33,8 +33,16 @@ describe('getVisibleRHPKeys', () => {
     });
 
     it('returns nothing when no RHP is open, and when navigation has not initialized', () => {
-        expect(getVisibleRHPKeys(buildRootState([reportsSplit]), ['wideKey'], [])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: []});
+        expect(getVisibleRHPKeys(buildRootState([reportsSplit]), [], [])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: []});
         expect(getVisibleRHPKeys(undefined, ['wideKey'], [])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: []});
+    });
+
+    it('holds a dismissing RHP at its width, since the route leaves the state while the card is still animating out', () => {
+        // The screens are still mounted, so their registrations survive and hold the width.
+        expect(getVisibleRHPKeys(buildRootState([reportsSplit]), ['wideKey'], ['superWideKey'])).toEqual({
+            visibleWideRHPRouteKeys: ['wideKey'],
+            visibleSuperWideRHPRouteKeys: ['superWideKey'],
+        });
     });
 
     it('displays a registered screen while the RHP is on top', () => {

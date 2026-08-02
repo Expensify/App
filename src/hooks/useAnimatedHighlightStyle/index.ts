@@ -54,6 +54,9 @@ type Props = {
     skipInitialFade?: boolean;
 };
 
+/** How far a play has got: armed when the highlight turns on, then holding a revealed row until its pulse can be seen. */
+type PlayPhase = 'idle' | 'armed' | 'awaitingFocus';
+
 /**
  * Returns a highlight style that interpolates the color, height and opacity giving a fading effect.
  */
@@ -73,8 +76,7 @@ export default function useAnimatedHighlightStyle({
     skipInitialFade = false,
 }: Props) {
     const prevShouldHighlightRef = useRef(false);
-    const pendingPlayRef = useRef(false);
-    const isWaitingForFocusRef = useRef(false);
+    const playPhaseRef = useRef<PlayPhase>('idle');
     const repeatableProgress = useSharedValue(0);
     const initialNonRepeatableProgressValue = skipInitialFade || !shouldHighlight ? 1 : 0;
     const nonRepeatableProgress = useSharedValue(initialNonRepeatableProgressValue);
@@ -96,15 +98,12 @@ export default function useAnimatedHighlightStyle({
     }, [borderRadius, height, backgroundColor, highlightColor, theme.appBG, theme.border]);
 
     React.useEffect(() => {
-        if (shouldHighlight && !prevShouldHighlightRef.current) {
-            pendingPlayRef.current = true;
-        } else if (!shouldHighlight && pendingPlayRef.current && isWaitingForFocusRef.current) {
-            // Only the focus wait is unbounded, so a play waiting on the screen transition is kept and still runs.
-            pendingPlayRef.current = false;
-            isWaitingForFocusRef.current = false;
+        if (shouldHighlight !== prevShouldHighlightRef.current) {
+            // The highlight turning off retracts the reason to play, so an outstanding play is dropped whatever stage it reached.
+            playPhaseRef.current = shouldHighlight ? 'armed' : 'idle';
         }
         prevShouldHighlightRef.current = shouldHighlight;
-        if (!pendingPlayRef.current || !didScreenTransitionEnd) {
+        if (playPhaseRef.current === 'idle' || !didScreenTransitionEnd) {
             return;
         }
         const revealRow = () => {
@@ -137,25 +136,35 @@ export default function useAnimatedHighlightStyle({
                 );
             });
         };
-        if (!navigation || !shouldUseNarrowLayoutOnWideRHP || navigation.isFocused()) {
-            pendingPlayRef.current = false;
-            playEntryThenPulse();
-            return;
-        }
-        // Reveal now: a row mounting highlighted starts at zero opacity/height, and focus may never arrive. Only the pulse waits.
-        isWaitingForFocusRef.current = true;
-        revealRow();
-        // Imperative rather than useIsScreenFocused: a table renders one of these per row, so re-rendering them all on every focus flip costs more.
-        const unsubscribe = navigation.addListener('focus', () => {
-            unsubscribe();
-            isWaitingForFocusRef.current = false;
-            if (!pendingPlayRef.current) {
+        const pulseOnNextFocus = () => {
+            if (!navigation) {
                 return;
             }
-            pendingPlayRef.current = false;
-            playPulse();
-        });
-        return unsubscribe;
+            // Imperative rather than useIsScreenFocused: a table renders one of these per row, so re-rendering them all on every focus flip costs more.
+            const unsubscribe = navigation.addListener('focus', () => {
+                unsubscribe();
+                if (playPhaseRef.current !== 'awaitingFocus') {
+                    return;
+                }
+                playPhaseRef.current = 'idle';
+                playPulse();
+            });
+            return unsubscribe;
+        };
+        if (navigation && shouldUseNarrowLayoutOnWideRHP && !navigation.isFocused()) {
+            if (playPhaseRef.current === 'awaitingFocus') {
+                // The row is already revealed, so a re-run re-attaches the outstanding pulse rather than replaying the entry.
+                return pulseOnNextFocus();
+            }
+            // Reveal now: a row mounting highlighted starts at zero opacity/height, and focus may never arrive. Only the pulse waits.
+            playPhaseRef.current = 'awaitingFocus';
+            revealRow();
+            return pulseOnNextFocus();
+        }
+        // A revealed row only owes its pulse, so replaying the entry would restart what the user has already seen.
+        const play = playPhaseRef.current === 'awaitingFocus' ? playPulse : playEntryThenPulse;
+        playPhaseRef.current = 'idle';
+        play();
     }, [
         shouldHighlight,
         didScreenTransitionEnd,

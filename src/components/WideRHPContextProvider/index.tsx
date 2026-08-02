@@ -218,7 +218,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
     /**
      * Sets an optimistic width hint for a reportID before its screen renders, so the right width is
-     * registered on first paint. Invoices and tasks are excluded from the 'wide' hint.
+     * registered on first paint. Invoices and tasks are excluded from the 'wide' hint. The latest mark wins,
+     * since the screen that consumes a hint keeps it as its own floor, so a later mark cannot narrow it.
      */
     const markReportRHPWidth = (reportID: string | undefined, width: RHPWidthHint) => {
         if (!reportID) {
@@ -231,9 +232,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             }
         }
         setReportRHPWidthHints((prev) => {
-            const currentHint = prev.get(reportID);
-            // A hint only ever widens, since downgrading would reopen the loading-state flash it exists to prevent.
-            if (currentHint === width || (currentHint === 'super-wide' && width === 'wide')) {
+            if (prev.get(reportID) === width) {
                 return prev;
             }
             const next = new Map(prev);

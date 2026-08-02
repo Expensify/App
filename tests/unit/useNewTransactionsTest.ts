@@ -27,13 +27,15 @@ jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
     deletePendingNewTransactionIDs: jest.fn(),
 }));
 
-// We need to mock requestAnimationFrame to mimic long Onyx merge overhead
-jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
-    setTimeout(() => {
-        callback(performance.now());
-    }, 30);
-    return 0;
-});
+// We need to mock requestAnimationFrame to mimic long Onyx merge overhead, returning a handle so a cancelled frame really is cancelled.
+jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) =>
+    Number(
+        setTimeout(() => {
+            callback(performance.now());
+        }, 30),
+    ),
+);
+jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((handle?: number | null) => clearTimeout(handle ?? undefined));
 
 const delay = (ms: number) =>
     new Promise((resolve) => {
@@ -729,48 +731,139 @@ describe('useNewTransactions with a covered report', () => {
         expect(result.current).toHaveLength(2);
     });
 
-    it('schedules the rail cleanup only from a visible consumer', () => {
-        const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
-        const txD = {
-            transactionID: 'D',
-            amount: 100,
-            created: '2023-10-09',
-            currency: 'USD',
-            reportID: 'report1',
-            merchant: '',
-        };
-        const scheduledCleanups = () => setTimeoutSpy.mock.calls.filter(([, ms]) => ms === CONST.PENDING_TRANSACTION_DELETION_DELAY).length;
+    it('sweeps the rail only from a visible consumer', () => {
+        jest.useFakeTimers();
+        jest.mocked(deletePendingNewTransactionIDs).mockClear();
+        try {
+            const txD = {
+                transactionID: 'D',
+                amount: 100,
+                created: '2023-10-09',
+                currency: 'USD',
+                reportID: 'report1',
+                merchant: '',
+            };
 
-        const {rerender} = renderHook<
-            Transaction[],
-            {
-                transactions: Transaction[];
-                pendingNewTransactionIDs: PendingNewTransactions;
-                isReportVisible: boolean;
-            }
-        >((props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', props.isReportVisible), {
-            initialProps: {
-                transactions: transactionsAlreadyInReport,
+            const {rerender} = renderHook<
+                Transaction[],
+                {
+                    transactions: Transaction[];
+                    pendingNewTransactionIDs: PendingNewTransactions;
+                    isReportVisible: boolean;
+                }
+            >((props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', props.isReportVisible), {
+                initialProps: {
+                    transactions: transactionsAlreadyInReport,
+                    pendingNewTransactionIDs: rail(['D']),
+                    isReportVisible: false,
+                },
+            });
+
+            rerender({
+                transactions: [...transactionsAlreadyInReport, txD],
                 pendingNewTransactionIDs: rail(['D']),
                 isReportVisible: false,
-            },
-        });
+            });
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+            expect(deletePendingNewTransactionIDs).not.toHaveBeenCalled();
 
-        rerender({
-            transactions: [...transactionsAlreadyInReport, txD],
-            pendingNewTransactionIDs: rail(['D']),
-            isReportVisible: false,
-        });
-        expect(scheduledCleanups()).toBe(0);
+            rerender({
+                transactions: [...transactionsAlreadyInReport, txD],
+                pendingNewTransactionIDs: rail(['D']),
+                isReportVisible: true,
+            });
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', ['D']);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
 
-        rerender({
-            transactions: [...transactionsAlreadyInReport, txD],
-            pendingNewTransactionIDs: rail(['D']),
-            isReportVisible: true,
-        });
-        expect(scheduledCleanups()).toBeGreaterThan(0);
+    it('gives a second diff-detected add its own window rather than the window already running', () => {
+        jest.useFakeTimers();
+        try {
+            const txE = {
+                transactionID: 'E',
+                amount: 100,
+                created: '2023-10-10',
+                currency: 'USD',
+                reportID: 'report1',
+                merchant: '',
+            };
+            const txF = {
+                transactionID: 'F',
+                amount: 100,
+                created: '2023-10-11',
+                currency: 'USD',
+                reportID: 'report1',
+                merchant: '',
+            };
+            const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]}>((props) => useNewTransactions(true, props.transactions, undefined, 'report1', true), {
+                initialProps: {transactions: transactionsAlreadyInReport},
+            });
 
-        setTimeoutSpy.mockRestore();
+            rerender({transactions: [...transactionsAlreadyInReport, txE]});
+            expect(result.current).toEqual([txE]);
+
+            // The second add lands just before the first add's window closes, leaving the number of adds unchanged.
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY - 100);
+            });
+            rerender({transactions: [...transactionsAlreadyInReport, txE, txF]});
+            expect(result.current).toEqual([txF]);
+
+            act(() => {
+                jest.advanceTimersByTime(100);
+            });
+            expect(result.current).toEqual([txF]);
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+            expect(result.current).toEqual([]);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('does not let a settle frame queued for the outgoing report settle the report switched into', async () => {
+        jest.useFakeTimers();
+        try {
+            const txG = {
+                transactionID: 'G',
+                amount: 100,
+                created: '2023-10-12',
+                currency: 'USD',
+                reportID: 'report2',
+                merchant: '',
+            };
+            const {rerender, result} = renderHook<Transaction[], {hasOnceLoadedReportActions: boolean; reportID: string; transactions: Transaction[]}>(
+                (props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, undefined, props.reportID, true),
+                {initialProps: {hasOnceLoadedReportActions: false, reportID: 'report1', transactions: []}},
+            );
+
+            rerender({hasOnceLoadedReportActions: true, reportID: 'report1', transactions: transactionsAlreadyInReport});
+            // Let report1's settle microtask queue its frame, without letting the frame run.
+            await act(async () => {
+                await Promise.resolve();
+            });
+
+            rerender({hasOnceLoadedReportActions: false, reportID: 'report2', transactions: []});
+            await act(async () => {
+                jest.advanceTimersByTime(100);
+            });
+
+            // report2 loads in the two merges Onyx usually delivers, so the growth belongs to its initial load rather than being an add.
+            rerender({hasOnceLoadedReportActions: true, reportID: 'report2', transactions: transactionsAlreadyInReport});
+            rerender({hasOnceLoadedReportActions: true, reportID: 'report2', transactions: [...transactionsAlreadyInReport, txG]});
+            expect(result.current).toEqual([]);
+        } finally {
+            jest.useRealTimers();
+        }
     });
 });
 
@@ -872,6 +965,29 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
             });
             expect(deletePendingNewTransactionIDs).toHaveBeenCalledTimes(2);
             expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', ['railTx:2000']);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('claims a flag again once its deletion has been issued, so a merge that never lands is retried', () => {
+        jest.useFakeTimers();
+        try {
+            const pendingNewTransactions = stampedRail({railTx: 1000});
+            const {rerender} = renderHook<Transaction[], {transactions: Transaction[]}>((props) => useNewTransactions(true, props.transactions, pendingNewTransactions, 'report1', true), {
+                initialProps: {transactions: [baseTx, railTx]},
+            });
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledTimes(1);
+
+            rerender({transactions: [{...baseTx, amount: 150}, railTx]});
+            act(() => {
+                jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY);
+            });
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledTimes(2);
         } finally {
             jest.useRealTimers();
         }

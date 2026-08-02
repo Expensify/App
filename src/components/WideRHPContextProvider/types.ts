@@ -31,19 +31,19 @@ type WideRHPStateContextType = {
 };
 
 type WideRHPActionsContextType = {
-    // Register the route at the given width. 'narrow' removes from both sets.
+    // Register the route at the given width. 'narrow' drops its registration.
     setRHPWidth: (route: NavigationRoute, width: RHPWidth) => void;
 
-    // Remove the route from both sets (used on screen unmount).
+    // Drop the route's registration (used on screen unmount).
     removeRHPRouteKey: (route: NavigationRoute) => void;
 
-    // Set an optimistic width hint for a reportID before navigation.
+    // Set an optimistic width hint for a reportID before navigation. The latest mark wins.
     markReportRHPWidth: (reportID: string | undefined, width: RHPWidthHint) => void;
 
-    // Clear the hint(s) for a reportID. Pass `width` to clear only that one.
+    // Clear the hint for a reportID. Pass `width` to clear only that one.
     unmarkReportRHPWidth: (reportID: string, width?: RHPWidthHint) => void;
 
-    // Read the optimistic width hint for a reportID.
+    // Read the optimistic width hint for a reportID. Consumed by the screen it was marked for.
     getReportRHPWidthHint: (reportID: string) => RHPWidthHint | undefined;
 };
 

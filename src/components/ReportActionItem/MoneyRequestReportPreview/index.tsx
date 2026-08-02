@@ -51,7 +51,7 @@ function MoneyRequestReportPreview({
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayoutOnWideRHP();
+    const {shouldUseNarrowLayout, shouldUseNarrowLayoutIgnoringWideRHP, isSmallScreenWidth} = useResponsiveLayoutOnWideRHP();
     const personalDetailsList = usePersonalDetails();
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
@@ -137,7 +137,8 @@ function MoneyRequestReportPreview({
     });
     const isFocused = useIsFocused();
     // Don't surface the highlight while the preview is covered — it'd animate the one-shot off-screen and be missed.
-    const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
+    // A modal pane can be covered at any width, so this ignores the wide-RHP adjustment the styles use.
+    const isReportVisible = shouldUseNarrowLayoutIgnoringWideRHP ? isFocused : true;
     const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions, pendingNewTransactionIDs, chatReportID, isReportVisible);
     const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);
 

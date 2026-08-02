@@ -5,19 +5,35 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
+import type * as ReanimatedModule from 'react-native-reanimated';
+
 import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
 import React from 'react';
-import {scheduleOnRN} from 'react-native-worklets';
 
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
 
+// The callback has to run, or the pulse the entry animation schedules on completion is never reached.
 jest.mock('react-native-worklets', () => ({
     ...jest.requireActual<Record<string, unknown>>('react-native-worklets/src/mock'),
-    scheduleOnRN: jest.fn(),
+    scheduleOnRN: jest.fn((callback: (...args: unknown[]) => void, ...args: unknown[]) => callback(...args)),
 }));
+
+// Distinct from the pulse durations, so a reveal is told apart from the pulse's own timings.
+const ENTRY_DURATION = 111;
+const PULSE_START_DURATION = 222;
+const PULSE_END_DURATION = 333;
+
+const reanimated = jest.requireMock<typeof ReanimatedModule>('react-native-reanimated');
+const timingSpy = jest.spyOn(reanimated, 'withTiming');
+const sequenceSpy = jest.spyOn(reanimated, 'withSequence');
+
+// The entry is the only animation passing a completion callback, a reveal the only bare timing at the entry duration, and the pulse the only sequence.
+const entryPlays = () => timingSpy.mock.calls.filter(([, , onFinished]) => !!onFinished).length;
+const revealPlays = () => timingSpy.mock.calls.filter(([, config, onFinished]) => !onFinished && config?.duration === ENTRY_DURATION).length;
+const pulsePlays = () => sequenceSpy.mock.calls.length;
 
 type HarnessParamList = {
     A: undefined;
@@ -28,7 +44,12 @@ const Stack = createPlatformStackNavigator<HarnessParamList>();
 const navigationRef = createNavigationContainerRef<HarnessParamList>();
 
 function Harness({shouldHighlight}: {shouldHighlight: boolean}) {
-    useAnimatedHighlightStyle({shouldHighlight});
+    useAnimatedHighlightStyle({
+        shouldHighlight,
+        itemEnterDuration: ENTRY_DURATION,
+        highlightStartDuration: PULSE_START_DURATION,
+        highlightEndDuration: PULSE_END_DURATION,
+    });
     return null;
 }
 
@@ -55,17 +76,18 @@ function renderHarness(shouldHighlight: boolean) {
     };
 }
 
-const playCount = () => jest.mocked(scheduleOnRN).mock.calls.length;
-
 describe('useAnimatedHighlightStyle', () => {
     beforeEach(() => {
-        jest.mocked(scheduleOnRN).mockClear();
+        timingSpy.mockClear();
+        sequenceSpy.mockClear();
         jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: true});
     });
 
-    it('plays immediately when the screen is focused', () => {
+    it('plays the entry and its pulse immediately when the screen is focused', () => {
         renderHarness(true);
-        expect(playCount()).toBe(1);
+        expect(entryPlays()).toBe(1);
+        expect(pulsePlays()).toBe(1);
+        expect(revealPlays()).toBe(0);
     });
 
     it('reveals a covered row immediately and defers only its pulse until the screen regains focus, then never replays', () => {
@@ -74,12 +96,16 @@ describe('useAnimatedHighlightStyle', () => {
             navigationRef.navigate('B');
         });
         setShouldHighlight(true);
-        expect(playCount()).toBe(1);
+        expect(revealPlays()).toBe(1);
+        expect(entryPlays()).toBe(0);
+        expect(pulsePlays()).toBe(0);
 
         act(() => {
             navigationRef.goBack();
         });
-        expect(playCount()).toBe(2);
+        expect(pulsePlays()).toBe(1);
+        expect(revealPlays()).toBe(1);
+        expect(entryPlays()).toBe(0);
 
         act(() => {
             navigationRef.navigate('B');
@@ -87,7 +113,7 @@ describe('useAnimatedHighlightStyle', () => {
         act(() => {
             navigationRef.goBack();
         });
-        expect(playCount()).toBe(2);
+        expect(pulsePlays()).toBe(1);
     });
 
     it('plays in the background on a wide pane even while unfocused', () => {
@@ -97,12 +123,14 @@ describe('useAnimatedHighlightStyle', () => {
             navigationRef.navigate('B');
         });
         setShouldHighlight(true);
-        expect(playCount()).toBe(1);
+        expect(entryPlays()).toBe(1);
+        expect(pulsePlays()).toBe(1);
 
         act(() => {
             navigationRef.goBack();
         });
-        expect(playCount()).toBe(1);
+        expect(entryPlays()).toBe(1);
+        expect(pulsePlays()).toBe(1);
     });
 
     it('does not pulse when the highlight is cleared before the screen regains focus', () => {
@@ -116,28 +144,59 @@ describe('useAnimatedHighlightStyle', () => {
         act(() => {
             navigationRef.goBack();
         });
-        expect(playCount()).toBe(1);
+        expect(revealPlays()).toBe(1);
+        expect(pulsePlays()).toBe(0);
+    });
+
+    it('does not replay the entry when the pane turns wide while a revealed row is still waiting for focus', () => {
+        const {setShouldHighlight} = renderHarness(false);
+        act(() => {
+            navigationRef.navigate('B');
+        });
+        setShouldHighlight(true);
+        expect(revealPlays()).toBe(1);
+
+        // ScreenWrapper publishes the wide-RHP flag a commit after the width is registered, so the effect re-runs on an already revealed row.
+        jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false});
+        setShouldHighlight(true);
+        expect(revealPlays()).toBe(1);
+        expect(entryPlays()).toBe(0);
+        // The row is visible on a wide pane, so the outstanding pulse plays rather than waiting for a focus that need not come.
+        expect(pulsePlays()).toBe(1);
+    });
+
+    it('drops a play armed during the screen transition when the highlight is cleared before the transition ends', () => {
+        jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: false, shouldUseNarrowLayoutOnWideRHP: true});
+        const {setShouldHighlight} = renderHarness(true);
+        expect(entryPlays()).toBe(0);
+
+        setShouldHighlight(false);
+        jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: true});
+        setShouldHighlight(false);
+        expect(entryPlays()).toBe(0);
+        expect(revealPlays()).toBe(0);
+        expect(pulsePlays()).toBe(0);
     });
 
     it('does not replay while the highlight stays on, but plays again after it turns off and back on', () => {
         const {setShouldHighlight} = renderHarness(true);
-        expect(playCount()).toBe(1);
+        expect(entryPlays()).toBe(1);
 
         setShouldHighlight(true);
-        expect(playCount()).toBe(1);
+        expect(entryPlays()).toBe(1);
 
         setShouldHighlight(false);
         setShouldHighlight(true);
-        expect(playCount()).toBe(2);
+        expect(entryPlays()).toBe(2);
     });
 
     it('waits for the screen transition to end before playing', () => {
         jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: false, shouldUseNarrowLayoutOnWideRHP: true});
         const {setShouldHighlight} = renderHarness(true);
-        expect(playCount()).toBe(0);
+        expect(entryPlays()).toBe(0);
 
         jest.mocked(useScreenWrapperTransitionStatus).mockReturnValue({didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: true});
         setShouldHighlight(true);
-        expect(playCount()).toBe(1);
+        expect(entryPlays()).toBe(1);
     });
 });
