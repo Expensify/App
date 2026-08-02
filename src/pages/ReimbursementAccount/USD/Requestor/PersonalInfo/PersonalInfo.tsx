@@ -119,7 +119,7 @@ function PersonalInfo({onBackButtonPress, onSubmit, ref, backTo}: PersonalInfoPr
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             {isRedirecting ? (
-                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         reasonAttributes={{context: 'PersonalInfo', isRedirecting}}
