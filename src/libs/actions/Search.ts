@@ -684,8 +684,8 @@ function getOnyxLoadingData(
     const shouldClearTotals = isSearchAPI && shouldCalculateTotals === false && offset === 0;
 
     // `search.state` tracks the lifecycle of a real search request (identified by its queryJSON): it starts as
-    // `loading` optimistically and is resolved to `loaded`/`error` by successData/failureData. handlePreventSearchAPI
-    // reuses this helper as a UI-only loading toggle with no query and no success/failure step, so it must stay out of
+    // `loading` optimistically and is resolved to `loaded` by finallyData. handlePreventSearchAPI
+    // reuses this helper as a UI-only loading toggle with no query, so it must stay out of
     // the state machine — otherwise it would strand `state: loading` with no terminal write to clear it.
     const isSearchRequest = isSearchAPI && !!queryJSON;
     const type = queryJSON?.type;
@@ -720,22 +720,8 @@ function getOnyxLoadingData(
         Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, {[hash]: queryJSON.inputQuery});
     }
 
-    // A successful response may contain no snapshot data. Store `type` and `hash` with `loaded` so the UI can match it to the current query and show the empty state.
-    // Do not clear `isLoading` here because `finallyData` always does.
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = isSearchRequest
-        ? [
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                  value: {
-                      search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type, hash},
-                  },
-              },
-          ]
-        : [];
-
-    // finallyData runs after successData/failureData regardless of jsonCode, so it deliberately does NOT write `state`:
-    // doing so would clobber the `error` terminal set by failureData. The terminal state is owned by success/failure.
+    // finallyData runs for every HTTP response, including 460 responses that deliberately skip failureData.
+    // It owns the terminal request state, while failureData separately records whether the request failed.
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -743,6 +729,7 @@ function getOnyxLoadingData(
             value: {
                 search: {
                     ...(isSearchAPI && {isLoading: false}),
+                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type, hash}),
                 },
             },
         },
@@ -757,14 +744,14 @@ function getOnyxLoadingData(
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
-                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.ERROR, hash}),
+                    ...(isSearchRequest && {hash}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     ];
 
-    return {optimisticData, successData, finallyData, failureData};
+    return {optimisticData, finallyData, failureData};
 }
 
 function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
@@ -908,22 +895,10 @@ function deleteSavedSearch(hash: number) {
 }
 
 function openSearchPage(params?: OpenSearchPageParams) {
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED,
-            value: true,
-        },
-    ];
-
-    read(
-        READ_COMMANDS.OPEN_SEARCH_PAGE,
-        {
-            includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
-            includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
-        },
-        {successData},
-    );
+    read(READ_COMMANDS.OPEN_SEARCH_PAGE, {
+        includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
+        includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
+    });
 }
 
 function openSearchCardFiltersPage() {
@@ -1073,7 +1048,7 @@ function search({
     }
     inFlightSearchRequests.add(dedupeKey);
 
-    const {optimisticData, successData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
+    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
     const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
@@ -1095,7 +1070,7 @@ function search({
     }
 
     const startRequest = () =>
-        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
+        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
             .then((result) => {
                 const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
 
@@ -1134,12 +1109,12 @@ function search({
 
                 return result?.jsonCode;
             })
-            .catch((error) => {
+            .catch(async (error) => {
                 // A network-level rejection (no HTTP response at all, e.g. offline/timeout) never reaches
-                // SaveResponseInOnyx, so nothing else applies failureData for it. Apply it here so the snapshot
-                // still reaches a terminal `error` state instead of being stranded in `loading`, then re-throw so
-                // this still rejects for any caller relying on that.
-                Onyx.update(failureData ?? []);
+                // SaveResponseInOnyx, so nothing else applies failureData/finallyData for it. Apply both here so
+                // the snapshot records the error and still reaches the terminal `loaded` state.
+                await Onyx.update(failureData ?? []);
+                await Onyx.update(finallyData ?? []);
                 throw error;
             })
             .finally(() => {
@@ -1147,8 +1122,8 @@ function search({
             });
 
     // Catch here so every caller (the page-load fire in useSearchPageSetup and the re-search handlers
-    // in SearchPage/SearchPageNarrow) is covered without a separate catch each. Failure state is already
-    // applied via failureData, so this only prevents the rejection from floating into the browser's
+    // in SearchPage/SearchPageNarrow) is covered without a separate catch each. Failure and terminal state
+    // are already applied, so this only prevents the rejection from floating into the browser's
     // onunhandledrejection (APP-5J) while still logging it for diagnosis. Resolves to undefined so
     // callers' .then still runs and reads a real (falsy) jsonCode.
     const handleSearchError = (error: unknown) => {

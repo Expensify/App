@@ -9,33 +9,29 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {expensifyLoginsSelector, getContactMethodsOptions} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 
 import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
-type ContactMethodsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHODS>;
-
-function ContactMethodsPage({route}: ContactMethodsPageProps) {
+function DynamicContactMethodsPage() {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const navigateBackTo = route?.params?.backTo;
+    const navigateBackTo = useDynamicBackPath(DYNAMIC_ROUTES.CONTACT_METHODS.path);
 
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -65,7 +61,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            testID="ContactMethodsPage"
+            testID="DynamicContactMethodsPage"
         >
             <HeaderWithBackButton
                 title={translate('contacts.contactMethods')}
@@ -109,4 +105,4 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     );
 }
 
-export default ContactMethodsPage;
+export default DynamicContactMethodsPage;
