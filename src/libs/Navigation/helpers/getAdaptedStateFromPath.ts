@@ -451,17 +451,6 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
     let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     normalizedPath = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
-    // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
-    if (normalizedPath === CONST.SIGNIN_ROUTE) {
-        normalizedPath = '/';
-    }
-
-    // `/Home` (capital H) has no route mapping — the config maps SCREENS.HOME to lowercase 'home' — so it would
-    // fall through to NOT_FOUND. Redirect legacy/cached `/Home` paths to the root instead.
-    if (normalizedPath === `/${SCREENS.HOME}`) {
-        normalizedPath = '/';
-    }
-
     const state = getStateFromPath(normalizedPath as RoutePath) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {
         replacePathInNestedState(state, normalizedPath);

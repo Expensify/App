@@ -16,7 +16,6 @@ import {
     findVendorByID,
     getActivePolicies,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
-    getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getCustomUnitsForDuplication,
@@ -29,10 +28,12 @@ import {
     getManagerAccountID,
     getMatchingVendorByID,
     getMatchingVendors,
+    getPolicyApproverLogins,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyByCustomUnitID,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
+    getReimburserEmail,
     getSubmitToAccountID,
     getSubmitToEmail,
     getTagApproverRule,
@@ -1440,6 +1441,57 @@ describe('PolicyUtils', () => {
         });
     });
 
+    describe('getReimburserEmail', () => {
+        it('should return undefined when reimbursement is disabled', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                reimburser: 'reimburser@example.com',
+                achAccount: {reimburser: 'ach@example.com'},
+                owner: 'owner@example.com',
+            });
+            expect(getReimburserEmail(policy)).toBeUndefined();
+        });
+
+        it('should resolve the payer for manual (indirect) reimbursement from achAccount.reimburser', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                achAccount: {reimburser: 'ach@example.com'},
+                owner: 'owner@example.com',
+            });
+            expect(getReimburserEmail(policy)).toBe('ach@example.com');
+        });
+
+        it('should prefer policy.reimburser over achAccount.reimburser', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimburser: 'reimburser@example.com',
+                achAccount: {reimburser: 'ach@example.com'},
+            });
+            expect(getReimburserEmail(policy)).toBe('reimburser@example.com');
+        });
+
+        it('should fall back to the owner for manual reimbursement when no reimburser is set', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                owner: 'owner@example.com',
+            });
+            expect(getReimburserEmail(policy)).toBe('owner@example.com');
+        });
+
+        it('should not fall back to the owner for auto reimbursement when no reimburser is set', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                owner: 'owner@example.com',
+            });
+            expect(getReimburserEmail(policy)).toBeUndefined();
+        });
+    });
+
     describe('getPolicyBrickRoadIndicatorStatus', () => {
         const baseAdminPolicy: OnyxEntry<Policy> = createMock<OnyxEntry<Policy>>({
             id: 'ABC123',
@@ -2623,7 +2675,7 @@ describe('PolicyUtils', () => {
             expect(result.at(0)?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
         });
 
-        it('returns only control policies with rates from getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates', () => {
+        it('includes a control policy whose per diem is enabled but has no rates yet (rates load lazily after cache clear)', () => {
             const policies: OnyxCollection<Policy> = {
                 corporateWithRates: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
@@ -2660,9 +2712,8 @@ describe('PolicyUtils', () => {
                 },
             };
 
-            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies, undefined);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.id).toBe('1');
+            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined);
+            expect(result.map((currentPolicy) => currentPolicy.id).sort()).toEqual(['1', '2']);
         });
 
         it('includes a control policy whose arePerDiemRatesEnabled flag is missing but has an enabled per diem custom unit', () => {
@@ -2681,7 +2732,6 @@ describe('PolicyUtils', () => {
             };
 
             expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(1);
-            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies, undefined)).toHaveLength(1);
         });
 
         it('excludes a control policy where per diem was explicitly disabled even if a custom unit lingers', () => {
@@ -2700,7 +2750,6 @@ describe('PolicyUtils', () => {
             };
 
             expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(0);
-            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies, undefined)).toHaveLength(0);
         });
 
         describe('isPerDiemEnabled', () => {
@@ -4006,8 +4055,16 @@ describe('arePolicyRulesEnabled', () => {
         expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined})).toBe(false);
     });
 
-    it('returns false for a team policy even when areRulesEnabled is true', () => {
+    it('returns false for a team policy with areRulesEnabled explicitly true when rules revamp beta is disabled', () => {
         expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true})).toBe(false);
+    });
+
+    it('returns true for a team policy with areRulesEnabled explicitly true when rules revamp beta is enabled', () => {
+        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true}, undefined, true)).toBe(true);
+    });
+
+    it('returns false for a team policy with areRulesEnabled explicitly false', () => {
+        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: false})).toBe(false);
     });
 });
 
@@ -4099,5 +4156,63 @@ describe('getDefaultWorkspacePlanType', () => {
         },
     ])('returns $expected when $description', ({policies, expected}) => {
         expect(getDefaultWorkspacePlanType(policies)).toBe(expected);
+    });
+});
+
+describe('getPolicyApproverLogins', () => {
+    it('returns an empty set when policy is undefined', () => {
+        expect(getPolicyApproverLogins(undefined).size).toBe(0);
+    });
+
+    it('returns an empty set when there is no approver and no employees route anywhere', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            approver: undefined,
+            employeeList: {
+                'employee@test.com': {email: 'employee@test.com', submitsTo: '', forwardsTo: '', overLimitForwardsTo: ''},
+            },
+        };
+        expect(getPolicyApproverLogins(policy).size).toBe(0);
+    });
+
+    it('includes the named policy approver', () => {
+        const policy: Policy = {...createRandomPolicy(0), approver: 'boss@test.com', employeeList: {}};
+        expect([...getPolicyApproverLogins(policy)]).toEqual(['boss@test.com']);
+    });
+
+    it('collects submitsTo, forwardsTo and overLimitForwardsTo targets', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            approver: undefined,
+            employeeList: {
+                'a@test.com': {email: 'a@test.com', submitsTo: 'manager@test.com'},
+                'b@test.com': {email: 'b@test.com', forwardsTo: 'director@test.com'},
+                'c@test.com': {email: 'c@test.com', overLimitForwardsTo: 'vp@test.com'},
+            },
+        };
+        expect([...getPolicyApproverLogins(policy)].sort()).toEqual(['director@test.com', 'manager@test.com', 'vp@test.com']);
+    });
+
+    it('deduplicates approvers referenced by multiple employees or fields', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            approver: 'manager@test.com',
+            employeeList: {
+                'a@test.com': {email: 'a@test.com', submitsTo: 'manager@test.com'},
+                'b@test.com': {email: 'b@test.com', submitsTo: 'manager@test.com', forwardsTo: 'manager@test.com'},
+            },
+        };
+        expect([...getPolicyApproverLogins(policy)]).toEqual(['manager@test.com']);
+    });
+
+    it('ignores empty-string routing fields', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            approver: '',
+            employeeList: {
+                'a@test.com': {email: 'a@test.com', submitsTo: '', forwardsTo: 'director@test.com', overLimitForwardsTo: ''},
+            },
+        };
+        expect([...getPolicyApproverLogins(policy)]).toEqual(['director@test.com']);
     });
 });
