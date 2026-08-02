@@ -8,6 +8,8 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -51,8 +53,8 @@ function CollapsedSystemMessages({count, isExpanded, onPress, unreadMarkerReport
                     <Icon
                         src={isExpanded ? icons.UpArrow : icons.DownArrow}
                         fill={theme.icon}
-                        width={12}
-                        height={12}
+                        width={variables.iconSizeExtraSmall}
+                        height={variables.iconSizeExtraSmall}
                         additionalStyles={styles.opacitySemiTransparent}
                     />
                 </PressableWithFeedback>

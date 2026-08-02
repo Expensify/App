@@ -472,7 +472,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             linkedReportActionID,
             unreadMarkerReportActionID,
         });
-    const visibleReportActionIndexByID = useMemo(() => new Map(visibleReportActions.map((reportAction, index) => [reportAction.reportActionID, index])), [visibleReportActions]);
+    const visibleReportActionIndexByID = new Map(visibleReportActions.map((reportAction, index) => [reportAction.reportActionID, index]));
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report?.reportID ?? reportIDFromRoute ?? '',

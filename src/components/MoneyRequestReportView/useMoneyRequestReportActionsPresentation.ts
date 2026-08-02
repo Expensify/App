@@ -2,7 +2,7 @@ import {getSystemMessageDisplayState} from '@libs/ReportActionsUtils';
 
 import type {ReportAction} from '@src/types/onyx';
 
-import {useCallback, useMemo, useState} from 'react';
+import {useState} from 'react';
 
 type MoneyRequestReportActionsPresentationProps = {
     /** Canonical filtered report actions in chronological order. */
@@ -29,32 +29,30 @@ function useMoneyRequestReportActionsPresentation({visibleReportActions, linkedR
 
     const forceExpandedLinkedReportActionID = linkedReportActionID === manuallyCollapsedLinkedReportActionID ? undefined : linkedReportActionID;
 
-    const displayState = useMemo(
-        () => getSystemMessageDisplayState(visibleReportActions, expandedSystemMessageReportActionIDs, forceExpandedLinkedReportActionID ? [forceExpandedLinkedReportActionID] : []),
-        [expandedSystemMessageReportActionIDs, forceExpandedLinkedReportActionID, visibleReportActions],
+    const displayState = getSystemMessageDisplayState(
+        visibleReportActions,
+        expandedSystemMessageReportActionIDs,
+        forceExpandedLinkedReportActionID ? [forceExpandedLinkedReportActionID] : [],
     );
     const unreadMarkerReportActionIndex = unreadMarkerReportActionID ? (displayState.reportActionIDToDisplayIndex.get(unreadMarkerReportActionID) ?? -1) : -1;
 
-    const toggleSystemMessageRun = useCallback(
-        (reportActionIDs: string[], isExpanded: boolean) => {
-            if (isExpanded && linkedReportActionID && reportActionIDs.includes(linkedReportActionID)) {
-                setManuallyCollapsedLinkedReportActionID(linkedReportActionID);
-            }
+    const toggleSystemMessageRun = (reportActionIDs: string[], isExpanded: boolean) => {
+        if (isExpanded && linkedReportActionID && reportActionIDs.includes(linkedReportActionID)) {
+            setManuallyCollapsedLinkedReportActionID(linkedReportActionID);
+        }
 
-            setExpandedSystemMessageReportActionIDs((previousReportActionIDs) => {
-                const nextReportActionIDs = new Set(previousReportActionIDs);
-                for (const reportActionID of reportActionIDs) {
-                    if (isExpanded) {
-                        nextReportActionIDs.delete(reportActionID);
-                    } else {
-                        nextReportActionIDs.add(reportActionID);
-                    }
+        setExpandedSystemMessageReportActionIDs((previousReportActionIDs) => {
+            const nextReportActionIDs = new Set(previousReportActionIDs);
+            for (const reportActionID of reportActionIDs) {
+                if (isExpanded) {
+                    nextReportActionIDs.delete(reportActionID);
+                } else {
+                    nextReportActionIDs.add(reportActionID);
                 }
-                return nextReportActionIDs;
-            });
-        },
-        [linkedReportActionID],
-    );
+            }
+            return nextReportActionIDs;
+        });
+    };
 
     return {
         ...displayState,
