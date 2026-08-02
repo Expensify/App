@@ -16,7 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {getIsOffline} from '@libs/NetworkState';
-import {updatePendingConciergeDeepLinkForRoute} from '@libs/PendingConciergeDeepLink';
+import {setPendingConciergeDeepLink, updatePendingConciergeDeepLinkForRoute} from '@libs/PendingConciergeDeepLink';
 import {findLastAccessedReport, getReportIDFromLink, getReportOrDraftReport, getRouteFromLink, isMoneyRequestReport} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -553,7 +553,14 @@ function openReportFromDeepLink(
                         const state = navigationRef.getRootState();
                         const currentFocusedRoute = findFocusedRoute(state);
 
-                        if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                        const isConciergeRoute = normalizePath(route) === normalizePath(ROUTES.CONCIERGE);
+                        const isOnboardingFlowFocused = isOnboardingFlowName(currentFocusedRoute?.name);
+
+                        if (isConciergeRoute && (initialHasCompletedGuidedSetupFlow === false || isOnboardingFlowFocused)) {
+                            setPendingConciergeDeepLink();
+                        }
+
+                        if (isOnboardingFlowFocused) {
                             setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
                             return;
                         }

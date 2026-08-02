@@ -3,8 +3,6 @@ import type {NativeEventSubscription} from 'react-native';
 import {useCallback, useEffect, useRef} from 'react';
 import {Linking} from 'react-native';
 
-import type {Route} from './ROUTES';
-
 import CONST from './CONST';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useOnyx from './hooks/useOnyx';
@@ -12,10 +10,12 @@ import {openReportFromDeepLink} from './libs/actions/Link';
 import * as Report from './libs/actions/Report';
 import {hasAuthToken, isAnonymousUser} from './libs/actions/Session';
 import Log from './libs/Log';
-import {setPendingHomeDeepLinkIfNoPendingConcierge} from './libs/PendingConciergeDeepLink';
+import normalizePath from './libs/Navigation/helpers/normalizePath';
+import {setPendingConciergeDeepLink, setPendingHomeDeepLinkIfNoPendingConcierge} from './libs/PendingConciergeDeepLink';
 import {getReportIDFromLink} from './libs/ReportUtils';
 import {endSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
+import ROUTES, {type Route} from './ROUTES';
 import {hasSeenTourSelector} from './selectors/Onboarding';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
@@ -23,6 +23,36 @@ type DeepLinkHandlerProps = {
     /** Callback to set the initial URL resolved from deep linking */
     onInitialUrl: (url: Route | null) => void;
 };
+
+function getNormalizedCurrentPath() {
+    if (typeof window === 'undefined') {
+        return '';
+    }
+
+    return normalizePath(window.location.pathname).replace(/\/$/, '') || '/';
+}
+
+function getNormalizedPathFromURL(url: string) {
+    let path = url;
+
+    try {
+        const parsedURL = new URL(url);
+        path = parsedURL.protocol === 'http:' || parsedURL.protocol === 'https:' ? parsedURL.pathname : `${parsedURL.host}${parsedURL.pathname}`;
+    } catch {
+        // If URL parsing fails, treat the value as a route path.
+    }
+
+    return normalizePath(path).replace(/\/$/, '') || '/';
+}
+
+function isCurrentPathConcierge() {
+    return getNormalizedCurrentPath() === normalizePath(ROUTES.CONCIERGE);
+}
+
+function isCurrentPathRootOrOnboarding() {
+    const normalizedPath = getNormalizedCurrentPath();
+    return normalizedPath === '/' || normalizedPath === normalizePath(ROUTES.ONBOARDING_ROOT.route) || normalizedPath.startsWith(`${normalizePath(ROUTES.ONBOARDING_ROOT.route)}/`);
+}
 
 /**
  * Component that does not render anything but isolates the COLLECTION.REPORT Onyx subscription
@@ -97,6 +127,10 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 initialUrlProcessed.current = true;
                 onInitialUrl(url as Route);
 
+                if (!isCurrentlyAuthenticated && isCurrentPathConcierge() && (!url || getNormalizedPathFromURL(url) !== normalizePath(ROUTES.CONCIERGE))) {
+                    setPendingConciergeDeepLink();
+                }
+
                 if (url) {
                     if (conciergeReportID === undefined) {
                         Log.info('[Deep link] conciergeReportID is undefined when processing initial URL', false, {url});
@@ -107,8 +141,8 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                     openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
                     trackPendingPublicRoomFromDeepLink(url, isCurrentlyAuthenticated);
                 } else {
-                    if (!isCurrentlyAuthenticated && typeof window !== 'undefined' && window.location.pathname === '/') {
-                        // A missing initial URL at root can happen during startup, so don't override a stored /concierge intent.
+                    if (!isCurrentlyAuthenticated && isCurrentPathRootOrOnboarding()) {
+                        // A missing initial URL at root/onboarding can happen during startup, so don't override a stored /concierge intent.
                         setPendingHomeDeepLinkIfNoPendingConcierge();
                     }
                     Report.doneCheckingPublicRoom();

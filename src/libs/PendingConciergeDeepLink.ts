@@ -93,6 +93,19 @@ function isBrowserReload() {
     }
 }
 
+function isCurrentBrowserPathOnboarding() {
+    try {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+
+        const normalizedPath = getNormalizedRouteWithoutParams(window.location.pathname);
+        return isOnboardingRoute(normalizedPath);
+    } catch {
+        return false;
+    }
+}
+
 function getNormalizedRouteWithoutParams(route: string) {
     const [routeWithoutParams] = normalizePath(route).split(/[?#]/, 1);
     return routeWithoutParams.replace(/\/$/, '') || '/';
@@ -111,10 +124,18 @@ function setPendingHomeDeepLinkIfNoPendingConcierge() {
     clearPendingConciergeDeepLink();
 }
 
+function isAmbiguousStartupOrOnboardingReplay(normalizedRoute: string) {
+    return isOnboardingRoute(normalizedRoute) || (normalizedRoute === '/' && (isBrowserReload() || isCurrentBrowserPathOnboarding()));
+}
+
 // Keep pending signup deep-link intent consistent across initial URL handling and later Linking URL events.
 function updatePendingConciergeDeepLinkForRoute(route: string, isAuthenticated: boolean) {
     const normalizedRoute = getNormalizedRouteWithoutParams(route);
     const routeForPublicScreen = normalizedRoute === '/' ? '' : normalizedRoute.slice(1);
+
+    if (hasPendingConciergeDeepLinkFlag() && isAmbiguousStartupOrOnboardingReplay(normalizedRoute)) {
+        return;
+    }
 
     if (isAuthenticated) {
         if (normalizedRoute === '/' || normalizedRoute === normalizePath(ROUTES.HOME) || isOnboardingRoute(normalizedRoute)) {
