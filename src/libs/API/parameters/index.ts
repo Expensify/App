@@ -94,6 +94,7 @@ export type {default as OpenPolicyReceiptPartnersPageParams} from './OpenPolicyR
 export type {default as OpenPolicyHRPageParams} from './OpenPolicyHRPageParams';
 export type {default as PaymentCardParams} from './PaymentCardParams';
 export type {default as AddPersonalPlaidCardParams} from './AddPersonalPlaidCardParams';
+export type {default as LinkPlaidToBankAccountParams} from './LinkPlaidToBankAccountParams';
 export type {default as PusherPingParams} from './PusherPingParams';
 export type {default as ReconnectAppParams} from './ReconnectAppParams';
 export type {default as ReferTeachersUniteVolunteerParams} from './ReferTeachersUniteVolunteerParams';
