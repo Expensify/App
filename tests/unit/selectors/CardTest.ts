@@ -196,6 +196,8 @@ describe('defaultExpensifyCardSelector', () => {
             feed: CONST.EXPENSIFY_CARD.BANK,
             fundID: '5555',
             name: CONST.EXPENSIFY_CARD.BANK,
+            // Expensify Card feeds now carry a domain/workspace subtitle; its exact value is derived from mock data, so we only assert its presence here.
+            subtitle: expect.any(String),
         });
     });
 
@@ -212,6 +214,8 @@ describe('defaultExpensifyCardSelector', () => {
             feed: CONST.EXPENSIFY_CARD.BANK,
             fundID: '5555',
             name: CONST.EXPENSIFY_CARD.BANK,
+            // Expensify Card feeds now carry a domain/workspace subtitle; its exact value is derived from mock data, so we only assert its presence here.
+            subtitle: expect.any(String),
         });
     });
 
@@ -226,6 +230,8 @@ describe('defaultExpensifyCardSelector', () => {
             feed: CONST.EXPENSIFY_CARD.BANK,
             fundID: '5555',
             name: CONST.EXPENSIFY_CARD.BANK,
+            // Expensify Card feeds now carry a domain/workspace subtitle; its exact value is derived from mock data, so we only assert its presence here.
+            subtitle: expect.any(String),
         });
     });
 });
