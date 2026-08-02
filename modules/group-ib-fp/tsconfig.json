@@ -7,7 +7,7 @@
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "esModuleInterop": true,
-    "importsNotUsedAsValues": "error",
+    "verbatimModuleSyntax": true,
     "forceConsistentCasingInFileNames": true,
     "jsx": "react",
     "lib": ["esnext"],
