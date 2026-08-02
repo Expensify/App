@@ -135,6 +135,7 @@ import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDy
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
+import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
@@ -185,6 +186,7 @@ import {
     formatLastMessageText,
     getActionableJoinRequestPendingReportAction,
     getAllReportActions,
+    getCrossBorderReimbursedMessage,
     getElsewherePaymentReportActionMessage,
     getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
@@ -1891,8 +1893,10 @@ function getDefaultNotificationPreferenceForReport(report: OnyxEntry<Report>): V
 /**
  * Get the notification preference given a report. This should ALWAYS default to 'hidden'. Do not change this!
  */
-function getReportNotificationPreference(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
-    const participant = deprecatedCurrentUserAccountID ? report?.participants?.[deprecatedCurrentUserAccountID] : undefined;
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function getReportNotificationPreference(report: OnyxEntry<Report>, currentUserAccountID?: number): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
+    const accountID = currentUserAccountID ?? deprecatedCurrentUserAccountID;
+    const participant = accountID ? report?.participants?.[accountID] : undefined;
 
     // Empty notification preference should return `hidden`
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1936,8 +1940,10 @@ function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyID: string
  * Checks if a report is a self-DM or belongs to a self-DM context
  * (including moved reports and threads within self-DMs)
  */
-function isSelfDMOrSelfDMThread(report: OnyxEntry<Report>): boolean {
-    if (!report || !deprecatedCurrentUserAccountID) {
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function isSelfDMOrSelfDMThread(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
+    const accountID = currentUserAccountID ?? deprecatedCurrentUserAccountID;
+    if (!report || !accountID) {
         return false;
     }
 
@@ -1950,10 +1956,10 @@ function isSelfDMOrSelfDMThread(report: OnyxEntry<Report>): boolean {
     // BUT only if it's not a thread report (threads should be checked against parent)
     if (report.type === CONST.REPORT.TYPE.CHAT && report.participants && !report.parentReportID) {
         const participantIds = Object.keys(report.participants).map(Number);
-        const otherParticipants = participantIds.filter((id) => id !== deprecatedCurrentUserAccountID);
+        const otherParticipants = participantIds.filter((id) => id !== accountID);
 
         // If only current user is participant, it's a self-DM
-        if (otherParticipants.length === 0 && participantIds.includes(deprecatedCurrentUserAccountID)) {
+        if (otherParticipants.length === 0 && participantIds.includes(accountID)) {
             return true;
         }
     }
@@ -1961,7 +1967,7 @@ function isSelfDMOrSelfDMThread(report: OnyxEntry<Report>): boolean {
     // For thread reports, check the parent
     if (report.parentReportID) {
         const parentReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
-        return isSelfDMOrSelfDMThread(parentReport);
+        return isSelfDMOrSelfDMThread(parentReport, accountID);
     }
 
     return false;
@@ -2489,17 +2495,14 @@ function findLastAccessedReport(
 /**
  * Whether the provided report has expenses
  */
-function hasExpenses(reportID?: string, transactions?: Array<OnyxEntry<Transaction>>): boolean {
-    if (transactions) {
-        return !!transactions?.find((transaction) => transaction?.reportID === reportID);
-    }
-    return !!Object.values(deprecatedAllTransactions ?? {}).find((transaction) => transaction?.reportID === reportID);
+function hasExpenses(reportID?: string, transactions?: OnyxCollection<Transaction>): boolean {
+    return !!Object.values(transactions ?? deprecatedAllTransactions ?? {}).find((transaction) => transaction?.reportID === reportID);
 }
 
 /**
  * Whether the provided report is a closed expense report with no expenses
  */
-function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: Array<OnyxEntry<Transaction>>): boolean {
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: OnyxCollection<Transaction>): boolean {
     if (!report?.statusNum || report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || !isExpenseReport(report)) {
         return false;
     }
@@ -2799,9 +2802,11 @@ function getDisplayedReportID(reportID: string, isOffline: boolean): string {
  * Should return true only for personal 1:1 report
  *
  */
-function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function isOneOnOneChat(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
     const participants = report?.participants ?? {};
-    const participant = deprecatedCurrentUserAccountID ? participants[deprecatedCurrentUserAccountID] : undefined;
+    const accountID = currentUserAccountID ?? deprecatedCurrentUserAccountID;
+    const participant = accountID ? participants[accountID] : undefined;
     const isCurrentUserParticipant = participant ? 1 : 0;
     const participantAmount = Object.keys(participants).length - isCurrentUserParticipant;
     if (participantAmount !== 1) {
@@ -5587,8 +5592,7 @@ function getReportActionWithMissingSmartscanFields(
     iouReport: OnyxEntry<Report>,
     iouReportID: string | undefined,
     iouReportTransactions: OnyxCollection<Transaction>,
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number,
+    currentUserAccountID: number,
 ): ReportAction | undefined {
     const reportActions = Object.values(getAllReportActions(iouReportID));
     return reportActions.find((action) => {
@@ -5614,8 +5618,7 @@ function shouldShowRBRForMissingSmartscanFields(
     iouReport: OnyxEntry<Report>,
     iouReportID: string | undefined,
     iouReportTransactions: OnyxCollection<Transaction>,
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number,
+    currentUserAccountID: number,
 ): boolean {
     return !!getReportActionWithMissingSmartscanFields(iouReport, iouReportID, iouReportTransactions, currentUserAccountID);
 }
@@ -5857,7 +5860,12 @@ function getReportPreviewMessage(translate: LocalizedTranslate, params: GetRepor
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            return translate(translatePhraseKey, '', getBankAccountLastFourDigits(undefined, getBankAccountList(), reportPolicy, originalMessage?.accountNumber, payerAccountID));
+            const last4Digits = getBankAccountLastFourDigits(undefined, getBankAccountList(), reportPolicy, originalMessage?.accountNumber, payerAccountID);
+            const crossBorderMessage = originalMessage ? getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits) : undefined;
+            if (crossBorderMessage) {
+                return crossBorderMessage;
+            }
+            return translate(translatePhraseKey, '', last4Digits);
         }
         if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify' || translatePhraseKey === 'iou.paidWithExpensify') {
             return translate(translatePhraseKey, payerDisplayName ?? '');
@@ -6071,6 +6079,12 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
             const last4Digits = getBankAccountLastFourDigits(undefined, getBankAccountList(), reportPolicy, originalMessage?.accountNumber, payerAccountID);
+
+            // This variant returns raw English to match the surrounding non-localized preview strings.
+            if (originalMessage?.creditedAmount && originalMessage.creditedCurrency) {
+                const creditedAmountDisplay = convertToDisplayString(originalMessage.creditedAmount, originalMessage.creditedCurrency);
+                return `paid ${creditedAmountDisplay} from account ${originalMessage.debitBankAccountLast4 ?? last4Digits} to account ${originalMessage.creditBankAccountLast4 ?? ''}`;
+            }
             return `paid with bank account ${last4Digits}`;
         }
         if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify') {
@@ -8763,7 +8777,11 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
     };
 }
 
-function buildOptimisticChangeApproverReportAction(managerID: number, actorAccountID: number): OptimisticChangedApproverReportAction {
+function buildOptimisticChangeApproverReportAction(
+    managerID: number,
+    actorAccountID: number,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): OptimisticChangedApproverReportAction {
     const created = DateUtils.getDBTime();
     return {
         actionName: managerID === actorAccountID ? CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL : CONST.REPORT.ACTIONS.TYPE.REROUTE,
@@ -8773,7 +8791,7 @@ function buildOptimisticChangeApproverReportAction(managerID: number, actorAccou
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: `changed the approver to ${getDisplayNameForParticipant({accountID: managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils})}`,
+                text: `changed the approver to ${getDisplayNameForParticipant({accountID: managerID, formatPhoneNumber})}`,
                 html: `changed the approver to <mention-user accountID="${managerID}"/>`,
             },
         ],
@@ -9682,10 +9700,9 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     report: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions>,
     allTransactions: OnyxCollection<Transaction>,
+    currentUserAccountID: number,
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number,
 ): ReportErrorsAndReportActionThatRequiresAttention {
     const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action));
     const reportActionErrors: ErrorFields = {};
@@ -9701,9 +9718,9 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
         }
     }
 
-    if (!isReportArchived && hasSmartscanError(reportActionsArray, report, allTransactions, reports, currentUserAccountID)) {
+    if (!isReportArchived && hasSmartscanError(reportActionsArray, report, allTransactions, currentUserAccountID, reports)) {
         reportActionErrors.smartscan = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
-        reportAction = getReportActionWithSmartscanError(reportActionsArray, report, allTransactions, reports, currentUserAccountID);
+        reportAction = getReportActionWithSmartscanError(reportActionsArray, report, allTransactions, currentUserAccountID, reports);
     }
 
     if (!isReportArchived && isReportOwner(report) && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
@@ -9736,9 +9753,9 @@ function getAllReportErrors(
         report,
         reportActions,
         allTransactions,
+        currentUserAccountID,
         isReportArchived,
         reports,
-        currentUserAccountID,
     );
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
@@ -10117,8 +10134,9 @@ function chatIncludesChronosWithID(reportOrID?: string | Report): boolean {
  * - It's a welcome message whisper
  * - It's an ADD_COMMENT that is not an attachment
  */
-function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string | undefined): boolean {
-    const isCurrentUserAction = reportAction?.actorAccountID === deprecatedCurrentUserAccountID;
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string | undefined, currentUserAccountID?: number): boolean {
+    const isCurrentUserAction = reportAction?.actorAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID);
     if (isWhisperAction(reportAction)) {
         // Allow flagging whispers that are sent by other users
         if (!isCurrentUserAction && reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
@@ -10242,10 +10260,11 @@ function getReportIDFromLink(url: string | null): string {
 /**
  * Check if the chat report is linked to an iou that is waiting for the current user to add a credit bank account.
  */
-function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxInputOrEntry<Report>): boolean {
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxInputOrEntry<Report>, currentUserAccountID?: number): boolean {
     if (chatReport?.iouReportID) {
         const iouReport = getReport(chatReport.iouReportID, deprecatedAllReports);
-        if (iouReport?.isWaitingOnBankAccount && iouReport?.ownerAccountID === deprecatedCurrentUserAccountID) {
+        if (iouReport?.isWaitingOnBankAccount && iouReport?.ownerAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID)) {
             return true;
         }
     }
@@ -10261,7 +10280,8 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxInputOrEntry<Repo
  * - in an IOU report, which is not settled yet
  * - in a 1:1 DM chat
  */
-function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, otherParticipants: number[]): boolean {
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, otherParticipants: number[], currentUserAccountID?: number): boolean {
     // User cannot submit expenses in a chat thread, task report or in a chat room
     if (isChatThread(report) || isTaskReport(report) || isChatRoom(report) || isSelfDM(report) || isGroupChat(report)) {
         return false;
@@ -10273,7 +10293,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     }
 
     // Prevent requesting money if pending IOU report waiting for their bank account already exists
-    if (hasIOUWaitingOnCurrentUserBankAccount(report)) {
+    if (hasIOUWaitingOnCurrentUserBankAccount(report, currentUserAccountID)) {
         return false;
     }
 
@@ -10288,7 +10308,8 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     }
 
     // Current user must be a manager or owner of this IOU
-    if (isIOUReport(report) && deprecatedCurrentUserAccountID !== report?.managerID && deprecatedCurrentUserAccountID !== report?.ownerAccountID) {
+    const accountID = currentUserAccountID ?? deprecatedCurrentUserAccountID;
+    if (isIOUReport(report) && accountID !== report?.managerID && accountID !== report?.ownerAccountID) {
         return false;
     }
 
@@ -10334,6 +10355,7 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.
  */
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
 function getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
@@ -10342,6 +10364,7 @@ function getMoneyRequestOptions(
     filterDeprecatedTypes = false,
     isReportArchived = false,
     isRestrictedToPreferredPolicy = false,
+    currentUserAccountID?: number,
 ): IOUType[] {
     const teacherUnitePolicyID = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
     const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
@@ -10358,7 +10381,7 @@ function getMoneyRequestOptions(
         return [];
     }
 
-    const otherParticipants = reportParticipants.filter((accountID) => deprecatedCurrentUserAccountID !== accountID);
+    const otherParticipants = reportParticipants.filter((accountID) => (currentUserAccountID ?? deprecatedCurrentUserAccountID) !== accountID);
     // We don't allow IOU actions if an Expensify account is a participant of the report, unless the policy that the report is on is owned by an Expensify account
     const doParticipantsIncludeExpensifyAccounts = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -10375,7 +10398,7 @@ function getMoneyRequestOptions(
         options = [CONST.IOU.TYPE.TRACK];
     }
 
-    if (canRequestMoney(report, policy, otherParticipants)) {
+    if (canRequestMoney(report, policy, otherParticipants, currentUserAccountID)) {
         // For Teachers Unite policy, don't show Create Expense option
         if (!isTeachersUniteReport) {
             options = [...options, CONST.IOU.TYPE.SUBMIT];
@@ -10442,6 +10465,7 @@ function getMoneyRequestOptions(
  * This is a temporary function to help with the smooth transition with the oldDot.
  * This function will be removed once the transition occurs in oldDot to new links.
  */
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function temporary_getMoneyRequestOptions(
     report: OnyxEntry<Report>,
@@ -10450,8 +10474,9 @@ function temporary_getMoneyRequestOptions(
     betas: OnyxEntry<Beta[]>,
     isReportArchived = false,
     isRestrictedToPreferredPolicy = false,
+    currentUserAccountID?: number,
 ): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>> {
-    return getMoneyRequestOptions(report, policy, reportParticipants, betas, true, isReportArchived, isRestrictedToPreferredPolicy) as Array<
+    return getMoneyRequestOptions(report, policy, reportParticipants, betas, true, isReportArchived, isRestrictedToPreferredPolicy, currentUserAccountID) as Array<
         Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>
     >;
 }
@@ -10459,7 +10484,8 @@ function temporary_getMoneyRequestOptions(
 /**
  * Invoice sender, invoice receiver and auto-invited admins cannot leave
  */
-function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function canLeaveInvoiceRoom(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
     if (!report?.invoiceReceiver) {
         return false;
     }
@@ -10475,7 +10501,7 @@ function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
     }
 
     if (report.invoiceReceiver.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
-        return report?.invoiceReceiver?.accountID !== deprecatedCurrentUserAccountID;
+        return report?.invoiceReceiver?.accountID !== (currentUserAccountID ?? deprecatedCurrentUserAccountID);
     }
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -10488,8 +10514,9 @@ function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
     return true;
 }
 
-function isCurrentUserTheOnlyParticipant(participantAccountIDs?: number[]): boolean {
-    return !!(participantAccountIDs?.length === 1 && participantAccountIDs?.at(0) === deprecatedCurrentUserAccountID);
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function isCurrentUserTheOnlyParticipant(participantAccountIDs?: number[], currentUserAccountID?: number): boolean {
+    return !!(participantAccountIDs?.length === 1 && participantAccountIDs?.at(0) === (currentUserAccountID ?? deprecatedCurrentUserAccountID));
 }
 
 /**
@@ -10974,6 +11001,7 @@ function getIOUReportActionDisplayMessage(
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const last4Digits = getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, reportPolicy, originalMessage?.accountNumber, reportAction?.actorAccountID);
+        const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits);
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -10983,6 +11011,9 @@ function getIOUReportActionDisplayMessage(
             case CONST.IOU.PAYMENT_TYPE.VBBA:
                 if (isInvoice) {
                     return translate(payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', '', last4Digits);
+                }
+                if (crossBorderMessage) {
+                    return crossBorderMessage;
                 }
                 translationKey = 'iou.businessBankAccount';
 
@@ -11039,7 +11070,8 @@ function getIOUReportActionDisplayMessage(
  * - More than 2 participants.
  *
  */
-function isDeprecatedGroupDM(report: OnyxEntry<Report>, isReportArchived = false): boolean {
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function isDeprecatedGroupDM(report: OnyxEntry<Report>, isReportArchived = false, currentUserAccountID?: number): boolean {
     return !!(
         report &&
         !isChatThread(report) &&
@@ -11050,7 +11082,7 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>, isReportArchived = false
         !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
         Object.keys(report.participants ?? {})
             .map(Number)
-            .filter((accountID) => accountID !== deprecatedCurrentUserAccountID).length > 1
+            .filter((accountID) => accountID !== (currentUserAccountID ?? deprecatedCurrentUserAccountID)).length > 1
     );
 }
 
@@ -11058,7 +11090,9 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>, isReportArchived = false
  * A "root" group chat is the top level group chat and does not refer to any threads off of a Group Chat
  */
 function isRootGroupChat(report: OnyxEntry<Report>, isReportArchived = false): boolean {
-    return !isChatThread(report) && (isGroupChat(report) || isDeprecatedGroupDM(report, isReportArchived));
+    // Excluded via `isThread` rather than `isChatThread`: the backend gives a task the parent's chatType, and
+    // `isChatThread` only matches type CHAT, so a task off a group chat would otherwise read as the root chat.
+    return !isThread(report) && (isGroupChat(report) || isDeprecatedGroupDM(report, isReportArchived));
 }
 
 /**
@@ -11123,9 +11157,8 @@ function getReportActionWithSmartscanError(
     reportActions: ReportAction[],
     report: OnyxEntry<Report>,
     allTransactions: OnyxCollection<Transaction>,
+    currentUserAccountID: number,
     reports?: OnyxCollection<Report>,
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number,
 ): ReportAction | undefined {
     return reportActions.find((action) => {
         const isReportPreview = isReportPreviewAction(action);
@@ -11156,11 +11189,10 @@ function hasSmartscanError(
     reportActions: ReportAction[],
     report: OnyxEntry<Report>,
     allTransactions: OnyxCollection<Transaction>,
+    currentUserAccountID: number,
     reports?: OnyxCollection<Report>,
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number,
 ): boolean {
-    return !!getReportActionWithSmartscanError(reportActions, report, allTransactions, reports, currentUserAccountID);
+    return !!getReportActionWithSmartscanError(reportActions, report, allTransactions, currentUserAccountID, reports);
 }
 
 function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
@@ -11876,6 +11908,11 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     if (actionName === CONST.IOU.ACTION.SUBMIT && submitDestination === CONST.IOU.SUBMIT_DESTINATION.EMPLOYER) {
         // No accessible workspace: spin up a new Submit (submit2026) workspace and drop the expense into its draft report.
         if (filteredPoliciesCount === 0) {
+            // `reportID` is where the expense lives (the self DM), which is not necessarily what the user is looking at:
+            // they may have drilled into the expense thread first. Going back resolves the report route to a POP_TO on
+            // the tab navigator, which rebuilds the central pane from the route, so returning to the self DM here would
+            // swap the report out from under them.
+            const visibleReportID = isReportTopmostSplitNavigator() ? Navigation.getTopmostReportId() : undefined;
             createDraftWorkspaceAndNavigateToConfirmationScreen(
                 introSelected,
                 transactionID,
@@ -11885,7 +11922,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
                 currentUserEmail,
                 currentUserLocalCurrency,
                 CONST.POLICY.TYPE.SUBMIT,
-                reportID,
+                visibleReportID ?? reportID,
             );
             return;
         }
@@ -11894,6 +11931,11 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         if (filteredPoliciesCount === 1 && firstPolicyID) {
             const policyExpenseReport = getPolicyExpenseChat(deprecatedCurrentUserAccountID, firstPolicyID);
             if (policyExpenseReport) {
+                // The draft inherits the source expense's unreported ID from the self DM. The picker we skip here is what
+                // normally rebinds it to the destination chat, so without this the confirmation page still reads the draft
+                // as unreported: it renders "None" for the report and resolves the policy from the self DM instead of the
+                // destination workspace.
+                setMoneyRequestReportID(transactionID, policyExpenseReport.reportID);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, deprecatedCurrentUserAccountID).then(() => {
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.SUBMIT, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReport.reportID));
                 });
@@ -11912,6 +11954,8 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             const policyExpenseReport = getPolicyExpenseChat(deprecatedCurrentUserAccountID, preferredPolicyID);
 
             if (policyExpenseReport) {
+                // Same picker-skip as the single-workspace branch above, so the draft needs the same rebinding.
+                setMoneyRequestReportID(transactionID, policyExpenseReport.reportID);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, deprecatedCurrentUserAccountID).then(() => {
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.SUBMIT, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReport.reportID));
                 });
@@ -12966,16 +13010,17 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
         return true;
     }
 
-    // Fallback to checking actions for backward compatibility
+    // Fallback to checking actions for backward compatibility. Reconciled integration messages are informational
+    // (the export was already recorded in the integration), not errors.
     if (!reportActions) {
         return false;
     }
 
     if (Array.isArray(reportActions)) {
-        return reportActions.some((action) => isIntegrationMessageAction(action));
+        return reportActions.some((action) => isIntegrationMessageAction(action) && !getOriginalMessage(action)?.result?.reconciled);
     }
 
-    return Object.values(reportActions).some((action) => isIntegrationMessageAction(action));
+    return Object.values(reportActions).some((action) => isIntegrationMessageAction(action) && !getOriginalMessage(action)?.result?.reconciled);
 }
 
 function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>, shouldExcludeDeletedTransactions = false): boolean {
@@ -13084,7 +13129,8 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
 /**
  * Checks if the user has missing bank account for the invoice room.
  */
-function hasMissingInvoiceBankAccount(iouReportID: string | undefined): boolean {
+// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
+function hasMissingInvoiceBankAccount(iouReportID: string | undefined, currentUserAccountID?: number): boolean {
     if (!iouReportID) {
         return false;
     }
@@ -13096,7 +13142,11 @@ function hasMissingInvoiceBankAccount(iouReportID: string | undefined): boolean 
     }
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    return invoiceReport?.ownerAccountID === deprecatedCurrentUserAccountID && !getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount?.transferBankAccountID && isSettled(iouReportID);
+    return (
+        invoiceReport?.ownerAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID) &&
+        !getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount?.transferBankAccountID &&
+        isSettled(iouReportID)
+    );
 }
 
 function hasInvoiceReports() {
@@ -13896,6 +13946,7 @@ export {
     canFlagReportAction,
     canJoinChat,
     canLeaveChat,
+    canRequestMoney,
     canReportBeMentionedWithinPolicy,
     canSeeDefaultRoom,
     canShowReportRecipientLocalTime,
