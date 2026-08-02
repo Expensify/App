@@ -77,7 +77,7 @@ import {View} from 'react-native';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
-import {isCertiniaFFAConnection} from './certinia/utils';
+import {isCertiniaSRPConnection} from './certinia/utils';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
 
 type RouteParams = {
@@ -360,7 +360,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           interactive: false,
                       };
             case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
-                return !isCertiniaFFAConnection(certiniaConfig)
+                return !isCertiniaSRPConnection(certiniaConfig)
                     ? {}
                     : {
                           description: translate('workspace.certinia.company'),
