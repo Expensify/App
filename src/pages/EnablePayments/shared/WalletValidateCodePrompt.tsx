@@ -14,16 +14,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
-type WalletMagicCodePromptProps = {
-    /** Called with the entered magic code to confirm the phone number change */
+type WalletValidateCodePromptProps = {
+    /** Called with the entered validateCode to confirm the phone number change */
     onConfirm: (validateCode: string) => void;
 
     /** Called when the prompt is dismissed */
     onClose: () => void;
 };
 
-/** Magic code prompt shown in the wallet KYC flows when changing the phone number used for card 3DS verification */
-function WalletMagicCodePrompt({onConfirm, onClose}: WalletMagicCodePromptProps) {
+/** ValidateCode prompt shown in the wallet KYC flows when changing the phone number used for card 3DS verification */
+function WalletValidateCodePrompt({onConfirm, onClose}: WalletValidateCodePromptProps) {
     const {translate} = useLocalize();
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const [formData] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS);
@@ -44,4 +44,4 @@ function WalletMagicCodePrompt({onConfirm, onClose}: WalletMagicCodePromptProps)
     );
 }
 
-export default WalletMagicCodePrompt;
+export default WalletValidateCodePrompt;

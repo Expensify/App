@@ -191,7 +191,7 @@ export default function TableRow({
         }
 
         if (!selectionUsesNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
-            onPress?.();
+            onPress?.(event);
             return;
         }
 
