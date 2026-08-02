@@ -7,6 +7,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Session} from '@src/types/onyx';
@@ -32,7 +34,6 @@ type MockReportActionRendererProps = {
     displayAsSystemMessage: boolean;
 };
 
-const mockUsePaginatedReportActions = jest.fn();
 const mockReportActionRenderer = jest.fn((props: MockReportActionRendererProps) => (
     <View
         testID={`report-action-${props.reportAction.reportActionID}`}
@@ -46,7 +47,7 @@ jest.mock('@react-navigation/native', () => ({
     usePreventRemove: jest.fn(),
     useRoute: () => ({
         key: 'test-key',
-        name: 'Report' as never,
+        name: 'Report',
         params: {reportID: REPORT_ID},
     }),
 }));
@@ -57,12 +58,7 @@ jest.mock('@react-navigation/core', () => ({
 }));
 
 jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
-jest.mock(
-    '@hooks/usePaginatedReportActions',
-    () =>
-        (...args: unknown[]) =>
-            mockUsePaginatedReportActions(...args),
-);
+jest.mock('@hooks/usePaginatedReportActions', () => jest.fn());
 jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => jest.fn(() => ({shouldUseNarrowLayout: true})));
 jest.mock('@hooks/useLoadReportActions', () => jest.fn(() => ({loadOlderChats: jest.fn(), loadNewerChats: jest.fn()})));
 jest.mock('@hooks/useParentReportAction', () => jest.fn(() => undefined));
@@ -101,6 +97,8 @@ jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList'
         </MockView>
     );
 });
+
+const mockUsePaginatedReportActions = jest.mocked(usePaginatedReportActions);
 
 const report: Report = {
     reportID: REPORT_ID,
@@ -160,8 +158,14 @@ function renderComponent() {
     );
 }
 
-function getRenderedActionIDs() {
-    return screen.getAllByTestId(/^report-action-/).map((element) => element.props.testID);
+function getRenderedActionIDs(): string[] {
+    return screen.getAllByTestId(/^report-action-/).map((element) => {
+        const testID: unknown = element.props.testID;
+        if (typeof testID !== 'string') {
+            throw new Error('Expected every rendered report action to have a string testID');
+        }
+        return testID;
+    });
 }
 
 TestHelper.setupApp();
@@ -187,8 +191,12 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
                 makeAction('legacy-system', CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD, '2026-08-02 00:00:02.000'),
                 makeAction('system-anchor', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, '2026-08-02 00:00:01.000'),
             ],
+            linkedAction: undefined,
+            oldestUnreadReportAction: undefined,
+            sortedAllReportActions: undefined,
             hasNewerActions: false,
             hasOlderActions: false,
+            report: undefined,
         });
 
         await act(async () => {
