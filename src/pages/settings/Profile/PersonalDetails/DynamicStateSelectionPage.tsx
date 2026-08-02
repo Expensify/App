@@ -1,50 +1,51 @@
+/**
+ * Dynamic route version of the state selection page. Reads the current state/label from the
+ * dynamic route params and returns the chosen state to the previous screen via the dynamic back path.
+ */
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 
 import Navigation from '@libs/Navigation/Navigation';
-import searchOptions from '@libs/searchOptions';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {Option} from '@libs/searchOptions';
+import searchOptions from '@libs/searchOptions';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
 
-import type {Route} from '@src/ROUTES';
+import type {TranslationPaths} from '@src/languages/types';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
-import {useRoute} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
-type State = keyof typeof COMMON_CONST.STATES;
+type DynamicStateSelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_STATE>;
 
-type RouteParams = {
-    state?: string;
-    label?: string;
-    backTo?: string;
-};
-
-function StateSelectionPage() {
-    const route = useRoute();
+function DynamicStateSelectionPage({route}: DynamicStateSelectionPageProps) {
     const {translate} = useLocalize();
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const params = route.params as RouteParams | undefined;
-    const currentState = params?.state;
-    const label = params?.label;
+    const currentState = route.params?.state;
+    const label = route.params?.label;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADDRESS_STATE.path);
     const initialSelectedValue = useInitialSelection(currentState ?? undefined, {resetOnFocus: true});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
     const countryStates = useMemo(
         () =>
             Object.keys(COMMON_CONST.STATES).map((state) => {
-                const stateName = translate(`allStates.${state as State}.stateName`);
-                const stateISO = translate(`allStates.${state as State}.stateISO`);
+                const stateName = translate(`allStates.${state}.stateName` as TranslationPaths);
+                const stateISO = translate(`allStates.${state}.stateISO` as TranslationPaths);
                 return {
                     value: stateISO,
                     keyForList: stateISO,
@@ -63,17 +64,9 @@ function StateSelectionPage() {
 
     const selectCountryState = useCallback(
         (option: Option) => {
-            const backTo = params?.backTo ?? '';
-
-            // Check the "backTo" parameter to decide navigation behavior
-            if (!backTo) {
-                Navigation.goBack();
-            } else {
-                // Set compareParams to false because we want to goUp to this particular screen and update params (state).
-                Navigation.goBack(appendParam(backTo, 'state', option.value), {compareParams: false});
-            }
+            Navigation.goBack(appendParam(backPath, 'state', option.value), {compareParams: false});
         },
-        [params?.backTo],
+        [backPath],
     );
 
     const textInputOptions = useMemo(
@@ -90,7 +83,7 @@ function StateSelectionPage() {
 
     return (
         <ScreenWrapper
-            testID="StateSelectionPage"
+            testID="DynamicStateSelectionPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -99,14 +92,7 @@ function StateSelectionPage() {
                 title={label || translate('common.state')}
                 shouldShowBackButton
                 onBackButtonPress={() => {
-                    const backTo = params?.backTo ?? '';
-                    let backToRoute: Route | undefined;
-
-                    if (backTo) {
-                        backToRoute = appendParam(backTo, 'state', currentState ?? '');
-                    }
-
-                    Navigation.goBack(backToRoute);
+                    Navigation.goBack(currentState ? appendParam(backPath, 'state', currentState) : backPath, {compareParams: false});
                 }}
             />
             {/* This empty, non-harmful view fixes the issue with SelectionList scrolling and shouldUseDynamicMaxToRenderPerBatch. It can be removed without consequences if a solution for SelectionList is found. See comment https://github.com/Expensify/App/pull/36770#issuecomment-2017028096 */}
@@ -126,4 +112,4 @@ function StateSelectionPage() {
     );
 }
 
-export default StateSelectionPage;
+export default DynamicStateSelectionPage;
