@@ -211,7 +211,7 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
         });
     });
 
-    it('collapses and expands the real list while preserving avatarless members and chat boundaries', async () => {
+    it('collapses and expands the real list while keeping system members without avatars and preserving chat boundaries', async () => {
         renderComponent();
         await waitForBatchedUpdatesWithAct();
 
