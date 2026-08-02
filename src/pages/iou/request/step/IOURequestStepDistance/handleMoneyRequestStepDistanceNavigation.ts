@@ -87,6 +87,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     selfDMReport: OnyxEntry<Report>;
     gpsCoordinates?: string;
     gpsDistance?: number;
+    gpsModifiedDistance?: number;
     odometerStart?: number;
     odometerEnd?: number;
     odometerDistance?: number;
@@ -184,6 +185,7 @@ function handleMoneyRequestStepDistanceNavigation({
     selfDMReport,
     gpsCoordinates,
     gpsDistance,
+    gpsModifiedDistance,
     policyForMovingExpenses,
     odometerStart,
     odometerEnd,
@@ -298,6 +300,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             transactionParams: {
                                 amount,
                                 distance,
+                                modifiedDistance: gpsModifiedDistance,
                                 currency: transaction?.currency ?? 'USD',
                                 created: transaction?.created ?? '',
                                 merchant,
@@ -324,6 +327,8 @@ function handleMoneyRequestStepDistanceNavigation({
                             isASAPSubmitBetaEnabled,
                             currentUser: {accountID: currentUserAccountID, email: currentUserLogin ?? ''},
                             introSelected,
+                            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+                            conciergeChat: undefined,
                             quickAction,
                             draftTransactionIDs,
                             recentWaypoints,
@@ -373,6 +378,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         transactionParams: {
                             amount,
                             distance,
+                            modifiedDistance: gpsModifiedDistance,
                             comment: '',
                             created: transaction?.created ?? '',
                             currency: transaction?.currency ?? 'USD',
