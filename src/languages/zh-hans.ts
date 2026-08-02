@@ -4469,6 +4469,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             memberAlternateText: '提交并审批报销报告。',
             adminAlternateText: '管理报表和工作区设置。',
             auditorAlternateText: '查看并评论报表。',
+            guestAlternateText: '提交和批准报表，仅使用受邀聊天。',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -4477,6 +4478,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         return '工作区管理员';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '审计员';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return '访客';
                     case CONST.POLICY.ROLE.EDITOR:
                         return '编辑者';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -6391,6 +6394,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             makeAuditor: () => ({
                 one: '设为审计员',
                 other: '创建审计员',
+            }),
+            makeGuest: () => ({
+                one: '设为访客',
+                other: '设为访客',
             }),
             makePeopleAdmin: () => ({
                 one: '设为人员管理员',

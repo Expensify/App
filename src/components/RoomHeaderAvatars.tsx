@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {isAnnounceRoom, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {isDefaultAvatar} from '@libs/UserAvatarUtils';
 
 import variables from '@styles/variables';
@@ -49,6 +49,10 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const canEditRoomAvatar = isUserCreatedPolicyRoom(report) && participants.includes(currentUserAccountID) && !!policy && policy.role !== CONST.POLICY.ROLE.AUDITOR;
+
+    if (policy?.role === CONST.POLICY.ROLE.GUEST && isAnnounceRoom(report)) {
+        return null;
+    }
 
     if (!icons.length) {
         return null;

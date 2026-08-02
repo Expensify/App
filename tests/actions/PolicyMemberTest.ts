@@ -96,6 +96,31 @@ describe('actions/PolicyMember', () => {
         });
     });
     describe('updateWorkspaceMembersRole', () => {
+        it('updates a member to Guest optimistically', async () => {
+            const member = createPersonalDetails(2);
+            const memberLogin = member.login ?? '';
+            const policy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
+                employeeList: {
+                    [memberLogin]: {
+                        email: memberLogin,
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch?.pause?.();
+            Member.updateWorkspaceMembersRole(policy, [memberLogin], [member.accountID], CONST.POLICY.ROLE.GUEST);
+            await waitForBatchedUpdates();
+
+            const optimisticPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(optimisticPolicy?.employeeList?.[memberLogin]?.role).toBe(CONST.POLICY.ROLE.GUEST);
+            expect(optimisticPolicy?.employeeList?.[memberLogin]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            await mockFetch?.resume?.();
+        });
+
         it('Update member to admin role', async () => {
             const fakeUser2 = createPersonalDetails(2);
             const fakePolicy: PolicyType = {

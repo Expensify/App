@@ -142,7 +142,7 @@ function getOnboardingStep(onboardingPath: string | undefined, hasCompletedOnboa
 }
 
 function getUserRole(activePolicies: Policy[]): FullstoryUserVars['user_role'] {
-    let userRole: FullstoryUserVars['user_role'] = 'member';
+    let userRole: FullstoryUserVars['user_role'] = activePolicies.some((policy) => policy?.role === CONST.POLICY.ROLE.GUEST) ? 'guest' : 'member';
 
     for (const policy of activePolicies) {
         if (policy?.role === CONST.POLICY.ROLE.ADMIN) {
@@ -150,6 +150,8 @@ function getUserRole(activePolicies: Policy[]): FullstoryUserVars['user_role'] {
         }
         if (policy?.role === CONST.POLICY.ROLE.AUDITOR) {
             userRole = 'auditor';
+        } else if (userRole !== 'auditor' && policy?.role !== CONST.POLICY.ROLE.GUEST) {
+            userRole = 'member';
         }
     }
 

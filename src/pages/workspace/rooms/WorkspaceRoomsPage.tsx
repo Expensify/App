@@ -19,7 +19,7 @@ import {openReport} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPolicyAdmin, isPolicyGuest} from '@libs/PolicyUtils';
 import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 
@@ -96,7 +96,10 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     });
 
     return (
-        <AccessOrNotFoundWrapper policyID={policyID}>
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            shouldBeBlocked={isPolicyGuest(policy)}
+        >
             <ScreenWrapper
                 testID={WorkspaceRoomsPage.displayName}
                 style={[styles.defaultModalContainer]}
