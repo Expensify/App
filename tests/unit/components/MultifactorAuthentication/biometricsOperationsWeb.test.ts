@@ -20,13 +20,13 @@ import Onyx from 'react-native-onyx';
 import getOnyxValue from 'tests/utils/getOnyxValue';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 
-const mockCreatePasskeyCredential = jest.fn<Promise<PublicKeyCredential>, [PublicKeyCredentialCreationOptions]>();
+const mockCreatePasskeyCredential = jest.fn<Promise<PublicKeyCredential>, [PublicKeyCredentialCreationOptions, AbortSignal | undefined]>();
 
 // The navigator boundary is the only thing mocked here; the real option-building, extraction, and
 // error-decoding helpers stay under test, matching checkDeviceEligibility.test.ts's partial-mock shape.
 jest.mock('@libs/MultifactorAuthentication/Passkeys/WebAuthn', () => ({
     ...jest.requireActual<typeof WebAuthnModule>('@libs/MultifactorAuthentication/Passkeys/WebAuthn'),
-    createPasskeyCredential: (options: PublicKeyCredentialCreationOptions) => mockCreatePasskeyCredential(options),
+    createPasskeyCredential: (options: PublicKeyCredentialCreationOptions, signal?: AbortSignal) => mockCreatePasskeyCredential(options, signal),
 }));
 
 // jest-expo resolves the native variant by default, so load the web entry point explicitly.
@@ -162,7 +162,9 @@ describe('biometrics operations (web)', () => {
     // No coverage exists yet for `usePasskeys.register()`'s ceremony; this pins it at the operation
     // level ahead of the hook being deleted.
     describe('createCredential', () => {
-        const KNOWN_CREDENTIAL_ID = 'known-cred-id';
+        // Length must be a multiple of 4, so the decode/encode round trip below (used to inspect
+        // `excludeCredentials`) is lossless — anything else can silently drop trailing bits.
+        const KNOWN_CREDENTIAL_ID = 'known-cred-idxxx';
 
         beforeEach(() => {
             mockCreatePasskeyCredential.mockReset();
@@ -264,6 +266,38 @@ describe('biometrics operations (web)', () => {
             await waitForBatchedUpdates();
             const storedCredentials = await getOnyxValue(getPasskeyOnyxKey(String(ACCOUNT_ID)));
             expect(storedCredentials?.map((credential) => credential.id)).toEqual([duplicateCredentialId]);
+        });
+
+        it('passes the abort signal through to the ceremony, so cancelling the flow can close the passkey dialog', async () => {
+            const controller = new AbortController();
+            mockCreatePasskeyCredential.mockResolvedValue(buildFakeAttestationCredential(bytesToArrayBuffer([1, 2, 3]), buildFakeAttestationResponse()));
+
+            await createCredential({accountID: ACCOUNT_ID, registrationChallenge: REGISTRATION_CHALLENGE, signal: controller.signal});
+
+            expect(mockCreatePasskeyCredential.mock.calls.at(0)?.[1]).toBe(controller.signal);
+        });
+
+        it('does not persist or register a credential when the flow was cancelled while the ceremony resolved anyway', async () => {
+            // Some browsers don't honor `signal` on create(), so the ceremony can still succeed after
+            // the flow was already cancelled — simulated here by aborting from inside the mock.
+            const controller = new AbortController();
+            const rawId = bytesToArrayBuffer([90, 91, 92]);
+            mockCreatePasskeyCredential.mockImplementation(async () => {
+                controller.abort();
+                return buildFakeAttestationCredential(rawId, buildFakeAttestationResponse());
+            });
+
+            const result = await createCredential({accountID: ACCOUNT_ID, registrationChallenge: REGISTRATION_CHALLENGE, signal: controller.signal});
+
+            expect(result.success).toBe(false);
+            if (result.success) {
+                throw new Error('Expected credential creation to fail');
+            }
+            expect(result.error.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED);
+
+            await waitForBatchedUpdates();
+            const storedCredentials = await getOnyxValue(getPasskeyOnyxKey(String(ACCOUNT_ID)));
+            expect(storedCredentials ?? []).toEqual([]);
         });
     });
 });

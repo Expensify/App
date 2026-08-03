@@ -11,6 +11,7 @@ import type * as ProcessingActions from '@userActions/MultifactorAuthentication/
 import CONST from '@src/CONST';
 
 import {MFA_TEST_REGISTRATION_CHALLENGE} from 'tests/utils/mfa/flowFixtures';
+import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 import {createActor, waitFor} from 'xstate';
 
 const REASON = CONST.MULTIFACTOR_AUTHENTICATION.REASON;
@@ -21,6 +22,7 @@ const mockCreateCredential = jest.fn();
 // failure) are what this suite pins, so the platform ceremony and the backend call are mocked here.
 jest.mock('@components/MultifactorAuthentication/biometrics/operations', () => ({
     ...jest.requireActual<typeof BiometricsOperations>('@components/MultifactorAuthentication/biometrics/operations'),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     createCredential: (...args: unknown[]) => mockCreateCredential(...args),
 }));
 
@@ -88,5 +90,27 @@ describe('createCredential actor', () => {
         // No rollback: the actor's contract is to surface the backend result as-is, with no key
         // deletion and no local-credential clearing attempted on this path.
         expect(snapshot.output).toEqual({success: false, error: backendError});
+    });
+
+    it('does not call processRegistration once the flow was cancelled while the ceremony was still running', async () => {
+        // Stopping the actor (what CLOSE_MODAL does) can't interrupt the already-running ceremony
+        // promise, only its own reaction to it — this pins that the actor still checks `signal.aborted`
+        // before firing the backend call.
+        let resolveCeremony: (result: {success: true; keyInfo: RegistrationKeyInfo}) => void = () => {};
+        mockCreateCredential.mockImplementation(
+            () =>
+                new Promise((resolve) => {
+                    resolveCeremony = resolve;
+                }),
+        );
+
+        const {createCredential} = createActors();
+        const actorRef = createActor(createCredential, {input: CREATE_CREDENTIAL_INPUT});
+        actorRef.start();
+        actorRef.stop();
+        resolveCeremony({success: true, keyInfo: KEY_INFO});
+        await waitForBatchedUpdates();
+
+        expect(processRegistrationMock).not.toHaveBeenCalled();
     });
 });

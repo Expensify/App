@@ -21,12 +21,13 @@ type SetLocalPasskeyCredentialsParams = PasskeyScope & {
  * Sets passkey credentials in Onyx storage.
  * We use Onyx.set() instead of Onyx.merge() because passkey entries contain an array of credentials
  * that needs to be fully replaced, not merged. Using merge() would append to the array instead of replacing it.
+ * Returns the write's promise so callers that care can await it.
  */
-function setLocalPasskeyCredentials({userId, entry}: SetLocalPasskeyCredentialsParams): void {
+function setLocalPasskeyCredentials({userId, entry}: SetLocalPasskeyCredentialsParams): Promise<void> {
     if (!userId) {
         throw new Error('userId is required to store passkey credentials');
     }
-    Onyx.set(getPasskeyOnyxKey(userId), entry);
+    return Onyx.set(getPasskeyOnyxKey(userId), entry);
 }
 
 type AddLocalPasskeyCredentialParams = PasskeyScope & {
@@ -34,14 +35,14 @@ type AddLocalPasskeyCredentialParams = PasskeyScope & {
     existingCredentials: LocalPasskeyCredentialsEntry | null;
 };
 
-function addLocalPasskeyCredential({userId, credential, existingCredentials}: AddLocalPasskeyCredentialParams): void {
+function addLocalPasskeyCredential({userId, credential, existingCredentials}: AddLocalPasskeyCredentialParams): Promise<void> {
     const credentials = existingCredentials ?? [];
 
     if (credentials.some((c) => c.id === credential.id)) {
         throw new Error(`Passkey credential with id "${credential.id}" already exists for user ${userId}`);
     }
 
-    setLocalPasskeyCredentials({userId, entry: [...credentials, credential]});
+    return setLocalPasskeyCredentials({userId, entry: [...credentials, credential]});
 }
 
 /** Deletes all passkey credentials for a user from Onyx storage */
