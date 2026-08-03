@@ -5024,7 +5024,7 @@ function canEditMoneyRequest(
         isExpenseReport(moneyRequestReport) &&
         isOpenReport(moneyRequestReport) &&
         !isSubmitAndClose(reportPolicy) &&
-        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, ownerLogin);
+        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, ownerLogin, moneyRequestReport?.total ?? 0);
     if (isWorkflowApproverEditing) {
         return true;
     }
@@ -5276,7 +5276,7 @@ function canEditFieldOfMoneyRequest({
         isExpenseReport(moneyRequestReport) &&
         isOpenReport(moneyRequestReport) &&
         !isSubmitAndClose(reportPolicy) &&
-        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, ownerLogin);
+        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, ownerLogin, moneyRequestReport?.total ?? 0);
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
         return isAdmin || isManager || isRequestor || isApprover;
@@ -13093,11 +13093,11 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         fullApprovalChain.push(ruleApprover);
     }
 
-    let nextApproverEmail = getManagerAccountEmail(policy, ownerLogin);
+    let nextApproverEmail = getManagerAccountEmail(policy, ownerLogin, reportTotal);
 
     while (nextApproverEmail && !approvalChain.includes(nextApproverEmail)) {
         approvalChain.push(nextApproverEmail);
-        nextApproverEmail = getForwardsToAccount(policy, nextApproverEmail, reportTotal);
+        nextApproverEmail = getForwardsToAccount(policy, nextApproverEmail, reportTotal, ownerLogin);
     }
 
     for (const approver of approvalChain) {
