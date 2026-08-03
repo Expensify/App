@@ -9769,6 +9769,16 @@ describe('SearchUIUtils', () => {
             });
             expect(missingCurrencyColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED);
             expect(missingCurrencyColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
+
+            const sortedColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data: domesticData,
+                visibleColumns,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED,
+            });
+            expect(sortedColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED);
+            expect(sortedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
         });
 
         test('Should only show the conversion amount columns for withdrawal groups that converted currencies', () => {

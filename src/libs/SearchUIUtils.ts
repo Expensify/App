@@ -6053,6 +6053,12 @@ function getColumnsToShow({
                 return true;
             }
 
+            // The column the results are sorted by has to stay, even with nothing to show in it. Both the header and the
+            // Sort by option come from this list, so dropping it would leave the sort applied with no way to change it.
+            if (column === sortBy) {
+                return true;
+            }
+
             return Object.keys(data).some((key) => {
                 if (!isReportEntry(key)) {
                     return false;
