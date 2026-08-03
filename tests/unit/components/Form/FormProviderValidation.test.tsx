@@ -3,7 +3,7 @@ import {act, render, screen} from '@testing-library/react-native';
 import FormContext from '@components/Form/FormContext';
 import type {FormProviderProps} from '@components/Form/FormProvider';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxValues, InputComponentBaseProps} from '@components/Form/types';
+import type {FormInputErrors, InputComponentBaseProps} from '@components/Form/types';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
@@ -65,7 +65,7 @@ function CaptureInput({onCapture, inputID = STREET}: {onCapture: (handlers: Capt
     return <Text testID={`${inputID}-error`}>{errorText}</Text>;
 }
 
-function renderForm(handlers: {current: CapturedHandlers | undefined}, formProviderProps: Partial<FormProviderProps> = {}) {
+function renderForm(handlers: {current: CapturedHandlers | undefined}, formProviderProps: Partial<FormProviderProps<typeof FORM_ID>> = {}) {
     return render(
         <OnyxListItemProvider>
             <LocaleContextProvider>
@@ -73,7 +73,7 @@ function renderForm(handlers: {current: CapturedHandlers | undefined}, formProvi
                     formID={FORM_ID}
                     submitButtonText="Save"
                     onSubmit={jest.fn()}
-                    validate={(values: FormOnyxValues<typeof FORM_ID>) => {
+                    validate={(values) => {
                         const errors: FormInputErrors<typeof FORM_ID> = {};
                         const street = values[STREET];
                         if (typeof street === 'string' && street.toLowerCase().includes('po box')) {
@@ -180,7 +180,6 @@ describe('FormProvider validation', () => {
                         <View>
                             <CaptureInput
                                 onCapture={(captured) => {
-                                    // eslint-disable-next-line no-param-reassign
                                     handlers.current = captured;
                                 }}
                             />
