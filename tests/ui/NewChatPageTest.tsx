@@ -1,9 +1,12 @@
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+
+import Navigation from '@libs/Navigation/Navigation';
 
 import NewChatPage from '@pages/NewChatPage';
 
@@ -24,6 +27,10 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@react-navigation/native');
 jest.mock('@src/libs/Navigation/navigationRef');
+// Use the web implementation (a passthrough): Jest resolves the .native variant, whose in-flight guard would
+// swallow the rapid re-presses that the pending-transition tests below simulate. On web, where the deferred
+// selection update matters most, there is no such guard.
+jest.mock('@hooks/useSingleExecution', (): unknown => jest.requireActual('@hooks/useSingleExecution/index.ts'));
 jest.mock('react-native-permissions', () => ({
     __esModule: true,
     RESULTS: {
@@ -49,11 +56,13 @@ const triggerTransitionEnd = () => (NativeNavigation as NativeNavigationMock).tr
 
 const wrapper = ({children}: {children: React.ReactNode}) => (
     <OnyxListItemProvider>
-        <HTMLEngineProvider>
-            <LocaleContextProvider>
-                <ScreenWrapper testID="test">{children}</ScreenWrapper>
-            </LocaleContextProvider>
-        </HTMLEngineProvider>
+        <CurrentUserPersonalDetailsProvider>
+            <HTMLEngineProvider>
+                <LocaleContextProvider>
+                    <ScreenWrapper testID="test">{children}</ScreenWrapper>
+                </LocaleContextProvider>
+            </HTMLEngineProvider>
+        </CurrentUserPersonalDetailsProvider>
     </OnyxListItemProvider>
 );
 
@@ -242,6 +251,90 @@ describe('NewChatPage', () => {
         }
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByText(translateLocal('common.next'))).toBeVisible();
+    });
+
+    it('should keep the user selected when the still-visible "Add to group" button is pressed twice before the deferred update commits', async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+        });
+        render(<NewChatPage />, {wrapper});
+        await waitForBatchedUpdatesWithAct();
+        act(() => {
+            triggerTransitionEnd();
+        });
+
+        const addButton = await waitFor(() => {
+            const button = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
+            expect(button).toBeTruthy();
+            return button;
+        });
+        if (!addButton) {
+            return;
+        }
+
+        // Both presses run in one act() batch: nothing commits between them, so the second press lands on the
+        // same still-visible "Add to group" button — the retry/double-tap that arrives before the deferred
+        // selection update has caught up.
+        // eslint-disable-next-line testing-library/no-unnecessary-act -- the shared act batch is the point: it keeps the deferred update from committing between the two presses
+        act(() => {
+            fireEvent.press(addButton);
+            fireEvent.press(addButton);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // The retry press must stay an add (idempotent), not silently cancel the pending one.
+        expect(screen.getByText(translateLocal('common.next'))).toBeVisible();
+        expect(screen.getAllByTestId(new RegExp(`^${CONST.SELECTION_BUTTON_TEST_ID}`))).toHaveLength(1);
+    });
+
+    it('should not open the group confirmation when the last member was removed just before pressing Next', async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, email: 'email1@test.com'});
+        });
+        render(<NewChatPage />, {wrapper});
+        await waitForBatchedUpdatesWithAct();
+        act(() => {
+            triggerTransitionEnd();
+        });
+
+        // Enter group-selection mode by selecting one user.
+        const addButton = await waitFor(() => {
+            const button = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
+            expect(button).toBeTruthy();
+            return button;
+        });
+        if (!addButton) {
+            return;
+        }
+        fireEvent.press(addButton);
+        await waitForBatchedUpdatesWithAct();
+        const nextButton = screen.getByText(translateLocal('common.next'));
+        expect(nextButton).toBeVisible();
+
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        const checkedCheckbox = screen.getAllByTestId(new RegExp(`^${CONST.SELECTION_BUTTON_TEST_ID}`)).at(0);
+        expect(checkedCheckbox).toBeTruthy();
+        if (!checkedCheckbox) {
+            return;
+        }
+
+        // Both presses run in one act() batch: nothing commits between them, so the Next button is still
+        // rendered when it is pressed even though the last member was just removed. Confirming with an empty
+        // latest selection must not navigate to the group confirmation page.
+        // eslint-disable-next-line testing-library/no-unnecessary-act -- the shared act batch is the point: it keeps the deferred update from committing between the two presses
+        act(() => {
+            fireEvent.press(checkedCheckbox);
+            fireEvent.press(nextButton);
+        });
+        expect(navigateSpy).not.toHaveBeenCalled();
+
+        // Once the deferred update commits the removal, group-selection mode is exited.
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText(translateLocal('common.next'))).toBeNull();
+        expect(navigateSpy).not.toHaveBeenCalled();
+        navigateSpy.mockRestore();
     });
 
     describe('should not display "Add to group" button on expensify emails', () => {

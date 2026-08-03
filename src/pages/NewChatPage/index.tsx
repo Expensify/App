@@ -60,6 +60,22 @@ import useGroupChatDraftParticipantSync from './useGroupChatDraftParticipantSync
 const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE));
 const PAGINATION_SIZE = CONST.MAX_SELECTION_LIST_PAGE_LENGTH;
 
+/**
+ * Whether a pressed option refers to the same person as an already-selected one. Login is the primary identity,
+ * but login-less options (e.g. DMs whose participant details haven't loaded yet) would all compare equal on login
+ * alone (undefined === undefined), so fall back to accountID, then reportID. Pairs with no shared identity are
+ * treated as distinct so they follow the add path.
+ */
+function isSameSelectedOption(selectedOption: SelectedOption, option: ListItem & Partial<OptionData>): boolean {
+    if (selectedOption.login || option.login) {
+        return selectedOption.login === option.login;
+    }
+    if (selectedOption.accountID || option.accountID) {
+        return selectedOption.accountID === option.accountID;
+    }
+    return !!selectedOption.reportID && selectedOption.reportID === option.reportID;
+}
+
 function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
@@ -323,15 +339,22 @@ function NewChatPage({ref}: NewChatPageProps) {
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      */
     const toggleOption = (option: ListItem & Partial<OptionData>) => {
-        // Read membership from the latest selection (not the item or a render snapshot) so rapid toggles stay
-        // correct while the deferred list update below is still catching up to a previous press.
+        // Compose off the latest selection (not a render snapshot) so back-to-back toggles don't drop each
+        // other's pending updates while the deferred list update below is still catching up.
         const currentSelectedOptions = latestSelectedOptionsRef.current;
-        const isOptionInList = currentSelectedOptions.some((selectedOption) => selectedOption.login === option.login);
+        const isOptionInList = currentSelectedOptions.some((selectedOption) => isSameSelectedOption(selectedOption, option));
+        // Removal intent comes from the pressed row's rendered state, not from ref membership: while the
+        // transition is pending the row still shows its stale control, so a re-press on a still-visible
+        // "Add to group" button must stay an add (idempotent below) rather than silently cancel the pending one.
+        const shouldRemoveOption = !!option.isSelected && isOptionInList;
 
         let newSelectedOptions: SelectedOption[];
 
-        if (isOptionInList) {
-            newSelectedOptions = reject(currentSelectedOptions, (selectedOption) => selectedOption.login === option.login);
+        if (shouldRemoveOption) {
+            newSelectedOptions = reject(currentSelectedOptions, (selectedOption) => isSameSelectedOption(selectedOption, option));
+        } else if (isOptionInList) {
+            // Already added by a previous press of the same still-visible Add button; nothing to change.
+            newSelectedOptions = currentSelectedOptions;
         } else {
             newSelectedOptions = [...currentSelectedOptions, {...option, isSelected: true, reportID: option.reportID, keyForList: `${option.keyForList ?? option.reportID}`}];
         }
@@ -469,7 +492,13 @@ function NewChatPage({ref}: NewChatPageProps) {
         // Read from the latest-selection ref (not the render snapshot): the Next button stays tappable while the
         // deferred selection transition is still pending, so tapping "Add to group" then quickly Next must not rebuild
         // the draft from a stale selectedOptions that drops the just-added participant.
-        const selectedParticipants: SelectedParticipant[] = latestSelectedOptionsRef.current.map((option) => ({
+        const latestSelectedOptions = latestSelectedOptionsRef.current;
+        // Conversely, the stale Next button can be tapped right after the last member was removed; don't build
+        // a group draft containing only the current user.
+        if (latestSelectedOptions.length === 0) {
+            return;
+        }
+        const selectedParticipants: SelectedParticipant[] = latestSelectedOptions.map((option) => ({
             login: option?.login,
             accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
         }));
