@@ -235,10 +235,6 @@ function BaseReportActionContextMenu({
 
     const requestParentReportAction = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
-            // The transaction thread report is loaded lazily, so right after a cache clear it can still be missing while the
-            // IOU report and its actions are already available. Falling through to `undefined` here makes the caller treat a
-            // report preview as a plain report action, which silently turns "Delete expense" into "Delete report" and
-            // unreports the expense into the self DM. Resolve the single IOU action directly instead. See #92521.
             if (transactionThreadReportID === CONST.FAKE_REPORT_ID || !transactionThreadReport?.parentReportActionID) {
                 return Object.values(childReportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isDeletedAction(action));
             }
