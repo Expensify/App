@@ -9,7 +9,7 @@ This page describes two patterns:
 - WRITE commands use the queue-backed hooks in `src/hooks/useInFlightRequests.ts`.
 - READ commands do not enter the queue. Search records `loading`, `loaded`, or `error` on its snapshot instead.
 
-The queue is the primary signal, but it is not the only input during the current migration. `OpenApp` and `OpenReport` leave the queue before their deferred Onyx updates, which are Onyx writes held for a later flush, finish. The public hooks bridge that short window with the existing loading state and an in-memory value called a latch. The latch remembers that the current app process observed the request. Existing loading fields also remain in use for cold-start recovery, report positioning, navigation guards, and other non-skeleton behavior.
+The queue is the primary signal, but it is not the only input. `OpenApp` and `OpenReport` leave the queue before their deferred Onyx updates, which are Onyx writes held for a later flush, finish. The public hooks bridge that short window with the loading field on the key and an in-memory value called a latch. The latch remembers that the current app process observed the request. Loading fields on the key also serve cold-start recovery, report positioning, navigation guards, and other non-skeleton behavior.
 
 Search and the remaining app and report skeleton consumers use these patterns. The migration does not remove all legacy loading fields.
 
@@ -35,7 +35,7 @@ A stored boolean can stop matching the request:
 - A reload, crash, or dropped response can happen before the clearing write. The next process can then read `true` without having the request that set it.
 - A check such as `data === undefined` cannot distinguish a pending request from a successful empty response.
 
-A serializable WRITE request appears in `PERSISTED_REQUESTS` while it waits and in `PERSISTED_ONGOING_REQUESTS` while the queue processes it. Persisted requests can survive a restart through [Restart Recovery](SEQUENTIAL_QUEUE.md#restart-recovery). Requests containing `File` or `Blob` values cannot be persisted. The queue removes a request when it settles. For `OpenApp` and `OpenReport`, this happens just before deferred Onyx updates finish, so the public hooks cover that short gap as described below.
+A serializable WRITE request appears in `PERSISTED_REQUESTS` while it waits and in `PERSISTED_ONGOING_REQUESTS` while the queue processes it. Persisted requests can survive a restart through [Restart Recovery](SEQUENTIAL_QUEUE.md#restart-recovery). Requests containing `File` or `Blob` values cannot be persisted. While such a request runs it is already out of `PERSISTED_REQUESTS` and `PERSISTED_ONGOING_REQUESTS` is set to `null`, so a queue-backed hook reports not pending. Do not derive an upload spinner from the queue. The queue removes a request when it settles. For `OpenApp` and `OpenReport`, this happens just before deferred Onyx updates finish, so the public hooks cover that short gap as described below.
 
 ## The pattern: derive pending from the queue
 
@@ -133,13 +133,14 @@ Search stamps an explicit **terminal lifecycle state** on the snapshot it is loa
 - `optimisticData` writes `state: loading` when the request starts.
 - `successData` writes `state: loaded`, plus the query type and hash, for a `200` response. This also covers a successful response with no snapshot data, so the page can show an empty result.
 - `failureData` writes `state: error` for a failed response.
-- `search()` applies `failureData` itself for a `460` response because the shared response handler skips it.
-- `search()` also applies `failureData` when the network promise rejects before there is an HTTP response.
+- `search()` applies `failureData` when the network promise rejects before there is an HTTP response.
 - `finallyData` clears the legacy `isLoading` field but does not write `state`. It runs after success or failure and must not replace the terminal state.
 
-The read side uses `state` rather than only `isLoading` or the shape of `data`. A response with no rows reaches `loaded`, so it does not leave the skeleton visible. Normal failures, `460` responses, and network rejections reach `error`.
+A `460` response is an exception. `applyHTTPSOnyxUpdates` skips `failureData` for `460`, and nothing else applies it, so the snapshot keeps `state: loading` while `finallyData` clears `isLoading`. Do not rely on `460` reaching a terminal state.
 
-Search does not trust a persisted `loading` state forever. When the page is online after a reload with `state: loading`, `useSearchPageSetup` calls `search()` again even when the snapshot contains cached data. Cached data alone does not count as settled while `state` or the legacy `isLoading` field still says the request is loading. `search()` tracks active requests by query hash and offset, so a matching request that is already running is not sent twice. A snapshot with a matching terminal state and `isLoading: false` is not restarted.
+The read side uses `state` rather than only `isLoading` or the shape of `data`. A response with no rows reaches `loaded`, so it does not leave the skeleton visible. Normal failures and network rejections reach `error`.
+
+Search re-fires only for an unresolved snapshot. `useSearchPageSetup` skips `search()` when `isSearchDataLoaded` is true, and that helper counts any non-null `data` or `errors` as resolved, not only a terminal `state`. A snapshot that holds cached data while `state` is still `loading` is therefore not restarted. `search()` also tracks active requests by query hash and offset, so a matching request that is already running is not sent twice.
 
 ## Choosing between the two approaches
 
@@ -169,7 +170,5 @@ Keep `HAS_LOADED_APP` and the cold-restart fallback. The queue hook is the prima
 Report skeleton consumers use `useIsReportLoadPending(reportID)` wherever pending `OpenReport` work is part of the loading decision. They keep existing readiness checks, including `hasOnceLoadedReportActions`, report data completeness, and offline behavior. A stranded `isLoadingInitialReportActions` value without a matching queue request or in-memory latch must not show a skeleton.
 
 Do not remove the legacy fields as part of this migration. `IS_LOADING_APP` and report loading state still support recovery, report positioning, navigation guards, and the deferred-flush bridge. Skeleton consumers should use the public hooks. Full flag deletion is outside this plan.
-
-**Do not add manual memoization.** React Compiler is active in this repo (see [REACT_COMPILER.md](REACT_COMPILER.md)). It keeps selector references stable for each group and scope key, so `useOnyx` does not subscribe again on every render. Do not add `useMemo`, `useCallback`, or a manual selector cache around these hooks.
 
 **Keep telemetry for a terminal request that still shows a skeleton.** `useSkeletonSpan` in `src/libs/telemetry/useSkeletonSpan.ts` and the `reasonAttributes` prop on `ActivityIndicator` record a span while a skeleton is mounted. They flag skeletons that remain past `CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION`. Pass `SkeletonSpanReasonAttributes` with a `context` for the screen and any state that explains the render, such as `isOffline`. This makes the case queryable under the `skeleton.` namespace.
