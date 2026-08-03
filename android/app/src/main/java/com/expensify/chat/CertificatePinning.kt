@@ -45,21 +45,42 @@ object CertificatePinning {
     private const val CERTIFICATE_PINNING_CHANNEL_TAG = "certificate_pinning_channel"
 
     /**
+     * Cloudflare can issue the expensify.com edge certificate from any of the CAs it uses -
+     * Let's Encrypt, Google Trust Services or SSL.com - and can rotate between them without notice
+     * (the unannounced 2026-07-07 Let's Encrypt -> Google Trust Services rotation is what broke us).
+     * To survive leaf rotation, intermediate rotation AND a CA switch without an emergency release, the
+     * Cloudflare-fronted hosts (Groups A & B) pin the SPKI of the ROOT of each of those three CAs, plus
+     * the live issuing intermediate for each. Any of these appearing in the served chain satisfies the
+     * pin. Regenerate with scripts/generateCertificatePins.sh (which also prints these CA pins).
+     */
+    private val CLOUDFLARE_EXPENSIFY_PINS: List<String> = listOf(
+        // Let's Encrypt - live CA for www/secure/staging (reverted to Let's Encrypt after the 2026-07-07 GTS rotation)
+        "sha256/C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", // ISRG Root X1
+        "sha256/diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", // ISRG Root X2
+        "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=", // Let's Encrypt YE1 intermediate (live ECDSA)
+        // Google Trust Services - backup CA
+        "sha256/hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", // GTS Root R1
+        "sha256/Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=", // GTS Root R2
+        "sha256/QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", // GTS Root R3
+        "sha256/mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", // GTS Root R4
+        "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", // Google Trust Services WE1 intermediate (live ECDSA)
+        // SSL.com - backup CA
+        "sha256/G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", // SSL.com TLS ECC Root CA 2022
+        "sha256/K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=", // SSL.com TLS RSA Root CA 2022
+    )
+
+    /**
      * Canonical pin data: domain → list of "sha256/<base64>" pin strings.
-     * The first hash is the leaf SPKI, the second is the issuing intermediate CA SPKI.
      * Keep in sync with config/certificatePinning/pins.json.
      */
     private val PINNED_DOMAINS: Map<String, List<String>> = mapOf(
-        // Group A: leaf CN=expensify.com + Google Trust Services WE1 intermediate (CA migrated from
-        // Let's Encrypt on 2026-07-07); stale LE leaf + YE1 intermediate kept until fully retired
-        "www.expensify.com" to listOf("sha256/XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", "sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
-        "secure.expensify.com" to listOf("sha256/XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", "sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
-        "staging.expensify.com" to listOf("sha256/XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", "sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
-        "staging-secure.expensify.com" to listOf("sha256/XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", "sha256/cSP5K9Slk59AgwZPst+dLPuNE+ZhypUlYRQNW1XC/fc=", "sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4="),
-        // Group B: leaf CN=expensify.com + Google Trust Services WE1 intermediate; previous leaf kept
-        // until it expires 2026-08-18
-        "new.expensify.com" to listOf("sha256/XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", "sha256/G2v6PWWl92F5vVHCtAYwScBHqNtPMkxb++SFoBJq5F4="),
-        "staging.new.expensify.com" to listOf("sha256/XPujjYNyJh3N+7AgvBfcVXaEl1IhDB1OdoL6t+4bhbQ=", "sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", "sha256/G2v6PWWl92F5vVHCtAYwScBHqNtPMkxb++SFoBJq5F4="),
+        // Groups A & B: Cloudflare-fronted expensify.com hosts - multi-CA root + intermediate pinning (see above)
+        "www.expensify.com" to CLOUDFLARE_EXPENSIFY_PINS,
+        "secure.expensify.com" to CLOUDFLARE_EXPENSIFY_PINS,
+        "staging.expensify.com" to CLOUDFLARE_EXPENSIFY_PINS,
+        "staging-secure.expensify.com" to CLOUDFLARE_EXPENSIFY_PINS,
+        "new.expensify.com" to CLOUDFLARE_EXPENSIFY_PINS,
+        "staging.new.expensify.com" to CLOUDFLARE_EXPENSIFY_PINS,
         // Group C: integrations leaf + Let's Encrypt R13 intermediate
         "integrations.expensify.com" to listOf("sha256/7D0dEgdEKEMYRTgVwvnhJv19B4apk0QM/GPnRAKRGUs=", "sha256/AlSQhgtJirc8ahLyekmtX+Iw+v46yPYRLJt9Cq1GlB0="),
         // Group D: travel leaf + Google Trust Services WE1 intermediate
