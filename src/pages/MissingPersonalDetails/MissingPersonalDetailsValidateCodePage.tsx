@@ -114,6 +114,8 @@ function MissingPersonalDetailsValidateCodePage({
         [countryCode, values, isVirtualCard, cardID],
     );
 
+    const validateError = !isEmptyObject(revealCardError) ? revealCardError : (cardErrors ?? validateLoginError);
+
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
@@ -123,7 +125,7 @@ function MissingPersonalDetailsValidateCodePage({
             }
             validateCodeActionErrorField={CONST.MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD}
             handleSubmitForm={handleSubmitForm}
-            validateError={!isEmptyObject(revealCardError) ? revealCardError : (cardErrors ?? validateLoginError)}
+            validateError={validateError}
             clearError={clearError}
             onClose={() => {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID), basePath), {forceReplace: true});
