@@ -140,7 +140,7 @@ describe('ReportActionItem', () => {
 
     function renderItemWithAction(action: ReportAction) {
         return render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
                 <ScreenWrapper testID="test">
                     <PortalProvider>
                         <ReportActionItem
@@ -1421,7 +1421,7 @@ describe('ReportActionItem', () => {
             };
 
             render(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
@@ -3132,7 +3132,7 @@ describe('ReportActionItem', () => {
             action.reportID = TEST_REPORT_ID;
 
             render(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItemMessage
