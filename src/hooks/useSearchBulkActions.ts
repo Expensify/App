@@ -494,7 +494,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'Document',
     ]);
 
-    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
 
     const selectedTransactionReportIDs = useMemo(
         () => [
@@ -2268,9 +2268,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.ArrowSplit,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, firstTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {
-                        isProduction,
-                    });
+                    initSplitExpense(
+                        firstTransaction,
+                        firstTransactionReport,
+                        splitEffectivePolicy,
+                        selfDMReportID,
+                        restrictedActionPolicyID,
+                        personalPolicy?.outputCurrency,
+                        getCurrencyDecimals,
+                        getCurrencySymbol,
+                        {isProduction},
+                    );
                 },
             });
         }
@@ -2404,6 +2412,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchKey,
         isTrackIntentUser,
         getCurrencyDecimals,
+        getCurrencySymbol,
         amountOwed,
         allTransactions,
         transactions,
