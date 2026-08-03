@@ -886,7 +886,7 @@ function getUpdatedTransaction({
     // the alternate routes the user can still switch between survive the edit.
     // A manually typed distance always wins over the route distance, so skip this when both are being changed.
     if (Object.hasOwn(transactionChanges, 'selectedRouteKey') && typeof transactionChanges.selectedRouteKey === 'string' && !Object.hasOwn(transactionChanges, 'distance')) {
-        const selectedRouteDistanceInMeters = transaction?.routes?.[transactionChanges.selectedRouteKey]?.distance;
+        const selectedRouteDistanceInMeters = updatedTransaction?.routes?.[transactionChanges.selectedRouteKey]?.distance;
         lodashSet(updatedTransaction, 'comment.selectedRouteKey', transactionChanges.selectedRouteKey);
         shouldStopSmartscan = true;
 
