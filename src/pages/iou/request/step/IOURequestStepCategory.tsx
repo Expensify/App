@@ -246,7 +246,7 @@ function IOURequestStepCategory({
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 style={[styles.w100]}
                                 onPress={() => {
-                                    if (!policyID || !report?.reportID || !policyCategories) {
+                                    if (!policyID || !report?.reportID) {
                                         return;
                                     }
 
