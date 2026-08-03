@@ -150,7 +150,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const hasVirtualCardMissingDetails = hasVirtualExpensifyCardMissingPersonalDetails(allCards, privatePersonalDetails, isActingAsDelegate);
-    let walletBrickRoadIndicator;
+    let walletBrickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
     if (
         hasLockedBankAccount ||
         hasPaymentMethodError(bankAccountList, fundList, allCards, session, policies) ||
