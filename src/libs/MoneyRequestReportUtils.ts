@@ -184,7 +184,7 @@ const getTotalAmountForIOUReportPreviewButton = (
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ) => {
     // Determine whether the non-held amount is appropriate to display for the PAY button.
-    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, transactions);
+    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, transactions, convertToDisplayString);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const canAllowSettlement = hasUpdatedTotal(report, policy);
 
