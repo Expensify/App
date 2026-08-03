@@ -15,6 +15,8 @@ import type {UpperCaseCharacters} from 'type-fest/source/internal';
 
 import React from 'react';
 
+import type {AvatarIcon} from './Avatar/types';
+
 import PressableDiagonalAvatars from './Avatar/layouts/PressableDiagonalAvatars';
 import PressableSubscriptAvatar from './Avatar/layouts/PressableSubscriptAvatar';
 import SingleAvatar from './Avatar/layouts/SingleAvatar';
@@ -36,7 +38,12 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
 
-    const {avatarType, avatars: icons} = useReportActionAvatars({
+    const {
+        avatarType,
+        avatars: icons,
+        details: {delegateAccountID},
+        source,
+    } = useReportActionAvatars({
         report,
         action: undefined,
     });
@@ -66,7 +73,7 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
     const [primaryAvatar, secondaryAvatar] = icons;
     const size = CONST.AVATAR_SIZE.XXXX_LARGE;
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE && !!secondaryAvatar) {
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE && !!secondaryAvatar?.name) {
         return (
             <PressableDiagonalAvatars
                 size={size}
@@ -92,6 +99,17 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
         );
     }
 
+    const delegateAccountIDFromAction = source.action?.delegateAccountID;
+    const singleAvatar: AvatarIcon = delegateAccountIDFromAction
+        ? {
+              ...primaryAvatar,
+              copilot: {
+                  accountID: delegateAccountIDFromAction,
+                  actedForAccountID: delegateAccountID,
+              },
+          }
+        : primaryAvatar;
+
     return (
         <PressableWithoutFocus
             onPress={() => navigateToAvatarPage(primaryAvatar)}
@@ -100,7 +118,7 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_AVATAR}
         >
             <SingleAvatar
-                avatar={primaryAvatar}
+                avatar={singleAvatar}
                 size={size}
                 containerStyles={[]}
                 shouldShowTooltip

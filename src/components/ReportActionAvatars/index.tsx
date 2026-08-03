@@ -200,7 +200,7 @@ function ReportActionAvatars({
         }
 
         if (sortAvatars.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE)) {
-            icons = icons.toReversed();
+            icons = [...icons].reverse();
         }
     }
 
