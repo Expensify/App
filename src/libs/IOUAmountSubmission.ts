@@ -246,7 +246,17 @@ function buildReportParticipants(args: SubmitAmountArgs) {
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, allPersonalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft, currentUserPersonalDetails.accountID);
+            : getReportOption(
+                  participant,
+                  privateIsArchived,
+                  policy,
+                  allPersonalDetails,
+                  conciergeReportID,
+                  reportAttributesReports,
+                  reportDraft,
+                  currentUserPersonalDetails.accountID,
+                  translate,
+              );
     });
 }
 
@@ -350,6 +360,8 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 currentUser: {accountID: currentUserAccountID, email: currentUserEmail},
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 introSelected,
+                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+                conciergeChat: undefined,
                 quickAction,
                 recentWaypoints,
                 betas,
@@ -391,6 +403,8 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 existingTransaction: storedTransaction,
                 draftTransactionIDs: draftTransactionIDsList,
                 isSelfTourViewed,
+                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+                conciergeChat: undefined,
                 personalDetails: allPersonalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,

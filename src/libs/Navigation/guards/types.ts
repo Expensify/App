@@ -19,6 +19,9 @@ type GuardContext = {
 
     /** Current URL (for HybridApp and deep link checks) */
     currentUrl: string;
+
+    /** Whether the current session is a supportal (support-logged-in) session */
+    isSupportalSession: boolean;
 };
 
 /**

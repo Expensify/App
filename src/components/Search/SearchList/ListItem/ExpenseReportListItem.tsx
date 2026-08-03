@@ -123,7 +123,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
-    const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)}, [reportItem.ownerAccountID]);
+    const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)});
 
     const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,
@@ -237,13 +237,24 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     // hydrate into the live collection, rule/category changes still push violation updates that must
     // reflect on the badge (per-row selector, not the screen-level collection merge this slice removed).
     const snapshotTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
-    const liveViolationsSelector = transactionViolationsByIDsSelector(snapshotTransactionIDs);
-    const [liveViolationsForSnapshotTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: liveViolationsSelector}, [liveViolationsSelector]);
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID} =
-        useReportPaymentContext({
-            reportID: reportItem.reportID,
-            chatReportPolicyID: chatReport?.policyID,
-        });
+    const [liveViolationsForSnapshotTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(snapshotTransactionIDs)});
+    const {
+        currentUserAccountID,
+        currentUserLogin,
+        introSelected,
+        betas,
+        isSelfTourViewed,
+        activePolicy,
+        nextStep,
+        chatReportPolicy,
+        amountOwed,
+        delegateEmail,
+        delegateAccountID,
+        conciergeChat,
+    } = useReportPaymentContext({
+        reportID: reportItem.reportID,
+        chatReportPolicyID: chatReport?.policyID,
+    });
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -300,6 +311,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            conciergeChat,
         });
     }, [
         currentSearchHash,
@@ -340,6 +352,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         isTrackIntentUser,
+        conciergeChat,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {

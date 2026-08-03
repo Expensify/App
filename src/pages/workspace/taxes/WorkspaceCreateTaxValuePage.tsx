@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -88,13 +88,14 @@ function WorkspaceCreateTaxValuePage({
                         touchableInputWrapperStyle={styles.heightUndefined}
                     />
                     <Button
-                        success
-                        large
-                        pressOnEnter
-                        text={translate('common.save')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={save}
                         style={styles.mh5}
-                    />
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.save')}</Button.Text>
+                    </Button>
                 </View>
             </ScrollView>
         </ScreenWrapper>

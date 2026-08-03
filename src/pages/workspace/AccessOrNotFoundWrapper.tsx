@@ -5,6 +5,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -172,6 +173,7 @@ function AccessOrNotFoundWrapper({
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const {login = ''} = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const {isBetaEnabled} = usePermissions();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const isPolicyIDInRoute = !!policyID?.length;
@@ -194,8 +196,10 @@ function AccessOrNotFoundWrapper({
     const isPolicyEmpty = !Object.entries(policy ?? {}).length || !policy?.id;
     const shouldShowFullScreenLoadingIndicator = !isMoneyRequest && (isLoadingReportData !== false || !!policy?.isLoading) && isPolicyEmpty;
 
-    // Pass categories so that migrated corporate policies with only Classic category rules (areRulesEnabled === undefined) are correctly treated as enabled
-    const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName, policyCategories) : true;
+    // Pass categories so that migrated corporate policies with only Classic category rules (areRulesEnabled === undefined) are correctly treated as enabled.
+    // Collect workspaces can only access Rules when the rulesRevamp beta is enabled.
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName, policyCategories, isRulesRevampEnabled) : true;
 
     const {isOffline} = useNetwork();
 
