@@ -63,7 +63,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -85,6 +85,8 @@ type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
 function isFocusableTextInputRef(ref: BaseTextInputRef): ref is AnimatedTextInputRef {
     return 'isFocused' in ref;
 }
+
+const OdometerContainer = Platform.OS === 'web' ? View : KeyboardAvoidingView;
 
 function IOURequestStepDistanceOdometer({
     report,
@@ -595,6 +597,19 @@ function IOURequestStepDistanceOdometer({
         Navigation.closeRHPFlow();
     }, [fromLocaleDigit, startReading, endReading, odometerStartImage, odometerEndImage, translate, setFormError]);
 
+    // Web already receives the iOS 26 Safari keyboard compensation from the parent ScreenWrapper.
+    let odometerContainerKey = 'editing';
+    if (isCreatingNewRequest) {
+        odometerContainerKey = isFocused ? 'focused' : 'unfocused';
+    }
+    const odometerContainerProps =
+        Platform.OS === 'web'
+            ? {}
+            : {
+                  behavior: 'padding' as const,
+                  enabled: isCreatingNewRequest,
+              };
+
     return (
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
@@ -604,10 +619,9 @@ function IOURequestStepDistanceOdometer({
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
         >
-            <KeyboardAvoidingView
-                key={isCreatingNewRequest ? (isFocused ? 'focused' : 'unfocused') : 'editing'}
-                behavior="padding"
-                enabled={isCreatingNewRequest}
+            <OdometerContainer
+                {...odometerContainerProps}
+                key={odometerContainerKey}
                 style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
             >
                 <View>
@@ -746,7 +760,7 @@ function IOURequestStepDistanceOdometer({
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_ODOMETER_NEXT_BUTTON}
                     />
                 </View>
-            </KeyboardAvoidingView>
+            </OdometerContainer>
         </StepScreenWrapper>
     );
 }
