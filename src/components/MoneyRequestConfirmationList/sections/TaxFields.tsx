@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCalculatedTaxAmount, getTaxAmount, getTaxRateTitle} from '@libs/TransactionUtils';
 
@@ -20,7 +21,7 @@ import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -49,7 +50,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
-    const {isEditingSplitBill} = useConfirmationFields();
+    const {isNewManualExpenseFlowEnabled, isEditingSplitBill} = useConfirmationFields();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -101,6 +102,9 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     };
 
     useEffect(() => {
+        if (!isNewManualExpenseFlowEnabled) {
+            return;
+        }
         // Compare the numeric value rather than the formatted string. An in-progress edit such as "5.0" (or an
         // empty field) represents the same stored amount as the re-padded "5.00", so it must not be overwritten
         // while the user is typing. Only refresh the field when the stored tax amount genuinely differs (e.g. the
@@ -113,19 +117,20 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
             }
         }
         numberFormRef.current?.updateNumber(taxAmountInput);
-    }, [taxAmount, taxAmountInput]);
+    }, [isNewManualExpenseFlowEnabled, taxAmount, taxAmountInput]);
 
     useEffect(() => {
-        if (formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {
+        if (!isNewManualExpenseFlowEnabled || formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {
             return;
         }
         clearFormErrors(['iou.error.invalidTaxAmount']);
-    }, [formError, taxAmount, maxTaxAmount, clearFormErrors]);
+    }, [isNewManualExpenseFlowEnabled, formError, taxAmount, maxTaxAmount, clearFormErrors]);
 
     return (
         <>
             <MenuItemWithTopDescription
-                key={`${taxRates?.name}${taxRateTitle}`}
+                key={`${taxRates?.name}_rate`}
+                pressableTestID={`${taxRates?.name}_rate`}
                 shouldShowRightIcon={canModifyTaxFields}
                 title={taxRateTitle}
                 description={taxRates?.name}
@@ -136,7 +141,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID)));
                 }}
                 disabled={didConfirm}
                 interactive={canModifyTaxFields}
@@ -144,7 +149,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
             />
-            {canModifyTaxFields ? (
+            {isNewManualExpenseFlowEnabled && canModifyTaxFields ? (
                 <View style={[styles.mh4, styles.mv2]}>
                     <NumberWithSymbolForm
                         numberFormRef={numberFormRef}
@@ -164,7 +169,8 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 </View>
             ) : (
                 <MenuItemWithTopDescription
-                    key={`${taxRates?.name}${formattedTaxAmount}`}
+                    key={`${taxRates?.name}_amount`}
+                    pressableTestID={`${taxRates?.name}_amount`}
                     shouldShowRightIcon={canModifyTaxFields}
                     title={formattedTaxAmount}
                     description={translate('iou.taxAmount')}
@@ -175,7 +181,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                             return;
                         }
 
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID)));
                     }}
                     disabled={didConfirm}
                     interactive={canModifyTaxFields}

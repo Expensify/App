@@ -113,7 +113,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                     >
                         {translate('onboarding.workEmailValidation.title')}
                     </Text>
-                    <Text style={[styles.textNormal, styles.colorMuted, styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.magicCodeSent', workEmail)}</Text>
+                    <Text style={[styles.textNormal, styles.colorMuted, styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.securityCodeSent', workEmail)}</Text>
                     <ValidateCodeForm
                         handleSubmitForm={validateAccountAndMerge}
                         sendValidateCode={sendValidateCode}

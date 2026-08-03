@@ -258,7 +258,6 @@ function extractKeyFromPropertyNode(node: ts.PropertyAssignment | ts.MethodDecla
  * Build a dot-notation path from a node by traversing up the AST to find property assignments.
  * Useful for building paths like "common.save" from a string literal node.
  */
-// eslint-disable-next-line rulesdir/no-negated-variables
 function buildDotNotationPath(node: ts.Node, rootNode?: ts.Node): string | null {
     const pathParts: string[] = [];
     let current: ts.Node | undefined = node;

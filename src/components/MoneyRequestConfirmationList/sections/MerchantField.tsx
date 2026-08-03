@@ -25,6 +25,7 @@ import useTransactionSelector from './useTransactionSelector';
 
 type MerchantFieldProps = {
     isMerchantRequired: boolean | undefined;
+    isNewManualExpenseFlowEnabled: boolean;
     isReadOnly: boolean;
     didConfirm: boolean;
     shouldDisplayFieldError: boolean;
@@ -36,7 +37,19 @@ type MerchantFieldProps = {
     reportActionID: string | undefined;
 };
 
-function MerchantField({isMerchantRequired, isReadOnly, didConfirm, shouldDisplayFieldError, formError, transactionID, action, iouType, reportID, reportActionID}: MerchantFieldProps) {
+function MerchantField({
+    isMerchantRequired,
+    isNewManualExpenseFlowEnabled,
+    isReadOnly,
+    didConfirm,
+    shouldDisplayFieldError,
+    formError,
+    transactionID,
+    action,
+    iouType,
+    reportID,
+    reportActionID,
+}: MerchantFieldProps) {
     const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -94,7 +107,7 @@ function MerchantField({isMerchantRequired, isReadOnly, didConfirm, shouldDispla
         setMoneyRequestMerchant(transactionID, newMerchant, true, transactionHasReceipt);
     };
 
-    if (!isReadOnly) {
+    if (isNewManualExpenseFlowEnabled && !isReadOnly) {
         return (
             <View style={[styles.mh4, styles.mv2]}>
                 <TextInput
