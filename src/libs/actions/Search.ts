@@ -1034,11 +1034,11 @@ function search({
     isLoading: boolean;
     shouldUpdateLastSearchParams?: boolean;
     /**
-     * When true, fires the search API immediately without waiting for pending
-     * writes in the sequential queue. Use for the post-expense-creation flow
-     * where the expense write is deferred and search snapshot data lives in
-     * separate Onyx keys, so there is no risk of the response overwriting
-     * optimistic write data.
+     * When true, fires the search API immediately without waiting for pending writes in the sequential queue. Safe because search
+     * responses only write snapshot keys, so they can't overwrite a pending write's optimistic data. Used by the
+     * post-expense-creation flow (where the expense write is deferred) and by home screen sections that would otherwise sit behind
+     * a slow OpenApp. Only pass this when the query itself doesn't depend on data OpenApp delivers — otherwise the request is sent
+     * with an incomplete filter set and has to be re-fired once that data lands.
      */
     skipWaitForWrites?: boolean;
 }) {
