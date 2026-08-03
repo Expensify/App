@@ -2501,6 +2501,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             linkedTrackedExpenseReportAction,
             linkedTrackedExpenseReportID,
             customUnitRateID,
+            selectedRouteDistance,
         },
         quickAction,
         isSelfTourViewed,
