@@ -16548,7 +16548,7 @@ describe('ReportUtils', () => {
                     ...payReportAction,
                     originalMessage: {...payOriginalMessage, creditedAmount: 1340, creditedCurrency: 'GBP', creditBankAccountLast4: '3335'},
                 };
-                const crossBorderParams = {reportOrID: settledReport, iouReportAction: crossBorderAction, originalReportAction: crossBorderAction};
+                const crossBorderParams = {reportOrID: settledReport, iouReportAction: crossBorderAction, originalReportAction: crossBorderAction, policy: settledPolicy};
 
                 it('names the credited amount, falling back to the policy default for the debited account', () => {
                     // Given a converted payment that recorded the employee's account but not the account it was paid from
@@ -16576,6 +16576,7 @@ describe('ReportUtils', () => {
                         reportOrID: settledReport,
                         iouReportAction: payReportAction,
                         originalReportAction: payReportAction,
+                        policy: settledPolicy,
                         isPreviewMessageForParentChatReport: true,
                     });
 
