@@ -80,7 +80,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                             Navigation.dismissModal();
                             return;
                         }
-                        Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE.getRoute(login, option?.value));
+                        Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE.getRoute(login, option?.value));
                     }}
                     data={roleOptions}
                     ListItem={SingleSelectListItem}

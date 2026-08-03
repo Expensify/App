@@ -4,7 +4,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,16 +18,14 @@ function UserProfileAvatar() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const {errorData, selected, imageData, avatarCaptureRef, isDirty, isRemoved, setError, onSelectPreset, onImageRemoved, openCropper, save} = useProfileAvatarForm();
+    const {errorData, selected, imageData, isDirty, isRemoved, setError, onSelectPreset, onImageRemoved, openCropper, save} = useProfileAvatarForm();
 
     const renderPreview = () => (
         <AvatarPreview
             selected={selected}
             isRemoved={isRemoved}
             onImageRemoved={onImageRemoved}
-            avatarCaptureRef={avatarCaptureRef}
             imageData={imageData}
             setError={setError}
             openCropper={openCropper}
@@ -57,7 +54,6 @@ function UserProfileAvatar() {
                 <View style={[styles.ph5, styles.pb5, styles.flexColumn, styles.flex1, styles.gap3]}>
                     <AvatarSelector
                         label={translate('avatarPage.choosePresetAvatar')}
-                        name={currentUserPersonalDetails?.displayName}
                         selectedID={selected}
                         onSelect={onSelectPreset}
                     />

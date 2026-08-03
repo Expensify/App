@@ -19,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {conciergePersonalDetailSelector, isOptimisticPersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
-import React, {memo, useMemo} from 'react';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
@@ -46,8 +46,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
-    const reportOwnerSelector = useMemo(() => personalDetailsSelector(report?.ownerAccountID), [report?.ownerAccountID]);
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
 
     const otherParticipantAccountID =
         Object.keys(report?.participants ?? {})
@@ -103,7 +102,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                         >
                             <ReportActionAvatars
                                 reportID={reportID}
-                                size={CONST.AVATAR_SIZE.X_LARGE}
+                                size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                 horizontalStacking={{
                                     displayInRows: shouldUseNarrowLayout,
                                     maxAvatarsInRow: shouldUseNarrowLayout ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN,

@@ -12,6 +12,7 @@ type IntegrationsMessageParams = {
         code?: number;
         messages?: string[];
         title?: string;
+        reconciled?: boolean;
         link?: {
             url: string;
             text: string;
