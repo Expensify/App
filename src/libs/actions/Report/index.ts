@@ -2748,7 +2748,7 @@ function explain(
             currentUserAccountID,
             shouldPlaySound: true,
             delegateAccountID,
-            // Safe: the explanation posts to a thread, never the Concierge chat. Thread it if #66411 removes the fallback.
+            // Passing conciergeReportID as undefined is intentional, the explanation posts to a thread, never the Concierge chat.
             conciergeReportID: undefined,
         });
     });
@@ -5233,7 +5233,7 @@ function inviteToRoomAction(
         currentUserAccountID,
         shouldPlaySound: false,
         delegateAccountID,
-        // Safe: this posts to the room, never the Concierge chat. Thread it if #66411 removes the fallback.
+        // Passing conciergeReportID as undefined is intentional, this posts to the room, never the Concierge chat.
         conciergeReportID: undefined,
     });
 }
@@ -8088,6 +8088,7 @@ function resolveConciergeOptions(
     selectedField: 'selectedCategory' | 'selectedDescription',
     currentUserAccountID: number,
     delegateAccountID: number | undefined,
+    conciergeReportID: string | undefined,
     ancestors: Ancestor[] = [],
 ) {
     if (!report?.reportID || !reportActionID) {
@@ -8095,8 +8096,7 @@ function resolveConciergeOptions(
     }
 
     const reportID = report.reportID;
-    // Must thread before #66411 removes the fallback: this report CAN be the Concierge chat, so undefined would drop Concierge params.
-    addComment({report, notifyReportID: notifyReportID ?? reportID, ancestors, text: selectedValue, timezoneParam, currentUserAccountID, delegateAccountID, conciergeReportID: undefined});
+    addComment({report, notifyReportID: notifyReportID ?? reportID, ancestors, text: selectedValue, timezoneParam, currentUserAccountID, delegateAccountID, conciergeReportID});
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportActionID]: {
@@ -8124,9 +8124,21 @@ function resolveConciergeCategoryOptions(
     timezoneParam: Timezone,
     currentUserAccountID: number,
     delegateAccountID: number | undefined,
+    conciergeReportID: string | undefined,
     ancestors: Ancestor[] = [],
 ) {
-    resolveConciergeOptions(report, notifyReportID, reportActionID, selectedCategory, timezoneParam, 'selectedCategory', currentUserAccountID, delegateAccountID, ancestors);
+    resolveConciergeOptions(
+        report,
+        notifyReportID,
+        reportActionID,
+        selectedCategory,
+        timezoneParam,
+        'selectedCategory',
+        currentUserAccountID,
+        delegateAccountID,
+        conciergeReportID,
+        ancestors,
+    );
 }
 
 /**
@@ -8146,9 +8158,21 @@ function resolveConciergeDescriptionOptions(
     timezoneParam: Timezone,
     currentUserAccountID: number,
     delegateAccountID: number | undefined,
+    conciergeReportID: string | undefined,
     ancestors: Ancestor[] = [],
 ) {
-    resolveConciergeOptions(report, notifyReportID, reportActionID, selectedDescription, timezoneParam, 'selectedDescription', currentUserAccountID, delegateAccountID, ancestors);
+    resolveConciergeOptions(
+        report,
+        notifyReportID,
+        reportActionID,
+        selectedDescription,
+        timezoneParam,
+        'selectedDescription',
+        currentUserAccountID,
+        delegateAccountID,
+        conciergeReportID,
+        ancestors,
+    );
 }
 
 /**
