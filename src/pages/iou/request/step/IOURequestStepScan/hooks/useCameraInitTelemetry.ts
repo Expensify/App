@@ -1,4 +1,4 @@
-import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
+import {ensureAttachmentDir} from '@libs/actions/Attachment';
 import Log from '@libs/Log';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
@@ -7,7 +7,6 @@ import CONST from '@src/CONST';
 import type {CameraDevice} from 'react-native-vision-camera';
 
 import {useEffect, useRef} from 'react';
-import ReactNativeBlobUtil from 'react-native-blob-util';
 import {RESULTS} from 'react-native-permissions';
 
 type UseCameraInitTelemetryParams = {
@@ -101,21 +100,11 @@ function useCameraInitTelemetry({cameraPermissionStatus, device}: UseCameraInitT
         // when we navigate after capture — eliminates cold-start module load cost.
         require('@pages/iou/request/step/IOURequestStepConfirmation');
 
-        // Pre-create upload directory to avoid latency during capture
-        const path = getReceiptsUploadFolderPath();
-        ReactNativeBlobUtil.fs
-            .isDir(path)
-            .then((isDir) => {
-                if (isDir) {
-                    return;
-                }
-                ReactNativeBlobUtil.fs.mkdir(path).catch((error: string) => {
-                    Log.warn('Error creating the receipts upload directory', error);
-                });
-            })
-            .catch((error: string) => {
-                Log.warn('Error checking if the upload directory exists', error);
-            });
+        // Pre-create the attachments directory so the camera can write directly into it
+        // during capture without paying mkdir latency on the shutter path.
+        ensureAttachmentDir().catch((error: unknown) => {
+            Log.warn('Error ensuring the attachments directory exists', error instanceof Error ? error.message : String(error));
+        });
     };
 
     return {handleCameraInitialized};

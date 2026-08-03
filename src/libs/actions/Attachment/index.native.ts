@@ -1,6 +1,8 @@
 import {getImageCacheFileExtension} from '@libs/AttachmentUtils';
-import {getMimeTypeFromUri, isLocalFile} from '@libs/fileDownload/FileUtils';
+import {cleanFileName, getMimeTypeFromUri, isLocalFile} from '@libs/fileDownload/FileUtils';
+import fileURIToPath from '@libs/fileURIToPath';
 import Log from '@libs/Log';
+import {rand64} from '@libs/NumberUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -9,11 +11,59 @@ import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
 
-import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps} from './types';
+import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps, StageAttachmentProps} from './types';
 
-const ATTACHMENT_DIR = `${RNFS.DocumentDirectoryPath}/attachments`;
+const ATTACHMENT_DIR = `${RNFS.DocumentDirectoryPath}/${CONST.ATTACHMENT_DIR_NAME}`;
 
 const attachmentLocalSources = new Map<string, string>();
+
+/** Absolute path to the single durable directory used for both staging and previewing attachments. */
+function getAttachmentDir(): string {
+    return ATTACHMENT_DIR;
+}
+
+/** Ensures the attachments directory exists; safe to call concurrently. */
+async function ensureAttachmentDir(): Promise<void> {
+    if (await RNFS.exists(ATTACHMENT_DIR)) {
+        return;
+    }
+    await RNFS.mkdir(ATTACHMENT_DIR).catch(() => {});
+}
+
+/**
+ * Moves a freshly captured/picked file from its ephemeral OS cache location into the durable
+ * `attachments/` directory so it survives an iOS Library/Caches purge until the upload completes.
+ *
+ * This replaces the old `moveReceiptToDurableStorage` + `Receipts-Upload` path. Staging into the
+ * same directory that `cacheAttachment` later caches into lets `cacheAttachment` reuse the file
+ * instead of copying it again — which is what eliminates the duplicate on disk.
+ */
+async function stageAttachment({uri, fileName}: StageAttachmentProps): Promise<string> {
+    if (!uri || !isLocalFile(uri)) {
+        return uri;
+    }
+
+    try {
+        await ensureAttachmentDir();
+
+        const sourcePath = fileURIToPath(uri);
+
+        // Sanitize the on-disk name so the returned file:// URI never contains characters (#, %, space)
+        // that make it ambiguous whether the string is percent-encoded. The user-visible filename
+        // travels separately on the file object's name field and is not affected.
+        const safeName = cleanFileName(fileName ?? CONST.DEFAULT_ATTACHMENT_FILENAME);
+        const dotIndex = safeName.lastIndexOf('.');
+        const uniqueName = dotIndex > 0 ? `${safeName.slice(0, dotIndex)}_${rand64()}${safeName.slice(dotIndex)}` : `${safeName}_${rand64()}`;
+        const destPath = `${ATTACHMENT_DIR}/${uniqueName}`;
+
+        await RNFS.moveFile(sourcePath, destPath);
+
+        return `file://${destPath}`;
+    } catch (error) {
+        Log.warn('[AttachmentCache] Failed to stage attachment, using original URI', {error: error instanceof Error ? error.message : String(error)});
+        return uri;
+    }
+}
 
 function getAttachmentLocalSource(attachmentID: string | undefined): string | undefined {
     if (!attachmentID) {
@@ -36,6 +86,20 @@ async function cacheAttachment({uri, attachmentID, authToken, fileType}: CacheAt
     // Ensure the attachment directory exists; ignore errors if a concurrent call already created it
     if (!(await RNFS.exists(ATTACHMENT_DIR))) {
         await RNFS.mkdir(ATTACHMENT_DIR).catch(() => {});
+    }
+
+    // If the file was already staged inside the attachments directory (by stageAttachment, or by
+    // the camera writing its capture directly here), reuse it as the cache entry instead of copying
+    // or re-downloading. This is what prevents the same file from existing twice on disk.
+    const stagedPath = fileURIToPath(uri);
+    if (stagedPath.startsWith(`${ATTACHMENT_DIR}/`) && (await RNFS.exists(stagedPath))) {
+        const stagedUri = uri.startsWith('file://') ? uri : `file://${stagedPath}`;
+        attachmentLocalSources.set(attachmentID, stagedUri);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+            attachmentID,
+            source: stagedPath,
+        });
+        return stagedPath;
     }
 
     const mimeType = getMimeTypeFromUri(uri) ?? fileType;
@@ -160,8 +224,10 @@ async function clearCachedAttachments(): Promise<void> {
         await Onyx.setCollection(ONYXKEYS.COLLECTION.ATTACHMENT, {});
         attachmentLocalSources.clear();
     } catch (error) {
-        Log.hmmm('[AttachmentCache] Failed to clear cached attachments', {message: error instanceof Error ? error.message : String(error)});
+        Log.hmmm('[AttachmentCache] Failed to clear cached attachments', {
+            message: error instanceof Error ? error.message : String(error),
+        });
     }
 }
 
-export {cacheAttachment, getCachedAttachment, removeCachedAttachment, clearCachedAttachments, getAttachmentLocalSource};
+export {cacheAttachment, getCachedAttachment, removeCachedAttachment, clearCachedAttachments, getAttachmentLocalSource, getAttachmentDir, ensureAttachmentDir, stageAttachment};

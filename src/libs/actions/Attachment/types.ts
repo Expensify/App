@@ -33,4 +33,12 @@ type RemoveCachedAttachmentProps = {
     localSource?: string;
 };
 
-export type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps};
+type StageAttachmentProps = {
+    /** Local file:// URI of the freshly captured/picked file that should be moved into durable storage */
+    uri: string;
+
+    /** Original filename, used to derive a safe on-disk name */
+    fileName?: string;
+};
+
+export type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps, StageAttachmentProps};

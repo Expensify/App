@@ -2766,6 +2766,9 @@ const CONST = {
 
     DEFAULT_ATTACHMENT_FILENAME: 'chat_attachment',
 
+    // Folder name for the durable on-device attachment cache (staging + previewing)
+    ATTACHMENT_DIR_NAME: 'attachments',
+
     ATTACHMENT_TYPE: {
         REPORT: 'r',
         NOTE: 'n',
@@ -6640,8 +6643,6 @@ const CONST = {
     MIN_TAX_RATE_DECIMAL_PLACES: 2,
     DISTANCE_DECIMAL_PLACES: 2,
     HOURS_DECIMAL_PLACES: 2,
-
-    RECEIPTS_UPLOAD_PATH: '/Receipts-Upload',
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,

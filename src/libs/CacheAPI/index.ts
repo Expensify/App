@@ -1,4 +1,3 @@
-import {getEnvironmentURL} from '@libs/Environment/Environment';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -6,9 +5,6 @@ import CONST from '@src/CONST';
 import type {ValueOf} from 'type-fest';
 
 type CacheNameType = ValueOf<typeof CONST.CACHE_NAME>;
-
-let environmentURL: string;
-getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 function init() {
     // Exit early if the Cache API is not available in the current browser.
@@ -27,6 +23,11 @@ function init() {
     }
 }
 
+// Keys are passed through unchanged. Callers are responsible for anchoring keys
+// to the origin (e.g. `getAttachmentCacheKey` builds an absolute URL via
+// `new URL(..., window.location.origin)`), so the Cache API resolves them
+// consistently regardless of the active route. Prefixing here would race with
+// async environment resolution and diverge from main's key scheme.
 function put(cacheName: CacheNameType, key: string, value: Response) {
     // Exit early if the Cache API is not available in the current browser.
     if (!('caches' in window)) {
@@ -34,9 +35,7 @@ function put(cacheName: CacheNameType, key: string, value: Response) {
         return;
     }
 
-    const cacheKey = `${environmentURL}/${key}`;
-
-    return caches.open(cacheName).then((cache) => cache.put(cacheKey, value));
+    return caches.open(cacheName).then((cache) => cache.put(key, value));
 }
 
 function get(cacheName: CacheNameType, key: string) {
@@ -46,9 +45,7 @@ function get(cacheName: CacheNameType, key: string) {
         return;
     }
 
-    const cacheKey = `${environmentURL}/${key}`;
-
-    return caches.open(cacheName).then((cache) => cache.match(cacheKey));
+    return caches.open(cacheName).then((cache) => cache.match(key));
 }
 
 function remove(cacheName: CacheNameType, key: string) {
@@ -58,9 +55,7 @@ function remove(cacheName: CacheNameType, key: string) {
         return;
     }
 
-    const cacheKey = `${environmentURL}/${key}`;
-
-    return caches.open(cacheName).then((cache) => cache.delete(cacheKey));
+    return caches.open(cacheName).then((cache) => cache.delete(key));
 }
 
 function clear(cacheName?: CacheNameType) {

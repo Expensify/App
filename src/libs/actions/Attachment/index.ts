@@ -8,7 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
-import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps} from './types';
+import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps, StageAttachmentProps} from './types';
 
 const attachmentLocalSources = new Map<string, string>();
 
@@ -208,8 +208,25 @@ async function clearCachedAttachments() {
         await Onyx.setCollection(ONYXKEYS.COLLECTION.ATTACHMENT, {});
         attachmentLocalSources.clear();
     } catch (error) {
-        Log.hmmm('[AttachmentCache] Failed to clear cached attachments', {message: error instanceof Error ? error.message : String(error)});
+        Log.hmmm('[AttachmentCache] Failed to clear cached attachments', {
+            message: error instanceof Error ? error.message : String(error),
+        });
     }
 }
 
-export {cacheAttachment, getCachedAttachment, removeCachedAttachment, clearCachedAttachments, getAttachmentLocalSource};
+/** Web has no on-disk attachment directory; uploads are held as in-memory blob/object URLs. */
+function getAttachmentDir(): string {
+    return '';
+}
+
+/** No-op on web; there is no filesystem directory to create. */
+async function ensureAttachmentDir(): Promise<void> {
+    // No filesystem directory on web.
+}
+
+/** Web holds uploads as in-memory blob/object URLs, so no durable filesystem staging is needed. */
+async function stageAttachment({uri}: StageAttachmentProps): Promise<string> {
+    return uri;
+}
+
+export {cacheAttachment, getCachedAttachment, removeCachedAttachment, clearCachedAttachments, getAttachmentLocalSource, getAttachmentDir, ensureAttachmentDir, stageAttachment};
