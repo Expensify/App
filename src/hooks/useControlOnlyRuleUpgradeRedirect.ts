@@ -1,7 +1,3 @@
-import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
-import usePolicy from '@hooks/usePolicy';
-
 import {arePolicyRulesEnabled, isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -10,6 +6,10 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
 import {useEffect, useRef} from 'react';
+
+import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
+import usePolicy from './usePolicy';
 
 /**
  * Sends a Collect admin who lands on a Control-only Rules page to the Control upgrade page.
