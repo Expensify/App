@@ -9,8 +9,13 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils, shouldShowMarkAsDone} from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {hasOnlyHeldExpenses, hasViolations as hasViolationsReportUtils, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {
+    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
+    hasOnlyPendingCardTransactions,
+    showHeldExpensesBlockModal,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
@@ -65,6 +70,7 @@ function SubmitActionButtonContent() {
         amountOwed,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        delegateAccountID,
     } = useReportPreviewActionButtonData(iouReportID);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -96,6 +102,11 @@ function SubmitActionButtonContent() {
             return;
         }
 
+        if (hasOnlyHeldExpenses(transactions)) {
+            showHeldExpensesBlockModal(showConfirmModal, translate);
+            return;
+        }
+
         confirmPendingRTERAndProceed(() => {
             if (isSubmitPolicy(policy) && iouReportID) {
                 openReportSubmitToPopover();
@@ -115,6 +126,7 @@ function SubmitActionButtonContent() {
                 onSubmitted: startSubmittingAnimation,
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
+                delegateAccountID,
                 submitterLogin,
                 isTrackIntentUser,
             });

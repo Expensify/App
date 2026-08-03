@@ -50,6 +50,7 @@ import {
     getIntegrationIcon,
     getPolicyExpenseChat,
     getReportOrDraftReport,
+    hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isBusinessInvoiceRoom,
@@ -80,6 +81,7 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
+    showHeldExpensesBlockModal,
     showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
 
@@ -2018,6 +2020,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     if (hasOnlyPendingCardTransactions(allSelectedTransactionsList)) {
                         showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+                        return;
+                    }
+
+                    if (hasOnlyHeldExpenses(allSelectedTransactionsList)) {
+                        showHeldExpensesBlockModal(showConfirmModal, translate);
                         return;
                     }
 

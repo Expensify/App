@@ -5,6 +5,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 
+import {putOnHold} from '@libs/actions/IOU/Hold';
 import {
     addReportApprover,
     approveMoneyRequest,
@@ -23,8 +24,10 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {submitMoneyRequestOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getOriginalMessage, isSubmittedAction} from '@libs/ReportActionsUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
-import {getInvoiceReceiverPolicyID, isPayer} from '@libs/ReportUtils';
+import {buildOptimisticIOUReportAction, getInvoiceReceiverPolicyID, isPayer} from '@libs/ReportUtils';
+import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -282,6 +285,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             amountOwed: 0,
                             ownerBillingGracePeriodEnd: undefined,
                             delegateEmail: undefined,
+                            delegateAccountID: undefined,
                             isTrackIntentUser: false,
                         });
                     }
@@ -303,6 +307,350 @@ describe('actions/IOU/ReportWorkflow', () => {
                             });
                         }),
                 );
+        });
+        it('splits held expenses onto a new Draft report when submitting offline', async () => {
+            // Given an open expense report with two expenses, one of which is held
+            const policyID = generatePolicyID();
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                id: policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: CARLOS_EMAIL,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+
+            const chatReport: Report = {
+                ...createRandomReport(456, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: '456',
+                isOwnPolicyExpenseChat: true,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                iouReportID: '123',
+                policyID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(123, undefined),
+                reportID: '123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                policyID,
+                parentReportID: chatReport.reportID,
+                chatReportID: chatReport.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: CONST.CURRENCY.USD,
+                total: 16000,
+                unheldTotal: 16000,
+                reimbursableTotal: 16000,
+                unheldReimbursableTotal: 16000,
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+            };
+
+            const unheldTransaction = buildOptimisticTransaction({
+                transactionParams: {amount: 10000, currency: CONST.CURRENCY.USD, reportID: expenseReport.reportID},
+            });
+            const heldTransaction = buildOptimisticTransaction({
+                transactionParams: {amount: 6000, currency: CONST.CURRENCY.USD, reportID: expenseReport.reportID},
+            });
+
+            const reportActions: ReportActions = {};
+            for (const transaction of [unheldTransaction, heldTransaction]) {
+                const iouAction = buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    comment: '',
+                    participants: [],
+                    transactionID: transaction.transactionID,
+                });
+                reportActions[iouAction.reportActionID] = iouAction;
+            }
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${unheldTransaction.transactionID}`, unheldTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`, heldTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, reportActions);
+            await waitForBatchedUpdates();
+
+            // Hold one of the two expenses
+            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, []);
+            await waitForBatchedUpdates();
+
+            // When submitting the report while offline (callers pass the live report, refreshed by the hold)
+            mockFetch?.pause?.();
+            const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+            submitReport({
+                submitterLogin: CARLOS_EMAIL,
+                expenseReport: freshExpenseReport,
+                policy,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: true,
+                expenseReportCurrentNextStepDeprecated: nextStep,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the original report is submitted and keeps only the unheld expense
+            const submittedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(submittedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(submittedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+
+            const unheldTransactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${unheldTransaction.transactionID}`);
+            expect(unheldTransactionAfter?.reportID).toBe(expenseReport.reportID);
+
+            // And the held expense is moved to a new report in the Draft (open) state
+            const heldTransactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`);
+            expect(heldTransactionAfter?.reportID).not.toBe(expenseReport.reportID);
+
+            const newHeldReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${heldTransactionAfter?.reportID}`);
+            expect(newHeldReport?.type).toBe(CONST.REPORT.TYPE.EXPENSE);
+            expect(newHeldReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect(newHeldReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+
+            // And the submitted report action reflects only the unheld amount, not the full total
+            const submittedReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
+            const submittedAction = Object.values(submittedReportActions ?? {}).find((action) => isSubmittedAction(action));
+            expect(submittedAction).toBeTruthy();
+            expect(submittedAction && getOriginalMessage(submittedAction)?.amount).toBe(10000);
+
+            mockFetch?.resume?.();
+        });
+
+        it('is a no-op when every transaction on the report is on hold', async () => {
+            // Given an open expense report with a single held expense
+            const policyID = generatePolicyID();
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                id: policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: CARLOS_EMAIL,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+
+            const chatReport: Report = {
+                ...createRandomReport(456, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: '456',
+                isOwnPolicyExpenseChat: true,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                iouReportID: '123',
+                policyID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(123, undefined),
+                reportID: '123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                policyID,
+                parentReportID: chatReport.reportID,
+                chatReportID: chatReport.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: CONST.CURRENCY.USD,
+                total: 6000,
+                unheldTotal: 0,
+                reimbursableTotal: 6000,
+                unheldReimbursableTotal: 0,
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+            };
+
+            const heldTransaction = buildOptimisticTransaction({
+                transactionParams: {amount: 6000, currency: CONST.CURRENCY.USD, reportID: expenseReport.reportID},
+            });
+
+            const iouAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: heldTransaction.amount,
+                currency: heldTransaction.currency,
+                comment: '',
+                participants: [],
+                transactionID: heldTransaction.transactionID,
+            });
+            const reportActions: ReportActions = {[iouAction.reportActionID]: iouAction};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`, heldTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, reportActions);
+            await waitForBatchedUpdates();
+
+            // Hold the only expense on the report
+            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, []);
+            await waitForBatchedUpdates();
+
+            // When submitting the report while offline (callers pass the live report, refreshed by the hold)
+            mockFetch?.pause?.();
+            const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+            submitReport({
+                submitterLogin: CARLOS_EMAIL,
+                expenseReport: freshExpenseReport,
+                policy,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: true,
+                expenseReportCurrentNextStepDeprecated: nextStep,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the report stays Open, and the transaction stays on the same report and on hold
+            const reportAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(reportAfter?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect(reportAfter?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+
+            const transactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`);
+            expect(transactionAfter?.reportID).toBe(expenseReport.reportID);
+            expect(transactionAfter?.comment?.hold).toBeTruthy();
+
+            mockFetch?.resume?.();
+        });
+
+        it('splits held expenses onto a new Draft report when submitting offline on a Submit and Close policy', async () => {
+            // Given an open expense report on a Submit and Close policy with two expenses, one of which is held
+            const policyID = generatePolicyID();
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                id: policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: CARLOS_EMAIL,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+
+            const chatReport: Report = {
+                ...createRandomReport(456, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: '456',
+                isOwnPolicyExpenseChat: true,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                iouReportID: '123',
+                policyID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(123, undefined),
+                reportID: '123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                policyID,
+                parentReportID: chatReport.reportID,
+                chatReportID: chatReport.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: CONST.CURRENCY.USD,
+                total: 16000,
+                unheldTotal: 16000,
+                reimbursableTotal: 16000,
+                unheldReimbursableTotal: 16000,
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+            };
+
+            const unheldTransaction = buildOptimisticTransaction({
+                transactionParams: {amount: 10000, currency: CONST.CURRENCY.USD, reportID: expenseReport.reportID},
+            });
+            const heldTransaction = buildOptimisticTransaction({
+                transactionParams: {amount: 6000, currency: CONST.CURRENCY.USD, reportID: expenseReport.reportID},
+            });
+
+            const reportActions: ReportActions = {};
+            for (const transaction of [unheldTransaction, heldTransaction]) {
+                const iouAction = buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    comment: '',
+                    participants: [],
+                    transactionID: transaction.transactionID,
+                });
+                reportActions[iouAction.reportActionID] = iouAction;
+            }
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${unheldTransaction.transactionID}`, unheldTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`, heldTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, reportActions);
+            await waitForBatchedUpdates();
+
+            // Hold one of the two expenses
+            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, []);
+            await waitForBatchedUpdates();
+
+            // When submitting the report while offline (callers pass the live report, refreshed by the hold)
+            mockFetch?.pause?.();
+            const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+            submitReport({
+                submitterLogin: CARLOS_EMAIL,
+                expenseReport: freshExpenseReport,
+                policy,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: true,
+                expenseReportCurrentNextStepDeprecated: nextStep,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the original report is closed and keeps only the unheld expense
+            const submittedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(submittedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            expect(submittedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.CLOSED);
+
+            const unheldTransactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${unheldTransaction.transactionID}`);
+            expect(unheldTransactionAfter?.reportID).toBe(expenseReport.reportID);
+
+            // And the held expense is moved to a new report in the Draft (open) state instead of being closed along with the rest
+            const heldTransactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`);
+            expect(heldTransactionAfter?.reportID).not.toBe(expenseReport.reportID);
+
+            const newHeldReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${heldTransactionAfter?.reportID}`);
+            expect(newHeldReport?.type).toBe(CONST.REPORT.TYPE.EXPENSE);
+            expect(newHeldReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect(newHeldReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+
+            // And the submitted report action reflects only the unheld amount, not the full total
+            const submittedReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
+            const submittedAction = Object.values(submittedReportActions ?? {}).find((action) => isSubmittedAction(action));
+            expect(submittedAction).toBeTruthy();
+            expect(submittedAction && getOriginalMessage(submittedAction)?.amount).toBe(10000);
+
+            mockFetch?.resume?.();
         });
         it('merges policyRecentlyUsedCurrencies into recently used currencies', () => {
             const amount = 10000;
@@ -590,6 +938,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 amountOwed: 0,
                                 ownerBillingGracePeriodEnd: undefined,
                                 delegateEmail: undefined,
+                                delegateAccountID: undefined,
                                 isTrackIntentUser: false,
                             });
                         }
@@ -864,6 +1213,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 amountOwed: 0,
                                 ownerBillingGracePeriodEnd: undefined,
                                 delegateEmail: undefined,
+                                delegateAccountID: undefined,
                                 isTrackIntentUser: false,
                             });
                         }
@@ -1036,6 +1386,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             amountOwed: 0,
                             ownerBillingGracePeriodEnd: undefined,
                             delegateEmail: undefined,
+                            delegateAccountID: undefined,
                             isTrackIntentUser: false,
                         });
                     }
@@ -1109,6 +1460,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 100,
                 ownerBillingGracePeriodEnd: pastDate,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
             });
 
@@ -1225,6 +1577,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     amountOwed: 0,
                     ownerBillingGracePeriodEnd,
                     delegateEmail: undefined,
+                    delegateAccountID: undefined,
                     isTrackIntentUser: false,
                 });
 
@@ -1287,6 +1640,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
             });
 
@@ -1352,6 +1706,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
             });
 
@@ -1402,6 +1757,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 submitterLogin: submitterEmail,
                 shouldExportToPDF: true,
             });
@@ -1456,6 +1812,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 submitterLogin: submitterEmail,
             });
 
@@ -1526,6 +1883,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
             });
 
@@ -1616,6 +1974,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 submitterLogin: undefined,
                 isTrackIntentUser: false,
             });
@@ -1719,6 +2078,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
             });
 
@@ -1793,6 +2153,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -1863,6 +2224,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
             });
 
@@ -1932,6 +2294,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
             });
 
@@ -1995,6 +2358,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
             });
 
@@ -2038,6 +2402,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
             });
 
@@ -2297,6 +2662,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: DELEGATE_EMAIL,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
             });
 
@@ -2334,6 +2700,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
             });
 
