@@ -7,62 +7,23 @@ import GithubUtils from '@github/libs/GithubUtils';
  */
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
-import {request} from '@octokit/request';
 import {RequestError} from '@octokit/request-error';
 
 import createMock from '../utils/createMock';
 
-type OctokitCreateIssue = InternalOctokit['rest']['issues']['create'];
-type OctokitCreateIssueResponse = Awaited<ReturnType<OctokitCreateIssue>>;
-type OctokitListIssues = InternalOctokit['rest']['issues']['listForRepo'];
 type OctokitCompareCommits = InternalOctokit['rest']['repos']['compareCommits'];
 type OctokitCompareCommitsResponse = Awaited<ReturnType<OctokitCompareCommits>>;
 
-const mockCreateIssue = Object.assign(
-    jest.fn(
-        (arg: Parameters<OctokitCreateIssue>[0]): ReturnType<OctokitCreateIssue> =>
-            Promise.resolve(
-                createMock<OctokitCreateIssueResponse>({
-                    data: {
-                        title: String(arg?.title ?? ''),
-                        body: arg?.body,
-                        html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-                    },
-                }),
-            ),
-    ),
-    {
-        defaults: request.defaults,
-        endpoint: request.endpoint.defaults({url: '/repos/{owner}/{repo}/issues'}),
-    },
-) satisfies OctokitCreateIssue;
-
-const mockListIssues = Object.assign(jest.fn<ReturnType<OctokitListIssues>, Parameters<OctokitListIssues>>(), {
-    defaults: request.defaults,
-    endpoint: request.endpoint.defaults({url: '/repos/{owner}/{repo}/issues'}),
-}) satisfies OctokitListIssues;
-
-const mockCompareCommits = Object.assign(jest.fn<ReturnType<OctokitCompareCommits>, Parameters<OctokitCompareCommits>>(), {
-    defaults: request.defaults,
-    endpoint: request.endpoint.defaults({url: '/repos/{owner}/{repo}/compare/{basehead}'}),
-}) satisfies OctokitCompareCommits;
+let internalOctokit: InternalOctokit;
 
 beforeAll(() => {
-    // Mock octokit module
-    const mockOctokit = createMock<InternalOctokit>({
-        rest: {
-            issues: {
-                create: mockCreateIssue,
-                listForRepo: mockListIssues,
-            },
-        },
-    });
+    GithubUtils.initOctokitWithToken('fake_token');
+    const initializedOctokit = GithubUtils.internalOctokit;
+    if (!initializedOctokit) {
+        throw new Error('Expected GithubUtils to initialize an Octokit client.');
+    }
 
-    GithubUtils.internalOctokit = mockOctokit;
-});
-
-afterEach(() => {
-    mockListIssues.mockClear();
+    internalOctokit = initializedOctokit;
 });
 
 describe('GithubUtils', () => {
@@ -213,6 +174,8 @@ describe('GithubUtils', () => {
     };
 
     describe('getCommitHistoryBetweenTags', () => {
+        let mockCompareCommits: jest.SpiedFunction<OctokitCompareCommits>;
+
         beforeEach(() => {
             jest.spyOn(core, 'getInput').mockImplementation((name) => {
                 if (name === 'GITHUB_TOKEN') {
@@ -222,18 +185,11 @@ describe('GithubUtils', () => {
             });
 
             // Prepare the mocked GitHub API
-            mockCompareCommits.mockReset();
-            const mockOctokitInstance = createMock<InternalOctokit>({
-                rest: {
-                    repos: {
-                        compareCommits: mockCompareCommits,
-                    },
-                },
-            });
+            mockCompareCommits = jest.spyOn(internalOctokit.rest.repos, 'compareCommits');
 
             // Replace the real initOctokit with our mocked one
             jest.spyOn(GithubUtils, 'initOctokit').mockImplementation(() => {});
-            GithubUtils.internalOctokit = mockOctokitInstance;
+            GithubUtils.internalOctokit = internalOctokit;
         });
 
         afterEach(() => {
