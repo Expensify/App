@@ -66,6 +66,7 @@ import {
     getMerchant,
     getRateID,
     getWaypoints,
+    hasUploadedReceipt,
     isCustomUnitRateIDForP2P,
     isDistanceExpenseType,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -1477,13 +1478,6 @@ function hasManualDistanceOverride(transaction: OnyxEntry<OnyxTypes.Transaction>
     // exceed any sub-meter tolerance from rounding alone (~5m km / ~8m mi).
     const routeQuantity = DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, distanceUnit);
     return Math.abs(quantity - routeQuantity) > 0.01;
-}
-
-/**
- * Whether the transaction already has its receipt stored server-side, so a move command must not re-send the file.
- */
-function hasUploadedReceipt(transaction: OnyxEntry<OnyxTypes.Transaction>): boolean {
-    return !!transaction?.receipt?.receiptID;
 }
 
 function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
@@ -3006,7 +3000,6 @@ export {
     getNavigationUrlAfterTrackExpenseDelete,
     getTrackExpenseInformation,
     hasManualDistanceOverride,
-    hasUploadedReceipt,
     trackExpense,
     requestMoney,
 };
