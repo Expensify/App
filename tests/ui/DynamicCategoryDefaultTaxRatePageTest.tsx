@@ -73,7 +73,7 @@ type MockTaxItem = {value: string; keyForList?: string; text?: string; isSelecte
 type MockSelectionListProps = {
     data: MockTaxItem[];
     onSelectRow?: (item: MockTaxItem) => void;
-    initiallyFocusedItemKey?: string;
+    shouldScrollToFocusedIndexOnMount?: boolean;
 };
 
 /** Build a policy whose taxRates.taxes has `count` entries keyed id00..id{count-1} (zero-padded so the text sort is numeric). */
@@ -113,9 +113,10 @@ describe('DynamicCategoryDefaultTaxRatePage', () => {
 
         expect(props?.data.at(0)?.keyForList).toBe('id07');
         expect(props?.data.at(0)?.isSelected).toBe(true);
-        expect(props?.initiallyFocusedItemKey).toBe('id07');
         // Alphabetically "id00" would be first if nothing were pinned.
         expect(props?.data.at(0)?.value).not.toBe('id00');
+        // No initial focus key, so the selection-focus-sync can't auto-scroll to the tapped rate on select.
+        expect(props?.shouldScrollToFocusedIndexOnMount).toBe(false);
     });
 
     it('keeps the persisted rate pinned while the live selection changes during the same session', () => {
