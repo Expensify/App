@@ -97,7 +97,6 @@ import {
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned,
     isScanning as isScanningTransactionUtils,
-    isTransactionSubmittable,
     shouldRedirectDeleteToSplitExpenseEdit,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
@@ -285,13 +284,6 @@ function isSubmitAction({
 
     if (hasReportBeenRetracted && isReportSubmitter && !isPrimarySubmitAction) {
         return true;
-    }
-
-    if (
-        reportTransactions.length > 0 &&
-        !reportTransactions.some((transaction) => isTransactionSubmittable(transaction, report, violations, currentUserLogin, currentUserAccountID, ownerLogin, policy))
-    ) {
-        return false;
     }
 
     if (isAdmin || isWorkflowApprover) {

@@ -4128,10 +4128,10 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
 });
 
 describe('isTransactionSubmittable', () => {
-    it('returns false for a transaction that is on hold', () => {
+    it('returns true for a transaction that is on hold', () => {
         const transaction = generateTransaction({comment: {hold: 'holdID'}});
 
-        expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(false);
+        expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(true);
     });
 
     it('returns true for a transaction that is not on hold', () => {

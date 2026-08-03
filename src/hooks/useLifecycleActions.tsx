@@ -13,6 +13,7 @@ import {
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNextApproverAccountID,
     hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
+    hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
     isExported as isExportedUtils,
     isReportOwner,
@@ -21,7 +22,12 @@ import {
 } from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {
+    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
+    hasOnlyPendingCardTransactions,
+    showHeldExpensesBlockModal,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
 
 import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
@@ -212,6 +218,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
         if (hasOnlyPendingCardTransactions(transactions)) {
             showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+            return;
+        }
+
+        if (hasOnlyHeldExpenses(transactions)) {
+            showHeldExpensesBlockModal(showConfirmModal, translate);
             return;
         }
 

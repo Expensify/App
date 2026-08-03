@@ -25,7 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import {showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {handleActionButtonPress} from '@userActions/Search';
 
@@ -318,6 +318,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
+            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate),
             currentUserAccountID,
             currentUserLogin,
             introSelected,

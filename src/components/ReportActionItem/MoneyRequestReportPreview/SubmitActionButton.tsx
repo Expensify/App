@@ -9,8 +9,13 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils, shouldShowMarkAsDone} from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {hasOnlyHeldExpenses, hasViolations as hasViolationsReportUtils, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {
+    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
+    hasOnlyPendingCardTransactions,
+    showHeldExpensesBlockModal,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
@@ -93,6 +98,11 @@ function SubmitActionButtonContent() {
     const handleSubmit = () => {
         if (hasOnlyPendingCardTransactions(transactions)) {
             showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+            return;
+        }
+
+        if (hasOnlyHeldExpenses(transactions)) {
+            showHeldExpensesBlockModal(showConfirmModal, translate);
             return;
         }
 

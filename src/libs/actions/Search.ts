@@ -47,6 +47,7 @@ import {
     getReportOrDraftReport,
     getReportTransactions,
     hasHeldExpenses,
+    hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isInvoiceReport,
@@ -212,6 +213,7 @@ type HandleActionButtonPressParams = {
     amountOwed: OnyxEntry<number>;
     onUndelete?: () => void;
     onPendingCardTransactionsBlock?: () => void;
+    onAllHeldExpensesBlock?: () => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
     shouldDisableSearchSubmitPress?: boolean;
     /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
@@ -251,6 +253,7 @@ function handleActionButtonPress({
     onPendingCardTransactionsBlock,
     amountOwed,
     onUndelete,
+    onAllHeldExpensesBlock,
     currentUserAccountID,
     openReportSubmitToPopover,
     shouldDisableSearchSubmitPress,
@@ -364,6 +367,10 @@ function handleActionButtonPress({
             }
             if (hasOnlyPendingCardTransactions(allReportTransactions)) {
                 onPendingCardTransactionsBlock?.();
+                return;
+            }
+            if (hasOnlyHeldExpenses(allReportTransactions)) {
+                onAllHeldExpensesBlock?.();
                 return;
             }
             const policyForSubmit = policy ?? snapshotPolicy;

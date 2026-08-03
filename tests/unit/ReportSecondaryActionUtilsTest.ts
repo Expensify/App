@@ -338,7 +338,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
-    it('excludes SUBMIT option when every transaction is on hold', async () => {
+    it('includes SUBMIT option when every transaction is on hold', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -374,7 +374,7 @@ describe('getSecondaryAction', () => {
             policy,
             isProduction: false,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
     it('includes SUBMIT option when only some transactions are on hold', async () => {
