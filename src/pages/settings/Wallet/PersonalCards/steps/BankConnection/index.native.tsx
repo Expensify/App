@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LoadingIndicator from '@components/LoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useImportPersonalPlaidAccounts from '@hooks/useImportPersonalPlaidAccounts';
@@ -55,8 +56,7 @@ function BankConnection() {
     };
 
     const renderLoading = () => (
-        <ActivityIndicator
-            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+        <LoadingIndicator
             style={styles.flex1}
             reasonAttributes={webViewReasonAttributes}
         />
