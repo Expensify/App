@@ -4243,8 +4243,8 @@ ${amount} pour ${merchant} - ${date}`,
         enterOneEmail: (companyName: string) => `Saisissez l’e-mail d’un directeur de ${companyName}`,
         regulationRequiresOneMoreDirector: 'La réglementation exige au moins un autre directeur en tant que signataire.',
         bothSignersMustBeOnIllionReport:
-            "Les deux signataires doivent figurer en tant que directeurs sur le rapport illion de l'entreprise. Il ne peut pas s'agir de deux personnes quelconques de l'entreprise.",
-        signerMustBeOnIllionReport: "Le directeur que vous ajoutez comme signataire doit figurer sur le rapport illion de l'entreprise.",
+            'Les deux signataires doivent être indiqués comme administrateurs sur le rapport illion de l’entreprise. Ils ne peuvent pas être n’importe quelles deux personnes au sein de l’entreprise.',
+        signerMustBeOnIllionReport: 'Le directeur que vous ajoutez en tant que signataire doit figurer sur le rapport illion de l’entreprise.',
         hangTight: 'Un instant...',
         enterTwoEmails: (companyName: string) => `Saisissez les adresses e-mail de deux directeurs de ${companyName}`,
         sendReminder: 'Envoyer un rappel',
@@ -4255,11 +4255,11 @@ ${amount} pour ${merchant} - ${date}`,
         proofOfDirectorsDescription: 'Exemples : profil d’entreprise Oncorp ou enregistrement d’entreprise.',
         codiceFiscale: 'Code fiscal',
         codiceFiscaleDescription: 'Code fiscal pour les signataires, utilisateurs autorisés et bénéficiaires effectifs.',
-        PDSandFSG: 'Documents de divulgation PDS, FSG + TMD',
+        PDSandFSG: 'Documents de divulgation PDS, FSG et TMD',
         PDSandFSGDescription: Str.dedent(`
-            Notre partenariat avec Corpay utilise une connexion API afin de tirer parti de leur vaste réseau de partenaires bancaires internationaux pour alimenter les remboursements internationaux dans Expensify. Conformément à la réglementation australienne, nous vous fournissons le Financial Services Guide (FSG), le Product Disclosure Statement (PDS) et la Target Market Determination (TMD) de Corpay.
+            Notre partenariat avec Corpay utilise une connexion API afin de tirer parti de leur vaste réseau de partenaires bancaires internationaux pour alimenter les remboursements globaux dans Expensify. Conformément à la réglementation australienne, nous vous fournissons le Financial Services Guide (FSG), le Product Disclosure Statement (PDS) et le Target Market Determination (TMD) de Corpay.
 
-            Veuillez lire attentivement les documents FSG, PDS et TMD, car ils contiennent des informations complètes et importantes sur les produits et services proposés par Corpay. Conservez ces documents pour référence ultérieure.
+            Veuillez lire attentivement les documents FSG, PDS et TMD, car ils contiennent des informations complètes et importantes sur les produits et services proposés par Corpay. Conservez ces documents pour de futures références.
         `),
         pleaseUpload: 'Veuillez téléverser ci-dessous des documents supplémentaires pour nous aider à vérifier votre identité en tant que dirigeant(e) de l’entreprise.',
         enterSignerInfo: 'Saisir les informations du signataire',
@@ -4272,7 +4272,7 @@ ${amount} pour ${merchant} - ${date}`,
     },
     agreementsStep: {
         bankStatement: 'Relevé bancaire',
-        bankStatementDescription: 'Veuillez fournir un relevé bancaire récent, daté des trois derniers mois, pour le compte bancaire professionnel que vous connectez.',
+        bankStatementDescription: 'Veuillez fournir un relevé bancaire récent, daté de moins de trois mois, pour le compte bancaire professionnel que vous connectez.',
         agreements: 'Accords',
         pleaseConfirm: 'Veuillez confirmer les accords ci-dessous',
         regulationRequiresUs: 'La réglementation nous oblige à vérifier l’identité de toute personne détenant plus de 25 % de l’entreprise.',

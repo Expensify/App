@@ -4215,7 +4215,7 @@ ${amount} voor ${merchant} - ${date}`,
         enterOneEmail: (companyName: string) => `Voer het e-mailadres in van een directeur bij ${companyName}`,
         regulationRequiresOneMoreDirector: 'Volgens de regelgeving is minstens één extra directeur als ondertekenaar vereist.',
         bothSignersMustBeOnIllionReport:
-            'Beide ondertekenaars moeten als directeur vermeld staan in het illion-rapport van het bedrijf. Het kunnen niet zomaar twee willekeurige personen binnen het bedrijf zijn.',
+            'Beide ondertekenaars moeten als directeur staan vermeld in het illion-rapport van het bedrijf. Het kunnen niet zomaar twee willekeurige personen van het bedrijf zijn.',
         signerMustBeOnIllionReport: 'De directeur die je als ondertekenaar toevoegt, moet vermeld staan in het illion-rapport van het bedrijf.',
         hangTight: 'Even geduld...',
         enterTwoEmails: (companyName: string) => `Voer de e-mailadressen in van twee directeuren bij ${companyName}`,
@@ -4229,9 +4229,9 @@ ${amount} voor ${merchant} - ${date}`,
         codiceFiscaleDescription: 'Codice Fiscale voor ondertekenaars, bevoegde gebruikers en uiteindelijk belanghebbenden.',
         PDSandFSG: 'PDS-, FSG- en TMD-informatiedocumenten',
         PDSandFSGDescription: Str.dedent(`
-            Onze samenwerking met Corpay maakt gebruik van een API-koppeling om te profiteren van hun uitgebreide netwerk van internationale bankpartners, waarmee Wereldwijde Vergoedingen in Expensify mogelijk worden gemaakt. Conform de Australische regelgeving verstrekken wij je hierbij de Financial Services Guide (FSG), de Product Disclosure Statement (PDS) en de Target Market Determination (TMD) van Corpay.
+            Onze samenwerking met Corpay maakt gebruik van een API-koppeling om hun uitgebreide netwerk van internationale bankpartners te benutten voor het mogelijk maken van Global Reimbursements in Expensify. In overeenstemming met de Australische regelgeving verstrekken we je hierbij de Financial Services Guide (FSG), Product Disclosure Statement (PDS) en Target Market Determination (TMD) van Corpay.
 
-            Lees de FSG-, PDS- en TMD-documenten zorgvuldig door, aangezien zij volledige details en belangrijke informatie bevatten over de producten en diensten die Corpay aanbiedt. Bewaar deze documenten voor toekomstig gebruik.
+            Lees de FSG-, PDS- en TMD-documenten zorgvuldig, omdat ze volledige details en belangrijke informatie bevatten over de producten en diensten die Corpay aanbiedt. Bewaar deze documenten voor toekomstig gebruik.
         `),
         pleaseUpload: 'Upload hieronder extra documentatie om ons te helpen uw identiteit als directeur van het bedrijf te verifiëren.',
         enterSignerInfo: 'Voer ondertekenaargegevens in',
@@ -4244,7 +4244,7 @@ ${amount} voor ${merchant} - ${date}`,
     },
     agreementsStep: {
         bankStatement: 'Bankafschrift',
-        bankStatementDescription: 'Lever een recent bankafschrift aan, gedateerd binnen de laatste drie maanden, voor de zakelijke bankrekening die je koppelt.',
+        bankStatementDescription: 'Upload een recent bankafschrift, gedateerd van binnen de laatste drie maanden, voor de zakelijke bankrekening die je koppelt.',
         agreements: 'Overeenkomsten',
         pleaseConfirm: 'Bevestig de onderstaande overeenkomsten',
         regulationRequiresUs: 'Volgens de regelgeving moeten we de identiteit verifiëren van elke persoon die meer dan 25% van het bedrijf bezit.',

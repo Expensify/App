@@ -4200,8 +4200,8 @@ ${amount} dla ${merchant} - ${date}`,
         proofOf: 'Potwierdzenie adresu zamieszkania',
         enterOneEmail: (companyName: string) => `Wpisz adres e-mail dyrektora w firmie ${companyName}`,
         regulationRequiresOneMoreDirector: 'Przepisy wymagają co najmniej jednego dodatkowego dyrektora jako sygnatariusza.',
-        bothSignersMustBeOnIllionReport: 'Obaj sygnatariusze muszą być wymienieni jako dyrektorzy w raporcie illion firmy. Nie mogą to być dowolne dwie osoby z firmy.',
-        signerMustBeOnIllionReport: 'Dyrektor, którego dodajesz jako sygnatariusza, musi być wymieniony w raporcie illion firmy.',
+        bothSignersMustBeOnIllionReport: 'Obaj sygnatariusze muszą być wymienieni jako dyrektorzy w raporcie illion firmy. Nie mogą to być dowolne dwie osoby w firmie.',
+        signerMustBeOnIllionReport: 'Dyrektor, którego dodasz jako sygnatariusza, musi być wymieniony w raporcie illion firmy.',
         hangTight: 'Chwileczkę…',
         enterTwoEmails: (companyName: string) => `Wpisz adresy e-mail dwóch dyrektorów w firmie ${companyName}`,
         sendReminder: 'Wyślij przypomnienie',
@@ -4212,11 +4212,11 @@ ${amount} dla ${merchant} - ${date}`,
         proofOfDirectorsDescription: 'Przykłady: profil korporacyjny Oncorp lub rejestracja firmy.',
         codiceFiscale: 'Kod fiskalny',
         codiceFiscaleDescription: 'Codice Fiscale dla sygnatariuszy, użytkowników upoważnionych i beneficjentów rzeczywistych.',
-        PDSandFSG: 'Dokumenty ujawnieniowe PDS, FSG + TMD',
+        PDSandFSG: 'Dokumentacja ujawnieniowa PDS, FSG + TMD',
         PDSandFSGDescription: Str.dedent(`
-            Nasza współpraca z Corpay wykorzystuje połączenie API, aby korzystać z ich rozległej sieci międzynarodowych partnerów bankowych obsługujących Globalne Zwroty w Expensify. Zgodnie z regulacjami obowiązującymi w Australii udostępniamy Ci Przewodnik po usługach finansowych (Financial Services Guide, FSG) oraz Dokument ujawniający informacje o produkcie (Product Disclosure Statement, PDS) oraz Ustalenie rynku docelowego (Target Market Determination, TMD) firmy Corpay.
+            Nasze partnerstwo z Corpay wykorzystuje połączenie API, aby skorzystać z ich rozległej sieci międzynarodowych partnerów bankowych do obsługi Globalnych Zwrotów w Expensify. Zgodnie z australijskimi przepisami udostępniamy ci Przewodnik po usługach finansowych Corpay (FSG), Dokument ujawniający informacje o produkcie (PDS) oraz Określenie rynku docelowego (TMD).
 
-            Przeczytaj uważnie dokumenty FSG, PDS i TMD, ponieważ zawierają one pełne informacje i ważne szczegóły dotyczące produktów i usług oferowanych przez Corpay. Zachowaj te dokumenty do wykorzystania w przyszłości.
+            Przeczytaj uważnie dokumenty FSG, PDS i TMD, ponieważ zawierają one pełne szczegóły oraz ważne informacje o produktach i usługach oferowanych przez Corpay. Zachowaj te dokumenty na przyszłość.
         `),
         pleaseUpload: 'Prześlij poniżej dodatkową dokumentację, abyśmy mogli zweryfikować Twoją tożsamość jako dyrektora firmy.',
         enterSignerInfo: 'Wprowadź dane sygnatariusza',
@@ -4229,7 +4229,7 @@ ${amount} dla ${merchant} - ${date}`,
     },
     agreementsStep: {
         bankStatement: 'Wyciąg bankowy',
-        bankStatementDescription: 'Prześlij aktualny wyciąg bankowy, z datą z ostatnich trzech miesięcy, dla firmowego rachunku bankowego, który podłączasz.',
+        bankStatementDescription: 'Podaj proszę aktualny wyciąg bankowy, wystawiony w ciągu ostatnich trzech miesięcy, dla firmowego konta bankowego, które łączysz.',
         agreements: 'Umowy',
         pleaseConfirm: 'Potwierdź poniższe zgody',
         regulationRequiresUs: 'Przepisy wymagają od nas weryfikacji tożsamości każdej osoby, która posiada ponad 25% udziałów w firmie.',
