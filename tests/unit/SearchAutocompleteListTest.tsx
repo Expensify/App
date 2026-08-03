@@ -289,6 +289,7 @@ describe('SearchAutocompleteList', () => {
         await flushAllUpdates();
 
         const getContentPaddingBottom = () => {
+            // FlashList records a style per render; use the latest numeric bottom padding.
             return mockFlashListContentContainerStyles
                 .map((contentContainerStyle) => StyleSheet.flatten(contentContainerStyle)?.paddingBottom)
                 .findLast((paddingBottom) => typeof paddingBottom === 'number');
