@@ -391,7 +391,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             ['SEARCH_REPORT', SCREENS.RIGHT_MODAL.SEARCH_REPORT],
             ['SEARCH_MONEY_REQUEST_REPORT', SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
             ['EXPENSE_REPORT', SCREENS.RIGHT_MODAL.EXPENSE_REPORT],
-            ['TRANSACTION_DUPLICATE.REVIEW', SCREENS.TRANSACTION_DUPLICATE.REVIEW],
+            ['TRANSACTION_DUPLICATE.DYNAMIC_REVIEW', SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW],
         ])('keeps the active transaction IDs when unmounting onto %s', (_label, screenName) => {
             setFocusedRoute(screenName);
 
