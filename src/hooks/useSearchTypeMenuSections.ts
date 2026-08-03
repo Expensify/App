@@ -58,7 +58,7 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
 const useSearchTypeMenuSections = (isScreenFocused = true) => {
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
-    const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
+    const {defaultCardFeed, cardFeedsByPolicy, activeExpensifyCardFeedID} = useCardFeedsForDisplay();
 
     const {isOffline} = useNetwork();
     const [allPolicies] = useMappedPolicies(policyMapper);
@@ -111,6 +111,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
                 savedSearches,
                 isOffline,
                 defaultExpensifyCard,
+                activeExpensifyCardFeedID,
                 draftTransactionIDs,
                 isTrackIntentUser: isTrackIntentUser ?? false,
                 hasReportAwaitingApproval,
@@ -121,6 +122,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
             cardFeedsByPolicy,
             defaultCardFeed,
             defaultExpensifyCard,
+            activeExpensifyCardFeedID,
             allPolicies,
             savedSearches,
             isOffline,

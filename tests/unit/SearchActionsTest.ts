@@ -1,4 +1,13 @@
-import {deleteSavedSearch, getExportTemplates, getFooterConvertedAmounts, queueExportSearchItemsToCSV, queueExportSearchWithTemplate, saveSearch, search} from '@libs/actions/Search';
+import {
+    deleteSavedSearch,
+    getExportTemplates,
+    getFooterConvertedAmounts,
+    openSearch,
+    queueExportSearchItemsToCSV,
+    queueExportSearchWithTemplate,
+    saveSearch,
+    search,
+} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites, read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -152,8 +161,6 @@ describe('SearchActions', () => {
     });
 
     describe('queueExportSearchItemsToCSV', () => {
-        beforeEach(() => jest.clearAllMocks());
-
         it('sets optimistic Onyx data with state preparing and returns exportID', () => {
             const exportID = queueExportSearchItemsToCSV({
                 jsonQuery: '{}',
@@ -186,8 +193,6 @@ describe('SearchActions', () => {
     });
 
     describe('queueExportSearchWithTemplate', () => {
-        beforeEach(() => jest.clearAllMocks());
-
         it('sets optimistic Onyx data with state preparing and returns exportID when tracking progress', () => {
             const exportID = queueExportSearchWithTemplate(
                 {
@@ -287,8 +292,6 @@ describe('SearchActions', () => {
     });
 
     describe('getFooterConvertedAmounts', () => {
-        beforeEach(() => jest.clearAllMocks());
-
         it('does not call API.read when the target currency is empty', () => {
             getFooterConvertedAmounts({queryJSON: getQueryJSON(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES as SearchKey, targetCurrency: ''});
 
@@ -344,6 +347,17 @@ describe('SearchActions', () => {
             const conversionUpdate = failureData.find((update) => update.key === ONYXKEYS.SEARCH_FOOTER_CONVERSION);
             expect(conversionUpdate).toBeDefined();
             expect(conversionUpdate?.value).toEqual({failedCurrencies: {EUR: true}});
+        });
+    });
+
+    describe('openSearchPage', () => {
+        it('does not persist a completion flag that a failed request could strand', () => {
+            openSearch({includePartiallySetupBankAccounts: false, includeLockedBankAccounts: false});
+
+            expect(mockRead).toHaveBeenCalledWith(READ_COMMANDS.OPEN_SEARCH_PAGE, {
+                includePartiallySetupBankAccounts: false,
+                includeLockedBankAccounts: false,
+            });
         });
     });
 });
