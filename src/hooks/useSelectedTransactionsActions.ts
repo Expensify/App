@@ -106,7 +106,7 @@ function useSelectedTransactionsActions({
     const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, firstSelectedTransaction);
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -524,7 +524,17 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.ArrowSplit,
                 value: SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, report, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {isProduction});
+                    initSplitExpense(
+                        firstTransaction,
+                        report,
+                        splitEffectivePolicy,
+                        selfDMReportID,
+                        restrictedActionPolicyID,
+                        personalPolicy?.outputCurrency,
+                        getCurrencyDecimals,
+                        getCurrencySymbol,
+                        {isProduction},
+                    );
                 },
             });
         }
