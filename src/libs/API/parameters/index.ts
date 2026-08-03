@@ -92,6 +92,7 @@ export type {default as OpenRoomMembersPageParams} from './OpenRoomMembersPagePa
 export type {default as OpenPlaidCompanyCardLoginParams} from './OpenPlaidCompanyCardLoginParams';
 export type {default as OpenPolicyReceiptPartnersPageParams} from './OpenPolicyReceiptPartnersPageParams';
 export type {default as OpenPolicyHRPageParams} from './OpenPolicyHRPageParams';
+export type {default as ParseExpenseFiltersParams} from './ParseExpenseFiltersParams';
 export type {default as PaymentCardParams} from './PaymentCardParams';
 export type {default as AddPersonalPlaidCardParams} from './AddPersonalPlaidCardParams';
 export type {default as PusherPingParams} from './PusherPingParams';
