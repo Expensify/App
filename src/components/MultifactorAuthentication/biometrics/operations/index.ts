@@ -1,6 +1,5 @@
 import {isWebAuthnSupported} from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
-import waitForAccountDataReady from '@libs/MultifactorAuthentication/shared/waitForAccountDataReady';
-import {readOnyxValueOnce} from '@libs/MultifactorAuthentication/shared/waitForOnyxValue';
+import readOnyxValueOnce from '@libs/MultifactorAuthentication/shared/readOnyxValueOnce';
 
 import {getPasskeyOnyxKey} from '@userActions/Passkey';
 
@@ -33,14 +32,9 @@ async function doesDeviceSupportAuthenticationMethod(): Promise<boolean> {
  * until the hook is removed.
  */
 async function areLocalCredentialsKnownToServer(accountID: number, signal?: AbortSignal): Promise<boolean> {
-    const localPasskeyCredentials = await readOnyxValueOnce(getPasskeyOnyxKey(String(accountID)), signal);
-    if (!localPasskeyCredentials?.length) {
-        return false;
-    }
-    await waitForAccountDataReady(signal);
-    const account = await readOnyxValueOnce(ONYXKEYS.ACCOUNT, signal);
+    const [account, localPasskeyCredentials] = await Promise.all([readOnyxValueOnce(ONYXKEYS.ACCOUNT, signal), readOnyxValueOnce(getPasskeyOnyxKey(String(accountID)), signal)]);
     const serverKnownCredentialIDs = new Set(mfaCredentialIDsSelector(account) ?? []);
-    return localPasskeyCredentials.some((credential) => serverKnownCredentialIDs.has(credential.id));
+    return (localPasskeyCredentials ?? []).some((credential) => serverKnownCredentialIDs.has(credential.id));
 }
 
 export {areLocalCredentialsKnownToServer, deviceVerificationType, deviceCheckFailureReason, doesDeviceSupportAuthenticationMethod};

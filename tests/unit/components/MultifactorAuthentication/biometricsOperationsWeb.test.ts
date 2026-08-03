@@ -59,14 +59,6 @@ describe('biometrics operations (web)', () => {
     });
 
     describe('areLocalCredentialsKnownToServer', () => {
-        beforeEach(async () => {
-            await Onyx.multiSet({
-                [ONYXKEYS.HAS_LOADED_APP]: true,
-                [ONYXKEYS.IS_LOADING_APP]: false,
-            });
-            await waitForBatchedUpdates();
-        });
-
         afterEach(async () => {
             await Onyx.clear();
             await waitForBatchedUpdates();
@@ -90,39 +82,6 @@ describe('biometrics operations (web)', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {multifactorAuthenticationPublicKeyIDs: [LOCAL_PASSKEY_ID]});
 
             await expect(areLocalCredentialsKnownToServer(ACCOUNT_ID)).resolves.toBe(false);
-        });
-
-        it('waits for the initial account data before deciding that registration is required', async () => {
-            await Onyx.multiSet({
-                [ONYXKEYS.HAS_LOADED_APP]: false,
-                [ONYXKEYS.IS_LOADING_APP]: true,
-            });
-            await Onyx.set(getPasskeyOnyxKey(String(ACCOUNT_ID)), [{id: LOCAL_PASSKEY_ID, type: CONST.PASSKEY_CREDENTIAL_TYPE}]);
-
-            const credentialsCheck = areLocalCredentialsKnownToServer(ACCOUNT_ID);
-            await waitForBatchedUpdates();
-
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {multifactorAuthenticationPublicKeyIDs: [LOCAL_PASSKEY_ID]});
-            await Onyx.multiSet({
-                [ONYXKEYS.HAS_LOADED_APP]: true,
-                [ONYXKEYS.IS_LOADING_APP]: false,
-            });
-
-            await expect(credentialsCheck).resolves.toBe(true);
-        });
-
-        it('does not trust stale server credentials while new account data is loading', async () => {
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {multifactorAuthenticationPublicKeyIDs: [LOCAL_PASSKEY_ID]});
-            await Onyx.set(getPasskeyOnyxKey(String(ACCOUNT_ID)), [{id: LOCAL_PASSKEY_ID, type: CONST.PASSKEY_CREDENTIAL_TYPE}]);
-            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
-
-            const credentialsCheck = areLocalCredentialsKnownToServer(ACCOUNT_ID);
-            await waitForBatchedUpdates();
-
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {multifactorAuthenticationPublicKeyIDs: []});
-            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
-
-            await expect(credentialsCheck).resolves.toBe(false);
         });
     });
 });
