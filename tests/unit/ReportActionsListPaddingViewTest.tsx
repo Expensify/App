@@ -13,10 +13,7 @@ import useShouldShowComposerForActiveEditDraft from '@pages/inbox/report/useShou
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 
-import type {StyleProp, ViewStyle} from 'react-native';
-
 import React from 'react';
-import {StyleSheet} from 'react-native';
 
 const PB4_PADDING_BOTTOM = 16;
 
@@ -92,18 +89,6 @@ function renderPaddingView(isReportArchived = false) {
     );
 }
 
-type PaddingStyle = Pick<ViewStyle, 'paddingBottom'>;
-
-function isPaddingStyleProp(value: unknown): value is StyleProp<PaddingStyle> {
-    if (value === null || value === undefined || value === false || typeof value === 'number') {
-        return true;
-    }
-    if (Array.isArray(value)) {
-        return value.every((entry: unknown) => isPaddingStyleProp(entry));
-    }
-    return isRecord(value) && (!('paddingBottom' in value) || typeof value.paddingBottom === 'number');
-}
-
 function getPaddingBottom(toJSON: ReturnType<typeof render>['toJSON']) {
     const root = toJSON();
 
@@ -112,7 +97,19 @@ function getPaddingBottom(toJSON: ReturnType<typeof render>['toJSON']) {
     }
 
     const style = root.props.style;
-    return isPaddingStyleProp(style) ? StyleSheet.flatten<PaddingStyle>(style)?.paddingBottom : undefined;
+    if (!Array.isArray(style)) {
+        return undefined;
+    }
+
+    for (let index = style.length - 1; index >= 0; index -= 1) {
+        const entry: unknown = style.at(index);
+        if (!isRecord(entry) || !('paddingBottom' in entry)) {
+            continue;
+        }
+        return typeof entry.paddingBottom === 'number' ? entry.paddingBottom : undefined;
+    }
+
+    return undefined;
 }
 
 describe('ReportActionsListPaddingView', () => {
