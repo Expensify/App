@@ -1899,7 +1899,6 @@ function handleBulkPayItemSelected(params: {
     const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, businessBankAccountOptions, policy?.id);
     // Early return if item is not a valid payment method and not a policy-based payment option
     if (!isValidBulkPayOption(item) && !policyFromPaymentMethod) {
-        Log.info('[BulkPay] Dropping bulk pay selection: not a valid payment option', false, {itemKey: item.key});
         return;
     }
 
