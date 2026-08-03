@@ -1609,6 +1609,13 @@ function getIssuedCardFeedCountry(isEuUkEnabled: boolean, selectedProgramKey: Ca
     return isEuUkEnabled ? selectedProgramKey : CONST.COUNTRY.US;
 }
 
+/**
+ * Resolves the settings block for a given Expensify Card program, merging the shared root fields with the program's nested overrides.
+ * `programKey` is optional on purpose: when it is omitted (or the requested program is not nested on the NVP) this auto-detects the
+ * program in US → CURRENT → GB priority and, as a last resort, returns the flat root. That flat-root fallback exists for legacy domains
+ * the backend still sends un-nested, so program-aware callers should pass a `programKey` (or use `getCardSettingsForSelectedProgram`,
+ * which keeps the flat fallback) rather than relying on the US-first auto-detect.
+ */
 function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): NestedExpensifyCardSettings | undefined {
     if (!cardSettings) {
         return undefined;
