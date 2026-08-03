@@ -192,7 +192,7 @@ function ReportSubmitToContent({
         const sorted = sortAlphabetically(members, 'text', localeCompare);
         // Pin the initially selected manager to the top of the full sorted list before the search filter runs
         // over it, so the default submit-to recipient is visible on open and stays pinned while searching.
-        return moveInitialSelectionToTop(sorted, initialManagerEmail ? [initialManagerEmail] : []);
+        return moveInitialSelectionToTop<WorkspaceMemberItem>(sorted, initialManagerEmail ? [initialManagerEmail] : []);
     }, [workspaceMembers, extraSubmitToRecipients, managerEmail, localeCompare, prepopulatedSubmitToRecipient, initialManagerEmail]);
 
     const filteredWorkspaceMembers = useMemo(() => {
