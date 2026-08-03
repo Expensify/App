@@ -60,7 +60,6 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
-    const avatarStyle = [styles.avatarXLarge, styles.alignSelfCenter];
     const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
     const isDraftLoading = isLoadingOnyxValue(avatarDraftMetadata);
     const hasSubmittedRef = useRef(false);
@@ -197,7 +196,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                             inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                         />
                     </View>
-                    <Text style={[styles.textLabelSupporting]}>{translate('addAgentPage.copilotNote')}</Text>
+                    <Text style={[styles.textLabelSupporting]}>{`${translate('addAgentPage.copilotNote')} ${translate('workspace.rules.agentRules.disclaimer')}`}</Text>
                 </View>
             </FormProvider>
         </ScreenWrapper>

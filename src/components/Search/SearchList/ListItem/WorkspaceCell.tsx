@@ -35,7 +35,7 @@ function WorkspaceCell({policyID, report}: WorkspaceCellProps) {
         <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>
             <WorkspaceAvatar
                 imageStyles={styles.alignSelfCenter}
-                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                size={CONST.AVATAR_SIZE.XXX_SMALL}
                 source={icon.source}
                 avatarID={policyID ?? CONST.DEFAULT_NUMBER_ID}
                 name={name ?? ''}

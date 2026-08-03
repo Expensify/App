@@ -1,4 +1,5 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -25,7 +26,7 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
     text: string;
 
     /** Style applied to the avatar */
-    avatarStyle: StyleProp<ViewStyle & ImageStyle>;
+    avatarStyle?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Executed on click */
     onPress: () => void;

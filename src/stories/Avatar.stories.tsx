@@ -50,7 +50,7 @@ const WorkspaceAvatarStory: WorkspaceAvatarStoryFn = WorkspaceAvatarTemplate.bin
 WorkspaceAvatarStory.args = {
     name: 'Cathy’s Croissants',
     avatarID: 'policy_123',
-    size: CONST.AVATAR_SIZE.LARGE,
+    size: CONST.AVATAR_SIZE.XXX_LARGE,
 };
 
 const WorkspaceAvatarWithImageStory: WorkspaceAvatarStoryFn = WorkspaceAvatarTemplate.bind({});
