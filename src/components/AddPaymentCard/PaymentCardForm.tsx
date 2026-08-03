@@ -257,6 +257,7 @@ function PaymentCardForm({
                 submitButtonText={submitButtonText}
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
+                shouldPreserveCustomValidationErrors
             >
                 <InputWrapper
                     InputComponent={TextInput}
