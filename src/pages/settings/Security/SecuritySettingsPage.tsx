@@ -17,12 +17,14 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
 import {deleteAgent} from '@libs/actions/Agent';
 import {disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
+import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import {hasDeviceManagementError} from '@libs/UserUtils';
@@ -72,6 +74,7 @@ function SecuritySettingsPage() {
     const privateSubscription = usePrivateSubscription();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
     const {showConfirmModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
 
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -199,6 +202,11 @@ function SecuritySettingsPage() {
                         });
                         return;
                     }
+                    const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(session?.accountID, allPolicies);
+                    if (ruleBotEnforcedPolicy) {
+                        showRuleBotGuardModal('deleteAgent', ruleBotEnforcedPolicy.id);
+                        return;
+                    }
                     const result = await showConfirmModal({
                         title: translate('editAgentPage.deleteAgentTitle'),
                         prompt: translate('editAgentPage.deleteAgentMessage'),
@@ -251,6 +259,7 @@ function SecuritySettingsPage() {
         showDelegateNoAccessModal,
         showLockedAccountModal,
         showConfirmModal,
+        showRuleBotGuardModal,
         session?.accountID,
         stashedCredentials,
         stashedSession,

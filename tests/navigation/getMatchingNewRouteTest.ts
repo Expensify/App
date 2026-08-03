@@ -92,6 +92,20 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/abc/overview/address')).toBe('/workspaces/abc/overview/workspace-address');
     });
 
+    it('redirects legacy policy-specific downgrade paths (with and without trailing slash) to the dynamic downgrade route', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/downgrade/')).toBe('/workspaces/abc/overview/plan/downgrade?policyID=abc');
+        expect(getMatchingNewRoute('/workspaces/abc/downgrade')).toBe('/workspaces/abc/overview/plan/downgrade?policyID=abc');
+    });
+
+    it('redirects legacy policy-less downgrade path to the Subscription dynamic downgrade route', () => {
+        expect(getMatchingNewRoute('/workspaces/downgrade')).toBe('/settings/subscription/downgrade');
+    });
+
+    it('does not redirect the already-migrated dynamic downgrade route', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/overview/plan/downgrade')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/subscription/downgrade')).toBe(undefined);
+    });
+
     it('redirects old card reconciliation account path with two wildcards', () => {
         expect(getMatchingNewRoute('/workspaces/abc/accounting/xero/card-reconciliation/account')).toBe(
             '/workspaces/abc/accounting/xero/card-reconciliation/account-reconciliation-settings',
@@ -218,6 +232,30 @@ describe('getBestMatchingPath', () => {
     it('preserves query params when redirecting old standalone merge-transaction routes', () => {
         expect(getMatchingNewRoute('/merge/123?backTo=/home')).toBe('/search/merge/123?backTo=/home');
         expect(getMatchingNewRoute('/merge/123/receipt?isOnSearch=true')).toBe('/search/merge/123/receipt?isOnSearch=true');
+    });
+
+    it('redirects old transaction-duplicate-review routes to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/r/123/duplicates/review')).toBe('/r/123/duplicates/review/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/merchant')).toBe('/r/123/merchant/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/category')).toBe('/r/123/transaction-duplicate-category/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/tag')).toBe('/r/123/transaction-duplicate-tag/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/tax-code')).toBe('/r/123/tax-code/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/description')).toBe('/r/123/transaction-duplicate-description/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/reimbursable')).toBe('/r/123/reimbursable/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/billable')).toBe('/r/123/billable/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/confirm')).toBe('/r/123/confirm/123');
+    });
+
+    it('preserves query params when redirecting old transaction-duplicate-review routes', () => {
+        expect(getMatchingNewRoute('/r/123/duplicates/review?backTo=/home')).toBe('/r/123/duplicates/review/123?backTo=/home');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/merchant?backTo=/home')).toBe('/r/123/merchant/123?backTo=/home');
+        expect(getMatchingNewRoute('/r/123/duplicates/confirm?backTo=/home')).toBe('/r/123/confirm/123?backTo=/home');
+    });
+
+    it('does not redirect the already-migrated transaction-duplicate-review dynamic routes', () => {
+        expect(getMatchingNewRoute('/r/123/duplicates/review/123')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/123/merchant/123')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/123/confirm/123')).toBe(undefined);
     });
 
     it('redirects legacy standalone referral routes to a dynamic route with a home base', () => {
