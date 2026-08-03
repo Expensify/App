@@ -6084,7 +6084,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
 
             // This variant returns raw English to match the surrounding non-localized preview strings.
             if (originalMessage?.creditedAmount && originalMessage.creditedCurrency) {
-                const creditedAmountDisplay = convertToDisplayString(originalMessage.creditedAmount, originalMessage.creditedCurrency);
+                const creditedAmountDisplay = convertToDisplayStringUtil(originalMessage.creditedAmount, originalMessage.creditedCurrency);
                 return `paid ${creditedAmountDisplay} from account ${originalMessage.debitBankAccountLast4 ?? last4Digits} to account ${originalMessage.creditBankAccountLast4 ?? ''}`;
             }
             return `paid with bank account ${last4Digits}`;
