@@ -57,9 +57,6 @@ function MissingPersonalDetailsValidateCodePage({
     const [targetCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: targetCardSelector});
     const isVirtualCard = !!targetCard?.nameValuePairs?.isVirtual;
 
-    // Dismissal keys off the card this flow is for, not every Expensify card: a different card that failed to ship must
-    // not keep the user stuck here once their own card has shipped.
-    const isTargetCardShipped = !!targetCard && targetCard.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
     const primaryLogin = usePrimaryContactMethod();
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
@@ -69,22 +66,22 @@ function MissingPersonalDetailsValidateCodePage({
 
     // When the physical card the user is completing details for fails to ship, the backend writes an RBR to its Onyx entry.
     // Surface it inline on this modal so the user sees why, since dismissal is gated on the card actually shipping.
-    const shipCardError = targetCard?.errors ?? undefined;
+    const cardErrors = targetCard?.errors ?? undefined;
 
     const missingDetails = arePersonalDetailsMissing(privatePersonalDetails);
 
     useEffect(() => {
-        if (isVirtualCard || missingDetails || !!privateDetailsErrors || !isTargetCardShipped) {
+        if (isVirtualCard || missingDetails || !!privateDetailsErrors || !!cardErrors) {
             return;
         }
 
         clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         Navigation.dismissModal();
-    }, [isVirtualCard, missingDetails, privateDetailsErrors, isTargetCardShipped]);
+    }, [isVirtualCard, missingDetails, privateDetailsErrors, cardErrors]);
 
     const clearError = () => {
         setRevealCardError({});
-        if (!isEmptyObject(shipCardError) && cardID) {
+        if (!isEmptyObject(cardErrors) && cardID) {
             clearCardListErrors(Number(cardID));
         }
         if (isEmptyObject(validateLoginError) && isEmptyObject(validateCodeAction?.errorFields)) {
@@ -126,7 +123,7 @@ function MissingPersonalDetailsValidateCodePage({
             }
             validateCodeActionErrorField={CONST.MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD}
             handleSubmitForm={handleSubmitForm}
-            validateError={!isEmptyObject(revealCardError) ? revealCardError : (shipCardError ?? validateLoginError)}
+            validateError={!isEmptyObject(revealCardError) ? revealCardError : (cardErrors ?? validateLoginError)}
             clearError={clearError}
             onClose={() => {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID), basePath), {forceReplace: true});
