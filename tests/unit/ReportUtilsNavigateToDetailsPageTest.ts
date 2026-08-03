@@ -52,9 +52,6 @@ describe('navigateToDetailsPage', () => {
         });
 
         it('keeps the Search context so details does not jump to the report', () => {
-            // PR #90113 dropped the hardcoded report base path on purpose: `REPORT_DETAILS.entryScreens` allows
-            // Search and workspace rooms as entry points, and details is meant to open within whichever of those
-            // the user is currently in. Re-anchoring to `r/<reportID>` here would regress that.
             mockGetActiveRoute.mockReturnValue('search/all/12345');
 
             navigateToDetailsPage(adminsRoom);
@@ -73,11 +70,6 @@ describe('navigateToDetailsPage', () => {
 
     describe('inside the Side Panel', () => {
         it('anchors details to the report instead of the screen behind the panel', () => {
-            // Regression test for https://github.com/Expensify/App/issues/94977.
-            // `SidePanelReport` renders `ReportScreen` with a synthetic route, so the report is never part of the
-            // navigation state. After onboarding the RHP variant experiment leaves the workspace overview as the
-            // active route, and falling back to it built `/workspaces/<policyID>/overview/details`, which fails the
-            // `REPORT_DETAILS` entryScreens check and rendered the Not found page.
             mockGetActiveRoute.mockReturnValue(`/workspaces/${POLICY_ID}/overview`);
 
             navigateToDetailsPage(adminsRoom, true);
@@ -87,10 +79,6 @@ describe('navigateToDetailsPage', () => {
         });
 
         it('anchors the profile of a 1:1 chat to the report instead of the screen behind the panel', () => {
-            // Concierge is the default Side Panel content for non-admins (and whenever `forceConcierge` is set), and it
-            // takes the `PROFILE` branch. `PROFILE.entryScreens` is `['*']` so this never rendered a Not found page,
-            // but without a base path the profile was still anchored to whatever screen sits behind the panel
-            // (e.g. `/workspaces/<policyID>/overview/a/<accountID>`) instead of to the report itself.
             mockGetActiveRoute.mockReturnValue(`/workspaces/${POLICY_ID}/overview`);
 
             navigateToDetailsPage(conciergeChat, true);
