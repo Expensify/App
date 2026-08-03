@@ -42,7 +42,12 @@ function constructReceiptSourceFromFilename(filename: string): string {
  * @param receiptFileName
  */
 function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPath: ReceiptSource | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
-    if (!hasReceipt(transaction) && !receiptPath && !receiptFileName) {
+    // A receipt that carries a usable file reference (source or filename) is not empty, even when `receipt.state` is
+    // absent - e.g. receipts attached via email or billing. Without this, `hasReceipt` (which only checks `state`/eReceipt)
+    // short-circuits before the source/filename fallback below, so the Expenses list paints the empty placeholder even
+    // though the expense detail view - which does not gate on `state` - shows the receipt.
+    const hasReceiptFile = !!transaction?.receipt?.source || !!transaction?.receipt?.filename;
+    if (!hasReceipt(transaction) && !hasReceiptFile && !receiptPath && !receiptFileName) {
         return {isEmptyReceipt: true};
     }
     if (isFetchingWaypointsFromServer(transaction)) {
