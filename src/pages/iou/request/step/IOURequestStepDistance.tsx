@@ -199,6 +199,18 @@ function IOURequestStepDistance({
         [distanceInMeters, distanceUnit],
     );
 
+    // Whether the user picked a different route than the one the expense currently sits on.
+    // A waypoint edit re-fetches the routes and resets the selection to the primary one, so the committed
+    // selection refers to routes that no longer exist and can't be compared against. In that case anything
+    // other than the primary route is a fresh pick the user made on the re-fetched routes.
+    const getHasSelectedRouteChanged = useCallback(
+        (committedTransaction: OnyxEntry<Transaction>, haveWaypointsChanged: boolean) => {
+            const selectedRouteKey = getSelectedRouteKey(currentTransaction);
+            return haveWaypointsChanged ? selectedRouteKey !== CONST.TRANSACTION.DEFAULT_ROUTE_KEY : selectedRouteKey !== getSelectedRouteKey(committedTransaction);
+        },
+        [currentTransaction],
+    );
+
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
             // Manual distance sits in `manualNumberFormRef` until Save — gate on the mounted ref so a cleared (empty) value still counts as dirty against a committed distance.
@@ -207,8 +219,10 @@ function IOURequestStepDistance({
             const typedManualDistance = typedDistance ? roundToTwoDecimalPlaces(parseFloat(typedDistance)) : undefined;
             const manualDistanceChanged = !!manualForm && typedManualDistance !== currentDistance;
             // Split edits skip the transaction backup, so their pre-edit route lives in `originalSplitTransactionDraft`.
-            const committedWaypoints = isEditingSplit ? originalSplitTransactionDraft?.comment?.waypoints : transactionBackup?.comment?.waypoints;
-            return manualDistanceChanged || getWaypointsHasUnsavedChanges(transaction, committedWaypoints, waypoints, isCreatingNewRequest);
+            const committedTransaction = isEditingSplit ? originalSplitTransactionDraft : transactionBackup;
+            const waypointsChanged = getWaypointsHasUnsavedChanges(transaction, committedTransaction?.comment?.waypoints, waypoints, isCreatingNewRequest);
+            const routeChanged = !isCreatingNewRequest && !!committedTransaction?.routes && getHasSelectedRouteChanged(committedTransaction, waypointsChanged);
+            return manualDistanceChanged || waypointsChanged || routeChanged;
         },
     });
 
@@ -518,10 +532,7 @@ function IOURequestStepDistance({
             // the save would be skipped by the check below and the selection silently dropped.
             const haveWaypointsChanged = haveWaypointAddressesChanged(transactionBackup?.comment?.waypoints, waypoints);
             const selectedRouteKey = getSelectedRouteKey(currentTransaction);
-            // A waypoint edit re-fetches the routes and resets the selection to the primary one, so the backed up
-            // selection refers to routes that no longer exist and can't be compared against. In that case anything
-            // other than the primary route is a fresh pick the user made on the re-fetched routes.
-            const shouldUpdateSelectedRoute = haveWaypointsChanged ? selectedRouteKey !== CONST.TRANSACTION.DEFAULT_ROUTE_KEY : selectedRouteKey !== getSelectedRouteKey(transactionBackup);
+            const shouldUpdateSelectedRoute = getHasSelectedRouteChanged(transactionBackup, haveWaypointsChanged);
             // Saving from the Map tab means the distance comes from the map route, so a manual `customUnit.quantity`
             // override on the saved expense is dropped even when nothing else changed. This reads the backup rather
             // than the current transaction because `saveWaypoint` clears the override locally while the BE still has
@@ -586,6 +597,7 @@ function IOURequestStepDistance({
         isEditingSplit,
         originalSplitTransactionDraft,
         transactionBackup,
+        getHasSelectedRouteChanged,
         waypoints,
         transaction,
         report,
@@ -650,11 +662,8 @@ function IOURequestStepDistance({
         const selectedRouteKey = getSelectedRouteKey(currentTransaction);
         // Picking a route on the Map tab moves the distance the manual input is prefilled with, so on its own it leaves
         // the value unchanged and the checks above would skip the save — stranding the selection in local Onyx while the
-        // expense keeps the previous route's distance and amount. Mirrors `shouldUpdateSelectedRoute` in `submitWaypoints`:
-        // after a waypoint edit the backed up selection points at routes that no longer exist, so anything other than the
-        // primary route is a fresh pick.
-        const shouldUpdateSelectedRoute =
-            wasOriginallyMapDistance && (haveWaypointsChanged ? selectedRouteKey !== CONST.TRANSACTION.DEFAULT_ROUTE_KEY : selectedRouteKey !== getSelectedRouteKey(transactionBackup));
+        // expense keeps the previous route's distance and amount.
+        const shouldUpdateSelectedRoute = wasOriginallyMapDistance && getHasSelectedRouteChanged(transactionBackup, haveWaypointsChanged);
 
         if (!isDistanceChanged && !isDistanceUnitChanged && !haveWaypointsChanged && !shouldUpdateSelectedRoute) {
             transactionWasSaved.current = true;
@@ -698,6 +707,7 @@ function IOURequestStepDistance({
         navigateBackAfterSave();
     }, [
         transactionBackup,
+        getHasSelectedRouteChanged,
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
