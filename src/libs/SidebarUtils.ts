@@ -1008,6 +1008,7 @@ function getOptionData({
             report,
             personalDetails,
             lastActorDetails,
+            conciergeReportID,
             movedFromReport,
             movedToReport,
             policy,
@@ -1468,7 +1469,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
         } else {
             welcomeMessage.messageHtml = translate(
                 'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
-                getPolicyName({report, policy}),
+                getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
                 getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}),
             );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
@@ -1522,7 +1523,7 @@ function getRoomWelcomeMessage(
     reportDetailsLink = '',
 ): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
-    const workspaceName = getPolicyName({report});
+    const workspaceName = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
     const reportName = deprecatedGetReportName(report ?? undefined, reportAttributes);
 
     if (report?.description) {
@@ -1544,7 +1545,7 @@ function getRoomWelcomeMessage(
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
                 ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate})
                 : invoiceReceiverPolicy?.name;
-        const receiver = getPolicyName({report});
+        const receiver = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);
     } else {
         // Message for user created rooms or other room types.
