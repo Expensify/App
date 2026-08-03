@@ -1,5 +1,5 @@
 import type {AuthenticationChallenge, RegistrationChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
-import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import type {MFAError, MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {AuthTypeInfo, RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
 
 type BaseRegisterResult = {
@@ -14,6 +14,18 @@ type RegisterResult =
           success: false;
           error: MFAError;
       } & Partial<BaseRegisterResult>);
+
+/**
+ * Params for the platform-resolved credential-creation ceremony. A params object (not positional
+ * args) keeps both platform signatures identical while native simply ignores `signal`.
+ */
+type CreateCredentialParams = {
+    accountID: number;
+    registrationChallenge: RegistrationChallenge;
+    signal?: AbortSignal;
+};
+
+type CreateCredentialResult = MFAResult<{keyInfo: RegistrationKeyInfo}>;
 
 type AuthorizeParams = {
     challenge: AuthenticationChallenge;
@@ -58,4 +70,4 @@ type UseBiometricsReturn = {
     deleteLocalKeysForAccount: () => Promise<void>;
 };
 
-export type {RegisterResult, AuthorizeParams, AuthorizeResult, UseBiometricsReturn};
+export type {RegisterResult, AuthorizeParams, AuthorizeResult, UseBiometricsReturn, CreateCredentialParams, CreateCredentialResult};

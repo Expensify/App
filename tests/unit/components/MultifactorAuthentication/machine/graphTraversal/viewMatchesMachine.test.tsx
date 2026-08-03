@@ -18,6 +18,7 @@ import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
 import {
     checkLocalCredentialsControl,
+    createCredentialControl,
     pendingModalClose,
     readHasAcceptedSoftPromptControl,
     requestRegistrationChallengeControl,
@@ -167,6 +168,8 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
         [actorErrorEventType('checkLocalCredentials')]: () => settleActor(checkLocalCredentialsControl.reject),
         [actorDoneEventType('requestRegistrationChallenge')]: (step) => settleActor(() => requestRegistrationChallengeControl.resolve(getActorDoneOutput(step))),
         [actorErrorEventType('requestRegistrationChallenge')]: () => settleActor(requestRegistrationChallengeControl.reject),
+        [actorDoneEventType('createCredential')]: (step) => settleActor(() => createCredentialControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('createCredential')]: () => settleActor(createCredentialControl.reject),
     } satisfies MfaEventExecutors;
 }
 /* eslint-enable @typescript-eslint/naming-convention */
@@ -246,6 +249,20 @@ const testConfig = {
             expect(screen.getByText(translateLocal('multifactorAuthentication.enableQuickVerification.biometrics'))).toBeOnTheScreen();
             expect(state.context.error).toBeUndefined();
             expect(state.context.softPromptApproved).toBe(false);
+        },
+        // No entry navigation action fires for this state, so whatever screen was already on the
+        // stack stays up during the ceremony: the prompt when the user just approved it in this
+        // flow, or the magic-code screen (last navigated) when the persisted acceptance skipped it.
+        [`${MFA_STATE.OPEN}.${MFA_STATE.CREATING_CREDENTIAL}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
+            expect(state.context.registrationChallenge).toBeDefined();
+            expect(state.context.error).toBeUndefined();
+            if (state.context.softPromptApproved) {
+                expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT);
+            } else {
+                expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);
+            }
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);

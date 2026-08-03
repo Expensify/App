@@ -2,6 +2,8 @@ import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/bi
 import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
 import type {
     CheckLocalCredentialsInput,
+    CreateCredentialInput,
+    CreateCredentialOutput,
     ReadHasAcceptedSoftPromptInput,
     RequestRegistrationChallengeInput,
     RequestRegistrationChallengeOutput,
@@ -93,6 +95,7 @@ const validateDeviceControl = createControlledActor<MFAResult, ValidateDeviceInp
 const readHasAcceptedSoftPromptControl = createControlledActor<boolean, ReadHasAcceptedSoftPromptInput>('readHasAcceptedSoftPrompt');
 const checkLocalCredentialsControl = createControlledActor<boolean, CheckLocalCredentialsInput>('checkLocalCredentials');
 const requestRegistrationChallengeControl = createControlledActor<RequestRegistrationChallengeOutput, RequestRegistrationChallengeInput>('requestRegistrationChallenge');
+const createCredentialControl = createControlledActor<CreateCredentialOutput, CreateCredentialInput>('createCredential');
 
 function resetMfaUiMocks() {
     pendingModalClose.clear();
@@ -100,6 +103,7 @@ function resetMfaUiMocks() {
     readHasAcceptedSoftPromptControl.reset();
     checkLocalCredentialsControl.reset();
     requestRegistrationChallengeControl.reset();
+    createCredentialControl.reset();
 }
 
 /** Replaces the machine's side-effect actors with controlled test implementations. */
@@ -109,6 +113,7 @@ function mfaActorsMock() {
         readHasAcceptedSoftPrompt: readHasAcceptedSoftPromptControl.actor,
         checkLocalCredentials: checkLocalCredentialsControl.actor,
         requestRegistrationChallenge: requestRegistrationChallengeControl.actor,
+        createCredential: createCredentialControl.actor,
     } satisfies ReturnType<typeof createActors>;
 
     return {
@@ -203,6 +208,7 @@ export {
     readHasAcceptedSoftPromptControl,
     checkLocalCredentialsControl,
     requestRegistrationChallengeControl,
+    createCredentialControl,
     resetMfaUiMocks,
     mfaActorsMock,
     userActionsMock,
