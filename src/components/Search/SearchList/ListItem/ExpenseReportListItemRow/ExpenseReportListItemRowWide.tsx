@@ -86,6 +86,7 @@ function ExpenseReportListItemRowWide({
                     date={item.submitted ?? ''}
                     showTooltip
                     isLargeScreenWidth
+                    shouldUseLocalTimeZone
                 />
             </View>
         ),
@@ -95,6 +96,7 @@ function ExpenseReportListItemRowWide({
                     date={item.approved ?? ''}
                     showTooltip
                     isLargeScreenWidth
+                    shouldUseLocalTimeZone
                 />
             </View>
         ),
@@ -125,6 +127,7 @@ function ExpenseReportListItemRowWide({
                     date={item.exported ?? ''}
                     showTooltip
                     isLargeScreenWidth
+                    shouldUseLocalTimeZone
                 />
             </View>
         ),
@@ -285,7 +288,7 @@ function ExpenseReportListItemRowWide({
                         isIndeterminate={isIndeterminate}
                         containerStyle={styles.m0}
                         disabled={isDisabledCheckbox}
-                        accessibilityLabel={item.text ?? ''}
+                        accessibilityLabel={item.reportName ?? ''}
                         shouldStopMouseDownPropagation
                         style={[styles.cursorUnset, isDisabledCheckbox && styles.cursorDisabled]}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}

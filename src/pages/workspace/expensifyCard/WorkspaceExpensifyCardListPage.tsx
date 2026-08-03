@@ -147,6 +147,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     name: card.nameValuePairs?.cardTitle ?? '',
                     cardholder: personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID],
                     limit: card.nameValuePairs?.unapprovedExpenseLimit ?? 0,
+                    remainingLimit: card.availableSpend ?? 0,
                     currency: settlementCurrency,
                     isVirtual: !!card.nameValuePairs?.isVirtual,
                     limitType: card.nameValuePairs?.limitType,
@@ -221,7 +222,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             return (
                 <View style={headerButtonsRowStyle}>
                     <ButtonWithDropdownMenu<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>
-                        success
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={() => {}}
                         customText={translate('workspace.common.selected', {
                             count: selectedCardIDs.length,
@@ -253,7 +254,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 )}
                 {secondaryActions.length > 0 && (
                     <ButtonWithDropdownMenu
-                        success={false}
                         onPress={() => {}}
                         customText={translate('common.more')}
                         options={secondaryActions}

@@ -109,9 +109,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [canDowngrade] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canDowngradeSelector});
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
-    const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)}, [
-        currentUserPersonalDetails.accountID,
-    ]);
+    const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)});
     const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
     const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCounts?.active === 1;
 
@@ -264,18 +262,17 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const DefaultAvatar = useCallback(
         () => (
             <Avatar
-                containerStyles={styles.avatarXLarge}
-                imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
+                imageStyles={styles.alignSelfCenter}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
                 source={policy?.avatarURL || getDefaultWorkspaceAvatar(policyName)}
                 fallbackIcon={expensifyIcons.FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.X_LARGE}
+                size={CONST.AVATAR_SIZE.XXXX_LARGE}
                 name={policyName}
                 avatarID={policyID}
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
-        [expensifyIcons.FallbackWorkspaceAvatar, policy?.avatarURL, policyID, policyName, styles.alignSelfCenter, styles.avatarXLarge],
+        [expensifyIcons.FallbackWorkspaceAvatar, policy?.avatarURL, policyID, policyName, styles.alignSelfCenter],
     );
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
@@ -423,7 +420,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const dropdownMenu = secondaryActions.length > 0 && (
         <ButtonWithDropdownMenu
             ref={dropdownMenuRef}
-            success={false}
             onPress={() => {}}
             shouldAlwaysShowDropdownMenu
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_DROPDOWN}
@@ -528,9 +524,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         }}
                         source={policy?.avatarURL ?? ''}
                         avatarID={policyID}
-                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                         name={policyName}
-                        avatarStyle={styles.avatarXLarge}
                         enablePreview
                         DefaultAvatar={DefaultAvatar}
                         type={CONST.ICON_TYPE_WORKSPACE}

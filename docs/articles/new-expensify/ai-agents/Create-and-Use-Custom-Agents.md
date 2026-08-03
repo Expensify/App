@@ -1,7 +1,7 @@
 ---
 title: Create and Use Agents
 description: Create personal agents in New Expensify, chat with them, and Copilot into their accounts. New agents are automatically added as full-access Copilots on your account so they can act on your behalf.
-keywords: [custom agents, agents, new agent, ai agent, agent instructions, copilot into account, new expensify]
+keywords: [custom agents, agents, new agent, ai agent, agent instructions, agent template, build custom agent, copilot into account, new expensify]
 internalScope: Audience is individual New Expensify users. Covers creating, configuring, and managing agents from the Agents page in Account settings. Does not cover Agent Rules, RuleBot, or workspace-level automation.
 ---
 
@@ -29,12 +29,27 @@ If you don't see **Agents** in your **Account** settings, the Beta isn't enabled
 
 ## How to create an Agent
 
+When you click **New agent**, the **New agent** screen opens. From here you can build an agent from scratch with **Build custom agent**, or, when starter templates are available, choose one from the **Or start with a template:** list. If no templates are available, only the **Build custom agent** option appears.
+
+**To build a custom agent from scratch:**
+
 1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
 2. Click **Agents**.
 3. Click **New agent**.
-4. Review the auto-generated profile image and display name. If needed, you can edit these later.
-5. Click **Write custom instructions** and describe what you want the agent to do.
-6. Review the note above the **Create agent** button, which explains that the agent will be added as a full-access Copilot of your account so it can act on your behalf.
+4. Click **Build custom agent**.
+5. Review the auto-generated profile image and display name. If needed, you can edit these later.
+6. Click **Write custom instructions** and describe what you want the agent to do.
+7. Review the note above the **Create agent** button, which explains that the agent will be added as a full-access Copilot of your account so it can act on your behalf.
+8. Click **Create agent**.
+
+**To start from a template:**
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
+2. Click **Agents**.
+3. Click **New agent**.
+4. Under **Or start with a template:**, find the template you want, then click **Add**.
+5. Review the pre-filled instructions and edit them if needed.
+6. Review the auto-generated profile image and display name. If needed, you can edit these later.
 7. Click **Create agent**.
 
 After saving, the new agent appears in your **Agents** list with **Edit**, **Chat**, and **Copilot** buttons.
@@ -115,7 +130,47 @@ Deleting an agent closes its Expensify account.
 4. Click **Delete agent**.
 5. Confirm the deletion.
 
+You can also delete an agent while [Copiloting into its account](#how-to-copilot-into-an-agents-account):
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
+2. Click **Security**.
+3. Click **Close account**.
+4. In the **Delete agent?** confirmation, click **Delete**.
+
+Deleting the agent from the **Security** page also ends the Copilot session and returns you to your own account. This step requires an internet connection.
+
 Deleting an agent can't be undone.
+
+---
+
+## How to delete multiple agents at once
+
+You can select several agents from the **Agents** list and delete them together.
+
+**On web:**
+
+1. In the navigation tabs on the left, click **Account** > **Agents**.
+2. Select the checkbox next to each agent you want to delete.
+3. Click the button that shows the number of agents selected (for example, **2 selected**).
+4. Select **Delete agents**.
+5. Click **Delete** to confirm.
+
+**On mobile:**
+
+1. In the navigation tabs on the bottom, tap **Account** > **Agents**.
+2. Long-press an agent, then tap **Select** to enter selection mode.
+3. Select each additional agent you want to delete.
+4. Tap the button that shows the number of agents selected (for example, **2 selected**).
+5. Select **Delete agents**.
+6. Tap **Delete** to confirm.
+
+The selected agents are deleted and you stay on the **Agents** list. Deleting agents can't be undone.
+
+<!-- SCREENSHOT:
+Suggestion: The Agents list with row checkboxes selected and the selected-count button open showing the Delete agents option
+Location: How to delete multiple agents at once
+Purpose: Shows where row selection and the bulk Delete agents action appear
+-->
 
 ---
 
@@ -146,6 +201,10 @@ For details on configuring approval workflows generally, see [Learn how to add a
 
 Agents are in **Beta** and may not be enabled on your account yet. When the feature is available, an **Agents** option appears in your **Account** settings with a **Beta** badge.
 
+## What's the difference between building a custom agent and starting from a template?
+
+**Build custom agent** opens the agent form so you can write your own instructions from scratch. Starting from a template on the **New agent** screen opens the same form with the template's instructions already filled in, which you can review and edit before creating the agent. If no templates are available, only the **Build custom agent** option appears.
+
 ## Who can edit or delete an agent?
 
 Only the agent's owner can edit its instructions or delete it. The owner is the account that created the agent.
@@ -175,6 +234,13 @@ On Collect plans, workspaces support a single approver. An agent can be used as 
 ## Is an agent added as a Copilot on my own account?
 
 Yes. When you create an agent, it's automatically added as a full-access Copilot on your own account, giving it delegated access to your personal context so it can manage your expenses and reports on your behalf. You don't need to add it by hand. You can review or remove this access at any time in the **Copilot: Delegated Access** section under **Account > Security**. [Learn how to manage Copilot access](/articles/new-expensify/settings/Manage-Copilot-Access).
+
+## Why does the Security page look different when I Copilot into an agent?
+
+When you Copilot into an agent's account and open **Account > Security**, some options are adjusted because you're managing an agent rather than a real member's account:
+
+- **Device management** and **Merge accounts** are hidden, since they don't apply to an agent.
+- **Close account** deletes the agent and ends the Copilot session instead of opening the standard close-account flow.
 
 ## Can an agent make mistakes?
 

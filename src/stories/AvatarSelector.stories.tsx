@@ -36,36 +36,31 @@ const Default: AvatarSelectorStory = Template.bind({});
 Default.args = {
     selectedID: undefined,
     label: 'Or choose an avatar',
-    name: 'A',
 };
 
 const WithPreselectedAvatar: AvatarSelectorStory = Template.bind({});
 WithPreselectedAvatar.args = {
     selectedID: 'default-avatar_3',
     label: 'With preselected avatar',
-    name: 'A',
 };
 
 const WithPreselectedLetterAvatar: AvatarSelectorStory = Template.bind({});
 WithPreselectedLetterAvatar.args = {
-    selectedID: 'letter-avatar-#B0D9FF-#0164BF-A',
+    selectedID: 'blue100',
     label: 'With preselected avatar',
-    name: 'A',
 };
 
 const LargeAvatars: AvatarSelectorStory = Template.bind({});
 LargeAvatars.args = {
     selectedID: 'helmet-blue400',
-    size: CONST.AVATAR_SIZE.LARGE,
+    size: CONST.AVATAR_SIZE.XXX_LARGE,
     label: 'Large avatars',
-    name: 'A',
 };
 
 const SmallAvatars: AvatarSelectorStory = Template.bind({});
 SmallAvatars.args = {
     size: CONST.AVATAR_SIZE.SMALL,
     label: 'Small avatars',
-    name: 'A',
 };
 
 export default story;

@@ -11,6 +11,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetails, Report, Transaction} from '@src/types/onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -53,9 +55,13 @@ function SearchTransactionsChangeReport() {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
-    const hasUnreportedManagedCardTransactions = transactions.some((transaction) => isUnreportedManagedCardTransaction(transaction));
+    const managedCardTransactionID = transactions.find((transaction) => isUnreportedManagedCardTransaction(transaction))?.transactionID;
+    const hasUnreportedManagedCardTransactions = !!managedCardTransactionID;
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -149,8 +155,10 @@ function SearchTransactionsChangeReport() {
             isASAPSubmitBetaEnabled,
             policyForMovingExpenses,
             betas,
+            isTrackIntentUser,
             false,
             shouldDismissEmptyReportsConfirmation,
+            {managedCardTransactionID},
         );
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         const policyTagList = policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : {};
@@ -168,7 +176,9 @@ function SearchTransactionsChangeReport() {
                 transactions,
                 allTransactionViolation: transactionViolations,
                 allReports,
+                isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                selfDMReportActions,
             });
             clearSelectedTransactions();
         });
@@ -247,7 +257,9 @@ function SearchTransactionsChangeReport() {
             transactions,
             allTransactionViolation: transactionViolations,
             allReports,
+            isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            selfDMReportActions,
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
@@ -267,7 +279,9 @@ function SearchTransactionsChangeReport() {
             transactions,
             allTransactionViolation: transactionViolations,
             allReports,
+            isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            selfDMReportActions,
         });
         clearSelectedTransactions();
         Navigation.goBack();

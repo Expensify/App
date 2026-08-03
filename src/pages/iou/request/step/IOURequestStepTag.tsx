@@ -21,6 +21,7 @@ import {getIOURequestPolicyID, setMoneyRequestTag} from '@libs/actions/IOU/Money
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTag} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {pickReportForPolicy} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -32,8 +33,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
@@ -62,7 +65,8 @@ function IOURequestStepTag({
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
     const {policy: policyFromTransaction} = usePolicyForTransaction({
         transaction,
-        reportPolicyID: getIOURequestPolicyID(transaction, report?.policyID ? report : participantReport),
+        // Skip the placeholder '_FAKE_' self-DM policy so it doesn't shadow the selected workspace chat's real policy. See #96576.
+        reportPolicyID: getIOURequestPolicyID(transaction, pickReportForPolicy(report, participantReport)),
         action,
         iouType,
         isPerDiemRequest: isPerDiemRequest(transaction),
@@ -76,6 +80,8 @@ function IOURequestStepTag({
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -107,6 +113,7 @@ function IOURequestStepTag({
     // has no tags configured. Without this the picker would render an empty list with no way to
     // restore the previously selected value.
     const [allTransactionsForSplitParent] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const parentTransactionTag = useMemo(() => {
         if (!isEditingSplit) {
             return '';
@@ -135,6 +142,10 @@ function IOURequestStepTag({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const updateTag = (selectedTag: Partial<OptionData>) => {
         const updatedTag = getUpdatedTransactionTag({
             transactionTag,
@@ -148,7 +159,7 @@ function IOURequestStepTag({
 
         if (isEditingSplit) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {tag: updatedTag});
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
@@ -157,6 +168,7 @@ function IOURequestStepTag({
                 transactionID,
                 transactionThreadReport: report,
                 parentReport,
+                iouReportOwnerLogin,
                 tag: updatedTag,
                 policy,
                 policyTagList: policyTags,
@@ -169,13 +181,15 @@ function IOURequestStepTag({
                 parentReportNextStep,
                 isOffline,
                 delegateAccountID,
+                reportPolicyTags,
+                isTrackIntentUser,
             });
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         setMoneyRequestTag(transactionID, updatedTag);
-        navigateBack();
+        saveAndNavigateBack();
     };
 
     return (

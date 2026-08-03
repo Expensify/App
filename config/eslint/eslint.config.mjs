@@ -334,6 +334,7 @@ const config = defineConfig([
             'rulesdir/no-beta-handler': 'error',
             'rulesdir/require-live-region-for-status-updates': 'error',
             'rulesdir/require-a11y-disable-justification': 'error',
+            'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
             'rulesdir/no-useOnyx-dependencies-arg': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
@@ -531,6 +532,14 @@ const config = defineConfig([
         files: ['.storybook/**/*.ts', '.storybook/**/*.tsx', 'config/rsbuild/**/*.ts'],
         rules: {
             'import/extensions': 'off',
+        },
+    },
+
+    // Rspack loaders receive their `this` from the bundler, and it's standard practice to use it
+    {
+        files: ['config/rsbuild/loaders/*-loader.mjs'],
+        rules: {
+            'no-invalid-this': 'off',
         },
     },
 

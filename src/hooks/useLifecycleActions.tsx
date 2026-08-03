@@ -39,6 +39,7 @@ import React from 'react';
 import useConfirmModal from './useConfirmModal';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -77,13 +78,9 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
-    const [submitterLogin] = useOnyx(
-        ONYXKEYS.PERSONAL_DETAILS_LIST,
-        {
-            selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID),
-        },
-        [moneyRequestReport?.ownerAccountID],
-    );
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID),
+    });
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -93,6 +90,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: delegateEmailSelector,
     });
+    const delegateAccountID = useDelegateAccountID();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
     });
@@ -160,7 +158,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
-    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, policy);
+    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, submitterLogin, policy);
 
     const handleMarkPendingRTERTransactionsAsCash = () => {
         markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
@@ -201,6 +199,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 startApprovedAnimation();
             },
             delegateEmail,
+            delegateAccountID,
+            isTrackIntentUser,
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);
@@ -250,6 +250,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
                 submitterLogin,
+                isTrackIntentUser,
             });
             refreshSearchAfterReportAction({
                 currentSearchQueryJSON,
@@ -315,7 +316,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         CONST.IOU.REPORT_ACTION_TYPE.PAY,
                         () => {
                             startAnimation();
-                            markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '', chatReportActions);
+                            markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '', chatReportActions, isTrackIntentUser);
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     );
@@ -323,7 +324,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 startAnimation();
-                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '', chatReportActions);
+                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '', chatReportActions, isTrackIntentUser);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
@@ -358,7 +359,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail);
+                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail, isTrackIntentUser);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
@@ -379,7 +380,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     return;
                 }
 
-                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations);
+                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations, isTrackIntentUser);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
@@ -413,7 +414,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail);
+                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail, isTrackIntentUser);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
@@ -447,7 +448,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, chatReport);
+                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, chatReport, isTrackIntentUser);
             },
         },
     };
