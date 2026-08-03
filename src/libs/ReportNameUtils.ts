@@ -260,12 +260,7 @@ const buildReportNameFromParticipantNames = ({
  * The reason for this is that the computation of default group name should not depend on the locale.
  * This is used to ensure that group name stays consistent across locales.
  */
-const customCollator = new Intl.Collator('en', {
-    usage: 'sort',
-    sensitivity: 'variant',
-    numeric: true,
-    caseFirst: 'upper',
-});
+const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
 
 /**
  * Returns the report name if the report is a group chat
@@ -303,12 +298,8 @@ function getGroupChatName(
         return participantAccountIDs
             .map(
                 (participantAccountID, index) =>
-                    getDisplayNameForParticipant({
-                        accountID: participantAccountID,
-                        shouldUseShortForm: isMultipleParticipantReport,
-                        formatPhoneNumber,
-                        translate,
-                    }) || formatPhoneNumber(participants?.[index]?.login ?? ''),
+                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport, formatPhoneNumber, translate}) ||
+                    formatPhoneNumber(participants?.[index]?.login ?? ''),
             )
             .sort((first, second) => customCollator.compare(first ?? '', second ?? ''))
             .filter(Boolean)
@@ -316,14 +307,7 @@ function getGroupChatName(
             .slice(0, CONST.REPORT_NAME_LIMIT)
             .concat(shouldAddEllipsis ? '...' : '');
     }
-    return translate(
-        'groupChat.defaultReportName',
-        getDisplayNameForParticipant({
-            accountID: participantAccountIDs.at(0),
-            formatPhoneNumber,
-            translate,
-        }),
-    );
+    return translate('groupChat.defaultReportName', getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber, translate}));
 }
 
 /**
@@ -342,13 +326,7 @@ function getPolicyExpenseChatName({
     const personalDetails = ownerAccountID ? personalDetailsList?.[ownerAccountID] : undefined;
     const login = personalDetails ? personalDetails.login : null;
 
-    const reportOwnerDisplayName =
-        getDisplayNameForParticipant({
-            accountID: ownerAccountID,
-            shouldRemoveDomain: true,
-            formatPhoneNumber: formatPhoneNumberPhoneUtils,
-            translate,
-        }) || login;
+    const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) || login;
 
     if (reportOwnerDisplayName) {
         return translate('workspace.common.policyExpenseChatName', reportOwnerDisplayName);
@@ -381,27 +359,14 @@ function getInvoicesChatName({
     const isCurrentUserReceiver = (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && isPolicyAdmin(receiverPolicy));
 
     if (isCurrentUserReceiver) {
-        return getPolicyName({
-            report,
-            policy,
-            unavailableTranslation: translate('workspace.common.unavailable'),
-        });
+        return getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
     }
 
     if (isIndividual) {
-        return formatPhoneNumberPhoneUtils(
-            temporaryGetDisplayNameOrDefault({
-                passedPersonalDetails: (personalDetails ?? allPersonalDetails)?.[invoiceReceiverAccountID],
-                translate,
-            }),
-        );
+        return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: (personalDetails ?? allPersonalDetails)?.[invoiceReceiverAccountID], translate}));
     }
 
-    return getPolicyName({
-        report,
-        policy: receiverPolicy,
-        unavailableTranslation: translate('workspace.common.unavailable'),
-    });
+    return getPolicyName({report, policy: receiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
 }
 
 function getInvoiceReportName(
@@ -438,19 +403,10 @@ function getInvoicePayerName(
 
     if (isIndividual) {
         const personalDetail = invoiceReceiverPersonalDetail ?? allPersonalDetails?.[invoiceReceiver.accountID];
-        return formatPhoneNumberPhoneUtils(
-            temporaryGetDisplayNameOrDefault({
-                passedPersonalDetails: personalDetail ?? undefined,
-                translate,
-            }),
-        );
+        return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail ?? undefined, translate}));
     }
 
-    return getPolicyName({
-        report,
-        policy: invoiceReceiverPolicy,
-        unavailableTranslation: translate('workspace.common.unavailable'),
-    });
+    return getPolicyName({report, policy: invoiceReceiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
 }
 
 /**
@@ -491,12 +447,7 @@ function getMoneyRequestReportName({
         const chatReport = getReportOrDraftReport(report?.chatReportID);
         payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPolicy);
     } else {
-        payerOrApproverName =
-            getDisplayNameForParticipant({
-                accountID: report?.managerID,
-                formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                translate,
-            }) ?? '';
+        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
     }
     const payerPaidAmountMessage = translate('iou.payerPaidAmount', formattedAmount, payerOrApproverName);
 
@@ -507,13 +458,9 @@ function getMoneyRequestReportName({
     if (report?.isWaitingOnBankAccount) {
         return `${payerPaidAmountMessage} ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
     }
+
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(linkedTransactions)) {
-        payerOrApproverName =
-            getDisplayNameForParticipant({
-                accountID: report?.ownerAccountID,
-                formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                translate,
-            }) ?? '';
+        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
         return translate('iou.payerSpentAmount', formattedAmount, payerOrApproverName);
     }
 
@@ -598,10 +545,7 @@ function computeReportNameBasedOnReportAction(
             iouAction = getReportAction(parentReport?.parentReportID, parentReport?.parentReportActionID);
         }
         const missingFields = getOriginalMessage(parentReportAction)?.missingFields;
-        return translate('violations.smartscanFailed', {
-            canEdit: wasActionTakenByCurrentUser(iouAction),
-            missingFields,
-        });
+        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields});
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(parentReportAction)) {
@@ -891,10 +835,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isCardIssuedAction(parentReportAction)) {
-        return getCardIssuedMessage({
-            reportAction: parentReportAction,
-            translate,
-        });
+        return getCardIssuedMessage({reportAction: parentReportAction, translate});
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED)) {
         return getAddedCardFeedMessage(translate, parentReportAction);
@@ -1148,11 +1089,7 @@ function computeReportName({
     }
 
     if (isPolicyExpenseChat(report)) {
-        formattedName = getPolicyExpenseChatName({
-            report,
-            personalDetailsList,
-            translate,
-        });
+        formattedName = getPolicyExpenseChatName({report, personalDetailsList, translate});
     }
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -1183,14 +1120,7 @@ function computeReportName({
             receiverPolicyID = (receiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = receiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicyID}`] : undefined;
-        formattedName = getInvoicesChatName({
-            report,
-            receiverPolicy: invoiceReceiverPolicy,
-            personalDetails: personalDetailsList,
-            currentUserAccountID,
-            policy,
-            translate,
-        });
+        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails: personalDetailsList, currentUserAccountID, policy, translate});
     }
 
     if (isSelfDM(report)) {
@@ -1214,12 +1144,7 @@ function computeReportName({
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({
-        report,
-        personalDetailsList,
-        currentUserAccountID,
-        translate,
-    });
+    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList, currentUserAccountID, translate});
 
     const finalName = formattedName ?? report?.reportName ?? '';
 

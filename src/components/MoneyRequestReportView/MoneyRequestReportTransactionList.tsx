@@ -93,22 +93,14 @@ import MoneyRequestReportTransactionLongPressModal from './MoneyRequestReportTra
 import MoneyRequestReportUnifiedList from './MoneyRequestReportUnifiedList';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
-const PENDING_EXPENSE_REASON_ATTRIBUTES = {
-    context: 'MoneyRequestReportTransactionList.PendingExpensePlaceholder',
-} as const;
+const PENDING_EXPENSE_REASON_ATTRIBUTES = {context: 'MoneyRequestReportTransactionList.PendingExpensePlaceholder'} as const;
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     /** Whether the transaction should be highlighted, when it is added to the report */
     shouldBeHighlighted?: boolean;
 };
 
-type TransactionListItemData =
-    | {
-          type: 'section-header';
-          groupKey: string;
-          group: OnyxTypes.GroupedTransactions;
-      }
-    | {type: 'transaction'; transaction: TransactionWithOptionalHighlight};
+type TransactionListItemData = {type: 'section-header'; groupKey: string; group: OnyxTypes.GroupedTransactions} | {type: 'transaction'; transaction: TransactionWithOptionalHighlight};
 
 /**
  * Bundle of data + JSX nodes the parent needs to render the unified list around the transaction-list state.
@@ -317,9 +309,7 @@ function MoneyRequestReportTransactionList({
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const ownerLoginSelector = useMemo(() => personalDetailsLoginSelector(report?.ownerAccountID), [report?.ownerAccountID]);
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: ownerLoginSelector,
-    });
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerLoginSelector});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -331,9 +321,7 @@ function MoneyRequestReportTransactionList({
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: validTransactionDraftIDsSelector,
-    });
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
@@ -475,10 +463,7 @@ function MoneyRequestReportTransactionList({
                 threadReportIDByTransactionID.set(iouTransactionID, action.childReportID);
             }
         }
-        return {
-            reportActionsMap: actionsMap,
-            transactionThreadReportIDByTransactionID: threadReportIDByTransactionID,
-        };
+        return {reportActionsMap: actionsMap, transactionThreadReportIDByTransactionID: threadReportIDByTransactionID};
     }, [reportActions]);
 
     // Precompute the set of RBR-flagged transaction IDs
@@ -626,27 +611,14 @@ function MoneyRequestReportTransactionList({
     }, [visualOrderTransactionIDsKey]);
 
     const groupSelectionState = useMemo(() => {
-        const state = new Map<
-            string,
-            {
-                isSelected: boolean;
-                isIndeterminate: boolean;
-                isDisabled: boolean;
-                pendingAction?: PendingAction;
-            }
-        >();
+        const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean; pendingAction?: PendingAction}>();
 
         for (const group of groupedTransactions) {
             const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
             const groupPendingAction = group.transactions.some((t) => getTransactionPendingAction(t)) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
 
             if (groupTransactionIDs.length === 0) {
-                state.set(group.groupKey, {
-                    isSelected: false,
-                    isIndeterminate: false,
-                    isDisabled: true,
-                    pendingAction: groupPendingAction,
-                });
+                state.set(group.groupKey, {isSelected: false, isIndeterminate: false, isDisabled: true, pendingAction: groupPendingAction});
                 continue;
             }
 
@@ -806,10 +778,7 @@ function MoneyRequestReportTransactionList({
                             setReportLayout(item.keyForList, reportLayoutOption, reportLayoutGroupBy);
                             props.closeOverlay();
                         }}
-                        style={{
-                            contentContainerStyle: [styles.pb0],
-                            listItemWrapperStyle: shouldUseNarrowLayout ? undefined : styles.optionRowCompact,
-                        }}
+                        style={{contentContainerStyle: [styles.pb0], listItemWrapperStyle: shouldUseNarrowLayout ? undefined : styles.optionRowCompact}}
                     />
                 </View>
             </View>
@@ -828,11 +797,7 @@ function MoneyRequestReportTransactionList({
     const listItems: TransactionListItemData[] = [];
     if (shouldGroupTransactions) {
         for (const group of groupedTransactions) {
-            listItems.push({
-                type: 'section-header',
-                groupKey: group.groupKey,
-                group,
-            });
+            listItems.push({type: 'section-header', groupKey: group.groupKey, group});
             for (const transaction of group.transactions) {
                 listItems.push({type: 'transaction', transaction});
             }
@@ -940,9 +905,7 @@ function MoneyRequestReportTransactionList({
                         styles.pv2,
                         !isDesktopTableLayout && styles.pr4,
                         StyleUtils.getPaddingLeft(variables.w12),
-                        isDesktopTableLayout && {
-                            minHeight: variables.tableGroupRowHeight,
-                        },
+                        isDesktopTableLayout && {minHeight: variables.tableGroupRowHeight},
                     ]}
                 >
                     <Checkbox
@@ -976,11 +939,7 @@ function MoneyRequestReportTransactionList({
                             if (!isSortableColumnName(selectedSortBy)) {
                                 return;
                             }
-                            setSortConfig((prevState) => ({
-                                ...prevState,
-                                sortBy: selectedSortBy,
-                                sortOrder: selectedSortOrder,
-                            }));
+                            setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                         }}
                     />
                 )}
@@ -1083,26 +1042,10 @@ function MoneyRequestReportTransactionList({
                     {shouldShowBreakdown && (
                         <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2, styles.flex1]}>
                             {[
-                                {
-                                    text: 'cardTransactions.outOfPocket',
-                                    value: formattedOutOfPocketAmount,
-                                    shouldShow: !!nonReimbursableSpend,
-                                },
-                                {
-                                    text: 'cardTransactions.companySpend',
-                                    value: formattedCompanySpendAmount,
-                                    shouldShow: !!nonReimbursableSpend,
-                                },
-                                {
-                                    text: 'common.billable',
-                                    value: formattedBillableAmount,
-                                    shouldShow: !!billableTotal,
-                                },
-                                {
-                                    text: 'common.tax',
-                                    value: formattedTaxAmount,
-                                    shouldShow: !!taxTotal && isTaxEnabled,
-                                },
+                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, shouldShow: !!nonReimbursableSpend},
+                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, shouldShow: !!nonReimbursableSpend},
+                                {text: 'common.billable', value: formattedBillableAmount, shouldShow: !!billableTotal},
+                                {text: 'common.tax', value: formattedTaxAmount, shouldShow: !!taxTotal && isTaxEnabled},
                             ]
                                 .filter(({shouldShow}) => shouldShow)
                                 .map(({text, value}) => (

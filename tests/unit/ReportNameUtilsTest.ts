@@ -100,10 +100,7 @@ describe('ReportNameUtils', () => {
         Onyx.init({keys: ONYXKEYS});
         await Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
-            [ONYXKEYS.SESSION]: {
-                accountID: currentUserAccountID,
-                email: 'lagertha2@vikings.net',
-            },
+            [ONYXKEYS.SESSION]: {accountID: currentUserAccountID, email: 'lagertha2@vikings.net'},
         });
         await IntlStore.load(CONST.LOCALES.EN);
         await waitForBatchedUpdates();
@@ -216,9 +213,7 @@ describe('ReportNameUtils', () => {
         test('Archived admin room in EN and ES', async () => {
             const report = createAdminRoom(11);
             const reportNameValuePairs = {
-                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: {
-                    private_isArchived: 'true',
-                },
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: {private_isArchived: 'true'},
             } as Record<string, ReportNameValuePairs>;
 
             const nameEn = computeReportName(
@@ -279,11 +274,7 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            await Onyx.merge(ONYXKEYS.SESSION, {
-                accountID: currentUserAccountID,
-                email: 'lagertha2@vikings.net',
-                authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT,
-            });
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'lagertha2@vikings.net', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
             const name = computeReportName(
                 report,
                 emptyCollections.reports,
@@ -303,11 +294,7 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            await Onyx.merge(ONYXKEYS.SESSION, {
-                accountID: currentUserAccountID,
-                email: 'lagertha2@vikings.net',
-                authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT,
-            });
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'lagertha2@vikings.net', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
             const translateWithYouMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.you' ? 'You Marker' : translateLocal(path, ...parameters));
             const name = computeReportNameOriginal({
                 report,
@@ -677,9 +664,7 @@ describe('ReportNameUtils', () => {
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
             const reportActionsCollection: Record<string, ReportActions> = {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
-                    [actionId]: parentAction,
-                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
             };
 
             const name = computeReportName(
@@ -713,9 +698,7 @@ describe('ReportNameUtils', () => {
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
             const reportActionsCollection: Record<string, ReportActions> = {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
-                    [actionId]: enabledParentAction,
-                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: enabledParentAction},
             };
 
             const enabledName = computeReportName(
@@ -737,9 +720,7 @@ describe('ReportNameUtils', () => {
                 },
             } as unknown as ReportAction;
             const disabledReportActionsCollection: Record<string, ReportActions> = {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
-                    [actionId]: disabledParentAction,
-                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: disabledParentAction},
             };
             const disabledName = computeReportName(
                 thread,
@@ -812,9 +793,7 @@ describe('ReportNameUtils', () => {
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
             const reportActionsCollection: Record<string, ReportActions> = {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
-                    [actionId]: parentAction,
-                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
             };
 
             const name = computeReportName(
@@ -849,9 +828,7 @@ describe('ReportNameUtils', () => {
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
             const reportActionsCollection: Record<string, ReportActions> = {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
-                    [actionId]: parentAction,
-                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
             };
 
             const name = computeReportName(
@@ -887,9 +864,7 @@ describe('ReportNameUtils', () => {
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
             const reportActionsCollection: Record<string, ReportActions> = {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
-                    [actionId]: parentAction,
-                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
             };
 
             const name = computeReportName(
@@ -925,9 +900,7 @@ describe('ReportNameUtils', () => {
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
             const reportActionsCollection: Record<string, ReportActions> = {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
-                    [actionId]: parentAction,
-                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
             };
 
             const name = computeReportName(
@@ -962,9 +935,7 @@ describe('ReportNameUtils', () => {
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
             const reportActionsCollection: Record<string, ReportActions> = {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
-                    [actionId]: parentAction,
-                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
             };
 
             const name = computeReportName(
@@ -1000,9 +971,7 @@ describe('ReportNameUtils', () => {
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
             const reportActionsCollection: Record<string, ReportActions> = {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
-                    [actionId]: parentAction,
-                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
             };
 
             const name = computeReportName(
@@ -1171,9 +1140,7 @@ describe('ReportNameUtils', () => {
                 reportName: undefined,
             };
             const reportNameValuePairs = {
-                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: {
-                    private_isArchived: 'true',
-                },
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: {private_isArchived: 'true'},
             } as Record<string, ReportNameValuePairs>;
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
@@ -1197,12 +1164,7 @@ describe('ReportNameUtils', () => {
                 ...createRegularChat(1000, [currentUserAccountID, 1, 2]),
             };
 
-            const name = buildReportNameFromParticipantNames({
-                report,
-                personalDetailsList: participantsPersonalDetails,
-                currentUserAccountID,
-                translate: translateLocal,
-            });
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal});
             expect(name).toBe('Ragnar, floki@vikings.net');
         });
 
@@ -1211,32 +1173,19 @@ describe('ReportNameUtils', () => {
                 ...createRegularChat(1001, [currentUserAccountID, 1]),
             };
 
-            const name = buildReportNameFromParticipantNames({
-                report,
-                personalDetailsList: participantsPersonalDetails,
-                currentUserAccountID,
-                translate: translateLocal,
-            });
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal});
             expect(name).toBe('Ragnar Lothbrok');
         });
 
         test('resolves a hidden participant name through the provided translate function', () => {
             const hiddenAccountID = 987654;
-            const report = {
-                ...createRegularChat(1002, [currentUserAccountID, hiddenAccountID]),
-            };
+            const report = {...createRegularChat(1002, [currentUserAccountID, hiddenAccountID])};
             // The lone remaining participant has empty personal details, so its name resolves via translate('common.hidden').
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
             const name = buildReportNameFromParticipantNames({
                 report,
-                personalDetailsList: {
-                    [hiddenAccountID]: {
-                        accountID: hiddenAccountID,
-                        login: '',
-                        displayName: '',
-                    },
-                },
+                personalDetailsList: {[hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''}},
                 currentUserAccountID,
                 translate: translateWithHiddenMarker,
             });
@@ -1246,15 +1195,10 @@ describe('ReportNameUtils', () => {
 
     describe('Invoice naming helpers', () => {
         test('Invoice room uses policy name when current user is receiver', () => {
-            const receiverPolicy = {
-                name: 'Personal Workspace',
-            } as unknown as Policy;
+            const receiverPolicy = {name: 'Personal Workspace'} as unknown as Policy;
             const report: Report = {
                 reportID: 'invoice-chat-1',
-                invoiceReceiver: {
-                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
-                    accountID: currentUserAccountID,
-                },
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: currentUserAccountID},
                 policyName: 'Personal Workspace',
             };
 
@@ -1274,10 +1218,7 @@ describe('ReportNameUtils', () => {
             const receiverPolicy = {name: 'Vendor Workspace'} as unknown as Policy;
             const report: Report = {
                 reportID: 'invoice-chat-2',
-                invoiceReceiver: {
-                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
-                    accountID: 1,
-                },
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
                 policyName: 'Vendor Workspace',
             };
 
@@ -1297,10 +1238,7 @@ describe('ReportNameUtils', () => {
         test('Invoice payer name falls back to provided personal details', () => {
             const report: Report = {
                 reportID: 'invoice-chat-3',
-                invoiceReceiver: {
-                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
-                    accountID: 1,
-                },
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
             };
             const name = getInvoicePayerName(report, translateLocal, undefined, null);
 
@@ -1312,10 +1250,7 @@ describe('ReportNameUtils', () => {
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
             const report: Report = {
                 reportID: 'invoice-chat-4',
-                invoiceReceiver: {
-                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
-                    accountID: 424242,
-                },
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 424242},
             };
 
             const name = getInvoicesChatName({
@@ -1334,10 +1269,7 @@ describe('ReportNameUtils', () => {
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
             const report: Report = {
                 reportID: 'invoice-chat-5',
-                invoiceReceiver: {
-                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
-                    accountID: 424242,
-                },
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 424242},
             };
 
             const name = getInvoicePayerName(report, translateWithHiddenMarker, undefined, null);
@@ -1351,10 +1283,7 @@ describe('ReportNameUtils', () => {
             const report: Report = {
                 reportID: 'invoice-chat-6',
                 // Current user is the receiver but the policy cannot be resolved, so the name falls back to the unavailable label.
-                invoiceReceiver: {
-                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
-                    accountID: currentUserAccountID,
-                },
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: currentUserAccountID},
             };
 
             const name = getInvoicesChatName({
@@ -1375,10 +1304,7 @@ describe('ReportNameUtils', () => {
             const report: Report = {
                 reportID: 'invoice-chat-7',
                 // Business receiver with no resolvable receiver policy falls back to the unavailable label.
-                invoiceReceiver: {
-                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
-                    policyID: 'missing-policy',
-                },
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID: 'missing-policy'},
             };
 
             const name = getInvoicesChatName({
@@ -1399,10 +1325,7 @@ describe('ReportNameUtils', () => {
             const report: Report = {
                 reportID: 'invoice-chat-8',
                 // Business receiver with no resolvable policy falls back to the unavailable label.
-                invoiceReceiver: {
-                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
-                    policyID: 'missing-policy',
-                },
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID: 'missing-policy'},
             };
 
             const name = getInvoicePayerName(report, translateWithUnavailableMarker, undefined, null);
@@ -1418,11 +1341,7 @@ describe('ReportNameUtils', () => {
                 reportName: 'Fallback Report Name',
             } as unknown as Report;
 
-            const name = getPolicyExpenseChatName({
-                report,
-                personalDetailsList: participantsPersonalDetails,
-                translate: translateLocal,
-            });
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'Ragnar Lothbrok'));
         });
 
@@ -1432,11 +1351,7 @@ describe('ReportNameUtils', () => {
                 reportName: 'Fallback Report Name',
             } as unknown as Report;
 
-            const name = getPolicyExpenseChatName({
-                report,
-                personalDetailsList: participantsPersonalDetails,
-                translate: translateLocal,
-            });
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'floki'));
         });
 
@@ -1446,28 +1361,17 @@ describe('ReportNameUtils', () => {
                 reportName: 'Fallback Report Name',
             } as unknown as Report;
 
-            const name = getPolicyExpenseChatName({
-                report,
-                personalDetailsList: {},
-                translate: translateLocal,
-            });
+            const name = getPolicyExpenseChatName({report, personalDetailsList: {}, translate: translateLocal});
             expect(name).toBe('Fallback Report Name');
         });
 
         it('builds the policy expense chat name through the provided translate function', () => {
-            const report = createMock<Report>({
-                ownerAccountID: 1,
-                reportName: 'Fallback Report Name',
-            });
+            const report = createMock<Report>({ownerAccountID: 1, reportName: 'Fallback Report Name'});
             // The workspace.common.policyExpenseChatName label is produced by the provided translate function.
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
                 path === 'workspace.common.policyExpenseChatName' ? `PolicyMarker:${String(parameters.at(0))}` : translateLocal(path, ...parameters);
 
-            const name = getPolicyExpenseChatName({
-                report,
-                personalDetailsList: participantsPersonalDetails,
-                translate: translateWithMarker,
-            });
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateWithMarker});
             expect(name).toBe('PolicyMarker:Ragnar Lothbrok');
         });
     });
@@ -1592,13 +1496,7 @@ describe('ReportNameUtils', () => {
         it('resolves the payer name through the provided translate function for an IOU report', async () => {
             const hiddenManagerAccountID = 780060;
             // The manager has no displayName/login, so the payer name resolves to the hidden label provided by translate.
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [hiddenManagerAccountID]: {
-                    accountID: hiddenManagerAccountID,
-                    login: '',
-                    displayName: '',
-                },
-            });
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[hiddenManagerAccountID]: {accountID: hiddenManagerAccountID, login: '', displayName: ''}});
             await waitForBatchedUpdates();
             const iouReport: Report = {
                 reportID: '780061',
