@@ -394,7 +394,7 @@ function TransactionGroupListExpandedImpl({
                         onPress={onShowMoreButtonPress}
                         isNested
                         size={CONST.BUTTON_SIZE.MEDIUM}
-                        innerStyles={[styles.ph3]}
+                        innerStyles={[styles.ph2]}
                     >
                         <LinkButton.Text style={[styles.fontSizeNormal]}>{translate('common.showMore')}</LinkButton.Text>
                     </LinkButton>
