@@ -127,10 +127,8 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
 
     const agentAvatar = avatarSource ? (
         <UserAvatar
-            containerStyles={avatarStyle}
-            imageStyles={[styles.alignSelfCenter, avatarStyle]}
             source={avatarSource}
-            size={CONST.AVATAR_SIZE.X_LARGE}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
             accountID={CONST.DEFAULT_NUMBER_ID}
         />
     ) : null;
@@ -165,7 +163,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                             text={translate('addAgentPage.editAvatar')}
                             avatar={agentAvatar}
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR)}
-                            avatarStyle={avatarStyle}
+                            avatarStyle={styles.alignSelfCenter}
                             editIcon={expensifyIcons.Pencil}
                             editIconStyle={styles.smallEditIconAccount}
                             sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}

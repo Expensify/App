@@ -198,7 +198,7 @@ function WorkspaceConfirmationForm({
                         setAvatarFile(undefined);
                         setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
+                    avatarStyle={styles.alignSelfCenter}
                     editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter, styles.ph5]}

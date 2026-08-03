@@ -261,8 +261,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const workspaceAvatar = (
         <WorkspaceAvatar
-            containerStyles={styles.avatarXxxxLarge}
-            imageStyles={[styles.avatarXxxxLarge, styles.alignSelfCenter]}
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
             source={policy?.avatarURL || getDefaultWorkspaceAvatar(policyName)}
             size={CONST.AVATAR_SIZE.XXXX_LARGE}
@@ -520,7 +518,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         }}
                         source={policy?.avatarURL ?? ''}
                         avatar={workspaceAvatar}
-                        avatarStyle={styles.avatarXxxxLarge}
                         enablePreview
                         style={[(policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout) ? styles.mb1 : styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                         editIconStyle={styles.smallEditIconWorkspace}

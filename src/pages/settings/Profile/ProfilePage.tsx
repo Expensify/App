@@ -253,16 +253,14 @@ function ProfilePage() {
                                                 text={translate('avatarWithImagePicker.editImage')}
                                                 avatar={
                                                     <UserAvatar
-                                                        containerStyles={avatarStyle}
-                                                        imageStyles={[styles.alignSelfCenter, avatarStyle]}
                                                         source={avatarURL}
-                                                        size={CONST.AVATAR_SIZE.X_LARGE}
+                                                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                                         accountID={accountID}
                                                         fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                                                     />
                                                 }
                                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
-                                                avatarStyle={avatarStyle}
+                                                avatarStyle={styles.alignSelfStart}
                                                 pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                                 editIconStyle={styles.profilePageAvatar}
                                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AVATAR}

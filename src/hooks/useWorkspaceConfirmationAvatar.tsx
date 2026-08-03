@@ -6,15 +6,9 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-import useThemeStyles from './useThemeStyles';
-
 function useWorkspaceConfirmationAvatar({policyID, source, name}: {policyID: string | undefined; source?: AvatarSource; name: string}) {
-    const styles = useThemeStyles();
-
     return (
         <WorkspaceAvatar
-            containerStyles={styles.avatarXLarge}
-            imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
             source={source}
             size={CONST.AVATAR_SIZE.XXXX_LARGE}
             name={name}

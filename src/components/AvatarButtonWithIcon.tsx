@@ -12,6 +12,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {RefObject} from 'react';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -36,6 +37,9 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
 
     /** The avatar to display. */
     avatar: React.ReactNode;
+
+    /** Size of the displayed avatar. Keeps the button footprint even when `avatar` is empty. */
+    size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Additional style props for disabled picker */
     disabledStyle?: StyleProp<ViewStyle>;
@@ -63,6 +67,7 @@ function AvatarButtonWithIcon({
     text,
     onPress,
     avatar,
+    size = CONST.AVATAR_SIZE.XXXX_LARGE,
     avatarStyle,
     disabled = false,
     editIcon,
@@ -71,6 +76,7 @@ function AvatarButtonWithIcon({
 }: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
 
     return (
@@ -84,7 +90,7 @@ function AvatarButtonWithIcon({
                 accessibilityLabel={text}
                 disabled={disabled}
                 disabledStyle={disabledStyle}
-                style={[styles.pRelative, avatarStyle]}
+                style={[styles.pRelative, StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size)), avatarStyle]}
                 ref={anchorRef}
                 sentryLabel={sentryLabel}
             >

@@ -93,6 +93,7 @@ function AvatarWithImagePicker({
     onErrorClose = () => {},
     source = '',
     avatar,
+    size,
     isUsingDefaultAvatar = false,
     onImageSelected = () => {},
     onImageRemoved = () => {},
@@ -243,6 +244,7 @@ function AvatarWithImagePicker({
                                     <AvatarButtonWithIcon
                                         text={translate('avatarWithImagePicker.editImage')}
                                         avatar={avatar}
+                                        size={size}
                                         onPress={() => onPressAvatar(openPicker)}
                                         avatarStyle={avatarStyle}
                                         pendingAction={pendingAction}

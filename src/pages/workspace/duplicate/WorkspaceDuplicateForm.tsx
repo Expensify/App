@@ -112,7 +112,7 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
                         setAvatarFile(undefined);
                         setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    avatarStyle={[styles.avatarXxxxLarge, styles.alignSelfCenter]}
+                    avatarStyle={styles.alignSelfCenter}
                     editIcon={expensifyIcons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter, styles.ph5]}

@@ -65,23 +65,18 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
 
         if (canEditRoomAvatar) {
             const avatarSource = icon.source || report.avatarUrl;
-            const avatarStyles = [styles.avatarXLarge, styles.alignSelfCenter];
             const avatarForIconType =
                 icon.type === CONST.ICON_TYPE_WORKSPACE ? (
                     <WorkspaceAvatar
-                        containerStyles={avatarStyles}
-                        imageStyles={avatarStyles}
                         source={avatarSource}
-                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                         name={icon.name ?? ''}
                         avatarID={icon.id ?? CONST.DEFAULT_NUMBER_ID}
                     />
                 ) : (
                     <UserAvatar
-                        containerStyles={avatarStyles}
-                        imageStyles={avatarStyles}
                         source={avatarSource}
-                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                         accountID={getAccountIDFromAvatarID(icon.id)}
                         fallbackIcon={icon.fallbackIcon}
                     />
@@ -93,7 +88,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                     source={avatarSource}
                     avatar={roomAvatar}
                     isUsingDefaultAvatar={!report.avatarUrl || isDefaultAvatar(icon.source)}
-                    avatarStyle={avatarStyles}
+                    avatarStyle={styles.alignSelfCenter}
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                     onImageRemoved={() => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl)}
                     onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl, file)}

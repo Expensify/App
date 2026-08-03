@@ -86,10 +86,8 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
     const groupAvatarSource = stashedLocalAvatarImage ?? getDefaultGroupAvatar(optimisticReportID.current);
     const groupAvatar = groupAvatarSource ? (
         <UserAvatar
-            containerStyles={styles.avatarXLarge}
-            imageStyles={[styles.alignSelfCenter, styles.avatarXLarge]}
             source={groupAvatarSource}
-            size={CONST.AVATAR_SIZE.X_LARGE}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
             accountID={CONST.DEFAULT_NUMBER_ID}
         />
     ) : null;
@@ -109,7 +107,7 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
                         setAvatarFile(undefined);
                         setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    avatarStyle={[styles.avatarXxxxLarge, styles.alignSelfCenter]}
+                    avatarStyle={styles.alignSelfCenter}
                     editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     style={styles.w100}

@@ -843,10 +843,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         const groupChatAvatarSource = groupChatIcon?.source;
         const groupChatAvatar = groupChatAvatarSource ? (
             <UserAvatar
-                containerStyles={styles.avatarXLarge}
-                imageStyles={[styles.alignSelfCenter, styles.avatarXLarge]}
                 source={groupChatAvatarSource}
-                size={CONST.AVATAR_SIZE.X_LARGE}
+                size={CONST.AVATAR_SIZE.XXXX_LARGE}
                 accountID={getAccountIDFromAvatarID(groupChatIcon?.id)}
                 fallbackIcon={groupChatIcon?.fallbackIcon}
             />
@@ -857,7 +855,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 source={groupChatAvatarSource}
                 avatar={groupChatAvatar}
                 isUsingDefaultAvatar={!report.avatarUrl}
-                avatarStyle={[styles.avatarXxxxLarge, styles.alignSelfCenter]}
+                avatarStyle={styles.alignSelfCenter}
                 onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                 onImageRemoved={() => {
                     // Calling this without a file will remove the avatar
@@ -880,7 +878,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         icons,
         report,
         styles.alignSelfCenter,
-        styles.avatarXxxxLarge,
         styles.smallEditIconAccount,
         styles.mt6,
         styles.w100,

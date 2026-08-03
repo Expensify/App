@@ -88,13 +88,10 @@ function EditAgentPage({route}: EditAgentPageProps) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS)} />;
     }
 
-    const avatarStyles = [styles.avatarXLarge, styles.alignSelfCenter];
     const agentAvatar = personalDetails?.avatar ? (
         <UserAvatar
-            containerStyles={avatarStyles}
-            imageStyles={avatarStyles}
             source={personalDetails.avatar}
-            size={CONST.AVATAR_SIZE.X_LARGE}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
             accountID={accountID}
         />
     ) : null;
@@ -120,7 +117,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
                             text={translate('editAgentAvatarPage.title')}
                             avatar={agentAvatar}
                             onPress={handleEditAvatarPress}
-                            avatarStyle={avatarStyles}
+                            avatarStyle={styles.alignSelfCenter}
                             pendingAction={personalDetails?.pendingFields?.avatar}
                             sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.AVATAR}
                             editIconStyle={styles.smallEditIconAccount}
