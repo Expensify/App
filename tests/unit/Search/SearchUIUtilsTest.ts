@@ -6955,6 +6955,49 @@ describe('SearchUIUtils', () => {
             expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['group_large', 'group_small', 'group_domestic']);
         });
 
+        it('should sort expense reports by each conversion amount, leaving the reports that did not convert at the empty end', () => {
+            const withConversion = (keyForList: string, debitedAmount?: number, creditedAmount?: number) =>
+                createMock<TransactionReportGroupListItemType>({
+                    groupedBy: 'expense-report',
+                    keyForList,
+                    reportID: keyForList,
+                    created: '2025-08-12 17:11:22',
+                    currency: 'USD',
+                    transactions: [],
+                    ...(debitedAmount ? {debitedAmount, debitedCurrency: 'GBP'} : {}),
+                    ...(creditedAmount ? {creditedAmount, creditedCurrency: 'USD'} : {}),
+                });
+            const domestic = withConversion('report_domestic');
+            const smallConversion = withConversion('report_small', 1694, 2000);
+            const largeConversion = withConversion('report_large', 32200, 40000);
+            // Debited the most but reimbursed the least, so the two sides rank the reports differently
+            const reversedConversion = withConversion('report_reversed', 90000, 100);
+            const reports = [smallConversion, domestic, largeConversion, reversedConversion];
+
+            const sortReports = (sortBy: SearchColumnType, sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [...reports], localeCompare, translateLocal, sortBy, sortOrder).map((report) => report.keyForList);
+
+            expect(sortReports(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED, CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['report_domestic', 'report_small', 'report_large', 'report_reversed']);
+            expect(sortReports(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual([
+                'report_reversed',
+                'report_large',
+                'report_small',
+                'report_domestic',
+            ]);
+            expect(sortReports(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual([
+                'report_domestic',
+                'report_reversed',
+                'report_small',
+                'report_large',
+            ]);
+            expect(sortReports(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual([
+                'report_large',
+                'report_small',
+                'report_reversed',
+                'report_domestic',
+            ]);
+        });
+
         it('should sort category group data when type is EXPENSE and groupBy is category', () => {
             expect(
                 SearchUIUtils.getSortedSections(
