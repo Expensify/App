@@ -137,6 +137,7 @@ import {
     getOriginalMessage,
     isCreatedAction,
     isDeletedAction,
+    isExportedToIntegrationAction,
     isHoldAction,
     isMoneyRequestAction,
     isReportActionVisible,
@@ -428,7 +429,6 @@ const expenseStatusActionMapping: Record<string, ExpenseStatusPredicate> = {
 const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
     CONST.SEARCH.TABLE_COLUMNS.TYPE,
-    CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
     CONST.SEARCH.TABLE_COLUMNS.ACTION,
     CONST.SEARCH.TABLE_COLUMNS.IN,
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
@@ -748,7 +748,11 @@ function getSuggestedSearches(
     defaultFeedID?: string,
     shouldShowExpensifyCard?: boolean,
     topSpendersPolicyIDs: string[] = [],
+    activeExpensifyCardFeedID?: string,
 ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
+    // Card accruals (UNAPPROVED_CARD) defaults to the active workspace's Expensify Card when it has one,
+    // falling back to the company/bank feed otherwise. Other feed-based searches keep using `defaultFeedID`.
+    const unapprovedCardFeedID = activeExpensifyCardFeedID ?? defaultFeedID;
     return {
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -936,7 +940,7 @@ function getSuggestedSearches(
             icon: 'CreditCardHourglass',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                feed: defaultFeedID ? [defaultFeedID] : [''],
+                feed: unapprovedCardFeedID ? [unapprovedCardFeedID] : [''],
                 groupBy: CONST.SEARCH.GROUP_BY.CARD,
                 status: [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED, CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
             }),
@@ -1464,6 +1468,33 @@ type ShouldShowYearResult = {
 
 /**
  * @private
+ * Returns the name of the destination an export action exported a report to, e.g. "NetSuite", "Xero" or the name of
+ * the CSV template that was used. Exports that don't carry a label (OldDot CSV exports) fall back to the default CSV name.
+ */
+function getExportedToNameForAction(action: OnyxTypes.ReportAction): string {
+    if (isExportedToIntegrationAction(action)) {
+        return getOriginalMessage(action)?.label ?? '';
+    }
+    return CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV;
+}
+
+/**
+ * @private
+ * Builds the "Exported to" sort value of a report: every destination it was exported to, sorted alphabetically and
+ * joined. The backend sorts this column by export name, so we sort on the names too instead of only on whether the
+ * report was exported. Using every destination (not just the latest export) keeps reports that were exported to the
+ * same set of destinations, and therefore show the same icons, next to each other.
+ */
+function getExportedToSortValue(exportedToNamesByReportID: Map<string, Set<string>>, reportID?: string): string {
+    const names = reportID ? exportedToNamesByReportID.get(reportID) : undefined;
+    if (!names) {
+        return '';
+    }
+    return Array.from(names).sort().join(', ');
+}
+
+/**
+ * @private
  * Builds a map of the last exported action by report ID for efficient lookups
  */
 function buildLastExportedActionByReportIDMap(data: OnyxTypes.SearchResults['data']): Map<string, OnyxTypes.ReportAction> {
@@ -1763,6 +1794,7 @@ type PreprocessingContext = {
     violations: Record<string, OnyxTypes.TransactionViolation[] | undefined>;
     shouldShowMerchant: boolean;
     lastExportedActionByReportID: Map<string, OnyxTypes.ReportAction>;
+    exportedToNamesByReportID: Map<string, Set<string>>;
     firstApprovedActionByReportID: Map<string, OnyxTypes.ReportAction>;
     moneyRequestReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
     holdReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
@@ -1789,6 +1821,7 @@ function createPreprocessingContext(): PreprocessingContext {
         violations: {},
         shouldShowMerchant: false,
         lastExportedActionByReportID: new Map(),
+        exportedToNamesByReportID: new Map(),
         firstApprovedActionByReportID: new Map(),
         moneyRequestReportActionsByTransactionID: new Map(),
         holdReportActionsByTransactionID: new Map(),
@@ -1829,6 +1862,13 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
             if (currentTime > latestExportTime) {
                 latestExportTime = currentTime;
                 latestExportAction = action;
+            }
+
+            const exportedToName = getExportedToNameForAction(action);
+            if (exportedToName) {
+                const exportedToNames = ctx.exportedToNamesByReportID.get(reportID) ?? new Set<string>();
+                exportedToNames.add(exportedToName);
+                ctx.exportedToNamesByReportID.set(reportID, exportedToNames);
             }
         }
 
@@ -2137,6 +2177,7 @@ function getTransactionsSections({
         violations: allViolations,
         shouldShowMerchant,
         lastExportedActionByReportID,
+        exportedToNamesByReportID,
         moneyRequestReportActionsByTransactionID,
         holdReportActionsByTransactionID,
         shouldShowYearCreated,
@@ -2250,6 +2291,7 @@ function getTransactionsSections({
                 approved,
                 posted,
                 exported: transactionItem.reportID ? (lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '') : '',
+                exportedTo: getExportedToSortValue(exportedToNamesByReportID, transactionItem.reportID),
                 shouldShowMerchant,
                 shouldShowYear: shouldShowYearCreated,
                 shouldShowYearSubmitted,
@@ -2872,6 +2914,7 @@ function getReportSections({
         violations: allViolations,
         shouldShowMerchant,
         lastExportedActionByReportID,
+        exportedToNamesByReportID,
         firstApprovedActionByReportID,
         moneyRequestReportActionsByTransactionID,
         holdReportActionsByTransactionID,
@@ -2974,6 +3017,7 @@ function getReportSections({
                     from: (fromDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     to: (toDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     exported: lastExportedActionByReportID.get(reportItem.reportID)?.created ?? '',
+                    exportedTo: getExportedToSortValue(exportedToNamesByReportID, reportItem.reportID),
                     firstApproved,
                     firstApproverAvatar: firstApproverDetails?.avatar,
                     firstApproverAccountID,
@@ -3058,6 +3102,7 @@ function getReportSections({
                 formattedMerchant,
                 date,
                 exported: transactionItem.reportID ? (lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '') : '',
+                exportedTo: getExportedToSortValue(exportedToNamesByReportID, transactionItem.reportID),
                 shouldShowMerchant,
                 shouldShowYear: shouldShowYearCreated || shouldShowYearCreatedReport,
                 shouldShowYearSubmitted,
@@ -3957,8 +4002,10 @@ function getSortedTransactionData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO) {
         return data.sort((a, b) => {
-            const aValue = `${!!a.exported}`;
-            const bValue = `${!!b.exported}`;
+            // Sort by the name of the export destination, matching the backend. compareValues keeps rows that were
+            // never exported (empty value) at the top when ascending and at the bottom when descending.
+            const aValue = a.exportedTo ?? '';
+            const bValue = b.exportedTo ?? '';
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
@@ -4196,8 +4243,10 @@ function getSortedReportData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO) {
         return data.sort((a, b) => {
-            const aValue = `${!!a.exported}`;
-            const bValue = `${!!b.exported}`;
+            // Sort by the name of the export destination, matching the backend. compareValues keeps rows that were
+            // never exported (empty value) at the top when ascending and at the bottom when descending.
+            const aValue = a.exportedTo ?? '';
+            const bValue = b.exportedTo ?? '';
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
@@ -4625,6 +4674,7 @@ type TypeMenuSectionsParams = {
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>;
     isOffline: boolean;
     defaultExpensifyCard: CardFeedForDisplay | undefined;
+    activeExpensifyCardFeedID?: string;
     draftTransactionIDs: string[] | undefined;
     isTrackIntentUser: boolean;
     hasReportAwaitingApproval?: boolean;
@@ -4640,6 +4690,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         savedSearches,
         isOffline,
         defaultExpensifyCard,
+        activeExpensifyCardFeedID,
         draftTransactionIDs,
         isTrackIntentUser,
         hasReportAwaitingApproval = false,
@@ -4652,7 +4703,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         shouldShowExpensifyCard,
         topSpendersPolicyIDs,
     } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval, isTrackIntentUser);
-    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard, topSpendersPolicyIDs);
+    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard, topSpendersPolicyIDs, activeExpensifyCardFeedID);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
 
@@ -4860,7 +4911,7 @@ function isSearchPending(searchResults: SearchResults | undefined) {
 }
 
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
-    const queryJSONHash =
+    const responseAdjustedQueryHash =
         queryJSON && searchResults?.search
             ? getQueryHashes({
                   ...queryJSON,
@@ -4869,12 +4920,17 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
               }).primaryHash
             : queryJSON?.hash;
     const state = searchResults?.search?.state;
-    // A response can finish without writing data or errors, so `loaded` and `error` also count as resolved.
+    // A response can finish without writing data or errors, so `loaded` also counts as resolved.
     // The type and hash checks below keep results from an earlier query out.
-    const isTerminal = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED || state === CONST.SEARCH.SNAPSHOT_STATE.ERROR;
+    const isTerminal = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED;
     const hasResolved = searchResults?.data != null || searchResults?.errors != null || isTerminal;
+    const hasResponseSortMetadata = searchResults?.search?.sortBy !== undefined && searchResults.search.sortOrder !== undefined;
+    const hasMatchingRequestedHash = searchResults?.search?.hash === queryJSON?.hash;
+    // finallyData stores the requested hash when the request settles, so it remains authoritative even when cached data or old sort metadata remain.
+    const canUseRequestedHash = isTerminal || !hasResponseSortMetadata;
+    const hasMatchingHash = (canUseRequestedHash && hasMatchingRequestedHash) || searchResults?.search?.hash === responseAdjustedQueryHash;
 
-    return hasResolved && searchResults?.search?.type === queryJSON?.type && searchResults?.search?.hash === queryJSONHash;
+    return hasResolved && searchResults?.search?.type === queryJSON?.type && hasMatchingHash;
 }
 
 function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.GROUP_BY> | undefined {
