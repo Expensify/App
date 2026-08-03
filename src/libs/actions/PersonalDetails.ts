@@ -724,19 +724,6 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
                 },
             },
         ],
-        failureData: [
-            {
-                // An incorrect magic code comes back as a command-level failure; surface it on the validate-code form the
-                // same way the rest of the flow reads its errors from Onyx.
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.VALIDATE_ACTION_CODE,
-                value: {
-                    errorFields: {
-                        [CONST.MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('validateCodeForm.error.incorrectSecurityCode'),
-                    },
-                },
-            },
-        ],
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
