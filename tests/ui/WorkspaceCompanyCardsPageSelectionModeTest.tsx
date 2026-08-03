@@ -1,6 +1,11 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import WorkspaceCompanyCardsPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsPage';
+
+import SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
@@ -91,11 +96,19 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 
 jest.mock('@hooks/useWorkspaceDocumentTitle', () => jest.fn());
 
-jest.mock('@libs/actions/MobileSelectionMode', () => ({turnOffMobileSelectionMode: () => mockTurnOffMobileSelectionMode()}));
+jest.mock('@libs/actions/MobileSelectionMode', () => ({
+    turnOffMobileSelectionMode: () => {
+        mockTurnOffMobileSelectionMode();
+    },
+}));
 jest.mock('@libs/CardUtils', () => ({getDomainOrWorkspaceAccountID: () => 123}));
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
-    default: {goBack: () => mockGoBack()},
+    default: {
+        goBack: () => {
+            mockGoBack();
+        },
+    },
 }));
 jest.mock('@libs/PolicyUtils', () => ({
     canMemberWrite: () => true,
@@ -130,6 +143,7 @@ jest.mock('@pages/workspace/WorkspacePageWithSections', () => {
             <Text testID="WorkspaceCompanyCardsPageHeadlineMode">{String(shouldUseHeadlineHeader)}</Text>
             <Pressable
                 testID="WorkspaceCompanyCardsPageBackButton"
+                accessibilityRole="button"
                 onPress={onBackButtonPress}
             />
             {children}
@@ -147,12 +161,16 @@ jest.mock('@src/types/utils/isLoadingOnyxValue', () => ({
     default: () => false,
 }));
 
-const route = {
+type WorkspaceCompanyCardsPageScreenProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
+
+const route: WorkspaceCompanyCardsPageScreenProps['route'] = {
     key: 'workspace-company-cards',
-    name: 'WORKSPACE_COMPANY_CARDS',
+    name: SCREENS.WORKSPACE.COMPANY_CARDS,
     params: {policyID: POLICY_ID},
-} as never;
-const navigation = {} as never;
+};
+// The screen does not read navigation; this inert test double only satisfies the navigator-provided prop.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+const navigation = {} as WorkspaceCompanyCardsPageScreenProps['navigation'];
 
 function getWorkspaceCompanyCardsPage() {
     return (
