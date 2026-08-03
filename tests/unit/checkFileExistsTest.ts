@@ -66,7 +66,7 @@ describe('checkFileExists', () => {
     });
 
     it('should fall back to the raw path when the filename literally contains a % sequence', async () => {
-        // moveReceiptToDurableStorage builds file:// paths from the raw filename without encoding,
+        // stageAttachment builds file:// paths from the raw filename without encoding,
         // so a file literally named "Receipt %23.pdf" must not be decoded to "Receipt #.pdf".
         const rawPath = '/var/mobile/Containers/Receipts-Upload/Receipt %23.pdf';
         mockStat.mockImplementation((candidate: string) => (candidate === rawPath ? Promise.resolve(buildStatResult(true)) : Promise.reject(new Error('File not found'))));
