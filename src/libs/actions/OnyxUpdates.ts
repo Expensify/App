@@ -1,5 +1,6 @@
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READS_SENT_DURING_WRITES, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+import {waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
 import PusherUtils from '@libs/PusherUtils';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 
@@ -48,7 +49,12 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
     Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID});
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
-    const updateHandler: (updates: Array<OnyxUpdate<TKey>>) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
+    // READS_SENT_DURING_WRITES skip the queue wait, so hold their updates until it's idle. queueOnyxUpdates would strand a response
+    // that lands after the queue already drained, since that buffer only flushes when the queue finishes processing.
+    const applyWhenQueueIsIdle = (updates: Array<OnyxUpdate<TKey>>) => waitForSequentialQueueIdle().then(() => Onyx.update(updates));
+    const applyImmediatelyOrWhenIdle = READS_SENT_DURING_WRITES.has(request.command) ? applyWhenQueueIsIdle : Onyx.update;
+    const updateHandler: (updates: Array<OnyxUpdate<TKey>>) => Promise<unknown> =
+        request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : applyImmediatelyOrWhenIdle;
 
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
