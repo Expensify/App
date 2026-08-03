@@ -132,6 +132,9 @@ type Response<TKey extends OnyxKey> = {
 
     /** Human-readable summary of the parsed filters returned by ParseExpenseFilters on success */
     humanReadableSummary?: string;
+
+    /** Cache key returned from GetExpensifyCardStatementPDF */
+    statementKey?: string;
 };
 
 export default Response;

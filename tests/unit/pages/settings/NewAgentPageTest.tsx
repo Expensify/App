@@ -10,7 +10,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import NewAgentPage from '@pages/settings/Agents/NewAgentPage';
 
-import {clearNewAgentTemplate, setNewAgentTemplate} from '@userActions/Agent';
+import {clearNewAgentAvatarDraft, clearNewAgentTemplate, setNewAgentTemplate} from '@userActions/Agent';
 
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -44,6 +44,7 @@ jest.mock('@hooks/useThemeStyles', () =>
 jest.mock('@userActions/Agent', () => ({
     setNewAgentTemplate: jest.fn(() => Promise.resolve()),
     clearNewAgentTemplate: jest.fn(() => Promise.resolve()),
+    clearNewAgentAvatarDraft: jest.fn(() => Promise.resolve()),
     getAgentTemplates: jest.fn(),
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -104,6 +105,7 @@ const mockedUseNetwork = jest.mocked(useNetwork);
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockSetNewAgentTemplate = jest.mocked(setNewAgentTemplate);
 const mockClearNewAgentTemplate = jest.mocked(clearNewAgentTemplate);
+const mockClearNewAgentAvatarDraft = jest.mocked(clearNewAgentAvatarDraft);
 
 type NewAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.NEW>;
 type NewAgentNavigationProp = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.NEW>['navigation'];
@@ -134,6 +136,7 @@ describe('NewAgentPage', () => {
         mockedUseSuggestedAgents.mockReturnValue({data: TEMPLATES, isLoading: false});
         mockSetNewAgentTemplate.mockResolvedValue(undefined);
         mockClearNewAgentTemplate.mockResolvedValue(undefined);
+        mockClearNewAgentAvatarDraft.mockResolvedValue(undefined);
     });
 
     it('always renders the build custom agent button', () => {
@@ -187,7 +190,7 @@ describe('NewAgentPage', () => {
         expect(screen.queryByText('newAgentPage.emptyTemplatesSubtitle')).toBeNull();
     });
 
-    it('stashes the picked template and opens the builder when Add is pressed', async () => {
+    it('stashes the picked template, clears the stale avatar draft and opens the builder when Add is pressed', async () => {
         renderNewAgentPage();
 
         const firstAddButton = screen.getAllByText('common.add').at(0);
@@ -202,17 +205,19 @@ describe('NewAgentPage', () => {
             prompt: 'Reject pricey expenses.',
             avatarID: AGENT_AVATARS.ordered.at(0)?.id,
         });
+        expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
         await waitFor(() => {
             expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD.getRoute());
         });
     });
 
-    it('clears any stashed template and opens a blank builder when Build custom agent is pressed', async () => {
+    it('clears any stashed template and avatar draft and opens a blank builder when Build custom agent is pressed', async () => {
         renderNewAgentPage();
 
         fireEvent.press(screen.getByText('newAgentPage.buildCustomAgent'));
 
         expect(mockClearNewAgentTemplate).toHaveBeenCalledTimes(1);
+        expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
         expect(mockSetNewAgentTemplate).not.toHaveBeenCalled();
         await waitFor(() => {
             expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD.getRoute());
