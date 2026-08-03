@@ -101,18 +101,19 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             return;
         }
         startWithLoading(() => {
-            addReportApprover(
+            addReportApprover({
                 report,
-                selectedApproverEmail,
-                Number(employeeAccountID),
-                currentUserDetails.accountID,
-                currentUserDetails.email ?? '',
+                newApproverEmail: selectedApproverEmail,
+                newApproverAccountID: Number(employeeAccountID),
+                accountID: currentUserDetails.accountID,
+                email: currentUserDetails.email ?? '',
                 policy,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                reportNextStep,
+                reportCurrentNextStepDeprecated: reportNextStep,
                 isTrackIntentUser,
-            );
+                formatPhoneNumber,
+            });
             Navigation.dismissToPreviousRHP();
         });
     };

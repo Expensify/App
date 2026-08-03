@@ -4897,6 +4897,64 @@ describe('ReportActionsUtils', () => {
             );
         });
 
+        it('shows the credited amount and both accounts for a cross-border FX reimbursement', () => {
+            // Given a reimbursed action carrying the credited amount and currency of a cross-border payment
+            const action = buildReimbursedAction({
+                paymentMethod: 'ACH',
+                debitBankAccountLast4: '9999',
+                creditBankAccountLast4: '5678',
+                creditedAmount: 8050,
+                creditedCurrency: 'USD',
+            });
+
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined);
+
+            // Then the message reports the credited amount instead of the report total and names both accounts
+            expect(result).toBe(translateLocal('iou.reimbursedCrossBorder', {amount: '$80.50', debitBankAccount: '9999', creditBankAccount: '5678'}));
+        });
+
+        it('uses the standard wording when a credited amount arrives without its currency', () => {
+            // Given a reimbursed action whose credited amount is missing the currency it is denominated in
+            const action = buildReimbursedAction({
+                paymentMethod: 'ACH',
+                debitBankAccountLast4: '9999',
+                creditBankAccountLast4: '5678',
+                creditedAmount: 8050,
+            });
+
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined);
+
+            // Then we describe the payment without an amount rather than guessing a currency
+            expect(result).toBe(
+                `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '9999')}${translateLocal('iou.reimbursedWithACH', {
+                    creditBankAccount: '5678',
+                    expectedDate: undefined,
+                })}`,
+            );
+        });
+
+        it('keeps the hold-release wording when the submitter adds a bank account for a cross-border payment', () => {
+            // Given a cross-border payment retried because the submitter added a deposit account
+            const action = buildReimbursedAction({
+                paymentMethod: 'ACH',
+                isSubmitterAddingBankAccount: true,
+                debitBankAccountLast4: '9999',
+                creditBankAccountLast4: '5678',
+                creditedAmount: 8050,
+                creditedCurrency: 'USD',
+            });
+
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, 'submitter@expensify.com', undefined);
+
+            // Then the message announces the submitter taking the report off hold rather than the credited amount
+            expect(result).toBe(
+                `${translateLocal('iou.reimbursedSubmitterAddedBankAccount', 'submitter@expensify.com')}${translateLocal('iou.reimbursedWithACH', {
+                    creditBankAccount: '5678',
+                    expectedDate: undefined,
+                })}`,
+            );
+        });
+
         it('shows "your" wording for Fast_ACH when the current user is the report owner', () => {
             const action = buildReimbursedAction({
                 paymentMethod: 'Fast_ACH',
