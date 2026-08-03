@@ -19,15 +19,15 @@ users.forEach(processUser);
 
 doThing(); // cache the result
 
-// Set a specific domain AM — this exercises the domainAccountManagerID === accountID branch
+// Set the pendingAction to ADD — this exercises the optimistic-update branch before the API responds
 
 // When the assigned guide (who is not a policy admin) comments, then it succeeds
 
 // the not-yet-validated user-supplied bank-account number
 
-// peek -> process transition
+// persisted -> processing transition
 
-// retry once; the endpoint is flaky
+// retry once; the token had expired
 ```
 
 ### Correct
@@ -41,15 +41,15 @@ users.forEach(processUser);
 // cache the result
 doThing();
 
-// Set a specific domain AM to go through the domainAccountManagerID === accountID branch
+// Set the pendingAction to ADD to go through the optimistic-update branch before the API responds
 
 // The assigned guide isn't a policy admin, but the comment still succeeds
 
 // the bank account number the user supplied, before validation
 
-// the transition from peek to process
+// SequentialQueue moves the request from persisted to processing
 
-// retry once because the endpoint is flaky
+// retry once because the token had expired
 ```
 
 ---
