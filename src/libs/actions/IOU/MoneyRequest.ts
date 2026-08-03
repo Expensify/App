@@ -181,6 +181,8 @@ function createTransaction({
                     email: currentUserEmail ?? '',
                 },
                 introSelected,
+                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+                conciergeChat: undefined,
                 quickAction,
                 recentWaypoints,
                 betas,
@@ -728,13 +730,13 @@ function setCustomUnitRateID(
     });
 }
 
-function setGPSTransactionDraftData(transactionID: string, gpsDraftDetails: GpsDraftDetails | undefined, distance: number) {
+function setGPSTransactionDraftData(transactionID: string, gpsDraftDetails: GpsDraftDetails | undefined, distance: number, distanceUnit: Unit) {
     const waypoints = getGPSWaypoints(gpsDraftDetails);
     const routes = getGPSRoutes(gpsDraftDetails);
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         comment: {
-            customUnit: {quantity: distance},
+            customUnit: {quantity: distance, distanceUnit},
             waypoints,
         },
         routes,
