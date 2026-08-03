@@ -479,6 +479,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                     effectivePolicy,
                                     isSelfDMSplit,
                                     personalPolicy?.outputCurrency,
+                                    allPolicies,
                                 );
                                 Navigation.goBack(backTo);
                             }}
