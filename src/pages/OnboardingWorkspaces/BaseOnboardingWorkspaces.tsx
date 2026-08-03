@@ -37,7 +37,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingWorkspacesProps} from './types';
@@ -213,7 +213,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 onSelectRow={() => {}}
                 ListItem={BareUserListItem}
                 style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}}
-                shouldShowLoadingPlaceholder={isLoadingJoinablePolicies || joinablePoliciesLoading}
+                shouldShowLoadingPlaceholder={isLoadingJoinablePolicies || joinablePoliciesLoading || policyIDItems.length === 0}
                 shouldStopPropagation
                 showScrollIndicator
                 customListHeader={
