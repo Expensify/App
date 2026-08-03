@@ -22,28 +22,28 @@ import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from '
 import {scheduleOnRN} from 'react-native-worklets';
 
 type AnimatedSubmitButtonProps = WithSentryLabel & {
-    // Submit buttons support the default and success styles; danger is not a valid submit state.
+    /** Submit buttons support the default and success styles; danger is not a valid submit state. */
     variant?: typeof CONST.BUTTON_VARIANT.SUCCESS;
 
-    // Text to show on the button
+    /** Text to show on the button */
     text: string;
 
-    // Function to call when the button is pressed
+    /** Function to call when the button is pressed */
     onPress: () => void;
 
-    // Whether the animation is running
+    /** Whether the animation is running */
     isSubmittingAnimationRunning: boolean;
 
-    // Function to call when the animation finishes
+    /** Function to call when the animation finishes */
     onAnimationFinish: () => void;
 
-    // Whether the button should be disabled
+    /** Whether the button should be disabled */
     isDisabled?: boolean;
 
-    // Whether this is a DEW submission that needs backend validation before showing "Submitted"
+    /** Whether this is a DEW submission that needs backend validation before showing "Submitted" */
     isDEWSubmission?: boolean;
 
-    // The report id for which the button is displayed
+    /** The report id for which the button is displayed */
     reportID?: string;
 
     /** Whether to show "Mark as done" copy instead of "Submit" copy for track-intent users */
