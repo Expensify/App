@@ -3,8 +3,7 @@ import {useIsCompactMenu} from '@components/CompactMenuContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 function useIsCompact() {
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout(); // eslint-disable-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const isCompactMenu = useIsCompactMenu();
     return isCompactMenu && !isSmallScreenWidth;
 }
