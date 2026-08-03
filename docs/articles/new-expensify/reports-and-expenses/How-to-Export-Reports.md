@@ -1,8 +1,8 @@
 ---
 title: How to Export Reports
-description: Learn how to export reports to CSV or download them as PDFs.
-keywords: [New Expensify, export reports, CSV export, PDF download, download report, report export template, bulk export reports, bulk PDF download, report data]
-internalScope: Audience is all members. Covers exporting reports to CSV using export templates (individually and in bulk), and downloading reports as PDF (individually and in bulk). Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
+description: Learn how to export reports to CSV, download them as PDFs, or download their receipts.
+keywords: [New Expensify, export reports, CSV export, PDF download, download report, download receipts, report receipts, receipt zip, report export template, bulk export reports, bulk PDF download, report data]
+internalScope: Audience is all members. Covers exporting reports to CSV using export templates (individually and in bulk), downloading reports as PDF (individually and in bulk), and downloading the receipts on a report. Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
 ---
 
 # How to export reports 
@@ -78,6 +78,18 @@ The PDF includes all expenses, attached receipts, and report notes.
 
 Each report downloads as its own PDF, including all expenses, attached receipts, and report notes.
 
+## How to download the receipts on a report
+
+Use **Download receipts** to download all of the receipts attached to a single report as one zip file.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
+2. Open the report whose receipts you want to download.
+3. Select **More**.
+4. Select **Download receipts**.
+5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
+
+**Download receipts** only appears when at least one expense on the report has a receipt.
+
 ---
 
 # FAQ
@@ -89,6 +101,14 @@ For the Basic Export template, the file downloads directly to your device. For a
 ## What happens if some reports fail to download as PDFs?
 
 When you download multiple reports as PDFs, a message tells you how many of the selected reports were exported. If any reports could not be generated, open your Concierge chat in the **Inbox** to see which reports failed.
+
+## Why don't I see Download receipts on a report?
+
+**Download receipts** only appears in the **More** menu when at least one expense on the report has a receipt attached. If none of the expenses have receipts, the option is hidden.
+
+## What happens if some receipts fail to download?
+
+When you download the receipts on a report, a message tells you how many of the receipts were exported successfully. If some receipts couldn't be included, the zip file still contains the ones that did download.
 
 ## What is the difference between expense-level and report-level export templates?
 
