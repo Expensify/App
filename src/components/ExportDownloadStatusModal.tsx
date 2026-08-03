@@ -67,8 +67,6 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const isConcierge = !!shouldSendFromConcierge;
     const isReady = state === CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
-    // Gate on exportType too: the modal is shared with the PDF export, whose ready state can legitimately have
-    // a zero reportCount — only a receipts export with no receipts should show the "No receipts" message.
     const isEmptyReceipts = isReady && exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS && receiptCount === 0;
 
     // Build the secure download URL the same way downloadReportPDF does, so the host always follows
