@@ -1,7 +1,8 @@
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 
 import {decodeLibraryError, getKeyAlias} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
-import readOnyxValueOnce from '@libs/MultifactorAuthentication/shared/readOnyxValueOnce';
+import waitForAccountDataReady from '@libs/MultifactorAuthentication/shared/waitForAccountDataReady';
+import {readOnyxValueOnce} from '@libs/MultifactorAuthentication/shared/waitForOnyxValue';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,6 +55,7 @@ async function areLocalCredentialsKnownToServer(accountID: number, signal?: Abor
     if (!localCredentialID) {
         return false;
     }
+    await waitForAccountDataReady(signal);
     const account = await readOnyxValueOnce(ONYXKEYS.ACCOUNT, signal);
     return (mfaCredentialIDsSelector(account) ?? []).includes(localCredentialID);
 }

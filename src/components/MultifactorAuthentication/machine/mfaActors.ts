@@ -4,7 +4,7 @@ import {areLocalCredentialsKnownToServer} from '@components/MultifactorAuthentic
 import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import {createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
-import readOnyxValueOnce from '@libs/MultifactorAuthentication/shared/readOnyxValueOnce';
+import {readOnyxValueOnce} from '@libs/MultifactorAuthentication/shared/waitForOnyxValue';
 
 import {getDeviceBiometricsOnyxKey, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 
