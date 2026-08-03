@@ -6225,7 +6225,10 @@ const translations = {
                         subsections: {
                             currentTravelSpendLabel: 'Current travel spend',
                             currentTravelSpendPaymentQueued: (amount: string) => `Payment of ${amount} is queued and will be processed soon.`,
+                            currentTravelSpendInvoiceQueued: 'A new invoice for your travel spend will be created and sent to you soon.',
+                            currentTravelSpendInvoicePending: (amount: string) => `An invoice for ${amount} has been sent and is awaiting payment.`,
                             currentTravelSpendCta: 'Pay balance',
+                            sendInvoiceNowCta: 'Send invoice now',
                             viewOnSpend: 'View on Spend',
                             currentTravelLimitLabel: 'Current travel limit',
                             settlementAccountLabel: 'Settlement account',
@@ -6252,6 +6255,10 @@ const translations = {
                     payBalanceModal: {
                         title: (amount: string) => `Pay balance of ${amount}?`,
                         body: 'The payment will be queued and processed shortly after. This action cannot be undone once started.',
+                    },
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Send invoice for ${amount}?`,
+                        body: "We'll create an invoice for your current travel spend. Your travel limit is freed up once the invoice is paid.",
                     },
                     exportToPDF: 'Export to PDF',
                     exportToCSV: 'Export to CSV',
