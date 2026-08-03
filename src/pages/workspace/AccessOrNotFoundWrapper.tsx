@@ -19,6 +19,7 @@ import {
     canMemberRead,
     canMemberWrite,
     canSendInvoice,
+    isArchivedPolicy,
     isControlPolicy,
     isGroupPolicy,
     isPolicyAccessible,
@@ -50,7 +51,7 @@ import React, {useEffect} from 'react';
 const ACCESS_VARIANTS = {
     [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<Policy>) => isGroupPolicy(policy),
     [CONST.POLICY.ACCESS_VARIANTS.CONTROL]: (policy: OnyxEntry<Policy>) => isControlPolicy(policy),
-    [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<Policy>, login: string) => canEditWorkspaceSettings(policy, login),
+    [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<Policy>, login: string) => canEditWorkspaceSettings(policy, login) && !isArchivedPolicy(policy),
     [CONST.IOU.ACCESS_VARIANTS.CREATE]: (
         policy: OnyxEntry<Policy>,
         login: string,
