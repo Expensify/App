@@ -83,7 +83,7 @@ type MenuSection = {
     items: MenuData[];
 };
 
-function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserPersonalDetails) {
+function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserPersonalDetails): {accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection} {
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons([
         'Bot',
