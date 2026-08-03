@@ -33,23 +33,23 @@ doThing(); // cache the result
 ### Correct
 
 ```tsx
-// we only include active users to avoid reprocessing deactivated ones
+// We only include active users to avoid reprocessing deactivated ones
 users.forEach(processUser);
 
-// rejects malformed input before it reaches the database
+// Rejects malformed input before it reaches the database
 
-// cache the result
+// Cache the result to avoid reading from the database every time
 doThing();
 
 // Set the pendingAction to ADD to go through the optimistic-update branch before the API responds
 
 // The assigned guide isn't a policy admin, but the comment still succeeds
 
-// the bank account number the user supplied, before validation
+// The bank account number the user supplied, before validation
 
 // SequentialQueue moves the request from persisted to processing
 
-// retry once because the token had expired
+// Retry once because the token had expired
 ```
 
 ---
