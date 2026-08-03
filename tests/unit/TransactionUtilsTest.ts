@@ -526,6 +526,8 @@ describe('TransactionUtils', () => {
                 policy: undefined,
                 transactionChanges: {distance: 20},
                 personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             expect(updatedTransaction.routes).toEqual(routes);

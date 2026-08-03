@@ -8946,7 +8946,7 @@ describe('updateSplitExpenseField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, policy, false, undefined);
+        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, policy, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -9065,7 +9065,7 @@ describe('updateSplitExpenseField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, policy, false, undefined);
+        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, policy, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);

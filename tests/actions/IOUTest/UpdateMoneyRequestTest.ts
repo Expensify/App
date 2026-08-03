@@ -1594,6 +1594,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             await waitForBatchedUpdates();
