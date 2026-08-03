@@ -422,7 +422,9 @@ describe('SequentialQueue', () => {
 
             // Go offline while the retry is still sleeping. When it wakes, process() stops on its offline guard.
             offlineSpy.mockReturnValue(true);
-            await new Promise((resolve) => setTimeout(resolve, scheduledWait + 10));
+            await new Promise((resolve) => {
+                setTimeout(resolve, scheduledWait + 10);
+            });
 
             // The next command must start from a fresh count and a floor-range wait rather than inherit this one.
             expect(SequentialQueue.sequentialQueueRequestThrottle.getLastRequestWaitTime()).toBe(0);
