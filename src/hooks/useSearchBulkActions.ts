@@ -2139,7 +2139,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-                    const exportID = exportReceiptsToZip({transactionIDs: selectedTransactionsKeys});
+                    // A group selected before its children load is stored under a group_ key, which is not a real
+                    // transaction ID. Drop those keys so ExportReceiptsToZip only receives valid transaction IDs.
+                    const transactionIDs = selectedTransactionsKeys.filter((key) => !key.startsWith(CONST.SEARCH.GROUP_PREFIX));
+                    if (transactionIDs.length === 0) {
+                        return;
+                    }
+                    const exportID = exportReceiptsToZip({transactionIDs});
                     trackExport(exportID);
                 },
             });
