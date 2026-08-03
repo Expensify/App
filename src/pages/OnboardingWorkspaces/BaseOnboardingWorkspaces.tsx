@@ -221,7 +221,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                                 onPress={() => setShowAll(true)}
                                 innerStyles={styles.ph0}
                             >
-                                <LinkButton.Text style={[styles.fontSizeNormal]}>{translate('common.showMore')}</LinkButton.Text>
+                                <LinkButton.Text style={styles.fontSizeNormal}>{translate('common.showMore')}</LinkButton.Text>
                                 <LinkButton.Icon
                                     src={icons.DownArrow}
                                     fill={theme.link}
