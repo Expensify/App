@@ -605,7 +605,14 @@ function getClearedPendingFields(transactionChanges: TransactionChanges) {
  * Build the distance merchant string (e.g. "5.00 mi @ $0.70 / mi") for a recalculated distance, using the
  * imperative locale accessors the optimistic update paths below have to rely on.
  */
-function getRecalculatedDistanceMerchant(transaction: OnyxEntry<Transaction>, distanceInMeters: number, unit: Unit | undefined, rate: number | undefined, currency: string): string {
+function getRecalculatedDistanceMerchant(
+    transaction: OnyxEntry<Transaction>,
+    distanceInMeters: number,
+    unit: Unit | undefined,
+    rate: number | undefined,
+    currency: string,
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
+): string {
     return DistanceRequestUtils.getDistanceMerchant(
         true,
         distanceInMeters,
@@ -709,7 +716,7 @@ function getUpdatedTransaction({
             // Use the rate's resolved currency (which may come from personalPolicyOutputCurrency for a P2P expense),
             // not transaction.currency, so the merchant symbol/rate and the recalculated amount stay in the same currency.
             const updatedCurrency = mileageRate.currency ?? transaction.currency ?? CONST.CURRENCY.USD;
-            const updatedMerchant = getRecalculatedDistanceMerchant(transaction, distanceInMeters, unit, rate, updatedCurrency);
+            const updatedMerchant = getRecalculatedDistanceMerchant(transaction, distanceInMeters, unit, rate, updatedCurrency, getCurrencySymbol);
 
             updatedTransaction.amount = updatedAmount;
             updatedTransaction.modifiedAmount = updatedAmount;
@@ -784,7 +791,7 @@ function getUpdatedTransaction({
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
-            const updatedMerchant = getRecalculatedDistanceMerchant(transaction, distanceInMeters, unit, rate, updatedCurrency);
+            const updatedMerchant = getRecalculatedDistanceMerchant(transaction, distanceInMeters, unit, rate, updatedCurrency, getCurrencySymbol);
 
             updatedTransaction.amount = updatedAmount;
             updatedTransaction.modifiedAmount = updatedAmount;
@@ -869,7 +876,7 @@ function getUpdatedTransaction({
         let amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
         amount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
         const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
-        const updatedMerchant = getRecalculatedDistanceMerchant(transaction, distanceInMeters, unit, rate, updatedCurrency);
+        const updatedMerchant = getRecalculatedDistanceMerchant(transaction, distanceInMeters, unit, rate, updatedCurrency, getCurrencySymbol);
 
         // No locally resolvable rate (e.g. track expense without policy loaded) → scale the previous
         // amount by the distance ratio so the optimistic value isn't 0. `modifiedAmount` is `""` for
@@ -905,7 +912,7 @@ function getUpdatedTransaction({
 
             updatedTransaction.amount = updatedAmount;
             updatedTransaction.modifiedAmount = updatedAmount;
-            updatedTransaction.modifiedMerchant = getRecalculatedDistanceMerchant(transaction, selectedRouteDistanceInMeters, unit, rate, updatedCurrency);
+            updatedTransaction.modifiedMerchant = getRecalculatedDistanceMerchant(transaction, selectedRouteDistanceInMeters, unit, rate, updatedCurrency, getCurrencySymbol);
             if (getCurrency(updatedTransaction) !== updatedCurrency) {
                 updatedTransaction.modifiedCurrency = updatedCurrency;
             }
