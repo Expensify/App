@@ -698,7 +698,7 @@ function setPersonalDetailsAndRevealExpensifyCard(
     });
 }
 
-function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number, targetCardID: number) {
+function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number) {
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
         ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
         validateCode,
@@ -711,17 +711,6 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
                     isLoading: true,
-                },
-            },
-            {
-                // Clear any RBR left on this card by a previous failed attempt so a successful retry doesn't keep showing a
-                // stale "Unable to ship Expensify Card" error; the backend re-writes it to Onyx only if it fails again.
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.CARD_LIST,
-                value: {
-                    [targetCardID]: {
-                        errors: null,
-                    },
                 },
             },
             {

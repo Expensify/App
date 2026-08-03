@@ -112,7 +112,7 @@ function MissingPersonalDetailsValidateCodePage({
             }
             // The incorrect-magic-code error is written to the validate-code action in Onyx and read back by the form, and a
             // card that fails to ship gets an RBR written to its Onyx entry by the backend, so there is nothing to handle here.
-            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode, Number(cardID));
+            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode);
         },
         [countryCode, values, isVirtualCard, cardID],
     );
