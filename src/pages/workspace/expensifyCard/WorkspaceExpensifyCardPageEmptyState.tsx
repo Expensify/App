@@ -184,6 +184,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     illustrationBackgroundColor={theme.fallbackIconColor}
                     illustration={illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
+                    illustrationContainerStyle={styles.emptyStateCardIllustrationInset}
                     titleStyles={styles.textHeadlineH1}
                     buttonInnerStyles={shouldDisableCTA ? styles.buttonOpacityDisabled : undefined}
                     buttonHoverStyles={shouldDisableCTA ? styles.buttonOpacityDisabled : undefined}
