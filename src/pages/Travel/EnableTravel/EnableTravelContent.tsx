@@ -1,0 +1,212 @@
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
+import ScreenWrapper from '@components/ScreenWrapper';
+
+import useLocalize from '@hooks/useLocalize';
+import useSubPage from '@hooks/useSubPage';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {setTravelProvisioningEnabledSteps} from '@libs/actions/Travel';
+import Navigation from '@libs/Navigation/Navigation';
+import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
+import {getAdminsPrivateEmailDomains, isNonUSDPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import type {Account, Policy, PrivatePersonalDetails, TravelProvisioning} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
+import type {EnableTravelSubPageProps} from './types';
+
+import DomainSelectorStep from './subPages/DomainSelectorStep';
+import LegalNameStep from './subPages/LegalNameStep';
+import TaxIDStep from './subPages/TaxIDStep';
+import TermsStep from './subPages/TermsStep';
+import WorkspaceAddressStep from './subPages/WorkspaceAddressStep';
+
+const STEP_COMPONENT_BY_PAGE_NAME: Record<string, typeof LegalNameStep> = {
+    [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME]: LegalNameStep,
+    [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR]: DomainSelectorStep,
+    [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS]: WorkspaceAddressStep,
+    [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID]: TaxIDStep,
+    [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS]: TermsStep,
+};
+
+type EnableTravelContentProps = {
+    /** The workspace being enabled for travel */
+    policy: OnyxEntry<Policy>;
+
+    /** ID of the workspace being enabled for travel */
+    policyID: string;
+
+    /** The current user's account, used to check validation status */
+    account: OnyxEntry<Account>;
+
+    /** The current user's private personal details, used to detect a missing legal name */
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
+
+    /** Persisted provisioning session state (frozen step list, selected domain, tax ID) */
+    travelProvisioning: OnyxEntry<TravelProvisioning>;
+};
+
+function EnableTravelContent({policy, policyID, account, privatePersonalDetails, travelProvisioning}: EnableTravelContentProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const route = useRoute();
+
+    const isProvisioned = isWorkspaceProvisionedForTravel(policy?.travelSettings);
+    const adminDomains = getAdminsPrivateEmailDomains(policy);
+    const legalNameMissing = areTravelPersonalDetailsMissing(privatePersonalDetails);
+    const needsDomainSelector = !isProvisioned && adminDomains.length > 1;
+    const needsAddress = !isProvisioned && isEmptyObject(policy?.address);
+    const needsTaxID = isNonUSDPolicy(policy) && !isProvisioned && !policy?.travelSettings?.taxID;
+
+    const resolvedDomain = useMemo(() => {
+        if (isProvisioned) {
+            return CONST.TRAVEL.DEFAULT_DOMAIN;
+        }
+        if (adminDomains.length === 1) {
+            return adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+        }
+        return travelProvisioning?.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+    }, [isProvisioned, adminDomains, travelProvisioning?.domain]);
+
+    // Verify account isn't part of this ladder: EnableTravel (the parent screen) redirects to a standalone verify
+    // page before this component ever mounts, so by the time this is consulted, the account is already validated.
+    const firstIncompletePrerequisitePageName = useMemo(() => {
+        if (legalNameMissing) {
+            return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME;
+        }
+        if (needsDomainSelector && !travelProvisioning?.domain) {
+            return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR;
+        }
+        if (needsAddress) {
+            return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS;
+        }
+        if (needsTaxID && !travelProvisioning?.taxID) {
+            return CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID;
+        }
+        return undefined;
+    }, [legalNameMissing, needsDomainSelector, needsAddress, needsTaxID, travelProvisioning?.domain, travelProvisioning?.taxID]);
+
+    // Each step of this flow is a separate navigation push (a fresh mount of this component, not an in-place
+    // update), and completing a step (e.g. saving the legal name) flips the very Onyx flag that decided whether
+    // that step was included. So the step list can't just be frozen in local component state — it has to be
+    // computed once per flow session and persisted to TRAVEL_PROVISIONING, or the total step count would shrink
+    // out from under the user as they move between steps, and going back would land on a mount with a mismatched
+    // step list. The flow-entry mount (no subPage param in the URL yet — the one that redirects to the first
+    // step) always recomputes and overwrites whatever is persisted, so a stale list left behind by an abandoned
+    // session is never trusted; mid-flow mounts reuse the persisted list.
+    //
+    // Verify account isn't part of this list at all — it's a standalone page the parent screen redirects to
+    // before this component ever mounts (see EnableTravel/index.tsx), not a numbered step, so it never occupies
+    // a slot or a progress dot.
+    const isFlowEntryMount = !(route.params as {subPage?: string} | undefined)?.subPage;
+    const persistedEnabledSteps = travelProvisioning?.enabledSteps;
+    const [enabledStepNames] = useState<string[]>(() => {
+        if (!isFlowEntryMount && persistedEnabledSteps) {
+            return persistedEnabledSteps;
+        }
+        const nextEnabledStepNames: string[] = [];
+        if (legalNameMissing) {
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME);
+        }
+        if (needsDomainSelector) {
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR);
+        }
+        if (needsAddress) {
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS);
+        }
+        if (needsTaxID) {
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID);
+        }
+        nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS);
+        return nextEnabledStepNames;
+    });
+
+    useEffect(() => {
+        if (!isFlowEntryMount && persistedEnabledSteps) {
+            return;
+        }
+        setTravelProvisioningEnabledSteps(enabledStepNames);
+        // Persist once for this mount only — later flag changes (e.g. legal name getting saved) shouldn't
+        // re-trigger this, since enabledStepNames is already frozen for the rest of this flow session.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const pages = useMemo(() => enabledStepNames.map((pageName) => ({pageName, component: STEP_COMPONENT_BY_PAGE_NAME[pageName] ?? TermsStep})), [enabledStepNames]);
+
+    const startFrom = account === undefined ? -1 : 0;
+
+    const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, moveTo, resetToPage, isRedirecting} = useSubPage<EnableTravelSubPageProps>({
+        pages,
+        startFrom,
+        onFinished: () => Navigation.closeRHPFlow(),
+        buildRoute: (pageName, action) => ROUTES.TRAVEL_ENABLE.getRoute(policyID, pageName, action),
+    });
+
+    if (isRedirecting) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'EnableTravelContent', isRedirecting};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    }
+
+    const handleBackButtonPress = () => {
+        if (isEditing) {
+            Navigation.goBack(ROUTES.TRAVEL_ENABLE.getRoute(policyID, CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS));
+            return;
+        }
+        if (pageIndex === 0) {
+            Navigation.closeRHPFlow();
+            return;
+        }
+        prevPage();
+    };
+
+    return (
+        <ScreenWrapper
+            shouldEnableMaxHeight
+            testID="EnableTravelContent"
+        >
+            <HeaderWithBackButton
+                title={translate('travel.bookTravel')}
+                onBackButtonPress={handleBackButtonPress}
+            />
+            {enabledStepNames.length >= 2 && (
+                <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
+                    <InteractiveStepSubPageHeader
+                        stepNames={enabledStepNames}
+                        currentStepIndex={pageIndex}
+                        currentStepAccessibilityDescription={translate('travel.bookTravel')}
+                        // Edit mode (where Next jumps straight to the last step instead of continuing sequentially)
+                        // is only safe when the jump-back originates from the last step, since reaching it means every
+                        // step before it was completed. From any earlier step, a dot press must be plain navigation —
+                        // otherwise Next would skip steps the user hasn't filled in yet (e.g. going back to legal name
+                        // from address and pressing Next would land on terms without ever collecting the address).
+                        onStepSelected={(step) => moveTo(step, pageIndex === pages.length - 1)}
+                    />
+                </View>
+            )}
+            <CurrentPage
+                isEditing={isEditing}
+                onNext={nextPage}
+                onMove={moveTo}
+                currentPageName={currentPageName}
+                resetToPage={resetToPage}
+                policy={policy}
+                policyID={policyID}
+                resolvedDomain={resolvedDomain}
+                firstIncompletePrerequisitePageName={firstIncompletePrerequisitePageName}
+            />
+        </ScreenWrapper>
+    );
+}
+
+export default EnableTravelContent;

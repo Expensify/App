@@ -150,6 +150,7 @@ function importPlaidAccounts(
     domainName: string,
     plaidAccounts: string,
     plaidAccessToken: string | undefined,
+    domainAccountID?: number,
 ) {
     const parameters: ImportPlaidAccountsParams = {
         publicToken,
@@ -159,6 +160,10 @@ function importPlaidAccounts(
         domainName,
         plaidAccounts,
         plaidAccessToken,
+        // When repairing a feed that originated from a Classic domain-level connection surfaced into a workspace,
+        // forward the originating domain's account ID so the server refreshes credentials on the feed the broken
+        // cards actually belong to instead of the synthetic workspace-policy domain.
+        ...(domainAccountID ? {domainAccountID: String(domainAccountID)} : {}),
     };
 
     const onyxData = {
