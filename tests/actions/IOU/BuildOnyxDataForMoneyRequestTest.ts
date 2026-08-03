@@ -1,4 +1,4 @@
-import {buildOnyxDataForMoneyRequest} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {buildOnyxDataForMoneyRequest, getMoneyRequestInformation} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import type {OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 
@@ -9,6 +9,7 @@ import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import {createSelfDM} from '../../utils/collections/reports';
+import {formatPhoneNumber} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -190,6 +191,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 };
             }
 
@@ -332,6 +334,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 };
             }
 
@@ -373,6 +376,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 };
             }
 
@@ -420,6 +424,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                 },
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             };
         }
 
@@ -474,5 +479,42 @@ describe('buildOnyxDataForMoneyRequest', () => {
             expect(chatReportEntry).toBeDefined();
             expect((chatReportEntry?.value as Partial<Report>)?.iouReportID).toBeUndefined();
         });
+    });
+
+    it('uses the injected formatter for optimistic new-chat personal detail display name', () => {
+        const mockFormatPhoneNumber = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
+        const result = getMoneyRequestInformation({
+            parentChatReport: undefined,
+            participantParams: {
+                payeeAccountID: CURRENT_USER_ACCOUNT_ID,
+                payeeEmail: CURRENT_USER_EMAIL,
+                participant: {
+                    accountID: PAYER_ACCOUNT_ID,
+                    login: '+15551234567',
+                },
+            },
+            transactionParams: {
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                created: '2024-01-01',
+                merchant: 'Test Merchant',
+            },
+            betas: [],
+            isASAPSubmitBetaEnabled: false,
+            currentUserAccountIDParam: CURRENT_USER_ACCOUNT_ID,
+            currentUserEmailParam: CURRENT_USER_EMAIL,
+            transactionViolations: {},
+            quickAction: undefined,
+            policyRecentlyUsedCurrencies: [],
+            personalDetails: {},
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber: mockFormatPhoneNumber,
+        });
+
+        const personalDetailsEntry = result.onyxData.optimisticData?.find((entry) => entry.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
+
+        expect(mockFormatPhoneNumber).toHaveBeenCalledWith('+15551234567');
+        expect((personalDetailsEntry?.value as Record<number, {displayName: string}>)?.[PAYER_ACCOUNT_ID]?.displayName).toBe('formatted:+15551234567');
     });
 });

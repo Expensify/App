@@ -853,6 +853,7 @@ function duplicateExpenseTransaction({
         shouldDeferAutoSubmit,
         isTrackIntentUser,
         delegateAccountID,
+        formatPhoneNumber,
     };
 
     // If no workspace is provided the expense should be unreported
@@ -1067,6 +1068,7 @@ function duplicateReport({
             shouldDeferAutoSubmit: !isLastExpense,
             isTrackIntentUser,
             delegateAccountID,
+            formatPhoneNumber,
         };
 
         const result = createExpenseByType({

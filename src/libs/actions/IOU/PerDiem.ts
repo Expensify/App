@@ -578,6 +578,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
     });
 
     return {
