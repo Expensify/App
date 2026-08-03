@@ -108,12 +108,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
     const parentReportActionsSelector = useCallback(
         (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
-            // Build the transactionID -> IOU action map in a single pass. We deliberately avoid merging the
-            // report actions into one intermediate object (repeated spreads are O(n²) and, with a snapshot,
-            // would copy every report's actions), since this selector re-runs on any report-action change.
-            // We return a plain object (not a Map) because useOnyx's deepEqual is very slow for Maps.
-            // Reported transactions keep their IOU action on their own report (reportActions_<reportID>), so we only
-            // read the three relevant report-action keys here — no whole-snapshot scan on every report-action change.
             const parentActions: Record<string, OnyxTypes.ReportAction> = {};
             for (const transaction of [currentTransaction, prevTransaction, nextTransaction]) {
                 const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}` as const;
@@ -128,11 +122,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         selector: parentReportActionsSelector,
     });
 
-    // Unreported transactions (reportID '0') keep their IOU action on a different report (e.g. a self-DM), so it
-    // isn't under reportActions_0 and its report key can't be derived from the transaction. We scan every report's
-    // actions from the search snapshot so the action (and its childReportID thread) can still be located by
-    // IOUTransactionID. This lives outside the REPORT_ACTIONS collection selector — it only reads the snapshot — so
-    // it recomputes when the snapshot changes rather than re-scanning the whole snapshot on every report-action change.
     const snapshotData = snapshot?.data;
     const snapshotParentReportActions = useMemo(() => {
         const parentActions: Record<string, OnyxTypes.ReportAction> = {};
@@ -146,8 +135,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         return parentActions;
     }, [snapshotData]);
 
-    // Snapshot values take precedence for overlapping transactionIDs, matching the original single-pass ordering.
-    const parentReportActions = useMemo(() => ({...reportedParentReportActions, ...snapshotParentReportActions}), [reportedParentReportActions, snapshotParentReportActions]);
+    // Live report actions win over the snapshot: the snapshot only fills in transactionIDs the live pass couldn't
+    // resolve (i.e. unreported ones). A search snapshot is a point-in-time copy, so for a reported transaction it can
+    // hold an older copy of the same IOU action — e.g. one still missing the childReportID of a thread that has since
+    // been created. Letting that stale copy win would make prev/next believe the sibling has no thread and create a
+    // duplicate one instead of navigating to the existing thread.
+    const parentReportActions = useMemo(() => ({...snapshotParentReportActions, ...reportedParentReportActions}), [reportedParentReportActions, snapshotParentReportActions]);
 
     const {prevParentReportAction, nextParentReportAction} = useMemo(() => {
         if (!transactionIDsList || transactionIDsList.length < 2) {
@@ -160,9 +153,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         };
     }, [nextTransactionID, parentReportActions, prevTransactionID, transactionIDsList]);
 
-    // The "parent report" is where the transaction's IOU action lives: the expense report for reported transactions,
-    // or a self-DM for unreported ones (whose transaction.reportID is '0'). Derive it from the action so unreported
-    // transactions resolve to the correct parent instead of report '0'. Fall back to the transaction's reportID.
     const prevParentReportID = prevParentReportAction?.reportID ?? prevTransaction?.reportID;
     const nextParentReportID = nextParentReportAction?.reportID ?? nextTransaction?.reportID;
 
@@ -209,15 +199,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         e?.preventDefault();
         const backTo = getBackTo();
 
-        // If the next expense's parent is a one-transaction report, navigate to the parent report instead of the
-        // thread. This keeps the view at the same level (parent) so report-level primary actions (Approve, etc.)
-        // are preserved when navigating back. Mirrors the open-from-list logic in Search/index.tsx#onSelectRow.
-        // Skip for unreported transactions (reportID '0'): they have no parent report to land on, so they must open
-        // their transaction thread (handled below).
         if (isOneTransactionReport(nextTransactionParentReport) && nextTransaction?.reportID && nextTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
             const targetReportID = nextTransaction.reportID;
             markReportRHPWidth(targetReportID, 'wide');
-            requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, backTo})));
+            requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, anchorTransactionID: nextTransactionID, backTo})));
             return;
         }
 
@@ -229,20 +214,13 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         if (nextDescriptor) {
             const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID});
             markReportRHPWidth(nextReportID, 'wide');
-            requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: nextReportID, reportActionID: undefined, backTo})));
+            requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: nextReportID, reportActionID: undefined, anchorTransactionID: nextTransactionID, backTo})));
             return;
         }
 
         const nextThreadReportID = nextParentReportAction?.childReportID;
-        const navigationParams = {reportID: nextThreadReportID, reportActionID: undefined, backTo};
+        const navigationParams = {reportID: nextThreadReportID, reportActionID: undefined, anchorTransactionID: nextTransactionID, backTo};
 
-        // No existing transaction thread for this IOU action. We reach here only after the
-        // one-transaction-report branch above, so the parent is a MULTI-transaction (batched) report.
-        // Navigating to that parent reportID would render the whole report (several expenses) instead of a
-        // single expense. Create the transaction thread (the same way Search/index.tsx#onSelectRow does on
-        // first open) so we land on a single-expense view, then navigate to the new thread report.
-        // createTransactionThreadReport issues a real OpenReport with a server-recognized generated reportID,
-        // so it doesn't hit the optimistic-reportID race that setOptimisticTransactionThread + setParams does.
         if (!nextThreadReportID && nextTransaction?.reportID && nextTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
             const optimisticThread = createTransactionThreadReport({
                 introSelected,
@@ -264,10 +242,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         if (nextThreadReportID) {
             markReportRHPWidth(nextThreadReportID, 'wide');
         }
-        // We know that the next thread report exists, it just wasn't fetched to Onyx yet, so we set it optimistically.
-        // Important: use nextTransactionParentReport (the NEXT transaction's own parent), NOT parentReport
-        // (the CURRENT transaction's parent). Passing wrong linkage causes the OpenReport response to wipe
-        // the optimistic data, which trips useReportWasDeleted → ReportNavigateAwayHandler → Inbox/parent redirect.
+
         if (!nextThreadReport && nextThreadReportID) {
             setOptimisticTransactionThread(nextThreadReportID, nextTransactionParentReport?.reportID, nextParentReportAction?.reportActionID, nextTransactionParentReport?.policyID);
         }
@@ -283,7 +258,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         if (isOneTransactionReport(prevTransactionParentReport) && prevTransaction?.reportID && prevTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
             const targetReportID = prevTransaction.reportID;
             markReportRHPWidth(targetReportID, 'wide');
-            requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, backTo})));
+            requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, anchorTransactionID: prevTransactionID, backTo})));
             return;
         }
 
@@ -292,12 +267,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         if (prevDescriptor) {
             const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID});
             markReportRHPWidth(prevReportID, 'wide');
-            requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: prevReportID, reportActionID: undefined, backTo})));
+            requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: prevReportID, reportActionID: undefined, anchorTransactionID: prevTransactionID, backTo})));
             return;
         }
 
         const prevThreadReportID = prevParentReportAction?.childReportID;
-        const navigationParams = {reportID: prevThreadReportID, reportActionID: undefined, backTo};
+        const navigationParams = {reportID: prevThreadReportID, reportActionID: undefined, anchorTransactionID: prevTransactionID, backTo};
 
         // See onNext for the rationale: the parent here is a MULTI-transaction (batched) report, so create the
         // transaction thread to land on a single-expense view instead of navigating to the whole parent report.

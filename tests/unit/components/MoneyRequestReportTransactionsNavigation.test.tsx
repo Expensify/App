@@ -216,7 +216,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
 
             press('next-button');
 
-            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rNext', reportActionID: undefined}));
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rNext', reportActionID: undefined, anchorTransactionID: NEXT_ID}));
             expect(mockMarkReportRHPWidth).toHaveBeenCalledWith('rNext', 'wide');
         });
 
@@ -225,7 +225,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
 
             press('prev-button');
 
-            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rPrev', reportActionID: undefined}));
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rPrev', reportActionID: undefined, anchorTransactionID: PREV_ID}));
             expect(mockMarkReportRHPWidth).toHaveBeenCalledWith('rPrev', 'wide');
         });
     });
@@ -250,7 +250,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
 
             press('next-button');
 
-            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rNext'}));
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rNext', anchorTransactionID: NEXT_ID}));
         });
 
         it('navigates previous using snapshot-only data', () => {
@@ -258,7 +258,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
 
             press('prev-button');
 
-            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rPrev'}));
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rPrev', anchorTransactionID: PREV_ID}));
         });
     });
 
@@ -284,7 +284,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
 
             press('next-button');
 
-            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadNext'}));
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadNext', anchorTransactionID: NEXT_ID}));
             expect(mockMarkReportRHPWidth).toHaveBeenCalledWith('threadNext', 'wide');
         });
 
@@ -293,8 +293,51 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
 
             press('prev-button');
 
-            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadPrev'}));
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadPrev', anchorTransactionID: PREV_ID}));
             expect(mockMarkReportRHPWidth).toHaveBeenCalledWith('threadPrev', 'wide');
+        });
+    });
+
+    describe('live report actions take precedence over a stale snapshot copy', () => {
+        beforeEach(() => {
+            mockState.transactionsCollection = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${CURRENT_ID}`]: {transactionID: CURRENT_ID, reportID: 'rCur'},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${PREV_ID}`]: {transactionID: PREV_ID, reportID: 'rPrev'},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${NEXT_ID}`]: {transactionID: NEXT_ID, reportID: 'rNext'},
+            };
+            mockState.reportActionsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}rPrev`]: {actionPrev: makeIOUAction(PREV_ID, {childReportID: 'threadPrev', reportID: 'rPrev'})},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}rNext`]: {actionNext: makeIOUAction(NEXT_ID, {childReportID: 'threadNext', reportID: 'rNext'})},
+            };
+            mockState.reportsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rPrev`]: {reportID: 'rPrev', transactionCount: 2},
+                [`${ONYXKEYS.COLLECTION.REPORT}rNext`]: {reportID: 'rNext', transactionCount: 2},
+            };
+            mockState.snapshotHash = 'hash1';
+            mockState.snapshot = {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}rPrev`]: {actionPrev: makeIOUAction(PREV_ID, {reportID: 'rPrev'})},
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}rNext`]: {actionNext: makeIOUAction(NEXT_ID, {reportID: 'rNext'})},
+                },
+            };
+        });
+
+        it('navigates next to the live thread instead of creating a duplicate', () => {
+            renderNavigation();
+
+            press('next-button');
+
+            expect(createTransactionThreadReport).not.toHaveBeenCalled();
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadNext', anchorTransactionID: NEXT_ID}));
+        });
+
+        it('navigates previous to the live thread instead of creating a duplicate', () => {
+            renderNavigation();
+
+            press('prev-button');
+
+            expect(createTransactionThreadReport).not.toHaveBeenCalled();
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadPrev', anchorTransactionID: PREV_ID}));
         });
     });
 
@@ -356,7 +399,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             press('next-button');
 
             expect(getReportIDToOpenForExpense).toHaveBeenCalled();
-            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'descNext'}));
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'descNext', anchorTransactionID: NEXT_ID}));
         });
 
         it('navigates previous to the descriptor-resolved reportID', () => {
@@ -366,7 +409,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             press('prev-button');
 
             expect(getReportIDToOpenForExpense).toHaveBeenCalled();
-            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'descPrev'}));
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'descPrev', anchorTransactionID: PREV_ID}));
         });
     });
 

@@ -604,11 +604,6 @@ function MoneyRequestReportTransactionList({
             return;
         }
 
-        // Don't take over (and, on unmount, clear) a carousel that already covers this report's transactions.
-        // It was seeded by a flow sitting underneath this report view (e.g. an expense opened from the Spend
-        // page), and that still-open RHP depends on it. This uses `>=` so the equal-set case is covered too:
-        // when the active list is exactly this report's transactions, overwriting is a no-op but the unmount
-        // cleanup would wipe the carousel the underlying RHP needs (regression #96545).
         if (
             latestActiveTransactionIDs &&
             latestActiveTransactionIDs.length >= visualOrderTransactionIDs.length &&
