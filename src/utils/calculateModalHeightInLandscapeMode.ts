@@ -8,7 +8,7 @@ function calculateModalHeightInLandscapeMode(windowHeight: number, topSafeAreaIn
         return availableWindowHeight - keyboardActiveHeight;
     }
 
-    return windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE;
+    return availableWindowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE;
 }
 
 export default calculateModalHeightInLandscapeMode;
