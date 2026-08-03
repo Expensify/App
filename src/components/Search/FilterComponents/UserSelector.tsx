@@ -73,7 +73,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
                 logins.add(login);
             }
         }
-        return logins;
+        return logins.size ? logins : undefined;
     })();
 
     const {searchTerm, setSearchTerm, availableOptions, totalOptionsCount, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
