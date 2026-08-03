@@ -6,6 +6,7 @@ import useOnyx from './useOnyx';
 const DEFAULT_CARD_FEED_ERROR_STATE: CardFeedErrorState = {
     shouldShowRBR: false,
     isFeedConnectionBroken: false,
+    shouldPromptBrokenConnection: false,
     hasFeedErrors: false,
     hasWorkspaceErrors: false,
 };

@@ -163,7 +163,10 @@ describe('CardFeedErrors Derived Value', () => {
                 expect(result.all.isFeedConnectionBroken).toBe(false);
             });
 
-            it('should NOT surface a broken company card connection once it is unresolved past the grace period', () => {
+            // Past the grace period we stop *prompting* about a broken company card feed (no RBR, no home task), but the
+            // feed stays flagged as broken: the Company cards page renders its "log into your bank" fix from that flag,
+            // and the reconnect needs the card in `cardsWithBrokenFeedConnection` to clear the error afterwards.
+            it('should stop prompting for a broken company card connection past the grace period but keep it fixable', () => {
                 const cardFeed = CARD_FEEDS[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE];
                 const card = createCard({
                     cardID: CARD_IDS.card1,
@@ -177,9 +180,36 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
-                expect(result.all.isFeedConnectionBroken).toBe(false);
                 expect(result.all.shouldShowRBR).toBe(false);
-                expect(result.cardsWithBrokenFeedConnection).toEqual({});
+                expect(result.all.shouldPromptBrokenConnection).toBe(false);
+                expect(result.companyCards.shouldShowRBR).toBe(false);
+                expect(result.shouldShowRbrForFeedNameWithDomainID[cardFeed.feedNameWithDomainID]).toBe(false);
+
+                // ...but the broken state itself is preserved so the feed can still be fixed.
+                expect(result.all.isFeedConnectionBroken).toBe(true);
+                expect(result.cardFeedErrors[cardFeed.feedNameWithDomainID]?.isFeedConnectionBroken).toBe(true);
+                expect(result.cardsWithBrokenFeedConnection[CARD_IDS.card1]).toEqual(card);
+            });
+
+            it('should still prompt for a broken company card connection within the grace period', () => {
+                const cardFeed = CARD_FEEDS[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE];
+                const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    bank: cardFeed.feedName,
+                    fundID: String(cardFeed.policyAccountID),
+                    lastScrapeResult: 403,
+                    lastScrape: recentScrape,
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.all.shouldShowRBR).toBe(true);
+                expect(result.all.shouldPromptBrokenConnection).toBe(true);
+                expect(result.all.isFeedConnectionBroken).toBe(true);
+                expect(result.cardsWithBrokenFeedConnection[CARD_IDS.card1]).toEqual(card);
             });
 
             it('should surface a broken personal card connection when there is no last successful scrape (fail safe)', () => {
