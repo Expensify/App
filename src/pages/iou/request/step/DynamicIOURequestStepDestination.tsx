@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -21,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
@@ -86,6 +88,7 @@ function DynamicIOURequestStepDestination({
     explicitPolicyID,
     ref,
 }: DynamicIOURequestStepDestinationProps) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const isEditPage = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT;
     const backPath = useDynamicBackPath(isEditPage ? DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path : DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -156,7 +159,7 @@ function DynamicIOURequestStepDestination({
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, targetIouType !== CONST.IOU.TYPE.TRACK);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
-                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
+                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined, getCurrencyDecimals);
             }
             setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy, false, personalPolicy?.outputCurrency);
             setMoneyRequestCurrency(transactionID, destination.currency);
@@ -209,7 +212,7 @@ function DynamicIOURequestStepDestination({
             return;
         }
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
+        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined, getCurrencyDecimals);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, policy?.customUnits, transaction?.iouRequestType]);
 
@@ -242,18 +245,29 @@ function DynamicIOURequestStepDestination({
                         <WorkspaceEmptyStateSection
                             shouldStyleAsCard={false}
                             icon={illustrations.EmptyStateExpenses}
-                            title={translate('workspace.perDiem.emptyList.title')}
-                            subtitle={translate('workspace.perDiem.emptyList.subtitle')}
+                            title={translate('workspace.perDiem.requestEmptyList.title')}
+                            subtitle={translate(isPolicyAdmin(policy) ? 'workspace.perDiem.requestEmptyList.adminSubtitle' : 'workspace.perDiem.requestEmptyList.subtitle')}
                             containerStyle={[styles.flex1, styles.justifyContentCenter]}
                         />
-                        {isPolicyAdmin(policy) && !!policy?.areCategoriesEnabled && (
+                        {isPolicyAdmin(policy) && (
                             <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                                 <Button
                                     large
                                     success
                                     style={[styles.w100]}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
+                                        if (!policy?.id) {
+                                            return;
+                                        }
+                                        const backToRoute = openedFromStartPage
+                                            ? ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.getRoute(action, iouType, transactionID, reportID, backToReport)
+                                            : createDynamicRoute(
+                                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
+                                                  ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, reportID, backToReport),
+                                              );
+                                        requestAnimationFrame(() => {
+                                            Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, backToRoute));
+                                        });
                                     }}
                                     text={translate('workspace.perDiem.editPerDiemRates')}
                                     pressOnEnter
