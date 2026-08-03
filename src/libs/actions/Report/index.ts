@@ -270,19 +270,21 @@ type Video = Dimensions & {
 
 type TaskMessage = Required<Pick<AddCommentOrAttachmentParams, 'reportID' | 'reportActionID' | 'reportComment'>>;
 
+type GuidedSetupTask = {
+    type: 'task';
+    task: string;
+    taskReportID: string;
+    parentReportID: string;
+    parentReportActionID: string;
+    assigneeChatReportID?: string;
+    createdTaskReportActionID: string;
+    completedTaskReportActionID?: string;
+    title: string;
+    description: string;
+};
+
 type TaskForParameters =
-    | {
-          type: 'task';
-          task: string;
-          taskReportID: string;
-          parentReportID: string;
-          parentReportActionID: string;
-          assigneeChatReportID?: string;
-          createdTaskReportActionID: string;
-          completedTaskReportActionID?: string;
-          title: string;
-          description: string;
-      }
+    | GuidedSetupTask
     | ({
           type: 'message';
       } & TaskMessage);
@@ -1907,6 +1909,24 @@ function openReport(params: OpenReportActionParams) {
             value: settledPersonalDetails,
         });
 
+        if (!isNewThread) {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    errorFields: {
+                        createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+                    },
+                },
+            });
+        }
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+        });
+
         // Add the createdReportActionID parameter to the API call
         parameters.createdReportActionID = optimisticCreatedAction.reportActionID;
 
@@ -2133,6 +2153,20 @@ function createGroupChat(
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         value: settledPersonalDetails,
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            errorFields: {
+                createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+            },
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
     });
 
     // Build API parameters
@@ -4696,7 +4730,7 @@ function shouldShowReportActionNotification(
     isRemote = false,
 ): boolean {
     const tag = isRemote ? '[PushNotification]' : '[LocalNotification]';
-    const topmostReportID = Navigation.getTopmostReportId();
+    const topmostReportID = Navigation.getFocusedReportId();
 
     // Due to payload size constraints, some push notifications may have their report action stripped
     // so we must double check that we were provided an action before using it in these checks.
@@ -5802,6 +5836,18 @@ function updateLoadingInitialReportAction(reportID: string | undefined, isLoadin
         return;
     }
     Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {isLoadingInitialReportActions});
+}
+
+/**
+ * Marks a report's initial actions as loaded without a server round-trip. Used for optimistic reports whose local
+ * actions are the complete truth (openReport is intentionally never called for them), so the RAM-only loading state
+ * can be reconstructed after an app restart drops the stamp written at creation.
+ */
+function markLocalReportActionsAsLoaded(reportID: string | undefined) {
+    if (!isValidReportIDFromPath(reportID)) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true});
 }
 
 function setNewRoomFormLoading(isLoading = true) {
@@ -8344,7 +8390,7 @@ function mergeReports({
     });
 }
 
-export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, OpenReportActionParams};
+export type {Video, GuidedSetupData, GuidedSetupTask, TaskForParameters, IntroSelected, OpenReportActionParams};
 
 export {
     addAttachmentWithComment,
@@ -8442,6 +8488,7 @@ export {
     updateChatName,
     updateLastVisitTime,
     updateLoadingInitialReportAction,
+    markLocalReportActionsAsLoaded,
     updateNotificationPreference,
     updatePolicyRoomName,
     updatePrivateNotes,
