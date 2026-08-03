@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Session} from '@src/types/onyx';
 
 import type * as CoreNavigation from '@react-navigation/core';
+import type ReactNative from 'react-native';
 
 import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
@@ -87,8 +88,7 @@ jest.mock('@components/MoneyRequestReportView/SelectionToolbar', () => jest.fn((
 jest.mock('@pages/inbox/report/ReportActionsListItemRenderer', () => (props: MockReportActionRendererProps) => mockReportActionRenderer(props));
 
 jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {View: MockView} = require('react-native');
+    const {View: MockView} = jest.requireActual<typeof ReactNative>('react-native');
     return ({visibleReportActions, renderReportAction}: {visibleReportActions: ReportAction[]; renderReportAction: (reportAction: ReportAction, index: number) => React.ReactElement}) => (
         <MockView testID="MockMoneyRequestReportTransactionList">
             {visibleReportActions.map((reportAction, index) => (
