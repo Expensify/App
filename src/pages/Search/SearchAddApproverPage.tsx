@@ -151,6 +151,7 @@ function SearchAddApproverPage() {
                     isASAPSubmitBetaEnabled,
                     reportCurrentNextStepDeprecated: reportNextStep,
                     isTrackIntentUser,
+                    formatPhoneNumber,
                     translate,
                 });
             }

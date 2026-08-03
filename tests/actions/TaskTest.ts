@@ -1384,6 +1384,7 @@ describe('actions/Task', () => {
                 hasOutstandingChildTask: false,
                 delegateEmail: DELEGATE_EMAIL,
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
+                formatPhoneNumber,
                 translate: translateLocal,
             });
 
@@ -1415,6 +1416,7 @@ describe('actions/Task', () => {
                 hasOutstandingChildTask: false,
                 delegateEmail: undefined,
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
+                formatPhoneNumber,
                 translate: translateLocal,
             });
 

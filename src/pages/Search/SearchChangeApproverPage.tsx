@@ -73,7 +73,7 @@ function shouldAutoApplyApprover({
 export {shouldAutoApplyApprover};
 
 function SearchChangeApproverPage() {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -184,6 +184,7 @@ function SearchChangeApproverPage() {
                     isASAPSubmitBetaEnabled,
                     reportNextStep,
                     isTrackIntentUser,
+                    formatPhoneNumber,
                     translate,
                 );
             }

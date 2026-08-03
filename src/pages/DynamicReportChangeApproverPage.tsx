@@ -49,7 +49,7 @@ type DynamicReportChangeApproverPageProps = WithReportOrNotFoundProps & Platform
 
 function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: DynamicReportChangeApproverPageProps) {
     const reportID = report?.reportID;
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -89,9 +89,32 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
             return;
         }
-        assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep, isTrackIntentUser, translate);
+        assignReportToMe(
+            report,
+            currentUserDetails.accountID,
+            currentUserDetails.email ?? '',
+            policy,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            reportNextStep,
+            isTrackIntentUser,
+            formatPhoneNumber,
+            translate,
+        );
         Navigation.dismissToPreviousRHP();
-    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep, isTrackIntentUser, translate]);
+    }, [
+        selectedApproverType,
+        report,
+        currentUserDetails.accountID,
+        currentUserDetails.email,
+        policy,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        reportNextStep,
+        isTrackIntentUser,
+        formatPhoneNumber,
+        translate,
+    ]);
 
     const approverTypes = useMemo(() => {
         const data: Array<ListItem<ApproverType>> = [

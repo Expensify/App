@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import * as API from '@libs/API';
 import type {
@@ -111,6 +111,7 @@ type ApproveMoneyRequestFunctionParams = {
     onApproved?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    delegateAccountID: number | undefined;
     ownerLogin: string | undefined;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
@@ -457,6 +458,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         onApproved,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        delegateAccountID,
         ownerLogin,
         expenseReportPolicy,
         additionalOnyxData,
@@ -764,6 +766,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             createdTimestamp: originalCreated,
             isApprovalFlow: true,
             betas,
+            delegateAccountID,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
@@ -1733,9 +1736,10 @@ function assignReportToMe(
     isASAPSubmitBetaEnabled: boolean,
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     isTrackIntentUser: boolean | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocalizedTranslate,
 ) {
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID, translate);
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID, formatPhoneNumber, translate);
 
     // buildOptimisticNextStep is used in parallel
     const optimisticNextStepDeprecated = buildNextStepNew({
@@ -1842,16 +1846,40 @@ function assignReportToMe(
 }
 
 type AddReportApproverOptions = {
+    /** Expense report whose approver is being changed. */
     report: OnyxTypes.Report;
+
+    /** Email of the approver being added. */
     newApproverEmail: string;
+
+    /** Account ID of the approver being added. */
     newApproverAccountID: number;
+
+    /** Account ID of the user changing the approver. */
     accountID: number;
+
+    /** Email of the user changing the approver. */
     email: string;
+
+    /** Policy associated with the expense report. */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Whether the report currently has violations. */
     hasViolations: boolean;
+
+    /** Whether ASAP Submit beta behavior is enabled. */
     isASAPSubmitBetaEnabled: boolean;
+
+    /** Existing next-step data used to roll back optimistic updates on failure. */
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+
+    /** Whether the current user is in the track intent onboarding state. */
     isTrackIntentUser: boolean | undefined;
+
+    /** Locale-aware formatter used for optimistic approver display names. */
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+
+    /** Locale-aware translate function used for optimistic display names. */
     translate: LocalizedTranslate;
 };
 
@@ -1866,9 +1894,10 @@ function addReportApprover({
     isASAPSubmitBetaEnabled,
     reportCurrentNextStepDeprecated,
     isTrackIntentUser,
+    formatPhoneNumber,
     translate,
 }: AddReportApproverOptions) {
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID, translate);
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID, formatPhoneNumber, translate);
 
     // buildOptimisticNextStep is used in parallel
     const optimisticNextStepDeprecated = buildNextStepNew({

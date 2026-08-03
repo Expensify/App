@@ -112,6 +112,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 isASAPSubmitBetaEnabled,
                 reportCurrentNextStepDeprecated: reportNextStep,
                 isTrackIntentUser,
+                formatPhoneNumber,
                 translate,
             });
             Navigation.dismissToPreviousRHP();
