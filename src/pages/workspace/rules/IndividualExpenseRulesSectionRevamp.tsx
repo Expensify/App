@@ -1,23 +1,29 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+
+import {getBillableExpensesPendingAction, getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type IndividualExpenseRulesSectionRevampProps = {
     policyID: string;
@@ -72,7 +78,8 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
         [CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_NON_REIMBURSABLE]: translate('workspace.rules.generalTab.cashExpensesAlwaysNonReimbursable'),
     };
     const reimbursableModeText = reimbursableModeTextMap[reimbursableMode];
-    const billableModeText = translate(`workspace.rules.generalTab.${policy?.defaultBillable ? 'billableExpensesBillable' : 'billableExpensesNonBillable'}`);
+    const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
+    const billableModeText = isBillableTrackingEnabled ? translate(`workspace.rules.generalTab.${policy?.defaultBillable ? 'billableExpensesBillable' : 'billableExpensesNonBillable'}`) : '';
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
@@ -149,7 +156,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             description: billableModeText,
             icon: icons.Cash,
             action: () => Navigation.navigate(ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID)),
-            pendingAction: policy?.pendingFields?.defaultBillable,
+            pendingAction: getBillableExpensesPendingAction(policy),
         },
     ];
 

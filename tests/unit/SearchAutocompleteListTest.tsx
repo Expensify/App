@@ -1,20 +1,29 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React, {useMemo} from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {OptionsListActionsContext, OptionsListStateContext} from '@components/OptionListContextProvider';
+import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+import Text from '@components/Text';
+
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
+
 import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
-import {createOptionList} from '@libs/OptionsListUtils';
+import {createFilteredOptionList} from '@libs/OptionsListUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, Report} from '@src/types/onyx';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {createRandomReport} from '../utils/collections/reports';
@@ -80,6 +89,12 @@ jest.mock('@hooks/useFilteredOptions', () => ({
     default: (...args: unknown[]) => mockUseFilteredOptions(...args),
 }));
 
+const mockUseNavigationSuggestions = jest.fn<SearchQueryItem[], [query: string, shouldWatchForApprovals?: boolean]>(() => []);
+jest.mock('@components/Search/SearchRouter/useNavigationSuggestions', () => ({
+    __esModule: true,
+    default: (query: string, shouldWatchForApprovals?: boolean) => mockUseNavigationSuggestions(query, shouldWatchForApprovals),
+}));
+
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
@@ -125,9 +140,11 @@ const mockedReports = getMockedReports(10);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const mockedOptions = createOptionList(mockedPersonalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports, undefined);
+const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
 
-const mockOnClose = jest.fn();
+const mockOnClose = jest.fn((afterClose?: () => void) => {
+    afterClose?.();
+});
 
 // Fake report options that getSearchOptions returns as recentReports.
 // These simulate local results available before any server search completes.
@@ -137,14 +154,13 @@ const fakeRecentReports = [
     {reportID: '103', keyForList: '103', text: 'Charlie Report', alternateText: 'charlie alt', lastMessageText: 'hey'},
 ];
 
-function SearchRouterWrapper({options = mockedOptions}: {options?: ReturnType<typeof createOptionList>}) {
+function SearchRouterWrapper({isSearchRouterDisplayed}: {isSearchRouterDisplayed?: boolean}) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <OptionsListStateContext.Provider value={useMemo(() => ({options, areOptionsInitialized: true}), [options])}>
-                <OptionsListActionsContext.Provider value={useMemo(() => ({initializeOptions: () => {}, resetOptions: () => {}}), [])}>
-                    <SearchRouter onRouterClose={mockOnClose} />
-                </OptionsListActionsContext.Provider>
-            </OptionsListStateContext.Provider>
+            <SearchRouter
+                onRouterClose={mockOnClose}
+                isSearchRouterDisplayed={isSearchRouterDisplayed}
+            />
         </ComposeProviders>
     );
 }
@@ -187,6 +203,46 @@ describe('SearchAutocompleteList', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+        mockUseNavigationSuggestions.mockReturnValue([]);
+    });
+
+    it.each([
+        ['displayed', true, true],
+        ['hidden', undefined, false],
+    ] as const)('should pass the correct approval-watch state when the router is %s', (_state, isSearchRouterDisplayed, shouldWatchForApprovals) => {
+        render(<SearchRouterWrapper isSearchRouterDisplayed={isSearchRouterDisplayed} />);
+
+        expect(mockUseNavigationSuggestions).toHaveBeenCalledWith(expect.any(String), shouldWatchForApprovals);
+    });
+
+    it('should display and select navigation suggestion rows', async () => {
+        const navigationAction = jest.fn();
+        mockUseNavigationSuggestions.mockReturnValue([
+            {
+                text: 'Go to Reports',
+                keyForList: 'spend_reports',
+                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
+                action: navigationAction,
+                rightElement: <Text>Spend</Text>,
+            },
+        ]);
+
+        await waitForBatchedUpdates();
+        await Onyx.multiSet({
+            ...mockedReports,
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+            [ONYXKEYS.BETAS]: mockedBetas,
+        });
+
+        render(<SearchRouterWrapper />);
+        await flushAllUpdates();
+
+        fireEvent.press(await screen.findByText('Go to Reports'));
+
+        await waitFor(() => {
+            expect(mockOnClose).toHaveBeenCalledWith(navigationAction);
+            expect(navigationAction).toHaveBeenCalledTimes(1);
+        });
     });
 
     it('should display Recent searches section when query is empty and recent searches exist', async () => {

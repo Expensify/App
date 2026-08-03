@@ -23,11 +23,13 @@ type CreateDistanceRequestParams = {
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
     payerEmail?: string;
+    payerAccountID?: number;
     splits?: string;
     chatType?: string;
     description?: string;
     attendees?: string;
     distance?: number;
+    modifiedDistance?: number;
     odometerStart?: number;
     odometerEnd?: number;
     gpsCoordinates?: string;

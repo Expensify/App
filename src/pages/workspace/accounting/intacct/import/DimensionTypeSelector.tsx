@@ -1,12 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type DimensionTypeSelectorProps = {
     /** Error text to display */

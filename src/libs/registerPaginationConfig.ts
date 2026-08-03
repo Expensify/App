@@ -1,7 +1,10 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportNameValuePairs} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {READ_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {registerPaginationConfig} from './Middleware/Pagination';
 import {getSortedReportActionsForDisplay} from './ReportActionsUtils';
@@ -15,7 +18,6 @@ import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from 
 let allReports: OnyxCollection<Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
@@ -29,7 +31,6 @@ let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
  */
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReportNameValuePairs = value;
     },

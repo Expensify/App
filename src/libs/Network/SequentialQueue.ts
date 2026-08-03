@@ -1,5 +1,3 @@
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
 import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
@@ -21,10 +19,16 @@ import Log from '@libs/Log';
 import {getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
+import {logReceiptEnqueued, RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyOnyxUpdate, AnyRequest, ConflictData} from '@src/types/onyx/Request';
+
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 let shouldFailAllRequests: boolean;
 // Use connectWithoutView since this is for network data and don't affect to any UI
@@ -198,7 +202,10 @@ function process(): Promise<void> {
             });
             endPersistedRequestAndRemoveFromQueue(requestToProcess);
 
-            if (requestToProcess.queueFlushedData) {
+            // Only commit queueFlushedData (e.g. HAS_LOADED_APP: true) on success — HttpUtils resolves (not rejects) app-level
+            // failures, so committing on a failed-but-resolved OpenApp/ReconnectApp would wrongly mark the app as loaded and
+            // break self-healing on the next boot.
+            if (requestToProcess.queueFlushedData && response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
                 Log.info('[SequentialQueue] Will store queueFlushedData.', false, {
                     command: requestToProcess.command,
                     queueFlushedDataLength: requestToProcess.queueFlushedData.length,
@@ -551,6 +558,21 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
         isOffline: isOfflineNetwork(),
         isSequentialQueueRunning,
     });
+
+    if (RECEIPT_BEARING_COMMANDS.has(newRequest.command)) {
+        const data = (newRequest.data ?? {}) as {
+            transactionID?: string;
+            receipt?: {receiptTraceId?: string};
+        };
+        if (data.receipt) {
+            logReceiptEnqueued({
+                receiptTraceId: data.receipt.receiptTraceId,
+                transactionID: data.transactionID,
+                command: newRequest.command,
+                persistedQueueLength: currentRequests.length,
+            });
+        }
+    }
 
     let persistencePromise: Promise<void>;
 

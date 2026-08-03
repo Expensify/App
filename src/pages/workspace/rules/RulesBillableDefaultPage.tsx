@@ -1,23 +1,30 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {setPolicyBillableMode} from '@userActions/Policy/Policy';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
+import {getBillableExpensesPendingAction, setPolicyBillableMode, toggleBillableExpenses} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type RulesBillableDefaultPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT>;
 
@@ -34,24 +41,45 @@ function RulesBillableDefaultPage({
     const {isBetaEnabled} = usePermissions();
     const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
+    const [draftBillable, setDraftBillable] = useState<boolean>();
+    const persistedBillable = policy?.defaultBillable ?? false;
+    const selectedBillable = draftBillable ?? persistedBillable;
+    const hasChanges = selectedBillable !== persistedBillable;
+
     const billableModes = [
         {
             value: true,
             text: translate(`workspace.rules.individualExpenseRules.billable`),
             alternateText: translate(`workspace.rules.individualExpenseRules.billableDescription`),
             keyForList: CONST.POLICY_BILLABLE_MODES.BILLABLE,
-            isSelected: policy?.defaultBillable,
+            isSelected: selectedBillable,
         },
         {
             value: false,
             text: translate(`workspace.rules.individualExpenseRules.nonBillable`),
             alternateText: translate(`workspace.rules.individualExpenseRules.nonBillableDescription`),
             keyForList: CONST.POLICY_BILLABLE_MODES.NON_BILLABLE,
-            isSelected: !policy?.defaultBillable,
+            isSelected: !selectedBillable,
         },
     ];
 
-    const initiallyFocusedOptionKey = policy?.defaultBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
+    const initiallyFocusedOptionKey = selectedBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
+
+    const saveAndGoBack = () => {
+        setPolicyBillableMode(policyID, selectedBillable, policy?.defaultBillable, policy?.disabledFields?.defaultBillable);
+        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+        isDisabled: !hasChanges,
+    };
+
+    const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
+    const isTrackBillableToggleDisabled = !policy?.areTagsEnabled;
+    const shouldShowBillableModeList = !isRevamp || (isBillableTrackingEnabled && !isTrackBillableToggleDisabled);
 
     const tagsPageLink = useMemo(() => {
         if (policy?.areTagsEnabled) {
@@ -76,20 +104,35 @@ function RulesBillableDefaultPage({
                     title={translate(isRevamp ? 'workspace.rules.generalTab.billableExpenses' : 'workspace.rules.individualExpenseRules.billableDefault')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <View style={[styles.flexRow, styles.renderHTML, styles.mt3, styles.mh5, styles.mb5]}>
+                <View style={[styles.flexRow, styles.renderHTML, styles.mt3, styles.mh5, isRevamp ? styles.mb3 : styles.mb5]}>
                     <RenderHTML html={translate('workspace.rules.individualExpenseRules.billableDefaultDescription', tagsPageLink)} />
                 </View>
-                <SelectionList
-                    data={billableModes}
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={(item) => {
-                        setPolicyBillableMode(policyID, item.value, policy?.defaultBillable, policy?.disabledFields?.defaultBillable);
-                        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
-                    }}
-                    shouldSingleExecuteRowSelect
-                    initiallyFocusedItemKey={initiallyFocusedOptionKey}
-                    addBottomSafeAreaPadding
-                />
+                {isRevamp && (
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.tags.trackBillable')}
+                        switchAccessibilityLabel={translate('workspace.tags.trackBillable')}
+                        shouldPlaceSubtitleBelowSwitch
+                        wrapperStyle={[styles.mh5, styles.mv4]}
+                        isActive={isBillableTrackingEnabled}
+                        disabled={isTrackBillableToggleDisabled}
+                        showLockIcon={isTrackBillableToggleDisabled}
+                        pendingAction={getBillableExpensesPendingAction(policy)}
+                        onToggle={() => toggleBillableExpenses(policy)}
+                    />
+                )}
+                {shouldShowBillableModeList && (
+                    <SelectionList
+                        data={billableModes}
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={(item) => {
+                            setDraftBillable(item.value);
+                        }}
+                        confirmButtonOptions={confirmButtonOptions}
+                        shouldSingleExecuteRowSelect
+                        initiallyFocusedItemKey={initiallyFocusedOptionKey}
+                        addBottomSafeAreaPadding
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

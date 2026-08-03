@@ -1,14 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import PulsingView from '@components/PulsingView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 /**
  * Lightweight visual replica of ReportActionCompose used as a placeholder

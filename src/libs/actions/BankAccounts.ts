@@ -1,8 +1,7 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {OnfidoDataWithApplicantID} from '@components/Onfido/types';
+
 import * as API from '@libs/API';
 import type {
     AddPersonalBankAccountParams,
@@ -33,6 +32,7 @@ import * as NetworkStore from '@libs/Network/NetworkStore';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {getFormattedStreet} from '@libs/PersonalDetailsUtils';
 import {buildOptimisticAddCommentReportAction} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +45,11 @@ import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {getMakeDefaultPaymentOnyxData} from './PaymentMethods';
 import {setBankAccountSubStep} from './ReimbursementAccount';
 
@@ -910,6 +915,11 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: str
 }
 
 function getCorpayOnboardingFields(country: Country | '') {
+    // No request when there is no country yet — the calling effects re-fire once Onyx hydrates the selected country.
+    if (!country) {
+        return;
+    }
+
     return API.read(READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS, {countryISO: country});
 }
 

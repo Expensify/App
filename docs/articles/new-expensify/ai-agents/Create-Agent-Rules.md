@@ -47,6 +47,8 @@ For guidance, examples, and prompt-writing best practices, [learn how to write A
 
 When you create your first Agent rule, Expensify automatically creates RuleBot and adds it to the workspace as a Workspace Admin.
 
+After RuleBot is created, the **Agent rules** section displays **Agent rules are enforced by** followed by **RuleBot**. This indicates which agent enforces all Agent rules in the workspace.
+
 RuleBot immediately begins monitoring report activity and evaluating reports against all configured Agent rules.
 
 Agent rules apply to future report activity, but not existing Paid or Done reports. 

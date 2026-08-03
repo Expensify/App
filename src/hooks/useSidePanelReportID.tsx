@@ -1,5 +1,6 @@
-import {useContext} from 'react';
 import {SidePanelReportIDContext} from '@components/SidePanel/SidePanelContextProvider';
+
+import {useContext} from 'react';
 
 /**
  * Hook to get the reportID used by the Side Panel.

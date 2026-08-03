@@ -1,13 +1,18 @@
-import {Portal} from '@gorhom/portal';
-import React, {useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {View as RNView} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import AnimatedPressableWithoutFeedback from '@components/AnimatedPressableWithoutFeedback';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
+
 import useStyleUtils from '@hooks/useStyleUtils';
+
 import CONST from '@src/CONST';
+
+import type {LayoutChangeEvent, View as RNView} from 'react-native';
+
+import {Portal} from '@gorhom/portal';
+import React, {useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+
 import type {BaseGenericTooltipProps} from './types';
 
 // Props will change frequently.
@@ -117,36 +122,55 @@ function BaseGenericTooltip({
         );
     }
 
-    const AnimatedWrapper = isEducationTooltip ? AnimatedPressableWithoutFeedback : Animated.View;
+    const onWrapperLayout = (e: LayoutChangeEvent) => {
+        const {height, width} = e.nativeEvent.layout;
+        if (height === wrapperMeasuredHeightAnimated.get()) {
+            return;
+        }
+        // To avoid unnecessary re-renders of the content container when passing state values to useAnimatedStyle,
+        // we use SharedValue for managing content and wrapper measurements.
+        contentMeasuredWidthAnimated.set(width);
+        wrapperMeasuredHeightAnimated.set(height);
+
+        setContentMeasuredWidth(width);
+        setWrapperMeasuredHeight(height);
+    };
+
+    // Rendered as two concrete branches rather than a single dynamic component. A union component
+    // (AnimatedPressableWithoutFeedback | Animated.View) overflows tsc's union limit (TS2590) at the
+    // style prop with reanimated's enlarged AnimatedStyle types.
+    const wrapperChildren = (
+        <>
+            {content}
+            <View style={pointerWrapperStyle}>
+                <View style={pointerStyle} />
+            </View>
+        </>
+    );
 
     return (
         <Portal hostName={shouldTeleportPortalToModalLayer ? 'modal' : undefined}>
             {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
-            <AnimatedWrapper
-                style={[rootWrapperStyle, animationStyle]}
-                ref={rootWrapper}
-                onPress={isEducationTooltip ? onTooltipPress : undefined}
-                role={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
-                accessibilityLabel={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
-                onLayout={(e) => {
-                    const {height, width} = e.nativeEvent.layout;
-                    if (height === wrapperMeasuredHeightAnimated.get()) {
-                        return;
-                    }
-                    // To avoid unnecessary re-renders of the content container when passing state values to useAnimatedStyle,
-                    // we use SharedValue for managing content and wrapper measurements.
-                    contentMeasuredWidthAnimated.set(width);
-                    wrapperMeasuredHeightAnimated.set(height);
-
-                    setContentMeasuredWidth(width);
-                    setWrapperMeasuredHeight(height);
-                }}
-            >
-                {content}
-                <View style={pointerWrapperStyle}>
-                    <View style={pointerStyle} />
-                </View>
-            </AnimatedWrapper>
+            {isEducationTooltip ? (
+                <AnimatedPressableWithoutFeedback
+                    style={[rootWrapperStyle, animationStyle]}
+                    ref={rootWrapper}
+                    onPress={onTooltipPress}
+                    role={CONST.ROLE.TOOLTIP}
+                    accessibilityLabel={CONST.ROLE.TOOLTIP}
+                    onLayout={onWrapperLayout}
+                >
+                    {wrapperChildren}
+                </AnimatedPressableWithoutFeedback>
+            ) : (
+                <Animated.View
+                    style={[rootWrapperStyle, animationStyle]}
+                    ref={rootWrapper}
+                    onLayout={onWrapperLayout}
+                >
+                    {wrapperChildren}
+                </Animated.View>
+            )}
         </Portal>
     );
 }

@@ -1,7 +1,3 @@
-import {defaultSecurityGroupIDSelector} from '@selectors/Domain';
-import {createAdminPoliciesSelector, policyNameSelector} from '@selectors/Policy';
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -11,22 +7,33 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addErrorMessage} from '@libs/ErrorUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearDomainGroupCreatePreferredPolicyID, createDomainSecurityGroup, setDomainGroupCreatePreferredPolicyID} from '@userActions/Domain';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/DomainGroupCreateForm';
+
+import {defaultSecurityGroupIDSelector} from '@selectors/Domain';
+import {createAdminPoliciesSelector, policyNameSelector} from '@selectors/Policy';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type DomainGroupCreatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.GROUP_CREATE>;
 

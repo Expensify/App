@@ -1,12 +1,17 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLockedToNewApp, shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
+
 import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
+
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session, TryNewDot} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import Onyx from 'react-native-onyx';
+
 import type HybridAppSettings from './types';
 
 let currentTryNewDot: OnyxEntry<TryNewDot>;

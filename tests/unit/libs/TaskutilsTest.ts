@@ -1,6 +1,7 @@
+import type ReportAction from '../../../src/types/onyx/ReportAction';
+
 import CONST from '../../../src/CONST';
 import {getTaskTitle, isTaskCompleted} from '../../../src/libs/TaskUtils';
-import type ReportAction from '../../../src/types/onyx/ReportAction';
 import {createRegularTaskReport} from '../../utils/collections/reports';
 
 jest.mock('../../../src/libs/Localize');

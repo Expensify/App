@@ -1,15 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type SpendRuleRestrictionTypeToggleRevampProps = {
     restrictionAction: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null;

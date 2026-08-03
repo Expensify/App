@@ -1,12 +1,15 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {rand64} from '@libs/NumberUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ExportDownload from '@src/types/onyx/ExportDownload';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 function sendExportFileFromConcierge(exportID: string, exportDownload: OnyxEntry<ExportDownload>) {
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
@@ -57,7 +60,6 @@ function clearStaleExportDownloads() {
     // to the entire collection, which would cause unnecessary re-renders on every change.
     const connectionID = Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD,
-        waitForCollectionCallback: true,
         callback: (exportDownloads) => {
             Onyx.disconnect(connectionID);
             if (!exportDownloads) {

@@ -1,7 +1,10 @@
-import type {SetStateAction} from 'react';
-import {useCallback, useEffect, useRef, useState} from 'react';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+
 import CONST from '@src/CONST';
+
+import type {SetStateAction} from 'react';
+
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 function useCarouselArrows() {
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();

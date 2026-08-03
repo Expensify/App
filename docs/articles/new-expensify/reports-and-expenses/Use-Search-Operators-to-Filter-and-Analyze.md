@@ -1,7 +1,7 @@
 ---
 title: Use Search Operators to Filter and Analyze
 description: Learn how to use search operators, filters, and grouping to find, organize, and analyze expenses, chats, reports, and tasks in Expensify.
-keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax]
+keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter]
 internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
 
@@ -16,6 +16,18 @@ This guide walks you through the supported syntax, available filters, and usage 
 ## Who can use search operators in Expensify
 
 Anyone can use search operators when filtering data in features like expenses, reports, chats, and tasks. This is especially helpful for Workspace Admins, accountants, and finance teams looking to analyze or export targeted data.
+
+---
+
+## Where to enter search operators in Expensify
+
+Enter search operators in the search bar that opens from the **Search** icon.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend**.
+2. Select the **Search** icon in the top-right corner.
+3. Type your query using search operators. Start typing after `:` to see autocomplete suggestions.
+
+The search bar on the **Spend** page filters your current results by keyword only. Anything you type there is matched as a keyword, even if it looks like an operator. To filter with operators, open the search bar from the **Search** icon.
 
 ---
 
@@ -60,9 +72,11 @@ You can use the following operators to filter expenses:
 - `date:` – expense date, supports relative dates like `date:this-month`, `date:last-month`, `date:year-to-date`, `date:this-week`. Also supports comparisons (`date>=2024-01-01 date<=2024-01-31`) for date ranges
 - `has:` – attachment, receipt, category, tag
 - `expense-type:` – cash, card, distance, per-diem
+- `receipt-type:` – ereceipt, itemized, hotel
 - `reimbursable:` and `billable:` – yes or no
 - `attendee:` – expense attendees (email, phone, display name, or `me`), e.g. `attendee:"Jason Mills"`
 - `posted:` – credit card posted date, e.g. `posted:last-statement`
+- `bank-account:` – settlement bank account an expense was reimbursed from. Start typing after the colon to choose from your bank accounts, each shown as the bank name and last four digits (e.g. `Chase xx1234`). Available only when you have at least one bank account.
 
 **Example queries:**
 - `type:expense merchant:Starbucks category:Meals amount>20 has:receipt`
@@ -82,6 +96,7 @@ You can use the following operators to filter reports:
 - `total:` – total amount with relative comparisons
 - `withdrawn:` – ACH withdrawal date
 - `withdrawal-type:` – reimbursement, expensify-card, or central-travel-invoicing
+- `paid-status:` – how the report was paid: `markedAsPaid`, `withdrawing`, or `confirmed`. Combine multiple values with commas, e.g. `paid-status:markedAsPaid,confirmed`
 - `action:` – blocking report action, e.g. `action:approve`
 
 **Example query:**
@@ -213,4 +228,3 @@ If the search operator isn’t recognized, the system will ignore it and return 
 ## Do I need to use quotes for everything?
 
 Only use quotes for values that include spaces or exact phrases, like `description:"client lunch"` or `in:"#general"`.
-

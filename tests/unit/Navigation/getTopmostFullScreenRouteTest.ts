@@ -1,4 +1,5 @@
 import getTopmostFullScreenRoute from '@libs/Navigation/helpers/getTopmostFullScreenRoute';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 
 const mockGetRootState = jest.fn();

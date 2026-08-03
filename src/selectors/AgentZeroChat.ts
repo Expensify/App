@@ -1,6 +1,7 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ConciergePendingFollowupList, PersonalDetailsList} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const getReportParticipantAccountIDs = (report: OnyxEntry<Report>): number[] => (report?.participants ? Object.keys(report.participants).map(Number) : []);
 

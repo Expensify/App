@@ -11536,8 +11536,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(2186));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const core = __importStar(__nccwpck_require__(2186));
 const run = function () {
     const artifactName = core.getInput('ARTIFACT_NAME', { required: true });
     return GithubUtils_1.default.getArtifactByName(artifactName)

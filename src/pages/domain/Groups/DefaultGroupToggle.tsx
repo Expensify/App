@@ -1,14 +1,19 @@
-import {defaultSecurityGroupIDSelector, domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
-import React from 'react';
-import {View} from 'react-native';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearDomainSecurityGroupSettingError, setDefaultSecurityGroup} from '@userActions/Domain';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {defaultSecurityGroupIDSelector, domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
+import React from 'react';
+import {View} from 'react-native';
 
 type DefaultGroupToggleProps = {
     domainAccountID: number;

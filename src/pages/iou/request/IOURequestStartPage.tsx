@@ -1,5 +1,3 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -7,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
+
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -15,6 +14,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResetIOUType from '@hooks/useResetIOUType';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,13 +24,16 @@ import {
     getActivePoliciesWithExpenseChatAndTimeEnabled,
     getPerDiemCustomUnit,
     isControlPolicy,
+    isPerDiemEnabled,
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
-import {isScanRequest} from '@libs/TransactionUtils';
+import {isPerDiemRequest, isScanRequest} from '@libs/TransactionUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -38,15 +41,20 @@ import {iouRequestPolicyCollectionSelector} from '@src/selectors/Policy';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
+
+import DynamicIOURequestStepDestination from './step/DynamicIOURequestStepDestination';
 import {IOURequestStepAmountWithTransactionOnly} from './step/IOURequestStepAmount';
 import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
-import IOURequestStepDestination from './step/IOURequestStepDestination';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepHours from './step/IOURequestStepHours';
 import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspace';
 import IOURequestStepScan from './step/IOURequestStepScan';
 import IOURequestStepTimeWorkspace from './step/IOURequestStepTimeWorkspace';
-import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
 type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE> & {
     defaultSelectedTab: SelectedTabRequest;
@@ -85,8 +93,8 @@ function IOURequestStartPage({
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', getPayeeName(report)),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', getPayeeName(report)),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', getPayeeName(report, translate)),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', getPayeeName(report, translate)),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),
@@ -115,7 +123,7 @@ function IOURequestStartPage({
     );
     const doesPerDiemPolicyExist = policiesWithPerDiemEnabledAndHasRates.length > 0;
     const moreThanOnePerDiemExist = policiesWithPerDiemEnabledAndHasRates.length > 1;
-    const hasCurrentPolicyPerDiemEnabled = isControlPolicy(policy) && !!policy?.arePerDiemRatesEnabled;
+    const hasCurrentPolicyPerDiemEnabled = isControlPolicy(policy) && isPerDiemEnabled(policy);
     const hasCurrentPolicyTimeTrackingEnabled = policy ? isTimeTrackingEnabled(policy) : false;
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const hasPolicyPerDiemRates = !isEmptyObject(perDiemCustomUnit?.rates);
@@ -233,12 +241,19 @@ function IOURequestStartPage({
                 reportDraft={reportDraft}
             />
         );
-    } else if (isScanRequest(transaction)) {
-        // When switching from the Scan tab, the shared draft is briefly still a scan request (with the uploaded
-        // receipt) until the tab-switch reset rebuilds it as manual. Mounting the embedded confirmation against that
-        // stale scan draft does throwaway work (scan loader, reading the receipt blob and a heavy first render) that
-        // is immediately discarded once the reset lands. Wait for the reset so the manual confirmation mounts once.
-        manualTabContent = <FullScreenLoadingIndicator reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}} />;
+    } else if (isScanRequest(transaction) || isPerDiemRequest(transaction)) {
+        // When switching from the Scan or Per diem tab, the shared draft is briefly still a scan/per-diem request
+        // until the tab-switch reset rebuilds it as manual. Mounting the embedded confirmation against that stale
+        // draft does throwaway work that is immediately discarded once the reset lands - for scan a heavy first
+        // render (scan loader, reading the receipt blob), and for per diem the confirmation renders per-diem UI
+        // (wrong fields, and the "Confirm page shows per diem" bug). Wait for the reset so the manual confirmation
+        // mounts once against the rebuilt manual draft.
+        manualTabContent = (
+            <FullScreenLoadingIndicator
+                testID="manualTabPendingReset"
+                reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}}
+            />
+        );
     } else {
         manualTabContent = (
             <IOURequestStepConfirmation
@@ -322,7 +337,7 @@ function IOURequestStartPage({
                                                         navigation={navigation}
                                                     />
                                                 ) : (
-                                                    <IOURequestStepDestination
+                                                    <DynamicIOURequestStepDestination
                                                         openedFromStartPage
                                                         ref={perDiemInputRef}
                                                         explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabledAndHasRates.at(0)?.id}

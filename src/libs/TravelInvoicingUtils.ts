@@ -1,9 +1,12 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardList} from '@src/types/onyx';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getLastFourDigits} from './BankAccountUtils';
 import fileDownload from './fileDownload';
@@ -135,6 +138,13 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
 }
 
 /**
+ * Builds the card-feed ID for a Travel Invoicing card feed (the `_TRAVEL_US` variant).
+ */
+function getTravelInvoicingFeedID(fundID: number | string): `${string}_${typeof CONST.EXPENSIFY_CARD.BANK}_${typeof CONST.TRAVEL.PROGRAM_TRAVEL_US}` {
+    return `${fundID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
+}
+
+/**
  * Downloads a cached Travel Invoice Statement PDF.
  * Constructs a secure URL with encrypted auth token and triggers the download.
  */
@@ -182,6 +192,7 @@ export {
     getTravelSettlementAccount,
     getTravelSettlementFrequency,
     getTravelInvoicingCardSettingsKey,
+    getTravelInvoicingFeedID,
     downloadTravelInvoiceStatementPDF,
     getTravelInvoicingCard,
     isTravelCVVEligible,

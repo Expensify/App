@@ -1,6 +1,8 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+
 import useActivePolicy from './useActivePolicy';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';

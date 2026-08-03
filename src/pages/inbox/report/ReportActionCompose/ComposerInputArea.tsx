@@ -1,10 +1,14 @@
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {View} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {PropsWithChildren} from 'react';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import ComposerActionButton from './ComposerActionButton';
 import ComposerBox from './ComposerBox';
 import ComposerContainer from './ComposerContainer';

@@ -1,7 +1,8 @@
-import * as core from '@actions/core';
-import {context} from '@actions/github';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
+
+import * as core from '@actions/core';
+import {context} from '@actions/github';
 
 /**
  * Extracts the Coverage Δ table from a CodeCov comment

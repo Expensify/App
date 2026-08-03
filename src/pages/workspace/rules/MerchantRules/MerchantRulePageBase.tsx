@@ -1,7 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -11,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -20,7 +18,9 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/Rules';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
@@ -33,22 +33,34 @@ import Parser from '@libs/Parser';
 import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {MerchantRuleForm} from '@src/types/form';
+import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 import type {PolicyTagLists} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {ValueOf} from 'type-fest';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 type MerchantRulePageBaseProps = {
     policyID: string;
     ruleID?: string;
+    /** Pre-scopes the category default when creating a rule (e.g. from the category details RHP). */
+    initialCategoryName?: string;
     titleKey: TranslationPaths;
     testID: string;
 };
@@ -76,7 +88,7 @@ const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTransla
 };
 
 const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
-    const matchingCriteriaFields = new Set<string>([CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH, CONST.MERCHANT_RULES.FIELDS.MATCH_TYPE]);
+    const matchingCriteriaFields = new Set<string>([MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH, MERCHANT_RULE_INPUT_IDS.MATCH_TYPE]);
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
         if (matchingCriteriaFields.has(key)) {
             return false;
@@ -98,12 +110,13 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
     return translate('workspace.rules.merchantRules.confirmError');
 };
 
-function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRulePageBaseProps) {
+function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, testID}: MerchantRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const [isDeleting, setIsDeleting] = useState(false);
+    const {isLoading, startWithLoading} = usePressLoading();
     const isEditing = !!ruleID;
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
@@ -118,32 +131,43 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const [shouldShowError, setShouldShowError] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
+    const didInitializeCreateDraftRef = useRef(false);
 
     // Get the existing rule from the policy (for edit mode)
     const existingRule = ruleID ? policy?.rules?.codingRules?.[ruleID] : undefined;
 
-    // Initialize the form with existing rule data (for edit mode)
+    // Initialize the form with existing rule data (for edit mode), or a pre-scoped category for create
     useEffect(() => {
-        if (!isEditing || !existingRule) {
+        if (isEditing) {
+            if (!existingRule) {
+                return;
+            }
+            // Convert the operator to matchType for the form
+            // 'eq' = exact match, 'contains' = contains match
+            const matchType = existingRule.filters?.operator;
+            // Convert HTML comment back to markdown for editing
+            const commentMarkdown = existingRule.comment ? Parser.htmlToMarkdown(existingRule.comment) : undefined;
+            setDraftMerchantRule({
+                merchantToMatch: existingRule.filters?.right,
+                matchType,
+                merchant: existingRule.merchant,
+                category: existingRule.category,
+                tag: existingRule.tag,
+                tax: existingRule.tax?.field_id_TAX?.externalID,
+                comment: commentMarkdown,
+                reimbursable: existingRule.reimbursable,
+                billable: existingRule.billable,
+            });
             return;
         }
-        // Convert the operator to matchType for the form
-        // 'eq' = exact match, 'contains' = contains match
-        const matchType = existingRule.filters?.operator;
-        // Convert HTML comment back to markdown for editing
-        const commentMarkdown = existingRule.comment ? Parser.htmlToMarkdown(existingRule.comment) : undefined;
-        setDraftMerchantRule({
-            merchantToMatch: existingRule.filters?.right,
-            matchType,
-            merchant: existingRule.merchant,
-            category: existingRule.category,
-            tag: existingRule.tag,
-            tax: existingRule.tax?.field_id_TAX?.externalID,
-            comment: commentMarkdown,
-            reimbursable: existingRule.reimbursable,
-            billable: existingRule.billable,
-        });
-    }, [isEditing, existingRule]);
+
+        if (!initialCategoryName || didInitializeCreateDraftRef.current) {
+            return;
+        }
+
+        didInitializeCreateDraftRef.current = true;
+        setDraftMerchantRule({category: initialCategoryName});
+    }, [isEditing, existingRule, initialCategoryName]);
 
     // Clear the form on unmount
     useEffect(() => () => clearDraftMerchantRule(), []);
@@ -160,9 +184,11 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
 
     useNetwork({onReconnect: fetchPolicyData});
 
-    useEffect(() => {
-        fetchPolicyData();
-    }, [fetchPolicyData]);
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyData();
+        }, [fetchPolicyData]),
+    );
 
     const hasCategories = () => {
         if (!policy?.areCategoriesEnabled) {
@@ -285,7 +311,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             return;
         }
 
-        saveRule();
+        startWithLoading(() => saveRule());
     };
 
     const handleDelete = () => {
@@ -420,6 +446,8 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             isAlertVisible={shouldShowError && !!errorMessage}
             message={errorMessage}
             onSubmit={handleSubmit}
+            isLoading={isLoading}
+            shouldShowLoadingImmediatelyOnPress={false}
             enabledWhenOffline
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SAVE}
             shouldRenderFooterAboveSubmit
@@ -440,20 +468,22 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                         />
                     </View>
                     <Button
-                        text={translate('workspace.rules.merchantRules.previewMatches')}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={previewMatches}
                         style={[styles.mb4]}
-                        large
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_PREVIEW_MATCHES}
-                    />
+                    >
+                        <Button.Text>{translate('workspace.rules.merchantRules.previewMatches')}</Button.Text>
+                    </Button>
                     {isEditing && (
                         <Button
-                            text={translate('workspace.rules.merchantRules.deleteRule')}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             onPress={handleDelete}
                             style={[styles.mb4]}
-                            large
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
-                        />
+                        >
+                            <Button.Text>{translate('workspace.rules.merchantRules.deleteRule')}</Button.Text>
+                        </Button>
                     )}
                 </>
             }

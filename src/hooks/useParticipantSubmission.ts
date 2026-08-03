@@ -1,14 +1,14 @@
-import {useEffect, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import HttpUtils from '@libs/HttpUtils';
+import {isParticipantP2P} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isDistanceRequest} from '@libs/TransactionUtils';
+
 import {
     resetDraftTransactionsCustomUnit,
     setCustomUnitRateID,
@@ -19,6 +19,7 @@ import {
 } from '@userActions/IOU/MoneyRequest';
 import {setSplitShares} from '@userActions/IOU/Split';
 import {createDraftWorkspace, generateDefaultWorkspaceName} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,11 +28,17 @@ import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useRef} from 'react';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useMappedPolicies from './useMappedPolicies';
 import useOnyx from './useOnyx';
 import useOptimisticDraftTransactions from './useOptimisticDraftTransactions';
+import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useTransactionsByID from './useTransactionsByID';
 
@@ -73,6 +80,7 @@ function useParticipantSubmission({
     isFocused,
 }: UseParticipantSubmissionParams) {
     const {translate} = useLocalize();
+    const personalPolicy = usePersonalPolicy();
 
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -187,7 +195,7 @@ function useParticipantSubmission({
                 lastSelectedDistanceRates: distanceRates,
                 expenseDate: transaction.created,
             });
-            setCustomUnitRateID(transaction.transactionID, rateID, transaction, movingPolicy);
+            setCustomUnitRateID(transaction.transactionID, rateID, transaction, movingPolicy, false, personalPolicy?.outputCurrency);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
             setMoneyRequestParticipantsFromReport(transaction.transactionID, dmReport, userDetails.accountID, shouldSetParticipantAutoAssignment ? isActiveRequest : false);
             setTransactionReport(transaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
@@ -208,12 +216,23 @@ function useParticipantSubmission({
         });
     };
 
+    // P2P chats don't support negative amounts. When a negative amount was entered before a participant was
+    // selected (e.g. "Submit it to someone" from a self DM track expense), assigning it to a P2P participant
+    // would fail at submit, so keep the expense on the self DM as a track expense — mirroring the guard in the
+    // confirmation step's handleParticipantsAdded. This doesn't apply to an expense already bound to a policy
+    // expense chat, which must stay on that workspace.
+    const shouldKeepNegativeExpenseOnSelfDM = (firstParticipant: Participant | undefined) => {
+        const currentTransaction = dataRef.current.initialTransaction;
+        const isTransactionOnPolicyExpenseChat = currentTransaction?.participants?.some((participant) => participant?.isPolicyExpenseChat);
+        return (currentTransaction?.amount ?? 0) < 0 && !isTransactionOnPolicyExpenseChat && isParticipantP2P(firstParticipant);
+    };
+
     const addParticipant = (val: Participant[]) => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
         const firstParticipant = val.at(0);
 
-        if (firstParticipant?.isSelfDM && !isSplitRequest) {
+        if ((firstParticipant?.isSelfDM || shouldKeepNegativeExpenseOnSelfDM(firstParticipant)) && !isSplitRequest) {
             trackExpense();
             return;
         }
@@ -248,7 +267,7 @@ function useParticipantSubmission({
                         lastSelectedDistanceRates: distanceRates,
                         expenseDate: transaction.created,
                     });
-                    setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy);
+                    setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy, false, personalPolicy?.outputCurrency);
                 }
             } else {
                 // Fallback to using initialTransactionID directly
@@ -258,7 +277,9 @@ function useParticipantSubmission({
                     policy,
                     lastSelectedDistanceRates: distanceRates,
                 });
-                setCustomUnitRateID(initialTransactionID, rateID, undefined, policy);
+                // personalPolicyOutputCurrency is intentionally omitted: setCustomUnitRateID only resolves a (P2P) rate when a transaction is passed,
+                // and no transaction is passed here, so the currency is never read.
+                setCustomUnitRateID(initialTransactionID, rateID, undefined, policy, false, undefined);
             }
         }
 
@@ -301,6 +322,15 @@ function useParticipantSubmission({
         // (last-rendered value from dataRef) because the Onyx write from addParticipant may not have
         // caused a re-render yet by the time goToNextStep is called.
         const effectiveParticipants = nextParticipants ?? currentParticipants;
+
+        // ParticipantSearchResults.addSingleParticipant fires onFinish (this callback) right after onParticipantsAdded
+        // for any non-self row. When the negative-amount P2P fallback in addParticipant already kept the expense on the
+        // self DM as a track expense (and queued that navigation), skip the submit navigation here so it doesn't
+        // override the track flow and land the user on a submit confirmation for the self-DM draft.
+        if (!isSplitRequest && shouldKeepNegativeExpenseOnSelfDM(effectiveParticipants?.at(0))) {
+            return;
+        }
+
         const isPolicyExpenseChat = effectiveParticipants?.some((participant) => participant.isPolicyExpenseChat);
         if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat && splitTransaction?.amount && splitTransaction?.currency) {
             const participantAccountIDs = effectiveParticipants?.map((participant) => participant.accountID) as number[];
