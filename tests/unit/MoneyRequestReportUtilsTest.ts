@@ -1,9 +1,9 @@
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
-import {getReportIDForTransaction, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {getReportIDForTransaction, isBillableEnabledOnPolicy, shouldWaitForTransactions} from '@libs/MoneyRequestReportUtils';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportLoadingState} from '@src/types/onyx';
 
 const policyBaseMock: Policy = {
     id: '123456789A',
@@ -172,6 +172,34 @@ describe('MoneyRequestReportUtils', () => {
         test('returns false when policy is non-paid group', () => {
             const policy = {type: CONST.POLICY.TYPE.PERSONAL, disabledFields: {defaultBillable: false}} as unknown as Policy;
             expect(isBillableEnabledOnPolicy(policy)).toBe(false);
+        });
+    });
+
+    describe('shouldWaitForTransactions', () => {
+        const zeroTotalReport = {...reportBaseMock, total: 0};
+
+        test('ignores a stored loading flag when no report load is pending', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false};
+
+            expect(shouldWaitForTransactions(zeroTotalReport, [], reportLoadingState, false, false)).toBe(false);
+        });
+
+        test('waits for transactions when a report load is pending despite a false stored loading flag', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false};
+
+            expect(shouldWaitForTransactions(zeroTotalReport, [], reportLoadingState, true, false)).toBe(true);
+        });
+
+        test('does not wait after report actions have loaded successfully', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true};
+
+            expect(shouldWaitForTransactions(zeroTotalReport, [], reportLoadingState, true, false)).toBe(false);
+        });
+
+        test('still waits for a nonzero report total when no transactions are available', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false};
+
+            expect(shouldWaitForTransactions(reportBaseMock, [], reportLoadingState, false, false)).toBe(true);
         });
     });
 });
