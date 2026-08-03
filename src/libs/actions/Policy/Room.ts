@@ -8,8 +8,19 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-function openPolicyRoomsPage(policyID: string) {
-    const params: OpenPolicyRoomsPageParams = {policyID};
+type OpenPolicyRoomsPageOptions = {
+    pageNumber?: number;
+    pageSize?: number;
+    sortBy?: 'name' | 'memberCount';
+    sortOrder?: 'asc' | 'desc';
+    searchValue?: string;
+};
+
+function openPolicyRoomsPage(policyID: string, options: OpenPolicyRoomsPageOptions = {}) {
+    const params: OpenPolicyRoomsPageParams = {
+        policyID,
+        ...options,
+    };
 
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_POLICY_ROOMS_LOADED>> = [
         {

@@ -2,9 +2,11 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {SortOrder} from '@components/Table/middlewares/sorting';
 import WorkspaceRoomsTable from '@components/Tables/WorkspaceRoomsTable';
 import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable';
 
+import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -33,10 +35,12 @@ import type SCREENS from '@src/SCREENS';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {policyChatRoomsSelector} from '@selectors/Report';
-import React from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.ROOMS>;
+
+type WorkspaceRoomsTableSortColumn = 'name' | 'members';
 
 function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const {translate} = useLocalize();
@@ -54,6 +58,11 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const [roomSort, setRoomSort] = useState<{columnKey: WorkspaceRoomsTableSortColumn; order: SortOrder}>({
+        columnKey: 'name',
+        order: 'asc',
+    });
 
     const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyChatRoomsSelector(policyID, reportNameValuePairs)});
     const [hasReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
@@ -73,26 +82,46 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const [roomIDToHighlight] = useOnyx(ONYXKEYS.ROOM_ID_HIGHLIGHT_ON_ROOMS_PAGE);
     const highlightedReportID = roomIDToHighlight ?? undefined;
 
-    const rooms: WorkspaceRoomRowData[] = (policyReports ?? []).map((report) => ({
-        keyForList: report.reportID,
-        reportID: report.reportID,
-        name: deprecatedGetReportName(report, reportAttributes),
-        memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
-        action: () => {
-            if (isAdmin) {
-                // Admins open the details RHP directly instead of the room report, so the report is never fetched via ReportScreen.
-                // Fetch it here so the RHP has full data (participants, metadata) for Join, Invite and renaming.
-                // shouldMarkAsRead is false because the user only views the room details, not the conversation itself.
-                openReport({reportID: report.reportID, introSelected, betas, shouldMarkAsRead: false, hasReportActions: !!hasReportActions?.[report.reportID]});
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(report.reportID)));
-                return;
-            }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-        },
-    }));
+    const rooms: WorkspaceRoomRowData[] = useMemo(
+        () =>
+            (policyReports ?? []).map((report) => ({
+                keyForList: report.reportID,
+                reportID: report.reportID,
+                name: deprecatedGetReportName(report, reportAttributes),
+                memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
+                action: () => {
+                    if (isAdmin) {
+                        // Admins open the details RHP directly instead of the room report, so the report is never fetched via ReportScreen.
+                        // Fetch it here so the RHP has full data (participants, metadata) for Join, Invite and renaming.
+                        // shouldMarkAsRead is false because the user only views the room details, not the conversation itself.
+                        openReport({reportID: report.reportID, introSelected, betas, shouldMarkAsRead: false, hasReportActions: !!hasReportActions?.[report.reportID]});
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(report.reportID)));
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                },
+            })),
+        [betas, hasReportActions, introSelected, isAdmin, personalDetails, policyReports, reportAttributes],
+    );
+
+    useEffect(() => {
+        openPolicyRoomsPage(policyID, {
+            pageNumber: 1,
+            pageSize: 25,
+            searchValue: debouncedSearchTerm.trim(),
+            sortBy: roomSort.columnKey === 'members' ? 'memberCount' : 'name',
+            sortOrder: roomSort.order,
+        });
+    }, [debouncedSearchTerm, policyID, roomSort.columnKey, roomSort.order]);
 
     useFocusEffect(() => {
-        openPolicyRoomsPage(policyID);
+        openPolicyRoomsPage(policyID, {
+            pageNumber: 1,
+            pageSize: 25,
+            searchValue: debouncedSearchTerm.trim(),
+            sortBy: roomSort.columnKey === 'members' ? 'memberCount' : 'name',
+            sortOrder: roomSort.order,
+        });
     });
 
     return (
@@ -138,6 +167,15 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     rooms={rooms}
                     policyID={policyID}
                     highlightedReportID={highlightedReportID}
+                    onSearchStringChange={setSearchTerm}
+                    onSortingChange={(sorting: {columnKey: string | undefined; order: SortOrder}) => {
+                        if (!sorting.columnKey || sorting.columnKey === 'name') {
+                            setRoomSort({columnKey: 'name', order: sorting.order});
+                            return;
+                        }
+
+                        setRoomSort({columnKey: 'members', order: sorting.order});
+                    }}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

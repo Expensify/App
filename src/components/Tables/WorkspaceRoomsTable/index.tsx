@@ -30,9 +30,15 @@ type WorkspaceRoomsTableProps = {
 
     /** The reportID of the room that should play the highlight animation (e.g. when it was just created) */
     highlightedReportID?: string;
+
+    /** Callback when the active search string changes */
+    onSearchStringChange?: (searchString: string) => void;
+
+    /** Callback when the active sorting configuration changes */
+    onSortingChange?: (sorting: {columnKey: string | undefined; order: 'asc' | 'desc'}) => void;
 };
 
-function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onSortingChange}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -109,6 +115,8 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRo
             initialSortColumn="name"
             title={translate('workspace.common.rooms')}
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
+            onSearchStringChange={onSearchStringChange}
+            onSortingChange={onSortingChange}
         >
             <Table.FilterBar label={translate('workspace.common.findRoom')} />
             <Table.NoResultsState />
