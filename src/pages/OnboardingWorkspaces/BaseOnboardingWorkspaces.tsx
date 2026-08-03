@@ -186,7 +186,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             automaticJoiningEnabled: false,
             policyType: defaultPolicy.type,
         });
-    }, [isLoadingJoinablePolicies, joinablePoliciesLoading, joinablePoliciesLength, defaultPolicy, finishOnboarding]);
+    }, [isLoadingJoinablePolicies, joinablePoliciesLoading, joinablePoliciesLength, defaultPolicy?.id, defaultPolicy?.name, defaultPolicy?.owner, defaultPolicy?.type, finishOnboarding]);
 
     const skipJoiningWorkspaces = () => {
         if (isEmployerWithSubmit) {
