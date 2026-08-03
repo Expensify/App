@@ -25,7 +25,7 @@ function DateFilterContentPageWrapper({baseFilterKey, value: initialValue, hasFe
                 value={value}
                 selectedDateModifier={selectedDateModifier}
                 hasFeed={hasFeed}
-                largeButton
+                size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.flex1]}
                 onDateModifierSelected={setSelectedDateModifier}
                 onChange={setValue}

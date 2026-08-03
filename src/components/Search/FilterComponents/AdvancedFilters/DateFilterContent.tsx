@@ -17,19 +17,20 @@ import CONST from '@src/CONST';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
+import {ValueOf} from 'type-fest';
 
 type DateFilterContentProps = {
     baseFilterKey: SearchDateFilterKeys;
     value: SearchDateValues;
     selectedDateModifier: SearchDateModifier | null;
     hasFeed: boolean;
-    largeButton?: boolean;
+    size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, 'small'>;
     style?: StyleProp<ViewStyle>;
     onDateModifierSelected: (modifier: SearchDateModifier | null) => void;
     onChange: (values: SearchDateValues) => void;
 };
 
-function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed, largeButton, style, onDateModifierSelected, onChange}: DateFilterContentProps) {
+function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed, size, style, onDateModifierSelected, onChange}: DateFilterContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const dateFilterRef = useRef<DateFilterBaseHandle>(null);
@@ -64,7 +65,7 @@ function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed,
                 <Button
                     style={[styles.ph5, styles.pb5, styles.pt3]}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={largeButton ? CONST.BUTTON_SIZE.LARGE : undefined}
+                    size={size}
                     onPress={() => dateFilterRef.current?.save()}
                 >
                     <Button.KeyboardShortcut />
