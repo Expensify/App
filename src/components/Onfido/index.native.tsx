@@ -86,6 +86,11 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                 if (!!errorMessage && getPlatform() === CONST.PLATFORM.IOS) {
                     checkMultiple([PERMISSIONS.IOS.MICROPHONE, PERMISSIONS.IOS.CAMERA])
                         .then((statuses) => {
+                            // The permission check resolves asynchronously, so the user may have already backed out (unmounting this
+                            // component) by the time it settles. Skip the alert to avoid showing a stale permission prompt on the screen they returned to.
+                            if (!isActive) {
+                                return;
+                            }
                             const isMicAllowed = statuses[PERMISSIONS.IOS.MICROPHONE] === RESULTS.GRANTED;
                             const isCameraAllowed = statuses[PERMISSIONS.IOS.CAMERA] === RESULTS.GRANTED;
                             let alertTitle: TranslationPaths | '' = '';
