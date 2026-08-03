@@ -92,6 +92,20 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/abc/overview/address')).toBe('/workspaces/abc/overview/workspace-address');
     });
 
+    it('redirects legacy policy-specific downgrade paths (with and without trailing slash) to the dynamic downgrade route', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/downgrade/')).toBe('/workspaces/abc/overview/plan/downgrade?policyID=abc');
+        expect(getMatchingNewRoute('/workspaces/abc/downgrade')).toBe('/workspaces/abc/overview/plan/downgrade?policyID=abc');
+    });
+
+    it('redirects legacy policy-less downgrade path to the Subscription dynamic downgrade route', () => {
+        expect(getMatchingNewRoute('/workspaces/downgrade')).toBe('/settings/subscription/downgrade');
+    });
+
+    it('does not redirect the already-migrated dynamic downgrade route', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/overview/plan/downgrade')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/subscription/downgrade')).toBe(undefined);
+    });
+
     it('redirects old card reconciliation account path with two wildcards', () => {
         expect(getMatchingNewRoute('/workspaces/abc/accounting/xero/card-reconciliation/account')).toBe(
             '/workspaces/abc/accounting/xero/card-reconciliation/account-reconciliation-settings',
