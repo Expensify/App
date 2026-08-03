@@ -4,11 +4,7 @@ type CollapsibleHeaderOnKeyboardProps = {
      *  component, keyboard, and focused input — e.g. a tab bar below the list.
      *  The collapse target is reduced by this amount so those elements are not counted twice. */
     collapsibleHeaderOffset?: number;
-
-    /**
-     * If true, the header will always collapse on keyboard open,
-     * regardless if there is enough space for the input above the keyboard.
-     */
+    // Whether to always collapse the header when the keyboard is open.
     alwaysCollapseHeaderOnKeyboard?: boolean;
 };
 

@@ -3,11 +3,12 @@ import TextInputFilterContent from '@components/Search/FilterComponents/Advanced
 
 import React from 'react';
 
-function TextInputFilterContentPageWrapper({filterKey, value, onChange, buttonText}: TextInputFilterContentWrapperProps) {
+function TextInputFilterContentPageWrapper({baseFilterKey, value, isNegated, buttonText, onChange}: TextInputFilterContentWrapperProps) {
     return (
         <TextInputFilterContent
-            filterKey={filterKey}
+            baseFilterKey={baseFilterKey}
             value={value}
+            isNegated={isNegated}
             autoFocus
             largeButton
             buttonText={buttonText}
