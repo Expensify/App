@@ -14,7 +14,6 @@ import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -38,7 +37,7 @@ function RilletExistingConnectionsPage({route}: RilletExistingConnectionsPagePro
             title: policy.name,
             key: policy.id,
             avatarID: policy.id,
-            icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+            icon: policy.avatarURL,
             iconType: CONST.ICON_TYPE_WORKSPACE,
             shouldShowRightIcon: true,
             description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.rillet, date) : translate('workspace.accounting.rillet'),

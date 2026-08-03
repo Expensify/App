@@ -999,7 +999,7 @@ function MenuItem({
                                                                         reasonAttributes={menuItemLoadingReasonAttributes}
                                                                     />
                                                                 ))}
-                                                            {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
+                                                            {iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <WorkspaceAvatar
                                                                     imageStyles={styles.alignSelfCenter}
                                                                     source={icon}
