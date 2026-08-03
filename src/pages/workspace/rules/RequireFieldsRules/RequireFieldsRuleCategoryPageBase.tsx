@@ -49,7 +49,6 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
     const [form] = useOnyx(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const areCategoriesEnabled = !!policy?.areCategoriesEnabled;
-    const arePolicyCategoriesLoading = areCategoriesEnabled && policyCategories === undefined;
 
     const fetchPolicyCategories = () => {
         if (!areCategoriesEnabled || policyCategories !== undefined) {
@@ -63,6 +62,11 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
     useFocusEffect(() => {
         fetchPolicyCategories();
     });
+
+    // Only spin while a fetch can actually resolve. Offline there's nothing to wait for, so fall through to the
+    // picker (empty list + offline indicator) instead of a spinner that never goes away. The reconnect callback
+    // fetches and flips this back on once we're online.
+    const arePolicyCategoriesLoading = areCategoriesEnabled && policyCategories === undefined && !isOffline;
 
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
     const selectedCategory = selectedCategoryName ? policyCategories?.[selectedCategoryName] : undefined;
