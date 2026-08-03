@@ -8192,8 +8192,6 @@ const CONST = {
         GPS_TOOLTIP: 'gpsTooltip',
         HAS_FILTER_NEGATION: 'hasFilterNegation',
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
-        // Rendered per row by FieldRequirementSettingRow rather than through the ProductTrainingContext
-        // queue, so these names only reserve a slot in the dismissed NVP.
         REQUIRE_FIELDS_RULE_RECEIPT_COUPLING: 'requireFieldsRuleReceiptCoupling',
         REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING: 'requireFieldsRuleItemizedReceiptCoupling',
     },
