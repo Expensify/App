@@ -170,6 +170,7 @@ describe('MFA magic code and registration decision', () => {
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}})).toBe(false);
         expect(snapshotToState(result).isValidateCodeFormSubmitting).toBe(false);
+        expect(result.context.validateCode).toBeUndefined();
         expect(result.context.registrationChallenge).toBe(MFA_TEST_REGISTRATION_CHALLENGE);
         expect(result.context.error).toBeUndefined();
 
@@ -187,6 +188,7 @@ describe('MFA magic code and registration decision', () => {
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE}}})).toBe(true);
         expect(snapshotToState(result).showsInvalidCodeError).toBe(true);
+        expect(result.context.validateCode).toBeUndefined();
         expect(result.context.registrationChallenge).toBeUndefined();
         expect(result.context.error).toBeUndefined();
         expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
@@ -207,7 +209,7 @@ describe('MFA magic code and registration decision', () => {
 
         const result = actor.getSnapshot();
         expect(result.context.registrationChallenge).toBe(MFA_TEST_REGISTRATION_CHALLENGE);
-        expect(result.context.validateCode).toBe(MFA_TEST_VALIDATE_CODE);
+        expect(result.context.validateCode).toBeUndefined();
         expect(snapshotToState(result).showsInvalidCodeError).toBe(false);
 
         actor.stop();
@@ -223,6 +225,7 @@ describe('MFA magic code and registration decision', () => {
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
+        expect(result.context.validateCode).toBeUndefined();
         expect(result.context.error?.reason).toBe(REASON.SERVER_ERRORS.UNRECOGNIZED);
         expect(result.context.registrationChallenge).toBeUndefined();
 
@@ -239,6 +242,7 @@ describe('MFA magic code and registration decision', () => {
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
+        expect(result.context.validateCode).toBeUndefined();
         expect(result.context.error?.reason).toBe(REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE);
         expect(result.context.registrationChallenge).toBeUndefined();
 

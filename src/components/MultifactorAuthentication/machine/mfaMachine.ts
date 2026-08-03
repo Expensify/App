@@ -104,6 +104,7 @@ const MFAMachine = setup({
             }
             return {validateCode: event.validateCode};
         }),
+        clearValidateCode: assign({validateCode: undefined}),
         approveSoftPrompt: assign({softPromptApproved: true}),
         persistSoftPromptAcceptance: ({context}) => {
             if (context.accountID === undefined) {
@@ -244,6 +245,9 @@ const MFAMachine = setup({
                             },
                         },
                         [MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE]: {
+                            // The submitted code is needed only while this actor starts and runs. Clear it on
+                            // every way out so the one-time code cannot outlive the request that consumes it.
+                            exit: 'clearValidateCode',
                             invoke: {
                                 id: 'requestRegistrationChallenge',
                                 src: 'requestRegistrationChallenge',

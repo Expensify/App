@@ -192,14 +192,14 @@ const testConfig = {
         [`${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
-            // A stored code means the flow re-entered this check from the magic-code screen, which
-            // stays visible while the read runs; a first pass runs behind the transparent initial screen.
-            if (state.context.validateCode === undefined) {
+            expect(state.context.validateCode).toBeUndefined();
+            // A registration challenge means the flow re-entered this check from the magic-code
+            // screen, which stays visible while the read runs; a first pass has no challenge and
+            // runs behind the transparent initial screen.
+            if (state.context.registrationChallenge === undefined) {
                 expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
-                expect(state.context.registrationChallenge).toBeUndefined();
             } else {
                 expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);
-                expect(state.context.registrationChallenge).toBeDefined();
                 // The magic-code screen stays visible during this read, but the machine no longer
                 // accepts resend requests after a valid code has advanced the flow.
                 expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON)).toBeDisabled();
