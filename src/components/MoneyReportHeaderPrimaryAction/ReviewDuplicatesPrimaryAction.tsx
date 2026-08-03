@@ -6,13 +6,12 @@ import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isDuplicate} from '@libs/TransactionUtils';
 
-import {createTransactionThreadReport} from '@userActions/Report';
+import {createTransactionThreadReport, setOptimisticTransactionThread} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,40 +42,39 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => {
-                let threadID: string | undefined | null = transactionThreadReportID;
-                if (!threadID) {
-                    const duplicateTransaction = transactions.find((reportTransaction) =>
-                        isDuplicate(
-                            reportTransaction,
-                            email ?? '',
-                            accountID,
-                            moneyRequestReport,
-                            ownerLogin,
-                            policy,
-                            allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + reportTransaction.transactionID],
-                        ),
-                    );
-                    if (duplicateTransaction) {
-                        const existingThreadID = getThreadReportIDsForTransactions(reportActions, [duplicateTransaction]).at(0);
-                        if (existingThreadID) {
-                            threadID = existingThreadID;
-                        } else {
-                            const transactionID = duplicateTransaction.transactionID;
-                            const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                            const createdTransactionThreadReport = createTransactionThreadReport({
-                                introSelected,
-                                currentUserLogin: email ?? '',
-                                currentUserAccountID: accountID,
-                                betas,
-                                iouReport: moneyRequestReport,
-                                iouReportAction: iouAction,
-                            });
-                            threadID = createdTransactionThreadReport?.reportID;
-                        }
-                    }
-                }
+                const duplicateTransaction = transactions.find((reportTransaction) =>
+                    isDuplicate(
+                        reportTransaction,
+                        email ?? '',
+                        accountID,
+                        moneyRequestReport,
+                        ownerLogin,
+                        policy,
+                        allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + reportTransaction.transactionID],
+                    ),
+                );
+                const iouAction = duplicateTransaction ? getIOUActionForTransactionID(reportActions, duplicateTransaction.transactionID) : undefined;
+                let threadID = transactionThreadReportID ?? iouAction?.childReportID;
+
                 if (threadID) {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.getRoute(threadID)));
+                    if (iouAction) {
+                        setOptimisticTransactionThread(threadID, moneyRequestReport?.reportID, iouAction.reportActionID, moneyRequestReport?.policyID);
+                    }
+                } else if (duplicateTransaction) {
+                    const createdTransactionThreadReport = createTransactionThreadReport({
+                        introSelected,
+                        currentUserLogin: email ?? '',
+                        currentUserAccountID: accountID,
+                        betas,
+                        iouReport: moneyRequestReport,
+                        iouReportAction: iouAction,
+                    });
+                    threadID = createdTransactionThreadReport?.reportID;
+                }
+
+                const reportIDToNavigate = threadID;
+                if (reportIDToNavigate) {
+                    requestAnimationFrame(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.getRoute(reportIDToNavigate))));
                 }
             }}
         >
