@@ -117,7 +117,7 @@ function FlagForReviewRulePageBase({
 
         // A draft holding the category *and* an amount is either already seeded or the user's in-progress edit, so
         // leave it alone. A draft with only the category came from the create flow's initial seed, which is what
-        // happens when this page opens before policyCategories has loaded: the rule is only recognised once the
+        // happens when this page opens before policyCategories has loaded: the rule is only recognized once the
         // category arrives, and the amount still has to be seeded then.
         if (selectedCategoryName === categoryName && draftMaxExpenseAmount !== undefined) {
             initializedDraftForRuleKeyRef.current = categoryName;
