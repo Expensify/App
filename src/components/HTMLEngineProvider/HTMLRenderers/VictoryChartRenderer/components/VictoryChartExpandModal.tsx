@@ -79,6 +79,19 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
     const targetHeight = (designHeight ?? 0) * scale;
     const clippedTargetHeight = (effectiveDesignHeight ?? 0) * scale;
 
+    // Cartesian charts render with zoom headroom: the canvas is drawn larger than the fitted size and
+    // displayed scaled down, so pinch-zooming stays sharp up to the headroom factor instead of
+    // magnifying raster pixels immediately. Capped so the canvas never exceeds a safe texture size.
+    const MAX_CANVAS_DIMENSION = 2048;
+    const zoomHeadroom = Math.max(1, Math.min(2, MAX_CANVAS_DIMENSION / Math.max(targetWidth, targetHeight, 1)));
+    const renderWidth = targetWidth * zoomHeadroom;
+    const renderHeight = targetHeight * zoomHeadroom;
+
+    // Polar charts render at design size and are transform-scaled; cartesian charts render natively with headroom.
+    const contentBoxWidth = isPolar ? (designWidth ?? 0) : renderWidth;
+    const contentBoxHeight = isPolar ? (designHeight ?? 0) : renderHeight;
+    const contentBoxScale = isPolar ? scale : 1 / zoomHeadroom;
+
     // Visual styles parsed from the chart HTML — resolved and applied the same way
     // VictoryChartContainerFixed does inline, so the expanded chart keeps the same
     // (theme-aware) background and rounding.
@@ -129,25 +142,34 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
                                             styles.overflowHidden,
                                         ]}
                                     >
+                                        {/* Cartesian charts are re-rendered natively at the target size (sharp Skia output) via the
+                                            scaled context. Polar charts keep the uniform transform-scale of the design-size render
+                                            instead: their geometry (radius, label layout) is parsed from HTML attributes in the pie
+                                            components, so a scaled context alone cannot resize them consistently. */}
                                         <View
                                             style={[
-                                                StyleUtils.getWidthAndHeightStyle(targetWidth, targetHeight),
+                                                StyleUtils.getWidthAndHeightStyle(contentBoxWidth, contentBoxHeight),
                                                 backgroundColor !== undefined && StyleUtils.getBackgroundColorStyle(backgroundColor),
                                                 typeof borderRadius === 'number' && StyleUtils.getBorderRadiusStyle(borderRadius),
                                                 styles.overflowHidden,
+                                                styles.chartExpandedContent,
+                                                StyleUtils.getTransformScaleStyle(contentBoxScale),
                                             ]}
                                         >
                                             {/* The Skia canvas is removed as soon as closing starts: WebGL canvases can
                                             flash white when re-composited during the close animation (visible on dark
                                             themes). The card box stays so the modal animates out looking intact. */}
-                                            {isVisible && (
-                                                <VictoryChartScaledProvider scale={scale}>
-                                                    <VictoryChartContent
-                                                        explicitSize={{width: targetWidth, height: targetHeight}}
-                                                        headless={false}
-                                                    />
-                                                </VictoryChartScaledProvider>
-                                            )}
+                                            {isVisible &&
+                                                (isPolar ? (
+                                                    <VictoryChartContent />
+                                                ) : (
+                                                    <VictoryChartScaledProvider scale={scale * zoomHeadroom}>
+                                                        <VictoryChartContent
+                                                            explicitSize={{width: renderWidth, height: renderHeight}}
+                                                            headless={false}
+                                                        />
+                                                    </VictoryChartScaledProvider>
+                                                ))}
                                         </View>
                                     </View>
                                 </MultiGestureCanvas>

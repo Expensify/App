@@ -44,15 +44,37 @@ function scaleLegendItem(legendItem: LegendItem, scale: number): LegendItem {
     };
 }
 
-/** Padding/domainPadding can be a plain number or a per-side object — scale every numeric part. */
-function scalePaddingLike<T>(padding: T, scale: number): T {
+type SidedPixelValues = {left?: number; right?: number; top?: number; bottom?: number};
+
+function scaleSidedPixelValues(sides: SidedPixelValues, scale: number): SidedPixelValues {
+    return {
+        left: sides.left === undefined ? undefined : sides.left * scale,
+        right: sides.right === undefined ? undefined : sides.right * scale,
+        top: sides.top === undefined ? undefined : sides.top * scale,
+        bottom: sides.bottom === undefined ? undefined : sides.bottom * scale,
+    };
+}
+
+/** Padding can be a plain number or a per-side object — scale every numeric part. */
+function scalePadding(padding: VictoryChartContextValue['padding'], scale: number): VictoryChartContextValue['padding'] {
+    if (padding === undefined) {
+        return undefined;
+    }
     if (typeof padding === 'number') {
-        return (padding * scale) as T;
+        return padding * scale;
     }
-    if (padding && typeof padding === 'object') {
-        return Object.fromEntries(Object.entries(padding).map(([side, sideValue]) => [side, typeof sideValue === 'number' ? sideValue * scale : sideValue])) as T;
+    return scaleSidedPixelValues(padding, scale);
+}
+
+/** Domain padding can be a plain number or a per-side object — scale every numeric part. */
+function scaleDomainPadding(domainPadding: VictoryChartContextValue['domainPadding'], scale: number): VictoryChartContextValue['domainPadding'] {
+    if (domainPadding === undefined) {
+        return undefined;
     }
-    return padding;
+    if (typeof domainPadding === 'number') {
+        return domainPadding * scale;
+    }
+    return scaleSidedPixelValues(domainPadding, scale);
 }
 
 /** Rebuilds a Skia font at the scaled size; the original font object is left untouched. */
@@ -91,8 +113,8 @@ function scaleVictoryChartContextValue(value: VictoryChartContextValue, scale: n
         ...value,
         xAxis: scaleAxis(value.xAxis, scale),
         yAxis: value.yAxis?.map((axis) => scaleAxis(axis, scale)),
-        domainPadding: scalePaddingLike(value.domainPadding, scale),
-        padding: scalePaddingLike(value.padding, scale),
+        domainPadding: scaleDomainPadding(value.domainPadding, scale),
+        padding: scalePadding(value.padding, scale),
         labelItems: value.labelItems.map((labelItem) => scaleLabelItem(labelItem, scale)),
         legendItems: value.legendItems.map((legendItem) => scaleLegendItem(legendItem, scale)),
         chartContentStyles: {...value.chartContentStyles, width: designWidth, height: designHeight},

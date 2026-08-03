@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/naming-convention -- test-only: chart context mocks are narrowed from minimal literals, and per-line font maps are keyed by numeric line index */
 import type {VictoryChartContextValue} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import scaleVictoryChartContextValue from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scaleVictoryChartContextValue';
 
@@ -52,5 +53,30 @@ describe('scaleVictoryChartContextValue', () => {
     it('does not scale line-height multipliers', () => {
         const scaled = scaleVictoryChartContextValue(baseValue, 2);
         expect(scaled.labelItems.at(0)?.lineHeight).toEqual({0: 1.2});
+    });
+
+    it('returns axis fonts unchanged when they have no typeface', () => {
+        const fakeFont = {getTypeface: () => null, getSize: () => 12};
+        const value = {...baseValue, xAxis: {...(baseValue.xAxis as Record<string, unknown>), font: fakeFont}} as unknown as typeof baseValue;
+        const scaled = scaleVictoryChartContextValue(value, 2);
+        expect((scaled.xAxis as Record<string, unknown>).font).toBe(fakeFont);
+    });
+
+    it('handles missing optional fields without throwing', () => {
+        const value = {
+            ...baseValue,
+            xAxis: undefined,
+            yAxis: undefined,
+            domainPadding: undefined,
+            padding: undefined,
+            labelItems: [{x: 1, y: 2, text: 'bare'}],
+            legendItems: [{x: 1, y: 2, entries: [{text: 'A'}]}],
+            chartContentStyles: {},
+        } as unknown as typeof baseValue;
+        const scaled = scaleVictoryChartContextValue(value, 3);
+        expect(scaled.labelItems.at(0)).toMatchObject({x: 3, y: 6});
+        expect(scaled.legendItems.at(0)?.entries.at(0)).toMatchObject({text: 'A'});
+        expect(scaled.xAxis).toBeUndefined();
+        expect(scaled.padding).toBeUndefined();
     });
 });
