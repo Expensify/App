@@ -1,4 +1,4 @@
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 
 import * as OnyxUpdates from '@userActions/OnyxUpdates';
 
@@ -19,6 +19,10 @@ const requestsToIgnoreLastUpdateID = new Set<string>([
     WRITE_COMMANDS.CLOSE_ACCOUNT,
     WRITE_COMMANDS.DELETE_MONEY_REQUEST,
     SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES,
+    // A sign-in response carries the finallyData that clears `isAuthenticatingWithShortLivedToken` and `account.isLoading`.
+    // A parked response applies only after the gap fill ends. A gap fill that fails or aborts blocks reauthentication for the life of the tab.
+    READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN,
+    READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN,
 ]);
 
 const SaveResponseInOnyx: Middleware = <TKey extends OnyxKey>(requestResponse: Promise<Response<TKey> | void>, request: OnyxRequest<TKey>) =>
