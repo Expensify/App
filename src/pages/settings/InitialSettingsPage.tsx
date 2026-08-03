@@ -66,12 +66,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         openInitialSettingsPage();
     }, []);
 
-    /**
-     * Return JSX.Element with menu items
-     * @param menuItemsData list with menu items data
-     * @param sectionStyle style for the menu section
-     * @returns the menu items for passed data
-     */
     const getMenuItemsSection = (menuItemsData: MenuSection, sectionStyle: StyleProp<ViewStyle>) => {
         return (
             <View style={[sectionStyle, styles.pb4, styles.mh3]}>
