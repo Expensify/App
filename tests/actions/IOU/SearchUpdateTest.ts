@@ -19,6 +19,7 @@ import Onyx from 'react-native-onyx';
 import currencyList from '../../unit/currencyList.json';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -140,7 +141,7 @@ describe('actions/IOU', () => {
             const transaction = {
                 ...createRandomTransaction(1),
             };
-            const currentSearchQueryJSON = {
+            const currentSearchQueryJSON = createMock<SearchQueryJSON>({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
@@ -181,7 +182,7 @@ describe('actions/IOU', () => {
                 hash: 939629734,
                 recentSearchHash: 1023339253,
                 similarSearchHash: 1855682507,
-            } as SearchQueryJSON;
+            });
             const iouReport: Report = {
                 ...createRandomReport(2, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -202,7 +203,7 @@ describe('actions/IOU', () => {
             const transaction = {
                 ...createRandomTransaction(1),
             };
-            const currentSearchQueryJSON = {
+            const currentSearchQueryJSON = createMock<SearchQueryJSON>({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
@@ -243,7 +244,7 @@ describe('actions/IOU', () => {
                 inputQuery: 'sortBy:date sortOrder:desc type:expense-report action:approve to:20671314',
                 recentSearchHash: 244251677,
                 similarSearchHash: 1539858783,
-            } as SearchQueryJSON;
+            });
             const iouReport: Report = {
                 ...createRandomReport(2, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -265,7 +266,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reimbursable: true,
             };
-            const currentSearchQueryJSON = {
+            const currentSearchQueryJSON = createMock<SearchQueryJSON>({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
@@ -311,7 +312,7 @@ describe('actions/IOU', () => {
                 inputQuery: 'sortBy:date sortOrder:desc type:expense groupBy:from status:drafts,outstanding reimbursable:yes',
                 recentSearchHash: 1043581824,
                 similarSearchHash: 1832274510,
-            } as SearchQueryJSON;
+            });
 
             const iouReport: Report = {
                 ...createRandomReport(2, undefined),
@@ -334,7 +335,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
             };
             const policyID = '12345';
-            const currentSearchQueryJSON = {
+            const currentSearchQueryJSON = createMock<SearchQueryJSON>({
                 type: 'expense',
                 sortBy: 'date',
                 sortOrder: 'desc',
@@ -357,7 +358,7 @@ describe('actions/IOU', () => {
                         isDefault: true,
                     },
                 ],
-            } as unknown as SearchQueryJSON;
+            });
 
             // When the IOU report has a matching policyID, it should return true
             const matchingIOUReport: Report = {

@@ -22,6 +22,7 @@ import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {policy420A} from '../../__mocks__/reportData/policies';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import {transactionR14932} from '../../__mocks__/reportData/transactions';
+import {isObject} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -34,10 +35,23 @@ type AvatarProps = {
 
 type AvatarData = {
     uri: string;
-    avatarID?: number;
+    avatarID?: number | string;
     name?: string;
     parent: string;
 };
+
+function getAvatarData(dataSet: unknown): AvatarData {
+    if (!isObject(dataSet) || typeof dataSet.uri !== 'string' || typeof dataSet.parent !== 'string') {
+        throw new Error('Expected an avatar test double to expose AvatarData');
+    }
+
+    return {
+        uri: dataSet.uri,
+        avatarID: typeof dataSet.avatarID === 'number' || typeof dataSet.avatarID === 'string' ? dataSet.avatarID : undefined,
+        name: typeof dataSet.name === 'string' ? dataSet.name : undefined,
+        parent: dataSet.parent,
+    };
+}
 
 /* --- UI Mocks --- */
 
@@ -46,7 +60,9 @@ const parseSource = (source: AvatarSource | IconAsset): string => {
         return source;
     }
     if (typeof source === 'object' && 'name' in source) {
-        return source.name as string;
+        if (typeof source.name === 'string') {
+            return source.name;
+        }
     }
     if (typeof source === 'object' && 'uri' in source) {
         return source.uri ?? 'No Source';
@@ -298,9 +314,15 @@ async function retrieveDataFromAvatarView(props: Parameters<typeof ReportActionA
         exact: false,
     });
 
-    const imageData = images.map((img) => img.props.dataSet as AvatarData);
-    const iconData = icons.map((icon) => icon.props.dataSet as AvatarData);
-    const fragmentsData = reportAvatarFragments.map((fragment) => fragment.props.testID as string);
+    const imageData = images.map((img) => getAvatarData(img.props.dataSet));
+    const iconData = icons.map((icon) => getAvatarData(icon.props.dataSet));
+    const fragmentsData = reportAvatarFragments.map((fragment) => {
+        const testID: unknown = fragment.props.testID;
+        if (typeof testID !== 'string') {
+            throw new Error('Expected a report avatar fragment testID');
+        }
+        return testID;
+    });
 
     return {
         images: imageData,
