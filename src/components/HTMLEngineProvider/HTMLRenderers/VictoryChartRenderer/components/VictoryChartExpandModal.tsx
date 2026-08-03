@@ -1,8 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {CHART_TYPE, POLAR_CONTAINER_HEIGHT_RATIO} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
-import {VictoryChartLayoutScaleProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartLayoutContext';
-import getVictoryChartCoordinateScale from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getVictoryChartCoordinateScale';
 import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 import Modal from '@components/Modal';
 
@@ -19,7 +17,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-import VictoryChartInteractiveContent from './VictoryChartInteractiveContent';
+import VictoryChartContent from './VictoryChartContent';
 
 type VictoryChartExpandModalProps = {
     /** Whether the modal is visible */
@@ -31,7 +29,7 @@ type VictoryChartExpandModalProps = {
 
 /**
  * Centered full-screen modal that re-renders the current chart scaled up to the viewport.
- * Must be rendered inside a VictoryChartProvider so VictoryChartInteractiveContent can read the parsed chart context.
+ * Must be rendered inside a VictoryChartProvider so VictoryChartContent can read the parsed chart context.
  *
  * The chart is rendered at its design size and uniformly transform-scaled to fit the modal —
  * the same technique the inline scaled container uses to shrink charts. This keeps the canvas
@@ -70,8 +68,6 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
 
     // Uniform scale that fits the chart's (clipped) design box inside the available modal area (may be > 1).
     const scale = hasDesignDimensions && effectiveDesignHeight !== undefined && isMeasured ? Math.min(availableSize.width / designWidth, availableSize.height / effectiveDesignHeight) : 1;
-    const coordinateScale = getVictoryChartCoordinateScale(scale);
-    const expandedChartContent = <VictoryChartLayoutScaleProvider scale={coordinateScale}>{isVisible && <VictoryChartInteractiveContent />}</VictoryChartLayoutScaleProvider>;
 
     // Visual styles parsed from the chart HTML — resolved and applied the same way
     // VictoryChartContainerFixed does inline, so the expanded chart keeps the same
@@ -130,7 +126,7 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
                                         {/* The Skia canvas is removed as soon as closing starts: WebGL canvases can
                                         flash white when re-composited during the close animation (visible on dark
                                         themes). The card box stays so the modal animates out looking intact. */}
-                                        {expandedChartContent}
+                                        {isVisible && <VictoryChartContent />}
                                     </View>
                                 </View>
                             ) : (
@@ -146,7 +142,7 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
                                         styles.overflowHidden,
                                     ]}
                                 >
-                                    {expandedChartContent}
+                                    {isVisible && <VictoryChartContent />}
                                 </View>
                             ))}
                     </View>

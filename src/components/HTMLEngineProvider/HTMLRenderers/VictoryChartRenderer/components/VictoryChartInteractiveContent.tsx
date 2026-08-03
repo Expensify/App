@@ -4,15 +4,18 @@ import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRendere
 import React from 'react';
 
 import VictoryChartCartesianInteractive from './VictoryChartCartesianInteractive';
-import VictoryChartContent from './VictoryChartContent';
+import VictoryChartPolar from './VictoryChartPolar';
 
 function VictoryChartInteractiveContent() {
     const {type} = useVictoryChartContext();
-    if (type !== CHART_TYPE.CARTESIAN) {
-        return <VictoryChartContent />;
+    switch (type) {
+        case CHART_TYPE.CARTESIAN:
+            return <VictoryChartCartesianInteractive />;
+        case CHART_TYPE.POLAR:
+            return <VictoryChartPolar />;
+        default:
+            return null;
     }
-
-    return <VictoryChartCartesianInteractive />;
 }
 
 VictoryChartInteractiveContent.displayName = 'VictoryChartInteractiveContent';
