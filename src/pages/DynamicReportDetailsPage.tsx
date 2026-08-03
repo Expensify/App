@@ -1153,10 +1153,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     iouTransactionID,
                     requestParentReportAction,
                     requestParentReportActionChildReport,
-                    // Invoice reports are excluded by useGetIOUReportFromReportAction, so iouReport is undefined for them.
-                    // Fall back to the invoice report itself (its chatReportID points to the invoice room) so deleting an
-                    // invoice navigates back to the invoice room instead of leaving a "Not here" page. See issue #97399.
-                    iouReport ?? (isInvoiceReport ? report : undefined),
+                    iouReport,
                     chatIOUReport,
                     isChatIOUReportArchived,
                     isSingleTransactionView,
@@ -1180,8 +1177,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         isChatIOUReportArchived,
         isSingleTransactionView,
         requestParentReportActionChildReport,
-        isInvoiceReport,
-        report,
     ]);
 
     const showDeleteModal = useCallback(async () => {
