@@ -61,7 +61,6 @@ import {
     isConciergeChatReport,
     isCurrentUserSubmitter,
     isDeprecatedGroupDM,
-    isExpenseRequest,
     isGroupChat as isGroupChatReportUtils,
     isInvoiceReport,
     isInvoiceRoom,
@@ -275,7 +274,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     );
 
     const shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
-    const defaultSubscriptSize = isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const brickRoadIndicator = hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, isParticipantOptimistic);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
@@ -316,7 +314,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const multipleAvatars = (
         <ReportActionAvatars
             reportID={report?.reportID}
-            size={shouldShowSubscript ? defaultSubscriptSize : undefined}
             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
         />
     );
