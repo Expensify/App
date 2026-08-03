@@ -9112,6 +9112,7 @@ const translations = {
             hold: 'Hold',
             unhold: 'Remove hold',
             reject: 'Reject',
+            downloadReceipts: 'Download receipts',
             duplicateExpense: ({count}: {count: number}) => `Duplicate ${count === 1 ? 'expense' : 'expenses'}`,
             duplicateReport: ({count}: {count: number}) => `Duplicate ${count === 1 ? 'report' : 'reports'}`,
             undelete: 'Undelete',
@@ -10545,6 +10546,8 @@ const translations = {
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+        noReceiptsTitle: 'No receipts to download',
+        noReceiptsBody: "There are no receipts attached to the expenses you selected, so there's nothing to download.",
         close: 'Close',
     },
     domain: {

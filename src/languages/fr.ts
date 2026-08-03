@@ -9016,6 +9016,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             reject: 'Rejeter',
             duplicateExpense: ({count}: {count: number}) => `Dupliquer ${count === 1 ? 'la dépense' : 'les dépenses'}`,
             noOptionsAvailable: 'Aucune option n’est disponible pour le groupe de dépenses sélectionné.',
+            downloadReceipts: 'Download receipts',
             undelete: 'Restaurer',
             duplicateReport: ({count}: {count: number}) => `Dupliquer ${count === 1 ? 'note de frais' : 'notes de frais'}`,
         },
@@ -10427,6 +10428,8 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+        noReceiptsTitle: 'No receipts to download',
+        noReceiptsBody: "There are no receipts attached to the expenses you selected, so there's nothing to download.",
         close: 'Close',
     },
     domain: {

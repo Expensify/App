@@ -8980,6 +8980,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             reject: 'Ablehnen',
             duplicateExpense: ({count}: {count: number}) => `${count === 1 ? 'Ausgabe' : 'Ausgaben'} duplizieren`,
             noOptionsAvailable: 'Für die ausgewählte Ausgabengruppe sind keine Optionen verfügbar.',
+            downloadReceipts: 'Download receipts',
             undelete: 'Wiederherstellen',
             duplicateReport: ({count}: {count: number}) => `Duplikat ${count === 1 ? 'Bericht' : 'Berichte'}`,
         },
@@ -10393,6 +10394,8 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+        noReceiptsTitle: 'No receipts to download',
+        noReceiptsBody: "There are no receipts attached to the expenses you selected, so there's nothing to download.",
         close: 'Close',
     },
     domain: {

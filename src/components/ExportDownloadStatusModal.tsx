@@ -61,11 +61,15 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const exportType = displayedExport?.exportType;
     const failedReportCount = displayedExport?.failedReportCount ?? 0;
     const reportCount = displayedExport?.reportCount ?? 0;
+    const receiptCount = displayedExport?.receiptCount ?? 0;
     const isPreparing = state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !shouldSendFromConcierge;
     const isConcierge = !!shouldSendFromConcierge;
     const isReady = state === CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
     const isPartialFailure = isReady && failedReportCount > 0;
+    // Gate on exportType too: the modal is shared with the PDF export, whose ready state can legitimately have
+    // a zero reportCount — only a receipts export with no receipts should show the "No receipts" message.
+    const isEmptyReceipts = isReady && exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS && receiptCount === 0;
 
     // Build the secure download URL the same way downloadReportPDF does, so the host always follows
     // the app's current environment (instead of the env baked into a backend-built URL) and authenticates
@@ -144,6 +148,20 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                         text={translate('exportDownload.dismiss')}
                         onPress={onClose}
                         style={[styles.w100, styles.mt3]}
+                    />
+                </>
+            );
+        }
+
+        if (isEmptyReceipts) {
+            return (
+                <>
+                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.noReceiptsTitle')}</Text>
+                    <Text style={styles.mb5}>{translate('exportDownload.noReceiptsBody')}</Text>
+                    <Button
+                        text={translate('exportDownload.close')}
+                        onPress={onClose}
+                        style={styles.w100}
                     />
                 </>
             );
