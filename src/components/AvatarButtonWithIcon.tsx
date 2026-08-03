@@ -90,7 +90,7 @@ function AvatarButtonWithIcon({
                 accessibilityLabel={text}
                 disabled={disabled}
                 disabledStyle={disabledStyle}
-                style={[styles.pRelative, StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size)), avatarStyle ?? styles.alignSelfCenter]}
+                style={[styles.pRelative, StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size)), styles.alignSelfCenter, avatarStyle]}
                 ref={anchorRef}
                 sentryLabel={sentryLabel}
             >
