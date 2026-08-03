@@ -89,7 +89,7 @@ function isPolicyFieldListEmpty(policy: OnyxEntry<Policy>): boolean {
 
 /**
  * Whether the policy has been archived. archivedDate is the single source of truth
- * for the archived state; unarchiving removes it.
+ * for the archived state; restoring the policy removes it.
  */
 function isArchivedPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return !!policy?.archivedDate;
