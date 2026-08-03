@@ -24,6 +24,28 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
     const styles = useThemeStyles();
 
     useEffect(() => {
+        // Back is exposed while OnfidoSDK.start() is still pending, so a late resolve/reject could navigate or mutate
+        // wallet/bank-account state after the user has already left. Ignore the callbacks once this component unmounts.
+        let isActive = true;
+        const handleSuccess: OnfidoProps['onSuccess'] = (data) => {
+            if (!isActive) {
+                return;
+            }
+            onSuccess(data);
+        };
+        const handleUserExit: OnfidoProps['onUserExit'] = (isUserInitiated) => {
+            if (!isActive) {
+                return;
+            }
+            onUserExit(isUserInitiated);
+        };
+        const handleError: OnfidoProps['onError'] = (error) => {
+            if (!isActive) {
+                return;
+            }
+            onError(error);
+        };
+
         OnfidoSDK.start({
             sdkToken,
             theme: OnfidoTheme.AUTOMATIC,
@@ -40,7 +62,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                 },
             },
         })
-            .then(onSuccess)
+            .then(handleSuccess)
             .catch((error: OnfidoError) => {
                 const errorMessage: string = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
                 const errorType = error.type;
@@ -52,12 +74,12 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                 if (([CONST.ONFIDO.ERROR.USER_CANCELLED, CONST.ONFIDO.ERROR.USER_TAPPED_BACK, CONST.ONFIDO.ERROR.USER_EXITED] as string[]).includes(errorMessage)) {
                     if (getPlatform() === CONST.PLATFORM.ANDROID) {
                         AppStateTracker.getWasAppRelaunchedFromIcon().then((wasAppRelaunchedFromIcon) => {
-                            onUserExit(!wasAppRelaunchedFromIcon);
+                            handleUserExit(!wasAppRelaunchedFromIcon);
                         });
                         return;
                     }
 
-                    onUserExit(true);
+                    handleUserExit(true);
                     return;
                 }
 
@@ -83,12 +105,12 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                                     [
                                         {
                                             text: translate('common.cancel'),
-                                            onPress: () => onUserExit(true),
+                                            onPress: () => handleUserExit(true),
                                         },
                                         {
                                             text: translate('common.settings'),
                                             onPress: () => {
-                                                onUserExit();
+                                                handleUserExit();
                                                 goToSettings();
                                             },
                                         },
@@ -97,15 +119,19 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                                 );
                                 return;
                             }
-                            onError(errorMessage);
+                            handleError(errorMessage);
                         })
                         .catch(() => {
-                            onError(errorMessage);
+                            handleError(errorMessage);
                         });
                 } else {
-                    onError(errorMessage);
+                    handleError(errorMessage);
                 }
             });
+
+        return () => {
+            isActive = false;
+        };
         // Onfido should be initialized only once on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
