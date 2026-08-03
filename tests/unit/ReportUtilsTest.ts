@@ -574,6 +574,30 @@ describe('ReportUtils', () => {
             expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, undefined, iouReport)).toBe(paidSystemMessage);
         });
 
+        it('should show the cross-border FX message with the credited amount and both account last-4s', async () => {
+            // Given a VBBA pay action enriched with the cross-border FX amounts (company-paid conversion)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithBank);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            const crossBorderAction = {
+                ...reportAction,
+                originalMessage: {
+                    ...reportAction.originalMessage,
+                    creditedAmount: 1340,
+                    creditedCurrency: 'GBP',
+                    debitBankAccountLast4: '6789',
+                    creditBankAccountLast4: '3335',
+                },
+            };
+
+            // Then the message reports the credited amount and moves "from account VBA to account employee"
+            const expectedMessage = translate(CONST.LOCALES.EN, 'iou.reimbursedCrossBorder', {
+                amount: convertToDisplayString(1340, 'GBP'),
+                debitBankAccount: '6789',
+                creditBankAccount: '3335',
+            });
+            expect(getIOUReportActionDisplayMessage(translateLocal, crossBorderAction, undefined, iouReport)).toBe(expectedMessage);
+        });
+
         it('should return received payment when submitter marked payment received', () => {
             const paymentReceivedReportAction = {
                 ...createRandomReportAction(45),
@@ -3860,6 +3884,22 @@ describe('ReportUtils', () => {
             const report = createSelfDM(1, currentUserAccountID);
             const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
             expect(result).toBe('Your space');
+        });
+
+        it('should return the Concierge subtitle only when the threaded conciergeReportID matches the report', () => {
+            const report = {
+                ...createRandomReport(2, undefined),
+                reportID: 'concierge-subtitle-1',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            // When the threaded conciergeReportID matches the report
+            const conciergeSubtitle = getChatRoomSubtitle(report, undefined, report.reportID, translateLocal);
+            expect(conciergeSubtitle).toBe(translateLocal('reportActionsView.conciergeSupport'));
+
+            // And an identical report with a non-matching conciergeReportID is not treated as Concierge
+            const regularSubtitle = getChatRoomSubtitle(report, undefined, 'a-different-report-id', translateLocal);
+            expect(regularSubtitle).not.toBe(translateLocal('reportActionsView.conciergeSupport'));
         });
 
         it('should return "Invoices" for invoice room', () => {
@@ -11819,6 +11859,18 @@ describe('ReportUtils', () => {
             expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(true);
         });
 
+        it('should return false for a task off a group chat', () => {
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP),
+                type: CONST.REPORT.TYPE.TASK,
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
+            };
+
+            expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(false);
+        });
+
         it('should return true for policy expense chat if the user is not the owner and the user is not an admin', () => {
             const report: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
@@ -12080,6 +12132,17 @@ describe('ReportUtils', () => {
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
             expect(isRootGroupChat(report)).toBe(true);
+        });
+
+        it('should return false if the report is a task off a group chat', () => {
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP),
+                type: CONST.REPORT.TYPE.TASK,
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+            };
+
+            expect(isRootGroupChat(report)).toBe(false);
         });
     });
     describe('isWhisperAction', () => {
@@ -16397,6 +16460,48 @@ describe('ReportUtils', () => {
 
                 // The hardcoded English copy must not drift from the localized function
                 expect(getReportPreviewReportActionMessage(params)).toBe(getReportPreviewMessage(englishTranslate, params));
+            });
+
+            describe('cross-border payment', () => {
+                const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+                const crossBorderAction: ReportAction = {
+                    ...payReportAction,
+                    originalMessage: {...payOriginalMessage, creditedAmount: 1340, creditedCurrency: 'GBP', creditBankAccountLast4: '3335'},
+                };
+                const crossBorderParams = {reportOrID: settledReport, iouReportAction: crossBorderAction, originalReportAction: crossBorderAction};
+
+                it('names the credited amount, falling back to the policy default for the debited account', () => {
+                    // Given a converted payment that recorded the employee's account but not the account it was paid from
+                    const result = getReportPreviewMessage(englishTranslate, crossBorderParams);
+
+                    // Then the debited account comes from the policy default, the same fallback the non-converted wording uses
+                    expect(result).toBe(
+                        translate(CONST.LOCALES.EN, 'iou.reimbursedCrossBorder', {
+                            amount: convertToDisplayString(1340, 'GBP'),
+                            debitBankAccount: '0000',
+                            creditBankAccount: '3335',
+                        }),
+                    );
+                });
+
+                it('stores the same wording on the report action as the localized preview shows', () => {
+                    // The hardcoded English copy must not drift from the localized function
+                    expect(getReportPreviewReportActionMessage(crossBorderParams)).toBe(getReportPreviewMessage(englishTranslate, crossBorderParams));
+                });
+
+                it('still names the report total in the parent chat preview', () => {
+                    // Given the parent chat preview, which summarizes the report rather than describing the payment
+                    const params = {...crossBorderParams, isPreviewMessageForParentChatReport: true};
+                    const paymentWithoutConversion = getReportPreviewMessage(englishTranslate, {
+                        reportOrID: settledReport,
+                        iouReportAction: payReportAction,
+                        originalReportAction: payReportAction,
+                        isPreviewMessageForParentChatReport: true,
+                    });
+
+                    // Then the credited amount does not replace the report total, which is what the report is denominated in
+                    expect(getReportPreviewMessage(englishTranslate, params)).toBe(paymentWithoutConversion);
+                });
             });
         });
 

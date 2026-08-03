@@ -186,6 +186,7 @@ import {
     formatLastMessageText,
     getActionableJoinRequestPendingReportAction,
     getAllReportActions,
+    getCrossBorderReimbursedMessage,
     getElsewherePaymentReportActionMessage,
     getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
@@ -2488,17 +2489,14 @@ function findLastAccessedReport(
 /**
  * Whether the provided report has expenses
  */
-function hasExpenses(reportID?: string, transactions?: Array<OnyxEntry<Transaction>>): boolean {
-    if (transactions) {
-        return !!transactions?.find((transaction) => transaction?.reportID === reportID);
-    }
-    return !!Object.values(deprecatedAllTransactions ?? {}).find((transaction) => transaction?.reportID === reportID);
+function hasExpenses(reportID?: string, transactions?: OnyxCollection<Transaction>): boolean {
+    return !!Object.values(transactions ?? deprecatedAllTransactions ?? {}).find((transaction) => transaction?.reportID === reportID);
 }
 
 /**
  * Whether the provided report is a closed expense report with no expenses
  */
-function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: Array<OnyxEntry<Transaction>>): boolean {
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: OnyxCollection<Transaction>): boolean {
     if (!report?.statusNum || report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || !isExpenseReport(report)) {
         return false;
     }
@@ -5856,7 +5854,12 @@ function getReportPreviewMessage(translate: LocalizedTranslate, params: GetRepor
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            return translate(translatePhraseKey, '', originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '');
+            const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
+            const crossBorderMessage = originalMessage ? getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits) : undefined;
+            if (crossBorderMessage) {
+                return crossBorderMessage;
+            }
+            return translate(translatePhraseKey, '', last4Digits);
         }
         if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify' || translatePhraseKey === 'iou.paidWithExpensify') {
             return translate(translatePhraseKey, payerDisplayName ?? '');
@@ -6070,6 +6073,12 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
             const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
+
+            // This variant returns raw English to match the surrounding non-localized preview strings.
+            if (originalMessage?.creditedAmount && originalMessage.creditedCurrency) {
+                const creditedAmountDisplay = convertToDisplayString(originalMessage.creditedAmount, originalMessage.creditedCurrency);
+                return `paid ${creditedAmountDisplay} from account ${originalMessage.debitBankAccountLast4 ?? last4Digits} to account ${originalMessage.creditBankAccountLast4 ?? ''}`;
+            }
             return `paid with bank account ${last4Digits}`;
         }
         if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify') {
@@ -8615,7 +8624,12 @@ function buildOptimisticCardAssignedReportAction(assigneeAccountID: number, curr
     };
 }
 
-function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number, currentUserAccountID: number, delegateEmailParam: string | undefined): OptimisticEditedTaskReportAction {
+function buildOptimisticChangedTaskAssigneeReportAction(
+    assigneeAccountID: number,
+    currentUserAccountID: number,
+    delegateEmailParam: string | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): OptimisticEditedTaskReportAction {
     const delegateAccountDetails = delegateEmailParam ? getPersonalDetailByEmail(delegateEmailParam) : undefined;
 
     return {
@@ -8626,7 +8640,7 @@ function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: numbe
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: `assigned to ${getDisplayNameForParticipant({accountID: assigneeAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils})}`,
+                text: `assigned to ${getDisplayNameForParticipant({accountID: assigneeAccountID, formatPhoneNumber})}`,
                 html: `assigned to <mention-user accountID="${assigneeAccountID}"/>`,
             },
         ],
@@ -8756,7 +8770,11 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
     };
 }
 
-function buildOptimisticChangeApproverReportAction(managerID: number, actorAccountID: number): OptimisticChangedApproverReportAction {
+function buildOptimisticChangeApproverReportAction(
+    managerID: number,
+    actorAccountID: number,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): OptimisticChangedApproverReportAction {
     const created = DateUtils.getDBTime();
     return {
         actionName: managerID === actorAccountID ? CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL : CONST.REPORT.ACTIONS.TYPE.REROUTE,
@@ -8766,7 +8784,7 @@ function buildOptimisticChangeApproverReportAction(managerID: number, actorAccou
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: `changed the approver to ${getDisplayNameForParticipant({accountID: managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils})}`,
+                text: `changed the approver to ${getDisplayNameForParticipant({accountID: managerID, formatPhoneNumber})}`,
                 html: `changed the approver to <mention-user accountID="${managerID}"/>`,
             },
         ],
@@ -10976,6 +10994,7 @@ function getIOUReportActionDisplayMessage(
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, reportPolicy);
+        const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits);
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -10985,6 +11004,9 @@ function getIOUReportActionDisplayMessage(
             case CONST.IOU.PAYMENT_TYPE.VBBA:
                 if (isInvoice) {
                     return translate(payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', '', last4Digits);
+                }
+                if (crossBorderMessage) {
+                    return crossBorderMessage;
                 }
                 translationKey = 'iou.businessBankAccount';
 
@@ -11061,7 +11083,9 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>, isReportArchived = false
  * A "root" group chat is the top level group chat and does not refer to any threads off of a Group Chat
  */
 function isRootGroupChat(report: OnyxEntry<Report>, isReportArchived = false): boolean {
-    return !isChatThread(report) && (isGroupChat(report) || isDeprecatedGroupDM(report, isReportArchived));
+    // Excluded via `isThread` rather than `isChatThread`: the backend gives a task the parent's chatType, and
+    // `isChatThread` only matches type CHAT, so a task off a group chat would otherwise read as the root chat.
+    return !isThread(report) && (isGroupChat(report) || isDeprecatedGroupDM(report, isReportArchived));
 }
 
 /**

@@ -1,4 +1,3 @@
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -58,20 +57,6 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    // Seed the selection from the already-assigned cardholder (e.g. when returning to this step in edit mode) so
-    // Next continues with the saved cardholder instead of demanding a fresh selection. Matches CardSelectionStep.
-    const [selectedAssignee, setSelectedAssignee] = useState<ListItem | undefined>(() => {
-        const assignedEmail = assignCard?.cardToAssign?.email;
-        if (!assignedEmail) {
-            return undefined;
-        }
-        return {
-            login: assignedEmail,
-            accountID: getPersonalDetailByEmail(assignedEmail)?.accountID,
-            keyForList: assignedEmail,
-        };
-    });
-    const [shouldShowError, setShouldShowError] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const canInviteMembers = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
 
@@ -116,12 +101,8 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
                 cardToAssign.cardName = assignCard.cardToAssign.cardName;
                 cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
-                // Preserve any start date the user already picked based on the saved data rather than `isEditing`.
-                // `isEditing` is false on the header-back-then-Next round trip, so keying off it here would wipe the
-                // chosen date. In a fresh flow `startDate`/`dateOption` are undefined, so both helpers still fall back
-                // to today/CUSTOM.
-                cardToAssign.startDate = getCardAssignmentStartDate(true, assignCard?.cardToAssign?.startDate);
-                cardToAssign.dateOption = getCardAssignmentDateOption(true, assignCard?.cardToAssign?.dateOption);
+                cardToAssign.startDate = getCardAssignmentStartDate(isEditing, assignCard?.cardToAssign?.startDate);
+                cardToAssign.dateOption = getCardAssignmentDateOption(isEditing, assignCard?.cardToAssign?.dateOption);
                 setAssignCardStepAndData({
                     cardToAssign,
                     isEditing: false,
@@ -156,9 +137,8 @@ function AssigneeStep({route}: AssigneeStepProps) {
             cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
             cardToAssign.cardName = assignCard.cardToAssign.cardName;
             cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
-            // Preserve the saved start date based on the data, not `isEditing` (see the matching branch above).
-            cardToAssign.startDate = getCardAssignmentStartDate(true, assignCard?.cardToAssign?.startDate);
-            cardToAssign.dateOption = getCardAssignmentDateOption(true, assignCard?.cardToAssign?.dateOption);
+            cardToAssign.startDate = getCardAssignmentStartDate(isEditing, assignCard?.cardToAssign?.startDate);
+            cardToAssign.dateOption = getCardAssignmentDateOption(isEditing, assignCard?.cardToAssign?.dateOption);
             setAssignCardStepAndData({
                 cardToAssign,
                 isEditing: false,
@@ -173,29 +153,11 @@ function AssigneeStep({route}: AssigneeStepProps) {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
     };
 
-    const selectAssignee = (assignee: ListItem) => {
-        setSelectedAssignee(assignee);
-        setShouldShowError(false);
-    };
-
-    const assignSelectedCardholder = () => {
-        if (!selectedAssignee) {
-            setShouldShowError(true);
-            return;
-        }
-        submit(selectedAssignee);
-    };
-
     const handleBackButtonPress = () => {
-        // When editing the cardholder from the Confirmation step, the assignee step is the only screen left in the RHP
-        // stack, so a bare goBack() would dismiss the whole modal. Navigate back to Confirmation explicitly instead
-        // (mirroring CardSelectionStep). Plain wizard back-navigation (isEditing false) falls through to goBack().
         if (isEditing) {
             setAssignCardStepAndData({
                 isEditing: false,
             });
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.path));
-            return;
         }
         Navigation.goBack();
     };
@@ -214,7 +176,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 alternateText: email,
                 login: email,
                 accountID: personalDetail?.accountID,
-                isSelected: selectedAssignee?.login === email,
+                isSelected: assignCard?.cardToAssign?.email === email,
                 icons: [
                     {
                         source: personalDetail?.avatar ?? icons.FallbackAvatar,
@@ -248,7 +210,6 @@ function AssigneeStep({route}: AssigneeStepProps) {
         assignees = options.map((option) => ({
             ...option,
             keyForList: option.keyForList ?? option.login ?? '',
-            isSelected: !!selectedAssignee?.login && selectedAssignee.login === option.login,
         }));
     } else if (debouncedSearchTerm) {
         assignees = [];
@@ -297,25 +258,15 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.chooseTheCardholder')}</Text>
                 <SelectionList
                     data={assignees}
-                    onSelectRow={selectAssignee}
+                    onSelectRow={submit}
                     ListItem={UserListItem}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={selectedAssignee?.keyForList}
+                    initiallyFocusedItemKey={assignCard?.cardToAssign?.email}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={canInviteMembers && !!isSearchingForReports}
                     disableMaintainingScrollPosition
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
-                    footerContent={
-                        <FormAlertWithSubmitButton
-                            buttonText={translate('common.next')}
-                            onSubmit={assignSelectedCardholder}
-                            isAlertVisible={shouldShowError}
-                            containerStyles={[!shouldShowError && styles.mt5]}
-                            message={translate('workspace.companyCards.pleaseSelectACardholder')}
-                            shouldShowLoadingImmediatelyOnPress={false}
-                        />
-                    }
                 />
             </InteractiveStepWrapper>
         </AccessOrNotFoundWrapper>
