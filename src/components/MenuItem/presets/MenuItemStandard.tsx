@@ -44,7 +44,7 @@ type MenuItemStandardProps = WithSentryLabel & {
 function MenuItemStandard({title, icon, onPress, shouldShowChevron = false, description, isDisabled = false, sentryLabel}: MenuItemStandardProps) {
     return (
         <MenuItemRoot
-            onPress={callFunctionIfActionIsAllowed(onPress)}
+            onPress={onPress && callFunctionIfActionIsAllowed(onPress)}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             accessibilityLabel={[title, description].filter(Boolean).join(', ')}
