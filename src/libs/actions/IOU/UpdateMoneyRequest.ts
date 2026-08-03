@@ -2001,6 +2001,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const hasModifiedDate = 'date' in transactionChanges;
     const hasModifiedDistance = 'distance' in transactionChanges;
     const hasModifiedAttendees = 'attendees' in transactionChanges;
+    const hasModifiedSelectedRouteKey = 'selectedRouteKey' in transactionChanges;
 
     const isInvoice = isInvoiceReportReportUtils(iouReport);
     if (
@@ -2016,6 +2017,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             hasModifiedMerchant ||
             hasModifiedDistanceRate ||
             hasModifiedDistance ||
+            hasModifiedSelectedRouteKey ||
             hasModifiedDate ||
             hasModifiedCurrency ||
             hasModifiedAmount ||
@@ -2044,7 +2046,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         if (hasPendingWaypoints) {
             optimisticViolations = optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.NO_ROUTE);
         }
-        if (hasModifiedDistanceRate || hasModifiedDistance || hasPendingWaypoints) {
+        if (hasModifiedDistanceRate || hasModifiedDistance || hasModifiedSelectedRouteKey || hasPendingWaypoints) {
             // Clear stale distance-related violations while the server reprocesses.
             // The server will re-evaluate and re-add any that legitimately apply.
             optimisticViolations = optimisticViolations.filter(
