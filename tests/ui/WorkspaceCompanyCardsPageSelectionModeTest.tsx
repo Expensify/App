@@ -91,11 +91,11 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 
 jest.mock('@hooks/useWorkspaceDocumentTitle', () => jest.fn());
 
-jest.mock('@libs/actions/MobileSelectionMode', () => ({turnOffMobileSelectionMode: mockTurnOffMobileSelectionMode}));
+jest.mock('@libs/actions/MobileSelectionMode', () => ({turnOffMobileSelectionMode: () => mockTurnOffMobileSelectionMode()}));
 jest.mock('@libs/CardUtils', () => ({getDomainOrWorkspaceAccountID: () => 123}));
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
-    default: {goBack: mockGoBack},
+    default: {goBack: () => mockGoBack()},
 }));
 jest.mock('@libs/PolicyUtils', () => ({
     canMemberWrite: () => true,
@@ -152,6 +152,16 @@ const route = {
     name: 'WORKSPACE_COMPANY_CARDS',
     params: {policyID: POLICY_ID},
 } as never;
+const navigation = {} as never;
+
+function getWorkspaceCompanyCardsPage() {
+    return (
+        <WorkspaceCompanyCardsPage
+            route={route}
+            navigation={navigation}
+        />
+    );
+}
 
 describe('WorkspaceCompanyCardsPage selection mode', () => {
     beforeEach(() => {
@@ -163,7 +173,7 @@ describe('WorkspaceCompanyCardsPage selection mode', () => {
     });
 
     it('uses the focused select header and table controls in narrow-layout selection mode', () => {
-        render(<WorkspaceCompanyCardsPage route={route} />);
+        render(getWorkspaceCompanyCardsPage());
 
         expect(screen.getByText('common.selectMultiple')).toBeTruthy();
         expect(screen.queryByTestId('WorkspaceCompanyCardsPageIcon')).toBeNull();
@@ -174,7 +184,7 @@ describe('WorkspaceCompanyCardsPage selection mode', () => {
     it('keeps the normal company cards header when the layout is not narrow', () => {
         mockShouldUseNarrowLayout = false;
 
-        render(<WorkspaceCompanyCardsPage route={route} />);
+        render(getWorkspaceCompanyCardsPage());
 
         expect(screen.getByText('workspace.common.companyCards')).toBeTruthy();
         expect(screen.getByTestId('WorkspaceCompanyCardsPageIcon')).toBeTruthy();
@@ -183,7 +193,7 @@ describe('WorkspaceCompanyCardsPage selection mode', () => {
     });
 
     it('clears the selected rows and exits selection mode from the back button', () => {
-        render(<WorkspaceCompanyCardsPage route={route} />);
+        render(getWorkspaceCompanyCardsPage());
 
         fireEvent.press(screen.getByTestId('WorkspaceCompanyCardsPageBackButton'));
 
@@ -193,10 +203,10 @@ describe('WorkspaceCompanyCardsPage selection mode', () => {
     });
 
     it('does not exit selection mode when the feed changes', () => {
-        const {rerender} = render(<WorkspaceCompanyCardsPage route={route} />);
+        const {rerender} = render(getWorkspaceCompanyCardsPage());
 
         mockFeedName = 'feed-b';
-        rerender(<WorkspaceCompanyCardsPage route={route} />);
+        rerender(getWorkspaceCompanyCardsPage());
 
         expect(mockTurnOffMobileSelectionMode).not.toHaveBeenCalled();
         expect(mockClearTableSelection).not.toHaveBeenCalled();
