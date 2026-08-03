@@ -495,6 +495,7 @@ const CONST = {
         TYPE: {
             CSV: 'csv',
             PDF: 'pdf',
+            RECEIPTS: 'receipts',
         },
     },
 
@@ -1474,6 +1475,7 @@ const CONST = {
             CANCEL_PAYMENT: 'cancelPayment',
             HOLD: 'hold',
             DOWNLOAD_PDF: 'downloadPDF',
+            DOWNLOAD_RECEIPTS: 'downloadReceipts',
             PRINT: 'print',
             CHANGE_WORKSPACE: 'changeWorkspace',
             CHANGE_APPROVER: 'changeApprover',
@@ -8586,6 +8588,7 @@ const CONST = {
             EXPORT: 'MoreMenu-Export',
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
+            DOWNLOAD_RECEIPTS: 'MoreMenu-DownloadReceipts',
             PRINT: 'MoreMenu-Print',
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
