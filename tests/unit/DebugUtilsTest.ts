@@ -1261,6 +1261,7 @@ describe('DebugUtils', () => {
                         false,
                         {},
                         false,
+                        RORY_ACCOUNT_ID,
                     ) ?? {};
                 expect(reportAction).toBeUndefined();
             });
@@ -1325,6 +1326,7 @@ describe('DebugUtils', () => {
                         false,
                         {},
                         false,
+                        12345,
                     ) ?? {};
                 expect(reportAction).toBe(undefined);
             });
@@ -1401,6 +1403,7 @@ describe('DebugUtils', () => {
                             false,
                             reportErrors,
                             false,
+                            RORY_ACCOUNT_ID,
                         ) ?? {};
                     expect(reportAction).toMatchObject(MOCK_CHAT_REPORT_ACTIONS['1']);
                 });
@@ -1473,8 +1476,17 @@ describe('DebugUtils', () => {
                     };
                     const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID);
                     const {reportAction} =
-                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, mockTransactions, undefined, false, reportErrors, false) ??
-                        {};
+                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                            MOCK_CHAT_REPORT,
+                            chatReportR14932,
+                            MOCK_REPORT_ACTIONS,
+                            mockTransactions,
+                            undefined,
+                            false,
+                            reportErrors,
+                            false,
+                            12345,
+                        ) ?? {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
             });
@@ -1533,6 +1545,7 @@ describe('DebugUtils', () => {
                         false,
                         reportErrors,
                         false,
+                        RORY_ACCOUNT_ID,
                     ) ?? {};
                 expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
             });
@@ -1561,8 +1574,17 @@ describe('DebugUtils', () => {
 
                 const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions, RORY_ACCOUNT_ID);
                 const {reason} =
-                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(mockedReport, chatReportR14932, mockedReportActions, sharedAllTransactions, undefined, false, reportErrors, false) ??
-                    {};
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                        mockedReport,
+                        chatReportR14932,
+                        mockedReportActions,
+                        sharedAllTransactions,
+                        undefined,
+                        false,
+                        reportErrors,
+                        false,
+                        RORY_ACCOUNT_ID,
+                    ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasErrors');
             });
             it('returns correct reason when there are violations', () => {
@@ -1578,6 +1600,7 @@ describe('DebugUtils', () => {
                         true,
                         {},
                         false,
+                        RORY_ACCOUNT_ID,
                     ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasViolations');
             });
@@ -1594,6 +1617,7 @@ describe('DebugUtils', () => {
                         true,
                         {},
                         false,
+                        RORY_ACCOUNT_ID,
                         true,
                     ) ?? {};
                 expect(reason).toBe(undefined);
@@ -1650,7 +1674,7 @@ describe('DebugUtils', () => {
                         reportID: '1',
                     }),
                 };
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, {}, violationTransactions, transactionViolations, false, {}, false) ?? {};
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, {}, violationTransactions, transactionViolations, false, {}, false, 1234) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
             });
             it('forwards isOffline through to SidebarUtils so the live IOU transaction-thread receipt error surfaces only when isOffline=false excludes the deleted pending-delete action', () => {
@@ -1719,6 +1743,7 @@ describe('DebugUtils', () => {
                     false,
                     {},
                     true,
+                    12345,
                 );
                 const online = DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                     OFFLINE_EXPENSE_REPORT,
@@ -1729,6 +1754,7 @@ describe('DebugUtils', () => {
                     false,
                     {},
                     false,
+                    12345,
                 );
 
                 // Online: deleted pending-delete is skipped → 1 IOU thread → receipt error surfaces.

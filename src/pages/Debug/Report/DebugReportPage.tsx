@@ -117,6 +117,7 @@ function DebugReportPage({
                 hasViolations,
                 reportAttributes?.reportErrors ?? {},
                 isOffline,
+                currentUserAccountID,
                 isReportArchived,
             ) ?? {};
         const hasRBR = !!reasonRBR;

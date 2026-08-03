@@ -10,7 +10,14 @@ import DateUtils from '@libs/DateUtils';
 import {getLastActorDisplayName} from '@libs/OptionsListUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
-import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewReportActionMessage} from '@libs/ReportUtils';
+import {
+    buildOptimisticReportPreview,
+    formatReportLastMessageText,
+    generateReportID,
+    getAllReportErrors,
+    getReasonAndReportActionThatRequiresAttention,
+    getReportPreviewReportActionMessage,
+} from '@libs/ReportUtils';
 import SidebarUtils, {_buildSortKey, _categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -138,6 +145,7 @@ describe('SidebarUtils', () => {
                     {},
                     MOCK_TRANSACTIONS,
                     false,
+                    CURRENT_USER_ACCOUNT_ID,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -169,6 +177,7 @@ describe('SidebarUtils', () => {
                     reportErrors,
                     MOCK_TRANSACTIONS,
                     false,
+                    CURRENT_USER_ACCOUNT_ID,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -195,6 +204,7 @@ describe('SidebarUtils', () => {
                     {},
                     MOCK_TRANSACTIONS,
                     false,
+                    CURRENT_USER_ACCOUNT_ID,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -238,6 +248,7 @@ describe('SidebarUtils', () => {
                     reportErrors,
                     MOCK_TRANSACTIONS,
                     false,
+                    CURRENT_USER_ACCOUNT_ID,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -269,6 +280,7 @@ describe('SidebarUtils', () => {
                     reportErrors,
                     MOCK_TRANSACTIONS,
                     false,
+                    CURRENT_USER_ACCOUNT_ID,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -312,6 +324,7 @@ describe('SidebarUtils', () => {
                     reportErrors,
                     MOCK_TRANSACTIONS,
                     false,
+                    CURRENT_USER_ACCOUNT_ID,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -337,6 +350,7 @@ describe('SidebarUtils', () => {
                 {},
                 MOCK_TRANSACTIONS,
                 false,
+                CURRENT_USER_ACCOUNT_ID,
                 MOCK_TRANSACTION_VIOLATIONS,
                 isReportArchived.current,
             );
@@ -449,6 +463,7 @@ describe('SidebarUtils', () => {
                 {},
                 MOCK_TRANSACTIONS,
                 false,
+                CURRENT_USER_ACCOUNT_ID,
                 MOCK_TRANSACTION_VIOLATIONS,
                 isReportArchived.current,
             );
@@ -537,6 +552,7 @@ describe('SidebarUtils', () => {
                 reportErrors,
                 MOCK_TRANSACTIONS,
                 false,
+                CURRENT_USER_ACCOUNT_ID,
                 MOCK_TRANSACTION_VIOLATIONS,
                 isReportArchived.current,
             );
@@ -615,6 +631,7 @@ describe('SidebarUtils', () => {
                 {},
                 MOCK_TRANSACTIONS,
                 false,
+                CURRENT_USER_ACCOUNT_ID,
                 MOCK_TRANSACTION_VIOLATIONS,
                 isReportArchived.current,
             );
@@ -708,6 +725,7 @@ describe('SidebarUtils', () => {
                     {},
                     {[transactionKey]: transaction},
                     false,
+                    CURRENT_USER_ACCOUNT_ID,
                     transactionViolations,
                     false,
                 ) ?? {};
@@ -773,7 +791,18 @@ describe('SidebarUtils', () => {
             };
 
             // When: called with isOffline=false — the pending-delete action is skipped, leaving the live one as the single thread.
-            const onlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, false, {}, MOCK_TRANSACTIONS, false, {}, false);
+            const onlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                MOCK_REPORT,
+                MOCK_CHAT_REPORT,
+                MOCK_REPORT_ACTIONS,
+                false,
+                {},
+                MOCK_TRANSACTIONS,
+                false,
+                CURRENT_USER_ACCOUNT_ID,
+                {},
+                false,
+            );
 
             expect(onlineResult?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
@@ -835,10 +864,117 @@ describe('SidebarUtils', () => {
             };
 
             // When: called with isOffline=true — the pending-delete action is included, making 2 IOU actions.
-            const offlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, false, {}, MOCK_TRANSACTIONS, true, {}, false);
+            const offlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                MOCK_REPORT,
+                MOCK_CHAT_REPORT,
+                MOCK_REPORT_ACTIONS,
+                false,
+                {},
+                MOCK_TRANSACTIONS,
+                true,
+                CURRENT_USER_ACCOUNT_ID,
+                {},
+                false,
+            );
 
             // Then: no single transaction thread is identified, so the receipt error is not surfaced via that path.
             expect(offlineResult).toBeNull();
+        });
+
+        it('forwards the passed currentUserAccountID to the smartscan detection instead of the module-level account ID', async () => {
+            // Given: an IOU report (owned by actorAccountID) that has a money-request action whose linked transaction is missing smartscan fields,
+            // surfaced in the chat report through a report-preview action. The smartscan RBR only applies to actions taken by the current user,
+            // so the reported action depends on which currentUserAccountID is passed in.
+            const actorAccountID = 777;
+            const chatReportID = '9001';
+            const iouReportID = '9002';
+            const transactionID = '9003';
+            const iouActionID = '9004';
+
+            const chatReport: Report = {...LHNTestUtils.getFakeReport(), reportID: chatReportID, type: CONST.REPORT.TYPE.CHAT};
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: iouReportID,
+                type: CONST.REPORT.TYPE.IOU,
+                parentReportID: chatReportID,
+                ownerAccountID: actorAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(Number(transactionID)),
+                transactionID,
+                reportID: iouReportID,
+                amount: 0,
+                merchant: '',
+                modifiedMerchant: '',
+            };
+            const iouAction: ReportAction = {
+                ...createRandomReportAction(Number(iouActionID)),
+                reportActionID: iouActionID,
+                reportID: iouReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID,
+                originalMessage: {
+                    IOUTransactionID: transactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 0,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participantAccountIDs: [actorAccountID],
+                },
+            };
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, '', transaction);
+
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: 55555});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}` as const, chatReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}` as const, iouReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}` as const, {[iouActionID]: iouAction});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const, transaction);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const reportActions: ReportActions = {[reportPreviewAction.reportActionID]: reportPreviewAction};
+            const transactions: OnyxCollection<Transaction> = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
+            const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport};
+            // Pre-populated non-empty errors so the HAS_ERRORS branch is taken in both calls;
+            // only the returned reportAction depends on the smartscan detection (and thus on currentUserAccountID).
+            const reportErrors = {someError: 'Some error occurred'};
+
+            // When: the passed currentUserAccountID matches the action's actor, the smartscan action is flagged as requiring attention.
+            const matchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                chatReport,
+                chatReport,
+                reportActions,
+                false,
+                reportErrors,
+                transactions,
+                false,
+                actorAccountID,
+                {},
+                false,
+                reports,
+            );
+            expect(matchingResult?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
+            expect(matchingResult?.reportAction?.reportActionID).toBe(reportPreviewAction.reportActionID);
+
+            // When: the passed currentUserAccountID does NOT match, the action is not attributed to the current user, so no smartscan action is returned.
+            const nonMatchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                chatReport,
+                chatReport,
+                reportActions,
+                false,
+                reportErrors,
+                transactions,
+                false,
+                actorAccountID + 1,
+                {},
+                false,
+                reports,
+            );
+            expect(nonMatchingResult?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
+            expect(nonMatchingResult?.reportAction).toBeUndefined();
         });
     });
 
@@ -1370,6 +1506,82 @@ describe('SidebarUtils', () => {
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
             });
             expect(result.messageHtml).toContain('HiddenMarker');
+        });
+
+        it('resolves the policy expense chat workspace name through the provided translate function', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'non-existent-policy-id',
+            };
+
+            await waitForBatchedUpdates();
+
+            // A translate that tags the "unavailable" workspace copy so we can prove getPolicyName used the provided translate
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithUnavailableMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
+            expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
+        });
+
+        it('resolves the admin room workspace name through the provided translate function', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'non-existent-policy-id',
+            };
+
+            await waitForBatchedUpdates();
+
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithUnavailableMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
+            expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
+        });
+
+        it('resolves the invoice room receiver name through the provided translate function', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'non-existent-policy-id',
+            };
+
+            await waitForBatchedUpdates();
+
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithUnavailableMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
+            expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
         });
 
         it('do not return pronouns in the welcome message text when it is group chat', async () => {
