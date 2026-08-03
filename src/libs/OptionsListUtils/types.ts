@@ -136,10 +136,16 @@ type SearchOption<T> = SearchOptionData & {
 /**
  * A contact option as createFilteredOptionList produces it: the fields that filtering, ranking and de-duping
  * read, and nothing else. The display fields (icons, subtitle, lastMessageText, the display alternateText, …)
- * are deliberately absent from this type, so reading one off `OptionList.personalDetails` is a compile error
- * instead of an `undefined` or a placeholder value found by code review. Call
- * hydrateLazyPersonalDetailOption to turn one into a full SearchOption before rendering it. Fully built
- * options (e.g. device contacts) are assignable and hydration passes them through unchanged.
+ * are deliberately absent, so reading one directly off `OptionList.personalDetails` is a compile error rather
+ * than an `undefined` for code review to catch. Call hydrateLazyPersonalDetailOption to turn one into a full
+ * SearchOption before rendering it. Fully built options (e.g. device contacts) are assignable and hydration
+ * passes them through unchanged.
+ *
+ * The compile error only guards that direct read. Every OptionData field is optional, so a shell structurally
+ * satisfies SearchOptionData: once it is handed to a helper typed against SearchOptionData or
+ * Partial<SearchOptionData> — mergeAndSortPersonalDetailsWithContacts, doesPersonalDetailMatchSearchTerm — the
+ * display fields are back in scope and read as `undefined`. Those helpers only touch filter/rank fields today.
+ * Hydrate first before passing a shell anywhere that renders it; the type will not stop you.
  */
 type LazyPersonalDetailOption = Pick<
     SearchOptionData,
