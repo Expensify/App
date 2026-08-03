@@ -1472,6 +1472,8 @@ const translations: TranslationDeepObject<typeof en> = {
         paidThisBill: 'diese Rechnung bezahlt',
         reimbursedOnBehalfOf: (actor: string) => `im Namen von ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `vom Bankkonto mit der Endung ${debitBankAccount}`,
+        reimbursedCrossBorder: ({amount, debitBankAccount, creditBankAccount}: {amount: string; debitBankAccount: string; creditBankAccount: string}) =>
+            `zahlte ${amount} von Konto ${debitBankAccount} an Konto ${creditBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) =>
             `${submitter} hat ein Bankkonto hinzugefügt und den Bericht aus der Warteschleife genommen. Die Erstattung wurde eingeleitet`,
         reimbursedWithFastACH: ({
@@ -1636,8 +1638,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Nur genehmigen',
         holdEducationalTitle: 'Soll diese Ausgabe zurückgestellt werden?',
         whatIsHoldExplain: 'Hold ist wie ein „Pause“-Knopf für eine Ausgabe, bis du bereit bist, sie einzureichen.',
+        whatIsHoldExplainDM: 'Hold ist wie ein „Pause“-Knopf für eine Ausgabe, bis du bereit bist, sie zu senden.',
         holdIsLeftBehind: 'Zurückgehaltene Ausgaben werden ausgelassen, selbst wenn du einen gesamten Bericht einreichst.',
+        holdIsLeftBehindDM: 'Zurückgehaltene Ausgaben werden erst gesendet, wenn du die Zurückstellung aufhebst.',
         unholdWhenReady: 'Gib Ausgaben wieder frei, wenn du bereit bist, sie einzureichen.',
+        unholdWhenReadyDM: 'Hebe die Zurückstellung auf, wenn du bereit bist, die Ausgaben zu senden.',
         changePolicyEducational: {
             title: 'Du hast diesen Bericht verschoben!',
             description: 'Überprüfe diese Punkte sorgfältig, da sie sich beim Verschieben von Berichten in einen neuen Workspace häufig ändern.',
@@ -2815,6 +2820,14 @@ ${amount} für ${merchant} – ${date}`,
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Sendehäufigkeit konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
         monthlyOffsetErrorMessage: 'Die monatliche Häufigkeit konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
+    },
+    workflowsCurrencyConversionFeesPage: {
+        title: 'Währungsumrechnungsgebühren',
+        subtitle:
+            'Bei Erstattungen in einer anderen Währung können Umrechnungsgebühren anfallen. Wähle unten aus, wer die Gebühren zahlt. Dies gilt nur für grenzüberschreitende Umrechnungen.',
+        companyPays: 'Unternehmen zahlt',
+        employeePays: 'Mitarbeitende zahlen',
+        errorMessage: 'Die Einstellung für Währungsumrechnungsgebühren konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
     },
     workflowsCreateApprovalsPage: {
         title: 'Bestätigen',
@@ -4733,6 +4746,11 @@ ${amount} für ${merchant} – ${date}`,
                 title: 'Tagegeld',
                 subtitle: 'Legen Sie Pauschalbeträge fest, um die täglichen Ausgaben der Mitarbeitenden zu steuern. Importieren Sie zu Beginn die Sätze aus einer Tabellenkalkulation.',
             },
+            requestEmptyList: {
+                title: 'Noch keine Pauschalbeträge',
+                subtitle: 'In diesem Workspace sind keine Pauschalen hinterlegt, bitten Sie Ihre Admin, welche hinzuzufügen.',
+                adminSubtitle: 'Fügen Sie Pauschalen hinzu, um Ihre Ausgaben zu organisieren.',
+            },
             importPerDiemRates: 'Tagespauschalen importieren',
             editPerDiemRate: 'Tagessatz bearbeiten',
             editPerDiemRates: 'Pauschalvergütungssätze bearbeiten',
@@ -5644,7 +5662,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             rilletSetup: 'Rillet-Einrichtung',
             enterCredentials: 'Geben Sie Ihren Rillet-API-Schlüssel ein',
             howToFindAPIKey:
-                '<strong>So finden Sie Ihren API-Schlüssel.</strong><ol><li>Melden Sie sich bei Rillet an</li><li>Navigieren Sie zu Konto -> Einstellungen</li><li>Kopieren Sie den unten stehenden API-Schlüssel</li></ol>',
+                '<strong>So finden Sie Ihren API-Schlüssel.</strong><ol><li>Melden Sie sich bei Rillet an</li><li>Navigieren Sie zu [Organisationsname] -> Organisationseinstellungen -> API-Zugriff</li><li>Erstellen Sie einen API-Schlüssel</li><li>Fügen Sie den API-Schlüssel unten ein</li></ol>',
             subsidiary: 'Tochtergesellschaft',
             subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in Rillet aus, aus der Sie Daten importieren möchten.',
             noSubsidiariesFound: 'Keine Tochtergesellschaften gefunden',
@@ -7323,6 +7341,8 @@ ${reportName}`,
 Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und Standardwerte fest und automatisieren Sie Genehmigungen und Zahlungen – alles an einem Ort.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Regeln sind nur im Control-Tarif verfügbar, beginnend ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+                onlyAvailableOnPlanUnlimited: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Unbegrenzter Zugriff auf Regeln ist nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             perDiem: {
                 title: 'Tagegeld',
@@ -7476,6 +7496,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     `<muted-text>Spezialisierte Arbeitsbereichsrollen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             unlockFeatures: 'Schalten Sie diese Funktionen frei!',
+            publicReceiptVisibility: {
+                title: 'Öffentliche Belegsichtbarkeit',
+                description:
+                    'Wenn Sie Ihre Beleglinks für alle zugänglich machen möchten, zum Beispiel für einen Kunden oder eine externe Buchhalterin bzw. einen externen Buchhalter, ist diese Funktion genau das Richtige für Sie.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Die öffentliche Belegsichtbarkeit ist nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7582,6 +7609,15 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 requireCompanyCard: 'Firmenkarten für alle Käufe vorschreiben',
                 requireCompanyCardDescription: 'Kennzeichne alle Barausgaben, einschließlich Kilometer- und Tagegeldspesen.',
                 requireCompanyCardDisabledTooltip: 'Aktiviere Firmenkarten (unter Weitere Funktionen), um dies freizuschalten.',
+                publicReceiptVisibility: 'Öffentliche Belegsichtbarkeit',
+                publicReceiptVisibilityHintEnabled: 'Belege sind für alle sichtbar, die über die URL verfügen. Der Zugriff auf den Bericht mit dem Beleg ist nicht erforderlich.',
+                publicReceiptVisibilityHintDisabled: 'Belege können nur von Expensify-Mitgliedern eingesehen werden, die Zugriff auf den Bericht haben, der den Beleg enthält.',
+                enableTagsToUnlockTitle: 'Tags aktivieren?',
+                enableTagsToUnlockPrompt: 'Aktivieren Sie Tags (unter Weitere Funktionen), um dies freizuschalten.',
+                enableTagsAndRequirePrompt: 'Sind Sie sicher, dass Sie Tags aktivieren und für alle Ausgaben verpflichtend machen möchten?',
+                enableCategoriesToUnlockTitle: 'Kategorien aktivieren?',
+                enableCategoriesToUnlockPrompt: 'Aktivieren Sie Kategorien (unter Weitere Funktionen), um dies freizuschalten.',
+                enableCategoriesAndRequirePrompt: 'Sind Sie sicher, dass Sie Kategorien aktivieren und für alle Ausgaben verpflichtend machen möchten?',
             },
             expenseReportRules: {
                 title: 'Erweitert',
@@ -9798,6 +9834,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Preis ist nur gültig von ${startDate} bis ${endDate}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Der Satz gilt erst ab dem ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Satz gilt nur bis ${endDate}`,
+        cannotMergeDuplicates: 'Sie können Ausgaben nur in Entwürfen oder offenen Berichten zusammenführen. Ziehen Sie den Bericht zurück und versuchen Sie es erneut.',
         shortName: {
             allTagLevelsRequired: 'All tags required',
             autoReportedRejectedExpense: 'Expense rejected',

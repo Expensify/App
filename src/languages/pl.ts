@@ -1465,6 +1465,8 @@ const translations: TranslationDeepObject<typeof en> = {
         paidThisBill: 'zapłacił(a) ten rachunek',
         reimbursedOnBehalfOf: (actor: string) => `w imieniu ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `z konta bankowego kończącego się na ${debitBankAccount}`,
+        reimbursedCrossBorder: ({amount, debitBankAccount, creditBankAccount}: {amount: string; debitBankAccount: string; creditBankAccount: string}) =>
+            `zapłacono ${amount} z konta ${debitBankAccount} na konto ${creditBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} dodał konto bankowe, zdejmując raport z wstrzymania. Zwrot został zainicjowany`,
         reimbursedWithFastACH: ({
             isCurrentUser,
@@ -1626,8 +1628,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Tylko zaakceptuj',
         holdEducationalTitle: 'Czy powinieneś wstrzymać ten wydatek?',
         whatIsHoldExplain: 'Wstrzymanie działa jak naciśnięcie „pauzy” na wydatku, dopóki nie będziesz gotowy, aby go przesłać.',
+        whatIsHoldExplainDM: "Wstrzymanie dziala jak nacisniecie 'pauzy' na wydatku, dopoki nie bedziesz gotowy(-a), aby go wyslac.",
         holdIsLeftBehind: 'Wstrzymane wydatki pozostają nieprzetworzone, nawet jeśli prześlesz cały raport.',
+        holdIsLeftBehindDM: 'Wstrzymane wydatki nie zostana wyslane, dopoki nie zdejmiesz wstrzymania.',
         unholdWhenReady: 'Zdejmij wstrzymanie z wydatków, gdy będziesz gotowy(-a) je przesłać.',
+        unholdWhenReadyDM: 'Zdejmij wstrzymanie z wydatkow, gdy bedziesz gotowy(-a) je wyslac.',
         changePolicyEducational: {
             title: 'Przeniesiono ten raport!',
             description: 'Sprawdź dokładnie te elementy, które zwykle się zmieniają podczas przenoszenia raportów do nowej przestrzeni roboczej.',
@@ -2795,6 +2800,13 @@ ${amount} dla ${merchant} - ${date}`,
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Nie udało się zmienić częstotliwości wysyłania. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
         monthlyOffsetErrorMessage: 'Nie można było zmienić miesięcznej częstotliwości. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
+    },
+    workflowsCurrencyConversionFeesPage: {
+        title: 'Opłaty za przewalutowanie',
+        subtitle: 'Przy zwrocie w innej walucie mogą obowiązywać opłaty za przewalutowanie. Wybierz poniżej, kto zapłaci opłaty. Dotyczy to wyłącznie przewalutowań transgranicznych.',
+        companyPays: 'Płaci firma',
+        employeePays: 'Płaci pracownik',
+        errorMessage: 'Nie udało się zmienić preferencji dotyczącej opłat za przewalutowanie. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
     },
     workflowsCreateApprovalsPage: {
         title: 'Potwierdź',
@@ -4692,6 +4704,11 @@ ${amount} dla ${merchant} - ${date}`,
                 title: 'Dieta',
                 subtitle: 'Ustaw stawki dzienne (ryczałty), aby kontrolować dziennie wydatki pracowników. Zaimportuj stawki z arkusza kalkulacyjnego, aby rozpocząć.',
             },
+            requestEmptyList: {
+                title: 'Nie ma jeszcze stawek diet',
+                subtitle: 'W tym obszarze roboczym nie ma żadnych stawek diet, poproś swojego administratora o dodanie kilku.',
+                adminSubtitle: 'Dodaj stawki diet, żeby uporządkować swoje wydatki.',
+            },
             importPerDiemRates: 'Zaimportuj stawki diet',
             editPerDiemRate: 'Edytuj stawkę diety',
             editPerDiemRates: 'Edytuj stawki diet',
@@ -5597,7 +5614,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
         rillet: {
             rilletSetup: 'Konfiguracja Rillet',
             enterCredentials: 'Wpisz swój klucz API Rillet',
-            howToFindAPIKey: '<strong>Znajdowanie klucza API.</strong><ol><li>Zaloguj się do Rillet</li><li>Przejdź do Konto -> Ustawienia</li><li>Skopiuj poniższy klucz API</li></ol>',
+            howToFindAPIKey:
+                '<strong>Znajdowanie klucza API.</strong><ol><li>Zaloguj się do Rillet</li><li>Przejdź do [nazwa organizacji] -> Ustawienia organizacji -> Dostęp API</li><li>Utwórz klucz API</li><li>Wklej klucz API poniżej</li></ol>',
             subsidiary: 'Spółka zależna',
             subsidiarySelectDescription: 'Wybierz spółkę zależną w Rillet, z której chcesz zaimportować dane.',
             noSubsidiariesFound: 'Nie znaleziono spółek zależnych',
@@ -7261,6 +7279,8 @@ ${reportName}`,
 Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i wartości domyślne oraz automatyzuj akceptacje i płatności – wszystko w jednym miejscu.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Reguły są dostępne tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
+                onlyAvailableOnPlanUnlimited: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Nieograniczony dostęp do zasad jest dostępny tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `na osobę miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
             perDiem: {
                 title: 'Dieta',
@@ -7414,6 +7434,12 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     `<muted-text>Specjalistyczne role w przestrzeni roboczej są dostępne tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
             unlockFeatures: 'Odblokuj te funkcje!',
+            publicReceiptVisibility: {
+                title: 'Publiczna widoczność paragonu',
+                description: 'Jeśli chcesz udostępniać linki do swoich paragonów każdemu, na przykład klientowi lub zewnętrznemu księgowemu, ta funkcja jest dla ciebie.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Publiczna widoczność rachunków jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7520,6 +7546,15 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 requireCompanyCard: 'Wymagaj kart służbowych dla wszystkich zakupów',
                 requireCompanyCardDescription: 'Oznacz wszystkie wydatki gotówkowe, w tym koszty za przejechane kilometry i ryczałty dzienne.',
                 requireCompanyCardDisabledTooltip: 'Włącz karty firmowe (w sekcji Więcej funkcji), aby odblokować.',
+                publicReceiptVisibility: 'Publiczna widoczność paragonu',
+                publicReceiptVisibilityHintEnabled: 'Paragony są widoczne dla każdej osoby mającej link URL. Dostęp do raportu zawierającego paragon nie jest wymagany.',
+                publicReceiptVisibilityHintDisabled: 'Paragony są widoczne tylko dla członków Expensify, którzy mają dostęp do raportu zawierającego paragon.',
+                enableTagsToUnlockTitle: 'Włączyć tagi?',
+                enableTagsToUnlockPrompt: 'Włącz Tagi (w sekcji Więcej funkcji), aby odblokować.',
+                enableTagsAndRequirePrompt: 'Na pewno chcesz włączyć tagi i wymagać ich dla wszystkich wydatków?',
+                enableCategoriesToUnlockTitle: 'Włączyć kategorie?',
+                enableCategoriesToUnlockPrompt: 'Włącz Kategorie (w sekcji Więcej funkcji), aby odblokować.',
+                enableCategoriesAndRequirePrompt: 'Na pewno chcesz włączyć kategorie i wymagać ich dla wszystkich wydatków?',
             },
             expenseReportRules: {
                 title: 'Zaawansowane',
@@ -9718,6 +9753,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Stawka jest ważna tylko od ${startDate} do ${endDate}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Stawka jest ważna tylko od ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Stawka jest ważna tylko do ${endDate}`,
+        cannotMergeDuplicates: 'Możesz łączyć wydatki tylko w szkicach lub otwartych raportach. Wycofaj go i spróbuj ponownie.',
         shortName: {
             allTagLevelsRequired: 'All tags required',
             autoReportedRejectedExpense: 'Expense rejected',

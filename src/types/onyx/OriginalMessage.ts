@@ -94,6 +94,18 @@ type OriginalMessageIOU = {
     /** Currency of the transaction money */
     currency?: string;
 
+    /** Cross-border FX reimbursement: amount credited to the employee, in their deposit currency */
+    creditedAmount?: number;
+
+    /** Cross-border FX reimbursement: currency of `creditedAmount` (the employee deposit currency) */
+    creditedCurrency?: string;
+
+    /** Cross-border FX reimbursement: last 4 of the company withdrawal (VBA) account that was debited */
+    debitBankAccountLast4?: string;
+
+    /** Cross-border FX reimbursement: last 4 of the employee deposit account that was credited */
+    creditBankAccountLast4?: string;
+
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
 };
@@ -1335,6 +1347,12 @@ type OriginalMessageReimbursed = {
 
     /** For StripeConnect payments, indicates payment type ('card' or 'bank account') */
     stripePaymentType?: string;
+
+    /** Cents credited to the employee on a cross-border FX reimbursement, in the employee's deposit currency */
+    creditedAmount?: number;
+
+    /** Currency the creditedAmount is denominated in (the employee's deposit currency) */
+    creditedCurrency?: string;
 };
 
 /** Model of `trip room preview` report action */

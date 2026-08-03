@@ -8549,6 +8549,23 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
         });
 
+        it('should reject the requested hash when the response carries conflicting sort metadata', () => {
+            const results = makeSearchResults({
+                search: {
+                    hasMoreResults: false,
+                    hasResults: true,
+                    offset: 0,
+                    hash: queryJSON?.hash ?? 0,
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+                },
+            });
+
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+
         it('should return false when searchResults is undefined', () => {
             expect(SearchUIUtils.isSearchDataLoaded(undefined, queryJSON)).toBe(false);
         });
@@ -8557,7 +8574,7 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchDataLoaded(makeSearchResults(), undefined)).toBe(false);
         });
 
-        it('should return true on a response with no data that reached a terminal loaded state (type and hash match)', () => {
+        it('should return true on a terminal response without data that only carries the requested hash', () => {
             const results = makeSearchResults({
                 data: undefined,
                 errors: undefined,
@@ -8573,13 +8590,14 @@ describe('SearchUIUtils', () => {
                     state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
                 },
             });
+            Reflect.deleteProperty(results.search, 'sortBy');
+            Reflect.deleteProperty(results.search, 'sortOrder');
+
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
         });
 
-        it('should return true when the request reached a terminal error state', () => {
+        it('should use the requested hash when a loaded request preserves cached data and stale sort metadata', () => {
             const results = makeSearchResults({
-                data: undefined,
-                errors: undefined,
                 search: {
                     hasMoreResults: false,
                     hasResults: false,
@@ -8587,9 +8605,9 @@ describe('SearchUIUtils', () => {
                     hash: queryJSON?.hash ?? 0,
                     isLoading: false,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    sortBy: queryJSON?.sortBy ?? 'date',
-                    sortOrder: queryJSON?.sortOrder ?? 'desc',
-                    state: CONST.SEARCH.SNAPSHOT_STATE.ERROR,
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
                 },
             });
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
@@ -8663,9 +8681,8 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.LOADING))).toBe(true);
         });
 
-        it('should return false for the terminal loaded and error states', () => {
+        it('should return false for the terminal loaded state', () => {
             expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.LOADED))).toBe(false);
-            expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.ERROR))).toBe(false);
         });
 
         it('should return false when the state is absent or searchResults is undefined', () => {
@@ -9636,6 +9653,45 @@ describe('SearchUIUtils', () => {
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, cardFeedsByPolicy, policies, undefined);
             expect(response.visibility.statements).toBe(true);
+        });
+    });
+
+    describe('Test getSuggestedSearches Card accruals feed', () => {
+        const companyFeedID = 'fund1_oauth.chase.com';
+        const activeExpensifyCardFeedID = 'fund1_Expensify Card';
+
+        const getCardAccrualsFeedValues = (activeCardFeedID?: string, defaultFeedID?: string): unknown[] => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, defaultFeedID, undefined, [], activeCardFeedID);
+            const cardAccruals = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
+            const feedFilter = cardAccruals.searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED);
+            return (feedFilter?.filters ?? []).map((f) => f.value).filter(Boolean);
+        };
+
+        test('Should default Card accruals to the Expensify Card when the active workspace has one, even alongside a company feed', () => {
+            // Reported case: workspace has both an Expensify Card and a company/bank feed.
+            expect(getCardAccrualsFeedValues(activeExpensifyCardFeedID, companyFeedID)).toEqual([activeExpensifyCardFeedID]);
+        });
+
+        test('Should keep the company feed for Card accruals when the active workspace has no Expensify Card', () => {
+            // Also guards the multi-workspace regression: the resolver (useCardFeedsForDisplay) only passes an
+            // Expensify Card feed scoped to the active workspace, so an unrelated workspace's card is undefined here.
+            expect(getCardAccrualsFeedValues(undefined, companyFeedID)).toEqual([companyFeedID]);
+        });
+
+        test('Should not select any card feed for Card accruals when there are neither Expensify Card nor company feeds', () => {
+            const values = getCardAccrualsFeedValues(undefined, undefined);
+            expect(values).not.toContain(activeExpensifyCardFeedID);
+            expect(values).not.toContain(companyFeedID);
+        });
+
+        test('Should produce the same Card accruals hash for both call sites when they pass the same active Expensify Card feed', () => {
+            // SearchQueryProvider and the type menu must agree so the Card accruals tab highlights as active. The two
+            // real call sites differ in the `defaultFeedID` and `shouldShowExpensifyCard` args, so mirror that here to
+            // prove Card accruals is driven purely by `activeExpensifyCardFeedID` and doesn't split on those inputs.
+            const otherCompanyFeedID = 'fund2_oauth.chase.com';
+            const fromProvider = SearchUIUtils.getSuggestedSearches(adminAccountID, companyFeedID, undefined, [], activeExpensifyCardFeedID);
+            const fromMenu = SearchUIUtils.getSuggestedSearches(adminAccountID, otherCompanyFeedID, true, [], activeExpensifyCardFeedID);
+            expect(fromMenu[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD].similarSearchHash).toBe(fromProvider[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD].similarSearchHash);
         });
     });
 
