@@ -156,6 +156,13 @@ function useSelectionModePayment({
         return false;
     };
 
+    const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, deferBlockingPresentation: boolean, action: () => void) => {
+        if (shouldBlockAction(paymentMethodType, deferBlockingPresentation, action)) {
+            return;
+        }
+        action();
+    };
+
     const confirmPaymentRef = useRef<(params: PaymentActionParams) => void>(() => {});
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
@@ -268,11 +275,7 @@ function useSelectionModePayment({
     })();
 
     const handleWorkspaceSelected = (wp: OnyxTypes.Policy) => {
-        const continueWithWorkspace = () => kycWallRef.current?.continueAction?.({policy: wp});
-        if (shouldBlockAction(undefined, true, continueWithWorkspace)) {
-            return;
-        }
-        continueWithWorkspace();
+        runPaymentAction(undefined, true, () => kycWallRef.current?.continueAction?.({policy: wp}));
     };
 
     const paymentSubMenuItems: PopoverMenuItem[] = (() => {
@@ -322,11 +325,7 @@ function useSelectionModePayment({
     };
 
     const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        const resumePaymentSelect = () => invokePaymentSelect(event, iouPaymentType, triggerKYCFlow);
-        if (shouldBlockAction(iouPaymentType, true, resumePaymentSelect)) {
-            return;
-        }
-        resumePaymentSelect();
+        runPaymentAction(iouPaymentType, true, () => invokePaymentSelect(event, iouPaymentType, triggerKYCFlow));
     };
 
     const selectionModeKYCSuccess = (type?: PaymentMethodType) => {
@@ -338,12 +337,11 @@ function useSelectionModePayment({
 
     return {
         confirmPayment,
-        shouldBlockAction,
+        runPaymentAction,
         invokePaymentSelect,
         onSelectionModePaymentSelect,
         selectionModeKYCSuccess,
         paymentSubMenuItems,
-        workspacePolicyOptions,
         handleWorkspaceSelected,
         hasPayInSelectionMode,
         hasActualPaymentOptions,
