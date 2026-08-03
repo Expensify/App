@@ -855,7 +855,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 source={groupChatAvatarSource}
                 avatar={groupChatAvatar}
                 isUsingDefaultAvatar={!report.avatarUrl}
-                avatarStyle={styles.alignSelfCenter}
                 onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                 onImageRemoved={() => {
                     // Calling this without a file will remove the avatar
@@ -877,7 +876,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         isGroupChat,
         icons,
         report,
-        styles.alignSelfCenter,
         styles.smallEditIconAccount,
         styles.mt6,
         styles.w100,

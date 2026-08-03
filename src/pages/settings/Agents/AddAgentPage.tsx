@@ -163,7 +163,6 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                             text={translate('addAgentPage.editAvatar')}
                             avatar={agentAvatar}
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR)}
-                            avatarStyle={styles.alignSelfCenter}
                             editIcon={expensifyIcons.Pencil}
                             editIconStyle={styles.smallEditIconAccount}
                             sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}

@@ -26,7 +26,7 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
     /** Text to be used as a tooltip */
     text: string;
 
-    /** Style applied to the avatar */
+    /** Style applied to the avatar. Defaults to centering it within the parent. */
     avatarStyle?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Executed on click */
@@ -90,7 +90,7 @@ function AvatarButtonWithIcon({
                 accessibilityLabel={text}
                 disabled={disabled}
                 disabledStyle={disabledStyle}
-                style={[styles.pRelative, StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size)), avatarStyle]}
+                style={[styles.pRelative, StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size)), avatarStyle ?? styles.alignSelfCenter]}
                 ref={anchorRef}
                 sentryLabel={sentryLabel}
             >

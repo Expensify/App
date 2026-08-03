@@ -518,6 +518,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         }}
                         source={policy?.avatarURL ?? ''}
                         avatar={workspaceAvatar}
+                        avatarStyle={styles.alignSelfStart}
                         enablePreview
                         style={[(policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout) ? styles.mb1 : styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                         editIconStyle={styles.smallEditIconWorkspace}

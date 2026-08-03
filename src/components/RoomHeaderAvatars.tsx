@@ -88,7 +88,6 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                     source={avatarSource}
                     avatar={roomAvatar}
                     isUsingDefaultAvatar={!report.avatarUrl || isDefaultAvatar(icon.source)}
-                    avatarStyle={styles.alignSelfCenter}
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                     onImageRemoved={() => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl)}
                     onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl, file)}

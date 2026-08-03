@@ -117,7 +117,6 @@ function EditAgentPage({route}: EditAgentPageProps) {
                             text={translate('editAgentAvatarPage.title')}
                             avatar={agentAvatar}
                             onPress={handleEditAvatarPress}
-                            avatarStyle={styles.alignSelfCenter}
                             pendingAction={personalDetails?.pendingFields?.avatar}
                             sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.AVATAR}
                             editIconStyle={styles.smallEditIconAccount}
