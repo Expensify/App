@@ -28,6 +28,7 @@ import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/Category';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {pickReportForPolicy} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {hasAccountingConnections, isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -73,7 +74,9 @@ function IOURequestStepCategory({
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
     const participantReport = useReportOrReportDraft(transaction?.participants?.at(0)?.reportID);
     const report = reportReal ?? reportDraft ?? transactionReport ?? participantReport;
-    const policyIdReal = getIOURequestPolicyID(transaction, reportReal ?? transactionReport ?? participantReport);
+    // The self-DM a submissions-disabled workspace flow is seeded onto carries the placeholder '_FAKE_' policy;
+    // don't let that shadow the selected workspace chat's real policy, or this page's categories never load. See #96576.
+    const policyIdReal = getIOURequestPolicyID(transaction, pickReportForPolicy(reportReal, transactionReport, participantReport));
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -160,6 +163,10 @@ function IOURequestStepCategory({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const updateCategory = (category: ListItem) => {
         const categorySearchText = category.searchText ?? '';
         const isSelectedCategory = categorySearchText === categoryForDisplay;
@@ -169,7 +176,7 @@ function IOURequestStepCategory({
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit) {
                 setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: updatedCategory}, policy);
-                navigateBack();
+                saveAndNavigateBack();
                 return;
             }
 
@@ -193,7 +200,7 @@ function IOURequestStepCategory({
                     reportPolicyTags,
                     isTrackIntentUser,
                 });
-                navigateBack();
+                saveAndNavigateBack();
                 return;
             }
         }
@@ -207,7 +214,7 @@ function IOURequestStepCategory({
             return;
         }
 
-        navigateBack();
+        saveAndNavigateBack();
     };
 
     return (

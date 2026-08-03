@@ -28,6 +28,7 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
 
     const summaryItems = [
         {
+            id: 'legal-name',
             description: translate('beneficialOwnerInfoStep.legalName'),
             title: `${values.firstName} ${values.lastName}`,
             shouldShowRightIcon: true,
@@ -36,6 +37,7 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
             },
         },
         {
+            id: 'date-of-birth',
             description: translate('common.dob'),
             title: values.dob,
             shouldShowRightIcon: true,
@@ -44,6 +46,7 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
             },
         },
         {
+            id: 'ssn',
             description: translate('beneficialOwnerInfoStep.last4SSN'),
             title: values.ssnLast4,
             shouldShowRightIcon: true,
@@ -52,6 +55,7 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
             },
         },
         {
+            id: 'address',
             description: translate('beneficialOwnerInfoStep.address'),
             title: `${values.street}, ${values.city}, ${values.state} ${values.zipCode}`,
             shouldShowRightIcon: true,

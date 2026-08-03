@@ -1,4 +1,5 @@
 import useActivePolicy from '@hooks/useActivePolicy';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
@@ -15,7 +16,6 @@ import useTransactionsByID from '@hooks/useTransactionsByID';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
@@ -196,7 +196,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     } = params;
 
     // Localization
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
 
     // Permissions
@@ -305,6 +306,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     const customUnitRateID = getRateID(transaction) ?? '';
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
+    const transactionDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+    const isModifiedGPSDistanceRequest = isGPSDistanceRequest && gpsDraftDetails?.modifiedDistance != null;
+    const originalTransactionDistance =
+        isModifiedGPSDistanceRequest && gpsDraftDetails.distanceInMeters && transactionDistanceUnit
+            ? DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails.distanceInMeters, transactionDistanceUnit)
+            : transactionDistance;
+    const modifiedTransactionDistance = isModifiedGPSDistanceRequest ? transactionDistance : undefined;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported || isTrackExpense || isSelfDMDestination, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
         ? ((transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '')
@@ -581,6 +589,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 quickAction,
                 optimisticChatReportID,
+                delegateAccountID,
                 isTrackIntentUser,
             });
             if (shouldHandleNavigation) {
@@ -638,6 +647,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                formatPhoneNumber,
+                delegateAccountID,
                 isTrackIntentUser,
             });
             const targetReportID = backToReport ?? activeReportID;
@@ -692,6 +703,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
             const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
+            const itemDistanceUnit = item.comment?.customUnit?.distanceUnit;
+            const originalItemDistance =
+                isModifiedGPSDistanceRequest && gpsDraftDetails?.distanceInMeters && itemDistanceUnit
+                    ? DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails.distanceInMeters, itemDistanceUnit)
+                    : itemDistance;
+            const modifiedItemDistance = isModifiedGPSDistanceRequest ? transactionDistance : undefined;
 
             const email = currentUserPersonalDetails.email ?? '';
             trackExpenseIOUActions({
@@ -712,7 +729,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 },
                 transactionParams: {
                     amount: item.amount,
-                    distance: itemDistance,
+                    distance: originalItemDistance,
+                    modifiedDistance: modifiedItemDistance,
                     currency: item.currency,
                     created: item.created,
                     merchant: item.merchant,
@@ -743,6 +761,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     accountant: item.accountant,
                     newLogins,
                     newAccountIDs,
+                    formatPhoneNumber,
                 },
                 optimisticChatReportID: optimisticSelfDMReportID,
                 optimisticTransactionID: lastOptimisticTransactionID,
@@ -812,7 +831,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             transactionParams: {
                 amount: transaction.amount,
                 comment: trimmedComment,
-                distance: transactionDistance,
+                distance: originalTransactionDistance,
+                modifiedDistance: modifiedTransactionDistance,
                 created: transaction.created,
                 currency: transaction.currency,
                 merchant: transaction.merchant,
@@ -844,6 +864,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             previousOdometerDraft: odometerDraft,
             isTrackIntentUser,
             delegateAccountID,
+            formatPhoneNumber,
+            participantsPolicyTags,
         });
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
@@ -922,6 +944,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         shouldHandleNavigation,
                         shouldDeferForSearch: shouldDeferSplitForSearch,
                         delegateAccountID,
+                        formatPhoneNumber,
                     });
                 }
             }
@@ -964,6 +987,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     shouldDeferForSearch: shouldDeferSplitForSearch,
                     delegateAccountID,
                     isTrackIntentUser,
+                    formatPhoneNumber,
+                    participantsPolicyTags,
                 });
             }
             markSubmitExpenseEnd();
@@ -1003,6 +1028,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     shouldDeferForSearch: shouldDeferSplitForSearch,
                     delegateAccountID,
                     isTrackIntentUser,
+                    formatPhoneNumber,
+                    participantsPolicyTags,
                 });
             }
             markSubmitExpenseEnd();
@@ -1027,6 +1054,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderWorkspacePolicyTags ?? {},
+                formatPhoneNumber,
                 delegateAccountID,
             });
             if (shouldHandleNavigation) {

@@ -24,6 +24,7 @@ import {
     getRenamedAction,
     getReportActionHtml,
     getSettlementAccountLockedMessage,
+    getTravelNudgeMessage,
     getTravelUpdateMessage,
     isActionableCardFraudAlert,
     isActionableJoinRequest,
@@ -352,6 +353,13 @@ function ActionContentRouter({
         return (
             <ReportActionItemBasicMessage message="">
                 <RenderHTML html={`<comment><muted-text>${getTravelUpdateMessage(translate, action, formatTravelDate)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE)) {
+        return (
+            <ReportActionItemBasicMessage message="">
+                <RenderHTML html={`<comment><muted-text>${getTravelNudgeMessage(translate, action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
     }

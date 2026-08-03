@@ -315,12 +315,12 @@ describe('useFilterFormValues selectors', () => {
                 errors: {},
                 taxRates,
                 tax,
-                areCategoriesEnabled: true,
                 areTagsEnabled: true,
                 areInvoicesEnabled: false,
                 isAttendeeTrackingEnabled: false,
                 fieldList,
             });
+            expect(result?.[POLICY_KEY]).not.toHaveProperty('areCategoriesEnabled');
             expect(result?.[POLICY_KEY]).not.toHaveProperty('connections');
             expect(result?.[POLICY_KEY]).not.toHaveProperty('customUnits');
             expect(result?.[POLICY_KEY]).not.toHaveProperty('rules');

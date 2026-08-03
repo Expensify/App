@@ -333,6 +333,17 @@ function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy
     );
 }
 
+// From global create or a track expense, per diem enablement on any active policy is enough to show the tab -
+// rates load lazily and may be absent right after a cache clear, so visibility must not gate on them.
+function shouldShowPerDiemTabOption(iouType: IOUType, isFromGlobalCreate: boolean, hasCurrentPolicyPerDiemEnabled: boolean, doesPerDiemPolicyExist: boolean): boolean {
+    if (iouType === CONST.IOU.TYPE.SPLIT) {
+        return false;
+    }
+    const hasCurrentPolicyPerDiem = !isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled;
+    const hasAnyPolicyPerDiem = (iouType === CONST.IOU.TYPE.TRACK || isFromGlobalCreate) && doesPerDiemPolicyExist;
+    return hasCurrentPolicyPerDiem || hasAnyPolicyPerDiem;
+}
+
 function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType) {
     return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
@@ -505,6 +516,27 @@ function getIsWorkspacesOnlyForTransaction(transaction: OnyxEntry<Transaction>, 
     return transaction?.amount !== undefined && transaction?.amount !== null && transaction?.amount < 0;
 }
 
+/**
+ * Whether a report carries a real workspace policy. The self-DM / personal report uses the placeholder
+ * `CONST.POLICY.ID_FAKE` ('_FAKE_') policyID, which is truthy and would otherwise pass naive `report?.policyID`
+ * checks. Money-request policy resolution must treat it as "no real policy" so a placeholder/stale route report
+ * (e.g. the self-DM a submissions-disabled workspace flow is seeded onto) does not shadow the selected workspace
+ * chat's real policy when picking which report to derive the policyID from. See #96576.
+ */
+function reportHasRealPolicy(report: OnyxEntry<Report>): boolean {
+    return !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
+}
+
+/**
+ * Picks which report a money-request page should derive its policyID from. Candidates are passed in preference order
+ * (usually route report, then transaction report, then participant report): the first one carrying a real workspace
+ * policy wins, so a placeholder/stale candidate can't shadow a real one (see `reportHasRealPolicy`). When none has a
+ * real policy the first defined candidate is returned, preserving each page's original fallback behavior.
+ */
+function pickReportForPolicy(...reports: Array<OnyxEntry<Report>>): OnyxEntry<Report> {
+    return reports.find((report) => reportHasRealPolicy(report)) ?? reports.find((report) => !!report);
+}
+
 /** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
 function resolveReportForMoneyRequest({
     transaction,
@@ -597,6 +629,7 @@ export {
     formatCurrentUserToAttendee,
     navigateToParticipantPage,
     shouldShowReceiptEmptyState,
+    shouldShowPerDiemTabOption,
     navigateToConfirmationPage,
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,
@@ -606,4 +639,6 @@ export {
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
     resolveEarlyReportID,
+    reportHasRealPolicy,
+    pickReportForPolicy,
 };
