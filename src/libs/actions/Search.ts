@@ -701,7 +701,8 @@ function getOnyxLoadingData(
             value: {
                 search: {
                     ...(isSearchAPI && {isLoading: true}),
-                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}),
+                    // Clear the previous response's code so it can't misclassify this request's outcome.
+                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING, responseJsonCode: null}),
                     ...(offset !== undefined ? {offset} : {}),
                     ...(shouldClearTotals ? {count: null, total: null, currency: null} : {}),
                 },
@@ -1081,6 +1082,13 @@ function search({
                 // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.
                 if (result?.jsonCode === CONST.JSON_CODE.SUCCESS && response?.data === undefined) {
                     Log.info('[Search] loading_terminal_empty', false, {hash: queryJSON.hash, type: queryJSON.type});
+                }
+
+                // Persist the failing code alongside the errors it produced. Callers keep it in component state
+                // too, but that state is reset by a reload while the errored snapshot survives, so the error view
+                // needs a durable copy to keep hiding Retry for a query the backend rejected as invalid.
+                if (typeof result?.jsonCode === 'number' && result.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode: result.jsonCode}});
                 }
 
                 if (shouldUpdateLastSearchParams) {

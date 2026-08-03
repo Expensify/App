@@ -180,6 +180,47 @@ describe('search snapshot terminal state', () => {
         expect(isSearchDataLoaded(snapshot, queryJSON)).toBe(true);
     });
 
+    it('persists the failing jsonCode so a reload can still classify the failure', async () => {
+        const queryJSON = getQueryJSON();
+        jest.mocked(makeRequestWithSideEffects).mockImplementationOnce(async (_command, _parameters, onyxData) => {
+            await Onyx.update(onyxData?.optimisticData ?? []);
+            await Onyx.update(onyxData?.failureData ?? []);
+            await Onyx.update(onyxData?.finallyData ?? []);
+            return {jsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY};
+        });
+
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        await waitForBatchedUpdates();
+
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.errors).toBeDefined();
+        expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
+    });
+
+    it('does not persist a jsonCode for a successful response', async () => {
+        const queryJSON = getQueryJSON();
+        jest.mocked(makeRequestWithSideEffects).mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        await waitForBatchedUpdates();
+
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.search?.responseJsonCode).toBeUndefined();
+    });
+
+    it('clears a previously persisted jsonCode when a new request starts', async () => {
+        const queryJSON = getQueryJSON();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY}});
+
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        const {optimisticData} = getCapturedSearchOnyxData();
+        await Onyx.update(optimisticData ?? []);
+        await waitForBatchedUpdates();
+
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.search?.responseJsonCode).toBeUndefined();
+    });
+
     it('deduplicates concurrent requests for the same hash and offset', async () => {
         const queryJSON = getQueryJSON();
         let resolveRequest: ((value: Awaited<ReturnType<typeof makeRequestWithSideEffects>>) => void) | undefined;
