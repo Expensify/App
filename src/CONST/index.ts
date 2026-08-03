@@ -6982,16 +6982,6 @@ const CONST = {
                     search: true,
                     reportView: true,
                 },
-                AMOUNT_DEBITED: {
-                    column: this.TABLE_COLUMNS.AMOUNT_DEBITED,
-                    search: true,
-                    reportView: true,
-                },
-                AMOUNT_REIMBURSED: {
-                    column: this.TABLE_COLUMNS.AMOUNT_REIMBURSED,
-                    search: true,
-                    reportView: true,
-                },
             };
         },
         get TYPE_CUSTOM_COLUMNS() {

@@ -606,7 +606,7 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense-report amountDebited>1 amountDebited<1000 amountReimbursed:500');
         });
 
-        test('conversion amount filters survive on an expense search, where the expense reports its report amounts', () => {
+        test('conversion amount filters are dropped on an expense search, since a payment pays a whole report', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
                 amountDebitedEqualTo: '1694',
@@ -614,7 +614,7 @@ describe('SearchQueryUtils', () => {
             };
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('type:expense amountDebited:1694 amountReimbursed>1000');
+            expect(result).toEqual('type:expense');
         });
 
         test('equal to filter values', () => {
