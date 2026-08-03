@@ -57,6 +57,9 @@ function MissingPersonalDetailsValidateCodePage({
     const [targetCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: targetCardSelector});
     const isVirtualCard = !!targetCard?.nameValuePairs?.isVirtual;
 
+    // Dismissal keys off the card this flow is for, not every Expensify card: a different card that failed to ship must
+    // not keep the user stuck here once their own card has shipped.
+    const isTargetCardShipped = !!targetCard && targetCard.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
     const primaryLogin = usePrimaryContactMethod();
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
@@ -71,13 +74,13 @@ function MissingPersonalDetailsValidateCodePage({
     const missingDetails = arePersonalDetailsMissing(privatePersonalDetails);
 
     useEffect(() => {
-        if (isVirtualCard || missingDetails || !!privateDetailsErrors || !!cardErrors) {
+        if (isVirtualCard || missingDetails || !!privateDetailsErrors || !isTargetCardShipped) {
             return;
         }
 
         clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         Navigation.dismissModal();
-    }, [isVirtualCard, missingDetails, privateDetailsErrors, cardErrors]);
+    }, [isVirtualCard, missingDetails, privateDetailsErrors, isTargetCardShipped]);
 
     const clearError = () => {
         setRevealCardError({});
