@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
@@ -253,13 +253,14 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                                 style={[styles.flex1, styles.mb0]}
                             />
                             <Button
-                                small
-                                danger
-                                text={translate('personalCard.fixCard')}
+                                variant={CONST.BUTTON_VARIANT.DANGER}
+                                size={CONST.BUTTON_SIZE.SMALL}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(cardID))}
                                 isDisabled={isOffline || card?.isLoadingLastUpdated}
                                 style={[styles.mb0, styles.alignSelfStart]}
-                            />
+                            >
+                                <Button.Text>{translate('personalCard.fixCard')}</Button.Text>
+                            </Button>
                         </View>
                     </OfflineWithFeedback>
                 )}

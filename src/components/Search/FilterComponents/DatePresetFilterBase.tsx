@@ -97,6 +97,9 @@ type DatePresetFilterBaseProps = {
     /** The date presets */
     presets?: SearchDatePreset[];
 
+    /** Whether to show the "Custom date" (On/After/Before) option. Defaults to true. */
+    shouldShowCustomDate?: boolean;
+
     /** Whether the search advanced filters form Onyx data is loading or not */
     isSearchAdvancedFiltersFormLoading?: boolean;
 
@@ -125,6 +128,7 @@ function DatePresetFilterBase({
     selectedDateModifier,
     onSelectDateModifier,
     presets,
+    shouldShowCustomDate = true,
     isSearchAdvancedFiltersFormLoading,
     onDateValuesChange,
     onRangeValidationErrorChange,
@@ -430,13 +434,15 @@ function DatePresetFilterBase({
                         style={[StyleUtils.getBorderColorStyle(theme.border), styles.mh3]}
                     />
                 )}
-                <MenuItem
-                    shouldShowRightIcon
-                    viewMode={CONST.OPTION_MODE.COMPACT}
-                    title={customDateTitle}
-                    description={customDateDescription}
-                    onPress={selectCustomDateMode}
-                />
+                {shouldShowCustomDate && (
+                    <MenuItem
+                        shouldShowRightIcon
+                        viewMode={CONST.OPTION_MODE.COMPACT}
+                        title={customDateTitle}
+                        description={customDateDescription}
+                        onPress={selectCustomDateMode}
+                    />
+                )}
                 <MenuItem
                     shouldShowRightIcon
                     viewMode={CONST.OPTION_MODE.COMPACT}
