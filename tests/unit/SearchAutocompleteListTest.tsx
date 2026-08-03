@@ -295,7 +295,6 @@ describe('SearchAutocompleteList', () => {
         };
         const onlinePaddingBottom = getContentPaddingBottom();
 
-        expect(typeof onlinePaddingBottom).toBe('number');
         if (typeof onlinePaddingBottom !== 'number') {
             throw new Error('Expected the Search Router list to have numeric bottom padding');
         }
