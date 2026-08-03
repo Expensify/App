@@ -65,8 +65,6 @@ To update your timezone:
 4. Select the correct time zone from the list.
 5. Click **Save**.
 
-**Note:** While **Automatically determine your location** is on, the time zone list and the **Save** button are disabled, and Expensify updates your time zone based on your location.
-
 ## Language
 To change your language:
 1. In the navigation tabs, select **Account > Preferences**.
@@ -111,8 +109,6 @@ To change the app’s appearance:
    - **Dark**
    - **Use device settings**
 3. Click **Save**.
-
-The theme is applied only after you click **Save**.
 
 ## How to enable high contrast mode
 
