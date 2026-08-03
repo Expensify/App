@@ -1084,9 +1084,8 @@ function search({
                     Log.info('[Search] loading_terminal_empty', false, {hash: queryJSON.hash, type: queryJSON.type});
                 }
 
-                // Persist the failing code alongside the errors it produced. Callers keep it in component state
-                // too, but that state is reset by a reload while the errored snapshot survives, so the error view
-                // needs a durable copy to keep hiding Retry for a query the backend rejected as invalid.
+                // Store the failing code alongside the errors it produced, so the error view can still classify
+                // the failure after a reload has cleared the copy callers keep in component state.
                 if (typeof result?.jsonCode === 'number' && result.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode: result.jsonCode}});
                 }
