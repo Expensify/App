@@ -534,6 +534,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 existingTransactionDraft,
                 draftTransactionIDs,
                 isSelfTourViewed,
+                conciergeChat,
                 betas,
                 personalDetails,
                 isTrackIntentUser,
@@ -589,6 +590,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 quickAction,
                 optimisticChatReportID,
+                delegateAccountID,
                 isTrackIntentUser,
             });
             if (shouldHandleNavigation) {
@@ -647,6 +649,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 personalDetails,
                 optimisticChatReportID,
                 formatPhoneNumber,
+                delegateAccountID,
                 isTrackIntentUser,
             });
             const targetReportID = backToReport ?? activeReportID;

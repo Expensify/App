@@ -23,6 +23,7 @@ import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {TravelInvoicingProvisioningErrors} from '@src/types/onyx/CardFeeds';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
@@ -522,7 +523,7 @@ function clearTravelInvoicingErrors(workspaceAccountID: number) {
  * Retries travel card provisioning for workspace members that failed.
  * Optimistically clears provisioning errors and restores the previous banner if the retry fails.
  */
-function retryTravelCardsProvisioning(policyID: string, workspaceAccountID: number, currentProvisioningErrors: string[]) {
+function retryTravelCardsProvisioning(policyID: string, workspaceAccountID: number, currentProvisioningErrors: TravelInvoicingProvisioningErrors) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -530,7 +531,8 @@ function retryTravelCardsProvisioning(policyID: string, workspaceAccountID: numb
             value: {
                 settings: {
                     travelInvoicing: {
-                        errors: [],
+                        // Errors are keyed by account ID, so a merge cannot clear them; null removes the field entirely.
+                        errors: null,
                     },
                 },
             },
@@ -544,7 +546,7 @@ function retryTravelCardsProvisioning(policyID: string, workspaceAccountID: numb
             value: {
                 settings: {
                     travelInvoicing: {
-                        errors: [...currentProvisioningErrors],
+                        errors: currentProvisioningErrors,
                     },
                 },
             },

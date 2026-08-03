@@ -1,14 +1,15 @@
-import type {Report, ReportAction, Transaction} from '../../src/types/onyx';
+import type {OriginalMessageIOU, Report, ReportAction, Transaction} from '../../src/types/onyx';
 
 import {getReportPreviewSenderID} from '../../src/components/ReportActionAvatars/useReportPreviewSenderID';
 import CONST from '../../src/CONST';
+import createMock from '../utils/createMock';
 
 const CURRENT_USER_ACCOUNT_ID = 100;
 const OWNER_ACCOUNT_ID = 200;
 const MANAGER_ACCOUNT_ID = 300;
 
 function makeAction(overrides: Partial<ReportAction> = {}): ReportAction {
-    return {
+    return createMock<ReportAction>({
         reportActionID: '1',
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
         childOwnerAccountID: OWNER_ACCOUNT_ID,
@@ -16,30 +17,30 @@ function makeAction(overrides: Partial<ReportAction> = {}): ReportAction {
         childMoneyRequestCount: 1,
         created: '2024-01-01',
         ...overrides,
-    } as ReportAction;
+    });
 }
 
 function makeIOUReport(overrides: Partial<Report> = {}): Report {
-    return {
+    return createMock<Report>({
         reportID: '1',
         type: CONST.REPORT.TYPE.IOU,
         ...overrides,
-    } as Report;
+    });
 }
 
 function makeTransaction(amount: number, attendeeEmail = 'user@test.com', overrides: Partial<Transaction> = {}): Transaction {
-    return {
+    return createMock<Transaction>({
         transactionID: `tr-${Math.random()}`,
         amount,
         comment: {
             attendees: [{email: attendeeEmail}],
         },
         ...overrides,
-    } as Transaction;
+    });
 }
 
-function makeIOUAction(type: string, overrides: Partial<ReportAction> = {}): ReportAction {
-    return {
+function makeIOUAction(type: OriginalMessageIOU['type'], overrides: Partial<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {}): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
+    return createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
         reportActionID: `iou-${Math.random()}`,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         originalMessage: {
@@ -49,7 +50,7 @@ function makeIOUAction(type: string, overrides: Partial<ReportAction> = {}): Rep
             currency: 'USD',
         },
         ...overrides,
-    } as ReportAction;
+    });
 }
 
 const baseParams = {
@@ -161,7 +162,7 @@ describe('getReportPreviewSenderID', () => {
                 amount: 100,
                 currency: 'USD',
             },
-        } as Partial<ReportAction>);
+        });
 
         const result = getReportPreviewSenderID({
             ...baseParams,
@@ -175,7 +176,7 @@ describe('getReportPreviewSenderID', () => {
     });
 
     it('returns childManagerAccountID for send money fallback (no iouActions, 1 transaction, DM chat)', () => {
-        const dmChat: Report = {
+        const dmChat = createMock<Report>({
             reportID: 'dm-1',
             type: CONST.REPORT.TYPE.CHAT,
             chatType: undefined,
@@ -183,7 +184,7 @@ describe('getReportPreviewSenderID', () => {
                 [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 [MANAGER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
-        } as Report;
+        });
 
         const result = getReportPreviewSenderID({
             ...baseParams,
@@ -326,7 +327,7 @@ describe('getReportPreviewSenderID', () => {
     });
 
     it('returns undefined when chatReport last actor shows the pending scan belongs to the other participant', () => {
-        const dmChat: Report = {
+        const dmChat = createMock<Report>({
             reportID: 'dm-1',
             type: CONST.REPORT.TYPE.CHAT,
             lastActorAccountID: MANAGER_ACCOUNT_ID,
@@ -334,7 +335,7 @@ describe('getReportPreviewSenderID', () => {
                 [OWNER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 [MANAGER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
-        } as Report;
+        });
 
         const result = getReportPreviewSenderID({
             ...baseParams,
@@ -479,7 +480,7 @@ describe('getReportPreviewSenderID', () => {
         // Two transactions with different attendees (different emails resolve to different accountIDs)
         // Since getPersonalDetailByEmail returns undefined in test (no Onyx), attendeesIDs will be filtered out
         // and the set size will be 0, which is <= 1, so we need to use splits to create multiple attendees
-        const splitTr1: Transaction = {
+        const splitTr1 = createMock<Transaction>({
             transactionID: '111',
             amount: 100,
             comment: {
@@ -487,9 +488,9 @@ describe('getReportPreviewSenderID', () => {
                 originalTransactionID: 'orig-1',
                 attendees: [{email: 'user1@test.com'}],
             },
-        } as Transaction;
+        });
 
-        const splitTr2: Transaction = {
+        const splitTr2 = createMock<Transaction>({
             transactionID: '222',
             amount: 100,
             comment: {
@@ -497,10 +498,10 @@ describe('getReportPreviewSenderID', () => {
                 originalTransactionID: 'orig-2',
                 attendees: [{email: 'user2@test.com'}],
             },
-        } as Transaction;
+        });
 
         const splits = [
-            {
+            createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
                 reportActionID: 'split-1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: 10,
@@ -510,8 +511,8 @@ describe('getReportPreviewSenderID', () => {
                     amount: 100,
                     currency: 'USD',
                 },
-            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>,
-            {
+            }),
+            createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
                 reportActionID: 'split-2',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: 20,
@@ -521,7 +522,7 @@ describe('getReportPreviewSenderID', () => {
                     amount: 100,
                     currency: 'USD',
                 },
-            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>,
+            }),
         ];
 
         const result = getReportPreviewSenderID({
@@ -537,7 +538,7 @@ describe('getReportPreviewSenderID', () => {
     });
 
     it('returns childOwnerAccountID for split transaction with single author', () => {
-        const splitTr: Transaction = {
+        const splitTr = createMock<Transaction>({
             transactionID: '111',
             amount: 100,
             comment: {
@@ -545,10 +546,10 @@ describe('getReportPreviewSenderID', () => {
                 originalTransactionID: 'orig-1',
                 attendees: [{email: 'user1@test.com'}],
             },
-        } as Transaction;
+        });
 
         const splits = [
-            {
+            createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
                 reportActionID: 'split-1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: 10,
@@ -558,7 +559,7 @@ describe('getReportPreviewSenderID', () => {
                     amount: 100,
                     currency: 'USD',
                 },
-            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>,
+            }),
         ];
 
         const result = getReportPreviewSenderID({

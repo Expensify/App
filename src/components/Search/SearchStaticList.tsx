@@ -85,6 +85,7 @@ function SearchStaticList({
     const email = session?.email;
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(
         () => hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) || Navigation.getIsFullscreenPreInsertedUnderRHP(),
@@ -107,7 +108,7 @@ function SearchStaticList({
             translate,
             formatPhoneNumber,
             bankAccountList: undefined,
-            conciergeReportID: undefined,
+            conciergeReportID,
             convertToDisplayString,
             reportAttributesDerivedValue: undefined,
         });

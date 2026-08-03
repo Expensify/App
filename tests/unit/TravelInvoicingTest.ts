@@ -419,7 +419,8 @@ describe('TravelInvoicing', () => {
     it('retryTravelCardsProvisioning restores provisioning errors on the shared domain member key when the retry fails', () => {
         const policyID = '123';
         const workspaceAccountID = 456;
-        const currentProvisioningErrors = ['provisioning-failed'];
+        const failedAccountID = 769;
+        const currentProvisioningErrors = {[failedAccountID]: {accountID: failedAccountID, email: 'rodrigo+9@testfeedfilter5.com'}};
         const travelInvoicingKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`;
 
         retryTravelCardsProvisioning(policyID, workspaceAccountID, currentProvisioningErrors);
@@ -436,7 +437,7 @@ describe('TravelInvoicing', () => {
                         value: {
                             settings: {
                                 travelInvoicing: {
-                                    errors: [],
+                                    errors: null,
                                 },
                             },
                         },

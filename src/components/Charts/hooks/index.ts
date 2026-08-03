@@ -4,7 +4,7 @@ export {default as useChartParagraphs} from './useChartParagraphs';
 export {useChartFontManager} from '@components/Charts/context/ChartFontsContext';
 export {default as ChartFontsProvider} from '@components/Charts/context/ChartFontsProvider';
 export {useChartInteractions, TOOLTIP_BAR_GAP} from './useChartInteractions';
-export type {HitTestArgs} from './useChartInteractions';
+export type {HitTestArgs, ResolveTargetIndexArgs} from './useChartInteractions';
 export {default as useChartLabelFormats} from './useChartLabelFormats';
 export {default as useDynamicYDomain} from './useDynamicYDomain';
 export {default as useTooltipData} from './useTooltipData';

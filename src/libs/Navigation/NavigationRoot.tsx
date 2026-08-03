@@ -290,7 +290,13 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         navigationIntegration.registerNavigationContainer(navigationRef);
         trackFullstoryPageView(navigationRef.getRootState());
         setupNavigationFocusReturn();
-    }, [onReady]);
+
+        // React Navigation does not fire onStateChange for the initial state, so on a cold start that
+        // restores directly into a report (via initialState) currentReportID would stay unset. Seed it
+        // from the restored root state so isTopMostReportId is correct on the first report screen
+        // (e.g. the composer's keyboard avoiding view is enabled right away).
+        updateCurrentReportID(navigationRef.getRootState());
+    }, [onReady, updateCurrentReportID]);
 
     // Re-establish on (re)mount — StrictMode's cleanup-then-remount otherwise leaves us listener-less; setup is idempotent.
     useEffect(() => {

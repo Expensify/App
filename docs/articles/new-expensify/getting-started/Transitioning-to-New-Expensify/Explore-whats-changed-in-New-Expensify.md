@@ -26,6 +26,8 @@ You can:
 - **Save searches you run often.** Turn any filtered view into a saved search and reopen it with one click. [Learn how to save a search](/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#how-to-save-a-search).
 - **Filter by exports.** Use the **Exported to** filter to find expenses exported during a specific date range or sent to a particular destination, such as an accounting integration or export template. [Learn more about accounting search shortcuts](/articles/new-expensify/reports-and-expenses/Accounting-Search-Shortcuts).
 
+![The Spend tab with a filtered view as a saved search]({{site.url}}/assets/images/ExpensiHelp-Spend-page-with-a-custom-search.png){:width="100%"}
+
 ### Comment on individual expenses
 
 You can comment directly on an expense to discuss questions, request receipts, or provide additional context without relying on separate email threads. 
@@ -58,11 +60,15 @@ You can group expenses by person, category, merchant, tag, week, month, quarter,
 
 [Learn how to use Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
 
+![An Insights view with a bar chart displayed.]({{site.url}}/assets/images/ExpensiHelp-Insights-view.png){:width="100%"}
+
 ### Create mileage expenses from a map on mobile
 
 On mobile, you can create Distance expenses by plotting your start, stop, and waypoints directly on a map instead of manually entering addresses.
 
 [Learn how to create a map-based Distance expense](/articles/new-expensify/reports-and-expenses/Distance-Expenses#how-to-create-a-map-based-distance-expense-web-and-mobile).
+
+![A Distance expense on mobile screen with a route plotted]({{site.url}}/assets/images/ExpensiHelp-Mobile-view-of-distance-expense.png){:width="100%"}
 
 ## What workflows are improved in New Expensify
 

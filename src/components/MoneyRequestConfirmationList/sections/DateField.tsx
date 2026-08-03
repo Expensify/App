@@ -2,6 +2,7 @@ import DatePicker from '@components/DatePicker';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -56,6 +57,7 @@ function DateField({
     reportID,
     reportActionID,
 }: DateFieldProps) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -113,6 +115,7 @@ function DateField({
                 lastSelectedDistanceRates,
                 isDraft: shouldUseTransactionDraft(action),
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                getCurrencyDecimals,
             });
         }
     };

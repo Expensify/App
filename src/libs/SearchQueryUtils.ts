@@ -925,6 +925,9 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.REIMBURSABLE ||
                     filterKey === FILTER_KEYS.BILLABLE ||
                     filterKey === FILTER_KEYS.TITLE ||
+                    filterKey === FILTER_KEYS.SUBMITTER_USER_ID ||
+                    filterKey === FILTER_KEYS.SUBMITTER_PAYROLL_ID ||
+                    filterKey === FILTER_KEYS.ORDER_DEAL_NUMBERS ||
                     filterKey === FILTER_KEYS.PAYER ||
                     filterKey === FILTER_KEYS.GROUP_CURRENCY ||
                     filterKey === FILTER_KEYS.WITHDRAWAL_TYPE ||
@@ -1334,6 +1337,13 @@ function buildFilterFormValuesFromQuery(
                     ? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS
                     : DEFAULT_MERCHANT_OPERATOR;
             }
+        }
+        if (
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_USER_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_PAYROLL_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS
+        ) {
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues.join(',');
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) {
             const actionValue = filterValues.join(',');
@@ -2310,13 +2320,13 @@ function shouldHighlight(referenceText: string, searchText: string) {
         return false;
     }
 
-    const escapedText = StringUtils.normalizeAccents(searchText)
+    const escapedText = StringUtils.normalizeForMatch(searchText)
         .toLowerCase()
         .trim()
         .replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(`(^|\\s)${escapedText}(?=\\s|$)`, 'i');
 
-    return pattern.test(StringUtils.normalizeAccents(referenceText).toLowerCase());
+    return pattern.test(StringUtils.normalizeForMatch(referenceText).toLowerCase());
 }
 
 const TIME_BASED_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.YEAR, CONST.SEARCH.GROUP_BY.QUARTER]);

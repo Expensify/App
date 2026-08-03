@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type {BankAccountList, ReportAction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 
@@ -33,6 +33,7 @@ import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -88,7 +89,7 @@ const ACTOR_ACCOUNT_ID = 123456789;
 const actorEmail = 'test@test.com';
 
 const createReportAction = (actionName: ReportActionName, originalMessageExtras: Partial<OriginalMessage<ReportActionName>>) =>
-    ({
+    createMock<ReportAction>({
         reportActionID: '12345',
         actorAccountID: ACTOR_ACCOUNT_ID,
         created: '2025-07-12 09:03:17.653',
@@ -102,7 +103,7 @@ const createReportAction = (actionName: ReportActionName, originalMessageExtras:
         originalMessage: {
             ...originalMessageExtras,
         },
-    }) as ReportAction;
+    });
 
 describe('ReportActionItem', () => {
     beforeAll(() => {
@@ -139,7 +140,7 @@ describe('ReportActionItem', () => {
 
     function renderItemWithAction(action: ReportAction) {
         return render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
                 <ScreenWrapper testID="test">
                     <PortalProvider>
                         <ReportActionItem
@@ -184,7 +185,12 @@ describe('ReportActionItem', () => {
                 originalMessageExtras: {harvesting: true},
                 translationKey: 'iou.automaticallySubmitted',
             },
-        ];
+        ] satisfies Array<{
+            testTitle: string;
+            actionName: ReportActionName;
+            originalMessageExtras: Partial<OriginalMessage<ReportActionName>>;
+            translationKey: TranslationPaths;
+        }>;
 
         const parseTextWithTrailingLink = (translatedText: string) => {
             const match = translatedText.match(/^(.*?)(<a[^>]*>)(.*?)(<\/a>)$/);
@@ -201,7 +207,7 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(CONST.CONCIERGE_DISPLAY_NAME)).toBeOnTheScreen();
-            const parsedText = parseTextWithTrailingLink(translateLocal(translationKey as TranslationPaths));
+            const parsedText = parseTextWithTrailingLink(translateLocal(translationKey));
             if (!parsedText) {
                 throw new Error('Text cannot be parsed, translation failed');
             }
@@ -1415,7 +1421,7 @@ describe('ReportActionItem', () => {
             };
 
             render(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
@@ -1839,7 +1845,7 @@ describe('ReportActionItem', () => {
                     reportID: 'testReport',
                     ownerAccountID: ACTOR_ACCOUNT_ID,
                 });
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {acc1: {accountData: {defaultCredit: true}} as never});
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({acc1: {accountData: {defaultCredit: true}}}));
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -1910,7 +1916,7 @@ describe('ReportActionItem', () => {
         it('IOU PAY VBBA manual renders business bank account message with last 4 digits', async () => {
             await act(async () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {12345: {accountData: {accountNumber: '000098765'}} as never});
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({12345: {accountData: {accountNumber: '000098765'}}}));
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -1946,7 +1952,7 @@ describe('ReportActionItem', () => {
         it('IOU PAY VBBA automatic renders auto-paid message', async () => {
             await act(async () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {12345: {accountData: {accountNumber: '000098765'}} as never});
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({12345: {accountData: {accountNumber: '000098765'}}}));
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -1982,7 +1988,7 @@ describe('ReportActionItem', () => {
         it('IOU PAY with bankAccountID and payAsBusiness renders settleInvoiceBusiness message', async () => {
             await act(async () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {55555: {accountData: {accountNumber: '000012345'}} as never});
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({55555: {accountData: {accountNumber: '000012345'}}}));
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -2022,7 +2028,7 @@ describe('ReportActionItem', () => {
         it('IOU PAY with bankAccountID and no payAsBusiness renders settleInvoicePersonal message', async () => {
             await act(async () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {77777: {accountData: {accountNumber: '000067890'}} as never});
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({77777: {accountData: {accountNumber: '000067890'}}}));
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -2663,7 +2669,7 @@ describe('ReportActionItem', () => {
         it('isCardBrokenConnectionAction renders tappable bank login link for personal broken connection', async () => {
             const CARD_ID_KEY = '100';
 
-            (openLink as jest.Mock).mockClear();
+            jest.mocked(openLink).mockClear();
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.CARD_LIST, {
                     [CARD_ID_KEY]: {cardID: 100, cardName: 'Broken Card', lastScrapeResult: 401},
@@ -2685,7 +2691,7 @@ describe('ReportActionItem', () => {
         it('isCardBrokenConnectionAction renders no tappable link when card connection is not broken', async () => {
             const CARD_ID_KEY = '100';
 
-            (openLink as jest.Mock).mockClear();
+            jest.mocked(openLink).mockClear();
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.CARD_LIST, {
                     [CARD_ID_KEY]: {cardID: 100, cardName: 'Healthy Card', lastScrapeResult: 200},
@@ -3126,7 +3132,7 @@ describe('ReportActionItem', () => {
             action.reportID = TEST_REPORT_ID;
 
             render(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItemMessage

@@ -50,6 +50,10 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
 
     const textDecorationLineStyle = isDeleted ? styles.lineThrough : {};
 
+    // In high-contrast themes, underline report action links so they are distinguishable by more than color (WCAG 1.4.1).
+    // The `styles.link` used by the non-comment link path above already handles this, but AnchorForCommentsOnly does not use it.
+    const highContrastUnderlineStyle = theme.isHighContrast ? styles.underline : {};
+
     const onLinkPress = useMemo(() => {
         if (internalNewExpensifyPath || internalExpensifyPath) {
             return () => openLink(attrHref, environmentURL, isAttachment);
@@ -142,6 +146,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                 style,
                 parentStyle,
                 styles.textDecorationLineNone,
+                highContrastUnderlineStyle,
                 textDecorationLineStyle,
                 styles.textUnderlinePositionUnder,
                 styles.textDecorationSkipInkNone,
@@ -169,6 +174,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                                     props.childTnode.getNativeStyles(),
                                     parentStyle,
                                     styles.textDecorationLineNone,
+                                    highContrastUnderlineStyle,
                                     textDecorationLineStyle,
                                     styles.textUnderlinePositionUnder,
                                     styles.textDecorationSkipInkNone,

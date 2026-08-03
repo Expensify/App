@@ -1,4 +1,4 @@
-import {getExportTemplates, getFooterConvertedAmounts, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {getExportTemplates, getFooterConvertedAmounts, openSearch, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -19,6 +19,8 @@ jest.mock('@libs/Network/enhanceParameters', () => ({
 
 const mockWrite = jest.mocked(write);
 const mockRead = jest.mocked(read);
+
+beforeEach(() => jest.clearAllMocks());
 
 function getWriteOptions(): {optimisticData: AnyOnyxUpdate[]; failureData: AnyOnyxUpdate[]} {
     const options = mockWrite.mock.calls.at(-1)?.at(2);
@@ -59,9 +61,18 @@ function getQueryJSON() {
     return queryJSON;
 }
 
-describe('queueExportSearchItemsToCSV', () => {
-    beforeEach(() => jest.clearAllMocks());
+describe('openSearchPage', () => {
+    it('does not persist a completion flag that a failed request could strand', () => {
+        openSearch({includePartiallySetupBankAccounts: false, includeLockedBankAccounts: false});
 
+        expect(mockRead).toHaveBeenCalledWith(READ_COMMANDS.OPEN_SEARCH_PAGE, {
+            includePartiallySetupBankAccounts: false,
+            includeLockedBankAccounts: false,
+        });
+    });
+});
+
+describe('queueExportSearchItemsToCSV', () => {
     it('sets optimistic Onyx data with state preparing and returns exportID', () => {
         const exportID = queueExportSearchItemsToCSV({
             jsonQuery: '{}',
@@ -94,8 +105,6 @@ describe('queueExportSearchItemsToCSV', () => {
 });
 
 describe('queueExportSearchWithTemplate', () => {
-    beforeEach(() => jest.clearAllMocks());
-
     it('sets optimistic Onyx data with state preparing and returns exportID when tracking progress', () => {
         const exportID = queueExportSearchWithTemplate(
             {

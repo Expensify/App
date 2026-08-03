@@ -1,3 +1,4 @@
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 /**
  * Subscribes to the Onyx data shared by the money-request report-preview action buttons
  * (Submit / Approve / Pay) and returns it as a single object.
@@ -18,6 +19,7 @@ function useReportPreviewActionButtonData(iouReportID: string | undefined) {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const delegateAccountID = useDelegateAccountID();
 
     return {
         iouReport,
@@ -28,6 +30,7 @@ function useReportPreviewActionButtonData(iouReportID: string | undefined) {
         amountOwed,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        delegateAccountID,
     };
 }
 

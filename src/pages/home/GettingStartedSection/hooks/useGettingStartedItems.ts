@@ -132,7 +132,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         label: translate('homePage.gettingStartedSection.createWorkspace'),
         subText: translate('homePage.gettingStartedSection.createWorkspaceSubText'),
         isComplete: true,
-        route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID, Navigation.getActiveRoute()) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
+        route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID, ROUTES.HOME) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
     });
 
     if (intent === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {

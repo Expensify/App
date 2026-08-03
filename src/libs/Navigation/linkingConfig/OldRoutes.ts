@@ -7,11 +7,6 @@ const oldRoutes: Record<string, string> = {
     // would swallow it) - acceptable because callers no longer append `?backTo=`.
     '/*/*/destination/*/*/edit': '/$1/$2/confirmation/$3/$4/per-diem-destination-edit',
     '/*/*/destination/*/*': '/$1/$2/start/$3/$4/per-diem-destination',
-    // Per diem time step migrated to dynamic routes (#83850). Edit variant redirects to the confirmation-based suffix;
-    // the wizard variant to the destination-based suffix. Query is not preserved (trailing wildcard would swallow it) -
-    // acceptable because callers no longer append `?backTo=`.
-    '/*/*/time/*/*/edit': '/$1/$2/confirmation/$3/$4/per-diem-time-edit',
-    '/*/*/time/*/*': '/$1/$2/destination/$3/$4/per-diem-time',
     '/settings/*/category/*/edit': '/settings/$1/categories/category-settings/$2/category-edit',
     '/settings/*/category/*': '/settings/$1/categories/category-settings/$2',
     '/settings/*/tags/*/edit': '/settings/$1/tags/settings-tags-edit/$2',
@@ -26,6 +21,12 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/category/*/gl-code': '/workspaces/$1/categories/category/$2/gl-code',
     '/workspaces/*/category/*/edit': '/workspaces/$1/categories/category/$2/edit',
     '/workspaces/*/category/*': '/workspaces/$1/categories/category/$2',
+    // Workspace downgrade migrated to a dynamic route. The policy-specific legacy link (previously generated with a
+    // trailing slash) is redirected into the plan-page suffix chain (keeps policyID in the path); the policy-less
+    // legacy link is redirected under Subscription.
+    '/workspaces/*/downgrade/': '/workspaces/$1/overview/plan/downgrade?policyID=$1',
+    '/workspaces/*/downgrade': '/workspaces/$1/overview/plan/downgrade?policyID=$1',
+    '/workspaces/downgrade': '/settings/subscription/downgrade',
     '/settings/workspaces/*': '/workspaces/$1',
     '/settings/workspaces': '/workspaces',
     '/r/*/settings': '/r/$1/details/report-settings',

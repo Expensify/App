@@ -27,6 +27,7 @@ import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -155,7 +156,8 @@ function useAutocompleteSuggestions({
     useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 
     if (!autocompleteKey) {
-        return [];
+        // Returns the same array reference on every render, so the consumer's `sections` memo stays valid and the list doesn't re-render.
+        return getEmptyArray<AutocompleteItemData>();
     }
 
     const alreadyAutocompletedKeys = new Set(

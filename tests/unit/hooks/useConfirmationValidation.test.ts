@@ -9,6 +9,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import createMock from '../../utils/createMock';
 
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({
@@ -153,7 +154,7 @@ describe('useConfirmationValidation', () => {
                 ...baseParams,
                 isMerchantRequired: false,
                 isMerchantFieldValid: false,
-                transaction: {transactionID: 'txn1', comment: {}, amount: 100, isMerchantSet: true} as unknown as OnyxTypes.Transaction,
+                transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', comment: {}, amount: 100, isMerchantSet: true}),
             }),
         );
         expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidMerchant'});
@@ -165,7 +166,7 @@ describe('useConfirmationValidation', () => {
                 ...baseParams,
                 isMerchantRequired: false,
                 isMerchantFieldValid: false,
-                transaction: {transactionID: 'txn1', comment: {}, amount: 100, isMerchantSet: false} as unknown as OnyxTypes.Transaction,
+                transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', comment: {}, amount: 100, isMerchantSet: false}),
             }),
         );
         expect(result.current.validate()).toEqual({errorKey: null});
@@ -182,7 +183,7 @@ describe('useConfirmationValidation', () => {
             useConfirmationValidation({
                 ...baseParams,
                 iouCategory: 'Travel',
-                policyCategories: {Travel: {enabled: false, name: 'Travel'}} as unknown as OnyxTypes.PolicyCategories,
+                policyCategories: createMock<OnyxTypes.PolicyCategories>({Travel: {enabled: false, name: 'Travel'}}),
             }),
         );
         expect(result.current.validate()).toEqual({errorKey: 'violations.categoryOutOfPolicy'});
@@ -297,7 +298,7 @@ describe('useConfirmationValidation', () => {
                 isEditingSplitBill: true,
                 iouAmount: 0,
                 transaction: createTransactionBase({amount: 100, merchant: 'Coffee'}),
-                transactionReport: {type: CONST.REPORT.TYPE.IOU} as unknown as OnyxTypes.Report,
+                transactionReport: createMock<OnyxTypes.Report>({type: CONST.REPORT.TYPE.IOU}),
             }),
         );
         expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidAmount'});
@@ -733,7 +734,7 @@ describe('useConfirmationValidation', () => {
                         merchant: 'Coffee',
                         participants: splitParticipants,
                     }),
-                    transactionReport: {type: CONST.REPORT.TYPE.IOU} as unknown as OnyxTypes.Report,
+                    transactionReport: createMock<OnyxTypes.Report>({type: CONST.REPORT.TYPE.IOU}),
                 }),
             );
             // P2P zero-amount guard runs before the split-bill-specific invalidAmount check.
@@ -809,7 +810,7 @@ describe('useConfirmationValidation', () => {
                         merchant: 'Coffee',
                         participants: splitParticipants,
                     }),
-                    transactionReport: {type: CONST.REPORT.TYPE.IOU} as unknown as OnyxTypes.Report,
+                    transactionReport: createMock<OnyxTypes.Report>({type: CONST.REPORT.TYPE.IOU}),
                 }),
             );
             expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidAmount'});

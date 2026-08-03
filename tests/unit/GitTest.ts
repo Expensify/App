@@ -7,9 +7,11 @@ import {execSync} from 'child_process';
 import {Str} from 'expensify-common';
 import fs from 'fs';
 
+import createMock from '../utils/createMock';
+
 // Mock execSync to control git diff output
 jest.mock('child_process');
-const mockExecSync = execSync as jest.MockedFunction<typeof execSync>;
+const mockExecSync = jest.mocked(execSync);
 
 // Test constants for untracked files tests
 const MOCK_COMPONENT_CONTENT = 'const Component = () => null;\n';
@@ -283,9 +285,7 @@ describe('Git', () => {
 
         it('throws error when git command fails with invalid ref', () => {
             mockExecSync.mockImplementation(() => {
-                const error = new Error("fatal: bad revision 'invalid-ref'") as Error & {status: number};
-                // Simulate execSync behavior with non-zero exit code
-                error.status = 128;
+                const error = Object.assign(new Error("fatal: bad revision 'invalid-ref'"), {status: 128});
                 throw error;
             });
 
@@ -294,8 +294,7 @@ describe('Git', () => {
 
         it('throws error when git command fails with other errors', () => {
             mockExecSync.mockImplementation(() => {
-                const error = new Error('fatal: not a git repository') as Error & {status: number};
-                error.status = 128;
+                const error = Object.assign(new Error('fatal: not a git repository'), {status: 128});
                 throw error;
             });
 
@@ -304,8 +303,7 @@ describe('Git', () => {
 
         it('throws error when file path does not exist', () => {
             mockExecSync.mockImplementation(() => {
-                const error = new Error("fatal: pathspec 'nonexistent.ts' did not match any files") as Error & {status: number};
-                error.status = 1;
+                const error = Object.assign(new Error("fatal: pathspec 'nonexistent.ts' did not match any files"), {status: 1});
                 throw error;
             });
 
@@ -1231,7 +1229,7 @@ describe('Git', () => {
         beforeEach(() => {
             jest.clearAllMocks();
             mockExistsSync = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-            jest.spyOn(fs, 'statSync').mockReturnValue({isFile: () => true} as fs.Stats);
+            jest.spyOn(fs, 'statSync').mockReturnValue(createMock<fs.Stats>({isFile: () => true}));
             mockReadFileSync = jest.spyOn(fs, 'readFileSync');
         });
 

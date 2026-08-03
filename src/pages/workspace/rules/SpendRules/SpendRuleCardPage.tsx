@@ -11,6 +11,7 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useControlOnlyRuleUpgradeRedirect from '@hooks/useControlOnlyRuleUpgradeRedirect';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -104,6 +105,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
 
     const [selectedCardIDs, setSelectedCardIDs] = useState<string[]>([]);
     const {isLoading, startWithLoading} = usePressLoading();
+    useControlOnlyRuleUpgradeRedirect(policyID);
 
     useFocusEffect(
         useCallback(() => {
