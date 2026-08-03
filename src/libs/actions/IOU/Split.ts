@@ -221,6 +221,7 @@ type CompleteSplitBillActionParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     sessionEmail?: string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SplitBillActionsParams = {

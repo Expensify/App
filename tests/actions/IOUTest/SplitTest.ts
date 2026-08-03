@@ -1208,6 +1208,7 @@ describe('split expense', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             sessionEmail: RORY_EMAIL,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -1622,6 +1623,7 @@ describe('split expense', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             sessionEmail: RORY_EMAIL,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
