@@ -60,19 +60,15 @@ function ExpenseReportListItemAvatar({item, showTooltip, isHovered = false, isFo
                 isInReportAction={false}
             />
         );
-    } else if (primaryIcon) {
+    } else {
         avatarContent = (
             <SingleAvatar
-                avatar={primaryIcon}
+                avatar={item.primaryAvatar}
                 size={avatarSize}
                 containerStyles={StyleUtils.getContainerStyles(avatarSize)}
                 shouldShowTooltip={showTooltip}
             />
         );
-    }
-
-    if (!avatarContent) {
-        return null;
     }
 
     return <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), styles.alignItemsStretch]}>{avatarContent}</View>;

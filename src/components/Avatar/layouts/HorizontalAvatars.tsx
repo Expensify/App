@@ -77,7 +77,7 @@ function HorizontalAvatars({
             key={`avatarRow-${rowIndex}`}
             testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Row"
         >
-            {[...avatars].splice(0, maxAvatarsInRow).map((icon, index) => (
+            {avatars.slice(0, maxAvatarsInRow).map((icon, index) => (
                 <UserDetailsTooltip
                     key={`stackedAvatars-${icon.id}`}
                     accountID={Number(icon.id)}

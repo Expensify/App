@@ -17,6 +17,7 @@ import React from 'react';
 
 import type {AvatarIcon} from './Avatar/types';
 
+import getAvatarLayout from './Avatar/layouts/getAvatarLayout';
 import PressableDiagonalAvatars from './Avatar/layouts/PressableDiagonalAvatars';
 import PressableSubscriptAvatar from './Avatar/layouts/PressableSubscriptAvatar';
 import SingleAvatar from './Avatar/layouts/SingleAvatar';
@@ -66,19 +67,21 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
         Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(String(avatarID), firstLetter));
     };
 
-    if (!icons.length) {
+    // The hook substitutes a nameless placeholder icon while the second actor loads, so a name is required for the multi-avatar layouts.
+    const {layout, primaryIcon, secondaryIcon} = getAvatarLayout({icons, avatarType, shouldRequireSecondaryIconName: true});
+
+    if (!primaryIcon) {
         return null;
     }
 
-    const [primaryAvatar, secondaryAvatar] = icons;
     const size = CONST.AVATAR_SIZE.XXXX_LARGE;
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE && !!secondaryAvatar?.name) {
+    if (layout === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && secondaryIcon) {
         return (
             <PressableDiagonalAvatars
                 size={size}
-                primaryAvatar={primaryAvatar}
-                secondaryAvatar={secondaryAvatar}
+                primaryAvatar={primaryIcon}
+                secondaryAvatar={secondaryIcon}
                 iconCount={icons.length}
                 onAvatarPress={navigateToAvatarPage}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_AVATAR}
@@ -86,12 +89,12 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
         );
     }
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && !!secondaryAvatar?.name) {
+    if (layout === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && secondaryIcon) {
         return (
             <PressableSubscriptAvatar
                 size={size}
-                primaryAvatar={primaryAvatar}
-                secondaryAvatar={secondaryAvatar}
+                primaryAvatar={primaryIcon}
+                secondaryAvatar={secondaryIcon}
                 onAvatarPress={navigateToAvatarPage}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_AVATAR}
                 containerStyle={styles.mr0}
@@ -102,18 +105,18 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
     const delegateAccountIDFromAction = source.action?.delegateAccountID;
     const singleAvatar: AvatarIcon = delegateAccountIDFromAction
         ? {
-              ...primaryAvatar,
+              ...primaryIcon,
               copilot: {
                   accountID: delegateAccountIDFromAction,
                   actedForAccountID: delegateAccountID,
               },
           }
-        : primaryAvatar;
+        : primaryIcon;
 
     return (
         <PressableWithoutFocus
-            onPress={() => navigateToAvatarPage(primaryAvatar)}
-            accessibilityLabel={translate(primaryAvatar.type === CONST.ICON_TYPE_WORKSPACE ? 'common.workspaces' : 'common.profile')}
+            onPress={() => navigateToAvatarPage(primaryIcon)}
+            accessibilityLabel={translate(primaryIcon.type === CONST.ICON_TYPE_WORKSPACE ? 'common.workspaces' : 'common.profile')}
             accessibilityRole={CONST.ROLE.BUTTON}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_AVATAR}
         >
