@@ -282,7 +282,6 @@ type BuildOnyxDataForMoneyRequestParams = {
     /** The selfDM report ID for split transactions */
     selfDMReportID?: string;
     isTrackIntentUser: boolean | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type BuildOnyxDataForTestDriveIOUParams = {
@@ -445,7 +444,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         isReverseSplitOperation,
         selfDMReportID,
         isTrackIntentUser,
-        formatPhoneNumber,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -1707,7 +1705,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isSelfDMSplit,
         selfDMReportID,
         isTrackIntentUser,
-        formatPhoneNumber,
     });
 
     return {

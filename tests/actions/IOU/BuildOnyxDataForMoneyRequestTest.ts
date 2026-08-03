@@ -191,7 +191,6 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
-                    formatPhoneNumber,
                 };
             }
 
@@ -334,7 +333,6 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
-                    formatPhoneNumber,
                 };
             }
 
@@ -376,7 +374,6 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
-                    formatPhoneNumber,
                 };
             }
 
@@ -424,7 +421,6 @@ describe('buildOnyxDataForMoneyRequest', () => {
                 },
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
-                formatPhoneNumber,
             };
         }
 
