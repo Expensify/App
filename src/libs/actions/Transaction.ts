@@ -81,6 +81,7 @@ import type {
     TransactionViolations,
 } from '@src/types/onyx';
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -481,7 +482,13 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, t
     });
 }
 
-function setSelectedRoute(transactionID: string, routeKey: string, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT): Promise<void> {
+function setSelectedRoute(
+    transactionID: string,
+    routeKey: string,
+    routeDistanceInMeters: number | undefined,
+    distanceUnit: Unit | undefined,
+    transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT,
+): Promise<void> {
     let keyPrefix;
     switch (transactionState) {
         case CONST.TRANSACTION.STATE.DRAFT:
@@ -499,6 +506,20 @@ function setSelectedRoute(transactionID: string, routeKey: string, transactionSt
     return Onyx.merge(`${keyPrefix}${transactionID}`, {
         comment: {
             selectedRouteKey: routeKey,
+            // `getDistanceInMeters` reads `customUnit.quantity` before it consults `selectedRouteKey`, so the quantity has to
+            // follow the pick or every distance/amount/merchant consumer keeps showing the previously selected route until the
+            // expense is saved. `routeDistanceMeters` is kept in sync because it is what `getSelectedRouteKey` distance-matches
+            // on when `selectedRouteKey` is absent, and what `hasManualDistanceOverride` compares against.
+            // This intentionally overwrites a manually typed distance: saving from the map tab drops that override anyway
+            // (see `shouldDropManualDistance` in IOURequestStepDistance), so writing it here keeps the pre-save state honest.
+            ...(routeDistanceInMeters && distanceUnit
+                ? {
+                      customUnit: {
+                          quantity: roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(routeDistanceInMeters, distanceUnit)),
+                          routeDistanceMeters: routeDistanceInMeters,
+                      },
+                  }
+                : {}),
         },
     });
 }

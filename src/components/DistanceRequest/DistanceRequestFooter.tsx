@@ -69,9 +69,14 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const alternateRoute = transaction?.routes?.[CONST.TRANSACTION.ALTERNATE_ROUTE_KEY];
     const isAlternateDirectionSelected = getSelectedRouteKey(transaction) === CONST.TRANSACTION.ALTERNATE_ROUTE_KEY;
     const handleRouteSelection = (isAlternate: boolean) => {
+        if (isAlternate === isAlternateDirectionSelected) {
+            return;
+        }
         setSelectedRoute(
             transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
             isAlternate ? CONST.TRANSACTION.ALTERNATE_ROUTE_KEY : CONST.TRANSACTION.DEFAULT_ROUTE_KEY,
+            (isAlternate ? alternateRoute : primaryRoute)?.distance ?? undefined,
+            DistanceRequestUtils.getDistanceUnit(transaction, mileageRate),
             transactionState,
         );
     };

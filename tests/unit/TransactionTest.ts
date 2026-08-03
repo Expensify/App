@@ -9,6 +9,7 @@ import {
     removeWaypoint,
     sanitizeWaypointsForAPI,
     saveWaypoint,
+    setSelectedRoute,
 } from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -20,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -2212,6 +2214,114 @@ describe('Transaction', () => {
             const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transaction?.comment?.selectedRouteKey ?? null).toBeNull();
             expect(transaction?.comment?.customUnit?.routeDistanceMeters ?? null).toBeNull();
+        });
+    });
+
+    describe('setSelectedRoute', () => {
+        const ROUTE0_DISTANCE_METERS = 16093.44; // 10 mi
+        const ROUTE1_DISTANCE_METERS = 32186.88; // 20 mi
+
+        function buildRoutedTransaction(transactionID: string, distanceUnit?: Unit) {
+            const transaction = generateTransaction({transactionID, reportID: '1'});
+            transaction.comment = {
+                ...transaction.comment,
+                selectedRouteKey: CONST.TRANSACTION.DEFAULT_ROUTE_KEY,
+                customUnit: {
+                    ...transaction.comment?.customUnit,
+                    quantity: 10,
+                    routeDistanceMeters: ROUTE0_DISTANCE_METERS,
+                    ...(distanceUnit ? {distanceUnit} : {}),
+                },
+            };
+            transaction.routes = {
+                route0: {distance: ROUTE0_DISTANCE_METERS, geometry: {coordinates: [[0, 0]]}},
+                route1: {distance: ROUTE1_DISTANCE_METERS, geometry: {coordinates: [[1, 1]]}},
+            };
+            return transaction;
+        }
+
+        it.each([
+            [CONST.TRANSACTION.STATE.CURRENT, ONYXKEYS.COLLECTION.TRANSACTION],
+            [CONST.TRANSACTION.STATE.DRAFT, ONYXKEYS.COLLECTION.TRANSACTION_DRAFT],
+            [CONST.TRANSACTION.STATE.SPLIT_DRAFT, ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT],
+        ] as const)('writes the quantity of the newly selected route to the %s transaction', async (transactionState, keyPrefix) => {
+            const transactionID = `selectedRoute_${transactionState}`;
+            const existingTransaction = buildRoutedTransaction(transactionID);
+            await Onyx.merge(`${keyPrefix}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, transactionState);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${keyPrefix}${transactionID}`);
+            expect(transaction?.comment?.selectedRouteKey).toBe(CONST.TRANSACTION.ALTERNATE_ROUTE_KEY);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(20);
+            expect(transaction?.comment?.customUnit?.routeDistanceMeters).toBe(ROUTE1_DISTANCE_METERS);
+        });
+
+        it('makes the displayed distance follow the newly selected route instead of the stale quantity', async () => {
+            const transactionID = 'selectedRoute_distance';
+            const existingTransaction = buildRoutedTransaction(transactionID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBeCloseTo(ROUTE1_DISTANCE_METERS, 1);
+
+            expect(TransactionUtils.hasManualDistanceOverride(transaction)).toBe(false);
+        });
+
+        it('overwrites a manually typed distance override', async () => {
+            const transactionID = 'selectedRoute_override';
+            const existingTransaction = buildRoutedTransaction(transactionID);
+            existingTransaction.comment = {...existingTransaction.comment, customUnit: {...existingTransaction.comment?.customUnit, quantity: 999}};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(20);
+        });
+
+        it("converts using the transaction's own distance unit", async () => {
+            const transactionID = 'selectedRoute_km';
+            const existingTransaction = buildRoutedTransaction(transactionID, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(32.19);
+        });
+
+        it('only writes the selected route key when the route has no distance', async () => {
+            const transactionID = 'selectedRoute_noDistance';
+            const existingTransaction = buildRoutedTransaction(transactionID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, undefined, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.selectedRouteKey).toBe(CONST.TRANSACTION.ALTERNATE_ROUTE_KEY);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(10);
+            expect(transaction?.comment?.customUnit?.routeDistanceMeters).toBe(ROUTE0_DISTANCE_METERS);
+        });
+
+        it('only writes the selected route key when the distance unit is unknown', async () => {
+            const transactionID = 'selectedRoute_noUnit';
+            const existingTransaction = buildRoutedTransaction(transactionID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, undefined);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.selectedRouteKey).toBe(CONST.TRANSACTION.ALTERNATE_ROUTE_KEY);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(10);
         });
     });
 

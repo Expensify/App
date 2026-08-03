@@ -213,15 +213,16 @@ function IOURequestStepDistance({
     });
 
     // Track whether the user has typed in the manual tab so route re-fetches don't clobber in-progress
-    // input. Editing waypoints clears this (in the effect below) — a recalculated route supersedes a
-    // manual value the same way it would on a fresh map expense (GH #90083).
+    // input. Editing waypoints and picking a different route both clear this (in the effects below) — an
+    // explicit route change supersedes a manual value the same way it would on a fresh map expense (GH #90083).
     const isManuallyEditing = useRef(false);
 
-    // Keep the manual tab input in sync with the recalculated route distance:
-    //  - On a waypoint edit, `saveWaypoint`/`updateWaypoints` clear `routes.route0.distance` (and
-    //    `customUnit.quantity`) to null, then the BE returns the new geometry. That recalculation wins
-    //    over any earlier manual value, so the null → value transition flows back into the manual tab
-    //    and re-enables future syncs (GH #90082, #90083).
+    // Keep the manual tab input in sync with the distance of the *selected* route:
+    //  - On a waypoint edit, `saveWaypoint`/`updateWaypoints` clear `routes` (and `customUnit.quantity`) to
+    //    null, then the BE returns the new geometry. That recalculation wins over any earlier manual value,
+    //    so the null → value transition flows back into the manual tab and re-enables future syncs
+    //    (GH #90082, #90083).
+    //  - Tapping the alternate route on the map is a value → value transition, so it flows back too.
     //  - A re-fetch of an already-saved expense is also a null → value transition but keeps a non-null
     //    `customUnit.quantity` (the persisted value, possibly a manual override), so we skip it there
     //    to avoid overwriting it (GH #90082).
@@ -229,9 +230,24 @@ function IOURequestStepDistance({
     // `customUnit.quantity` together, so by the time `routeDistance` comes back non-null `customUnitQuantity`
     // is already null; the re-fetch path never clears `customUnit.quantity` at all. So the `!= null` check
     // below stays correct regardless of the order Onyx delivers those two updates in.
-    const routeDistance = currentTransaction?.routes?.route0?.distance;
+    const selectedRouteKeyForSync = getSelectedRouteKey(currentTransaction);
+    const routeDistance = currentTransaction?.routes?.[selectedRouteKeyForSync]?.distance;
     const customUnitQuantity = currentTransaction?.comment?.customUnit?.quantity;
     const lastSyncedRouteDistance = useRef<number | null | undefined>(routeDistance);
+
+    // Picking a different route on the map supersedes a manual value the same way a waypoint edit does (see the
+    // effect below). Without this reset the sync would be skipped and the stale typed number would be sent as
+    // `distance` on save, which outranks `selectedRouteKey` in `getUpdatedTransaction` and would pin the expense
+    // to the route the user just moved away from.
+    const lastSelectedRouteKey = useRef(selectedRouteKeyForSync);
+    useEffect(() => {
+        if (lastSelectedRouteKey.current === selectedRouteKeyForSync) {
+            return;
+        }
+        lastSelectedRouteKey.current = selectedRouteKeyForSync;
+        isManuallyEditing.current = false;
+    }, [selectedRouteKeyForSync]);
+
     useEffect(() => {
         if (routeDistance == null) {
             // The route was cleared because the user edited waypoints — let the new value flow back
@@ -631,13 +647,24 @@ function IOURequestStepDistance({
         // If so, we must still send the update even if the distance value itself didn't change.
         const haveWaypointsChanged = haveWaypointAddressesChanged(transactionBackup?.comment?.waypoints, waypoints);
 
-        if (!isDistanceChanged && !isDistanceUnitChanged && !haveWaypointsChanged) {
+        const selectedRouteKey = getSelectedRouteKey(currentTransaction);
+        // Picking a route on the Map tab moves the distance the manual input is prefilled with, so on its own it leaves
+        // the value unchanged and the checks above would skip the save — stranding the selection in local Onyx while the
+        // expense keeps the previous route's distance and amount. Mirrors `shouldUpdateSelectedRoute` in `submitWaypoints`:
+        // after a waypoint edit the backed up selection points at routes that no longer exist, so anything other than the
+        // primary route is a fresh pick.
+        const shouldUpdateSelectedRoute =
+            wasOriginallyMapDistance && (haveWaypointsChanged ? selectedRouteKey !== CONST.TRANSACTION.DEFAULT_ROUTE_KEY : selectedRouteKey !== getSelectedRouteKey(transactionBackup));
+
+        if (!isDistanceChanged && !isDistanceUnitChanged && !haveWaypointsChanged && !shouldUpdateSelectedRoute) {
             transactionWasSaved.current = true;
             navigateBackAfterSave();
             return;
         }
 
-        const selectedRouteKey = getSelectedRouteKey(currentTransaction);
+        // When the route pick is the only change, the distance is the route's own — sending it would store it as a manual
+        // override of that route. `selectedRouteKey` alone is what carries the new distance to the BE.
+        const isRouteSelectionOnlyChange = shouldUpdateSelectedRoute && !isDistanceChanged && !isDistanceUnitChanged && !haveWaypointsChanged;
         const hasRouteChanged = haveWaypointsChanged && !deepEqual(transactionBackup?.routes, transaction?.routes);
         updateMoneyRequestDistance({
             transaction,
@@ -645,7 +672,7 @@ function IOURequestStepDistance({
             parentReport,
             iouReportOwnerLogin,
             waypoints,
-            distance: distanceAsFloat,
+            ...(isRouteSelectionOnlyChange ? {} : {distance: distanceAsFloat}),
             ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
             // We need to pass selectedRouteKey to ensure that updating manual distance won't cause alternate route to be overriden with the primary one
             ...(wasOriginallyMapDistance ? {selectedRouteKey} : {}),
