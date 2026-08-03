@@ -178,7 +178,7 @@ function usePersonalDetailSearchSelectorBase({
     initialSearchPhrase = '',
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {translate, formatPhoneNumber} = useLocalize();
-    const {options: defaultOptions, currentOption} = usePersonalDetailOptions({enabled: shouldInitialize, includeLoginsOnly});
+    const {options: defaultOptions, currentOption, isLoading: isPersonalDetailsOptionsLoading} = usePersonalDetailOptions({enabled: shouldInitialize, includeLoginsOnly});
 
     const optionsWithContacts = (() => {
         if (!contactOptions?.length || !shouldInitialize) {
@@ -188,7 +188,7 @@ function usePersonalDetailSearchSelectorBase({
         const allowedContactOptions = includeLoginsOnly ? contactOptions.filter((option) => !!option.login && includeLoginsOnly.has(option.login)) : contactOptions;
         return (defaultOptions ?? []).concat(allowedContactOptions);
     })();
-    const areOptionsInitialized = (optionsWithContacts?.length ?? 0) > 0;
+    const areOptionsInitialized = !isPersonalDetailsOptionsLoading;
     const [selectedAccountIDs, setSelectedAccountIDs] = useState<Set<string>>(initialSelected);
     const [extraOptions, setExtraOptions] = useState<OptionData[]>(initialExtraOptions);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(initialSearchPhrase);
