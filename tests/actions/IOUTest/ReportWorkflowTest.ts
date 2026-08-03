@@ -6,6 +6,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 
 import {
+    addReportApprover,
     approveMoneyRequest,
     canApproveIOU,
     canIOUBePaid,
@@ -53,7 +54,7 @@ import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {createGlobalFetchMock, getOnyxData, getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall, localeCompare} from '../../utils/TestHelper';
+import {createGlobalFetchMock, formatPhoneNumber, getOnyxData, getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall, localeCompare} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -162,6 +163,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(async () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
+                        conciergeChat: undefined,
                         policyOwnerEmail: CARLOS_EMAIL,
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
@@ -198,6 +200,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
@@ -312,6 +315,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(async () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
+                        conciergeChat: undefined,
                         policyOwnerEmail: CARLOS_EMAIL,
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
@@ -347,6 +351,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
@@ -395,6 +400,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 waitForBatchedUpdates()
                     .then(() => {
                         createWorkspace({
+                            conciergeChat: undefined,
                             policyOwnerEmail: CARLOS_EMAIL,
                             makeMeAdmin: true,
                             policyName: "Carlos's Workspace",
@@ -427,6 +433,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
                                     payeeEmail: RORY_EMAIL,
@@ -475,6 +482,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
                                     payeeEmail: RORY_EMAIL,
@@ -668,6 +676,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 waitForBatchedUpdates()
                     .then(() => {
                         createWorkspace({
+                            conciergeChat: undefined,
                             policyOwnerEmail: CARLOS_EMAIL,
                             makeMeAdmin: true,
                             policyName: "Carlos's Workspace",
@@ -700,6 +709,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
                                     payeeEmail: RORY_EMAIL,
@@ -748,6 +758,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
                                     payeeEmail: RORY_EMAIL,
@@ -890,6 +901,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             let nextStepBeforeSubmit: Report['nextStep'];
             const policyID = generatePolicyID();
             createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: CARLOS_EMAIL,
                 makeMeAdmin: true,
                 policyName: 'Test Workspace with Dynamic External Workflow',
@@ -942,6 +954,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
@@ -1123,6 +1136,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
 
             createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: CARLOS_EMAIL,
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
@@ -1150,6 +1164,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             if (chatReport) {
                 requestMoney({
+                    conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: RORY_EMAIL,
@@ -2408,6 +2423,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: DELEGATE_EMAIL,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -2450,6 +2466,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3086,6 +3103,55 @@ describe('actions/IOU/ReportWorkflow', () => {
         });
     });
 
+    describe('change approver formatter forwarding', () => {
+        it('uses the injected formatter for the optimistic approver display name', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write optimistic data to verify formatter forwarding.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const approverAccountID = 8332403627;
+            const approverLogin = '+18332403627@expensify.sms';
+            const formatPhoneNumberSpy = jest.fn(formatPhoneNumber);
+            const policy = createRandomPolicy(1);
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: 'change-approver-report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: policy.id,
+                managerID: CARLOS_ACCOUNT_ID,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [approverAccountID]: {
+                    accountID: approverAccountID,
+                    login: approverLogin,
+                    isOptimisticPersonalDetail: true,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            addReportApprover({
+                report,
+                newApproverEmail: approverLogin,
+                newApproverAccountID: approverAccountID,
+                accountID: RORY_ACCOUNT_ID,
+                email: RORY_EMAIL,
+                policy,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                reportCurrentNextStepDeprecated: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber: formatPhoneNumberSpy,
+            });
+
+            const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const reportActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, Onyx.METHOD.MERGE, true);
+            const reportAction = getRequiredReportAction(reportActionsUpdate);
+
+            expect(formatPhoneNumberSpy).toHaveBeenCalledWith(approverLogin);
+            expect(reportAction.message).toEqual([expect.objectContaining({text: `changed the approver to ${formatPhoneNumber(approverLogin)}`})]);
+        });
+    });
+
     describe('approveMoneyRequest Submit workspace upgrade', () => {
         const submitPolicyID = 'submit-policy-id';
         const teamPolicyID = 'team-policy-id';
@@ -3124,6 +3190,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             amountOwed: 0,
             ownerBillingGracePeriodEnd: undefined,
             delegateEmail: undefined,
+            delegateAccountID: undefined,
             ownerLogin: undefined,
         });
 
@@ -3311,6 +3378,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3364,6 +3432,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3413,6 +3482,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3538,6 +3608,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3570,6 +3641,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3600,6 +3672,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3660,6 +3733,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
@@ -3720,6 +3794,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         amountOwed: 0,
                         ownerBillingGracePeriodEnd: undefined,
                         delegateEmail: undefined,
+                        delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         ownerLogin: undefined,
                     });
@@ -3852,6 +3927,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 full: false,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });

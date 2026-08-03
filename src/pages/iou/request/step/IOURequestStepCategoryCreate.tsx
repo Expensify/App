@@ -1,6 +1,7 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
@@ -16,6 +17,7 @@ import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {pickReportForPolicy} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasTags} from '@libs/PolicyUtils';
 import {isSelfDM} from '@libs/ReportUtils';
@@ -50,6 +52,7 @@ function IOURequestStepCategoryCreate({
     },
     transaction,
 }: IOURequestStepCategoryCreateProps) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -60,7 +63,9 @@ function IOURequestStepCategoryCreate({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
 
-    const policyIdReal = getIOURequestPolicyID(transaction, reportReal);
+    const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
+    // Skip the placeholder '_FAKE_' self-DM policy so it doesn't shadow the selected workspace chat's real policy. See #96576.
+    const policyIdReal = getIOURequestPolicyID(transaction, pickReportForPolicy(reportReal, participantReport));
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
     const {policy: policyFromTransaction} = usePolicyForTransaction({
         transaction,
@@ -147,7 +152,7 @@ function IOURequestStepCategoryCreate({
         };
 
         if (isEditingSplit && transaction) {
-            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: categoryName}, policy);
+            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: categoryName}, policy, undefined, undefined, getCurrencyDecimals);
         } else if (isEditing && report) {
             updateMoneyRequestCategory({
                 transactionID: transaction?.transactionID ?? transactionID,
@@ -167,9 +172,10 @@ function IOURequestStepCategoryCreate({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                getCurrencyDecimals,
             });
         } else {
-            setMoneyRequestCategory(transactionID, categoryName, policy);
+            setMoneyRequestCategory(transactionID, categoryName, policy, getCurrencyDecimals);
         }
 
         if (!isEditing && action === CONST.IOU.ACTION.CATEGORIZE && !backTo) {
