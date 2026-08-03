@@ -97,6 +97,9 @@ type Response<TKey extends OnyxKey> = {
     /** If there is newer data to load for pagination commands */
     hasNewerActions?: boolean;
 
+    /** Whether the paginated response has additional results available */
+    hasMoreResults?: boolean;
+
     /** The email of the original user (returned when in delegate mode) */
     requesterEmail?: string;
 

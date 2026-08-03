@@ -1,4 +1,4 @@
-import {read} from '@libs/API';
+import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
 import type {OpenPolicyRoomsPageParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
 
@@ -16,6 +16,11 @@ type OpenPolicyRoomsPageOptions = {
     searchValue?: string;
 };
 
+/**
+ * Fetches a single page of the policy's rooms. The rooms themselves are merged into the report collection through
+ * onyxData, but `hasMoreResults` only exists on the response, so the caller needs the promise to know whether another
+ * page can be loaded. That is why this is a side-effect request rather than API.read.
+ */
 function openPolicyRoomsPage(policyID: string, options: OpenPolicyRoomsPageOptions = {}) {
     const params: OpenPolicyRoomsPageParams = {
         policyID,
@@ -32,7 +37,7 @@ function openPolicyRoomsPage(policyID: string, options: OpenPolicyRoomsPageOptio
         },
     ];
 
-    read(READ_COMMANDS.OPEN_POLICY_ROOMS_PAGE, params, {finallyData});
+    return waitForWrites(READ_COMMANDS.OPEN_POLICY_ROOMS_PAGE).then(() => makeRequestWithSideEffects(READ_COMMANDS.OPEN_POLICY_ROOMS_PAGE, params, {finallyData}));
 }
 
 function setRoomIDToHighlightOnRoomsPage(reportID: string) {

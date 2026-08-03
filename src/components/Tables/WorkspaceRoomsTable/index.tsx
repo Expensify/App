@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table from '@components/Table';
 
@@ -9,11 +10,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 import type {WorkspaceRoomRowData} from './WorkspaceRoomsTableRow';
 
@@ -34,11 +37,29 @@ type WorkspaceRoomsTableProps = {
     /** Callback when the active search string changes */
     onSearchStringChange?: (searchString: string) => void;
 
+    /** Whether another page of rooms is currently being fetched */
+    isLoadingMoreRooms?: boolean;
+
+    /** Callback when scrolling to the bottom of the list */
+    onEndReached?: () => void;
+
+    /** Threshold for the end-reached callback */
+    onEndReachedThreshold?: number;
+
     /** Callback when the active sorting configuration changes */
     onSortingChange?: (sorting: {columnKey: string | undefined; order: 'asc' | 'desc'}) => void;
 };
 
-function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onSortingChange}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({
+    rooms,
+    policyID,
+    highlightedReportID,
+    isLoadingMoreRooms,
+    onSearchStringChange,
+    onEndReached,
+    onEndReachedThreshold,
+    onSortingChange,
+}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -100,6 +121,15 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStri
         />
     );
 
+    const listFooterComponent = isLoadingMoreRooms ? (
+        <View style={[styles.pv3, styles.alignItemsCenter]}>
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                reasonAttributes={{context: 'WorkspaceRoomsTable.loadMore', isLoading: true}}
+            />
+        </View>
+    ) : undefined;
+
     if (!isPolicyRoomDataLoaded) {
         return <Table.LoadingState context="WorkspaceRoomsTable" />;
     }
@@ -117,6 +147,9 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStri
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
             onSearchStringChange={onSearchStringChange}
             onSortingChange={onSortingChange}
+            onEndReached={onEndReached}
+            onEndReachedThreshold={onEndReachedThreshold}
+            ListFooterComponent={listFooterComponent}
         >
             <Table.FilterBar label={translate('workspace.common.findRoom')} />
             <Table.NoResultsState />
