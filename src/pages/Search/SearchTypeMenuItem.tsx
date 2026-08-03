@@ -85,7 +85,8 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                 styles.sectionMenuItem(shouldUseNarrowLayout),
                 styles.searchTypeMenuItemPadding,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, false, false, true), true),
-                hovered && !focused && !pressed && styles.hoveredComponentBG,
+                focused && !pressed && styles.hoveredComponentBG,
+                hovered && !focused && !pressed && styles.highlightBG,
             ]}
         >
             {({hovered, pressed}) => (

@@ -1,6 +1,7 @@
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+import MenuItemHoverBackgroundContext from '@components/MenuItemHoverBackgroundContext';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import MenuItemList from '@components/MenuItemList';
 import Text from '@components/Text';
@@ -144,94 +145,102 @@ function Section({
 
     const lottieIllustration = isLottie ? illustration : undefined;
     return (
-        <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
-            {banner}
-            {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
-                <IconSection
-                    width={iconWidth}
-                    height={iconHeight}
-                    icon={icon}
-                    iconContainerStyles={[iconContainerStyles, styles.alignSelfStart, styles.mb3]}
-                />
-            )}
-            {!!illustration && (
-                <View
-                    style={[
-                        styles.w100,
-                        styles.dFlex,
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                        StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? lottieIllustration?.backgroundColor ?? theme.appBG),
-                        illustrationContainerStyle,
-                    ]}
-                >
-                    <View style={[styles.cardSectionIllustration, illustrationStyle]}>
-                        {isLottie ? (
-                            <Lottie
-                                source={illustration}
-                                style={styles.h100}
-                                webStyle={styles.h100}
-                                loop
-                                autoPlay
-                                shouldLoadAfterInteractions={shouldUseNarrowLayout}
+        <MenuItemHoverBackgroundContext.Provider value={theme.hoverComponentBG}>
+            <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
+                {banner}
+                {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
+                    <IconSection
+                        width={iconWidth}
+                        height={iconHeight}
+                        icon={icon}
+                        iconContainerStyles={[iconContainerStyles, styles.alignSelfStart, styles.mb3]}
+                    />
+                )}
+                {!!illustration && (
+                    <View
+                        style={[
+                            styles.w100,
+                            styles.dFlex,
+                            styles.alignItemsCenter,
+                            styles.justifyContentCenter,
+                            StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? lottieIllustration?.backgroundColor ?? theme.appBG),
+                            illustrationContainerStyle,
+                        ]}
+                    >
+                        <View style={[styles.cardSectionIllustration, illustrationStyle]}>
+                            {isLottie ? (
+                                <Lottie
+                                    source={illustration}
+                                    style={styles.h100}
+                                    webStyle={styles.h100}
+                                    loop
+                                    autoPlay
+                                    shouldLoadAfterInteractions={shouldUseNarrowLayout}
+                                />
+                            ) : (
+                                <ImageSVG
+                                    src={illustration}
+                                    contentFit="contain"
+                                />
+                            )}
+                        </View>
+                        {overlayContent?.()}
+                    </View>
+                )}
+                <View style={[styles.w100, isCentralPane && (shouldUseNarrowLayout ? styles.p5 : (contentPaddingOnLargeScreens ?? styles.p8)), centralPaneContainerStyle]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
+                        {cardLayout === CARD_LAYOUT.ICON_ON_LEFT && (
+                            <IconSection
+                                width={iconWidth}
+                                height={iconHeight}
+                                icon={icon}
+                                iconContainerStyles={[styles.flexGrow0, styles.justifyContentStart, iconContainerStyles]}
                             />
-                        ) : (
-                            <ImageSVG
-                                src={illustration}
-                                contentFit="contain"
+                        )}
+                        <View style={[styles.flexShrink1, styles.w100]}>
+                            {renderTitle
+                                ? renderTitle()
+                                : !!title && (
+                                      <Text
+                                          style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}
+                                          accessibilityRole={CONST.ROLE.HEADER}
+                                      >
+                                          {title}
+                                      </Text>
+                                  )}
+                        </View>
+                        {cardLayout === CARD_LAYOUT.ICON_ON_RIGHT && (
+                            <IconSection
+                                width={iconWidth}
+                                height={iconHeight}
+                                icon={icon}
+                                iconContainerStyles={iconContainerStyles}
                             />
                         )}
                     </View>
-                    {overlayContent?.()}
+
+                    {renderSubtitle
+                        ? renderSubtitle?.()
+                        : !!subtitle && (
+                              <View
+                                  style={[
+                                      styles.flexRow,
+                                      styles.alignItemsCenter,
+                                      styles.w100,
+                                      cardLayout === CARD_LAYOUT.ICON_ON_TOP ? [styles.mt1, styles.mh1] : styles.mt2,
+                                      subtitleStyles,
+                                  ]}
+                              >
+                                  <Text style={[styles.textNormal, subtitleMuted && styles.colorMuted, subtitleTextStyles]}>{subtitle}</Text>
+                              </View>
+                          )}
+
+                    <View style={[styles.w100, childrenStyles]}>{children}</View>
+
+                    <View style={[styles.w100]}>{!!menuItems && <MenuItemList menuItems={menuItems} />}</View>
                 </View>
-            )}
-            <View style={[styles.w100, isCentralPane && (shouldUseNarrowLayout ? styles.p5 : (contentPaddingOnLargeScreens ?? styles.p8)), centralPaneContainerStyle]}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
-                    {cardLayout === CARD_LAYOUT.ICON_ON_LEFT && (
-                        <IconSection
-                            width={iconWidth}
-                            height={iconHeight}
-                            icon={icon}
-                            iconContainerStyles={[styles.flexGrow0, styles.justifyContentStart, iconContainerStyles]}
-                        />
-                    )}
-                    <View style={[styles.flexShrink1, styles.w100]}>
-                        {renderTitle
-                            ? renderTitle()
-                            : !!title && (
-                                  <Text
-                                      style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}
-                                      accessibilityRole={CONST.ROLE.HEADER}
-                                  >
-                                      {title}
-                                  </Text>
-                              )}
-                    </View>
-                    {cardLayout === CARD_LAYOUT.ICON_ON_RIGHT && (
-                        <IconSection
-                            width={iconWidth}
-                            height={iconHeight}
-                            icon={icon}
-                            iconContainerStyles={iconContainerStyles}
-                        />
-                    )}
-                </View>
-
-                {renderSubtitle
-                    ? renderSubtitle?.()
-                    : !!subtitle && (
-                          <View
-                              style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP ? [styles.mt1, styles.mh1] : styles.mt2, subtitleStyles]}
-                          >
-                              <Text style={[styles.textNormal, subtitleMuted && styles.colorMuted, subtitleTextStyles]}>{subtitle}</Text>
-                          </View>
-                      )}
-
-                <View style={[styles.w100, childrenStyles]}>{children}</View>
-
-                <View style={[styles.w100]}>{!!menuItems && <MenuItemList menuItems={menuItems} />}</View>
             </View>
-        </View>
+        </MenuItemHoverBackgroundContext.Provider>
     );
 }
 

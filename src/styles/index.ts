@@ -626,6 +626,10 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightSizeH2,
         },
 
+        whiteSpaceNoWrap: {
+            ...whiteSpace.noWrap,
+        },
+
         textHeadlineH1: {
             ...headlineFont,
             ...whiteSpace.preWrap,
@@ -1902,7 +1906,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         topBarLabel: {
             color: theme.text,
-            fontSize: variables.fontSizeXLarge,
+            fontSize: variables.fontSizeH2,
+            lineHeight: variables.lineHeightSizeH2,
             ...headlineFont,
         },
 
@@ -3065,8 +3070,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         accountSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
             ...spacing.mt0,
             ...spacing.mb0,
             ...spacing.pt0,
@@ -4149,6 +4152,21 @@ const staticStyles = (theme: ThemeColors) =>
 
         cardSectionIllustrationContainer: {
             height: variables.sectionIllustrationHeight,
+            width: 'auto',
+            alignSelf: 'stretch',
+            marginTop: 12,
+            marginHorizontal: 12,
+            borderRadius: variables.componentBorderRadiusNormal,
+            overflow: 'hidden',
+        },
+
+        emptyStateCardIllustrationInset: {
+            width: 'auto',
+            alignSelf: 'stretch',
+            marginTop: 12,
+            marginHorizontal: 12,
+            borderRadius: variables.componentBorderRadiusNormal,
+            overflow: 'hidden',
         },
 
         twoFAIllustration: {
@@ -5415,6 +5433,12 @@ const staticStyles = (theme: ThemeColors) =>
 
         workspaceSection: {
             maxWidth: variables.workspaceSectionMaxWidth + variables.sectionMargin * 2,
+        },
+
+        workspaceSectionCentered: {
+            width: '100%',
+            maxWidth: variables.workspaceSectionMaxWidth + variables.sectionMargin * 2,
+            alignSelf: 'center',
         },
 
         workspaceSectionMobile: {
@@ -6907,7 +6931,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
 
-        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
+        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
         searchListContentContainerStyles: (hasFilterBars: boolean) => ({
             paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
@@ -7110,7 +7134,15 @@ const plainStyles = (theme: ThemeColors) =>
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
                 gap: 20,
                 width: '100%',
+                maxWidth: variables.centeredContentMaxWidth,
+                alignSelf: 'center',
             }) satisfies ViewStyle,
+
+        centeredContentWidthLimiter: {
+            width: '100%',
+            maxWidth: variables.centeredContentMaxWidth,
+            alignSelf: 'center',
+        },
 
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 

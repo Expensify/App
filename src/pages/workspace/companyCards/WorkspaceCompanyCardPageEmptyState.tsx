@@ -118,7 +118,7 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
     };
 
     return (
-        <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+        <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSectionCentered]}>
             {shouldShowExpensifyCardPromotionBanner && (
                 <WorkspaceCompanyCardExpensifyCardPromotionBanner
                     policy={policy}
@@ -138,7 +138,7 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
                 illustrationBackgroundColor={colors.blue800}
                 illustration={getCompanyCardIllustration()}
                 illustrationStyle={styles.getEmptyStateCompanyCardsIllustration(shouldUseNarrowLayout)}
-                illustrationContainerStyle={styles.getEmptyStateCompanyCardsIllustrationContainer(shouldUseNarrowLayout)}
+                illustrationContainerStyle={[styles.getEmptyStateCompanyCardsIllustrationContainer(shouldUseNarrowLayout), styles.emptyStateCardIllustrationInset]}
                 titleStyles={styles.textHeadlineH1}
                 isButtonDisabled={workspaceAccountID === CONST.DEFAULT_NUMBER_ID}
             />

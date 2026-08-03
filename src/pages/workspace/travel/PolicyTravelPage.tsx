@@ -4,7 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -52,7 +52,6 @@ function WorkspaceTravelPage({
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.travel');
     const icons = useMemoizedLazyExpensifyIcons(['Exit']);
-    const illustrations = useMemoizedLazyIllustrations(['Luggage']);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -81,6 +80,7 @@ function WorkspaceTravelPage({
     );
 
     const step = getTravelStep(policy, travelSettings, isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED), policies, currentUserLogin);
+    const isGetStartedStep = step !== CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP && step !== CONST.TRAVEL.STEPS.REVIEWING_REQUEST;
 
     const mainContent = (() => {
         switch (step) {
@@ -123,7 +123,6 @@ function WorkspaceTravelPage({
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={illustrations.Luggage}
                     title={translate('workspace.moreFeatures.travel.title')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
@@ -140,8 +139,11 @@ function WorkspaceTravelPage({
                         />
                     )}
                 </HeaderWithBackButton>
-                <ScrollViewWithContext addBottomSafeAreaPadding>
-                    <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>{mainContent}</View>
+                <ScrollViewWithContext
+                    addBottomSafeAreaPadding
+                    contentContainerStyle={isGetStartedStep ? styles.flexGrow1 : undefined}
+                >
+                    <View style={[styles.pt3, isGetStartedStep && styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSectionCentered]}>{mainContent}</View>
                 </ScrollViewWithContext>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

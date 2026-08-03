@@ -33,7 +33,7 @@ import {View} from 'react-native';
 
 function HelpPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ConciergeAvatar', 'NewWindow', 'Monitor']);
-    const illustrations = useMemoizedLazyIllustrations(['Chalkboard', 'LifeRing', 'TopiaryDollarSign']);
+    const illustrations = useMemoizedLazyIllustrations(['Chalkboard', 'TopiaryDollarSign']);
     const themeIllustrations = useThemeIllustrations();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -174,7 +174,6 @@ function HelpPage() {
         >
             <HeaderWithBackButton
                 title={translate('common.help')}
-                icon={illustrations.LifeRing}
                 shouldUseHeadlineHeader
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
@@ -182,7 +181,7 @@ function HelpPage() {
                 onBackButtonPress={Navigation.goBack}
             />
             <ScrollView contentContainerStyle={styles.pt3}>
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSectionCentered]}>
                     <Section
                         title={translate(isApprovedAccountant ? 'initialSettingsPage.helpPage.approvedPartnerTeamTitle' : 'initialSettingsPage.helpPage.title')}
                         subtitle={translate(isApprovedAccountant ? 'initialSettingsPage.helpPage.approvedPartnerTeamDescription' : 'initialSettingsPage.helpPage.description')}
