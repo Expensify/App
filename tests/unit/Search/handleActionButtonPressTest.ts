@@ -339,6 +339,7 @@ describe('handleActionButtonPress', () => {
     test('Should not navigate to item when report has one transaction on hold and action is approve', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
+            conciergeChat: undefined,
             hash: searchHash,
             item: mockReportItemWithHold,
             goToItem,
@@ -363,6 +364,7 @@ describe('handleActionButtonPress', () => {
     test('Should open the hold menu when the report has one transaction on hold and action is approve', () => {
         const onHoldMenuOpen = jest.fn();
         handleActionButtonPress({
+            conciergeChat: undefined,
             hash: searchHash,
             item: mockReportItemWithHold,
             goToItem: jest.fn(),
@@ -388,6 +390,7 @@ describe('handleActionButtonPress', () => {
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
+            conciergeChat: undefined,
             hash: searchHash,
             item: updatedMockReportItem,
             goToItem,
