@@ -11,8 +11,8 @@ import React from 'react';
 import {View} from 'react-native';
 
 /**
- * Side-by-side comparison of the legacy `MenuItem` monolith, the new composable
- * `MenuItem.Root`/`Row`/... API, and the `MenuItemStandard` preset. Each section shows
+ * Grid comparison of the legacy `MenuItem` monolith, the new composable
+ * `MenuItem.Root`/`Row`/... API, and the `MenuItemStandard` preset. Each card shows
  * the same visual case built with every API that can currently express it.
  */
 const story: Meta<typeof MenuItem> = {
@@ -20,32 +20,35 @@ const story: Meta<typeof MenuItem> = {
     component: MenuItem,
 };
 
-const COLUMN_WIDTH = 375;
+const CARD_WIDTH = 360;
 
 function noop() {}
 
-function Column({label, children}: {label: string; children?: React.ReactNode}) {
+function Label({children}: {children: string}) {
     const styles = useThemeStyles();
-
-    return (
-        <View style={{width: COLUMN_WIDTH}}>
-            <Text style={[styles.textLabelSupporting, styles.mb2]}>{label}</Text>
-            {children ?? <Text style={[styles.textSupporting, styles.p3]}>—</Text>}
-        </View>
-    );
+    return <Text style={[styles.textMicroBold, styles.textSupporting, styles.mb1]}>{children}</Text>;
 }
 
-function Section({title, legacy, composable, standard}: {title: string; legacy: React.ReactNode; composable: React.ReactNode; standard?: React.ReactNode}) {
+function Card({title, legacy, composable, standard}: {title: string; legacy: React.ReactNode; composable: React.ReactNode; standard?: React.ReactNode}) {
     const styles = useThemeStyles();
 
     return (
-        <View style={styles.mb8}>
-            <Text style={[styles.textHeadlineH2, styles.mb3]}>{title}</Text>
-            <View style={[styles.flexRow, styles.gap4, styles.flexWrap]}>
-                <Column label="Legacy MenuItem">{legacy}</Column>
-                <Column label="Composable API">{composable}</Column>
-                {!!standard && <Column label="MenuItemStandard preset">{standard}</Column>}
+        <View style={[{width: CARD_WIDTH}, styles.border, styles.br3, styles.p3, styles.gap3]}>
+            <Text style={[styles.textLabelSupportingNormal, styles.textStrong]}>{title}</Text>
+            <View>
+                <Label>Legacy</Label>
+                {legacy}
             </View>
+            <View>
+                <Label>Composable</Label>
+                {composable}
+            </View>
+            {!!standard && (
+                <View>
+                    <Label>Standard preset</Label>
+                    {standard}
+                </View>
+            )}
         </View>
     );
 }
@@ -59,8 +62,8 @@ function Comparison() {
     }
 
     return (
-        <View style={styles.p4}>
-            <Section
+        <View style={[styles.p4, styles.flexRow, styles.flexWrap, styles.gap4]}>
+            <Card
                 title="Title only"
                 legacy={
                     <MenuItem
@@ -79,7 +82,7 @@ function Comparison() {
                 }
             />
 
-            <Section
+            <Card
                 title="Icon + title"
                 legacy={
                     <MenuItem
@@ -107,7 +110,7 @@ function Comparison() {
                 }
             />
 
-            <Section
+            <Card
                 title="Icon + title + chevron"
                 legacy={
                     <MenuItem
@@ -140,7 +143,7 @@ function Comparison() {
                 }
             />
 
-            <Section
+            <Card
                 title="Icon + title + description + chevron"
                 legacy={
                     <MenuItem
@@ -176,7 +179,7 @@ function Comparison() {
                 }
             />
 
-            <Section
+            <Card
                 title="Title + description (no icon)"
                 legacy={
                     <MenuItem
@@ -197,7 +200,7 @@ function Comparison() {
                 }
             />
 
-            <Section
+            <Card
                 title="Non-interactive (no onPress)"
                 legacy={
                     <MenuItem
@@ -224,7 +227,7 @@ function Comparison() {
                 }
             />
 
-            <Section
+            <Card
                 title="Disabled"
                 legacy={
                     <MenuItem
@@ -262,7 +265,7 @@ function Comparison() {
                 }
             />
 
-            <Section
+            <Card
                 title="Custom accessibility label"
                 legacy={
                     <MenuItem
@@ -274,7 +277,7 @@ function Comparison() {
                 composable={
                     <MenuItem.Root
                         onPress={noop}
-                        accessibilityLabel="Open settings"
+                        accessibilityLabel="Settings"
                     >
                         <MenuItem.Row>
                             <MenuItem.Icon src={icons.Gear} />
@@ -283,6 +286,13 @@ function Comparison() {
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
+                }
+                standard={
+                    <MenuItemStandard
+                        title={'Settings'}
+                        icon={icons.Gear}
+                        onPress={noop}
+                    />
                 }
             />
         </View>
