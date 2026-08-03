@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table from '@components/Table';
 
@@ -9,11 +10,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 import type {WorkspaceRoomRowData} from './WorkspaceRoomsTableRow';
 
@@ -30,16 +33,31 @@ type WorkspaceRoomsTableProps = {
 
     /** The reportID of the room that should play the highlight animation (e.g. when it was just created) */
     highlightedReportID?: string;
+
+    /** Callback when the active search string changes */
+    onSearchStringChange?: (searchString: string) => void;
+
+    /** Callback when scrolling to the bottom of the list */
+    onEndReached?: () => void;
+
+    /** Threshold for the end-reached callback */
+    onEndReachedThreshold?: number;
+
+    /** Callback when the active sorting configuration changes */
+    onSortingChange?: (sorting: {columnKey: string | undefined; order: 'asc' | 'desc'}) => void;
 };
 
-function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onEndReached, onEndReachedThreshold, onSortingChange}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
-    const [isPolicyRoomDataLoaded] = useOnyx(ONYXKEYS.ARE_POLICY_ROOMS_LOADED, {
+    const [roomsMetadata] = useOnyx(ONYXKEYS.POLICY_ROOMS_METADATA, {
         selector: (value) => value?.[policyID],
     });
+
+    // A page beyond the first one is loading, so the rows already on screen stay and the footer reports the progress.
+    const isLoadingMoreRooms = !!roomsMetadata?.isLoading && (roomsMetadata?.pageNumber ?? 1) > 1;
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -94,7 +112,16 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRo
         />
     );
 
-    if (!isPolicyRoomDataLoaded) {
+    const listFooterComponent = isLoadingMoreRooms ? (
+        <View style={[styles.pv3, styles.alignItemsCenter]}>
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                reasonAttributes={{context: 'WorkspaceRoomsTable.loadMore', isLoading: true}}
+            />
+        </View>
+    ) : undefined;
+
+    if (!roomsMetadata?.isLoaded) {
         return <Table.LoadingState context="WorkspaceRoomsTable" />;
     }
 
@@ -109,6 +136,11 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRo
             initialSortColumn="name"
             title={translate('workspace.common.rooms')}
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
+            onSearchStringChange={onSearchStringChange}
+            onSortingChange={onSortingChange}
+            onEndReached={onEndReached}
+            onEndReachedThreshold={onEndReachedThreshold}
+            ListFooterComponent={listFooterComponent}
         >
             <Table.FilterBar label={translate('workspace.common.findRoom')} />
             <Table.NoResultsState />

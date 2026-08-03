@@ -203,6 +203,9 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
 
         /** Optional callback fired when the active search string changes. */
         onSearchStringChange?: (searchString: string) => void;
+
+        /** Optional callback fired when the active sorting configuration changes. */
+        onSortingChange?: (sorting: {columnKey: string | undefined; order: 'asc' | 'desc'}) => void;
     }>;
 
 export type {
