@@ -60,7 +60,6 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const defaultVendor = translate('workspace.accounting.defaultVendor');
     const defaultAccount = translate('workspace.accounting.defaultAccount');
-    const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const [cardFeeds] = useCardFeeds(policyID);
@@ -109,15 +108,11 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
                         {!!exportMenuItem?.description && (
                             <View style={[styles.renderHTML, styles.flexRow]}>
                                 <RenderHTML
-                                    html={
-                                        isXeroConnection
-                                            ? translate('workspace.moreFeatures.companyCards.integrationExportTitleXero', exportMenuItem.description)
-                                            : translate(
-                                                  'workspace.moreFeatures.companyCards.integrationExportTitle',
-                                                  exportMenuItem.description,
-                                                  `${environmentURL}/${exportMenuItem.exportPageLink}`,
-                                              )
-                                    }
+                                    html={translate(
+                                        'workspace.moreFeatures.companyCards.integrationExportTitle',
+                                        exportMenuItem.description,
+                                        exportMenuItem.exportPageLink ? `${environmentURL}/${exportMenuItem.exportPageLink}` : undefined,
+                                    )}
                                 />
                             </View>
                         )}
