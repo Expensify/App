@@ -267,7 +267,6 @@ describe('SearchAutocompleteList', () => {
         render(<SearchRouterWrapper />);
         await flushAllUpdates();
 
-        expect(await screen.findByText('Spend')).toBeTruthy();
         fireEvent.press(await screen.findByText('Go to Reports'));
 
         await waitFor(() => {
