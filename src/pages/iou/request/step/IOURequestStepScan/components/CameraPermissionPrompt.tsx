@@ -38,7 +38,7 @@ function CameraPermissionPrompt({isInLandscapeMode, onPress}: CameraPermissionPr
                 <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
                 <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                 <Button
-                    variant="success"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     accessibilityLabel={translate('common.continue')}
                     style={[styles.p9, styles.pt5]}
                     onPress={onPress}

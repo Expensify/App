@@ -440,7 +440,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                     <FixedFooter style={styles.mtAuto}>
                         {Number(splitExpensesList?.length) > 1 && (
                             <Button
-                                variant="danger"
+                                variant={CONST.BUTTON_VARIANT.DANGER}
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 style={[styles.w100, styles.mb4]}
                                 onPress={() => {
@@ -454,7 +454,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             </Button>
                         )}
                         <Button
-                            variant="success"
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
                             style={[styles.w100]}
                             onPress={() => {

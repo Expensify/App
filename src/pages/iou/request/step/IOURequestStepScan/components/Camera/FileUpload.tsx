@@ -91,7 +91,7 @@ function FileUpload({onPicked, shouldAcceptMultipleFiles = false, onLayout, isRe
                         <AttachmentPicker allowMultiple={shouldAcceptMultipleFiles}>
                             {({openPicker}) => (
                                 <Button
-                                    variant="success"
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                                     style={[styles.p5]}
                                     onPress={() => openPicker({onPicked})}

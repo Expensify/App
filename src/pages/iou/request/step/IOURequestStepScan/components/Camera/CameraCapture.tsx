@@ -175,7 +175,7 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                                 <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                             )}
                             <Button
-                                variant="success"
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 accessibilityLabel={translate('common.continue')}
                                 style={[styles.p9, styles.pt5]}
                                 onPress={capturePhoto}

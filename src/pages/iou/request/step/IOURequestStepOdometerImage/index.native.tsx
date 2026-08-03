@@ -274,7 +274,7 @@ function IOURequestStepOdometerImage({
                             <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
                             <Text style={[styles.subTextFileUpload]}>{translate('distance.odometer.cameraAccessRequired')}</Text>
                             <Button
-                                variant="success"
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 accessibilityLabel={translate('common.continue')}
                                 style={[styles.p9, styles.pt5]}
                                 onPress={capturePhoto}

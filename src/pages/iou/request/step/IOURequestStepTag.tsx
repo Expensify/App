@@ -207,7 +207,7 @@ function IOURequestStepTag({
                         <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                             <Button
                                 size={CONST.BUTTON_SIZE.LARGE}
-                                variant="success"
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 style={[styles.w100]}
                                 onPress={() =>
                                     Navigation.navigate(

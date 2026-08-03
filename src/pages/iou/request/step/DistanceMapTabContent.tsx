@@ -114,7 +114,7 @@ function DistanceMapTabContent({
                         />
                     )}
                     <Button
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100, styles.mb5, styles.ph5, styles.flexShrink0]}
                         onPress={submitWaypoints}

@@ -198,7 +198,7 @@ function IOURequestStepOdometerImage({
                             <Text style={[styles.subTextFileUpload]}>{translate('distance.odometer.cameraAccessRequired')}</Text>
                         )}
                         <Button
-                            variant="success"
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             accessibilityLabel={translate('common.continue')}
                             style={[styles.p9, styles.pt5]}
                             onPress={capturePhoto}
@@ -364,7 +364,7 @@ function IOURequestStepOdometerImage({
             <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                 {({openPicker}) => (
                     <Button
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         accessibilityLabel={translate('common.chooseFile')}
                         style={[styles.p5, styles.mt4]}
                         onPress={() => {

@@ -141,7 +141,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                     </Button>
                     <Button
                         onPress={saveGpsTrip}
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.flex1]}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_NEXT_BUTTON}
@@ -155,7 +155,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                     <View>
                         <Button
                             onPress={gpsDraftDetails?.isTracking ? stopGpsTrip : checkSettingsAndPermissions}
-                            variant={gpsDraftDetails?.isTracking ? undefined : 'success'}
+                            variant={gpsDraftDetails?.isTracking ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
                             style={[styles.w100, styles.flexShrink0]}
                             sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_START_STOP_BUTTON}

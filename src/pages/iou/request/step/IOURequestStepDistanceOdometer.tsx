@@ -727,7 +727,7 @@ function IOURequestStepDistanceOdometer({
                     )}
                     {/* Next/Save Button */}
                     <Button
-                        variant="success"
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100]}
                         onPress={handleNext}

@@ -241,7 +241,7 @@ function IOURequestStepDestination({
                         {isPolicyAdmin(policy) && !!policy?.areCategoriesEnabled && (
                             <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                                 <Button
-                                    variant="success"
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     size={CONST.BUTTON_SIZE.LARGE}
                                     style={[styles.w100]}
                                     onPress={() => {

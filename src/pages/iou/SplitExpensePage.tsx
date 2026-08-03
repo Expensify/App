@@ -473,7 +473,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             )}
             <Button
-                variant="success"
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100]}
                 onPress={onSaveSplitExpense}
