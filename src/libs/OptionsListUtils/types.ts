@@ -148,10 +148,7 @@ type LazyPersonalDetailOption = Pick<
     | 'keyForList'
     | 'login'
     | 'accountID'
-
-    // Read by the contact filter (see doesPersonalDetailMatchSearchTerm) and the ranking comparator
     | 'text'
-    | 'alternateText'
     | 'displayName'
     | 'participantsList'
     | 'isOptimisticPersonalDetail'

@@ -1808,8 +1808,8 @@ describe('OptionsListUtils', () => {
             const {eagerList, lazyList} = buildOptionLists();
 
             // Then each shell carries the exact values the downstream filter (login/accountID/participantsList/text)
-            // and the heap comparator key (text -> alternateText -> login) read on the hydrated option, which also
-            // guarantees identical tie-breaking for contacts with equal comparator keys
+            // and the heap comparator key read on the hydrated option, which also guarantees identical
+            // tie-breaking for contacts with equal comparator keys
             expect(lazyList.personalDetails.length).toBe(eagerList.personalDetails.length);
             for (const [index, eagerOption] of eagerList.personalDetails.entries()) {
                 const shell = lazyList.personalDetails.at(index);
@@ -1817,7 +1817,6 @@ describe('OptionsListUtils', () => {
                 expect(shell?.login).toBe(eagerOption.login);
                 expect(shell?.accountID).toBe(eagerOption.accountID);
                 expect(shell?.participantsList).toEqual(eagerOption.participantsList);
-                expect(shell?.text ?? shell?.alternateText ?? shell?.login).toBe(eagerOption.text ?? eagerOption.alternateText ?? eagerOption.login);
             }
         });
 
@@ -1845,9 +1844,13 @@ describe('OptionsListUtils', () => {
                 for (const field of FILTER_AND_RANK_FIELDS) {
                     expect(shell?.[field]).toEqual(eagerOption[field]);
                 }
-                // Comparator key: text -> alternateText -> login. alternateText is deliberately a fallback-only
-                // approximation on the shell, so compare the resolved key rather than alternateText directly.
-                expect(shell?.text ?? shell?.alternateText ?? shell?.login).toBe(eagerOption.text ?? eagerOption.alternateText ?? eagerOption.login);
+                // personalDetailsComparator ranks on `text ?? alternateText ?? login`. Both paths always populate
+                // `text` with a string, so the fallbacks are unreachable for personal details and the shells
+                // getValidOptions ranks cannot order differently from the hydrated options orderOptions ranks
+                // later. Assert that invariant directly: if createOption ever leaves `text` nullish, the two
+                // passes would silently diverge (the shell has no alternateText to fall back to, by design).
+                expect(typeof shell?.text).toBe('string');
+                expect(typeof eagerOption.text).toBe('string');
             }
         });
 

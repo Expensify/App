@@ -1714,9 +1714,6 @@ function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Repo
             reportID: report?.reportID ?? '',
             keyForList: report ? String(report.reportID) : String(accountID),
             text,
-            // Shape parity only: every comparator and filter reads `text` (always a string) or `login`, never a
-            // shell's alternateText, so the raw login is enough here and hydration computes the display value.
-            alternateText: detail?.login,
             login: detail?.login,
             accountID: Number(detail?.accountID),
             participantsList: detail ? [detail] : [],
@@ -2003,7 +2000,13 @@ function orderReportOptions(options: SearchOptionData[]) {
 }
 
 /**
- * Sort personal details by displayName or login in alphabetical order
+ * Sort personal details by displayName or login in alphabetical order.
+ *
+ * For personal detail options `text` is always a string (createOption assigns it unconditionally, and the
+ * lazy shell in buildPersonalDetailsOptions computes it the same way), so both the shells this sorts in
+ * getValidOptions and the hydrated options orderOptions sorts later always resolve to the same key — the
+ * two passes cannot disagree on order. The alternateText/login fallbacks exist only for
+ * PersonalDetailOptionData, which has no guaranteed `text`.
  */
 function personalDetailsComparator(personalDetail: SearchOptionData | PersonalDetailOptionData) {
     const name = personalDetail.text ?? personalDetail.alternateText ?? personalDetail.login ?? '';
