@@ -155,6 +155,10 @@ function TransactionItemRowWide({
     const submitterUserID = reportForCustomColumns?.submitterUserID;
     const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
     const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
+    const debitedAmount = reportForCustomColumns?.debitedAmount;
+    const debitedCurrency = reportForCustomColumns?.debitedCurrency;
+    const creditedAmount = reportForCustomColumns?.creditedAmount;
+    const creditedCurrency = reportForCustomColumns?.creditedCurrency;
     const hasValidationMessage = shouldShowErrors && (!!missingFieldError || !!violations?.length);
     let fullHeightMainRowStyle;
     if (shouldUseFullHeightEditableCellHoverTarget) {
@@ -661,6 +665,34 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS)]}
                     >
                         <TextCell text={orderDealNumbers} />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED)]}
+                    >
+                        {!!debitedAmount && !!debitedCurrency && (
+                            <AmountCell
+                                total={debitedAmount}
+                                currency={debitedCurrency}
+                            />
+                        )}
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED)]}
+                    >
+                        {!!creditedAmount && !!creditedCurrency && (
+                            <AmountCell
+                                total={creditedAmount}
+                                currency={creditedCurrency}
+                            />
+                        )}
                     </View>
                 );
             default:

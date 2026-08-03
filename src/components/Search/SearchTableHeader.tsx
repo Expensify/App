@@ -168,6 +168,17 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         columnName: CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
         translationKey: 'common.internationalReimbursementIDs',
     },
+    // The backend has no sort key for these amounts on individual reports.
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED,
+        translationKey: 'common.amountDebited',
+        isColumnSortable: false,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED,
+        translationKey: 'common.amountReimbursed',
+        isColumnSortable: false,
+    },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
         translationKey: groupBy ? 'common.total' : 'iou.amount',
@@ -315,6 +326,17 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
         translationKey: 'common.internationalReimbursementIDs',
+    },
+    // The backend has no sort key for these amounts on individual reports.
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED,
+        translationKey: 'common.amountDebited',
+        isColumnSortable: false,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED,
+        translationKey: 'common.amountReimbursed',
+        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
