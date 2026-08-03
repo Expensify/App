@@ -972,6 +972,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 ownerBillingGracePeriodEnd,
                 ownerLogin: getLoginByAccountID(expenseReport.ownerAccountID, personalDetails),
                 delegateEmail,
+                delegateAccountID,
                 full: true,
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
                 shouldPlaySuccessSound: false,
@@ -1015,6 +1016,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchKey,
         isTrackIntentUser,
         personalDetails,
+        delegateAccountID,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -1385,6 +1387,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`],
                     delegateAccountID,
                     isTrackIntentUser,
+                    conciergeChat,
                 });
                 paidReportCount += 1;
             }

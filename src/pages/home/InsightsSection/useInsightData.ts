@@ -65,6 +65,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {accountID, login} = useCurrentUserPersonalDetails();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
 
     const {isOffline} = useNetwork();
@@ -111,7 +112,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
                       translate,
                       formatPhoneNumber,
                       bankAccountList: undefined,
-                      conciergeReportID: undefined,
+                      conciergeReportID,
                       convertToDisplayString,
                       reportAttributesDerivedValue: undefined,
                   })[0],

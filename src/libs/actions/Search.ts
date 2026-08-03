@@ -230,6 +230,7 @@ type HandleActionButtonPressParams = {
     delegateEmail?: string;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    conciergeChat: OnyxEntry<Report>;
 };
 
 function handleActionButtonPress({
@@ -268,6 +269,7 @@ function handleActionButtonPress({
     delegateEmail,
     delegateAccountID,
     isTrackIntentUser,
+    conciergeChat,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -320,6 +322,7 @@ function handleActionButtonPress({
                 chatReportActions,
                 delegateAccountID,
                 isTrackIntentUser,
+                conciergeChat,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -350,6 +353,7 @@ function handleActionButtonPress({
                 amountOwed,
                 iouReportCurrentNextStepDeprecated,
                 delegateEmail,
+                delegateAccountID,
                 isTrackIntentUser,
                 ownerLogin: submitterLogin,
             });
@@ -527,6 +531,7 @@ type GetPayActionCallbackParams = {
     chatReportActions: OnyxEntry<ReportActions>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    conciergeChat: OnyxEntry<Report>;
 };
 
 function getPayActionCallback({
@@ -555,6 +560,7 @@ function getPayActionCallback({
     chatReportActions,
     delegateAccountID,
     isTrackIntentUser,
+    conciergeChat,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
@@ -604,6 +610,7 @@ function getPayActionCallback({
         chatReportActions,
         delegateAccountID,
         isTrackIntentUser,
+        conciergeChat,
     });
 }
 
@@ -622,6 +629,7 @@ type GetApproveActionCallbackParams = {
     amountOwed: OnyxEntry<number>;
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     delegateEmail?: string;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
 };
@@ -641,6 +649,7 @@ function getApproveActionCallback({
     amountOwed,
     iouReportCurrentNextStepDeprecated,
     delegateEmail,
+    delegateAccountID,
     isTrackIntentUser,
     ownerLogin,
 }: GetApproveActionCallbackParams) {
@@ -667,6 +676,7 @@ function getApproveActionCallback({
         ownerBillingGracePeriodEnd,
         ownerLogin,
         delegateEmail,
+        delegateAccountID,
         full: true,
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
         isTrackIntentUser,
@@ -1403,6 +1413,7 @@ function rejectMoneyRequestInBulk(
     currentUserAccountIDParam: number,
     currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
+    delegateAccountID: number | undefined,
     hash?: number,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -1422,7 +1433,7 @@ function rejectMoneyRequestInBulk(
         }
     > = {};
     for (const transactionID of transactionIDs) {
-        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, undefined, true);
+        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, undefined, true);
         if (data) {
             optimisticData.push(...data.optimisticData);
             successData.push(...data.successData);
@@ -1459,6 +1470,7 @@ function rejectMoneyRequestsOnSearch(
     currentUserAccountIDParam: number,
     currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
+    delegateAccountID: number | undefined,
 ) {
     const transactionIDs = Object.keys(selectedTransactions);
 
@@ -1491,7 +1503,7 @@ function rejectMoneyRequestsOnSearch(
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, hash);
+            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, hash);
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
@@ -1500,7 +1512,7 @@ function rejectMoneyRequestsOnSearch(
                 existingRejectedReport = nextRejectedReport;
             };
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, {
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, {
                     sharedRejectedToReportID,
                     existingRejectedReport,
                     setExistingRejectedReport,
