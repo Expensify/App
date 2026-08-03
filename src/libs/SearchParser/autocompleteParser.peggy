@@ -126,6 +126,9 @@ autocompleteKey "key"
       / reportID
       / withdrawalID
       / title
+      / submitterUserID
+      / submitterPayrollID
+      / orderDealNumbers
       / reportFieldDynamic
       / columns
       / limit
