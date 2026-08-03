@@ -177,33 +177,20 @@ function WorkspacePageWithSections({
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
 
-    // The workspace we're viewing is being deleted (optimistically pending delete, or pending delete last render
-    // and now gone from Onyx). Latch it so FullPageNotFoundView doesn't flash while goBackFromInvalidPolicy()'s
-    // exit animation plays out and the navigation state re-renders this (still-mounted) screen.
-    // We latch the deleted policyID (rather than a plain boolean) so the suppression is scoped to that specific
-    // workspace and clears automatically if this still-mounted screen is later reused for a different policyID.
     const prevPolicyID = usePrevious(policyID);
     const [deletedPolicyID, setDeletedPolicyID] = useState<string | undefined>(undefined);
-    if (
-        deletedPolicyID !== policyID &&
-        // The prevIsPendingDelete transition relies on prevPolicy, which belongs to the previous render's
-        // policyID, so only trust it when the screen is still showing the same workspace (policyID unchanged).
-        (isPendingDelete || (prevIsPendingDelete && isEmptyObject(policy) && prevPolicyID === policyID))
-    ) {
+    if (deletedPolicyID !== policyID && (isPendingDelete || (prevIsPendingDelete && isEmptyObject(policy) && prevPolicyID === policyID))) {
         setDeletedPolicyID(policyID);
     }
     const hasWorkspaceBeenDeleted = deletedPolicyID !== undefined && deletedPolicyID === policyID;
 
     const shouldShow = useMemo(() => {
-        // Once the workspace we're viewing has been deleted by the user, keep the not-found view suppressed
-        // for the rest of this screen's life so it doesn't flash during the navigation/exit animation.
+        // Keep the not-found view suppressed after the workspace is deleted so it doesn't flash during the exit animation.
         if (hasWorkspaceBeenDeleted) {
             return false;
         }
 
-        // Suppress the not-found view when the user has moved away from the workspace flow (e.g. switched
-        // to another tab and the workspace was deleted from another device) so the view doesn't bleed
-        // through over the active tab. Stays true when an RHP is open on top of a workspace screen.
+        // Don't show the not-found view when the user is outside the workspace flow (e.g. on another tab).
         if (!isWorkspacesTabFocused) {
             return false;
         }
