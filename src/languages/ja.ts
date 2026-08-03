@@ -7783,7 +7783,7 @@ ${reportName}`,
                 saveConfirmation: {
                     title: 'ルールを保存',
                     prompt: 'RuleBotは新しい経費にこのルールを適用します。',
-                    applyToUnapprovedExpenses: ({count}: {count: number}) => `このルールを${count}件の未承認の経費に適用する`,
+                    applyToUnapprovedExpenses: ({count}: {count: number}) => `${count}件の未承認の経費もこのルールでチェックする`,
                 },
                 revampSubtitle: '必要なときに実行できる柔軟なルールを設定します。',
                 describeRuleForConcierge: 'ルールの内容を入力すると、Concierge が自動作成します',

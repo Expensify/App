@@ -8233,7 +8233,7 @@ const translations = {
                 saveConfirmation: {
                     title: 'Save rule',
                     prompt: 'RuleBot will apply this rule to new expenses.',
-                    applyToUnapprovedExpenses: ({count}: {count: number}) => `Apply this rule to ${count} unapproved expense${count === 1 ? '' : 's'}`,
+                    applyToUnapprovedExpenses: ({count}: {count: number}) => `Also check ${count} unapproved expense${count === 1 ? '' : 's'} against this rule`,
                 },
             },
         },

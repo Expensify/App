@@ -7936,7 +7936,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 saveConfirmation: {
                     title: 'Enregistrer la règle',
                     prompt: 'RuleBot appliquera cette règle aux nouvelles dépenses.',
-                    applyToUnapprovedExpenses: ({count}: {count: number}) => `Appliquer cette règle à ${count} ${count === 1 ? 'dépense non approuvée' : 'dépenses non approuvées'}`,
+                    applyToUnapprovedExpenses: ({count}: {count: number}) => `Vérifier aussi ${count} ${count === 1 ? 'dépense non approuvée' : 'dépenses non approuvées'} selon cette règle`,
                 },
                 revampSubtitle: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin.',
                 describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',

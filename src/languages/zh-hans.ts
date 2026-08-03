@@ -7609,7 +7609,7 @@ ${reportName}`,
                 saveConfirmation: {
                     title: '保存规则',
                     prompt: 'RuleBot 将把此规则应用于新报销。',
-                    applyToUnapprovedExpenses: ({count}: {count: number}) => `将此规则应用于 ${count} 笔未批准的报销`,
+                    applyToUnapprovedExpenses: ({count}: {count: number}) => `同时根据此规则检查 ${count} 笔未批准的报销`,
                 },
                 revampSubtitle: '按需运行的灵活规则描述',
                 describeRuleForConcierge: '描述你的规则，Concierge 会帮你创建',

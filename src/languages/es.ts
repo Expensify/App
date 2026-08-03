@@ -7814,7 +7814,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 saveConfirmation: {
                     title: 'Guardar regla',
                     prompt: 'RuleBot aplicará esta regla a los nuevos gastos.',
-                    applyToUnapprovedExpenses: ({count}: {count: number}) => `Aplicar esta regla a ${count} ${count === 1 ? 'gasto sin aprobar' : 'gastos sin aprobar'}`,
+                    applyToUnapprovedExpenses: ({count}: {count: number}) => `Comprobar también ${count} ${count === 1 ? 'gasto sin aprobar' : 'gastos sin aprobar'} según esta regla`,
                 },
                 revampSubtitle: 'Describe reglas flexibles que se ejecutan cuando las necesitas.',
                 describeRuleForConcierge: 'Describe tu regla y Concierge la creará',

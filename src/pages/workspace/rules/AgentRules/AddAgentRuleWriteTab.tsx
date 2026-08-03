@@ -74,6 +74,9 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             shouldValidateOnChange
             shouldValidateOnBlur
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
+            // Submitting opens the apply-to-unapproved-expenses confirmation modal; a press-triggered
+            // spinner would keep spinning if that modal is cancelled, since nothing else resets it.
+            shouldShowLoadingImmediatelyOnPress={false}
         >
             <View style={styles.flex1}>
                 {!isRulesRevampEnabled && (
