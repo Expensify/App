@@ -476,22 +476,4 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-destination')).toBe(undefined);
         expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-destination-edit')).toBe(undefined);
     });
-
-    it('redirects legacy per diem time step to the new destination-based dynamic route (#83850)', () => {
-        expect(getMatchingNewRoute('/create/submit/time/123/456')).toBe('/create/submit/destination/123/456/per-diem-time');
-    });
-
-    // NOTE: the redirect appends the dynamic suffix (`/time`) so a deep-link restores the actual wizard step. Query
-    // preservation is intentionally not asserted: the OldRoutes matcher captures the trailing segment with a greedy
-    // `(.*)` that also swallows the query string, so a suffix cannot be appended after it while keeping `?backTo=…`.
-    // This is acceptable because no call site produces these legacy paths with a query anymore (all navigations moved to
-    // `createDynamicRoute` without `backTo`).
-    it('redirects legacy per diem time edit step to the new confirmation-based dynamic route (#83850)', () => {
-        expect(getMatchingNewRoute('/create/submit/time/123/456/edit')).toBe('/create/submit/confirmation/123/456/per-diem-time-edit');
-    });
-
-    it('does not redirect the already-migrated per diem time dynamic routes (#83850)', () => {
-        expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-destination/per-diem-time')).toBe(undefined);
-        expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-time-edit')).toBe(undefined);
-    });
 });

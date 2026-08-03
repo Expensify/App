@@ -15,16 +15,16 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {useEffect, useRef} from 'react';
 
 import getWalletPersonalDetailsParams from './getWalletPersonalDetailsParams';
-import WalletMagicCodePrompt from './WalletMagicCodePrompt';
+import WalletValidateCodePrompt from './WalletValidateCodePrompt';
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 
 /**
- * Dedicated screen for entering the magic code that authorizes a wallet phone-number change. Living on its own route
+ * Dedicated screen for entering the validateCode that authorizes a wallet phone-number change. Living on its own route
  * (rather than being rendered inline in the step page) keeps the code form stably mounted, so a wrong-code error is
  * not wiped by a remount while the submission response settles.
  */
-function WalletConfirmMagicCodePage() {
+function WalletConfirmValidateCodePage() {
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
     const [formData] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS);
@@ -63,13 +63,13 @@ function WalletConfirmMagicCodePage() {
     }, [formData?.isLoading, hasErrors]);
 
     return (
-        <WalletMagicCodePrompt
+        <WalletValidateCodePrompt
             onConfirm={confirm}
             onClose={() => Navigation.goBack()}
         />
     );
 }
 
-WalletConfirmMagicCodePage.displayName = 'WalletConfirmMagicCodePage';
+WalletConfirmValidateCodePage.displayName = 'WalletConfirmValidateCodePage';
 
-export default WalletConfirmMagicCodePage;
+export default WalletConfirmValidateCodePage;
