@@ -151,6 +151,7 @@ describe('MFA magic code and registration decision', () => {
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}})).toBe(true);
+        expect(snapshotToState(result).isValidateCodeFormSubmitting).toBe(true);
         expect(result.context.validateCode).toBe(MFA_TEST_VALIDATE_CODE);
         expect(result.context.registrationChallenge).toBeUndefined();
         expect(requestRegistrationChallengeMock).toHaveBeenCalledWith(MFA_TEST_VALIDATE_CODE);
@@ -168,6 +169,7 @@ describe('MFA magic code and registration decision', () => {
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}})).toBe(false);
+        expect(snapshotToState(result).isValidateCodeFormSubmitting).toBe(false);
         expect(result.context.registrationChallenge).toBe(MFA_TEST_REGISTRATION_CHALLENGE);
         expect(result.context.error).toBeUndefined();
 

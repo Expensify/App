@@ -52,7 +52,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const {requestCancel, submitValidateCode, resendValidateCode, notifyValidateCodeChanged, state} = useMultifactorAuthenticationInternal();
-    const {showsInvalidCodeError, isCancelConfirmVisible, canResendValidateCode} = state;
+    const {showsInvalidCodeError, isCancelConfirmVisible, canResendValidateCode, isValidateCodeFormSubmitting} = state;
 
     // Refs
     const inputRef = useRef<ValidateCodeInputHandle>(null);
@@ -61,8 +61,6 @@ function MultifactorAuthenticationValidateCodePage() {
 
     // Derived state
     const hasAccountError = !!account && !isEmptyObject(account?.errors);
-    // The MFA registration challenge always uses VALIDATE_CODE_FORM, even when the account has 2FA enabled.
-    const isValidateCodeFormSubmitting = !!account?.isLoading && account.loadingForm === CONST.FORMS.VALIDATE_CODE_FORM;
     const shouldDisableResendCode = isOffline || !canResendValidateCode;
     const validateCodeActionError = getLatestErrorField(validateActionCode, 'actionVerified');
     const hasValidateCodeActionError = !isEmptyObject(validateCodeActionError);
@@ -154,7 +152,7 @@ function MultifactorAuthenticationValidateCodePage() {
      */
     const validateAndSubmitForm = () => {
         // Check if already loading
-        if (account?.isLoading) {
+        if (isValidateCodeFormSubmitting) {
             return;
         }
 
