@@ -435,6 +435,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                             value={draft}
                             maxLines={shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent, styles.textAlignLeft]}
+                            preferredSkinTone={preferredSkinTone}
                             onFocus={() => {
                                 setIsFocused(true);
                                 if (composerRef.current) {

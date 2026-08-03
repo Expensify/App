@@ -1119,6 +1119,7 @@ function ComposerWithSuggestions({
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
+                    preferredSkinTone={preferredSkinTone}
                     forwardedFSClass={forwardedFSClass}
                 />
             </View>
