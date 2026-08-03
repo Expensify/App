@@ -5,6 +5,7 @@ import {
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
     getReportNextStep,
+    shouldShowDynamicExternalWorkflowApproveErrorNextStep,
 } from '@libs/NextStepUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView, hasPendingDEWApprove, hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
@@ -88,7 +89,7 @@ function useOptimisticNextStep(reportID: string | undefined) {
                 }
                 return acc;
             }, {});
-            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject, reportTransactions);
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject, reportTransactions, accountID);
 
             if (errors?.dewSubmitFailed) {
                 optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(theme.danger);
@@ -99,7 +100,7 @@ function useOptimisticNextStep(reportID: string | undefined) {
             const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, currentUserLogin ?? '', accountID, undefined, isArchivedReport);
             const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
             const isCurrentUserTheApprover = moneyRequestReport?.managerID === accountID;
-            if (hasDEWApproveFailed && isCurrentUserTheApprover) {
+            if (shouldShowDynamicExternalWorkflowApproveErrorNextStep(gbrResult?.reportAction, hasDEWApproveFailed, isCurrentUserTheApprover)) {
                 optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme.danger);
             } else if (isOffline && hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
                 optimisticNextStep = buildOptimisticNextStepForDEWOffline();
