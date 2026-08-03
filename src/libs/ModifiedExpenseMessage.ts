@@ -1,5 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
@@ -12,20 +14,27 @@ import type {Entries, ValueOf} from 'type-fest';
 import isEmpty from 'lodash/isEmpty';
 
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
-import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import {formatList} from './Localize';
 import Log from './Log';
 import Parser from './Parser';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {arePolicyRulesEnabled, findVendorByID, getCleanedTagName, getCommaSeparatedTagNameWithSanitizedColons, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
+import {
+    arePolicyRulesEnabled,
+    findVendorByID,
+    getCleanedTagName,
+    getCommaSeparatedTagNameWithSanitizedColons,
+    getSortedTagKeys,
+    isPolicyAdmin,
+    isXeroActiveMatchingSource,
+} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
-import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getReportName} from './ReportNameUtils';
+import {buildReportNameFromParticipantNames, deprecatedGetReportName, getPolicyExpenseChatName} from './ReportNameUtils';
 import {getPolicyName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
@@ -156,8 +165,8 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // - A 1:1 DM
     const currentUserAccountID = getPersonalDetailByEmail(currentUserLogin)?.accountID;
     const reportName = isPolicyExpenseChat(rootParentReport)
-        ? getPolicyExpenseChatName({report: rootParentReport})
-        : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID});
+        ? getPolicyExpenseChatName({report: rootParentReport, translate})
+        : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID, translate});
     const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true, policy});
     // If we can't determine either the report name or policy name, return the default message
     if (isEmpty(policyName) && !reportName) {
@@ -188,7 +197,7 @@ function getMovedFromOrToReportMessage(
     }
 
     if (movedFromReport) {
-        const originReportName = getReportName(movedFromReport, reportAttributes);
+        const originReportName = deprecatedGetReportName(movedFromReport, reportAttributes);
         return originReportName ? translate('iou.movedFromReport', originReportName) : translate('iou.movedFromReportNoName');
     }
 }
@@ -261,6 +270,7 @@ function getRulesModifiedMessage(
  */
 function getForReportAction({
     translate,
+    convertToDisplayString,
     reportAction,
     policy,
     movedFromReport,
@@ -271,6 +281,7 @@ function getForReportAction({
     reportAttributes,
 }: {
     translate: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     reportAction: OnyxEntry<ReportAction>;
     policy: OnyxEntry<Policy>;
     movedFromReport?: OnyxEntry<Report>;
@@ -489,12 +500,12 @@ function getForReportAction({
     const hasModifiedVendor = isReportActionOriginalMessageAnObject && ('oldVendor' in reportActionOriginalMessage || 'vendor' in reportActionOriginalMessage);
     if (hasModifiedVendor) {
         // Vendor is stored on the action as `{externalID, isManuallySet}` (or absent/null). Resolve
-        // the display name from any connection that has the vendor data (QBO or Intacct), without
-        // gating on the workspace's current export mode — a past "set vendor" action should still
-        // render the vendor name after an admin switches the non-reimbursable export type. If the
-        // vendor has been removed from the integration entirely the name is unrecoverable, so fall
-        // back to the externalID so the fragment still identifies which vendor was set rather than
-        // rendering `set vendor ""`.
+        // the display name from any connection that has the vendor data (QBO, Intacct, or Xero),
+        // without gating on the workspace's current export mode — a past "set vendor" action should
+        // still render the vendor name after an admin switches the non-reimbursable export type. If
+        // the vendor has been removed from the integration entirely the name is unrecoverable, so
+        // fall back to the externalID so the fragment still identifies which vendor was set rather
+        // than rendering `set vendor ""`.
         const resolveVendorName = (entry: typeof reportActionOriginalMessage.vendor): string => {
             if (!entry?.externalID) {
                 return '';
@@ -505,7 +516,7 @@ function getForReportAction({
             translate,
             resolveVendorName(reportActionOriginalMessage?.vendor),
             resolveVendorName(reportActionOriginalMessage?.oldVendor),
-            translate('common.vendor'),
+            isXeroActiveMatchingSource(policy) ? translate('common.supplier') : translate('common.vendor'),
             true,
             setFragments,
             removalFragments,

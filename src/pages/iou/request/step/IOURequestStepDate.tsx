@@ -3,6 +3,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
@@ -63,6 +64,7 @@ function IOURequestStepDate({
     transaction,
     report,
 }: IOURequestStepDateProps) {
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(report?.policyID);
@@ -104,19 +106,23 @@ function IOURequestStepDate({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
         const newCreated = value.moneyRequestCreated;
 
         // Only update created if it has changed
         if (newCreated === currentCreated) {
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplit) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newCreated});
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
@@ -145,6 +151,8 @@ function IOURequestStepDate({
                 distanceOriginalPolicy,
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
         } else {
             setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));
@@ -161,10 +169,11 @@ function IOURequestStepDate({
                 lastSelectedDistanceRates,
                 isDraft: isTransactionDraft,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                getCurrencyDecimals,
             });
         }
 
-        navigateBack();
+        saveAndNavigateBack();
     };
 
     const validate = useCallback(
