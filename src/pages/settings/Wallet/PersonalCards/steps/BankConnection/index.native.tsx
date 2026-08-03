@@ -55,9 +55,7 @@ function BankConnection() {
         isNewCardError,
     };
 
-    const renderLoading = () => (
-        <LoadingIndicator reasonAttributes={fullscreenReasonAttributes} />
-    );
+    const renderLoading = () => <LoadingIndicator reasonAttributes={fullscreenReasonAttributes} />;
 
     const handleBackButtonPress = () => {
         setAddNewPersonalCardStepAndData({step: CONST.PERSONAL_CARDS.STEP.SELECT_BANK});
