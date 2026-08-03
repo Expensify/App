@@ -231,6 +231,21 @@ async function run() {
             comment_id: commentId,
             body: formattedBody,
         });
+    } catch (error) {
+        console.error('Error updating comment:', error);
+        core.setFailed(error instanceof Error ? error.message : String(error));
+    }
+}
+
+if (require.main === module) {
+    run();
+}
+
+export default run;ner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            comment_id: commentId,
+            body: formattedBody,
+        });
 
         console.log('Successfully updated CodeCov comment!');
     } catch (error) {
