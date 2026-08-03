@@ -90,12 +90,11 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
             <ScrollView contentContainerStyle={[!isInLandscapeMode && [styles.containerWithSpaceBetween, styles.justifyContentStart], styles.pointerEventsBoxNone]}>
                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                     <Avatar
-                        containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
-                        imageStyles={[styles.avatarXLarge]}
+                        containerStyles={[styles.mv5, styles.noOutline]}
                         source={details.avatar}
                         avatarID={accountID}
                         type={CONST.ICON_TYPE_AVATAR}
-                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                         fallbackIcon={fallbackIcon}
                     />
                     {!!(displayName ?? '') && (

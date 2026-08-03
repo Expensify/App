@@ -1276,6 +1276,22 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
     });
 
+    it('markLocalReportActionsAsLoaded settles the initial-load state for an optimistic report', async () => {
+        const REPORT_ID = '96925001';
+
+        // Given the RAM-only loading state was dropped by an app restart, leaving the report re-armed as loading
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false});
+        await waitForBatchedUpdates();
+
+        // When the readiness stamp is reconstructed on open (ReportFetchHandler's optimistic-report skip path)
+        Report.markLocalReportActionsAsLoaded(REPORT_ID);
+        await waitForBatchedUpdates();
+
+        // Then both flags settle so the report can never hang on the loading skeleton
+        const loadingState = await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`);
+        expect(loadingState).toMatchObject({isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true});
+    });
+
     it('openReport legacy preview fallback stores action under correct Onyx key and preserves existing actions', async () => {
         global.fetch = TestHelper.createGlobalFetchMock();
 
