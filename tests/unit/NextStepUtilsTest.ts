@@ -3,17 +3,19 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {
     buildNextStepMessage,
     buildNextStepNew,
+    buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
     getReportNextStep,
     buildOptimisticNextStep,
+    shouldShowDynamicExternalWorkflowApproveErrorNextStep,
 } from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
@@ -21,7 +23,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 Onyx.init({keys: ONYXKEYS});
@@ -1123,6 +1125,56 @@ describe('libs/NextStepUtils', () => {
         });
     });
 
+    describe('buildOptimisticNextStepForDynamicExternalWorkflowApproveError', () => {
+        test('should return alert next step with error message when DEW approve fails', () => {
+            const result = buildOptimisticNextStepForDynamicExternalWorkflowApproveError();
+
+            expect(result).toEqual({
+                type: 'alert',
+                icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
+                message: [
+                    {
+                        text: "This report can't be approved. Please review the comments to resolve.",
+                        type: 'alert-text',
+                    },
+                ],
+            });
+        });
+    });
+
+    describe('shouldShowDynamicExternalWorkflowApproveErrorNextStep', () => {
+        const createDEWApproveFailedAction = (automaticAction?: boolean): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> => ({
+            actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+            reportActionID: '1',
+            created: '2026-01-01 00:00:00.000',
+            message: [],
+            originalMessage: {
+                message: 'DEW blocked approval',
+                automaticAction,
+            },
+        });
+
+        it('returns true for manual approve failures when the current user is the approver', () => {
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(false), true, true)).toBe(true);
+        });
+
+        it('returns true when automaticAction is absent (treated as manual failure)', () => {
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(), true, true)).toBe(true);
+        });
+
+        it('returns false for auto-approve failures so the normal workflow next step is kept', () => {
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(true), true, true)).toBe(false);
+        });
+
+        it('returns false when the current user is not the approver', () => {
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(false), true, false)).toBe(false);
+        });
+
+        it('returns false when there is no active DEW approve failure', () => {
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(false), false, true)).toBe(false);
+        });
+    });
+
     describe('getReportNextStep', () => {
         const currentUserEmail = 'current-user@expensify.com';
         const currentUserAccountID = 37;
@@ -1514,8 +1566,32 @@ describe('libs/NextStepUtils', () => {
             };
 
             // A currentUserAccountID different from the actor renders the actor as an OTHER_USER, so its name appears in the message.
-            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, 999999);
+            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, 999999, formatPhoneNumber);
             expect(message).toBe('<next-step>Waiting for HiddenMarker to submit expenses.</next-step>');
+        });
+
+        it('uses the provided phone number formatter when resolving an SMS actor login', async () => {
+            const phoneActorAccountID = 780071;
+            const phoneActorLogin = '18332403628@expensify.sms';
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[phoneActorAccountID]: {accountID: phoneActorAccountID, login: phoneActorLogin}});
+            await waitForBatchedUpdates();
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: phoneActorAccountID,
+            };
+            const translateWithActorName: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'nextStep.message.waitingToSubmit') {
+                    return `Waiting for ${String(parameters.at(0))} to submit expenses.`;
+                }
+                return translateLocal(path, ...parameters);
+            };
+            const formatPhoneNumberMock = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
+
+            const message = buildNextStepMessage(nextStep, translateWithActorName, 999999, formatPhoneNumberMock);
+
+            expect(formatPhoneNumberMock).toHaveBeenCalledWith(phoneActorLogin);
+            expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
         });
     });
 

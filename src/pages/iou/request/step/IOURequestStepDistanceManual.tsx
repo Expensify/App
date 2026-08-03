@@ -6,6 +6,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
 import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
@@ -75,6 +76,7 @@ function IOURequestStepDistanceManual({
     currentUserPersonalDetails,
 }: IOURequestStepDistanceManualProps) {
     const {translate, formatPhoneNumber} = useLocalize();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
@@ -218,7 +220,16 @@ function IOURequestStepDistanceManual({
         if (action === CONST.IOU.ACTION.EDIT) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
-                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {distance: distanceAsFloat}, policy, personalPolicy?.outputCurrency);
+                setDraftSplitTransaction(
+                    transaction.transactionID,
+                    splitDraftTransaction,
+                    {distance: distanceAsFloat},
+                    policy,
+                    personalPolicy?.outputCurrency,
+                    undefined,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
+                );
                 Navigation.goBack(backTo);
                 return;
             }
@@ -250,6 +261,8 @@ function IOURequestStepDistanceManual({
                     reportPolicyTags,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
             }
             Navigation.goBack(backTo);
@@ -307,6 +320,7 @@ function IOURequestStepDistanceManual({
             delegateAccountID,
             policyTagList,
             formatPhoneNumber,
+            getCurrencySymbol,
         });
     };
 

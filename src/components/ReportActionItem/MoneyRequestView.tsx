@@ -213,7 +213,7 @@ function MoneyRequestView({
     const {isOffline} = useNetwork();
     const {environmentURL, isProduction} = useEnvironment();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
-    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const {showConfirmModal} = useConfirmModal();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
@@ -893,6 +893,7 @@ function MoneyRequestView({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                getCurrencyDecimals,
             });
         });
     };
@@ -1215,9 +1216,17 @@ function MoneyRequestView({
                             }
 
                             if (shouldShowSplitIndicator && isSplitAvailable) {
-                                initSplitExpense(transaction, transactionThreadReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {
-                                    isProduction,
-                                });
+                                initSplitExpense(
+                                    transaction,
+                                    transactionThreadReport,
+                                    splitEffectivePolicy,
+                                    selfDMReportID,
+                                    restrictedActionPolicyID,
+                                    personalPolicy?.outputCurrency,
+                                    getCurrencyDecimals,
+                                    getCurrencySymbol,
+                                    {isProduction},
+                                );
                                 return;
                             }
 

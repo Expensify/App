@@ -82,7 +82,10 @@ function DistanceRequestStartPage({
 
     const transactionRequestType = useMemo(() => {
         if (!transaction?.iouRequestType) {
-            return lastDistanceExpenseType ?? selectedTab ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+            // The tab navigator renders whichever tab was last selected, so the draft has to be typed from that
+            // same value. Preferring the last-created distance type instead rebuilds the draft as Odometer under
+            // a visible Map tab, leaving it without waypoints so tapping one opens the "Not here" page.
+            return selectedTab ?? lastDistanceExpenseType ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
         }
 
         return transaction.iouRequestType;

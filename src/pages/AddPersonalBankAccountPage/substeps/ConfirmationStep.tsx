@@ -2,7 +2,7 @@ import CommonConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
@@ -20,7 +20,7 @@ const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
 const DEFAULT_OBJECT = {};
 
-function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
+function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
