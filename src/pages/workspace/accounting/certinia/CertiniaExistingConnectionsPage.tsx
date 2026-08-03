@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -15,8 +15,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -64,11 +62,10 @@ function CertiniaExistingConnectionsPage({route}: CertiniaExistingConnectionsPag
             />
             <ScrollView style={[styles.flex1]}>
                 <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', {connectionName: CONST.POLICY.CONNECTIONS.NAME.CERTINIA})}</Text>
-                <MenuItem
+                <MenuItemStandard
                     title={translate('workspace.common.createNewConnection')}
                     icon={icons.LinkCopy}
-                    iconStyles={{borderRadius: variables.componentBorderRadiusNormal}}
-                    shouldShowRightIcon
+                    shouldShowChevron
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID))}
                 />
                 <Text style={[styles.sectionTitle, styles.pl5, styles.pr5, styles.pb2, styles.mt3]}>{translate('workspace.common.existingConnections')}</Text>
