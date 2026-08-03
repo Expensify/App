@@ -51,7 +51,15 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canEditWorkspaceSettings, getRulesDocumentSourceURL, getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyOwner} from '@libs/PolicyUtils';
+import {
+    canEditWorkspaceSettings,
+    getRulesDocumentSourceURL,
+    getUserFriendlyWorkspaceType,
+    goBackFromInvalidPolicy,
+    isArchivedPolicy,
+    isPendingDeletePolicy,
+    isPolicyOwner,
+} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
@@ -176,7 +184,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const policyName = policy?.name ?? '';
     const policyDescription = policy?.description ?? translate('workspace.common.defaultDescription');
     const policyCurrency = policy?.outputCurrency ?? '';
-    const readOnly = !canEditWorkspaceSettings(policy);
+    const readOnly = !canEditWorkspaceSettings(policy) || isArchivedPolicy(policy);
     const currencyReadOnly = readOnly || isBankAccountVerified;
     const isOwner = isPolicyOwner(policy, currentUserPersonalDetails.accountID);
     const shouldShowAddress = !readOnly || !!formattedAddress;
