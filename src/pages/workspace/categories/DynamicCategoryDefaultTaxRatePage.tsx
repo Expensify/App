@@ -49,7 +49,7 @@ function DynamicCategoryDefaultTaxRatePage({
     const [draftTaxRate, setDraftTaxRate] = useState<string>();
     const selectedTaxRate = draftTaxRate ?? persistedTaxRate;
     const hasChanges = !!selectedTaxRate && selectedTaxRate !== persistedTaxRate;
-    const initialSelectedTaxRate = useInitialSelection(selectedTaxRate, {resetOnFocus: true});
+    const initialSelectedTaxRate = useInitialSelection(selectedTaxRate, {isVisible: !!persistedTaxRate, resetOnFocus: true});
 
     const textForDefault = useCallback((taxID: string, taxRate: TaxRate) => formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates), [policy?.taxRates, translate]);
 
