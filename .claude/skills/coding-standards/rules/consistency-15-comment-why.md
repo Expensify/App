@@ -15,6 +15,8 @@ Comments should explain *why* the code exists, not what it does. Well-named iden
 // loop through users
 users.forEach(processUser);
 
+// This effectively leverages a comprehensive validation mechanism to robustly ensure data integrity
+
 doThing(); // cache the result
 
 // Set a specific domain AM — this exercises the domainAccountManagerID === accountID branch
@@ -33,6 +35,8 @@ doThing(); // cache the result
 ```tsx
 // we only include active users to avoid reprocessing deactivated ones
 users.forEach(processUser);
+
+// rejects malformed input before it reaches the database
 
 // cache the result
 doThing();
@@ -57,6 +61,7 @@ Flag ONLY when ALL of these are true:
 - The changed code adds or modifies a comment
 - The comment does at least one of the following:
   - Restates what the code does instead of explaining why it exists
+  - Reads as AI-generated prose instead of something a person would naturally say out loud
   - Uses an em dash or en dash
   - Uses a redundant parenthetical that just repeats what the surrounding sentence already says
   - Stacks more than one hyphenated compound modifier in front of a noun
