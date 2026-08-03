@@ -68,7 +68,6 @@ function ExpenseFlatSearchView({
         toggleAll,
         selectedTransactions,
         listRef,
-        hasItemsBeingRemoved,
         lastPaymentMethod,
         personalPolicyID,
         userBillingGracePeriodEnds,
@@ -94,13 +93,14 @@ function ExpenseFlatSearchView({
 
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         const isDisabled = isRowDeleted(item);
-        // Only expense row exits animate; invoice and trip transaction lists do not (matches the legacy per-type gate).
-        const shouldApplyAnimation = type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < data.length - 1;
 
         return (
+            // Exit animations are disabled here. Reanimated runs its web entering/exiting animations in class
+            // lifecycles, which React re-invokes on every <Activity> hide and reveal, so rows with an `exiting`
+            // config replayed their exit and entrance on every navigation over the search screen.
             <AnimatedExitRow
-                shouldApplyAnimation={shouldApplyAnimation}
-                hasItemsBeingRemoved={hasItemsBeingRemoved}
+                shouldApplyAnimation={false}
+                hasItemsBeingRemoved={false}
             >
                 <TransactionListItem
                     showTooltip

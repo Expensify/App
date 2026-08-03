@@ -145,7 +145,6 @@ function ExpenseGroupedSearchView({
         toggleAll,
         selectedTransactions,
         listRef,
-        hasItemsBeingRemoved,
         lastPaymentMethod,
         personalPolicyID,
         userBillingGracePeriodEnds,
@@ -271,9 +270,12 @@ function ExpenseGroupedSearchView({
         // Non-split group rows: TransactionGroupListItem renders the whole group (header + children).
         const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
         return (
+            // Exit animations are disabled here. Reanimated runs its web entering/exiting animations in class
+            // lifecycles, which React re-invokes on every <Activity> hide and reveal, so rows with an `exiting`
+            // config replayed their exit and entrance on every navigation over the search screen.
             <AnimatedExitRow
-                shouldApplyAnimation={type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < listData.length - 1}
-                hasItemsBeingRemoved={hasItemsBeingRemoved}
+                shouldApplyAnimation={false}
+                hasItemsBeingRemoved={false}
             >
                 <TransactionGroupListItem
                     showTooltip
