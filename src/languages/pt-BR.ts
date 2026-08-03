@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Proprietário',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'calendário aberto',
+        dialogOpened: 'diálogo',
         send: 'Enviar',
         na: 'N/D',
         noResultsFound: 'Nenhum resultado encontrado',
@@ -437,6 +438,7 @@ const translations: TranslationDeepObject<typeof en> = {
         perDiem: 'Diária',
         validate: 'Validar',
         downloadAsPDF: 'Baixar como PDF',
+        downloadReceipts: 'Baixar recibos',
         downloadAsCSV: 'Baixar como CSV',
         submitViaPDF: 'Enviar via PDF',
         print: 'Imprimir',
@@ -1466,6 +1468,8 @@ const translations: TranslationDeepObject<typeof en> = {
         paidThisBill: 'pagou esta conta',
         reimbursedOnBehalfOf: (actor: string) => `em nome de ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `da conta bancária com final ${debitBankAccount}`,
+        reimbursedCrossBorder: ({amount, debitBankAccount, creditBankAccount}: {amount: string; debitBankAccount: string; creditBankAccount: string}) =>
+            `pagou ${amount} da conta ${debitBankAccount} para a conta ${creditBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} adicionou uma conta bancária, retirando o relatório da suspensão. O reembolso foi iniciado`,
         reimbursedWithFastACH: ({
             isCurrentUser,
@@ -1627,8 +1631,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Apenas aprovar',
         holdEducationalTitle: 'Você deve reter esta despesa?',
         whatIsHoldExplain: 'Reter é como apertar “pausa” em uma despesa até que você esteja pronto para enviá-la.',
+        whatIsHoldExplainDM: "Reter e como apertar 'pausa' em uma despesa ate que voce esteja pronto para envia-la.",
         holdIsLeftBehind: 'Despesas em espera ficam de fora mesmo se você enviar um relatório inteiro.',
+        holdIsLeftBehindDM: 'Despesas retidas nao serao enviadas ate que voce remova a retencao.',
         unholdWhenReady: 'Desbloqueie as despesas quando estiver pronto para enviá-las.',
+        unholdWhenReadyDM: 'Remova a retencao das despesas quando estiver pronto para envia-las.',
         changePolicyEducational: {
             title: 'Você moveu este relatório!',
             description: 'Confira novamente estes itens, que tendem a mudar ao mover relatórios para um novo workspace.',
@@ -2794,6 +2801,13 @@ ${amount} para ${merchant} - ${date}`,
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Não foi possível alterar a frequência de envio. Tente novamente ou entre em contato com o suporte.',
         monthlyOffsetErrorMessage: 'Não foi possível alterar a frequência mensal. Tente novamente ou entre em contato com o suporte.',
+    },
+    workflowsCurrencyConversionFeesPage: {
+        title: 'Taxas de conversão de moeda',
+        subtitle: 'Ao reembolsar em uma moeda diferente, taxas de conversão podem ser aplicadas. Selecione abaixo quem pagará as taxas. Isso se aplica apenas a conversões internacionais.',
+        companyPays: 'A empresa paga',
+        employeePays: 'O funcionário paga',
+        errorMessage: 'Não foi possível alterar a preferência de taxas de conversão de moeda. Tente novamente ou entre em contato com o suporte.',
     },
     workflowsCreateApprovalsPage: {
         title: 'Confirmar',
@@ -4699,6 +4713,11 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Diária',
                 subtitle: 'Defina taxas de diárias para controlar os gastos diários dos funcionários. Importe as taxas de uma planilha para começar.',
             },
+            requestEmptyList: {
+                title: 'Ainda não há diárias',
+                subtitle: 'Este espaço de trabalho não tem nenhuma diária definida, peça para o seu administrador adicionar algumas.',
+                adminSubtitle: 'Adicione diárias para organizar seus gastos.',
+            },
             importPerDiemRates: 'Importar tarifas de diária',
             editPerDiemRate: 'Editar diárias',
             editPerDiemRates: 'Editar diárias',
@@ -5605,7 +5624,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             rilletSetup: 'Configuração do Rillet',
             enterCredentials: 'Insira sua chave de API Rillet',
             howToFindAPIKey:
-                '<strong>Encontrando sua chave de API.</strong><ol><li>Faça login no Rillet</li><li>Vá para Conta -> Configurações</li><li>Copie a chave de API abaixo</li></ol>',
+                '<strong>Encontrando sua chave de API.</strong><ol><li>Faça login no Rillet</li><li>Navegue até [organization name] -> Configurações da organização -> Acesso à API</li><li>Crie a chave de API</li><li>Cole a chave de API abaixo</li></ol>',
             subsidiary: 'Subsidiária',
             subsidiarySelectDescription: 'Escolha a subsidiária no Rillet da qual você gostaria de importar dados.',
             noSubsidiariesFound: 'Nenhuma subsidiária encontrada',
@@ -5837,7 +5856,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             directFeed: 'Feed direto',
             whoNeedsCardAssigned: 'Quem precisa de um cartão atribuído?',
             chooseTheCardholder: 'Escolha o titular do cartão',
-            pleaseSelectACardholder: 'Selecione um titular do cartão para continuar',
             chooseCard: 'Escolha um cartão',
             chooseCardFor: (assignee: string) =>
                 `Escolha um cartão para <strong>${assignee}</strong>. Não encontra o cartão que está procurando? <concierge-link>Conte para a gente.</concierge-link>`,
@@ -5900,6 +5918,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             balanceWillBeSettledOn: (settlementDate: string) => `O saldo será liquidado em ${settlementDate}`,
             settleBalance: 'Quitar saldo',
             cardLimit: 'Limite do cartão',
+            remaining: 'Restante',
             remainingLimit: 'Limite restante',
             requestLimitIncrease: 'Solicitar aumento de limite',
             remainingLimitDescription:
@@ -6630,8 +6649,6 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             peopleAdmins: 'Administradores de pessoas',
             paymentsAdmins: 'Administradores de pagamentos',
             members: 'Membros',
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `Você não pode remover ${memberName} deste workspace enquanto essa pessoa tiver um Cartão Expensify. Desative o cartão em Workspace > Cartão Expensify e tente novamente.`,
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -7279,6 +7296,8 @@ ${reportName}`,
 Exija dados de despesas como recibos e descrições, defina limites e padrões e automatize aprovações e pagamentos – tudo em um só lugar.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Regras estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+                onlyAvailableOnPlanUnlimited: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>O acesso ilimitado às regras está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
             perDiem: {
                 title: 'Diária',
@@ -7429,6 +7448,12 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     `<muted-text>Funções especializadas no espaço de trabalho estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
             unlockFeatures: 'Desbloqueie estes recursos!',
+            publicReceiptVisibility: {
+                title: 'Visibilidade pública do recibo',
+                description: 'Se você quer tornar os links dos seus recibos acessíveis para qualquer pessoa, como um cliente ou contador externo, este recurso é para você.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>A visibilidade pública de recibos está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7535,6 +7560,15 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 requireCompanyCard: 'Exigir cartões corporativos para todas as compras',
                 requireCompanyCardDescription: 'Sinalize todos os gastos em dinheiro, incluindo despesas com quilometragem e diárias.',
                 requireCompanyCardDisabledTooltip: 'Ative Cartões corporativos (em Mais recursos) para desbloquear.',
+                publicReceiptVisibility: 'Visibilidade pública do recibo',
+                publicReceiptVisibilityHintEnabled: 'Comprovantes podem ser visualizados por qualquer pessoa que tenha a URL. Não é necessário ter acesso ao relatório com o comprovante.',
+                publicReceiptVisibilityHintDisabled: 'Os recibos só podem ser vistos por membros da Expensify com acesso ao relatório que contém o recibo.',
+                enableTagsToUnlockTitle: 'Ativar tags?',
+                enableTagsToUnlockPrompt: 'Ative as Tags (em Mais recursos) para desbloquear.',
+                enableTagsAndRequirePrompt: 'Tem certeza de que quer ativar etiquetas e exigi-las para todas as despesas?',
+                enableCategoriesToUnlockTitle: 'Ativar categorias?',
+                enableCategoriesToUnlockPrompt: 'Ative Categorias (em Mais recursos) para desbloquear.',
+                enableCategoriesAndRequirePrompt: 'Tem certeza de que deseja ativar categorias e torná-las obrigatórias para todas as despesas?',
             },
             expenseReportRules: {
                 title: 'Avançado',
@@ -9737,6 +9771,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `A tarifa só é válida de ${startDate} até ${endDate}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `A tarifa só é válida a partir de ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `A tarifa só é válida até ${endDate}`,
+        cannotMergeDuplicates: 'Você só pode mesclar despesas em relatórios rascunho ou pendentes. Retraia o relatório e tente novamente.',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} é obrigatório`,
@@ -10292,6 +10327,11 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        receiptsFailedBody: 'Não foi possível baixar seus recibos. Tente novamente mais tarde.',
+        noReceiptsTitle: 'Nenhum recibo para baixar',
+        noReceiptsBody: 'Nenhuma das despesas neste relatório possui recibos para download.',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} de ${total} recibos foram exportados com sucesso. Se o download não iniciou automaticamente, use o botão abaixo.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',

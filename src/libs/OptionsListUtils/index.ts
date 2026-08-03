@@ -2420,7 +2420,7 @@ function prepareReportOptionsForDisplay(
     options: Array<SearchOption<Report>>,
     policiesCollection: OnyxCollection<Policy>,
     isOffline: boolean,
-    config: GetValidReportsConfig,
+    config: GetValidReportsConfig & {translate: LocalizedTranslate},
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -2441,6 +2441,7 @@ function prepareReportOptionsForDisplay(
         shouldShowGBR = false,
         shouldUnreadBeBold = false,
         personalDetails,
+        translate,
     } = config;
 
     const validOptions: Array<SearchOption<Report>> = [];
@@ -2520,8 +2521,8 @@ function prepareReportOptionsForDisplay(
         }
 
         if (shouldSeparateWorkspaceChat && newReportOption.isPolicyExpenseChat && !newReportOption.private_isArchived) {
-            newReportOption.text = getPolicyName({report, policy});
-            newReportOption.alternateText = translateLocal('workspace.common.workspace');
+            newReportOption.text = getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
+            newReportOption.alternateText = translate('workspace.common.workspace');
 
             if (report?.policyID) {
                 const submitToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report?.ownerAccountID, personalDetails));
@@ -2529,7 +2530,7 @@ function prepareReportOptionsForDisplay(
                 const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
                 if (subtitle) {
-                    newReportOption.alternateText = translateLocal('iou.submitsTo', subtitle ?? '');
+                    newReportOption.alternateText = translate('iou.submitsTo', subtitle ?? '');
                 }
                 const canSubmitPerDiemExpense = canSubmitPerDiemExpenseFromWorkspace(policy);
                 if (!canSubmitPerDiemExpense && isPerDiemRequest) {
@@ -2583,7 +2584,8 @@ function getValidOptions(
         isTrackIntentUser,
         isOffline,
         ...config
-    }: GetOptionsConfig = {},
+    }: GetOptionsConfig,
+    translate: LocalizedTranslate,
 ): OptionsResult {
     // Gather shared configs:
     // Hard exclusions: cannot be selected at all
@@ -2716,6 +2718,7 @@ function getValidOptions(
                     shouldSeparateWorkspaceChat,
                     shouldShowGBR,
                     personalDetails,
+                    translate,
                 },
                 conciergeReportID,
                 sortedActions,
@@ -2741,6 +2744,7 @@ function getValidOptions(
                 shouldSeparateWorkspaceChat,
                 shouldShowGBR,
                 personalDetails,
+                translate,
             },
             conciergeReportID,
             sortedActions,
@@ -2762,6 +2766,7 @@ function getValidOptions(
                 shouldSeparateWorkspaceChat,
                 shouldShowGBR,
                 personalDetails,
+                translate,
             },
             conciergeReportID,
             sortedActions,
@@ -2927,6 +2932,7 @@ type SearchOptionsConfig = {
     conciergeReportID: string | undefined;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     isTrackIntentUser?: boolean;
+    translate: LocalizedTranslate;
 };
 
 /**
@@ -2958,36 +2964,47 @@ function getSearchOptions({
     conciergeReportID,
     excludeFromSuggestionsOnly = {},
     isTrackIntentUser,
+    translate,
 }: SearchOptionsConfig): OptionsResult {
-    const optionList = getValidOptions(options, policyCollection, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
-        betas,
-        includeRecentReports,
-        includeMultipleParticipantReports: true,
-        showChatPreviewLine: isUsedInChatFinder,
-        includeP2P: true,
-        includeOwnedWorkspaceChats: true,
-        includeThreads: true,
-        includeMoneyRequests: true,
-        includeTasks: true,
-        includeReadOnly,
-        includeSelfDM: true,
-        shouldBoldTitleByDefault: !isUsedInChatFinder,
-        excludeHidden: true,
-        maxElements: maxResults,
-        includeCurrentUser,
-        searchString: searchQuery,
-        includeUserToInvite,
-        shouldShowGBR,
-        shouldUnreadBeBold,
-        personalDetails,
-        countryCode,
-        visibleReportActionsData,
-        reportAttributesDerived,
-        allPolicyTags,
-        sortedActions,
-        excludeFromSuggestionsOnly,
-        isTrackIntentUser,
-    });
+    const optionList = getValidOptions(
+        options,
+        policyCollection,
+        draftComments,
+        loginList,
+        currentUserAccountID,
+        currentUserEmail,
+        conciergeReportID,
+        {
+            betas,
+            includeRecentReports,
+            includeMultipleParticipantReports: true,
+            showChatPreviewLine: isUsedInChatFinder,
+            includeP2P: true,
+            includeOwnedWorkspaceChats: true,
+            includeThreads: true,
+            includeMoneyRequests: true,
+            includeTasks: true,
+            includeReadOnly,
+            includeSelfDM: true,
+            shouldBoldTitleByDefault: !isUsedInChatFinder,
+            excludeHidden: true,
+            maxElements: maxResults,
+            includeCurrentUser,
+            searchString: searchQuery,
+            includeUserToInvite,
+            shouldShowGBR,
+            shouldUnreadBeBold,
+            personalDetails,
+            countryCode,
+            visibleReportActionsData,
+            reportAttributesDerived,
+            allPolicyTags,
+            sortedActions,
+            excludeFromSuggestionsOnly,
+            isTrackIntentUser,
+        },
+        translate,
+    );
 
     return optionList;
 }
