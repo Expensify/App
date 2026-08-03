@@ -10,7 +10,7 @@ import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
 
-import {useIsAppLoadPending} from './useInFlightRequests';
+import {useIsAppLoadPending, useIsReportLoadPending} from './useInFlightRequests';
 import useLoadReportActions from './useLoadReportActions';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -52,6 +52,8 @@ function useReportActionsListModel(reportID: string) {
 
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
+    const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;
+    const hasLoadingOlderReportActionsError = reportLoadingState?.hasLoadingOlderReportActionsError;
     const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
 
     const {sessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
@@ -63,10 +65,13 @@ function useReportActionsListModel(reportID: string) {
     const canPerformWriteAction = !!canUserPerformWriteAction(report, isReportArchived);
 
     const isAppLoadPending = useIsAppLoadPending();
+    // Queue-derived, unlike `isLoadingInitialReportActions`: a loading flag with no matching OpenReport
+    // behind it in this session is ignored, so a stale flag can't block the backfill indefinitely.
+    const isReportLoadPending = useIsReportLoadPending(reportID);
 
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`);
 
-    const {loadOlderChats, loadNewerChats} = useLoadReportActions({
+    const {loadOlderChats, loadNewerChats, currentReportOldestActionID} = useLoadReportActions({
         reportID,
         reportActions,
         allReportActionIDs,
@@ -117,9 +122,14 @@ function useReportActionsListModel(reportID: string) {
         isReportTransactionThread,
         shouldBeAlignedToTop,
         isLoadingInitialReportActions,
+        isReportLoadPending,
+        isLoadingOlderReportActions,
+        hasLoadingOlderReportActionsError,
         hasOnceLoadedReportActions,
         isLoadingApp: isAppLoadPending,
         reportActionsLength: reportActions.length,
+        oldestReportActionID: currentReportOldestActionID,
+        hasOlderActions,
         oldestUnreadReportAction,
         isSingleExpenseReport,
         isMissingReportActions,

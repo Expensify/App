@@ -139,6 +139,10 @@ function useLoadReportActions({
     return {
         loadOlderChats,
         loadNewerChats,
+        // The exact cursor `loadOlderChats` sends. Exposed so callers that need to tell whether a request
+        // made progress compare against the ID that was actually requested, not against the rendered chain
+        // (which can end on a transaction thread action or a synthetic one that never reaches the server).
+        currentReportOldestActionID: currentReportOldestAction?.reportActionID,
     };
 }
 
