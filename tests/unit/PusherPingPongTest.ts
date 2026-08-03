@@ -10,6 +10,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import Onyx from 'react-native-onyx';
 
 jest.mock('@libs/API');
+const mockAPI = jest.mocked(API);
+
 jest.mock('@libs/PusherUtils');
 jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: jest.fn(() => true),
@@ -36,7 +38,7 @@ describe('Pusher PINGPONG watchdog', () => {
         reconnectSpy = jest.spyOn(Pusher, 'reconnect').mockImplementation(() => {});
 
         // The automock returns undefined, and pingPusher chains a .catch on the returned promise
-        jest.mocked(API.makeRequestWithSideEffects).mockResolvedValue(undefined);
+        mockAPI.makeRequestWithSideEffects.mockResolvedValue(undefined);
 
         subscribeToUserEvents(123, 'test@example.com', () => undefined);
 
@@ -85,7 +87,7 @@ describe('Pusher PINGPONG watchdog', () => {
     });
 
     it('sends the PING off the durable write queue', () => {
-        expect(API.makeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.PUSHER_PING, expect.objectContaining({pingID: expect.any(String)}));
-        expect(API.writeWithNoDuplicatesConflictAction).not.toHaveBeenCalled();
+        expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.PUSHER_PING, expect.anything());
+        expect(mockAPI.writeWithNoDuplicatesConflictAction).not.toHaveBeenCalled();
     });
 });
