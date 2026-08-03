@@ -2557,6 +2557,7 @@ describe('actions/IOU', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
