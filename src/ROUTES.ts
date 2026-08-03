@@ -723,6 +723,12 @@ const DYNAMIC_ROUTES = {
         path: 'pay-and-downgrade',
         entryScreens: [SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE],
     },
+    WORKSPACE_DOWNGRADE: {
+        path: 'downgrade',
+        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.ROOT, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_PLAN],
+        getRoute: (policyID?: string) => getUrlWithParams('downgrade', {policyID}),
+        queryParams: ['policyID'],
+    },
     WORKSPACE_CATEGORIES_IMPORT: {
         path: 'import',
         entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
@@ -2999,11 +3005,6 @@ const ROUTES = {
             const urlWithParams = reportID || upgradePlanType ? getUrlWithParams(base, {reportID, upgradePlanType}) : base;
             return getUrlWithBackToParam(urlWithParams, backTo);
         },
-    },
-    WORKSPACE_DOWNGRADE: {
-        route: 'workspaces/:policyID?/downgrade/',
-
-        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(policyID ? (`workspaces/${policyID}/downgrade/` as const) : (`workspaces/downgrade` as const), backTo),
     },
     WORKSPACE_MORE_FEATURES: {
         route: 'workspaces/:policyID/more-features',

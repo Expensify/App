@@ -876,7 +876,7 @@ const SCREENS = {
         DISTANCE_RATE_START_DATE_EDIT: 'Distance_Rate_Start_Date_Edit',
         DISTANCE_RATE_END_DATE_EDIT: 'Distance_Rate_End_Date_Edit',
         UPGRADE: 'Workspace_Upgrade',
-        DOWNGRADE: 'Workspace_Downgrade',
+        DYNAMIC_WORKSPACE_DOWNGRADE: 'Dynamic_Workspace_Downgrade',
         DYNAMIC_PAY_AND_DOWNGRADE: 'Dynamic_Workspace_Pay_And_Downgrade',
         RECEIPT_PARTNERS: 'Workspace_Receipt_Partners',
         DYNAMIC_RECEIPT_PARTNERS_INVITE: 'Dynamic_Workspace_Receipt_Partners_Invite',
