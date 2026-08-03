@@ -136,7 +136,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
             clearErrorFields(formID);
             return;
         }
-        formRef.current?.resetFormFieldError(bankStatementInputID as string);
+        formRef.current?.resetFormFieldError(String(bankStatementInputID));
         clearErrors(formID);
         setErrorFields(formID, {[bankStatementInputID]: {onUpload: error}});
     };
@@ -243,7 +243,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                             }}
                             acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                             value={uploadedBankStatement}
-                            inputID={bankStatementInputID as string}
+                            inputID={String(bankStatementInputID)}
                             setError={(error) => {
                                 setBankStatementError(error);
                             }}
