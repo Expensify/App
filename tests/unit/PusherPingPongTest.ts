@@ -1,4 +1,6 @@
 import {subscribeToUserEvents} from '@libs/actions/User';
+import * as API from '@libs/API';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import type * as NetworkStateModule from '@libs/NetworkState';
 import Pusher from '@libs/Pusher';
 import PusherUtils from '@libs/PusherUtils';
@@ -32,6 +34,9 @@ describe('Pusher PINGPONG watchdog', () => {
         jest.useFakeTimers();
         Onyx.init({keys: ONYXKEYS});
         reconnectSpy = jest.spyOn(Pusher, 'reconnect').mockImplementation(() => {});
+
+        // The automock returns undefined, and pingPusher chains a .catch on the returned promise
+        jest.mocked(API.makeRequestWithSideEffects).mockResolvedValue(undefined);
 
         subscribeToUserEvents(123, 'test@example.com', () => undefined);
 
@@ -77,5 +82,10 @@ describe('Pusher PINGPONG watchdog', () => {
 
         await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS);
         expect(reconnectSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('sends the PING off the durable write queue', () => {
+        expect(API.makeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.PUSHER_PING, expect.objectContaining({pingID: expect.any(String)}));
+        expect(API.writeWithNoDuplicatesConflictAction).not.toHaveBeenCalled();
     });
 });
