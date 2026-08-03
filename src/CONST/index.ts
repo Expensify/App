@@ -697,7 +697,7 @@ const CONST = {
                 ADDRESS: 'address',
                 TYPE: 'type',
                 INCORPORATION_DATE: 'start-date',
-                INCORPORATION_STATE: 'state',
+                INCORPORATION_STATE: 'incorporation-state',
                 INCORPORATION_CODE: 'code',
                 CONFIRMATION: 'confirmation',
             },
