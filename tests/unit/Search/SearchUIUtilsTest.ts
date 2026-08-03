@@ -9650,6 +9650,45 @@ describe('SearchUIUtils', () => {
             expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM);
         });
 
+        test('Should only show the conversion amount columns for reports whose reimbursement converted currencies', () => {
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED, CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED];
+            const domesticReport = {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, total: -10000, currency: 'USD'};
+            const crossBorderReport = {
+                ...domesticReport,
+                reportID: '2',
+                debitedAmount: 30000,
+                debitedCurrency: 'GBP',
+                creditedAmount: 37250,
+                creditedCurrency: 'USD',
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const domesticData: OnyxTypes.SearchResults['data'] = {[`${ONYXKEYS.COLLECTION.REPORT}${domesticReport.reportID}`]: domesticReport};
+            const crossBorderData: OnyxTypes.SearchResults['data'] = {...domesticData, [`${ONYXKEYS.COLLECTION.REPORT}${crossBorderReport.reportID}`]: crossBorderReport};
+
+            const domesticColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: domesticData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            expect(domesticColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED);
+            expect(domesticColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
+
+            const crossBorderColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: crossBorderData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            expect(crossBorderColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED);
+            expect(crossBorderColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
+
+            // Without a currency the amount cannot be rendered, so that column stays hidden.
+            const missingCurrencyData: OnyxTypes.SearchResults['data'] = {
+                ...domesticData,
+                [`${ONYXKEYS.COLLECTION.REPORT}${crossBorderReport.reportID}`]: {...crossBorderReport, creditedCurrency: undefined},
+            };
+            const missingCurrencyColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data: missingCurrencyData,
+                visibleColumns,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            });
+            expect(missingCurrencyColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED);
+            expect(missingCurrencyColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
+        });
+
         test('Should only show the conversion amount columns for withdrawal groups that converted currencies', () => {
             const domesticGroup = {
                 entryID: 1,

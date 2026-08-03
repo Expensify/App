@@ -594,6 +594,29 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense total>1 total<1000');
         });
 
+        test('conversion amount filter values', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                amountDebitedGreaterThan: '1',
+                amountDebitedLessThan: '1000',
+                amountReimbursedEqualTo: '500',
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense-report amountDebited>1 amountDebited<1000 amountReimbursed:500');
+        });
+
+        test('conversion amount filters survive on an expense search, where the expense reports its report amounts', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                amountDebitedEqualTo: '1694',
+                amountReimbursedGreaterThan: '1000',
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense amountDebited:1694 amountReimbursed>1000');
+        });
+
         test('equal to filter values', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -1179,6 +1202,22 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({
                 type: 'expense',
                 action: undefined,
+            });
+        });
+
+        test('conversion amount filters parse from either spelling of the key', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense-report amount-debited>1000 amountReimbursed<2000');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toMatchObject({
+                type: 'expense-report',
+                amountDebitedGreaterThan: '1000',
+                amountReimbursedLessThan: '2000',
             });
         });
 
