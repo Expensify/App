@@ -8247,11 +8247,7 @@ const translations = {
                 emptySuggestionsTitle: 'No suggestions available',
                 emptySuggestionsSubtitle: 'Try writing your own rule.',
                 gotIt: 'Got it',
-                saveConfirmation: {
-                    title: 'Save rule',
-                    prompt: 'RuleBot will apply this rule to new expenses.',
-                    applyToUnapprovedExpenses: ({count}: {count: number}) => `Also check ${count} unapproved expense${count === 1 ? '' : 's'} against this rule`,
-                },
+                applyRetroactively: 'Apply rule to historical expenses too',
             },
         },
         planTypePage: {

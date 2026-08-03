@@ -7,7 +7,6 @@ import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
-import useAgentRuleApplyConfirmation from '@hooks/useAgentRuleApplyConfirmation';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -76,7 +75,6 @@ function AddAgentRulePage({
     const [activeTabPolicyID, setActiveTabPolicyID] = useState(policyID);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT);
     const tabIcons = useMemoizedLazyExpensifyIcons(['Feed', 'Pencil']);
-    const {confirmAgentRuleSave} = useAgentRuleApplyConfirmation(policyID);
 
     const hasDraftPrompt = !!draftValues?.[INPUT_IDS.PROMPT]?.trim();
 
@@ -149,62 +147,60 @@ function AddAgentRulePage({
         Navigation.goBack();
     };
 
-    const saveRule = (values: FormOnyxValues<AddAgentRuleFormID>): void => {
-        confirmAgentRuleSave((applyToExistingExpenses) => {
-            // When the workspace has no agent rules yet, the backend creates the "RuleBot" agent and adds it as
-            // an admin. Surface a one-time modal explaining this side effect before navigating back.
-            const isFirstRule = isEmptyObject(policy?.rules?.agentRules);
-            suppressDiscardPrompt();
-            addPolicyAgentRule(policyID, rand64(), values[INPUT_IDS.PROMPT], applyToExistingExpenses);
-            clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM);
-            if (!isFirstRule) {
-                navigateBackToAgentsTab();
-                return;
-            }
-            linkPressedRef.current = false;
-            const handleAgentsLinkPress = () => {
-                linkPressedRef.current = true;
-                closeModal();
-            };
+    const saveRule = (values: FormOnyxValues<AddAgentRuleFormID>, applyRetroactively: boolean): void => {
+        // When the workspace has no agent rules yet, the backend creates the "RuleBot" agent and adds it as
+        // an admin. Surface a one-time modal explaining this side effect before navigating back.
+        const isFirstRule = isEmptyObject(policy?.rules?.agentRules);
+        suppressDiscardPrompt();
+        addPolicyAgentRule(policyID, rand64(), values[INPUT_IDS.PROMPT], applyRetroactively);
+        clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM);
+        if (!isFirstRule) {
+            navigateBackToAgentsTab();
+            return;
+        }
+        linkPressedRef.current = false;
+        const handleAgentsLinkPress = () => {
+            linkPressedRef.current = true;
+            closeModal();
+        };
 
-            if (isRulesRevampEnabled) {
-                Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
-            }
+        if (isRulesRevampEnabled) {
+            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
+        }
 
-            Navigation.dismissModal({
-                afterTransition: () => {
-                    showConfirmModal({
-                        title: translate('workspace.rules.agentRules.agentCreatedTitle'),
-                        titleStyles: styles.textHeadlineH1,
-                        prompt: (
-                            <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                                <RenderHTML
-                                    html={translate('workspace.rules.agentRules.agentCreatedDescription', ROUTES.SETTINGS_AGENTS)}
-                                    onLinkPress={handleAgentsLinkPress}
-                                />
-                            </View>
-                        ),
-                        confirmText: isRulesRevampEnabled ? translate('workspace.rules.agentRules.gotIt') : translate('common.buttonConfirm'),
-                        shouldShowCancelButton: false,
-                        shouldUseSuccessStyleForConfirm: true,
-                        iconSource: BotAvatarBlue,
-                        iconFill: false,
-                        shouldCenterIcon: true,
-                        iconWidth: variables.iconSizeUltraLarge,
-                        iconHeight: variables.iconSizeUltraLarge,
-                        iconAdditionalStyles: {
-                            borderRadius: variables.iconSizeUltraLarge / 2,
-                            overflow: 'hidden',
-                            marginTop: 12,
-                        },
-                    }).then(() => {
-                        if (!linkPressedRef.current) {
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.SETTINGS_AGENTS);
-                    });
-                },
-            });
+        Navigation.dismissModal({
+            afterTransition: () => {
+                showConfirmModal({
+                    title: translate('workspace.rules.agentRules.agentCreatedTitle'),
+                    titleStyles: styles.textHeadlineH1,
+                    prompt: (
+                        <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
+                            <RenderHTML
+                                html={translate('workspace.rules.agentRules.agentCreatedDescription', ROUTES.SETTINGS_AGENTS)}
+                                onLinkPress={handleAgentsLinkPress}
+                            />
+                        </View>
+                    ),
+                    confirmText: isRulesRevampEnabled ? translate('workspace.rules.agentRules.gotIt') : translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                    shouldUseSuccessStyleForConfirm: true,
+                    iconSource: BotAvatarBlue,
+                    iconFill: false,
+                    shouldCenterIcon: true,
+                    iconWidth: variables.iconSizeUltraLarge,
+                    iconHeight: variables.iconSizeUltraLarge,
+                    iconAdditionalStyles: {
+                        borderRadius: variables.iconSizeUltraLarge / 2,
+                        overflow: 'hidden',
+                        marginTop: 12,
+                    },
+                }).then(() => {
+                    if (!linkPressedRef.current) {
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SETTINGS_AGENTS);
+                });
+            },
         });
     };
 

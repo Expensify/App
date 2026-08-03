@@ -7871,12 +7871,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 findSuggestion: 'Encontrar uma regra',
                 emptySuggestionsTitle: 'Nenhuma sugestão disponível',
                 emptySuggestionsSubtitle: 'Tente escrever sua própria regra.',
-                saveConfirmation: {
-                    title: 'Salvar regra',
-                    prompt: 'O RuleBot aplicará esta regra a novas despesas.',
-                    applyToUnapprovedExpenses: ({count}: {count: number}) =>
-                        `Verificar também ${count} ${count === 1 ? 'despesa não aprovada' : 'despesas não aprovadas'} com base nesta regra`,
-                },
+                applyRetroactively: 'Aplicar a regra também às despesas anteriores',
                 revampSubtitle: 'Descreva regras flexíveis que são executadas quando você precisar.',
                 describeRuleForConcierge: 'Descreva sua regra e o Concierge vai criá-la',
                 gotIt: 'Entendi',

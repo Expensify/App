@@ -7926,11 +7926,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 describeRuleForConcierge: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
                 gotIt: 'Verstanden',
                 createRule: 'Regel erstellen',
-                saveConfirmation: {
-                    title: 'Regel speichern',
-                    prompt: 'RuleBot wendet diese Regel auf neue Ausgaben an.',
-                    applyToUnapprovedExpenses: ({count}: {count: number}) => `Auch ${count} nicht genehmigte ${count === 1 ? 'Ausgabe' : 'Ausgaben'} anhand dieser Regel prüfen`,
-                },
+                applyRetroactively: 'Regel auch auf frühere Ausgaben anwenden',
             },
             tabs: {
                 general: 'Allgemein',

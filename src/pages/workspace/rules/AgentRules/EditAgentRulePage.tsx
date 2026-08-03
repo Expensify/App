@@ -1,4 +1,5 @@
 import Button from '@components/ButtonComposed';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -8,7 +9,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
-import useAgentRuleApplyConfirmation from '@hooks/useAgentRuleApplyConfirmation';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
@@ -32,7 +32,7 @@ import INPUT_IDS from '@src/types/form/EditAgentRuleForm';
 
 import type {StyleProp, TextInputKeyPressEvent, ViewStyle} from 'react-native';
 
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type EditAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_EDIT>;
@@ -54,7 +54,7 @@ function EditAgentRulePage({
     const policy = usePolicy(policyID);
     const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
-    const {confirmAgentRuleSave} = useAgentRuleApplyConfirmation(policyID);
+    const [applyRetroactively, setApplyRetroactively] = useState(false);
     const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
@@ -77,14 +77,10 @@ function EditAgentRulePage({
     const saveRule = (values: FormOnyxValues<EditAgentRuleFormID>): void => {
         const newPrompt = values[INPUT_IDS.PROMPT];
         const previousPrompt = agentRule?.prompt ?? '';
-        if (newPrompt === previousPrompt) {
-            Navigation.goBack();
-            return;
+        if (newPrompt !== previousPrompt) {
+            updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt, agentRule?.title, applyRetroactively);
         }
-        confirmAgentRuleSave((applyToExistingExpenses) => {
-            updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt, agentRule?.title, applyToExistingExpenses);
-            Navigation.goBack();
-        });
+        Navigation.goBack();
     };
 
     const handleDelete = () => {
@@ -144,9 +140,6 @@ function EditAgentRulePage({
                     shouldValidateOnChange
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
-                    // Submitting opens the apply-to-unapproved-expenses confirmation modal; a press-triggered
-                    // spinner would keep spinning if that modal is cancelled, since nothing else resets it.
-                    shouldShowLoadingImmediatelyOnPress={false}
                     shouldRenderFooterAboveSubmit
                     footerContent={
                         <Button
@@ -179,6 +172,13 @@ function EditAgentRulePage({
                         </View>
                         <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
                     </View>
+                    <CheckboxWithLabel
+                        accessibilityLabel={translate('workspace.rules.agentRules.applyRetroactively')}
+                        label={translate('workspace.rules.agentRules.applyRetroactively')}
+                        isChecked={applyRetroactively}
+                        onInputChange={(value) => setApplyRetroactively(!!value)}
+                        style={styles.mt4}
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

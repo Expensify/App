@@ -7855,12 +7855,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 findSuggestion: 'Znajdź regułę',
                 emptySuggestionsTitle: 'Brak dostępnych propozycji',
                 emptySuggestionsSubtitle: 'Spróbuj napisać własną regułę.',
-                saveConfirmation: {
-                    title: 'Zapisz regułę',
-                    prompt: 'RuleBot zastosuje tę regułę do nowych wydatków.',
-                    applyToUnapprovedExpenses: ({count}: {count: number}) =>
-                        `Sprawdź także zgodność ${count} ${count === 1 ? 'niezatwierdzonego wydatku' : 'niezatwierdzonych wydatków'} z tą regułą`,
-                },
+                applyRetroactively: 'Zastosuj regułę także do wcześniejszych wydatków',
                 revampSubtitle: 'Opisuj elastyczne reguły, które uruchamiają się wtedy, kiedy tego potrzebujesz.',
                 describeRuleForConcierge: 'Opisz swoją regułę, a Concierge ją utworzy',
                 gotIt: 'Jasne',

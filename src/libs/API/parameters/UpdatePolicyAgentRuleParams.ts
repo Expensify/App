@@ -2,7 +2,7 @@ type UpdatePolicyAgentRuleParams = {
     policyID: string;
     agentRuleID: string;
     prompt: string;
-    applyToExistingExpenses?: boolean;
+    applyRetroactively?: boolean;
 };
 
 export default UpdatePolicyAgentRuleParams;

@@ -1,6 +1,7 @@
 /**
  * Write (Edit) tab for the add-agent-rule flow. Owns the free-text prompt form and save path.
  */
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -18,14 +19,14 @@ import INPUT_IDS from '@src/types/form/AddAgentRuleForm';
 
 import type {StyleProp, TextInputKeyPressEvent, ViewStyle} from 'react-native';
 
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type AddAgentRuleFormID = typeof ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM;
 
 type AddAgentRuleWriteTabProps = {
-    /** Called with the form values when the user saves the rule */
-    onSave: (values: FormOnyxValues<AddAgentRuleFormID>) => void;
+    /** Called with the form values and whether the rule should also apply to the workspace's historical activity */
+    onSave: (values: FormOnyxValues<AddAgentRuleFormID>, applyRetroactively: boolean) => void;
 };
 
 function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
@@ -36,6 +37,7 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !shouldUseScrollableLayout;
     const formRef = useRef<FormRef>(null);
+    const [applyRetroactively, setApplyRetroactively] = useState(false);
     const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
@@ -64,7 +66,7 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             ref={formRef}
             formID={ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM}
             validate={validate}
-            onSubmit={onSave}
+            onSubmit={(values) => onSave(values, applyRetroactively)}
             submitButtonText={isRulesRevampEnabled ? translate('workspace.rules.agentRules.createRule') : translate('common.save')}
             style={[styles.flex1, styles.ph5]}
             shouldUseScrollView={shouldUseScrollableLayout}
@@ -74,9 +76,6 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             shouldValidateOnChange
             shouldValidateOnBlur
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
-            // Submitting opens the apply-to-unapproved-expenses confirmation modal; a press-triggered
-            // spinner would keep spinning if that modal is cancelled, since nothing else resets it.
-            shouldShowLoadingImmediatelyOnPress={false}
         >
             <View style={styles.flex1}>
                 {!isRulesRevampEnabled && (
@@ -104,6 +103,13 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
                 </View>
                 <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
             </View>
+            <CheckboxWithLabel
+                accessibilityLabel={translate('workspace.rules.agentRules.applyRetroactively')}
+                label={translate('workspace.rules.agentRules.applyRetroactively')}
+                isChecked={applyRetroactively}
+                onInputChange={(value) => setApplyRetroactively(!!value)}
+                style={styles.mt4}
+            />
         </FormProvider>
     );
 }

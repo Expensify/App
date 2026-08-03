@@ -4,7 +4,6 @@ import type {
     AddPolicyAgentRuleParams,
     DeletePolicyAgentRuleParams,
     GetAgentRuleSuggestionsParams,
-    GetPolicyUnapprovedExpenseCountParams,
     ImportMerchantRulesSpreadsheetParams,
     UpdatePolicyAgentRuleParams,
 } from '@libs/API/parameters';
@@ -162,21 +161,6 @@ function getAgentRuleSuggestions(policyID: string | undefined) {
     ];
 
     API.read(READ_COMMANDS.GET_AGENT_RULE_SUGGESTIONS, params, {optimisticData, successData, failureData});
-}
-
-/**
- * Fetches the number of submitted but not yet approved expenses on the policy, shown in the agent
- * rule save confirmation so admins can choose to apply the rule to those expenses.
- */
-function getPolicyUnapprovedExpenseCount(policyID: string | undefined) {
-    if (!policyID) {
-        Log.warn('Invalid params for getPolicyUnapprovedExpenseCount', {policyID});
-        return;
-    }
-
-    const params: GetPolicyUnapprovedExpenseCountParams = {policyID};
-
-    API.read(READ_COMMANDS.GET_POLICY_UNAPPROVED_EXPENSE_COUNT, params);
 }
 
 /**
@@ -425,7 +409,7 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
-function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string, applyToExistingExpenses?: boolean) {
+function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string, applyRetroactively?: boolean) {
     if (!policyID || !agentRuleID || !prompt) {
         Log.warn('Invalid params for addPolicyAgentRule', {policyID, agentRuleID, prompt});
         return;
@@ -491,14 +475,14 @@ function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: strin
         agentRuleID,
         prompt,
     };
-    if (applyToExistingExpenses) {
-        parameters.applyToExistingExpenses = true;
+    if (applyRetroactively) {
+        parameters.applyRetroactively = true;
     }
 
     API.write(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE, parameters, onyxData);
 }
 
-function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: string, previousPrompt: string, previousTitle?: string, applyToExistingExpenses?: boolean) {
+function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: string, previousPrompt: string, previousTitle?: string, applyRetroactively?: boolean) {
     if (!policyID || !agentRuleID || !prompt) {
         Log.warn('Invalid params for updatePolicyAgentRule', {policyID, agentRuleID, prompt});
         return;
@@ -567,8 +551,8 @@ function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: st
         agentRuleID,
         prompt,
     };
-    if (applyToExistingExpenses) {
-        parameters.applyToExistingExpenses = true;
+    if (applyRetroactively) {
+        parameters.applyRetroactively = true;
     }
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_AGENT_RULE, parameters, onyxData);
@@ -700,7 +684,6 @@ function clearPolicyAgentRuleErrors(policyID: string, agentRuleID: string, agent
 export {
     openPolicyRulesPage,
     getAgentRuleSuggestions,
-    getPolicyUnapprovedExpenseCount,
     setPolicyCodingRule,
     importMerchantRulesSpreadsheet,
     deletePolicyCodingRule,
