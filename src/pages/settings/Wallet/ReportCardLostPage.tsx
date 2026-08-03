@@ -108,7 +108,7 @@ function ReportCardLostPage({
             return;
         }
         startWithLoading(() => {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE.getRoute(cardID, reason?.key ?? OPTIONS_KEYS.DAMAGED, !!isFromDomainCardDetail));
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE.getRoute(cardID, reason?.key ?? OPTIONS_KEYS.DAMAGED, !!isFromDomainCardDetail));
         });
     };
 

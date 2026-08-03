@@ -20,20 +20,24 @@ function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response
 }
 
 function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isFromSequentialQueue = false): Promise<Response<TKey> | void> {
-    return middlewares
-        .reduce((last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request))
-        .catch((reason: unknown) => {
-            // Real Errors are already normalized/classified by the Logging middleware; pass them through untouched.
-            if (reason instanceof Error) {
-                throw reason;
-            }
-            // A non-Error rejection (e.g. a bare `null` bubbling up from an outer data middleware above
-            // Logging) would otherwise surface as a stack-less, context-free onunhandledrejection (APP-5J).
-            // Wrap it so the next occurrence on any command carries command context and a stack.
-            const normalizedError = new Error(`[API] ${request.command} rejected: ${String(reason)}`);
-            Log.alert('[API] non-Error rejection surfaced from the request pipeline', {command: request.command, reason: String(reason)});
-            throw normalizedError;
-        });
+    let result = makeXHR(request);
+
+    for (const middleware of middlewares) {
+        result = middleware(result, request, isFromSequentialQueue);
+    }
+
+    return result.catch((reason: unknown) => {
+        // Real Errors are already normalized/classified by the Logging middleware; pass them through untouched.
+        if (reason instanceof Error) {
+            throw reason;
+        }
+        // A non-Error rejection (e.g. a bare `null` bubbling up from an outer data middleware above
+        // Logging) would otherwise surface as a stack-less, context-free onunhandledrejection (APP-5J).
+        // Wrap it so the next occurrence on any command carries command context and a stack.
+        const normalizedError = new Error(`[API] ${request.command} rejected: ${String(reason)}`);
+        Log.alert('[API] non-Error rejection surfaced from the request pipeline', {command: request.command, reason: String(reason)});
+        throw normalizedError;
+    });
 }
 
 function addMiddleware(middleware: Middleware) {

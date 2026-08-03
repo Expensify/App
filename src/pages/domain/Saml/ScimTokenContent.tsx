@@ -10,6 +10,8 @@ import {getScimToken} from '@libs/actions/Domain';
 import type {ScimTokenWithState} from '@libs/actions/ScimToken/ScimTokenUtils';
 import {ScimTokenState} from '@libs/actions/ScimToken/ScimTokenUtils';
 
+import CONST from '@src/CONST';
+
 import React, {useState} from 'react';
 
 type ScimTokenContentProps = {
@@ -48,7 +50,7 @@ function ScimTokenContent({domainName}: ScimTokenContentProps) {
             <FormHelpMessageRowWithRetryButton
                 message={oktaScimToken.error}
                 onRetry={fetchOktaScimToken}
-                isButtonSmall
+                size={CONST.BUTTON_SIZE.SMALL}
             />
         );
     }

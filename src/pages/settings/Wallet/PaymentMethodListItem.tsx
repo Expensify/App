@@ -1,10 +1,14 @@
 import Badge from '@components/Badge';
 import Button from '@components/Button';
+import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
+import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
+import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import type RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
@@ -15,7 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openExternalLink} from '@libs/actions/Link';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {getBankAccountState, hasBankAccountAllowDebit, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -33,11 +37,23 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {ComponentProps} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
+
+type ConnectionStatusDetails = {
+    statusText: string;
+    statusTone?: 'default' | 'success' | 'danger';
+    tooltipText?: string;
+    message?: string;
+    actionText?: string;
+    onActionPress?: () => void;
+    isActionDisabled?: boolean;
+    onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
+};
 
 type PaymentMethodItem = PaymentMethod & {
     key?: string;
@@ -61,6 +77,8 @@ type PaymentMethodItem = PaymentMethod & {
     isCardFrozen?: boolean;
     /** Whether the personal bank account is missing required personal info (name, address, phone) */
     isMissingPersonalInfo?: boolean;
+    connectionStatus?: ConnectionStatusDetails;
+    shouldShowErrorMessages?: boolean;
     /** Whether to show the "Add details" CTA row below a virtual Expensify Card when personal details are missing */
     shouldShowMissingPersonalDetailsAction?: boolean;
 } & BankIcon;
@@ -112,11 +130,11 @@ function dismissError(item: PaymentMethodItem) {
 }
 
 function isAccountInSetupState(account: PaymentMethodItem) {
-    return !!(account.accountData && 'state' in account.accountData && isBankAccountPartiallySetup(account.accountData.state));
+    return isBankAccountPartiallySetup(getBankAccountState(account.accountData));
 }
 
 function isBusinessBankAccountLocked(account: PaymentMethodItem) {
-    return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED && account.accountData.allowDebit;
+    return getBankAccountState(account.accountData) === CONST.BANK_ACCOUNT.STATE.LOCKED && hasBankAccountAllowDebit(account.accountData);
 }
 
 function isAccountNeedingAction(account: PaymentMethodItem) {
@@ -134,6 +152,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const isInLockedState = isBusinessBankAccountLocked(item);
     const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInLockedState;
     const isNeedingAction = isAccountNeedingAction(item);
+    const connectionStatus = item.connectionStatus;
 
     // Check if this is a Chase personal bank account connected via Plaid
     const isChaseAccountConnectedViaPlaid =
@@ -158,8 +177,10 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         }
     };
 
-    let badgeText;
-    if (isInLockedState) {
+    let badgeText: string | undefined;
+    if (connectionStatus) {
+        badgeText = shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
+    } else if (isInLockedState) {
         badgeText = translate('common.locked');
     } else if (isNeedingAction) {
         badgeText = translate('common.review');
@@ -167,8 +188,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         badgeText = translate('paymentMethodList.defaultPaymentMethod');
     }
 
-    let badgeIcon;
-    if (isInLockedState) {
+    let badgeIcon: IconAsset | undefined;
+    if (!item.connectionStatus && isInLockedState) {
         badgeIcon = icons.DotIndicator;
     }
 
@@ -194,6 +215,15 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 />
             );
         }
+        if (item.connectionStatus) {
+            return (
+                <ConnectionStatusBadge
+                    text={item.connectionStatus.statusText}
+                    tone={item.connectionStatus.statusTone}
+                    tooltipText={item.connectionStatus.tooltipText}
+                />
+            );
+        }
         if (item.isInactive) {
             return (
                 <Badge
@@ -204,7 +234,58 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             );
         }
         return undefined;
-    }, [isNeedingAction, shouldShowDefaultBadge, item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
+    }, [isNeedingAction, shouldShowDefaultBadge, item.connectionStatus, item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
+
+    const rightComponent = showThreeDotsMenu ? (
+        <View style={styles.alignSelfCenter}>
+            <ThreeDotsMenu
+                shouldSelfPosition
+                onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
+                menuItems={threeDotsMenuItems}
+                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                shouldOverlay
+                isNested
+                threeDotsMenuRef={threeDotsMenuRef}
+                disabled={item.disabled}
+            />
+        </View>
+    ) : undefined;
+    const menuItemProps: React.ComponentProps<typeof MenuItem> = {
+        onPress: handleRowPress,
+        title: item.title,
+        description: item.description,
+        descriptionAddon,
+        icon: item.icon,
+        plaidUrl: item.plaidUrl,
+        disabled: item.disabled,
+        iconType: item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON,
+        displayInDefaultIconColor: !item.iconFill,
+        iconHeight: item.iconHeight ?? item.iconSize,
+        iconWidth: item.iconWidth ?? item.iconSize,
+        iconStyles: item.iconStyles,
+        iconFill: item.iconFill,
+        badgeText,
+        badgeIcon,
+        wrapperStyle: [styles.paymentMethod, listItemStyle],
+        iconRight: isNeedingAction ? undefined : item.iconRight,
+        shouldShowRightIcon: !showThreeDotsMenu && item.shouldShowRightIcon,
+        shouldShowRightComponent: showThreeDotsMenu,
+        rightComponent,
+        interactive: item.interactive,
+        success: item.isMethodActive,
+        ...(connectionStatus
+            ? {
+                  shouldRemoveBackground: true,
+                  shouldRemoveHoverBackground: true,
+                  brickRoadIndicator: connectionStatus.message ? undefined : item.brickRoadIndicator,
+              }
+            : {
+                  isBadgeSuccess: isNeedingAction ? true : undefined,
+                  isBadgeError: isInLockedState,
+                  brickRoadIndicator: item.brickRoadIndicator,
+              }),
+    };
+    const menuItem = <MenuItem {...menuItemProps} />;
 
     return (
         <OfflineWithFeedback
@@ -212,50 +293,31 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             pendingAction={item.pendingAction}
             errors={item.errors}
             errorRowStyles={styles.paymentMethodErrorRow}
-            shouldShowErrorMessages={!!item.errors}
+            shouldShowErrorMessages={!!item.errors && (item.shouldShowErrorMessages ?? true)}
         >
-            <MenuItem
-                onPress={handleRowPress}
-                title={item.title}
-                description={item.description}
-                descriptionAddon={descriptionAddon}
-                icon={item.icon}
-                plaidUrl={item.plaidUrl}
-                disabled={item.disabled}
-                iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
-                displayInDefaultIconColor={!item.iconFill}
-                iconHeight={item.iconHeight ?? item.iconSize}
-                iconWidth={item.iconWidth ?? item.iconSize}
-                iconStyles={item.iconStyles}
-                iconFill={item.iconFill}
-                badgeText={badgeText}
-                badgeIcon={badgeIcon}
-                isBadgeSuccess={isNeedingAction ? true : undefined}
-                isBadgeError={isInLockedState}
-                wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                iconRight={isNeedingAction ? undefined : item.iconRight}
-                shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
-                shouldShowRightComponent={showThreeDotsMenu}
-                rightComponent={
-                    showThreeDotsMenu ? (
-                        <View style={styles.alignSelfCenter}>
-                            <ThreeDotsMenu
-                                shouldSelfPosition
-                                onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
-                                menuItems={threeDotsMenuItems}
-                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                shouldOverlay
-                                isNested
-                                threeDotsMenuRef={threeDotsMenuRef}
-                                disabled={item.disabled}
-                            />
+            {connectionStatus ? (
+                <Hoverable>
+                    {(isHovered) => (
+                        <View style={[isHovered && styles.hoveredComponentBG]}>
+                            {menuItem}
+                            {!!connectionStatus.message && (
+                                <View style={styles.mb2}>
+                                    <ConnectionStatusMessage
+                                        message={connectionStatus.message}
+                                        actionText={connectionStatus.actionText}
+                                        onActionPress={connectionStatus.onActionPress}
+                                        isActionDisabled={connectionStatus.isActionDisabled}
+                                        statusTone={connectionStatus.statusTone}
+                                        onLinkPress={connectionStatus.onLinkPress}
+                                    />
+                                </View>
+                            )}
                         </View>
-                    ) : undefined
-                }
-                interactive={item.interactive}
-                brickRoadIndicator={item.brickRoadIndicator}
-                success={item.isMethodActive}
-            />
+                    )}
+                </Hoverable>
+            ) : (
+                menuItem
+            )}
             {!!item.shouldShowMissingPersonalDetailsAction && !!item.cardID && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, styles.mr2]}>

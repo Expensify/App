@@ -101,6 +101,19 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     // Skip the KYB documents page unless the backend's verification checks flagged documents that still need to be uploaded.
     const shouldSkipKYBDocs = useCallback((pageName?: string) => pageName === PAGE_NAMES.KYB_DOCS && !isKYBDocumentsRequired, [isKYBDocumentsRequired]);
 
+    // The bank-info step renders either the Plaid or the manual variant depending on the setup type the user
+    // picked earlier in the flow
+    const getSubPageForNavigation = useCallback(
+        (page: PageEntry | undefined, fallbackSubPage: string | undefined) => {
+            const bankInfoSubStep = reimbursementAccount?.achData?.subStep;
+            if (page?.pageName === PAGE_NAMES.BANK_ACCOUNT && bankInfoSubStep) {
+                return bankInfoSubStep;
+            }
+            return fallbackSubPage;
+        },
+        [reimbursementAccount?.achData?.subStep],
+    );
+
     const onSubmit = useCallback(() => {
         let nextIndex = currentPageIndex + 1;
         if (shouldSkipVerifyIdentity(pages.at(nextIndex)?.pageName)) {
@@ -114,8 +127,8 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
             return;
         }
         const nextPage = pages.at(nextIndex);
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: nextPage?.pageName, subPage: nextPage?.firstSubPage, backTo}));
-    }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity, shouldSkipKYBDocs]);
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: nextPage?.pageName, subPage: getSubPageForNavigation(nextPage, nextPage?.firstSubPage), backTo}));
+    }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity, shouldSkipKYBDocs, getSubPageForNavigation]);
 
     const onBackButtonPress = useCallback(() => {
         // When the bank account is pending validation it has already been submitted, so stepping back through the
@@ -137,8 +150,8 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
             return;
         }
         const prevPage = pages.at(prevIndex);
-        Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: prevPage?.lastSubPage, backTo}));
-    }, [backTo, currentEntry?.pageName, currentPageIndex, policyID, reimbursementAccount?.achData?.state, shouldSkipVerifyIdentity, shouldSkipKYBDocs]);
+        Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: getSubPageForNavigation(prevPage, prevPage?.lastSubPage), backTo}));
+    }, [backTo, currentEntry?.pageName, currentPageIndex, policyID, reimbursementAccount?.achData?.state, shouldSkipVerifyIdentity, shouldSkipKYBDocs, getSubPageForNavigation]);
 
     return (
         <View style={[styles.flex1, styles.appBG]}>

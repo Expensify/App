@@ -1,5 +1,6 @@
-import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
 import type {SearchFilterCommonProps} from '@components/Search/types';
+
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
 
@@ -21,6 +22,7 @@ function CurrencySelector({value = [], selectionListTextInputStyle, selectionLis
             items={currencyOptions}
             autoFocus={autoFocus}
             isSearchable
+            isNegatable
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
             footer={footer}

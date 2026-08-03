@@ -8,6 +8,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -15,7 +17,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {TransactionItemRowNarrowComputedData, TransactionItemRowProps} from './types';
+import type {TransactionItemRowNarrowComputedData, TransactionItemRowProps, TransactionItemRowRBRDeferControlProps} from './types';
 
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
@@ -48,7 +50,8 @@ type TransactionItemRowNarrowProps = Pick<
     | 'shouldShowArrowRightOnNarrowLayout'
     | 'checkboxSentryLabel'
 > &
-    TransactionItemRowNarrowComputedData;
+    TransactionItemRowNarrowComputedData &
+    TransactionItemRowRBRDeferControlProps;
 
 function TransactionItemRowNarrow({
     transactionItem,
@@ -72,6 +75,7 @@ function TransactionItemRowNarrow({
     onArrowRightPress,
     shouldShowArrowRightOnNarrowLayout,
     checkboxSentryLabel,
+    shouldDeferRBR = true,
     bgActiveStyles,
     merchant,
     merchantOrDescription,
@@ -96,8 +100,8 @@ function TransactionItemRowNarrow({
                     {shouldShowCheckbox && (
                         <Checkbox
                             disabled={isDisabled}
-                            onPress={() => {
-                                onCheckboxPress(transactionItem.transactionID);
+                            onPress={(event) => {
+                                onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}
@@ -179,6 +183,7 @@ function TransactionItemRowNarrow({
                 </View>
                 {shouldShowErrors && (
                     <DeferredTransactionItemRowRBR
+                        shouldDefer={shouldDeferRBR}
                         transaction={transactionItem}
                         violations={violations}
                         report={report}

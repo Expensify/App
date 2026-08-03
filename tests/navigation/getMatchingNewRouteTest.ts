@@ -208,6 +208,42 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/e/123/details/shareCode')).toBe('/e/123/share-code');
     });
 
+    it('redirects old standalone merge-transaction routes to the dynamic route with a search base', () => {
+        expect(getMatchingNewRoute('/merge/123')).toBe('/search/merge/123');
+        expect(getMatchingNewRoute('/merge/123/receipt')).toBe('/search/merge/123/receipt');
+        expect(getMatchingNewRoute('/merge/123/details')).toBe('/search/merge/123/details');
+        expect(getMatchingNewRoute('/merge/123/confirmation')).toBe('/search/merge/123/confirmation');
+    });
+
+    it('preserves query params when redirecting old standalone merge-transaction routes', () => {
+        expect(getMatchingNewRoute('/merge/123?backTo=/home')).toBe('/search/merge/123?backTo=/home');
+        expect(getMatchingNewRoute('/merge/123/receipt?isOnSearch=true')).toBe('/search/merge/123/receipt?isOnSearch=true');
+    });
+
+    it('redirects old transaction-duplicate-review routes to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/r/123/duplicates/review')).toBe('/r/123/duplicates/review/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/merchant')).toBe('/r/123/merchant/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/category')).toBe('/r/123/transaction-duplicate-category/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/tag')).toBe('/r/123/transaction-duplicate-tag/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/tax-code')).toBe('/r/123/tax-code/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/description')).toBe('/r/123/transaction-duplicate-description/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/reimbursable')).toBe('/r/123/reimbursable/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/billable')).toBe('/r/123/billable/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/confirm')).toBe('/r/123/confirm/123');
+    });
+
+    it('preserves query params when redirecting old transaction-duplicate-review routes', () => {
+        expect(getMatchingNewRoute('/r/123/duplicates/review?backTo=/home')).toBe('/r/123/duplicates/review/123?backTo=/home');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/merchant?backTo=/home')).toBe('/r/123/merchant/123?backTo=/home');
+        expect(getMatchingNewRoute('/r/123/duplicates/confirm?backTo=/home')).toBe('/r/123/confirm/123?backTo=/home');
+    });
+
+    it('does not redirect the already-migrated transaction-duplicate-review dynamic routes', () => {
+        expect(getMatchingNewRoute('/r/123/duplicates/review/123')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/123/merchant/123')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/123/confirm/123')).toBe(undefined);
+    });
+
     it('redirects legacy standalone referral routes to a dynamic route with a home base', () => {
         expect(getMatchingNewRoute('/referral/shareCode')).toBe('/home/referral/shareCode');
     });
@@ -230,8 +266,27 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/new/task/title?backTo=/home')).toBe('/task-details/task-confirm/task-title?backTo=/home');
     });
 
-    it('does not redirect the unchanged new task share destination route', () => {
-        expect(getMatchingNewRoute('/new/task/share-destination')).toBe(undefined);
+    it('redirects legacy new task share destination route to the new nested dynamic route', () => {
+        expect(getMatchingNewRoute('/new/task/share-destination')).toBe('/task-details/task-confirm/task-share-destination');
+    });
+
+    // NOTE: the redirect appends the dynamic suffix (`/send-from`, `/company-info`) so a deep-link restores the actual substep,
+    // not just the confirmation entry. Query preservation is intentionally not asserted here: the OldRoutes matcher captures the
+    // trailing segment with a greedy `(.*)` that also swallows the query string, so a suffix cannot be appended after it while
+    // keeping `?backTo=…` at the end. This is acceptable because no call site produces these legacy paths with a query anymore
+    // (all navigations moved to `createDynamicRoute` without `backTo`).
+    it('redirects legacy invoice send-from substep to the new dynamic route including the suffix', () => {
+        expect(getMatchingNewRoute('/create/invoice/from/123/456')).toBe('/create/invoice/confirmation/123/456/send-from');
+    });
+
+    it('redirects legacy invoice company-info substep to the new dynamic route including the suffix', () => {
+        expect(getMatchingNewRoute('/create/invoice/company-info/123/456')).toBe('/create/invoice/confirmation/123/456/company-info');
+    });
+
+    it('does not redirect the already-migrated money request part 1 dynamic routes', () => {
+        expect(getMatchingNewRoute('/task-details/task-confirm/task-share-destination')).toBe(undefined);
+        expect(getMatchingNewRoute('/create/invoice/confirmation/123/456/send-from')).toBe(undefined);
+        expect(getMatchingNewRoute('/create/invoice/confirmation/123/456/company-info')).toBe(undefined);
     });
 
     it('redirects legacy profile avatar path to new avatar route', () => {
@@ -402,5 +457,23 @@ describe('getBestMatchingPath', () => {
     it('does not rewrite the already-migrated Expensify Card details paths', () => {
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/card-details/456')).toBe('/workspaces/p123/expensify-card/card-details/456');
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/card-details/456/edit/limit')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/limit');
+    });
+
+    it('redirects legacy per diem destination step to the new start-based dynamic route (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/destination/123/456')).toBe('/create/submit/start/123/456/per-diem-destination');
+    });
+
+    // NOTE: the redirect appends the dynamic suffix (`/destination`) onto the start base so a deep-link restores the
+    // actual wizard step. Query preservation is intentionally not asserted: the OldRoutes matcher captures the trailing
+    // segment with a greedy `(.*)` that also swallows the query string, so a suffix cannot be appended after it while
+    // keeping `?backTo=…` at the end. This is acceptable because no call site produces these legacy paths with a query
+    // anymore (all navigations moved to `createDynamicRoute` without `backTo`).
+    it('redirects legacy per diem destination edit step to the new confirmation-based dynamic route (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/destination/123/456/edit')).toBe('/create/submit/confirmation/123/456/per-diem-destination-edit');
+    });
+
+    it('does not redirect the already-migrated per diem destination dynamic routes (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-destination')).toBe(undefined);
+        expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-destination-edit')).toBe(undefined);
     });
 });

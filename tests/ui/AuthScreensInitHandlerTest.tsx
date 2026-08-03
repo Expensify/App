@@ -49,7 +49,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         isActiveRoute: jest.fn(() => false),
         navigate: jest.fn(),
         getActiveRouteWithoutParams: jest.fn(() => ''),
-        getTopmostReportId: jest.fn(() => undefined),
+        getFocusedReportId: jest.fn(() => undefined),
         isNavigationReady: jest.fn(() => Promise.resolve()),
         setNavigationActionToMicrotaskQueue: jest.fn(() => Promise.resolve()),
     },

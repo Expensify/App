@@ -4,6 +4,7 @@
 
 - `macros/` - reusable helpers for common setup/navigation actions that stop in a navigable state for further interactive work.
 - `tests/` - critical-scenario scripts for QA/perf verification that assert explicit outcomes (for example Sentry spans) and then stop.
+- `lib/` - bash drive libraries for flows that need conditional steering the linear `.ad` format cannot express (snapshot classification, state-dependent branching). Each file documents its own contract; the caller always owns the session lifecycle (`open`/`close`/`record`). Source them from an orchestrator or run them standalone against an already-open session (for example `lib/sign-in-drive.sh --platform web --session <name> --email <email>`).
 
 Composable `.ad` snippets - bounded units of work. A flow may span one or multiple screens as long as it represents a coherent, reusable action with clear start (`@pre`) and completion (`@post`) checkpoints. Each flow advertises machine-matchable metadata (`@pre`, `@post`, `@tag`, `@param`) via `# @`-prefixed comment headers, while flow type is derived from location (`flows/macros/` or `flows/tests/`).
 

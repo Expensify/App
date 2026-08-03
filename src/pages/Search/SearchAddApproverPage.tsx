@@ -140,18 +140,19 @@ function SearchAddApproverPage() {
 
                 const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
                 const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${selectedReport.reportID}`];
-                addReportApprover(
+                addReportApprover({
                     report,
-                    selectedApproverEmail,
-                    Number(employeeAccountID),
-                    currentUserDetails.accountID,
-                    currentUserDetails.email ?? '',
+                    newApproverEmail: selectedApproverEmail,
+                    newApproverAccountID: Number(employeeAccountID),
+                    accountID: currentUserDetails.accountID,
+                    email: currentUserDetails.email ?? '',
                     policy,
                     hasViolations,
                     isASAPSubmitBetaEnabled,
-                    reportNextStep,
+                    reportCurrentNextStepDeprecated: reportNextStep,
                     isTrackIntentUser,
-                );
+                    formatPhoneNumber,
+                });
             }
 
             // Note: This clears both reports and transactions
@@ -202,7 +203,6 @@ function SearchAddApproverPage() {
             }
             isLoadingReportData={false}
             policy={allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReports.at(0)?.policyID}`]}
-            initiallyFocusedOptionKey={selectedApproverEmail}
             shouldShowNotFoundViewLink={false}
             shouldShowNotFoundView={false}
             allApprovers={allApprovers}

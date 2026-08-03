@@ -25,7 +25,7 @@ import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 
 import React from 'react';
 
-import {useComposerActions, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import useAttachmentPicker from './useAttachmentPicker';
 import useComposerSubmit from './useComposerSubmit';
@@ -44,6 +44,8 @@ function ComposerInput() {
     const {isBlockedFromConcierge, debouncedCommentMaxLengthValidation} = useComposerSendState();
     const {setIsFullComposerAvailable, onBlur, onFocus, setComposerRef} = useComposerActions();
     const {containerRef, suggestionsRef, isNextModalWillOpenRef} = useComposerMeta();
+    const {isEditingInComposer, didResetComposerHeightWhileEditing} = useComposerEditState();
+    const isSubmittingEdit = isEditingInComposer || didResetComposerHeightWhileEditing;
 
     const {submitDraftAndClearComposer, validateAndSubmitDraft} = useComposerSubmit(reportID);
     const {pickAttachments, PDFValidationComponent, ErrorModal} = useAttachmentPicker(reportID);
@@ -98,7 +100,12 @@ function ComposerInput() {
                 inputPlaceholder={inputPlaceholder}
                 isComposerFullSize={isComposerFullSize}
                 setIsFullComposerAvailable={setIsFullComposerAvailable}
-                onPasteFile={(files) => pickAttachments({files})}
+                onPasteFile={(files) => {
+                    if (isSubmittingEdit) {
+                        return;
+                    }
+                    pickAttachments({files});
+                }}
                 onClear={validateAndSubmitDraft}
                 disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
                 onEnterKeyPress={submitDraftAndClearComposer}

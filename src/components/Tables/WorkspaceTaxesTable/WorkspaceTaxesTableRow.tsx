@@ -2,6 +2,7 @@ import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
 import type {TableData} from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -48,6 +49,8 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+
     const isDeleting = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const enabledStatusLabel = item.enabled ? translate('common.enabled') : translate('common.disabled');
     const accessibilityLabel = [item.name, item.alternateText, enabledStatusLabel].filter(Boolean).join(', ');
@@ -68,7 +71,10 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, shouldUseNarrowTableLayout && styles.gap1]}>
+                    <View
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, shouldUseNarrowTableLayout && styles.gap1]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         <View style={[styles.flex1, styles.gap1]}>
                             <TextWithTooltip
                                 shouldShowTooltip
@@ -87,7 +93,10 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                         </View>
                     </View>
 
-                    <View style={[styles.justifyContentCenter, styles.alignItemsEnd]}>
+                    <View
+                        style={[styles.justifyContentCenter, styles.alignItemsEnd]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         <Switch
                             isOn={item.enabled}
                             showLockIcon={item.isLocked}
@@ -99,13 +108,15 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                         />
                     </View>
 
-                    <Icon
-                        src={icons.ArrowRight}
-                        fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || isDeleting) && styles.opacitySemiTransparent]}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
+                        <Icon
+                            src={icons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || isDeleting) && styles.opacitySemiTransparent]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </View>
                 </>
             )}
         </Table.Row>

@@ -16,6 +16,7 @@ const lightContrastTheme = {
     textLight: colors.productLight900,
     iconColorfulBackground: colors.yellow800,
     receiptPlaceholderPlus: colors.green800,
+    isHighContrast: true,
 } satisfies ThemeColors;
 
 export default lightContrastTheme;

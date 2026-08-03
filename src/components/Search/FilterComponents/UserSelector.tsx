@@ -24,7 +24,7 @@ import ListFilterWrapper from './ListFilterViewWrapper';
 
 type UserSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
-function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
+function UserSelector({value = [], isNegatable, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
@@ -96,6 +96,7 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
         <ListFilterWrapper
             itemCount={listData.length}
             isSearchable={shouldShowSearchInput}
+            isNegatable={isNegatable}
         >
             <SelectionList
                 data={listData}

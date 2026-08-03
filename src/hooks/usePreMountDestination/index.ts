@@ -1,4 +1,5 @@
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {Scheduler} from '@libs/Scheduler';
@@ -77,6 +78,13 @@ function usePreMountDestination(route: Route | undefined, options?: UsePreMountD
             return;
         }
 
+        // Reaching here means we're not consuming this hook's own pre-inserted route. If the global pre-inserted flag is still
+        // set it is stale (e.g. preserved across a route change) and would mis-drive getSubmitHandler on the next submit. This
+        // should not happen under the single-pre-inserter invariant, so surface it loudly rather than leaving it silent.
+        if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+            Log.warn('[usePreMountDestination] reveal() reached the non-owned path while a pre-inserted fullscreen flag is still set');
+        }
+
         if (!route) {
             Navigation.dismissModal({afterTransition});
             return;
@@ -137,3 +145,4 @@ function usePreMountDestination(route: Route | undefined, options?: UsePreMountD
 }
 
 export default usePreMountDestination;
+export type {AfterTransition} from './types';

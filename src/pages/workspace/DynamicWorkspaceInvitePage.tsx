@@ -271,6 +271,7 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
                     ListItem={InviteMemberListItem}
                     onSelectRow={handleToggleSelection}
                     shouldShowTextInput
+                    shouldClearInputOnSelect={false}
                     textInputOptions={textInputOptions}
                     shouldUpdateFocusedIndex
                     shouldPreventAutoScrollOnSelect

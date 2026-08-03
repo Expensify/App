@@ -164,7 +164,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
                                 <FormHelpMessageRowWithRetryButton
                                     message={getLatestErrorMessage({errors: domain.validateCodeError})}
                                     onRetry={() => getDomainValidationCode(domainAccountID, domainName)}
-                                    isButtonSmall
+                                    size={CONST.BUTTON_SIZE.SMALL}
                                 />
                             )}
                         </View>

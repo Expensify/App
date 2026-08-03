@@ -34,7 +34,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 
 import RECONCILIATION_ACCOUNT_SETTINGS_TYPE from './constants';
@@ -75,13 +75,24 @@ function ReconciliationAccountSettingsLayout({
     onSelectBankAccount,
 }: ReconciliationAccountSettingsLayoutProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    const [draftBankAccountID, setDraftBankAccountID] = useState<string>();
+    const selectedID = draftBankAccountID ?? selectedBankAccountID;
 
     const options = connectionBankAccounts.map((bankAccount) => ({
         text: bankAccount.name,
         value: bankAccount.id,
         keyForList: bankAccount.id,
-        isSelected: bankAccount.id === selectedBankAccountID,
+        isSelected: bankAccount.id === selectedID,
     }));
+
+    const confirmButtonOptions = {
+        showButton: options.length > 0,
+        text: translate('common.save'),
+        onConfirm: () => onSelectBankAccount(selectedID),
+        isDisabled: selectedID === selectedBankAccountID,
+    };
 
     return (
         <ConnectionLayout
@@ -102,7 +113,9 @@ function ReconciliationAccountSettingsLayout({
 
             <SelectionList
                 data={options}
-                onSelectRow={({value}) => onSelectBankAccount(value)}
+                onSelectRow={({value}) => setDraftBankAccountID(value)}
+                confirmButtonOptions={confirmButtonOptions}
+                addBottomSafeAreaPadding
                 ListItem={SingleSelectListItem}
                 initiallyFocusedItemKey={selectedBankAccountID}
             />

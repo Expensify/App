@@ -13,11 +13,13 @@ import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
+
 import CONST from '@src/CONST';
 
 import type {View} from 'react-native';
 
-import React, {useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {TransactionListItemNarrowProps} from './types';
 
@@ -76,6 +78,35 @@ function TransactionListItemNarrow<TItem extends ListItem>({
         shouldApplyOtherStyles: true,
     });
 
+    // The highlight animation is applied to the row wrapper, which sits behind this pressable. A focused
+    // row paints an opaque background on the pressable itself, which would cover the highlight - so after
+    // splitting an expense the newly-created row that receives focus never appears highlighted. Suppress
+    // the opaque focus background for the full highlight animation so the highlight shows. shouldAnimateInHighlight
+    // only stays true for the brief queue window, so latch it for durationHighlightItem.
+    const shouldAnimateInHighlight = !!item?.shouldAnimateInHighlight;
+
+    // Initialize from the prop so a row that mounts already flagged (the split/search highlight case this
+    // fixes) latches immediately - otherwise the render-time guard below never fires on first mount.
+    const [isHighlighting, setIsHighlighting] = useState(shouldAnimateInHighlight);
+    const [wasAnimatingHighlight, setWasAnimatingHighlight] = useState(shouldAnimateInHighlight);
+
+    // Start the latch during render (React's "storing information from previous renders" pattern) to avoid
+    // calling setState synchronously inside an effect. The effect below only clears it via an async timer.
+    if (shouldAnimateInHighlight !== wasAnimatingHighlight) {
+        setWasAnimatingHighlight(shouldAnimateInHighlight);
+        if (shouldAnimateInHighlight) {
+            setIsHighlighting(true);
+        }
+    }
+    useEffect(() => {
+        if (!isHighlighting) {
+            return;
+        }
+        const timer = setTimeout(() => setIsHighlighting(false), durationHighlightItem);
+        return () => clearTimeout(timer);
+    }, [isHighlighting]);
+    const shouldShowFocusBackground = !!isFocused && !isHighlighting;
+
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
@@ -92,7 +123,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    shouldShowFocusBackground && StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}

@@ -1,10 +1,10 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MagicCodeInput from '@components/MagicCodeInput';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import ValidateCodeInput from '@components/ValidateCodeInput';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -112,7 +112,7 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
                         <Text style={[styles.textHeadlineH1, styles.mb2]}>{title}</Text>
 
                         <View style={[styles.mv4, styles.ph11]}>
-                            <MagicCodeInput
+                            <ValidateCodeInput
                                 key={`pin-${isConfirmStep}`}
                                 autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
                                 name="pin"

@@ -292,7 +292,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             isTrackIntentUser: false,
         });
 
-        // Then both should produce the same optimistic data (getPolicyTagsData returns {} when no Onyx data)
+        // Then both should produce the same optimistic data (an undefined policy tag list is treated the same as an empty one)
         const entryWithUndefined = withUndefined.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${POLICY_ID}`);
         const entryWithEmpty = withEmpty.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${POLICY_ID}`);
         expect(entryWithUndefined?.value).toEqual(entryWithEmpty?.value);

@@ -20,7 +20,7 @@ import React, {useCallback} from 'react';
 import {useTravelCVVActions, useTravelCVVState} from './TravelCVVContextProvider';
 
 /**
- * TravelCVVVerifyAccountPage - Handles magic code verification for Travel CVV reveal.
+ * TravelCVVVerifyAccountPage - Handles validateCode verification for Travel CVV reveal.
  * This is a separate page following the pattern used by ExpensifyCardVerifyAccountPage.
  */
 function TravelCVVVerifyAccountPage() {

@@ -17,7 +17,7 @@ const INPUT_IDS = {
     SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
     SIGNER_COPY_OF_ID: 'signerCopyOfID',
     SIGNER_ADDRESS_PROOF: 'signerAddressProof',
-    SIGNER_CODICE_FISCALE: 'signerCodiceFiscale',
+    SIGNER_CODICE_FISCALE: 'signerCodiceFiscaleTaxID',
     PROOF_OF_DIRECTORS: 'proofOfDirectors',
     DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
 } as const;

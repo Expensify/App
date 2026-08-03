@@ -78,6 +78,7 @@ function useAutoCreateSubmitWorkspace() {
                       shouldAddOnboardingTasks: false,
                       introSelected,
                       activePolicy,
+                      conciergeChat,
                       currentUserAccountIDParam: currentUserAccountID,
                       currentUserEmailParam: currentUserEmail,
                       shouldAddGuideWelcomeMessage: false,

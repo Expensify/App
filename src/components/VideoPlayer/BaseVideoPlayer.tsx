@@ -201,7 +201,12 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
             return;
         }
 
-        if (isEnded && currentTime >= duration) {
+        // This branch only runs when the player is paused (the check above returns early while playing),
+        // so a playback position within REPLAY_END_THRESHOLD_SECONDS of the end unambiguously means the video is
+        // finished and should be replayed. We rely on the position rather than the `isEnded` flag because
+        // changing the playback speed can spuriously clear `isEnded` on iOS (the playbackRate write briefly
+        // resumes playback and fires `playingChange`), which would otherwise make Play a no-op at the end.
+        if (duration > 0 && currentTime >= duration - CONST.VIDEO_PLAYER.REPLAY_END_THRESHOLD_SECONDS) {
             allowSharedAutoPlayRef.current = true;
             replayVideo();
             return;
@@ -209,7 +214,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
 
         allowSharedAutoPlayRef.current = true;
         playVideo();
-    }, [isOffline, isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, report, reportID, pauseVideo, replayVideo]);
+    }, [isOffline, isCurrentlyURLSet, isLoading, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, report, reportID, pauseVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
         if (isEnded || isSeeking) {

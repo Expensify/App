@@ -2,13 +2,18 @@ import isHTMLElement from '@libs/isHTMLElement';
 
 import type {View} from 'react-native';
 
-import React, {createContext, useContext, useEffect, useLayoutEffect, useRef, useSyncExternalStore} from 'react';
+import React, {createContext, useCallback, useContext, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore} from 'react';
 
 type LabelEntry = {id: number; text: string};
 
 type DialogLabelData = {
     containerRef: React.RefObject<View | null>;
     isInsideDialog: boolean;
+    /**
+     * Accessible name for the dialog — applied as a React `aria-label` prop (not via DOM setAttribute).
+     * JAWS's virtual buffer misses post-render setAttribute; declarative props are written at commit time.
+     */
+    dialogAriaLabel: string | undefined;
 };
 
 type DialogLabelActions = {
@@ -20,6 +25,7 @@ type DialogLabelActions = {
 const DialogLabelDataContext = createContext<DialogLabelData>({
     containerRef: {current: null},
     isInsideDialog: false,
+    dialogAriaLabel: undefined,
 });
 
 const DialogLabelActionsContext = createContext<DialogLabelActions>({
@@ -32,21 +38,29 @@ type DialogLabelProviderProps = {
     children: React.ReactNode;
     /** Pass via `useState`/callback-ref so the provider observes node identity changes; a `RefObject` would pin the MutationObserver to the original node across Animated.View remounts. */
     containerNode: View | HTMLElement | null;
+    /**
+     * When provided, used instead of observing the container's role/aria-modal attributes.
+     * Prefer this in production so dialog semantics stay in React props (resize updates `isSmallScreenWidth`).
+     */
+    hasDialogSemantics?: boolean;
 };
 
 // Title-stack and initial-focus claim are co-located: each pushLabel re-arms the focus claim so a sub-screen re-receives initial focus.
-function DialogLabelProvider({children, containerNode}: DialogLabelProviderProps) {
+function DialogLabelProvider({children, containerNode, hasDialogSemantics: hasDialogSemanticsProp}: DialogLabelProviderProps) {
     const nextIdRef = useRef(0);
     const labelStackRef = useRef<LabelEntry[]>([]);
     const initialFocusClaimedRef = useRef(false);
     const containerRef = useRef<View | null>(null);
+    const [activeLabel, setActiveLabel] = useState<string | undefined>();
+
     useLayoutEffect(() => {
         containerRef.current = (containerNode as View | null) ?? null;
     }, [containerNode]);
 
-    const hasDialogSemantics = useSyncExternalStore(
+    const hasDialogSemanticsFromDom = useSyncExternalStore(
         (callback) => {
-            if (typeof MutationObserver === 'undefined' || !isHTMLElement(containerNode)) {
+            // Only observe the DOM when the caller did not pass an explicit prop.
+            if (hasDialogSemanticsProp !== undefined || typeof MutationObserver === 'undefined' || !isHTMLElement(containerNode)) {
                 return () => {};
             }
             const observer = new MutationObserver(callback);
@@ -54,7 +68,7 @@ function DialogLabelProvider({children, containerNode}: DialogLabelProviderProps
             return () => observer.disconnect();
         },
         () => {
-            if (!isHTMLElement(containerNode)) {
+            if (hasDialogSemanticsProp !== undefined || !isHTMLElement(containerNode)) {
                 return false;
             }
             return containerNode.getAttribute('role') === 'dialog' || containerNode.getAttribute('aria-modal') === 'true';
@@ -62,62 +76,61 @@ function DialogLabelProvider({children, containerNode}: DialogLabelProviderProps
         () => false,
     );
 
-    const updateContainerLabel = () => {
-        if (typeof document === 'undefined') {
-            return;
-        }
-        const node = containerRef.current;
-        if (!isHTMLElement(node)) {
-            return;
-        }
-        // aria-label on a container without dialog semantics is ignored; skip the set on mobile where the RHP has no dialog role.
-        if (!hasDialogSemantics) {
-            node.removeAttribute('aria-label');
-            return;
-        }
+    const hasDialogSemantics = hasDialogSemanticsProp ?? hasDialogSemanticsFromDom;
+
+    const syncActiveLabelFromStack = useCallback(() => {
         const top = labelStackRef.current.at(-1);
-        if (top?.text) {
-            node.setAttribute('aria-label', top.text);
-        } else {
-            node.removeAttribute('aria-label');
-        }
-    };
+        setActiveLabel((prev) => {
+            const next = top?.text;
+            return prev === next ? prev : next;
+        });
+    }, []);
 
-    const pushLabel = (text: string): number => {
-        const id = nextIdRef.current++;
-        labelStackRef.current = [...labelStackRef.current, {id, text}];
-        initialFocusClaimedRef.current = false;
-        updateContainerLabel();
-        return id;
-    };
+    const pushLabel = useCallback(
+        (text: string): number => {
+            const id = nextIdRef.current++;
+            labelStackRef.current = [...labelStackRef.current, {id, text}];
+            initialFocusClaimedRef.current = false;
+            syncActiveLabelFromStack();
+            return id;
+        },
+        [syncActiveLabelFromStack],
+    );
 
-    const popLabel = (id: number) => {
-        labelStackRef.current = labelStackRef.current.filter((entry) => entry.id !== id);
-        updateContainerLabel();
-    };
+    const popLabel = useCallback(
+        (id: number) => {
+            labelStackRef.current = labelStackRef.current.filter((entry) => entry.id !== id);
+            syncActiveLabelFromStack();
+        },
+        [syncActiveLabelFromStack],
+    );
 
-    useEffect(() => {
-        updateContainerLabel();
-    }, [hasDialogSemantics, updateContainerLabel]);
-
-    const claimInitialFocus = (): boolean => {
+    const claimInitialFocus = useCallback((): boolean => {
         if (initialFocusClaimedRef.current) {
             return false;
         }
         initialFocusClaimedRef.current = true;
         return true;
-    };
+    }, []);
 
-    const data: DialogLabelData = {
-        containerRef,
-        isInsideDialog: hasDialogSemantics,
-    };
+    const data: DialogLabelData = useMemo(
+        () => ({
+            containerRef,
+            isInsideDialog: hasDialogSemantics,
+            // Only expose a name when the container is a dialog (wide RHP).
+            dialogAriaLabel: hasDialogSemantics ? activeLabel : undefined,
+        }),
+        [hasDialogSemantics, activeLabel],
+    );
 
-    const actions: DialogLabelActions = {
-        pushLabel,
-        popLabel,
-        claimInitialFocus,
-    };
+    const actions: DialogLabelActions = useMemo(
+        () => ({
+            pushLabel,
+            popLabel,
+            claimInitialFocus,
+        }),
+        [pushLabel, popLabel, claimInitialFocus],
+    );
 
     return (
         <DialogLabelDataContext.Provider value={data}>

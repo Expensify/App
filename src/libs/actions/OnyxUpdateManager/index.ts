@@ -154,6 +154,13 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
     // we don't have base state of the app (reports, policies, etc.) setup. If we apply this update,
     // we'll only have them overwritten by the openApp response. So let's skip it and return.
     if (isLoadingApp) {
+        // If one of these onyx updates is for the authToken, update it now because our current authToken is probably invalid.
+        updateAuthTokenIfNecessary(onyxUpdatesFromServer);
+
+        // Nothing reads this key again once we return, but it is persisted, so a restart would replay it and
+        // could write a now-stale authToken over a newer session. Drop the consumed copy.
+        Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
+
         // When ONYX_UPDATES_FROM_SERVER is set, we pause the queue. Let's unpause
         // it so the app is not stuck forever without processing requests.
         unpauseSequentialQueue();
@@ -254,7 +261,7 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
         }
 
         console.debug(`[OnyxUpdateManager] Client is fetching missing updates from the server, from updates ${lastUpdateIDFromClient} to ${Number(previousUpdateIDFromServer)}`);
-        Log.info('Gap detected in update IDs from the server so fetching incremental updates', true, {
+        Log.info('Gap detected in update IDs from the server so fetching incremental updates', false, {
             lastUpdateIDFromClient,
             lastUpdateIDFromServer,
             previousUpdateIDFromServer,

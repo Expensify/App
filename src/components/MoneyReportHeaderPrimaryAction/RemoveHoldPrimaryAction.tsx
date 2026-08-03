@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -11,6 +11,7 @@ import {getReportAction} from '@libs/ReportActionsUtils';
 import {getAllExpensesToHoldIfApplicable} from '@libs/ReportPrimaryActionUtils';
 import {changeMoneyRequestHoldStatus, getLinkedIOUTransaction} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
@@ -36,8 +37,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
 
     return (
         <Button
-            success
-            text={translate('iou.unhold')}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => {
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
@@ -65,7 +65,9 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
                 const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${linkedTransaction?.transactionID}`];
                 changeMoneyRequestHoldStatus(moneyRequestAction, linkedTransaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser);
             }}
-        />
+        >
+            <Button.Text>{translate('iou.unhold')}</Button.Text>
+        </Button>
     );
 }
 

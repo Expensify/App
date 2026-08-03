@@ -35,7 +35,7 @@ const DISPLAY_POPOVER_ANCHOR_ALIGNMENT = {
 function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchDisplayDropdownButtonProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye']);
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -72,7 +72,7 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
                         onPress={onPress}
                     >
                         <Icon
-                            src={expensifyIcons.Gear}
+                            src={expensifyIcons.Eye}
                             fill={theme.icon}
                             size={iconSize}
                         />

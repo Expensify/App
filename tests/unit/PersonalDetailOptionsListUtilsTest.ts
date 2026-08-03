@@ -1,13 +1,24 @@
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import DateUtils from '@libs/DateUtils';
-import {canCreateOptimisticPersonalDetailOption, createOption, createOptionList, filterOption, getValidOptions, matchesSearchTerms} from '@libs/PersonalDetailOptionsListUtils';
+import {
+    canCreateOptimisticPersonalDetailOption,
+    createOption,
+    createOptionList,
+    filterOption,
+    getFilteredRecentAttendees,
+    getValidOptions,
+    matchesSearchTerms,
+} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils/types';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
 
 // The rule is disabled for this file as test data uses numeric keys that don't follow naming conventions
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -15,7 +26,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {formatPhoneNumber} from '../utils/TestHelper';
+import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type PersonalDetailsList = Record<string, PersonalDetails>;
@@ -356,7 +367,16 @@ describe('PersonalDetailOptionsListUtils', () => {
 
     beforeEach(() => {
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
-        OPTIONS = createOptionList(currentUserAccountID, PERSONAL_DETAILS, ACCOUNT_ID_TO_REPORT_ID_MAP, translateReportObjectToOnyxCollection(REPORTS), undefined, {}, formatPhoneNumber);
+        OPTIONS = createOptionList(
+            currentUserAccountID,
+            PERSONAL_DETAILS,
+            ACCOUNT_ID_TO_REPORT_ID_MAP,
+            translateReportObjectToOnyxCollection(REPORTS),
+            undefined,
+            {},
+            formatPhoneNumber,
+            translateLocal,
+        );
         OPTIONS_WITH_SELF_DM = createOptionList(
             currentUserAccountID,
             PERSONAL_DETAILS,
@@ -365,6 +385,7 @@ describe('PersonalDetailOptionsListUtils', () => {
             undefined,
             {},
             formatPhoneNumber,
+            translateLocal,
         );
         OPTIONS_WITH_CONCIERGE = createOptionList(
             currentUserAccountID,
@@ -374,6 +395,7 @@ describe('PersonalDetailOptionsListUtils', () => {
             undefined,
             {},
             formatPhoneNumber,
+            translateLocal,
         );
         OPTIONS_WITH_CHRONOS = createOptionList(
             currentUserAccountID,
@@ -383,6 +405,7 @@ describe('PersonalDetailOptionsListUtils', () => {
             undefined,
             {},
             formatPhoneNumber,
+            translateLocal,
         );
         OPTIONS_WITH_RECEIPTS = createOptionList(
             currentUserAccountID,
@@ -392,6 +415,7 @@ describe('PersonalDetailOptionsListUtils', () => {
             undefined,
             {},
             formatPhoneNumber,
+            translateLocal,
         );
     });
 
@@ -474,6 +498,17 @@ describe('PersonalDetailOptionsListUtils', () => {
                 selected: false,
                 tooltipText: null,
             });
+        });
+
+        it('routes the option text through the injected translate function', () => {
+            // A non-optimistic participant with no name resolves to the "hidden" copy, which is produced by the injected translate
+            const hiddenDetail = {accountID: 424242, login: '', displayName: '', isOptimisticPersonalDetail: false} as PersonalDetails;
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenOptionMarker' : translateLocal(path, ...parameters));
+
+            const option = createOption(hiddenDetail, undefined, formatPhoneNumber, undefined, undefined, undefined, translateWithMarker);
+
+            // The nameless participant resolves to the marker, proving getDisplayNameForParticipant received the injected translate
+            expect(option.text).toBe('HiddenOptionMarker');
         });
 
         it('should use displayName from personalDetail for optimistic (device-contact) accountIDs not in Onyx', () => {
@@ -871,6 +906,78 @@ describe('PersonalDetailOptionsListUtils', () => {
         it('should not match current user option when searching unrelated term even with extraSearchTerms', () => {
             const result = filterOption(OPTIONS.currentUserOption, 'non-matching-string', ['You', 'me']);
             expect(result).toBeNull();
+        });
+    });
+
+    describe('getFilteredRecentAttendees', () => {
+        it('should deduplicate recent attendees by email', () => {
+            const attendees: Attendee[] = [];
+            const recentAttendees: Attendee[] = [
+                {email: 'user1@example.com', displayName: 'User One', avatarUrl: ''},
+                {email: 'user1@example.com', displayName: 'User One Duplicate', avatarUrl: ''}, // Duplicate by email
+                {email: 'user2@example.com', displayName: 'User Two', avatarUrl: ''},
+            ];
+
+            const result = getFilteredRecentAttendees(attendees, recentAttendees, currentUserLogin);
+
+            // Should deduplicate by email - user1@example.com should only appear once
+            const user1Count = result.filter((login) => login === 'user1@example.com').length;
+            expect(user1Count).toBe(1);
+        });
+
+        it('should deduplicate name-only attendees by displayName', () => {
+            const attendees: Attendee[] = [];
+            const recentAttendees: Attendee[] = [
+                {email: '', displayName: 'Name Only', avatarUrl: ''},
+                {email: '', displayName: 'Name Only', avatarUrl: ''}, // Duplicate by displayName (name-only attendee)
+                {email: '', displayName: 'Another Name', avatarUrl: ''},
+            ];
+
+            const result = getFilteredRecentAttendees(attendees, recentAttendees, currentUserLogin);
+
+            // Should deduplicate by displayName - Name Only should only appear once
+            const nameOnlyCount = result.filter((login) => login === 'Name Only').length;
+            expect(nameOnlyCount).toBe(1);
+        });
+
+        it('should use displayName as login for name-only attendees', () => {
+            const attendees: Attendee[] = [];
+            const recentAttendees: Attendee[] = [{email: '', displayName: 'John Smith', avatarUrl: ''}];
+
+            const result = getFilteredRecentAttendees(attendees, recentAttendees, currentUserLogin);
+
+            expect(result).toContain('John Smith');
+        });
+
+        it('should preserve displayName for recent attendees with undefined email', () => {
+            const attendees: Attendee[] = [];
+            const recentAttendees: Attendee[] = [{displayName: 'Login Only User', avatarUrl: ''}];
+
+            const result = getFilteredRecentAttendees(attendees, recentAttendees, currentUserLogin);
+
+            expect(result).toContain('Login Only User');
+        });
+
+        it('should exclude attendees that are already selected', () => {
+            const attendees: Attendee[] = [{email: 'user1@example.com', displayName: 'User One', avatarUrl: ''}];
+            const recentAttendees: Attendee[] = [
+                {email: 'user1@example.com', displayName: 'User One', avatarUrl: ''},
+                {email: 'user2@example.com', displayName: 'User Two', avatarUrl: ''},
+            ];
+
+            const result = getFilteredRecentAttendees(attendees, recentAttendees, currentUserLogin);
+
+            expect(result).not.toContain('user1@example.com');
+            expect(result).toContain('user2@example.com');
+        });
+
+        it('should include the current user when not already present', () => {
+            const attendees: Attendee[] = [];
+            const recentAttendees: Attendee[] = [{email: 'user2@example.com', displayName: 'User Two', avatarUrl: ''}];
+
+            const result = getFilteredRecentAttendees(attendees, recentAttendees, currentUserLogin);
+
+            expect(result).toContain(currentUserLogin);
         });
     });
 });

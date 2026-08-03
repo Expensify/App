@@ -99,56 +99,56 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
                 <Avatar
                     source={icons.NetSuiteSquare}
                     type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    size={CONST.AVATAR_SIZE.XXX_SMALL}
                 />
             )}
             {isExportedToXero && (
                 <Avatar
                     source={icons.XeroSquare}
                     type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    size={CONST.AVATAR_SIZE.XXX_SMALL}
                 />
             )}
             {isExportedToIntacct && (
                 <Avatar
                     source={icons.IntacctSquare}
                     type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    size={CONST.AVATAR_SIZE.XXX_SMALL}
                 />
             )}
             {(isExportedToQuickbooksOnline || isExportedToQuickbooksDesktop) && (
                 <Avatar
                     source={icons.QBOSquare}
                     type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    size={CONST.AVATAR_SIZE.XXX_SMALL}
                 />
             )}
             {isExportedToCertinia && (
                 <Avatar
                     source={icons.CertiniaSquare}
                     type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    size={CONST.AVATAR_SIZE.XXX_SMALL}
                 />
             )}
             {isExportedToRillet && (
                 <Avatar
                     source={icons.RilletSquare}
                     type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    size={CONST.AVATAR_SIZE.XXX_SMALL}
                 />
             )}
             {isExportedToBillCom && (
                 <Avatar
                     source={icons.BillComSquare}
                     type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    size={CONST.AVATAR_SIZE.XXX_SMALL}
                 />
             )}
             {isExportedToZenefits && (
                 <Avatar
                     source={icons.ZenefitsSquare}
                     type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    size={CONST.AVATAR_SIZE.XXX_SMALL}
                 />
             )}
         </View>

@@ -124,7 +124,7 @@ Enable Two-Factor Authentication (2FA) to protect your account.
    - Scan the QR code.
    - Enter the 6-digit code into Expensify and click **Verify**.
 
-At future logins, Expensify will send a **magic code** to your email. You must also enter a new 6-digit code from your authenticator app.
+At future logins, Expensify will send a **security code** to your email. You must also enter a new 6-digit code from your authenticator app.
 
 Check out this resource for additional instructions on [setting up 2FA](/articles/expensify-classic/settings/Two-Factor-Authentication).
 

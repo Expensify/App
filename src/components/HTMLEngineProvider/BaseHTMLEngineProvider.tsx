@@ -206,6 +206,32 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             tagName: 'sparkles-icon',
             contentModel: HTMLContentModel.mixed,
         }),
+        table: HTMLElementModel.fromCustomModel({
+            tagName: 'table',
+            contentModel: HTMLContentModel.block,
+        }),
+        thead: HTMLElementModel.fromCustomModel({
+            tagName: 'thead',
+            contentModel: HTMLContentModel.block,
+        }),
+        tbody: HTMLElementModel.fromCustomModel({
+            tagName: 'tbody',
+            contentModel: HTMLContentModel.block,
+        }),
+        tr: HTMLElementModel.fromCustomModel({
+            tagName: 'tr',
+            contentModel: HTMLContentModel.block,
+        }),
+        th: HTMLElementModel.fromCustomModel({
+            tagName: 'th',
+            contentModel: HTMLContentModel.block,
+            mixedUAStyles: styles.htmlTableHeaderCellText,
+        }),
+        td: HTMLElementModel.fromCustomModel({
+            tagName: 'td',
+            contentModel: HTMLContentModel.block,
+            mixedUAStyles: styles.htmlTableCellText,
+        }),
         ...VICTORY_HTML_ELEMENT_MODELS,
     };
     /* eslint-enable @typescript-eslint/naming-convention */

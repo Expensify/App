@@ -6,7 +6,11 @@
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
     <!-- Debug builds use a pin-free network security config so local dev servers and debugging
          proxies keep working. tools:replace overrides the release config from the main manifest. -->
+    <!-- Enable a larger managed heap for debug builds only, to accommodate extra memory overhead
+         from dev tooling (e.g. the JS debugger). Release and adhoc builds intentionally run with
+         the default heap size. -->
     <application
+        android:largeHeap="true"
         android:networkSecurityConfig="@xml/network_security_config_debug"
         android:usesCleartextTraffic="true"
         tools:targetApi="28"

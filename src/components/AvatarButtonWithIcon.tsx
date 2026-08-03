@@ -1,4 +1,5 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -28,7 +29,7 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
     text: string;
 
     /** Style applied to the avatar */
-    avatarStyle: StyleProp<ViewStyle & ImageStyle>;
+    avatarStyle?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Executed on click */
     onPress: () => void;
@@ -52,7 +53,7 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
     DefaultAvatar?: () => React.ReactNode;
 
     /** Size of Indicator */
-    size?: typeof CONST.AVATAR_SIZE.X_LARGE | typeof CONST.AVATAR_SIZE.LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
+    size?: typeof CONST.AVATAR_SIZE.XXXX_LARGE | typeof CONST.AVATAR_SIZE.XXX_LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: AvatarSource;
@@ -97,6 +98,7 @@ function AvatarButtonWithIcon({
 }: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Pencil']);
 
     return (
@@ -110,7 +112,7 @@ function AvatarButtonWithIcon({
                 accessibilityLabel={text}
                 disabled={disabled}
                 disabledStyle={disabledStyle}
-                style={[styles.pRelative, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter, avatarStyle]}
+                style={[styles.pRelative, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter, StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size)), avatarStyle]}
                 ref={anchorRef}
                 sentryLabel={sentryLabel}
             >

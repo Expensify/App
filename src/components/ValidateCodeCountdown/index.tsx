@@ -32,7 +32,7 @@ function ValidateCodeCountdown({onCountdownFinish, requestedAt, ref}: ValidateCo
 
         // When anchored to `requestedAt`, align the next tick to the wall-clock second boundary so every tab/reload flips the
         // displayed second at the same instant instead of drifting by each tab's own mount offset. Without an anchor (the
-        // `hasMagicCodeBeenSent` flows) there is nothing to align to, so fall back to a fixed 1s cadence.
+        // `hasValidateCodeBeenSent` flows) there is nothing to align to, so fall back to a fixed 1s cadence.
         const msUntilNextTick = requestedAt ? CONST.MILLISECONDS_PER_SECOND - ((Date.now() - requestedAt) % CONST.MILLISECONDS_PER_SECOND) : CONST.MILLISECONDS_PER_SECOND;
 
         timerRef.current = setTimeout(() => {

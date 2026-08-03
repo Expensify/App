@@ -1,7 +1,7 @@
 ---
 title: Update Contact Methods
-description: Add or update contact methods in Expensify and understand how login and magic codes work with multiple emails or phone numbers.
-keywords: [New Expensify, change email, add email, change phone number, add phone number, contact method, update default email, account access, secondary login, login methods, additional email, multiple logins, set as default, magic code verification, default contact method]
+description: Add or update contact methods in Expensify and understand how login and security codes work with multiple emails or phone numbers.
+keywords: [New Expensify, change email, add email, change phone number, add phone number, contact method, update default email, account access, secondary login, login methods, additional email, multiple logins, set as default, security code verification, default contact method]
 internalScope: Audience is all members. Covers adding contact methods, login behavior, verification, default contact method rules. Does not cover workspace-level settings, domain controls, account recovery edge cases.
 ---
 
@@ -57,13 +57,13 @@ After verifying, select any contact method to:
 ## How login works with multiple contact methods
 
 - You can log in using any verified email or phone number on your account.
-- When you enter an email or phone number on the login screen, Expensify sends the magic code to that same email or phone number.
+- When you enter an email or phone number on the login screen, Expensify sends the security code to that same email or phone number.
 
 # FAQ
 
-## Can I change where my magic code is sent?
+## Can I change where my security code is sent?
 
-Magic codes are always sent to the email or phone number you enter when logging in. To use a different destination, enter a different verified contact method.
+Security codes are always sent to the email or phone number you enter when logging in. To use a different destination, enter a different verified contact method.
 
 ## Can I log in with a phone number instead of an email?
 
@@ -75,4 +75,4 @@ You can view your current default contact method by navigating to **Account > Pr
 
 ## Why don't I see **Set as default** under a contact method? 
 
-Only verified contact methods can be set as default. If you don't see **Set as default** under your contact method, please verify it by entering the magic code sent to the current default contact method. 
+Only verified contact methods can be set as default. If you don't see **Set as default** under your contact method, please verify it by entering the security code sent to the current default contact method. 

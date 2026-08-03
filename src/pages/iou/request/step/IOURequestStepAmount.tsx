@@ -8,11 +8,11 @@ import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePreMountDestination from '@hooks/usePreMountDestination';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
-import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
@@ -48,6 +48,7 @@ import type {AmountSubmitData} from './AmountSubmitDataSync';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 import AmountSubmitDataSync from './AmountSubmitDataSync';
+import getSkipConfirmationPreMountDestinationRoute from './confirmation/getSkipConfirmationPreMountDestinationRoute';
 import IOURequestStepCurrencyModal from './IOURequestStepCurrencyModal';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -81,7 +82,8 @@ function IOURequestStepAmount({
     const iouRequestType = getRequestType(transaction);
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const policyID = isTrackExpense ? policyForMovingExpensesID : report?.policyID;
+    const participantPolicyID = transaction?.participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
+    const policyID = (isTrackExpense ? policyForMovingExpensesID : report?.policyID) ?? participantPolicyID;
 
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isIouReport = isMoneyRequestReport(report);
@@ -156,7 +158,8 @@ function IOURequestStepAmount({
         return !(isReportArchived || isPolicyExpenseChat(report));
     }, [report, isSplitBill, skipConfirmation, isReportArchived]);
 
-    useSkipConfirmationPreInsert(shouldSkipConfirmation, report?.reportID);
+    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(shouldSkipConfirmation, report?.reportID);
+    usePreMountDestination(skipConfirmationPreMountRoute);
 
     useFocusEffect(
         useCallback(() => {
@@ -199,7 +202,17 @@ function IOURequestStepAmount({
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID);
+            : getReportOption(
+                  participant,
+                  privateIsArchived,
+                  policy,
+                  personalDetails,
+                  conciergeReportID,
+                  reportAttributesDerived,
+                  reportDraft,
+                  currentUserPersonalDetails.accountID,
+                  translate,
+              );
     });
     const participant = participants.at(0);
     const policyTags = useMoneyRequestPolicyTags({

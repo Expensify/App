@@ -5,7 +5,7 @@ import type {TranslationPaths} from '@src/languages/types';
 
 import type {ValueOf} from 'type-fest';
 
-const {CONCIERGE_LHN_GBR, RENAME_SAVED_SEARCH, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, GPS_TOOLTIP, HAS_FILTER_NEGATION, MILEAGE_RATE_AUTO_UPDATED} =
+const {CONCIERGE_LHN_GBR, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, GPS_TOOLTIP, HAS_FILTER_NEGATION, MILEAGE_RATE_AUTO_UPDATED} =
     CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = Exclude<ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>, typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL>;
@@ -35,13 +35,6 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         shouldShow: () => false,
-    },
-    [RENAME_SAVED_SEARCH]: {
-        content: 'productTrainingTooltip.saveSearchTooltip',
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(RENAME_SAVED_SEARCH, isDismissedUsingCloseButton),
-        name: RENAME_SAVED_SEARCH,
-        priority: 1250,
-        shouldShow: ({shouldUseNarrowLayout}) => !shouldUseNarrowLayout,
     },
     [ACCOUNT_SWITCHER]: {
         content: 'productTrainingTooltip.accountSwitcher',

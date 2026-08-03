@@ -1,5 +1,7 @@
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
 
+import {setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@userActions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
@@ -8,6 +10,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -228,6 +231,208 @@ describe('AmountSubmission', () => {
             mockSetDraftSplitTransaction.mockClear();
             mockUpdateMoneyRequestAmountAndCurrency.mockClear();
             mockSetTransactionReport.mockClear();
+            jest.mocked(setMoneyRequestTaxRate).mockClear();
+            jest.mocked(setMoneyRequestTaxAmount).mockClear();
+        });
+
+        const taxPolicy: Policy = {
+            ...createRandomPolicy(200, CONST.POLICY.TYPE.TEAM, 'Tax Workspace'),
+            outputCurrency: CONST.CURRENCY.USD,
+            tax: {trackingEnabled: true},
+            taxRates: {
+                name: 'Tax',
+                defaultExternalID: 'idDefault',
+                foreignTaxDefault: 'idForeign',
+                defaultValue: '5%',
+                taxes: {
+                    idDefault: {name: 'Default', value: '5%'},
+                    idForeign: {name: 'Foreign', value: '10%'},
+                    idManual: {name: 'Manual', value: '7%'},
+                },
+            },
+        };
+
+        // The create-flow tax recompute only runs on a policy expense chat with tax tracking enabled, so tax tests
+        // start from a workspace chat report (mirrors continuing an expense from a tax-enabled workspace chat).
+        const taxReport: Report = {
+            ...createRandomReport(100, undefined),
+            reportID: 'report-100',
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID: '200',
+        };
+
+        const buildTaxTransaction = (taxCode: string): Transaction => ({
+            transactionID: 'tx-1',
+            amount: -1000,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01',
+            merchant: 'Test',
+            reportID: 'report-100',
+            comment: {},
+            taxCode,
+        });
+
+        it('applies the new currency default tax rate on create when currency changes and tax is the auto-applied default', () => {
+            submitAmount(
+                buildBaseArgs({
+                    report: taxReport,
+                    action: CONST.IOU.ACTION.CREATE,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    transaction: buildTaxTransaction('idDefault'),
+                    selectedCurrency: CONST.CURRENCY.EUR,
+                    amount: '10',
+                }),
+            );
+
+            expect(setMoneyRequestTaxRate).toHaveBeenCalledWith('tx-1', 'idForeign');
+        });
+
+        it('preserves a manually selected tax rate on create when currency changes', () => {
+            submitAmount(
+                buildBaseArgs({
+                    report: taxReport,
+                    action: CONST.IOU.ACTION.CREATE,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    transaction: buildTaxTransaction('idManual'),
+                    selectedCurrency: CONST.CURRENCY.EUR,
+                    amount: '10',
+                }),
+            );
+
+            expect(setMoneyRequestTaxRate).not.toHaveBeenCalled();
+        });
+
+        it('does not change the tax rate on create when the currency is unchanged', () => {
+            submitAmount(
+                buildBaseArgs({
+                    report: taxReport,
+                    action: CONST.IOU.ACTION.CREATE,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    transaction: buildTaxTransaction('idDefault'),
+                    selectedCurrency: CONST.CURRENCY.USD,
+                    amount: '10',
+                }),
+            );
+
+            expect(setMoneyRequestTaxRate).not.toHaveBeenCalled();
+        });
+
+        it('does not write a tax code or amount on create when the workspace has tax tracking disabled', () => {
+            submitAmount(
+                buildBaseArgs({
+                    report: taxReport,
+                    action: CONST.IOU.ACTION.CREATE,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: {...taxPolicy, tax: {trackingEnabled: false}},
+                    transaction: buildTaxTransaction('idDefault'),
+                    selectedCurrency: CONST.CURRENCY.EUR,
+                    amount: '10',
+                }),
+            );
+
+            expect(setMoneyRequestTaxRate).not.toHaveBeenCalled();
+            expect(setMoneyRequestTaxAmount).not.toHaveBeenCalled();
+        });
+
+        it('applies the new currency default tax rate on create from the FAB flow (no report) when the workspace is resolved from the participant', () => {
+            // Global-create (FAB) flow: there is no report context, so the workspace/tax tracking must be recognized
+            // from the transaction's selected policy-expense-chat participant instead of from `report`.
+            submitAmount(
+                buildBaseArgs({
+                    report: undefined,
+                    action: CONST.IOU.ACTION.CREATE,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    transaction: {...buildTaxTransaction('idDefault'), participants: [{isPolicyExpenseChat: true, policyID: '200'}]},
+                    selectedCurrency: CONST.CURRENCY.EUR,
+                    amount: '10',
+                }),
+            );
+
+            expect(setMoneyRequestTaxRate).toHaveBeenCalledWith('tx-1', 'idForeign');
+        });
+
+        it('applies the new currency default tax rate on edit when currency changes and tax is the auto-applied default', () => {
+            submitAmount(
+                buildBaseArgs({
+                    action: CONST.IOU.ACTION.EDIT,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    transaction: buildTaxTransaction('idDefault'),
+                    selectedCurrency: CONST.CURRENCY.EUR,
+                    amount: '10',
+                }),
+            );
+
+            expect(mockUpdateMoneyRequestAmountAndCurrency).toHaveBeenCalledWith(expect.objectContaining({taxCode: 'idForeign'}));
+        });
+
+        it('preserves a manually selected tax rate on edit when currency changes', () => {
+            submitAmount(
+                buildBaseArgs({
+                    action: CONST.IOU.ACTION.EDIT,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    transaction: buildTaxTransaction('idManual'),
+                    selectedCurrency: CONST.CURRENCY.EUR,
+                    amount: '10',
+                }),
+            );
+
+            expect(mockUpdateMoneyRequestAmountAndCurrency).toHaveBeenCalledWith(expect.objectContaining({taxCode: 'idManual'}));
+        });
+
+        it('heals a tax code that is not a valid policy rate to the currency default on edit', () => {
+            submitAmount(
+                buildBaseArgs({
+                    action: CONST.IOU.ACTION.EDIT,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    transaction: buildTaxTransaction('idNoLongerExists'),
+                    selectedCurrency: CONST.CURRENCY.EUR,
+                    amount: '10',
+                }),
+            );
+
+            expect(mockUpdateMoneyRequestAmountAndCurrency).toHaveBeenCalledWith(expect.objectContaining({taxCode: 'idForeign'}));
+        });
+
+        it('preserves a tax code whose stored value drifted from the policy on edit (heals only missing codes)', () => {
+            submitAmount(
+                buildBaseArgs({
+                    action: CONST.IOU.ACTION.EDIT,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    // The code still exists on the policy, but its stored value is stale (e.g. an admin edited the
+                    // rate's percentage after this expense was created). The currency is unchanged, so the only reason
+                    // to swap the code would be an invalid one — but a drifted value is not invalid, so it is preserved.
+                    transaction: {...buildTaxTransaction('idManual'), taxValue: '3%'},
+                    selectedCurrency: CONST.CURRENCY.USD,
+                    amount: '20',
+                }),
+            );
+
+            expect(mockUpdateMoneyRequestAmountAndCurrency).toHaveBeenCalledWith(expect.objectContaining({taxCode: 'idManual'}));
+        });
+
+        it('preserves an intentionally-cleared tax (empty code) on edit when only the amount changes', () => {
+            submitAmount(
+                buildBaseArgs({
+                    action: CONST.IOU.ACTION.EDIT,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    // The user deliberately cleared the tax (`taxCode === ''`). Editing only the amount (same currency)
+                    // must not re-add the workspace default tax — an empty code is a legitimate persisted selection.
+                    transaction: buildTaxTransaction(''),
+                    selectedCurrency: CONST.CURRENCY.USD,
+                    amount: '20',
+                }),
+            );
+
+            expect(mockUpdateMoneyRequestAmountAndCurrency).toHaveBeenCalledWith(expect.objectContaining({taxCode: ''}));
         });
 
         it('calls sendMoneyElsewhere on non-edit + skip-confirm + PAY (non-wallet)', () => {

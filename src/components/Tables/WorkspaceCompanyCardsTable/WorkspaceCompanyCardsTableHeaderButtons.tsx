@@ -1,5 +1,5 @@
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import Button from '@components/ButtonComposed';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
@@ -104,15 +104,6 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
         });
     };
 
-    const secondaryActions = [
-        {
-            icon: icons.Gear,
-            text: translate('common.settings'),
-            onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID))),
-            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-        },
-    ];
-
     const isCsvFeed = feedName?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     const firstPart = translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed');
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
@@ -155,23 +146,17 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     />
                 )}
 
-                <View
-                    style={[styles.alignItemsCenter, styles.gap3, shouldShowNarrowLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow]}
-                >
-                    <View style={[styles.flexRow, styles.gap3]}>
-                        {!isLoading && canWriteCompanyCards && (
-                            <ButtonWithDropdownMenu
-                                onPress={() => {}}
-                                shouldUseOptionIcon
-                                customText={translate('common.more')}
-                                options={secondaryActions}
-                                isSplitButton={false}
-                                wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : styles.flexGrow0}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.MORE_DROPDOWN}
-                            />
-                        )}
-                    </View>
-                </View>
+                {!isLoading && canWriteCompanyCards && (
+                    <Button
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID)))}
+                        accessibilityLabel={translate('common.settings')}
+                        style={shouldShowNarrowLayout ? styles.w100 : undefined}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_BUTTON}
+                    >
+                        <Button.Icon src={icons.Gear} />
+                        <Button.Text>{translate('common.settings')}</Button.Text>
+                    </Button>
+                )}
             </View>
 
             {!isLoading && canWriteCompanyCards && shouldShowBrokenConnectionError && (

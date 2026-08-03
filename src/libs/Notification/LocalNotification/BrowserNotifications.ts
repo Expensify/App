@@ -1,6 +1,7 @@
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 
 import * as AppUpdate from '@libs/actions/AppUpdate';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
@@ -164,6 +165,8 @@ export default {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const bodyWithHTML = getForReportAction({
             translate: translateLocal,
+            // Non-React call path (pusher/notification pipeline): pass the standalone util, which falls back to the module-scope currency list.
+            convertToDisplayString,
             reportAction,
             policy,
             movedFromReport,

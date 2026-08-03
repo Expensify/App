@@ -67,6 +67,8 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
     );
+    // If required tags was enabled before clearing tags for a level switch, the next first tag should restore that setting.
+    const shouldRestoreRequiresTagAfterTagCreate = (policy?.requiresTag ?? false) || policyTagLists.some((policyTagList) => policyTagList.required);
 
     const hasVisibleTags = useMemo(() => {
         if (isMultiLevelTags) {
@@ -184,7 +186,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     danger: true,
                 });
                 if (action === ModalActions.CONFIRM) {
-                    cleanPolicyTags(policyID);
+                    cleanPolicyTags(policyID, shouldRestoreRequiresTagAfterTagCreate);
                     Navigation.setNavigationActionToMicrotaskQueue(() => {
                         Navigation.navigate(
                             isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : workspaceTagsImportPath,
@@ -205,6 +207,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         overrideMultiTagPrompt,
         isQuickSettingsFlow,
         policyID,
+        shouldRestoreRequiresTagAfterTagCreate,
         backTo,
         switchSingleToMultiLevelTagPrompt,
         workspaceTagsImportPath,
@@ -260,7 +263,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                     danger: true,
                                 });
                                 if (action === ModalActions.CONFIRM) {
-                                    cleanPolicyTags(policyID);
+                                    cleanPolicyTags(policyID, shouldRestoreRequiresTagAfterTagCreate);
                                     Navigation.setNavigationActionToMicrotaskQueue(() => {
                                         Navigation.navigate(
                                             isQuickSettingsFlow

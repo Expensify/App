@@ -25,7 +25,7 @@ import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction'
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -229,6 +229,10 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
                 },
+                allReportActionsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action456: iouAction1, action789: iouAction2},
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`]: {},
+                },
             });
             await waitForBatchedUpdates();
 
@@ -315,6 +319,7 @@ describe('actions/Duplicate', () => {
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 allTransactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: []},
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {}},
             });
             await waitForBatchedUpdates();
 
@@ -374,6 +379,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: [],
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: [],
                 },
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {}},
             });
             await waitForBatchedUpdates();
 
@@ -559,6 +565,9 @@ describe('actions/Duplicate', () => {
             expect(iouAction1?.childVisibleActionCount).toBe(2);
             expect(iouAction2?.childVisibleActionCount).toBe(1);
             expect(previewAction?.childVisibleActionCount).toBe(3);
+            if (!iouAction1 || !iouAction2) {
+                throw new Error('Expected iouAction1 and iouAction2 to be defined after fetching from Onyx.');
+            }
 
             await waitForBatchedUpdates();
 
@@ -589,6 +598,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
                 },
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {[iouAction1ID]: iouAction1, [iouAction2ID]: iouAction2}},
             });
             await waitForBatchedUpdates();
 
@@ -695,6 +705,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                 },
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {mainAction123: mainIouAction, action456: dupIouAction}},
             });
             await waitForBatchedUpdates();
 
@@ -782,6 +793,10 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`]: crossDuplicateViolations,
                 },
+                allReportActionsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${keptReportID}`]: {actionMain: mainIouAction},
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${crossReportID}`]: {actionCross: crossIouAction},
+                },
             });
             await waitForBatchedUpdates();
 
@@ -864,13 +879,14 @@ describe('actions/Duplicate', () => {
             {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
         ];
 
-        const createMockIouAction = (transactionID: string, reportActionID: string, childReportID: string) => ({
+        const createMockIouAction = (transactionID: string, reportActionID: string, childReportID?: string): ReportAction => ({
             reportActionID,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            originalMessage: {
+            created: '2024-01-01 12:00:00',
+            originalMessage: createMock<OriginalMessageIOU>({
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            },
+            }),
             message: [{type: 'TEXT', text: 'Test IOU message'}],
             childReportID,
         });
@@ -940,6 +956,9 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
+                },
+                allReportActionsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action456: iouAction1, action789: iouAction2, mainAction123: mainIouAction},
                 },
             });
             await waitForBatchedUpdates();
@@ -1033,7 +1052,7 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call resolveDuplicates with undefined transactionID
-            resolveDuplicates({...resolveParams, allTransactionViolations: {}});
+            resolveDuplicates({...resolveParams, allTransactionViolations: {}, allReportActionsList: undefined});
             await waitForBatchedUpdates();
 
             // Then: Verify API was not called
@@ -1079,6 +1098,7 @@ describe('actions/Duplicate', () => {
             resolveDuplicates({
                 ...resolveParams,
                 allTransactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations},
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {mainAction123: mainIouAction}},
             });
             await waitForBatchedUpdates();
 
@@ -1115,7 +1135,14 @@ describe('actions/Duplicate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicateViolations);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
+            // A non-money-request action and an IOU action with no IOUTransactionID should both be filtered out without matching.
+            const commentAction = createMock<ReportAction>({reportActionID: 'commentAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+            const iouActionWithoutTransactionID = createMock<ReportAction>({
+                reportActionID: 'iouActionWithoutTransactionID',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: createMock<OriginalMessageIOU>({type: CONST.IOU.REPORT_ACTION_TYPE.CREATE}),
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {commentAction, iouActionWithoutTransactionID});
             await waitForBatchedUpdates();
 
             const resolveParams = {
@@ -1135,13 +1162,14 @@ describe('actions/Duplicate', () => {
                 transactionThreadReportIDMap: {},
             };
 
-            // When: Call resolveDuplicates without IOU actions
+            // When: Call resolveDuplicates without matching IOU actions
             resolveDuplicates({
                 ...resolveParams,
                 allTransactionViolations: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicateViolations,
                 },
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {commentAction, iouActionWithoutTransactionID}},
             });
             await waitForBatchedUpdates();
 
@@ -1161,8 +1189,229 @@ describe('actions/Duplicate', () => {
                 ]),
             );
 
-            // Then: Verify API was called
-            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
+            // Then: Verify the duplicate with no IOU action is skipped from the server payload
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({transactionIDList: [], reportActionIDList: []}), expect.objectContaining({}));
+        });
+
+        it('should still resolve duplicates when the held duplicate transaction thread is missing', async () => {
+            // Given: A duplicate whose IOU action exists but has no transaction thread (childReportID),
+            // with an empty transactionThreadReportIDMap (admin resolving from the workspace chat without opening the expenses)
+            const reportID = 'report123';
+            const mainTransactionID = 'main123';
+            const duplicate1ID = 'dup456';
+            const mainChildReportID = 'mainChild123';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID, 150);
+            const duplicateTransaction = createMockTransaction(duplicate1ID, reportID, 100);
+            const mainViolations = createMockViolations();
+            const duplicateViolations = createMockViolations();
+
+            const mainIouAction = createMockIouAction(mainTransactionID, 'mainAction123', mainChildReportID);
+            // The duplicate's IOU action exists, but its transaction thread was never created
+            const duplicateIouAction = createMockIouAction(duplicate1ID, 'action456');
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicateViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                mainAction123: mainIouAction,
+                action456: duplicateIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mainChildReportID}`, {});
+            await waitForBatchedUpdates();
+
+            const resolveParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: [duplicate1ID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 200,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID,
+                transactionThreadReportIDMap: {},
+            };
+
+            // When: Call resolveDuplicates while the duplicate has no thread
+            resolveDuplicates({
+                ...resolveParams,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicateViolations,
+                },
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {mainAction123: mainIouAction, action456: duplicateIouAction}},
+            });
+            await waitForBatchedUpdates();
+
+            // Then: The duplicate is still sent to the backend instead of being silently dropped
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_DUPLICATES,
+                expect.objectContaining({
+                    transactionID: mainTransactionID,
+                    transactionIDList: [duplicate1ID],
+                    reportActionIDList: expect.arrayContaining([expect.any(String)]),
+                    dismissedViolationReportActionID: expect.anything(),
+                }),
+                expect.objectContaining({}),
+            );
+
+            // And: The duplicate transaction is optimistically put on hold
+            const updatedDuplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`);
+            expect(updatedDuplicate?.comment?.hold).toBeDefined();
+        });
+
+        it('should restore the pre-existing comment.hold value in failureData', async () => {
+            // Given: A duplicate transaction that already carries a hold before it is resolved again
+            const reportID = 'report123';
+            const mainTransactionID = 'main123';
+            const duplicate1ID = 'dup456';
+            const childReportID1 = 'child456';
+            const mainChildReportID = 'mainChild123';
+            const preExistingHoldID = 'preExistingHold789';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID, 150);
+            const duplicateTransaction: Transaction = {
+                ...createMockTransaction(duplicate1ID, reportID, 100),
+                comment: {comment: 'Updated comment', hold: preExistingHoldID},
+            };
+            const mainViolations = createMockViolations();
+            const duplicateViolations = createMockViolations();
+
+            const mainIouAction = createMockIouAction(mainTransactionID, 'mainAction123', mainChildReportID);
+            const duplicateIouAction = createMockIouAction(duplicate1ID, 'action456', childReportID1);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicateViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                mainAction123: mainIouAction,
+                action456: duplicateIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID1}`, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mainChildReportID}`, {});
+            await waitForBatchedUpdates();
+
+            const resolveParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: [duplicate1ID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 200,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID,
+                transactionThreadReportIDMap: {
+                    [duplicate1ID]: childReportID1,
+                },
+            };
+
+            // When: Call resolveDuplicates
+            resolveDuplicates({
+                ...resolveParams,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicateViolations,
+                },
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {mainAction123: mainIouAction, action456: duplicateIouAction}},
+            });
+            await waitForBatchedUpdates();
+
+            // Then: failureData restores the duplicate's original comment.hold instead of clearing it
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_DUPLICATES,
+                expect.objectContaining({transactionID: mainTransactionID, transactionIDList: [duplicate1ID]}),
+                expect.objectContaining({
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`,
+                            value: {comment: {hold: preExistingHoldID}},
+                        }),
+                    ]),
+                }),
+            );
+        });
+
+        it('should not write a report action to an undefined thread when the kept transaction thread is missing', async () => {
+            // Given: The kept (selected) transaction has no IOU action/thread, while the duplicate has both
+            const reportID = 'report123';
+            const mainTransactionID = 'main123';
+            const duplicate1ID = 'dup456';
+            const childReportID1 = 'child456';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID, 150);
+            const duplicateTransaction = createMockTransaction(duplicate1ID, reportID, 100);
+            const mainViolations = createMockViolations();
+            const duplicateViolations = createMockViolations();
+
+            const duplicateIouAction = createMockIouAction(duplicate1ID, 'action456', childReportID1);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicateViolations);
+            // Only the duplicate has an IOU action; the kept transaction's thread cannot be resolved
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                action456: duplicateIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID1}`, {});
+            await waitForBatchedUpdates();
+
+            const resolveParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: [duplicate1ID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 200,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID,
+                transactionThreadReportIDMap: {
+                    [duplicate1ID]: childReportID1,
+                },
+            };
+
+            // When: Call resolveDuplicates while the kept transaction has no thread
+            resolveDuplicates({
+                ...resolveParams,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicateViolations,
+                },
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action456: duplicateIouAction}},
+            });
+            await waitForBatchedUpdates();
+
+            // Then: No report action is written to the malformed `reportActions_undefined` key
+            const undefinedThreadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}undefined`);
+            expect(undefinedThreadActions).toBeFalsy();
+
+            // And: The dismissed-violation action id is still sent so the backend records the dismissal
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_DUPLICATES,
+                expect.objectContaining({
+                    transactionID: mainTransactionID,
+                    transactionIDList: [duplicate1ID],
+                    dismissedViolationReportActionID: expect.anything(),
+                }),
+                expect.objectContaining({}),
+            );
         });
 
         it('should handle cross-report duplicates by finding IOU actions in each transaction own report', async () => {
@@ -1226,6 +1475,10 @@ describe('actions/Duplicate', () => {
                 allTransactionViolations: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`]: crossDuplicateViolations,
+                },
+                allReportActionsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportA}`]: {actionMain: mainIouAction},
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportB}`]: {actionCross: crossIouAction},
                 },
             });
             await waitForBatchedUpdates();
@@ -2212,6 +2465,9 @@ describe('actions/Duplicate', () => {
                 actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction;
             }
             const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
+            const allReportActionsList: OnyxCollection<ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: Object.fromEntries(iouActions.map((iouAction) => [iouAction.reportActionID, iouAction])),
+            };
 
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
@@ -2230,6 +2486,7 @@ describe('actions/Duplicate', () => {
                             [transaction2.transactionID]: 'transactionThread-2',
                         },
                         allTransactionViolations: {},
+                        allReportActionsList,
                     });
                     return waitForBatchedUpdates();
                 })

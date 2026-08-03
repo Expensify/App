@@ -101,18 +101,19 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             return;
         }
         startWithLoading(() => {
-            addReportApprover(
+            addReportApprover({
                 report,
-                selectedApproverEmail,
-                Number(employeeAccountID),
-                currentUserDetails.accountID,
-                currentUserDetails.email ?? '',
+                newApproverEmail: selectedApproverEmail,
+                newApproverAccountID: Number(employeeAccountID),
+                accountID: currentUserDetails.accountID,
+                email: currentUserDetails.email ?? '',
                 policy,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                reportNextStep,
+                reportCurrentNextStepDeprecated: reportNextStep,
                 isTrackIntentUser,
-            );
+                formatPhoneNumber,
+            });
             Navigation.dismissToPreviousRHP();
         });
     };
@@ -146,7 +147,6 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             subtitle={<Text style={[styles.ph5, styles.pb3]}>{translate('iou.changeApprover.addApprover.subtitle')}</Text>}
             isLoadingReportData={isLoadingReportData}
             policy={policy}
-            initiallyFocusedOptionKey={selectedApproverEmail}
             shouldShowNotFoundViewLink={false}
             shouldShowNotFoundView={shouldShowNotFoundView}
             allApprovers={allApprovers}

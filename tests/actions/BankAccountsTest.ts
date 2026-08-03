@@ -165,7 +165,7 @@ describe('actions/BankAccounts', () => {
             openPersonalBankAccountSetupView({shouldSetUpUSBankAccount: true});
             await waitForBatchedUpdates();
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
         });
     });
 

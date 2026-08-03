@@ -1,5 +1,5 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -60,12 +60,13 @@ function EmptyWorkspaceView() {
                 addBottomSafeAreaPadding
             />
             <Button
-                success
-                large
-                text={translate('footer.learnMore')}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(Navigation.getActiveRoute()))}
                 style={[styles.mh5, bottomSafeAreaPaddingStyle]}
-            />
+            >
+                <Button.Text>{translate('footer.learnMore')}</Button.Text>
+            </Button>
         </>
     );
 }

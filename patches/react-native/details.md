@@ -192,9 +192,9 @@
 
 ### [react-native+0.85.3+025+log-soft-exception-if-viewState-not-found.patch](react-native+0.85.3+025+log-soft-exception-if-viewState-not-found.patch)
 
-- Reason: This patch prevents app crashes by soft-logging the exception when JS try to send events to native views even if they are removed from view hierarchy. The approach follows existing patterns in the same file where similar events are already handled this way and is based on suggestions from other developers in upstream discussions.
-- Upstream PR/issue: [#49077](https://github.com/facebook/react-native/issues/49077) [#7493](https://github.com/software-mansion/react-native-reanimated/issues/7493)
-- E/App issue: [#82611](https://github.com/Expensify/App/issues/82611)
+- Reason: This patch prevents app crashes by soft-logging missing view-state exceptions when JS sends events or Fabric mount instructions for native views that have already been removed from the hierarchy. It includes the upstream `updateOverflowInset` guard so stale batch mount items return safely instead of throwing `RetryableMountingLayerException`.
+- Upstream PR/issue: [#49077](https://github.com/facebook/react-native/issues/49077) [#56762](https://github.com/facebook/react-native/pull/56762) [#7493](https://github.com/software-mansion/react-native-reanimated/issues/7493)
+- E/App issues: [#82611](https://github.com/Expensify/App/issues/82611) [#93833](https://github.com/Expensify/App/issues/93833)
 - PR introducing patch: [#84303](https://github.com/Expensify/App/pull/84303)
 
 ### [react-native+0.85.3+026+fix-view-stealing-first-responder.patch](react-native+0.85.3+026+fix-view-stealing-first-responder.patch)

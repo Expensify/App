@@ -88,9 +88,12 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
     const hasChanged = !frozen || TODO_KEYS.some((key) => frozen.counts[key] !== counts[key] || frozen.singleReportIDs[key] !== singleReportIDs[key]);
     if (hasChanged) {
         setFrozen(value);
+        return value;
     }
 
-    return value;
+    // Nothing changed — return the previously stored object so consumers keep a stable reference and
+    // memoized children don't re-render on unrelated Onyx writes to the subscribed collections.
+    return frozen;
 }
 
 export default useTodoCounts;

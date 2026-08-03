@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {LockAccountOnyxKey} from '@userActions/User';
 import {lockAccount} from '@userActions/User';
 
+import CONST from '@src/CONST';
 import type Response from '@src/types/onyx/Response';
 
 import React, {useState} from 'react';
@@ -74,15 +75,16 @@ function LockAccountPageBase({
 
     const lockAccountButton = (
         <Button
-            danger
+            variant={CONST.BUTTON_VARIANT.DANGER}
             isLoading={isLoading}
             isDisabled={isOffline}
-            large
-            text={lockButtonText ?? translate('lockAccountPage.reportSuspiciousActivity')}
+            size={CONST.BUTTON_SIZE.LARGE}
             style={styles.mt6}
-            pressOnEnter
             onPress={handleReportSuspiciousActivity}
-        />
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{lockButtonText ?? translate('lockAccountPage.reportSuspiciousActivity')}</Button.Text>
+        </Button>
     );
 
     return (

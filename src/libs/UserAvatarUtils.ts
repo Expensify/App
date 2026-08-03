@@ -478,6 +478,14 @@ function getSmallSizeAvatar(args: GetAvatarArgsType & DefaultAvatarsType): Avata
     return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
 }
 
+/**
+ * Swaps a catalog-backed avatar URL for its bundled local SVG so it renders without a network request.
+ * Non-catalog sources (uploaded image URLs, SVG components, or undefined) are returned unchanged.
+ */
+function optimizeAvatarSource(source?: AvatarSource): AvatarSource | undefined {
+    return findLocalAvatarForURL(source) ?? source;
+}
+
 export {
     getAvatar,
     getAvatarURL,
@@ -495,5 +503,6 @@ export {
     isDefaultAvatar,
     isGeneratedLetterAvatarURL,
     isLetterAvatar,
+    optimizeAvatarSource,
 };
 export type {AvatarSource};

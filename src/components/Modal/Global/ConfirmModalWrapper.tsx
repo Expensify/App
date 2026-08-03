@@ -3,6 +3,7 @@ import ConfirmModal from '@components/ConfirmModal';
 
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useNetwork from '@hooks/useNetwork';
 
 import CONST from '@src/CONST';
 
@@ -21,6 +22,7 @@ type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm'
 
 function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, ...props}: ConfirmModalWrapperProps) {
     const activeElementRole = useActiveElementRole();
+    const {isOffline} = useNetwork();
     const [isVisible, setIsVisible] = useState(true);
     const [closeAction, setCloseAction] = useState<typeof ModalActions.CONFIRM | typeof ModalActions.CLOSE>(ModalActions.CLOSE);
     const [isConfirmLoading, setIsConfirmLoading] = useState(false);
@@ -52,8 +54,11 @@ function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, ...props}: 
         onModalHide?.();
     };
 
+    // Mirror the confirm button's offline-disabled state so the Enter shortcut can't bypass a button that is visually disabled while offline.
+    const isConfirmDisabledWhileOffline = !!props.shouldDisableConfirmButtonWhenOffline && isOffline;
+
     const shortcutConfig = {
-        isActive: activeElementRole !== CONST.ROLE.BUTTON && !isConfirmLoading,
+        isActive: activeElementRole !== CONST.ROLE.BUTTON && !isConfirmLoading && !isConfirmDisabledWhileOffline,
         shouldPreventDefault: false,
         shouldBubble: false,
     };

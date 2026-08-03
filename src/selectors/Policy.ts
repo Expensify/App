@@ -1,7 +1,16 @@
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-// eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {
+    getActiveAdminWorkspaces,
+    getActivePoliciesWithExpenseChat,
+    getOwnedPaidPolicies,
+    getPolicyIDFromDomainName,
+    // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
+    isPaidGroupPolicy,
+    isPendingDeletePolicy,
+    isPolicyAdmin,
+    shouldShowPolicy,
+} from '@libs/PolicyUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
@@ -131,6 +140,16 @@ const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUs
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => !!activeAdminPoliciesSelector(policies, currentUserAccountLogin).length;
 
 /**
+ * Creates a selector returning only whether the user has any active workspace they can submit expenses to
+ * (paid Collect/Control workspaces, plus free Submit (submit2026) workspaces when the beta is enabled),
+ * so subscribers don't re-render when anything else on the policy collection changes.
+ */
+const createHasWorkspaceToSubmitToSelector =
+    (currentUserLogin: string | undefined, isSubmit2026BetaEnabled = false) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        getActivePoliciesWithExpenseChat(policies, currentUserLogin, isSubmit2026BetaEnabled).length > 0;
+
+/**
  * Creates a selector that aggregates all non-formula policy report fields from all policies,
  * sorted alphabetically by field key using the provided locale compare function
  */
@@ -149,12 +168,7 @@ const createAllPolicyReportFieldsSelector = (policies: OnyxCollection<Policy>, l
 };
 
 const createPoliciesForDomainCardsSelector = (domainNames: string[]) => {
-    const policyIDs = new Set(
-        domainNames
-            .map((domainName) => domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1])
-            .filter((policyID): policyID is string => !!policyID)
-            .map((policyID) => policyID.toUpperCase()),
-    );
+    const policyIDs = new Set(domainNames.map(getPolicyIDFromDomainName).filter((policyID): policyID is string => !!policyID));
 
     return (policies: OnyxCollection<Policy>) => {
         if (policyIDs.size === 0) {
@@ -255,6 +269,29 @@ const createFilteredPoliciesInfoSelector =
         }
         return {filteredPoliciesCount, firstPolicyID};
     };
+
+/**
+ * Maps every policy ID to the default category configured on its distance unit. Used when an expense is moved to
+ * another workspace, where the destination policy isn't known until the user picks it, so subscribing to that single
+ * policy isn't an option. Only the default categories are kept so the subscriber re-renders when one of them changes
+ * rather than on any change to any policy.
+ */
+const policyDistanceDefaultCategoriesSelector = (policies: OnyxCollection<Policy>): Record<string, string | undefined> => {
+    const result: Record<string, string | undefined> = {};
+
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy?.id) {
+            continue;
+        }
+        const distanceUnit = Object.values(policy.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        if (!distanceUnit?.defaultCategory) {
+            continue;
+        }
+        result[policy.id] = distanceUnit.defaultCategory;
+    }
+
+    return result;
+};
 
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
     return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -360,7 +397,12 @@ const createAdminPoliciesSelector =
             if (!isCurrentPolicy && (policy.type === CONST.POLICY.TYPE.PERSONAL || policy.role !== CONST.POLICY.ROLE.ADMIN)) {
                 return acc;
             }
-            acc[key] = {id: policy.id, name: policy.name, avatarURL: policy.avatarURL, created: policy.created};
+            acc[key] = {
+                id: policy.id,
+                name: policy.name,
+                avatarURL: policy.avatarURL,
+                created: policy.created,
+            };
             return acc;
         }, {});
     };
@@ -376,6 +418,7 @@ export {
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
+    createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
     iouRequestPolicyCollectionSelector,
@@ -385,6 +428,7 @@ export {
     hasReusablePoliciesConnectedToSelector,
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
+    policyDistanceDefaultCategoriesSelector,
     policyNameSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,

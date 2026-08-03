@@ -2,14 +2,14 @@ import Button from '@components/Button';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
-import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
-import MagicCodeInput from '@components/MagicCodeInput';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
 import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
+import type {ValidateCodeInputHandle} from '@components/ValidateCodeInput';
+import ValidateCodeInput from '@components/ValidateCodeInput';
 import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
 
@@ -81,8 +81,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const prevRequiresTwoFactorAuth = usePrevious(account?.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(credentials?.validateCode);
 
-    const inputValidateCodeRef = useRef<MagicCodeInputHandle | undefined>(undefined);
-    const input2FARef = useRef<MagicCodeInputHandle | undefined>(undefined);
+    const inputValidateCodeRef = useRef<ValidateCodeInputHandle | undefined>(undefined);
+    const input2FARef = useRef<ValidateCodeInputHandle | undefined>(undefined);
     const countdownRef = useRef<ValidateCodeCountdownHandle | null>(null);
 
     const hasError = !!account && !isEmptyObject(account?.errors) && !needToClearError;
@@ -322,7 +322,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
     return (
         <SafariFormWrapper>
-            {/* At this point, show 2FA only after the user has submitted a magic code and account requires 2FA */}
+            {/* At this point, show 2FA only after the user has submitted a validateCode and account requires 2FA */}
             {account?.requiresTwoFactorAuth && !!credentials?.validateCode ? (
                 <View style={[styles.mv3]}>
                     {isUsingRecoveryCode ? (
@@ -338,13 +338,13 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                             autoFocus
                         />
                     ) : (
-                        <MagicCodeInput
+                        <ValidateCodeInput
                             autoComplete={autoComplete}
-                            ref={(magicCodeInput) => {
-                                if (!magicCodeInput) {
+                            ref={(validateCodeInput) => {
+                                if (!validateCodeInput) {
                                     return;
                                 }
-                                input2FARef.current = magicCodeInput;
+                                input2FARef.current = validateCodeInput;
                             }}
                             name="twoFactorAuthCode"
                             value={twoFactorAuthCode}
@@ -373,13 +373,13 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                 </View>
             ) : (
                 <View style={[styles.mv3]}>
-                    <MagicCodeInput
+                    <ValidateCodeInput
                         autoComplete={autoComplete}
-                        ref={(magicCodeInput) => {
-                            if (!magicCodeInput) {
+                        ref={(validateCodeInput) => {
+                            if (!validateCodeInput) {
                                 return;
                             }
-                            inputValidateCodeRef.current = magicCodeInput;
+                            inputValidateCodeRef.current = validateCodeInput;
                         }}
                         name="validateCode"
                         value={validateCode}

@@ -22,7 +22,7 @@ import INPUT_IDS from '@src/types/form/ChangeBillingCurrencyForm';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 
 type Currency = ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
 
@@ -44,6 +44,9 @@ function DynamicPaymentCardCurrencySelectorPage() {
     );
     const currentCurrency = (formDraft?.[INPUT_IDS.CURRENCY] ?? addCardForm?.currency ?? fallbackCurrency) as Currency;
 
+    const [draftCurrency, setDraftCurrency] = useState<Currency>();
+    const selectedCurrency = draftCurrency ?? currentCurrency;
+
     const currencyOptions = useMemo(() => {
         const canUseEurBilling = isBetaEnabled(CONST.BETAS.EUR_BILLING);
         return (Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Currency[])
@@ -52,9 +55,22 @@ function DynamicPaymentCardCurrencySelectorPage() {
                 text: currency,
                 value: currency,
                 keyForList: currency,
-                isSelected: currency === currentCurrency,
+                isSelected: currency === selectedCurrency,
             }));
-    }, [currentCurrency, isBetaEnabled]);
+    }, [selectedCurrency, isBetaEnabled]);
+
+    const saveAndGoBack = () => {
+        setDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {[INPUT_IDS.CURRENCY]: selectedCurrency});
+        setPaymentMethodCurrency(selectedCurrency);
+        Navigation.goBack(backPath);
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+        isDisabled: selectedCurrency === currentCurrency,
+    };
 
     return (
         <ScreenWrapper
@@ -71,11 +87,8 @@ function DynamicPaymentCardCurrencySelectorPage() {
                 data={currencyOptions}
                 ListItem={SingleSelectListItem}
                 customListHeader={shouldShowCurrencyNote ? <PaymentCardCurrencyHeader isSectionList /> : undefined}
-                onSelectRow={(option) => {
-                    setDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {[INPUT_IDS.CURRENCY]: option.value});
-                    setPaymentMethodCurrency(option.value);
-                    Navigation.goBack(backPath);
-                }}
+                onSelectRow={(option) => setDraftCurrency(option.value)}
+                confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={currentCurrency}
                 showScrollIndicator

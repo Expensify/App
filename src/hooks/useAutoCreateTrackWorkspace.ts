@@ -87,6 +87,7 @@ function useAutoCreateTrackWorkspace() {
                       shouldAddOnboardingTasks: false,
                       introSelected,
                       activePolicy,
+                      conciergeChat,
                       currentUserAccountIDParam: currentUserAccountID,
                       currentUserEmailParam: currentUserEmail,
                       shouldAddGuideWelcomeMessage: false,
@@ -140,7 +141,7 @@ function useAutoCreateTrackWorkspace() {
                     newPolicyID,
                     mergedAccountConciergeReportID,
                     false,
-                    rhpVariant,
+                    {variantOverride: rhpVariant},
                 );
             }
         },

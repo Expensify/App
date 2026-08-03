@@ -18,6 +18,7 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 type Params = Parameters<typeof useConfirmationSections>[0];
 
 const payee = {accountID: 1, login: 'me@test.com'} as CurrentUserPersonalDetails;
+const smsPayee = {accountID: 3, login: '+18332403627@expensify.sms'} as CurrentUserPersonalDetails;
 const otherParticipant = {accountID: 2, login: 'other@test.com', keyForList: '2'} as unknown as Participant;
 const splitParticipant = {accountID: 2, keyForList: '2', login: 'other@test.com'} as Participant & {keyForList: string};
 
@@ -54,6 +55,11 @@ describe('useConfirmationSections', () => {
         expect(result.current.at(1)?.sectionIndex).toBe(1);
         expect(result.current.at(1)?.customHeader).toBeDefined();
         expect(result.current.at(1)?.data).toHaveLength(1);
+    });
+
+    it('formats split payee SMS login using the localized phone-number formatter', () => {
+        const {result} = renderHook(() => useConfirmationSections(makeBase({isTypeSplit: true, payeePersonalDetails: smsPayee as OnyxTypes.PersonalDetails})), {wrapper: Wrapper});
+        expect(result.current.at(0)?.data.at(0)?.text).toBe('(833) 240-3627');
     });
 
     it('produces a single "to" section for non-split types', () => {

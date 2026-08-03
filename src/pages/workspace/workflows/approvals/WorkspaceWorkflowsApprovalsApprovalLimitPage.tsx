@@ -1,6 +1,6 @@
 import AmountForm from '@components/AmountForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -304,18 +304,20 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                     <View style={buttonContainerStyle}>
                         {!isEditFlow && (
                             <Button
-                                large
-                                text={translate('workflowsApprovalLimitPage.skip')}
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 onPress={handleSkip}
                                 style={styles.mb3}
-                            />
+                            >
+                                <Button.Text>{translate('workflowsApprovalLimitPage.skip')}</Button.Text>
+                            </Button>
                         )}
                         <Button
-                            large
-                            success
-                            text={isEditFlow ? translate('common.save') : translate('workflowsApprovalLimitPage.next')}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={handleSubmit}
-                        />
+                        >
+                            <Button.Text>{isEditFlow ? translate('common.save') : translate('workflowsApprovalLimitPage.next')}</Button.Text>
+                        </Button>
                     </View>
                 </FullPageNotFoundView>
             </ScreenWrapper>

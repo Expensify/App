@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -58,14 +58,15 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompa
         return (
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
                 <Button
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={canUseLearnMore ? handleLearnMore : onReadOnlyAction}
                     style={shouldUseNarrowLayout && !isInLandscapeMode && styles.flex1}
                     innerStyles={!canUseLearnMore ? styles.buttonOpacityDisabled : undefined}
                     hoverStyles={!canUseLearnMore ? styles.buttonOpacityDisabled : undefined}
-                    text={translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}
                     accessibilityLabel={`${translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}, ${translate('workspace.moreFeatures.companyCards.expensifyCardBannerTitle')}`}
-                />
+                >
+                    <Button.Text>{translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}</Button.Text>
+                </Button>
             </View>
         );
     }, [styles, shouldUseNarrowLayout, isInLandscapeMode, translate, canUseLearnMore, handleLearnMore, onReadOnlyAction]);

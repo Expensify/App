@@ -68,6 +68,20 @@ describe('cleanAndTransformState', () => {
         expect(() => cleanAndTransformState('invalid json')).toThrow();
     });
 
+    it('omits preserved session/account so an imported dump cannot clobber the local restoration state', () => {
+        const input = JSON.stringify({
+            [ONYXKEYS.PRESERVED_USER_SESSION]: {authToken: 'masked', email: 'user@example.com'},
+            [ONYXKEYS.PRESERVED_ACCOUNT]: {primaryLogin: 'masked'},
+            keepThis: 'value',
+        });
+
+        const result = cleanAndTransformState(input);
+
+        expect(result).toEqual({keepThis: 'value'});
+        expect(result).not.toHaveProperty(ONYXKEYS.PRESERVED_USER_SESSION);
+        expect(result).not.toHaveProperty(ONYXKEYS.PRESERVED_ACCOUNT);
+    });
+
     it('removes all specified ONYXKEYS', () => {
         const input = JSON.stringify({
             [ONYXKEYS.ACTIVE_CLIENTS]: 'remove1',

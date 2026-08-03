@@ -11,8 +11,21 @@ import cloneDeep from 'lodash/cloneDeep';
 import {clearOnyxStateBeforeImport, importOnyxCollectionState, importOnyxRegularState} from './actions/ImportOnyxState';
 import {isRecord} from './ObjectUtils';
 
-// List of Onyx keys from the .txt file we want to keep for the local override
-const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK, ONYXKEYS.CREDENTIALS, ONYXKEYS.PREFERRED_THEME, ...Object.values(ONYXKEYS.DERIVED)];
+// List of Onyx keys from the .txt file we want to keep for the local override.
+// PRESERVED_USER_SESSION/PRESERVED_ACCOUNT are local-only restoration state that the import flow
+// has just populated with the real session/account. They must be dropped from the imported dump,
+// otherwise a dump exported while in imported-state mode overwrites them and exiting imported state
+// would restore that (masked) value as the user's SESSION, invalidating their real login.
+const keysToOmit = [
+    ONYXKEYS.ACTIVE_CLIENTS,
+    ONYXKEYS.FREQUENTLY_USED_EMOJIS,
+    ONYXKEYS.NETWORK,
+    ONYXKEYS.CREDENTIALS,
+    ONYXKEYS.PREFERRED_THEME,
+    ONYXKEYS.PRESERVED_USER_SESSION,
+    ONYXKEYS.PRESERVED_ACCOUNT,
+    ...Object.values(ONYXKEYS.DERIVED),
+];
 
 function transformNumericKeysToArray(data: UnknownRecord): UnknownRecord | unknown[] {
     const dataCopy = cloneDeep(data);

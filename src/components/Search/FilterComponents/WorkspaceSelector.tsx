@@ -98,6 +98,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
         <ListFilterView
             itemCount={listData.length}
             isSearchable={shouldShowWorkspaceSearchInput}
+            isNegatable
         >
             {isAppLoadPending && !isOffline ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>

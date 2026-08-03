@@ -34,7 +34,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
-    const illustrations = useMemoizedLazyIllustrations(['Luggage']);
+    const illustrations = useMemoizedLazyIllustrations(['Briefcase']);
 
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.vendors');
 
@@ -79,7 +79,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={illustrations.Luggage}
+                    icon={illustrations.Briefcase}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplayHelpButton

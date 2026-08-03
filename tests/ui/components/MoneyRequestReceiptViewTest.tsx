@@ -5,6 +5,8 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
@@ -209,6 +211,13 @@ const transactionWithMapDistanceReceipt: Transaction = {
     },
 };
 
+// An odometer distance expense carries a real uploaded odometer photo (not a generated map), so its receipt-upload
+// fallback must be preserved on a create failure so the user can still save the file they uploaded.
+const transactionWithOdometerDistanceReceipt: Transaction = {
+    ...transactionWithReceipt,
+    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+};
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
@@ -345,6 +354,68 @@ describe('MoneyRequestReceiptView', () => {
 
             expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
             expect(screen.getByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeTruthy();
+        });
+    });
+
+    // A report-creation failure sets report.errorFields.createChat. Because a receipt is present, the view synthesizes a
+    // fallback receipt-upload error - but distance expenses only carry a generated map receipt, so they must not surface it.
+    describe('fallback receipt-upload error on report-creation failure', () => {
+        const reportWithCreationError: Report = {
+            ...testReport,
+            errorFields: {
+                createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage', 1739520725165000),
+            },
+        };
+
+        it('shows the receipt-upload error for a regular receipt expense', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={reportWithCreationError} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.error.saveReceipt'))).toBeTruthy();
+        });
+
+        it('does not show the receipt-upload error for a distance expense', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMapDistanceReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={reportWithCreationError} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeNull();
+            expect(screen.queryByText(translateLocal('iou.error.saveReceipt'))).toBeNull();
+        });
+
+        it('shows the receipt-upload error for an odometer distance expense (real uploaded file)', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithOdometerDistanceReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={reportWithCreationError} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.error.saveReceipt'))).toBeTruthy();
         });
     });
 });

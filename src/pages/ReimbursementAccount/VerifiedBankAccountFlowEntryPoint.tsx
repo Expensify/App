@@ -130,7 +130,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const removeExistingBankAccountDetails = useCallback(() => {
         // In a "change bank account" flow, start a completely fresh setup so the new account's steps aren't prefilled.
         if (isChangingBankAccount && currency) {
-            prepareNewBankAccountSetup(currency);
+            prepareNewBankAccountSetup(currency, reimbursementAccount);
             return;
         }
         const bankAccountData: Partial<ReimbursementAccountForm> = {
@@ -144,7 +144,7 @@ function VerifiedBankAccountFlowEntryPoint({
         };
         updateReimbursementAccountDraft(bankAccountData);
         updateReimbursementAccount({bankAccountID: 0});
-    }, [isChangingBankAccount, currency]);
+    }, [isChangingBankAccount, currency, reimbursementAccount]);
 
     /**
      * Prepares and redirects user to next step in the USD flow

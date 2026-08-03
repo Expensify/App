@@ -209,6 +209,7 @@ function useReconcileSelectionWithData({
                         canReject: currentUserEmail && transactionItem.report ? canRejectReportAction(currentUserEmail, transactionItem.report) : false,
                         policyID: transactionItem.report?.policyID,
                         groupKey: previousSelection?.groupKey ?? (propagateSelectionToAllRows && !isExpenseReportType ? reportKey : undefined),
+                        isSelectedViaGroup: previousSelection?.isSelectedViaGroup,
                     };
                 }
             }
@@ -382,11 +383,20 @@ function SearchWriteActionsProvider({
                         parentReport: itemParentReport,
                     });
 
-                    // Tag individual transactions with their parent group key so export filtering can derive the group when needed.
                     if (areItemsGrouped && isGroupedItemArray(filteredData)) {
                         const parentGroup = filteredData.find((group) => group.transactions.some((transaction) => transaction.keyForList === item.keyForList));
-                        if (parentGroup?.keyForList && updatedTransactions[item.keyForList]) {
-                            updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey: parentGroup.keyForList};
+                        const groupKey = selectedTransactions[item.keyForList]?.groupKey ?? parentGroup?.keyForList;
+                        // Toggling one expense makes this group a partial selection, so export the remaining expenses individually.
+                        if (groupKey) {
+                            for (const [key, transaction] of Object.entries(updatedTransactions)) {
+                                if (transaction.groupKey === groupKey && transaction.isSelectedViaGroup) {
+                                    updatedTransactions[key] = {...transaction, isSelectedViaGroup: false};
+                                }
+                            }
+                        }
+                        // If the clicked expense is still selected, keep its parent group key.
+                        if (groupKey && updatedTransactions[item.keyForList]) {
+                            updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey};
                         }
                     }
 
@@ -418,8 +428,16 @@ function SearchWriteActionsProvider({
                     return {...selectedTransactions, [reportKey]: emptyReportSelection};
                 }
 
-                if (currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
+                // A group selected before its children were fetched is stored under the group key. Once the children load,
+                // deselecting has to clear that entry too, otherwise the group stays selected with no way to deselect it.
+                const groupKey = item.keyForList;
+                const isGroupKeySelected = !!(groupKey && selectedTransactions[groupKey]?.isSelected);
+
+                if (isGroupKeySelected || currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
                     const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
+                    if (groupKey) {
+                        delete reducedSelectedTransactions[groupKey];
+                    }
                     for (const transaction of currentTransactions) {
                         delete reducedSelectedTransactions[transaction.keyForList];
                     }
@@ -451,7 +469,7 @@ function SearchWriteActionsProvider({
                                     allowNegativeAmount: true,
                                     parentReport: itemParentReport,
                                 });
-                                return [key, {...entry, groupKey: item.keyForList}];
+                                return [key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}];
                             }),
                     ),
                 };
@@ -496,7 +514,7 @@ function SearchWriteActionsProvider({
                                 allowNegativeAmount: true,
                                 parentReport: itemParentReport,
                             });
-                            entries.push([key, {...entry, groupKey: item.keyForList}]);
+                            entries.push([key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}]);
                         }
                         return entries;
                     });

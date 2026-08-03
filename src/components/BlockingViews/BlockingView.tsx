@@ -1,3 +1,4 @@
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -5,6 +6,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -12,6 +14,7 @@ import useAbsentPageSpan from '@libs/telemetry/useAbsentPageSpan';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import type {ImageContentFit} from 'expo-image';
@@ -47,6 +50,12 @@ type BaseBlockingViewProps = {
 
     /** Function to call when pressing the navigation link */
     onLinkPress?: () => void;
+
+    /** Translation key for an optional CTA button rendered below the subtitle */
+    buttonTranslationKey?: TranslationPaths;
+
+    /** Function to call when pressing the CTA button. The button only renders when this and `buttonTranslationKey` are both provided */
+    onButtonPress?: () => void;
 
     /** Whether we should embed the link with subtitle */
     shouldEmbedLinkWithSubtitle?: boolean;
@@ -110,6 +119,8 @@ function BlockingView({
     subtitleStyle,
     linkTranslationKey,
     subtitleKeyBelowLink,
+    buttonTranslationKey,
+    onButtonPress,
     iconWidth = variables.iconSizeSuperLarge,
     iconHeight = variables.iconSizeSuperLarge,
     onLinkPress = () => Navigation.dismissModal(),
@@ -126,6 +137,7 @@ function BlockingView({
     testID,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const SubtitleWrapper = shouldEmbedLinkWithSubtitle ? Text : View;
     const subtitleWrapperStyle = useMemo(
         () => (shouldEmbedLinkWithSubtitle ? [styles.textAlignCenter] : [styles.alignItemsCenter, styles.justifyContentCenter]),
@@ -185,6 +197,14 @@ function BlockingView({
                     </SubtitleWrapper>
                 )}
             </View>
+            {!!onButtonPress && !!buttonTranslationKey && (
+                <Button
+                    onPress={onButtonPress}
+                    sentryLabel={CONST.SENTRY_LABEL.BLOCKING_VIEW.RETRY_BUTTON}
+                >
+                    <Button.Text>{translate(buttonTranslationKey)}</Button.Text>
+                </Button>
+            )}
         </ScrollView>
     );
 }

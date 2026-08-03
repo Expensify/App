@@ -1,14 +1,30 @@
 import useNetwork from '@hooks/useNetwork';
 
-import {updateGpsPoints} from '@libs/actions/GPSDraftDetails';
+import {updateGpsPoints, updateTrimmedEndPoint} from '@libs/actions/GPSDraftDetails';
 import {addressFromGpsPoint, getGpsPoints} from '@libs/GPSDraftDetailsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
+import type {GPSPoint, TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 function useUpdateGpsTripOnReconnect({gpsPoints}: {gpsPoints: GPSPoint[][]}) {
+    // The trimmed end point is chosen in the Edit Stop screen. When trimmed while offline, its address is stored as
+    // stringified coordinates, so on reconnect we fetch the human readable address to replace it.
+    const updateTrimmedEndPointAddress = async (trimmedEndPoint: TrimmedGPSPoint | undefined) => {
+        // If the address is already human readable, we don't need to update it
+        if (!trimmedEndPoint || trimmedEndPoint.address?.type === 'address') {
+            return;
+        }
+
+        const address = await addressFromGpsPoint(trimmedEndPoint);
+        if (address == null) {
+            return;
+        }
+
+        updateTrimmedEndPoint({...trimmedEndPoint, address: {value: address, type: 'address'}});
+    };
+
     const updateAddressesToHumanReadable = async () => {
         const waypointUpdates: Array<Promise<{point: GPSPoint; segmentIndex: number; type: 'start' | 'end'}>> = [];
 
@@ -64,6 +80,8 @@ function useUpdateGpsTripOnReconnect({gpsPoints}: {gpsPoints: GPSPoint[][]}) {
         }
 
         updateGpsPoints(newGpsPoints);
+
+        await updateTrimmedEndPointAddress(latestGpsDraftDetails?.trimmedEndPoint);
     };
 
     // This is intentional to use async/await pattern for better readability

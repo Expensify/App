@@ -39,6 +39,7 @@ import type {MapViewProps} from './MapViewTypes';
 
 import './mapbox.css';
 import Direction from './Direction';
+import MapMarkerIcon from './MapMarkerIcon';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import useDistanceUnit from './useDistanceUnit';
@@ -310,8 +311,7 @@ function MapViewImpl({
                         </PressableWithoutFeedback>
                     </Marker>
                 )}
-                {waypoints?.map(({coordinate, markerComponent, id}) => {
-                    const MarkerComponent = markerComponent;
+                {waypoints?.map(({coordinate, markerType, id}) => {
                     if (
                         utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) &&
                         interactive &&
@@ -325,7 +325,7 @@ function MapViewImpl({
                             longitude={coordinate[0]}
                             latitude={coordinate[1]}
                         >
-                            <MarkerComponent />
+                            <MapMarkerIcon markerType={markerType} />
                         </Marker>
                     );
                 })}

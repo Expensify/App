@@ -169,6 +169,12 @@ describe('MoneyRequestReportView', () => {
         await Onyx.clear();
     });
 
+    it('passes report pending state to transaction readiness', () => {
+        renderMoneyRequestReportView(jest.fn());
+
+        expect(MoneyRequestReportUtils.shouldWaitForTransactions).toHaveBeenLastCalledWith(mockReport, [], mockReportLoadingState, false, false);
+    });
+
     it('mounts the chat list body and the typing listener (not the table view) for a transaction-thread report', () => {
         const onLayout = jest.fn();
 

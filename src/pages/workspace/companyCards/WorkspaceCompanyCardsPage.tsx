@@ -1,17 +1,21 @@
 import DecisionModal from '@components/DecisionModal';
 import WorkspaceCompanyCardsTable from '@components/Tables/WorkspaceCompanyCardsTable';
+import type {WorkspaceCompanyCardsTableHandle} from '@components/Tables/WorkspaceCompanyCardsTable';
 
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
@@ -35,6 +39,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const memoizedIllustrations = useMemoizedLazyIllustrations(['CompanyCard']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const companyCardsTableRef = useRef<WorkspaceCompanyCardsTableHandle>(null);
 
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.companyCards');
@@ -97,6 +103,16 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
     const canWriteCompanyCards = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
 
+    const handleBackButtonPress = () => {
+        if (isMobileSelectionModeEnabled) {
+            companyCardsTableRef.current?.clearSelection();
+            turnOffMobileSelectionMode();
+            return;
+        }
+
+        Navigation.goBack();
+    };
+
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
@@ -108,11 +124,13 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                 headerText={translate('workspace.common.companyCards')}
                 route={route}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+                onBackButtonPress={handleBackButtonPress}
                 shouldShowOfflineIndicatorInWideScreen
                 showLoadingAsFirstRender={false}
                 addBottomSafeAreaPadding
             >
                 <WorkspaceCompanyCardsTable
+                    ref={companyCardsTableRef}
                     policyID={policyID}
                     isPolicyLoaded={!!policy}
                     domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}

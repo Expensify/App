@@ -80,7 +80,7 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
         getRequireFieldsRuleBackToRoute({
             policyID,
             isEditing,
-            categoryName,
+            categoryName: isEditing ? categoryName : undefined,
         });
 
     const onSave = (value?: string) => {
@@ -122,7 +122,7 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
             shouldBeBlocked={!isRulesRevampEnabled || !canWriteRules}
         >

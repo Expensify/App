@@ -618,6 +618,80 @@ describe('PersonalDetailsUtils', () => {
             const result = getAccountIDsByLogins([]);
             expect(result).toEqual([]);
         });
+
+        it('should prefer the live account when a closed merged-away account shares the same login, regardless of order', async () => {
+            // A closed merged-away account is served with the MERGED_ prefix stripped from its login,
+            // so it collides with the live account's login.
+            const closedHasHigherAccountID: PersonalDetailsList = {
+                [accountID1]: {
+                    accountID: accountID1,
+                    login: 'user1@example.com',
+                },
+                [accountID2]: {
+                    accountID: accountID2,
+                    login: 'user1@example.com',
+                    isClosed: true,
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, closedHasHigherAccountID);
+            await waitForBatchedUpdates();
+
+            expect(getAccountIDsByLogins(['user1@example.com'])).toEqual([accountID1]);
+
+            const closedHasLowerAccountID: PersonalDetailsList = {
+                [accountID1]: {
+                    accountID: accountID1,
+                    login: 'user1@example.com',
+                    isClosed: true,
+                },
+                [accountID2]: {
+                    accountID: accountID2,
+                    login: 'user1@example.com',
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, closedHasLowerAccountID);
+            await waitForBatchedUpdates();
+
+            expect(getAccountIDsByLogins(['user1@example.com'])).toEqual([accountID2]);
+        });
+
+        it('should prefer the real account when an optimistic personal detail shares the same login, regardless of order', async () => {
+            const optimisticHasHigherAccountID: PersonalDetailsList = {
+                [accountID1]: {
+                    accountID: accountID1,
+                    login: 'user1@example.com',
+                },
+                [accountID2]: {
+                    accountID: accountID2,
+                    login: 'user1@example.com',
+                    isOptimisticPersonalDetail: true,
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, optimisticHasHigherAccountID);
+            await waitForBatchedUpdates();
+
+            expect(getAccountIDsByLogins(['user1@example.com'])).toEqual([accountID1]);
+
+            const optimisticHasLowerAccountID: PersonalDetailsList = {
+                [accountID1]: {
+                    accountID: accountID1,
+                    login: 'user1@example.com',
+                    isOptimisticPersonalDetail: true,
+                },
+                [accountID2]: {
+                    accountID: accountID2,
+                    login: 'user1@example.com',
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, optimisticHasLowerAccountID);
+            await waitForBatchedUpdates();
+
+            expect(getAccountIDsByLogins(['user1@example.com'])).toEqual([accountID2]);
+        });
     });
 
     describe('getPersonalDetailByEmail', () => {

@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBillableExpensesPendingAction, getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
+import {isAttendeeTrackingEnabled, isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
@@ -25,13 +25,25 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
+import PublicReceiptVisibilityToggle from './PublicReceiptVisibilityToggle';
+
 type IndividualExpenseRulesSectionRevampProps = {
     policyID: string;
     canWriteRules: boolean;
 };
 
+const RULE_MENU_ITEM_KEYS = {
+    REQUIRE_FIELDS: 'requireFields',
+    BILLABLE_EXPENSES: 'billableExpenses',
+    EXPENSES_OLDER_THAN: 'expensesOlderThan',
+    EXPENSES_ABOVE_AMOUNT: 'expensesAboveAmount',
+    FLAG_RECEIPT_LINE_ITEMS: 'flagReceiptLineItems',
+    RECEIPT_REQUIREMENTS: 'receiptRequirements',
+    CASH_EXPENSES: 'cashExpenses',
+} as const;
+
 type BasicRuleMenuItem = {
-    key: string;
+    key: (typeof RULE_MENU_ITEM_KEYS)[keyof typeof RULE_MENU_ITEM_KEYS];
     title: string;
     description?: string;
     icon: IconAsset;
@@ -39,12 +51,14 @@ type BasicRuleMenuItem = {
     pendingAction?: PendingAction;
 };
 
+const COLLECT_ALLOWED_RULE_KEYS = new Set<string>([RULE_MENU_ITEM_KEYS.REQUIRE_FIELDS, RULE_MENU_ITEM_KEYS.BILLABLE_EXPENSES]);
+
 function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: IndividualExpenseRulesSectionRevampProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users', 'Eye']);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -81,6 +95,21 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
     const billableModeText = isBillableTrackingEnabled ? translate(`workspace.rules.generalTab.${policy?.defaultBillable ? 'billableExpensesBillable' : 'billableExpensesNonBillable'}`) : '';
 
+    const isCollect = isCollectPolicy(policy);
+    const rulesUpgradeBackTo = ROUTES.WORKSPACE_RULES.getRoute(policyID);
+    const rulesUpgradeAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias;
+
+    const handleMenuItemPress = (item: BasicRuleMenuItem) => {
+        if (isCollect && !COLLECT_ALLOWED_RULE_KEYS.has(item.key) && tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, rulesUpgradeBackTo)) {
+            return;
+        }
+        item.action();
+    };
+
+    const navigateToRulesControlUpgrade = () => {
+        tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, rulesUpgradeBackTo);
+    };
+
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
 
@@ -100,7 +129,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
 
     const policyControlItems: BasicRuleMenuItem[] = [
         {
-            key: 'expensesOlderThan',
+            key: RULE_MENU_ITEM_KEYS.EXPENSES_OLDER_THAN,
             title: translate('workspace.rules.generalTab.expensesOlderThan'),
             description: maxExpenseAgeText,
             icon: icons.CalendarSolid,
@@ -108,7 +137,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             pendingAction: policy?.pendingFields?.maxExpenseAge,
         },
         {
-            key: 'expensesAboveAmount',
+            key: RULE_MENU_ITEM_KEYS.EXPENSES_ABOVE_AMOUNT,
             title: translate('workspace.rules.generalTab.expensesAboveAmount'),
             description: maxExpenseAmountText,
             icon: icons.Coins,
@@ -116,7 +145,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             pendingAction: policy?.pendingFields?.maxExpenseAmount,
         },
         {
-            key: 'flagReceiptLineItems',
+            key: RULE_MENU_ITEM_KEYS.FLAG_RECEIPT_LINE_ITEMS,
             title: translate('workspace.rules.generalTab.flagReceiptLineItems'),
             description: prohibitedExpensesText,
             icon: icons.Receipt,
@@ -124,7 +153,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             pendingAction: !isEmptyObject(policy?.prohibitedExpenses?.pendingFields) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined,
         },
         {
-            key: 'receiptRequirements',
+            key: RULE_MENU_ITEM_KEYS.RECEIPT_REQUIREMENTS,
             title: translate('workspace.rules.generalTab.receiptRequirements'),
             description: receiptRequirementText,
             icon: icons.ReceiptCheck,
@@ -132,7 +161,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt ?? policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt,
         },
         {
-            key: 'requireFields',
+            key: RULE_MENU_ITEM_KEYS.REQUIRE_FIELDS,
             title: translate('workspace.rules.generalTab.requireFieldsForAllExpenses'),
             description: requiredFieldsList,
             icon: icons.Task,
@@ -143,7 +172,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
 
     const productDefaultItems: BasicRuleMenuItem[] = [
         {
-            key: 'cashExpenses',
+            key: RULE_MENU_ITEM_KEYS.CASH_EXPENSES,
             title: translate('workspace.rules.generalTab.cashExpenses'),
             description: reimbursableModeText,
             icon: icons.Cash,
@@ -151,7 +180,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             pendingAction: policy?.pendingFields?.defaultReimbursable,
         },
         {
-            key: 'billableExpenses',
+            key: RULE_MENU_ITEM_KEYS.BILLABLE_EXPENSES,
             title: translate('workspace.rules.generalTab.billableExpenses'),
             description: billableModeText,
             icon: icons.Cash,
@@ -178,7 +207,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     titleStyle={[styles.ml0, !item.description && styles.colorMuted]}
                     descriptionTextStyle={[styles.ml0, styles.breakWord]}
                     shouldShowRightIcon={canWriteRules}
-                    onPress={item.action}
+                    onPress={() => handleMenuItemPress(item)}
                     interactive={canWriteRules}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
@@ -206,12 +235,11 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     subtitle={translate('workspace.rules.individualExpenseRules.eReceiptsHint')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
                     shouldParseSubtitle
-                    wrapperStyle={[styles.mt3]}
-                    shouldPlaceSubtitleBelowSwitch
-                    shouldUseCompactSubtitleSpacing
+                    wrapperStyle={[styles.pv3]}
                     isActive={areEReceiptsEnabled}
-                    disabled={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
-                    showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
+                    disabled={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD || isCollect}
+                    showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD || isCollect}
+                    disabledAction={isCollect && canWriteRules ? navigateToRulesControlUpgrade : undefined}
                     onToggle={() => (canWriteRules ? setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts) : undefined)}
                     pendingAction={policy?.pendingFields?.eReceipts}
                     rowIcon={icons.Receipt}
@@ -220,15 +248,19 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     title={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
                     subtitle={translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
-                    wrapperStyle={[styles.mt3]}
-                    shouldPlaceSubtitleBelowSwitch
-                    shouldUseCompactSubtitleSpacing
+                    wrapperStyle={[styles.pv3]}
                     isActive={isAttendeeTrackingEnabledForPolicy}
-                    disabled={!canWriteRules}
-                    showLockIcon={!canWriteRules}
+                    disabled={!canWriteRules || isCollect}
+                    showLockIcon={!canWriteRules || isCollect}
+                    disabledAction={isCollect && canWriteRules ? navigateToRulesControlUpgrade : undefined}
                     onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
                     rowIcon={icons.Users}
+                />
+                <PublicReceiptVisibilityToggle
+                    policyID={policyID}
+                    canWriteRules={canWriteRules}
+                    rowIcon={icons.Eye}
                 />
             </View>
         </Section>

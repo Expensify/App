@@ -22,6 +22,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -42,7 +43,9 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
     const defaultCompanyCardVendor = rilletData?.vendors?.find((vendor) => vendor.id === rilletConfig?.export?.defaultVendorID);
     const companyCardAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.export?.creditCardAccountCode);
     const exportToMultipleAccounts = rilletConfig?.export?.exportToMultipleAccounts ?? false;
-    const cardProgramsUsingCustomAccountsCount = Object.keys(rilletConfig?.export?.cardProgramAccounts ?? {}).length;
+    const cardProgramsUsingCustomAccountsCount = Object.keys(rilletConfig?.export?.cardProgramAccounts ?? {}).filter(
+        (cardFeed) => findMatchingCards(cardFeeds ?? {}, cardLists, cardFeed as CardFeedWithNumber).length > 0,
+    ).length;
     const cardProgramsOfflineFeedbackKeys = Object.values(cardFeeds ?? {}).map((program) => `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`);
     const cardsUsingCustomAccountsCount = getCardsUsingCustomExportCount(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
     const hasActiveCards = findMatchingCards(cardFeeds ?? {}, cardLists).length > 0;

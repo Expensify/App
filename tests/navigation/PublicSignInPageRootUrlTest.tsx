@@ -45,7 +45,7 @@ describe('Logged-out sign-in page URL', () => {
         expect(getPathFromState(rootState)).toBe('/');
     });
 
-    it('redirects a legacy "/Home" URL to the root "/"', () => {
-        expect(getPathFromState(getAdaptedStateFromPath('/Home', undefined))).toBe('/');
+    it('redirects a legacy "/Home" URL to the canonical "/home"', () => {
+        expect(getPathFromState(getAdaptedStateFromPath('/Home', undefined))).toBe('/home');
     });
 });

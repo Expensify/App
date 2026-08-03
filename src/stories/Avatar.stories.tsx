@@ -41,7 +41,7 @@ WorkspaceAvatar.args = {
     type: CONST.ICON_TYPE_WORKSPACE,
     name: 'Cathy’s Croissants',
     avatarID: 'policy_123',
-    size: CONST.AVATAR_SIZE.LARGE,
+    size: CONST.AVATAR_SIZE.XXX_LARGE,
 };
 
 const FallbackAvatar: AvatarStory = Template.bind({});

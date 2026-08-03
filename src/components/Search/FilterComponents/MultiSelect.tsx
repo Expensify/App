@@ -55,6 +55,7 @@ function MultiSelect<T extends string>({
     value,
     items,
     isSearchable,
+    isNegatable,
     searchPlaceholder,
     selectionListTextInputStyle,
     selectionListStyle,
@@ -124,6 +125,7 @@ function MultiSelect<T extends string>({
         <ListFilterView
             itemCount={listData.length}
             isSearchable={isSearchable}
+            isNegatable={isNegatable}
         >
             {loading ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>

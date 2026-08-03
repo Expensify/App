@@ -58,6 +58,7 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
 
     const parentReportAction = useParentReportAction(report);
     let linkedReportAction: OnyxEntry<OnyxTypes.ReportAction> = reportActions?.[`${props.route.params.reportActionID}`];
+    const hasReportActions = !!reportActions;
 
     // Handle threads if needed
     if (!linkedReportAction?.reportActionID) {
@@ -72,7 +73,7 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
         if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(linkedReportAction))) {
             return;
         }
-        openReport({reportID: props.route.params.reportID, introSelected, betas});
+        openReport({reportID: props.route.params.reportID, introSelected, betas, hasReportActions});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, props.route.params.reportID]);
 

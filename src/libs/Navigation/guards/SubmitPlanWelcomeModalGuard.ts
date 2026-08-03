@@ -19,6 +19,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+import {isSupportalSessionSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
@@ -116,7 +117,15 @@ function isPolicyCreationRestricted(): boolean {
  * race condition where the modal would re-appear on app restart.
  */
 function navigateToSubmitPlanWelcomeModalIfReady() {
-    if (!session?.authToken || isLoadingApp || !hasLoadedApp || hasRedirectedToSubmitPlanModal || !isSubmitMigrationModalShownLoaded || !shouldShowSubmitPlanWelcomeModal()) {
+    if (
+        isSupportalSessionSelector(session) ||
+        !session?.authToken ||
+        isLoadingApp ||
+        !hasLoadedApp ||
+        hasRedirectedToSubmitPlanModal ||
+        !isSubmitMigrationModalShownLoaded ||
+        !shouldShowSubmitPlanWelcomeModal()
+    ) {
         return;
     }
 
@@ -294,16 +303,16 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
             return {type: 'ALLOW'};
         }
 
-        if (shouldShowSubmitPlanWelcomeModal()) {
-            hasRedirectedToSubmitPlanModal = true;
-
-            return {
-                type: 'REDIRECT',
-                route: getSubmitPlanWelcomeModalRoute(),
-            };
+        if (context.isSupportalSession || !shouldShowSubmitPlanWelcomeModal()) {
+            return {type: 'ALLOW'};
         }
 
-        return {type: 'ALLOW'};
+        hasRedirectedToSubmitPlanModal = true;
+
+        return {
+            type: 'REDIRECT',
+            route: getSubmitPlanWelcomeModalRoute(),
+        };
     },
 };
 

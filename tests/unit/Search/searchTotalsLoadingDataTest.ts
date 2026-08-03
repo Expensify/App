@@ -39,12 +39,18 @@ type SearchRequestData = {
     }>;
 };
 
+type SearchRequestParams = {
+    hash: number;
+    jsonQuery: string;
+};
+
 function getMakeRequestWithSideEffectsMock() {
     return makeRequestWithSideEffects as unknown as {
         mock: {
-            calls: Array<[unknown, unknown, SearchRequestData?]>;
+            calls: Array<[unknown, SearchRequestParams, SearchRequestData?]>;
         };
         mockResolvedValue: (value: {onyxData: Array<{value: {search: {offset: number; hasMoreResults: boolean}; data: Record<string, unknown>}}>; jsonCode: number}) => void;
+        mockReturnValue: (value: Promise<unknown>) => void;
     };
 }
 
@@ -59,6 +65,16 @@ function getSearchLoadingUpdateForHash(hash: number) {
     const [, , requestData] = makeRequestWithSideEffectsMock.mock.calls.at(-1) ?? [];
     const optimisticData = requestData?.optimisticData ?? [];
     return optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` && !!update.value?.search?.isLoading)?.value?.search;
+}
+
+function getLastSearchRequestParams() {
+    const makeRequestWithSideEffectsMock = getMakeRequestWithSideEffectsMock();
+    const [, requestParams] = makeRequestWithSideEffectsMock.mock.calls.at(-1) ?? [];
+    if (!requestParams) {
+        throw new Error('Search request params should be defined');
+    }
+
+    return requestParams;
 }
 
 describe('search loading totals handling', () => {
@@ -133,5 +149,38 @@ describe('search loading totals handling', () => {
         expect(loadingSearchData?.count).toBeUndefined();
         expect(loadingSearchData?.total).toBeUndefined();
         expect(loadingSearchData?.currency).toBeUndefined();
+    });
+
+    it('dedupes concurrent search requests by hash and offset', async () => {
+        const queryJSON = getQueryJSON();
+        let resolveSearch: (value: unknown) => void = () => {};
+        const pendingSearch = new Promise((resolve) => {
+            resolveSearch = resolve;
+        });
+        getMakeRequestWithSideEffectsMock().mockReturnValue(pendingSearch);
+
+        const firstSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            shouldCalculateTotals: true,
+            isLoading: false,
+            skipWaitForWrites: true,
+        });
+        const secondSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            shouldCalculateTotals: true,
+            isLoading: false,
+            skipWaitForWrites: true,
+        });
+
+        expect(makeRequestWithSideEffects).toHaveBeenCalledTimes(1);
+        expect(JSON.parse(getLastSearchRequestParams().jsonQuery)).toMatchObject({shouldCalculateTotals: true});
+        expect(secondSearch).toBeUndefined();
+
+        resolveSearch({jsonCode: CONST.JSON_CODE.SUCCESS});
+        await firstSearch;
     });
 });

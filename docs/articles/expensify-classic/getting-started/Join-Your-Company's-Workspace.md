@@ -112,7 +112,7 @@ Connect a personal email to ensure access to Expensify, even if your employer ch
 1. Go to **Settings** > **Account**.
 2. Under **Profile**, scroll to **Contact Methods > Add Contact Method**.
 3. Enter your email or phone number.
-4. Verify your new login with the Magic Code sent to you.
+4. Verify your new login with the Security Code sent to you.
 
 ---
 
