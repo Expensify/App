@@ -16,7 +16,6 @@ import {
     findVendorByID,
     getActivePolicies,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
-    getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getCustomUnitsForDuplication,
@@ -34,6 +33,7 @@ import {
     getPolicyByCustomUnitID,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
+    getReimburserEmail,
     getSubmitToAccountID,
     getSubmitToEmail,
     getTagApproverRule,
@@ -1441,6 +1441,57 @@ describe('PolicyUtils', () => {
         });
     });
 
+    describe('getReimburserEmail', () => {
+        it('should return undefined when reimbursement is disabled', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                reimburser: 'reimburser@example.com',
+                achAccount: {reimburser: 'ach@example.com'},
+                owner: 'owner@example.com',
+            });
+            expect(getReimburserEmail(policy)).toBeUndefined();
+        });
+
+        it('should resolve the payer for manual (indirect) reimbursement from achAccount.reimburser', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                achAccount: {reimburser: 'ach@example.com'},
+                owner: 'owner@example.com',
+            });
+            expect(getReimburserEmail(policy)).toBe('ach@example.com');
+        });
+
+        it('should prefer policy.reimburser over achAccount.reimburser', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimburser: 'reimburser@example.com',
+                achAccount: {reimburser: 'ach@example.com'},
+            });
+            expect(getReimburserEmail(policy)).toBe('reimburser@example.com');
+        });
+
+        it('should fall back to the owner for manual reimbursement when no reimburser is set', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                owner: 'owner@example.com',
+            });
+            expect(getReimburserEmail(policy)).toBe('owner@example.com');
+        });
+
+        it('should not fall back to the owner for auto reimbursement when no reimburser is set', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                owner: 'owner@example.com',
+            });
+            expect(getReimburserEmail(policy)).toBeUndefined();
+        });
+    });
+
     describe('getPolicyBrickRoadIndicatorStatus', () => {
         const baseAdminPolicy: OnyxEntry<Policy> = createMock<OnyxEntry<Policy>>({
             id: 'ABC123',
@@ -2624,7 +2675,7 @@ describe('PolicyUtils', () => {
             expect(result.at(0)?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
         });
 
-        it('returns only control policies with rates from getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates', () => {
+        it('includes a control policy whose per diem is enabled but has no rates yet (rates load lazily after cache clear)', () => {
             const policies: OnyxCollection<Policy> = {
                 corporateWithRates: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
@@ -2661,9 +2712,8 @@ describe('PolicyUtils', () => {
                 },
             };
 
-            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies, undefined);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.id).toBe('1');
+            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined);
+            expect(result.map((currentPolicy) => currentPolicy.id).sort()).toEqual(['1', '2']);
         });
 
         it('includes a control policy whose arePerDiemRatesEnabled flag is missing but has an enabled per diem custom unit', () => {
@@ -2682,7 +2732,6 @@ describe('PolicyUtils', () => {
             };
 
             expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(1);
-            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies, undefined)).toHaveLength(1);
         });
 
         it('excludes a control policy where per diem was explicitly disabled even if a custom unit lingers', () => {
@@ -2701,7 +2750,6 @@ describe('PolicyUtils', () => {
             };
 
             expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(0);
-            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies, undefined)).toHaveLength(0);
         });
 
         describe('isPerDiemEnabled', () => {
@@ -4007,8 +4055,16 @@ describe('arePolicyRulesEnabled', () => {
         expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined})).toBe(false);
     });
 
-    it('returns false for a team policy even when areRulesEnabled is true', () => {
+    it('returns false for a team policy with areRulesEnabled explicitly true when rules revamp beta is disabled', () => {
         expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true})).toBe(false);
+    });
+
+    it('returns true for a team policy with areRulesEnabled explicitly true when rules revamp beta is enabled', () => {
+        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true}, undefined, true)).toBe(true);
+    });
+
+    it('returns false for a team policy with areRulesEnabled explicitly false', () => {
+        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: false})).toBe(false);
     });
 });
 

@@ -21,6 +21,12 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/category/*/gl-code': '/workspaces/$1/categories/category/$2/gl-code',
     '/workspaces/*/category/*/edit': '/workspaces/$1/categories/category/$2/edit',
     '/workspaces/*/category/*': '/workspaces/$1/categories/category/$2',
+    // Workspace downgrade migrated to a dynamic route. The policy-specific legacy link (previously generated with a
+    // trailing slash) is redirected into the plan-page suffix chain (keeps policyID in the path); the policy-less
+    // legacy link is redirected under Subscription.
+    '/workspaces/*/downgrade/': '/workspaces/$1/overview/plan/downgrade?policyID=$1',
+    '/workspaces/*/downgrade': '/workspaces/$1/overview/plan/downgrade?policyID=$1',
+    '/workspaces/downgrade': '/settings/subscription/downgrade',
     '/settings/workspaces/*': '/workspaces/$1',
     '/settings/workspaces': '/workspaces',
     '/r/*/settings': '/r/$1/details/report-settings',

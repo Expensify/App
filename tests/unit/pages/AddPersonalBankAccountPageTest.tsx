@@ -1,21 +1,42 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
-import Navigation from '@libs/Navigation/Navigation';
+import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import type {AddPersonalBankAccountNavigatorParamList, RightModalNavigatorParamList, TabNavigatorParamList} from '@libs/Navigation/types';
 
 import AddPersonalBankAccountPage from '@pages/AddPersonalBankAccountPage';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
+import type {NavigatorScreenParams} from '@react-navigation/native';
+
+import {PortalProvider} from '@gorhom/portal';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import TestNavigationContainer from '../../utils/TestNavigationContainer';
-import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
+jest.mock('react-native-plaid-link-sdk', () => ({
+    create: jest.fn(),
+    dismissLink: jest.fn(),
+    open: jest.fn(),
+    openLink: jest.fn(),
+    usePlaidEmitter: jest.fn(),
+}));
+
 jest.mock('@userActions/BankAccounts', () => ({
+    addPersonalBankAccount: jest.fn(),
     clearPersonalBankAccount: jest.fn(),
 }));
 
@@ -23,12 +44,20 @@ jest.mock('@userActions/PaymentMethods', () => ({
     continueSetup: jest.fn(),
 }));
 
-jest.mock('@pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/PersonalInfo', () => () => null);
-
-jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
-
 const closeRHPFlowSpy = jest.spyOn(Navigation, 'closeRHPFlow').mockImplementation(() => {});
 const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+type TestRootParamList = {
+    [NAVIGATORS.TAB_NAVIGATOR]: NavigatorScreenParams<TabNavigatorParamList>;
+    [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
+};
+
+const RootStack = createRootStackNavigator<TestRootParamList>();
+const TabNav = createBottomTabNavigator<TabNavigatorParamList>();
+const AddPersonalBankAccountStack = createPlatformStackNavigator<AddPersonalBankAccountNavigatorParamList>();
+
+const getEmptyComponent = () => jest.fn();
 
 const TAB_ROUTES = [
     {name: SCREENS.HOME},
@@ -38,20 +67,62 @@ const TAB_ROUTES = [
     {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
 ];
 
+function TestTabNavigator() {
+    return (
+        <TabNav.Navigator screenOptions={{headerShown: false}}>
+            {TAB_ROUTES.map((route) => (
+                <TabNav.Screen
+                    key={route.name}
+                    name={route.name}
+                    component={getEmptyComponent()}
+                />
+            ))}
+        </TabNav.Navigator>
+    );
+}
+
+/** Renders the real page on its success substep, so pressing the primary button runs the flow's exit logic. */
+function TestRightModalNavigator() {
+    return (
+        <AddPersonalBankAccountStack.Navigator>
+            <AddPersonalBankAccountStack.Screen
+                name={SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT}
+                component={AddPersonalBankAccountPage}
+                initialParams={{subPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.SUCCESS}}
+            />
+        </AddPersonalBankAccountStack.Navigator>
+    );
+}
+
 /**
- * Renders the page over a real navigation state with the given tab focused underneath the RHP.
- * The container is mounted first so the page resolves the tab from an attached navigationRef, as it does in the app.
+ * Mounts the page inside the RHP with the given tab focused underneath, so it resolves the active tab from
+ * an attached navigationRef, as it does in the app.
  */
 async function renderPageOverTab(focusedTabIndex: number) {
     render(
-        <TestNavigationContainer
-            initialState={{
-                index: 1,
-                routes: [{name: NAVIGATORS.TAB_NAVIGATOR, state: {index: focusedTabIndex, routes: TAB_ROUTES}}, {name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR}],
-            }}
-        />,
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+            <PortalProvider>
+                <NavigationContainer
+                    ref={navigationRef}
+                    initialState={{
+                        index: 1,
+                        routes: [{name: NAVIGATORS.TAB_NAVIGATOR, state: {index: focusedTabIndex, routes: TAB_ROUTES}}, {name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR}],
+                    }}
+                >
+                    <RootStack.Navigator>
+                        <RootStack.Screen
+                            name={NAVIGATORS.TAB_NAVIGATOR}
+                            component={TestTabNavigator}
+                        />
+                        <RootStack.Screen
+                            name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
+                            component={TestRightModalNavigator}
+                        />
+                    </RootStack.Navigator>
+                </NavigationContainer>
+            </PortalProvider>
+        </ComposeProviders>,
     );
-    render(<AddPersonalBankAccountPage />);
 
     await waitForBatchedUpdatesWithAct();
 }
@@ -63,9 +134,10 @@ describe('AddPersonalBankAccountPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        await Onyx.clear();
-        await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {shouldShowSuccess: true});
-        await waitForBatchedUpdates();
+        await act(async () => {
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+        });
     });
 
     it('closes the RHP when the flow was started from the Home tab', async () => {
@@ -75,6 +147,7 @@ describe('AddPersonalBankAccountPage', () => {
 
         expect(closeRHPFlowSpy).toHaveBeenCalledTimes(1);
         expect(goBackSpy).not.toHaveBeenCalled();
+        expect(navigateSpy).not.toHaveBeenCalled();
     });
 
     // Settings is a tab as well, so this branch was unreachable too while the switch read the root route name
