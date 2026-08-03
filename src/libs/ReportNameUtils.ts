@@ -466,6 +466,7 @@ function computeReportNameBasedOnReportAction(
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
     isTrackIntentUser: boolean | undefined,
+    currentUserAccountID: number,
 ): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -530,7 +531,7 @@ function computeReportNameBasedOnReportAction(
             iouAction = getReportAction(parentReport?.parentReportID, parentReport?.parentReportActionID);
         }
         const missingFields = getOriginalMessage(parentReportAction)?.missingFields;
-        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields});
+        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction, currentUserAccountID), missingFields});
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(parentReportAction)) {
@@ -1002,6 +1003,7 @@ function computeReportName({
         personalDetailsList,
         reportAttributes,
         isTrackIntentUser,
+        currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
     );
 
     if (parentReportActionBasedName) {

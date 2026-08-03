@@ -2655,9 +2655,8 @@ function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportActio
 /**
  * Check if the current user is the requestor of the action
  */
-// TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
 function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
-    return (currentUserAccountID ?? deprecatedCurrentUserAccountID) === reportAction?.actorAccountID;
+    return currentUserAccountID === reportAction?.actorAccountID;
 }
 
 /**
