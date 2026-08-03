@@ -1160,7 +1160,6 @@ function completeSplitBill({
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
-            formatPhoneNumber,
         });
 
         splits.push({
@@ -1901,7 +1900,6 @@ function createSplitsAndOnyxData({
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
-            formatPhoneNumber,
         });
 
         const individualSplit = {
