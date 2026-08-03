@@ -81,9 +81,12 @@ function isPublicKeyCredential(credential: Credential): credential is PublicKeyC
     return credential instanceof PublicKeyCredential;
 }
 
-/** Prompts the user to create a new passkey credential via the platform authenticator. */
-async function createPasskeyCredential(options: PublicKeyCredentialCreationOptions): Promise<PublicKeyCredential> {
-    const result = await navigator.credentials.create({publicKey: options});
+/**
+ * Prompts the user to create a new passkey credential via the platform authenticator. `signal` lets
+ * a caller close the dialog early (e.g. flow cancelled) — the promise rejects with an `AbortError`.
+ */
+async function createPasskeyCredential(options: PublicKeyCredentialCreationOptions, signal?: AbortSignal): Promise<PublicKeyCredential> {
+    const result = await navigator.credentials.create({publicKey: options, signal});
     if (!result || !isPublicKeyCredential(result)) {
         throw new Error('navigator.credentials.create did not return a PublicKeyCredential');
     }

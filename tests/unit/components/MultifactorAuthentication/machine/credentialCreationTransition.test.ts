@@ -114,29 +114,33 @@ describe('MFA credential creation', () => {
         });
 
         it('reaches the failure outcome with an unhandled-exception error when the actor rejects', async () => {
+            // `resolveState` can't jump straight into `creatingCredential` and have the invoke fire —
+            // XState only invokes an actor on a live transition into a state, not a snapshot resolved
+            // already inside it. So we start one hop earlier and send the real approval event, which
+            // drives an actual transition and lets the mocked actor genuinely run and reject.
             const machine = mfaMachine.provide({
                 actors: {
                     createCredential: fromPromise<CreateCredentialOutput, CreateCredentialInput>(() => Promise.reject(new Error('Credential registration exploded'))),
                 },
             });
-            const actor = createActor(machine, {
-                snapshot: machine.resolveState({
-                    value: {[MFA_STATE.OPEN]: MFA_STATE.CREATING_CREDENTIAL},
-                    context: {
-                        accountID: 12345,
-                        error: undefined,
-                        scenarioName: createInitEvent().scenarioName,
-                        scenario: createInitEvent().scenario,
-                        payload: undefined,
-                        validateCode: undefined,
-                        registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE,
-                        softPromptApproved: false,
-                        isCancelConfirmVisible: false,
-                    },
-                }),
+            const snapshot = machine.resolveState({
+                value: {[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}},
+                context: {
+                    accountID: 12345,
+                    error: undefined,
+                    scenarioName: createInitEvent().scenarioName,
+                    scenario: createInitEvent().scenario,
+                    payload: undefined,
+                    validateCode: undefined,
+                    registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE,
+                    softPromptApproved: false,
+                    isCancelConfirmVisible: false,
+                },
             });
+            const actor = createActor(machine, {snapshot});
 
             actor.start();
+            actor.send({type: 'SOFT_PROMPT_APPROVED'});
             await waitForBatchedUpdates();
 
             const result = actor.getSnapshot();

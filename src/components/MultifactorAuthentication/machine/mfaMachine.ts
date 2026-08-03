@@ -25,6 +25,10 @@ const OUTCOME_TARGET = `#${MFA_STATE.OUTCOME}` as const;
 const PROMPT_TARGET = `#${MFA_STATE.PROMPT}` as const;
 const SOFT_PROMPT_CHECK_TARGET = `#${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}` as const;
 const VALIDATE_CODE_TARGET = `#${MFA_STATE.VALIDATE_CODE}` as const;
+const CREATING_CREDENTIAL_TARGET = `#${MFA_STATE.CREATING_CREDENTIAL}` as const;
+
+// One literal shared by both soft-prompt exits (approval and the persisted-acceptance skip), so they can't drift apart.
+const SOFT_PROMPT_ACCEPTED_ACTIONS = ['approveSoftPrompt', 'persistSoftPromptAcceptance'] as const;
 
 // Which prompt variant the screen renders is a device property, resolved once per platform.
 const PROMPT_TYPE = CONST.MULTIFACTOR_AUTHENTICATION.PROMPT_TYPE_MAP[deviceVerificationType];
@@ -60,6 +64,7 @@ const MFAMachine = setup({
     actors: createActors(),
     guards: {
         hasError: ({context}) => context.error !== undefined,
+        hasRegistrationChallenge: ({context}) => context.registrationChallenge !== undefined,
     },
     actions: {
         // Seeds the flow's context from the INIT event. A named action's event is typed as the full
@@ -207,7 +212,13 @@ const MFAMachine = setup({
                                     }
                                     return {accountID: context.accountID};
                                 },
-                                onDone: [{guard: ({event}) => event.output, target: OUTCOME_TARGET}, {target: PROMPT_TARGET}],
+                                // Not accepted yet -> show the prompt. Accepted with a challenge pending -> create the
+                                // credential. Accepted, nothing pending -> a returning user, straight to the outcome.
+                                onDone: [
+                                    {guard: ({event}) => !event.output, target: PROMPT_TARGET},
+                                    {guard: 'hasRegistrationChallenge', target: CREATING_CREDENTIAL_TARGET},
+                                    {target: OUTCOME_TARGET},
+                                ],
                                 onError: {
                                     target: OUTCOME_TARGET,
                                     actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Soft-prompt acceptance read', event.error)}),
@@ -283,13 +294,38 @@ const MFAMachine = setup({
                     entry: ['navigateToPrompt'],
                     initial: MFA_STATE.AWAITING_SOFT_PROMPT,
                     on: {
-                        SOFT_PROMPT_APPROVED: {
-                            target: MFA_STATE.OUTCOME,
-                            actions: ['approveSoftPrompt', 'persistSoftPromptAcceptance'],
-                        },
+                        SOFT_PROMPT_APPROVED: [
+                            {guard: 'hasRegistrationChallenge', target: MFA_STATE.CREATING_CREDENTIAL, actions: SOFT_PROMPT_ACCEPTED_ACTIONS},
+                            {target: MFA_STATE.OUTCOME, actions: SOFT_PROMPT_ACCEPTED_ACTIONS},
+                        ],
                     },
                     states: {
                         [MFA_STATE.AWAITING_SOFT_PROMPT]: {},
+                    },
+                },
+                // Turns a pending registration challenge into a real credential: platform ceremony, then
+                // backend registration. Reached from both soft-prompt exits when a challenge is pending.
+                // No `entry` action on purpose — whatever screen is already up (prompt, or nothing) just
+                // stays visible during the ceremony, same as legacy.
+                [MFA_STATE.CREATING_CREDENTIAL]: {
+                    id: MFA_STATE.CREATING_CREDENTIAL,
+                    invoke: {
+                        id: 'createCredential',
+                        src: 'createCredential',
+                        input: ({context}) => {
+                            if (context.accountID === undefined || context.registrationChallenge === undefined) {
+                                throw new Error('MFA account and registration challenge must be stored before creating a credential');
+                            }
+                            return {accountID: context.accountID, registrationChallenge: context.registrationChallenge};
+                        },
+                        onDone: [
+                            {guard: ({event}) => !event.output.success, target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
+                            {target: OUTCOME_TARGET},
+                        ],
+                        onError: {
+                            target: OUTCOME_TARGET,
+                            actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Credential registration', event.error)}),
+                        },
                     },
                 },
                 [MFA_STATE.OUTCOME]: {
