@@ -536,6 +536,8 @@ const translations: TranslationDeepObject<typeof en> = {
         securityCode: 'Κωδικός ασφαλείας',
         exportsTo: 'Εξάγει σε',
         expand: 'Ανάπτυξη',
+        dialogOpened: 'διάλογος',
+        downloadReceipts: 'Λήψη αποδείξεων',
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',
@@ -1234,6 +1236,7 @@ const translations: TranslationDeepObject<typeof en> = {
             'Το αρχείο που ανεβάσατε είναι είτε κενό είτε περιέχει μη έγκυρα δεδομένα. Βεβαιωθείτε ότι το αρχείο είναι σωστά μορφοποιημένο και περιέχει τις απαραίτητες πληροφορίες πριν το ανεβάσετε ξανά.',
         importSpreadsheetLibraryError: 'Αποτυχία φόρτωσης της μονάδας υπολογιστικού φύλλου. Παρακαλούμε ελέγξτε τη σύνδεσή σας στο διαδίκτυο και δοκιμάστε ξανά.',
         importSpreadsheet: 'Εισαγωγή υπολογιστικού φύλλου',
+        importWorkflows: 'Εισαγωγή ροών εργασίας',
         downloadCSV: 'Λήψη CSV',
         importMemberConfirmation: () => ({
             one: `Παρακαλούμε επιβεβαιώστε τα παρακάτω στοιχεία για το νέο μέλος του χώρου εργασίας που θα προστεθεί ως μέρος αυτής της αποστολής. Τα υπάρχοντα μέλη δεν θα λάβουν καμία ενημέρωση ρόλου ή μήνυμα πρόσκλησης.`,
@@ -1512,7 +1515,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `εγκρίθηκε μέσω των <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">κανόνων χώρου εργασίας</a>`,
         forwarded: (memo?: string) => `εγκρίθηκε${memo ? `, λέγοντας ${memo}` : ''}`,
         rejectedThisReport: 'απορρίφθηκε',
-        waitingOnBankAccount: (submitterDisplayName: string) => `ξεκίνησε την πληρωμή, αλλά περιμένει τον/την ${submitterDisplayName} να προσθέσει έναν τραπεζικό λογαριασμό.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `ξεκίνησε την πληρωμή, αλλά περιμένει τον/την ${submitterDisplayName} να προσθέσει έναν προσωπικό τραπεζικό λογαριασμό.`,
         adminCanceledRequest: 'ακύρωσε την πληρωμή',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `ακύρωσε την πληρωμή των ${amount}, επειδή ο/η ${submitterDisplayName} δεν ενεργοποίησε το Expensify Wallet του/της μέσα σε 30 ημέρες`,
@@ -1845,6 +1848,11 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmText: 'Διαγραφή ετικέτας',
         },
         transactionPendingDescription: 'Η συναλλαγή εκκρεμεί. Μπορεί να χρειαστούν μερικές ημέρες για να καταχωριστεί.',
+        reimbursedCrossBorder: ({amount, debitBankAccount, creditBankAccount}: {amount: string; debitBankAccount: string; creditBankAccount: string}) =>
+            `πληρώθηκαν ${amount} από τον λογαριασμό ${debitBankAccount} στον λογαριασμό ${creditBankAccount}`,
+        whatIsHoldExplainDM: 'Η αναμονή είναι σαν να πατάτε «παύση» σε μία δαπάνη μέχρι να είστε έτοιμοι να τη στείλετε.',
+        holdIsLeftBehindDM: 'Οι δεσμευμένες δαπάνες δεν θα αποσταλούν μέχρι να καταργήσετε τη δέσμευση.',
+        unholdWhenReadyDM: 'Αποδεσμεύστε τις δαπάνες όταν είστε έτοιμοι να τις στείλετε.',
     },
     transactionMerge: {
         listPage: {
@@ -4497,11 +4505,16 @@ ${amount} για ${merchant} - ${date}`,
         phoneError: (phoneErrorMethodsRoute: string) =>
             `<rbr>Παρακαλούμε <a href="${phoneErrorMethodsRoute}">προσθέστε ένα επαγγελματικό email ως κύρια σύνδεση</a> για να κάνετε κράτηση ταξιδιού.</rbr>`,
         domainSelector: {
+            headline: 'Ποιο domain θέλετε να ρυθμίσετε;',
             title: 'Τομέας',
             subtitle: 'Επιλέξτε ένα domain για τη ρύθμιση του Expensify Travel.',
             recommended: 'Προτεινόμενο',
         },
+        workspaceAddress: {
+            headline: 'Ποια είναι η επαγγελματική σας διεύθυνση;',
+        },
         taxID: {
+            headline: 'Ποιο είναι το ΑΦΜ της επιχείρησής σας;',
             title: 'ΑΦΜ',
             subtitle: 'Εισαγάγετε τον φορολογικό αριθμό της νομικής σας οντότητας ώστε να ρυθμίσουμε τη χρέωση ταξιδιών στο τοπικό σας νόμισμα.',
             inputLabel: 'ΑΦΜ νομικής οντότητας',
@@ -4819,6 +4832,11 @@ ${amount} για ${merchant} - ${date}`,
             editPerDiemRates: 'Επεξεργασία ημερήσιων αποζημιώσεων',
             editDestinationSubtitle: (destination: string) => `Η ενημέρωση αυτού του προορισμού θα τον αλλάξει για όλες τις υποκατηγορίες ημερήσιου επιδόματος ${destination}.`,
             editCurrencySubtitle: (destination: string) => `Η ενημέρωση αυτού του νομίσματος θα το αλλάξει για όλες τις υποτιμές ημερήσιας αποζημίωσης ${destination}.`,
+            requestEmptyList: {
+                title: 'Δεν υπάρχουν ακόμη ημερήσια επιδόματα',
+                subtitle: 'Αυτός ο χώρος εργασίας δεν έχει ημερήσια επιδόματα· ζητήστε από τον διαχειριστή σας να προσθέσει κάποια.',
+                adminSubtitle: 'Προσθέστε ημερήσια επιδόματα για να οργανώσετε τις δαπάνες σας.',
+            },
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Ορίστε πώς θα εξαχθούν οι εκτός τσέπης δαπάνες στο QuickBooks Desktop.',
@@ -5738,7 +5756,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             rilletSetup: 'Ρύθμιση Rillet',
             enterCredentials: 'Εισαγάγετε το κλειδί API του Rillet',
             howToFindAPIKey:
-                '<strong>Εύρεση του κλειδιού API σας.</strong><ol><li>Συνδεθείτε στο Rillet</li><li>Μεταβείτε στο Λογαριασμός -> Ρυθμίσεις</li><li>Αντιγράψτε το παρακάτω κλειδί API</li></ol>',
+                '<strong>Εύρεση του κλειδιού API σας.</strong><ol><li>Συνδεθείτε στο Rillet</li><li>Μεταβείτε σε [organization name] -> Ρυθμίσεις οργανισμού -> Πρόσβαση API</li><li>Δημιουργήστε κλειδί API</li><li>Επικολλήστε το κλειδί API παρακάτω</li></ol>',
             subsidiary: 'Θυγατρική',
             subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική στο Rillet από την οποία θέλετε να εισαγάγετε δεδομένα.',
             noSubsidiariesFound: 'Δεν βρέθηκαν θυγατρικές',
@@ -5971,7 +5989,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             assign: 'Ανάθεση',
             assignCard: 'Ανάθεση κάρτας',
-            findCard: 'Εντοπίστε κάρτα',
+            findCompanyCard: 'Εντοπίστε εταιρική κάρτα',
             cardNumber: 'Αριθμός κάρτας',
             commercialFeed: 'Εμπορική ροή',
             feedName: (feedName: string) => `κάρτες ${feedName}`,
@@ -6112,6 +6130,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             statusShipped: 'Απεστάλη',
             statusActive: 'Ενεργό',
             statusInactive: 'Ανενεργό',
+            remaining: 'Υπόλοιπο',
         },
         categories: {
             deleteCategories: 'Διαγραφή κατηγοριών',
@@ -6240,6 +6259,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             provisioningError:
                                 'Δεν μπορέσαμε να ενεργοποιήσουμε ορισμένα μέλη του χώρου εργασίας σας για ενοποιημένη τιμολόγηση ταξιδιών. Δοκιμάστε ξανά αργότερα ή επικοινωνήστε με το Concierge για βοήθεια.',
                             viewOnSpend: 'Προβολή στο Spend',
+                            currentTravelSpendInvoiceQueued: 'Θα δημιουργηθεί ένα νέο τιμολόγιο για τις ταξιδιωτικές σας δαπάνες και θα σας αποσταλεί σύντομα.',
+                            currentTravelSpendInvoicePending: (amount: string) => `Ένα τιμολόγιο για ${amount} έχει αποσταλεί και αναμένει πληρωμή.`,
+                            sendInvoiceNowCta: 'Στείλτε το τιμολόγιο τώρα',
                         },
                     },
                     disableModal: {
@@ -6262,6 +6284,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     invalidDateRangeError: 'Η ημερομηνία έναρξης πρέπει να είναι πριν από την ημερομηνία λήξης',
                     enabled: 'Η ενοποιημένη τιμολόγηση ταξιδιών ενεργοποιήθηκε!',
                     enabledDescription: 'Όλες οι δαπάνες ταξιδιού σε αυτόν τον χώρο εργασίας θα συγκεντρώνονται πλέον σε έναν μηνιαίο λογαριασμό.',
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Να σταλεί τιμολόγιο για ${amount};`,
+                        body: 'Θα δημιουργήσουμε ένα τιμολόγιο για τις τρέχουσες ταξιδιωτικές σας δαπάνες. Το ταξιδιωτικό σας όριο θα απελευθερωθεί μόλις εξοφληθεί το τιμολόγιο.',
+                    },
                 },
                 personalDetailsDescription:
                     'Για να μπορέσουμε να κάνουμε την κράτηση του ταξιδιού, παρακαλούμε εισαγάγετε το επίσημο όνομά σας όπως εμφανίζεται στην κρατική ταυτότητα ή άλλο κρατικό έγγραφο ταυτοποίησης.',
@@ -6310,15 +6336,16 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 assignedCards: 'Έχει ανατεθεί',
                 unassignedCards: 'Μη εκχωρημένο',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `εξαγωγή ${integration} ${type.toLowerCase()}` : `εξαγωγή ${integration}`),
-                integrationExportTitleXero: (integration: string) => `Επιλέξτε τον λογαριασμό ${integration} όπου θα εξαχθούν οι συναλλαγές.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Επιλέξτε τον λογαριασμό ${integration} στον οποίο θα εξαχθούν οι συναλλαγές. Επιλέξτε μια διαφορετική <a href="${exportPageLink}">επιλογή εξαγωγής</a> για να αλλάξετε τους διαθέσιμους λογαριασμούς.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Επιλέξτε τον λογαριασμό ${integration} στον οποίο θα εξαχθούν οι συναλλαγές.${exportPageLink ? `Επιλέξτε μια διαφορετική <a href="${exportPageLink}">επιλογή εξαγωγής</a> για να αλλάξετε τους διαθέσιμους λογαριασμούς.` : ''}`,
                 lastUpdated: 'Τελευταία ενημέρωση',
                 transactionStartDate: 'Ημερομηνία έναρξης συναλλαγής',
                 updateCard: 'Ενημέρωση κάρτας',
                 unassignCard: 'Αποδέσμευση κάρτας',
-                unassign: 'Απο取消 ανάθεση',
+                unassignCards: 'Αποδέσμευση καρτών',
+                unassign: 'Κατάργηση ανάθεσης',
                 unassignCardDescription: 'Η αποδέσμευση αυτής της κάρτας θα διαγράψει όλες τις μη υποβληθείσες συναλλαγές.',
+                unassignCardsDescription: 'Η αποδέσμευση θα διαγράψει όλες τις μη υποβληθείσες συναλλαγές από τις επιλεγμένες κάρτες.',
                 assignCard: 'Ανάθεση κάρτας',
                 removeCard: 'Αφαίρεση κάρτας',
                 remove: 'Κατάργηση',
@@ -6795,8 +6822,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 `Αν αφαιρέσετε τον/την ${memberName} από αυτόν τον χώρο εργασίας, θα τον/την αντικαταστήσουμε ως τεχνική επαφή με τον/την ${workspaceOwner}, τον/την κάτοχο του χώρου εργασίας.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `Ο/Η ${memberName} έχει μία εκκρεμή αναφορά προς επεξεργασία που απαιτεί ενέργεια. Παρακαλούμε ζητήστε του/της να ολοκληρώσει την απαιτούμενη ενέργεια προτού τον/την αφαιρέσετε από τον χώρο εργασίας.`,
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `Δεν μπορείτε να αφαιρέσετε τον/την ${memberName} από αυτόν τον χώρο εργασίας όσο έχει Κάρτα Expensify. Απενεργοποιήστε πρώτα την κάρτα του/της στο Χώρος εργασίας > Κάρτα Expensify και δοκιμάστε ξανά.`,
         },
         card: {
             getStartedIssuing: 'Ξεκινήστε εκδίδοντας την πρώτη σας εικονική ή φυσική κάρτα.',
@@ -7565,6 +7590,8 @@ ${reportName}`,
 Απαιτήστε στοιχεία δαπανών όπως αποδείξεις και περιγραφές, ορίστε όρια και προεπιλογές και αυτοματοποιήστε εγκρίσεις και πληρωμές – όλα σε ένα σημείο.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Οι κανόνες είναι διαθέσιμοι μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+                onlyAvailableOnPlanUnlimited: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Απεριόριστη πρόσβαση σε κανόνες είναι διαθέσιμη μόνο στο πλάνο Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             perDiem: {
                 title: 'Ημερήσια αποζημίωση',
@@ -7700,6 +7727,12 @@ ${reportName}`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Η εταιρεία σας έχει περιορίσει τη δημιουργία χώρων εργασίας. Παρακαλούμε επικοινωνήστε με έναν διαχειριστή για βοήθεια.',
             },
+            publicReceiptVisibility: {
+                title: 'Δημόσια ορατότητα απόδειξης',
+                description: 'Αν θέλετε να κάνετε τους συνδέσμους των αποδείξεών σας προσβάσιμους σε οποιονδήποτε, όπως έναν πελάτη ή εξωτερικό λογιστή, αυτή η λειτουργία είναι για εσάς.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Η δημόσια ορατότητα αποδείξεων είναι διαθέσιμη μόνο στο πρόγραμμα Control, με τιμή από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7710,9 +7743,9 @@ ${reportName}`,
                     important: 'ΣΗΜΑΝΤΙΚΟ:',
                     confirm: 'Θα χρειαστεί να αλλάξετε τον «Τύπο πλάνου» κάθε χώρου εργασίας σε «Collect» για να εξασφαλίσετε την τιμή Collect.',
                     benefit1Label: 'Ενσωματώσεις ERP',
-                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics, Certinia',
                     benefit2Label: 'Ενσωματώσεις HR',
-                    benefit2: 'Workday, Certinia',
+                    benefit2: 'Gusto, TriNet, Workday',
                     benefit3Label: 'Ασφάλεια',
                     benefit3: 'SSO/SAML',
                     benefit4Label: 'Για προχωρημένους',
@@ -7868,6 +7901,15 @@ ${reportName}`,
                 requireCompanyCard: 'Να απαιτούνται εταιρικές κάρτες για όλες τις αγορές',
                 requireCompanyCardDescription: 'Επισημάνετε όλες τις δαπάνες με μετρητά, συμπεριλαμβανομένων των εξόδων χιλιομετρικής αποζημίωσης και ημερήσιας αποζημίωσης.',
                 requireCompanyCardDisabledTooltip: 'Ενεργοποιήστε τις εταιρικές κάρτες (στην ενότητα Περισσότερες δυνατότητες) για να το ξεκλειδώσετε.',
+                publicReceiptVisibility: 'Δημόσια ορατότητα απόδειξης',
+                publicReceiptVisibilityHintEnabled: 'Οι αποδείξεις είναι ορατές από οποιονδήποτε έχει το URL. Δεν απαιτείται πρόσβαση στην αναφορά με την απόδειξη.',
+                publicReceiptVisibilityHintDisabled: 'Οι αποδείξεις είναι ορατές μόνο από μέλη του Expensify που έχουν πρόσβαση στην αναφορά που περιέχει την απόδειξη.',
+                enableTagsToUnlockTitle: 'Ενεργοποίηση ετικετών;',
+                enableTagsToUnlockPrompt: 'Ενεργοποιήστε τις ετικέτες (στην ενότητα «Περισσότερες δυνατότητες») για να τις ξεκλειδώσετε.',
+                enableTagsAndRequirePrompt: 'Είστε βέβαιοι ότι θέλετε να ενεργοποιήσετε τις ετικέτες και να τις απαιτείτε για όλες τις δαπάνες;',
+                enableCategoriesToUnlockTitle: 'Ενεργοποίηση κατηγοριών;',
+                enableCategoriesToUnlockPrompt: 'Ενεργοποιήστε τις κατηγορίες (στην ενότητα «Περισσότερες λειτουργίες») για να τις ξεκλειδώσετε.',
+                enableCategoriesAndRequirePrompt: 'Είστε βέβαιοι ότι θέλετε να ενεργοποιήσετε τις κατηγορίες και να τις απαιτείτε για όλες τις δαπάνες;',
             },
             expenseReportRules: {
                 title: 'Για προχωρημένους',
@@ -8064,6 +8106,9 @@ ${reportName}`,
                 defaultTaxRate: 'Προεπιλεγμένος φορολογικός συντελεστής',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Μεταβείτε στις [Περισσότερες λειτουργίες](${moreFeaturesLink}) και ενεργοποιήστε τις ροές εργασιών, έπειτα προσθέστε εγκρίσεις για να ενεργοποιήσετε αυτή τη λειτουργία.`,
+                createNewRule: 'Δημιουργία νέου κανόνα',
+                contextualFlagForReview: (amount: string) => `Αν το ποσό είναι πάνω από ${amount}, επισημάνετε για έλεγχο`,
+                contextualFlagForReviewDaily: (amount: string) => `Αν το ημερήσιο σύνολο κατηγορίας είναι πάνω από ${amount}, επισημάνετε για έλεγχο`,
             },
             customRules: {
                 title: 'Πολιτική εξόδων',
@@ -8525,6 +8570,12 @@ ${reportName}`,
             `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} κατόχοι κάρτας να διαγράψουν συναλλαγές κάρτας για την τροφοδοσία κάρτας «${feedName}»`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `άλλαξε την ημέρα λήξης της περιόδου εκκαθάρισης της ροής κάρτας «${feedName}»${newValue ? `σε "${newValue}"` : ''}${previousValue ? `(προηγουμένως "${previousValue}")` : ''}`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `προσέθεσε τον κανόνα πράκτορα «${title}»: ${prompt}` : `προσέθεσε έναν κανόνα πράκτορα: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) =>
+                title ? `ενημέρωσε τον κανόνα πράκτορα «${title}» σε: ${prompt}` : `ενημέρωσε έναν κανόνα πράκτορα σε: ${prompt}`,
+            deleted: ({title}: {title: string}) => (title ? `αφαίρεσε τον κανόνα πράκτορα «${title}»` : 'αφαίρεσε έναν κανόνα πράκτορα'),
+        },
         expensifyCardRule: {
             actionVerb: {
                 block: 'μπλοκαρισμένο',
@@ -9297,6 +9348,7 @@ ${reportName}`,
         },
         goTo: ({destination}: {destination: string}) => `Μετάβαση στο ${destination}`,
         mySavedSearch: 'Οι δαπάνες μου',
+        expensifyCardStatementPDF: {title: 'Λήψη κατάστασης', oneFeedAtATime: 'Παρακαλούμε επιλέγετε διακανονισμούς από μία ροή Κάρτας Expensify κάθε φορά.'},
     },
     genericErrorPage: {
         title: 'Ωχ, κάτι πήγε στραβά!',
@@ -9687,8 +9739,11 @@ ${reportName}`,
         start: 'Έναρξη',
         stop: 'Διακοπή',
         save: 'Αποθήκευση',
-        resume: 'Βιογραφικό',
+        resume: 'Συνέχιση',
         discard: 'Απόρριψη',
+        edit: 'Επεξεργασία',
+        editStop: 'Επεξεργασία στάσης',
+        totalDistance: 'Συνολική απόσταση',
         discardDistanceTrackingModal: {
             title: 'Απόρριψη παρακολούθησης απόστασης',
             prompt: 'Είστε βέβαιοι; Αυτό θα απορρίψει την τρέχουσα πορεία σας και δεν μπορεί να αναιρεθεί.',
@@ -9972,6 +10027,7 @@ ${reportName}`,
         resolvedDuplicates: 'έλυσε το διπλότυπο',
         companyCardRequired: 'Απαιτούνται αγορές με εταιρική κάρτα',
         noRoute: 'Παρακαλούμε επιλέξτε μια έγκυρη διεύθυνση',
+        cannotMergeDuplicates: 'Μπορείτε να συγχωνεύετε έξοδα μόνο σε πρόχειρες ή εκκρεμείς αναφορές. Ανακαλέστε την και δοκιμάστε ξανά.',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Απαιτείται το πεδίο ${fieldName}`,
@@ -10165,8 +10221,8 @@ ${reportName}`,
                 benefit1: 'Όλα όσα περιλαμβάνονται στο πρόγραμμα Collect',
                 benefit2: 'Ροές έγκρισης πολλαπλών επιπέδων',
                 benefit3: 'Προσαρμοσμένοι κανόνες εξόδων',
-                benefit4: 'Ενσωματώσεις ERP (NetSuite, Sage Intacct, Oracle)',
-                benefit5: 'Ενσωματώσεις HR (Workday, Certinia)',
+                benefit4: 'Ενοποιήσεις ERP (NetSuite, Sage Intacct, Oracle, Certinia)',
+                benefit5: 'Ενοποιήσεις HR (Gusto, TriNet, Workday)',
                 benefit6: 'SAML/SSO',
                 benefit7: 'Προσαρμοσμένες αναλύσεις και αναφορές',
                 benefit8: 'Προϋπολογισμός',
@@ -10502,6 +10558,7 @@ ${reportName}`,
         expenseLevelExport: 'Όλα τα δεδομένα - επίπεδο δαπάνης',
         exportInProgress: 'Εξαγωγή σε εξέλιξη',
         conciergeWillSend: 'Ο Concierge θα σας στείλει το αρχείο σύντομα.',
+        downloadStatementPDF: 'Λήψη κατάστασης',
     },
     exportDownload: {
         preparingTitle: 'Προετοιμασία λήψης...',
@@ -10520,6 +10577,11 @@ ${reportName}`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} από ${total} αναφορές εξήχθησαν. Αν δεν έγινε αυτόματη λήψη, χρησιμοποιήστε το παρακάτω κουμπί. Δείτε ποιες αναφορές απέτυχαν στο <concierge-link>Concierge</concierge-link>.`,
         close: 'Κλείσιμο',
+        receiptsFailedBody: 'Δεν ήταν δυνατή η λήψη των αποδείξεών σας. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
+        noReceiptsTitle: 'Δεν υπάρχουν αποδείξεις για λήψη',
+        noReceiptsBody: 'Κανένα από τα έξοδα σε αυτήν την αναφορά δεν έχει αποδείξεις για λήψη.',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} από ${total} αποδείξεις εξήχθησαν με επιτυχία. Αν δεν έγινε η λήψη αυτόματα, χρησιμοποιήστε το παρακάτω κουμπί.`,
     },
     domain: {
         notVerified: 'Μη επαληθευμένο',
@@ -10784,6 +10846,14 @@ ${reportName}`,
         role: 'Αντιπρόσωπος',
         emptyTemplatesTitle: 'Δεν υπάρχουν ακόμη πρότυπα',
         emptyTemplatesSubtitle: 'Δημιουργήστε έναν προσαρμοσμένο βοηθό για να ξεκινήσετε.',
+    },
+    workflowsCurrencyConversionFeesPage: {
+        title: 'Χρεώσεις μετατροπής νομίσματος',
+        subtitle:
+            'Κατά την αποζημίωση σε άλλο νόμισμα, ενδέχεται να ισχύουν χρεώσεις μετατροπής. Επιλέξτε παρακάτω ποιος θα πληρώσει τις χρεώσεις. Αυτό ισχύει μόνο για διασυνοριακές μετατροπές.',
+        companyPays: 'Η εταιρεία πληρώνει',
+        employeePays: 'Ο εργαζόμενος πληρώνει',
+        errorMessage: 'Δεν ήταν δυνατή η αλλαγή της προτίμησης χρέωσης μετατροπής νομίσματος. Παρακαλούμε δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
     },
 };
 export default translations;
