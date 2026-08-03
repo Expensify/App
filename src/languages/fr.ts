@@ -438,6 +438,7 @@ const translations: TranslationDeepObject<typeof en> = {
         perDiem: 'Indemnité journalière',
         validate: 'Valider',
         downloadAsPDF: 'Télécharger en PDF',
+        downloadReceipts: 'Télécharger les reçus',
         downloadAsCSV: 'Télécharger au format CSV',
         submitViaPDF: 'Soumettre via PDF',
         print: 'Imprimer',
@@ -5972,6 +5973,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             balanceWillBeSettledOn: (settlementDate: string) => `Le solde sera réglé le ${settlementDate}`,
             settleBalance: 'Régler le solde',
             cardLimit: 'Plafond de carte',
+            remaining: 'Restant',
             remainingLimit: 'Plafond restant',
             requestLimitIncrease: 'Demander une augmentation de la limite',
             remainingLimitDescription:
@@ -10424,6 +10426,11 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        receiptsFailedBody: "Vos reçus n'ont pas pu être téléchargés. Veuillez réessayer plus tard.",
+        noReceiptsTitle: 'Aucun reçu à télécharger',
+        noReceiptsBody: "Aucune des dépenses de ce rapport n'a de reçus téléchargeables.",
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} reçus sur ${total} ont été exportés avec succès. Si le téléchargement ne s'est pas lancé automatiquement, utilisez le bouton ci-dessous.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',

@@ -438,6 +438,7 @@ const translations: TranslationDeepObject<typeof en> = {
         perDiem: 'Tagegeld',
         validate: 'Validieren',
         downloadAsPDF: 'Als PDF herunterladen',
+        downloadReceipts: 'Belege herunterladen',
         downloadAsCSV: 'Als CSV herunterladen',
         submitViaPDF: 'Per PDF einreichen',
         print: 'Drucken',
@@ -5960,6 +5961,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             balanceWillBeSettledOn: (settlementDate: string) => `Der Saldo wird am ${settlementDate} ausgeglichen.`,
             settleBalance: 'Saldo ausgleichen',
             cardLimit: 'Kartenlimit',
+            remaining: 'Verbleibend',
             remainingLimit: 'Verbleibendes Limit',
             requestLimitIncrease: 'Anhebung des Anfragelimits',
             remainingLimitDescription:
@@ -10390,6 +10392,11 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        receiptsFailedBody: 'Ihre Belege konnten nicht heruntergeladen werden. Bitte versuchen Sie es später erneut.',
+        noReceiptsTitle: 'Keine Belege zum Herunterladen',
+        noReceiptsBody: 'Keine der Ausgaben in diesem Bericht hat herunterladbare Belege.',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} von ${total} Belegen wurden erfolgreich exportiert. Falls der Download nicht automatisch gestartet wurde, verwenden Sie die Schaltfläche unten.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',

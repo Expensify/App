@@ -437,6 +437,7 @@ const translations: TranslationDeepObject<typeof en> = {
         perDiem: 'Dieta',
         validate: 'Zatwierdź',
         downloadAsPDF: 'Pobierz jako PDF',
+        downloadReceipts: 'Pobierz paragony',
         downloadAsCSV: 'Pobierz jako CSV',
         submitViaPDF: 'Prześlij przez PDF',
         print: 'Drukuj',
@@ -5903,6 +5904,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             balanceWillBeSettledOn: (settlementDate: string) => `Saldo zostanie rozliczone w dniu ${settlementDate}`,
             settleBalance: 'Ureguluj saldo',
             cardLimit: 'Limit karty',
+            remaining: 'Pozostało',
             remainingLimit: 'Pozostały limit',
             requestLimitIncrease: 'Zwiększ limit żądań',
             remainingLimitDescription:
@@ -10305,6 +10307,11 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        receiptsFailedBody: 'Nie udało się pobrać paragonów. Spróbuj ponownie później.',
+        noReceiptsTitle: 'Brak paragonów do pobrania',
+        noReceiptsBody: 'Żaden z wydatków w tym raporcie nie ma paragonów do pobrania.',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} z ${total} paragonów zostało wyeksportowanych pomyślnie. Jeśli pobieranie nie rozpoczęło się automatycznie, użyj przycisku poniżej.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
