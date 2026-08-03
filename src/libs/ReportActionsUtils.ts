@@ -2656,7 +2656,7 @@ function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportActio
  * Check if the current user is the requestor of the action
  */
 function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
-    return currentUserAccountID === reportAction?.actorAccountID;
+    return (currentUserAccountID ?? deprecatedCurrentUserAccountID) === reportAction?.actorAccountID;
 }
 
 /**
