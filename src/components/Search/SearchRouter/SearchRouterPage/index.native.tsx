@@ -40,12 +40,12 @@ function SearchRouterPage() {
     const {windowHeight} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const isKeyboardOverlapping = isOffline && isKeyboardActive;
+    const shouldConstrainForOfflineKeyboard = isOffline && isKeyboardActive;
     // Keep the router between the top safe area and the keyboard; ScreenWrapper and the
     // list already handle bottom safe-area and offline-indicator spacing.
     // Clamp to zero so transient dimensions during animation never produce a negative height.
     const availableHeight = getAvailableHeight({
-        isKeyboardOverlapping,
+        isKeyboardOverlapping: shouldConstrainForOfflineKeyboard,
         keyboardHeight,
         keyboardActiveHeight,
         bottomInset: bottom,
