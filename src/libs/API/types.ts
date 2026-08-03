@@ -1579,7 +1579,6 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     MERGE_INTO_ACCOUNT_AND_LOGIN: 'MergeIntoAccountAndLogIn',
     ADD_WORK_EMAIL: 'AddWorkEmail',
     SEARCH: 'Search',
-    OPEN_POLICY_ROOMS_PAGE: 'OpenPolicyRoomsPage',
     GET_SCIM_TOKEN: 'GetSCIMToken',
 
     LOG_OUT: 'LogOut',

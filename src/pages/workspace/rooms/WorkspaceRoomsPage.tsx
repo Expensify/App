@@ -9,6 +9,7 @@ import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable'
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
@@ -33,9 +34,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {useFocusEffect} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import {policyChatRoomsSelector} from '@selectors/Report';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.ROOMS>;
@@ -48,6 +49,8 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
     const headerIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const illustrations = useMemoizedLazyIllustrations(['Hashtag']);
     const policyID = route.params.policyID;
@@ -65,13 +68,17 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         columnKey: 'name',
         order: 'asc',
     });
-    const [hasMoreResults, setHasMoreResults] = useState(false);
-    const [isLoadingMoreRooms, setIsLoadingMoreRooms] = useState(false);
+    const [roomsMetadata] = useOnyx(ONYXKEYS.POLICY_ROOMS_METADATA, {selector: (metadata) => metadata?.[policyID]});
 
-    // The highest page that the backend has returned for the active search and sorting. It is a ref because it only
-    // feeds the next request and must not re-trigger the fetch effect.
-    const loadedPageNumberRef = useRef(0);
-    const requestIDRef = useRef(0);
+    const searchValue = debouncedSearchTerm.trim();
+    const sortBy = roomSort.columnKey === 'members' ? 'memberCount' : 'name';
+
+    // The backend applies the search term and the sorting, so a change to either produces a different result set that
+    // has to restart at the first page. The requested page is derived from the query rather than reset in an effect,
+    // so the fetch below can never observe a new query still paired with the page number of the previous one.
+    const roomsQueryKey = `${policyID}|${searchValue}|${sortBy}|${roomSort.order}`;
+    const [pagination, setPagination] = useState({queryKey: roomsQueryKey, pageNumber: 1});
+    const pageNumber = pagination.queryKey === roomsQueryKey ? pagination.pageNumber : 1;
 
     const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyChatRoomsSelector(policyID, reportNameValuePairs)});
     const [hasReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
@@ -113,55 +120,32 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         [betas, hasReportActions, introSelected, isAdmin, personalDetails, policyReports, reportAttributes],
     );
 
-    const fetchRoomsPage = useCallback(
-        (pageNumber: number) => {
-            requestIDRef.current += 1;
-            const requestID = requestIDRef.current;
-            setIsLoadingMoreRooms(pageNumber > 1);
-
-            openPolicyRoomsPage(policyID, {
-                pageNumber,
-                pageSize: ROOMS_PAGE_SIZE,
-                searchValue: debouncedSearchTerm.trim(),
-                sortBy: roomSort.columnKey === 'members' ? 'memberCount' : 'name',
-                sortOrder: roomSort.order,
-            })
-                .then((response) => {
-                    // A newer request (another search, sort or page) was fired while this one was in flight, so its
-                    // result no longer describes the list that is being displayed.
-                    if (requestID !== requestIDRef.current) {
-                        return;
-                    }
-                    loadedPageNumberRef.current = pageNumber;
-                    setHasMoreResults(!!response?.hasMoreResults);
-                    setIsLoadingMoreRooms(false);
-                })
-                .catch(() => {
-                    // The last successfully loaded page is left untouched so scrolling to the end again retries this page.
-                    if (requestID !== requestIDRef.current) {
-                        return;
-                    }
-                    setIsLoadingMoreRooms(false);
-                });
-        },
-        [debouncedSearchTerm, policyID, roomSort.columnKey, roomSort.order],
-    );
-
-    // Fetching happens on focus (which also covers the initial mount) and whenever the search term or the sorting
-    // changes, since both are applied by the backend and restart the pagination from the first page.
-    useFocusEffect(
-        useCallback(() => {
-            loadedPageNumberRef.current = 0;
-            setHasMoreResults(false);
-            fetchRoomsPage(1);
-        }, [fetchRoomsPage]),
-    );
-
-    const loadMoreRooms = () => {
-        if (!hasMoreResults || isLoadingMoreRooms || loadedPageNumberRef.current === 0) {
+    // The fetch is driven by the requested page: loading more only bumps `pageNumber` and this effect issues the
+    // request, the same way Search drives its own pagination from `offset`. Refocusing and coming back online refetch
+    // the page that is currently displayed.
+    useEffect(() => {
+        if (!isFocused || isOffline) {
             return;
         }
-        fetchRoomsPage(loadedPageNumberRef.current + 1);
+
+        openPolicyRoomsPage(policyID, {
+            pageNumber,
+            pageSize: ROOMS_PAGE_SIZE,
+            searchValue,
+            sortBy,
+            sortOrder: roomSort.order,
+        });
+    }, [isFocused, isOffline, pageNumber, policyID, roomSort.order, searchValue, sortBy]);
+
+    const loadMoreRooms = () => {
+        // The requested page is only bumped once the previous one has landed, so repeated end-reached events while
+        // a page is in flight cannot skip a page.
+        if (!roomsMetadata?.hasMoreResults || roomsMetadata?.isLoading || roomsMetadata?.pageNumber !== pageNumber || isOffline) {
+            return;
+        }
+        // Storing the query alongside the page discards a bump that raced with a search or sort change instead of
+        // applying it to the new result set.
+        setPagination({queryKey: roomsQueryKey, pageNumber: pageNumber + 1});
     };
 
     return (
@@ -208,7 +192,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     policyID={policyID}
                     highlightedReportID={highlightedReportID}
                     onSearchStringChange={setSearchTerm}
-                    isLoadingMoreRooms={isLoadingMoreRooms}
                     onEndReached={loadMoreRooms}
                     onSortingChange={(sorting: {columnKey: string | undefined; order: SortOrder}) => {
                         if (!sorting.columnKey || sorting.columnKey === 'name') {

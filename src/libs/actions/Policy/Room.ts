@@ -1,4 +1,4 @@
-import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
+import {read} from '@libs/API';
 import type {OpenPolicyRoomsPageParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
 
@@ -17,9 +17,10 @@ type OpenPolicyRoomsPageOptions = {
 };
 
 /**
- * Fetches a single page of the policy's rooms. The rooms themselves are merged into the report collection through
- * onyxData, but `hasMoreResults` only exists on the response, so the caller needs the promise to know whether another
- * page can be loaded. That is why this is a side-effect request rather than API.read.
+ * Fetches a single page of the policy's rooms. The rooms are merged into the report collection by the response's
+ * onyxData, which also carries `hasMoreResults` so the rooms page knows whether another page can be requested.
+ * `isLoading` and `pageNumber` are written here so the page can tell a first load (full skeleton) apart from loading
+ * another page (footer spinner).
  */
 function openPolicyRoomsPage(policyID: string, options: OpenPolicyRoomsPageOptions = {}) {
     const params: OpenPolicyRoomsPageParams = {
@@ -27,17 +28,33 @@ function openPolicyRoomsPage(policyID: string, options: OpenPolicyRoomsPageOptio
         ...options,
     };
 
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_POLICY_ROOMS_LOADED>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.POLICY_ROOMS_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ARE_POLICY_ROOMS_LOADED,
+            key: ONYXKEYS.POLICY_ROOMS_METADATA,
             value: {
-                [policyID]: true,
+                [policyID]: {
+                    isLoading: true,
+                    pageNumber: options.pageNumber,
+                },
             },
         },
     ];
 
-    return waitForWrites(READ_COMMANDS.OPEN_POLICY_ROOMS_PAGE).then(() => makeRequestWithSideEffects(READ_COMMANDS.OPEN_POLICY_ROOMS_PAGE, params, {finallyData}));
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.POLICY_ROOMS_METADATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.POLICY_ROOMS_METADATA,
+            value: {
+                [policyID]: {
+                    isLoading: false,
+                    isLoaded: true,
+                },
+            },
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_POLICY_ROOMS_PAGE, params, {optimisticData, finallyData});
 }
 
 function setRoomIDToHighlightOnRoomsPage(reportID: string) {

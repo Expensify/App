@@ -37,9 +37,6 @@ type WorkspaceRoomsTableProps = {
     /** Callback when the active search string changes */
     onSearchStringChange?: (searchString: string) => void;
 
-    /** Whether another page of rooms is currently being fetched */
-    isLoadingMoreRooms?: boolean;
-
     /** Callback when scrolling to the bottom of the list */
     onEndReached?: () => void;
 
@@ -50,23 +47,17 @@ type WorkspaceRoomsTableProps = {
     onSortingChange?: (sorting: {columnKey: string | undefined; order: 'asc' | 'desc'}) => void;
 };
 
-function WorkspaceRoomsTable({
-    rooms,
-    policyID,
-    highlightedReportID,
-    isLoadingMoreRooms,
-    onSearchStringChange,
-    onEndReached,
-    onEndReachedThreshold,
-    onSortingChange,
-}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onEndReached, onEndReachedThreshold, onSortingChange}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
-    const [isPolicyRoomDataLoaded] = useOnyx(ONYXKEYS.ARE_POLICY_ROOMS_LOADED, {
+    const [roomsMetadata] = useOnyx(ONYXKEYS.POLICY_ROOMS_METADATA, {
         selector: (value) => value?.[policyID],
     });
+
+    // A page beyond the first one is loading, so the rows already on screen stay and the footer reports the progress.
+    const isLoadingMoreRooms = !!roomsMetadata?.isLoading && (roomsMetadata?.pageNumber ?? 1) > 1;
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -130,7 +121,7 @@ function WorkspaceRoomsTable({
         </View>
     ) : undefined;
 
-    if (!isPolicyRoomDataLoaded) {
+    if (!roomsMetadata?.isLoaded) {
         return <Table.LoadingState context="WorkspaceRoomsTable" />;
     }
 

@@ -132,6 +132,7 @@ import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
+import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
@@ -373,6 +374,7 @@ export type {
     NewAgentTemplate,
     NewGroupChatDraft,
     PolicyJoinMember,
+    PolicyRoomsMetadata,
     SearchResults,
     ReviewDuplicates,
     PrivateSubscription,
