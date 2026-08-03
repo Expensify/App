@@ -102,7 +102,7 @@ function exportReportsToPDF(reportIDs: string[]): string {
     return exportID;
 }
 
-function exportReceiptsAsZip({reportIDs, transactionIDs}: {reportIDs?: string[]; transactionIDs?: string[]}): string {
+function exportReceiptsToZip({reportIDs, transactionIDs}: {reportIDs?: string[]; transactionIDs?: string[]}): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -135,4 +135,4 @@ function exportReceiptsAsZip({reportIDs, transactionIDs}: {reportIDs?: string[];
     return exportID;
 }
 
-export {sendExportFileFromConcierge, clearExportDownload, clearStaleExportDownloads, exportReportsToPDF, exportReceiptsAsZip};
+export {sendExportFileFromConcierge, clearExportDownload, clearStaleExportDownloads, exportReportsToPDF, exportReceiptsToZip};

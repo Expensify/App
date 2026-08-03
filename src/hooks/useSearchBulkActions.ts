@@ -8,7 +8,7 @@ import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionAction
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
-import {exportReceiptsAsZip, exportReportsToPDF} from '@libs/actions/Export';
+import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
@@ -972,6 +972,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 ownerBillingGracePeriodEnd,
                 ownerLogin: getLoginByAccountID(expenseReport.ownerAccountID, personalDetails),
                 delegateEmail,
+                delegateAccountID,
                 full: true,
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
                 shouldPlaySuccessSound: false,
@@ -1015,6 +1016,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchKey,
         isTrackIntentUser,
         personalDetails,
+        delegateAccountID,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -2111,7 +2113,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (isExpenseReportSearch && selectedReportIDs.length > 0) {
             options.push({
                 icon: expensifyIcons.Download,
-                text: translate('search.bulkActions.downloadReceipts'),
+                text: translate('common.downloadReceipts'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
@@ -2119,7 +2121,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-                    const exportID = exportReceiptsAsZip({reportIDs: selectedReportIDs});
+                    const exportID = exportReceiptsToZip({reportIDs: selectedReportIDs});
                     trackExport(exportID);
                 },
             });
@@ -2129,7 +2131,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (isExpenseSearch && selectedTransactionsKeys.length > 0) {
             options.push({
                 icon: expensifyIcons.Download,
-                text: translate('search.bulkActions.downloadReceipts'),
+                text: translate('common.downloadReceipts'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
@@ -2137,7 +2139,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-                    const exportID = exportReceiptsAsZip({transactionIDs: selectedTransactionsKeys});
+                    const exportID = exportReceiptsToZip({transactionIDs: selectedTransactionsKeys});
                     trackExport(exportID);
                 },
             });

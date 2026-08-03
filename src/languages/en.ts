@@ -474,6 +474,7 @@ const translations = {
         perDiem: 'Per diem',
         validate: 'Validate',
         downloadAsPDF: 'Download as PDF',
+        downloadReceipts: 'Download receipts',
         downloadAsCSV: 'Download as CSV',
         submitViaPDF: 'Submit via PDF',
         print: 'Print',
@@ -6050,6 +6051,7 @@ const translations = {
             balanceWillBeSettledOn: (settlementDate: string) => `Balance will be settled on ${settlementDate}`,
             settleBalance: 'Settle balance',
             cardLimit: 'Card limit',
+            remaining: 'Remaining',
             remainingLimit: 'Remaining limit',
             requestLimitIncrease: 'Request limit increase',
             remainingLimitDescription:
@@ -9112,7 +9114,6 @@ const translations = {
             hold: 'Hold',
             unhold: 'Remove hold',
             reject: 'Reject',
-            downloadReceipts: 'Download receipts',
             duplicateExpense: ({count}: {count: number}) => `Duplicate ${count === 1 ? 'expense' : 'expenses'}`,
             duplicateReport: ({count}: {count: number}) => `Duplicate ${count === 1 ? 'report' : 'reports'}`,
             undelete: 'Undelete',
@@ -10544,10 +10545,13 @@ const translations = {
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        receiptsFailedBody: 'Your receipts could not be downloaded. Please try again later.',
+        noReceiptsTitle: 'No receipts to download',
+        noReceiptsBody: 'None of the expenses on this report have downloadable receipts.',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} receipts were exported successfully. If it didn't automatically download, use the button below.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-        noReceiptsTitle: 'No receipts to download',
-        noReceiptsBody: "There are no receipts attached to the expenses you selected, so there's nothing to download.",
         close: 'Close',
     },
     domain: {
