@@ -5743,6 +5743,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             balanceWillBeSettledOn: (settlementDate: string) => `余额将于 ${settlementDate} 结清`,
             settleBalance: '结清余额',
             cardLimit: '卡片限额',
+            remaining: '剩余',
             remainingLimit: '剩余额度',
             requestLimitIncrease: '请求提高限额',
             remainingLimitDescription:
