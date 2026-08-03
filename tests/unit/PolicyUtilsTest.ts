@@ -8,6 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
     canAccessSubmitWorkspaceFeatures,
+    canEditWorkspaceSettings,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberRead,
@@ -368,6 +369,12 @@ describe('PolicyUtils', () => {
             const policy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), archivedDate: '2024-01-01'};
 
             expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(false);
+        });
+
+        it('denies workspace settings edit access to an archived policy even for admins', () => {
+            const policy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), archivedDate: '2024-01-01'};
+
+            expect(canEditWorkspaceSettings(policy, memberLogin)).toBe(false);
         });
     });
 
