@@ -2,7 +2,6 @@
 import {render, screen} from '@testing-library/react-native';
 
 import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
-import type {VictoryChartContextValue} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {useVictoryChartContext, VictoryChartProvider, VictoryChartScaledProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
@@ -29,18 +28,17 @@ const processedResult = {
     legendItems: [],
 } as unknown as ProcessNodeResult;
 
-let capturedValue: VictoryChartContextValue | undefined;
-
+/** Serializes the parts of the context under test so assertions can read them from the rendered output. */
 function ContextProbe() {
-    capturedValue = useVictoryChartContext();
-    return <Text>probe</Text>;
+    const {padding, domainPadding, labelItems, chartContentStyles} = useVictoryChartContext();
+    return <Text testID="contextProbe">{JSON.stringify({padding, domainPadding, firstLabel: labelItems.at(0), width: chartContentStyles.width, height: chartContentStyles.height})}</Text>;
+}
+
+function getProbedContext(): Record<string, unknown> {
+    return JSON.parse(screen.getByTestId('contextProbe').props.children as string) as Record<string, unknown>;
 }
 
 describe('VictoryChartScaledProvider', () => {
-    beforeEach(() => {
-        capturedValue = undefined;
-    });
-
     it('provides pixel-space values scaled by the given factor', () => {
         render(
             <VictoryChartProvider
@@ -54,11 +52,13 @@ describe('VictoryChartScaledProvider', () => {
             </VictoryChartProvider>,
         );
 
-        expect(screen.getByText('probe')).toBeOnTheScreen();
-        expect(capturedValue?.padding).toBe(32);
-        expect(capturedValue?.domainPadding).toBe(40);
-        expect(capturedValue?.labelItems.at(0)).toMatchObject({x: 680, y: 48, fontSize: {0: 28}});
-        expect(capturedValue?.chartContentStyles).toMatchObject({width: 1360, height: 680});
+        expect(getProbedContext()).toMatchObject({
+            padding: 32,
+            domainPadding: 40,
+            firstLabel: {x: 680, y: 48, fontSize: {0: 28}},
+            width: 1360,
+            height: 680,
+        });
     });
 
     it('provides the unscaled context for scale 1', () => {
@@ -74,7 +74,10 @@ describe('VictoryChartScaledProvider', () => {
             </VictoryChartProvider>,
         );
 
-        expect(capturedValue?.padding).toBe(16);
-        expect(capturedValue?.labelItems.at(0)).toMatchObject({x: 340, y: 24});
+        expect(getProbedContext()).toMatchObject({
+            padding: 16,
+            domainPadding: 20,
+            firstLabel: {x: 340, y: 24},
+        });
     });
 });
