@@ -288,6 +288,7 @@ describe('createWorkspaceListPoliciesSelector', () => {
             'pendingAction',
             'errors',
             'isPendingDelete',
+            'isArchived',
             'isJoinRequestPending',
             'nonMemberDetails',
         ]);
@@ -297,6 +298,14 @@ describe('createWorkspaceListPoliciesSelector', () => {
         expect(item?.role).toBe(CONST.POLICY.ROLE.ADMIN);
         expect(item?.ownerAccountID).toBe(42);
         expect(item?.avatarURL).toBe('https://img/ws.png');
+    });
+
+    it('sets isArchived from the policy archivedDate', () => {
+        const [activeItem] = createWorkspaceListPoliciesSelector(userLogin)({[`${P}p1`]: makePolicy({archivedDate: undefined})});
+        expect(activeItem?.isArchived).toBe(false);
+
+        const [archivedItem] = createWorkspaceListPoliciesSelector(userLogin)({[`${P}p1`]: makePolicy({archivedDate: '2026-08-03 00:00:00'})});
+        expect(archivedItem?.isArchived).toBe(true);
     });
 
     it('sets isPendingDelete=true for policies with a DELETE pendingAction', () => {

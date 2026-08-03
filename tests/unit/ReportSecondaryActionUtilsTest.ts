@@ -15,6 +15,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 
+import type {ValueOf} from 'type-fest';
+
 import Onyx from 'react-native-onyx';
 
 import {actionR14932, originalMessageR14932} from '../../__mocks__/reportData/actions';
@@ -274,6 +276,96 @@ describe('getSecondaryAction', () => {
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY)).toBe(true);
+    });
+
+    it('restricts the More menu to read-only actions when the policy is archived', () => {
+        const designatedPayerEmail = 'owner@manual-test.com';
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: POLICY_ID,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            total: -10000,
+            hasExportError: true,
+            isWaitingOnBankAccount: false,
+        });
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: designatedPayerEmail,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            reimburser: designatedPayerEmail,
+            outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
+            employeeList: {
+                [ADMIN_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
+                [designatedPayerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+            },
+            connections: createQBOConnections(false, ADMIN_EMAIL),
+            // Archived workspace: the More menu must drop every state-transitioning action.
+            archivedDate: '2026-08-03 00:00:00',
+        });
+        const transaction = createMock<Transaction>({
+            reportID: REPORT_ID,
+            amount: 10000,
+        });
+
+        const allowedActions: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [
+            CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
+            CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
+            CONST.REPORT.SECONDARY_ACTIONS.PRINT,
+            CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE,
+            CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
+            CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT,
+            CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
+        ];
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: ADMIN_EMAIL,
+            currentUserAccountID: ADMIN_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+            isProduction: false,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
+        // Every remaining action must be in the read-only allow-list.
+        expect(result.every((action) => allowedActions.includes(action))).toBe(true);
+    });
+
+    it('does not include accounting export actions when the policy is archived', () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: POLICY_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        });
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.ADMIN,
+            connections: createQBOConnections(false, ADMIN_EMAIL),
+            archivedDate: '2026-08-03 00:00:00',
+        });
+
+        const result = getReportAccountingExportActions(ADMIN_ACCOUNT_ID, ADMIN_EMAIL, report, {}, policy);
+
+        expect(result).toHaveLength(0);
     });
 
     it('does not include PRINT option when the report is in OPEN state', () => {

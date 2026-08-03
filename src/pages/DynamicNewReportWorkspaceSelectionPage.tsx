@@ -29,7 +29,7 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
-import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, isPolicyArchived, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {buildTransactionsByReportID} from '@libs/TodosUtils';
@@ -227,6 +227,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
             if (
                 policy?.isJoinRequestPending ||
                 !policy?.isPolicyExpenseChatEnabled ||
+                isPolicyArchived(policy) ||
                 !shouldShowPolicy(policy, false, currentUserPersonalDetails?.login) ||
                 (hasPerDiemTransactions && !canSubmitPerDiemExpenseFromWorkspace(policy))
             ) {

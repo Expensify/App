@@ -124,7 +124,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
         }
     }
 
-    if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
+    if (!isDefault && !item?.isJoinRequestPending && !item?.isArchived && !isRestrictedToPreferredPolicy) {
         menuItems.push({
             icon: icons.Star,
             text: translate('workspace.common.setAsDefault'),

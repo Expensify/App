@@ -28,6 +28,7 @@ import {
     isGroupPolicy,
     isInstantSubmitEnabled,
     isPolicyAdmin,
+    isPolicyArchived,
     isPolicyApprover,
     isPolicyMember,
     isPreferredExporter,
@@ -100,6 +101,33 @@ import {
     shouldRedirectDeleteToSplitExpenseEdit,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
+
+/**
+ * Secondary "More" menu actions that remain available for a report whose workspace is archived.
+ * Everything else (state transitions, actions that create/split/duplicate into the archived workspace,
+ * accounting exports, etc.) is hidden because an archived workspace is read-only. Duplicate expense and
+ * Duplicate report stay because they create the copy in the user's active default workspace, not the archived one.
+ */
+const ARCHIVED_POLICY_ALLOWED_SECONDARY_ACTIONS = new Set<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>([
+    CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
+    CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
+    CONST.REPORT.SECONDARY_ACTIONS.PRINT,
+    CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE,
+    CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
+    CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT,
+    CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
+]);
+
+/**
+ * Transaction-thread "More" menu actions that remain available when the transaction's workspace is archived.
+ * Mirrors ARCHIVED_POLICY_ALLOWED_SECONDARY_ACTIONS: only non-mutating actions and moving the expense to
+ * another (non-archived) workspace are kept.
+ */
+const ARCHIVED_POLICY_ALLOWED_TRANSACTION_SECONDARY_ACTIONS = new Set<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>([
+    CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE,
+    CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE,
+    CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS,
+]);
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
     const isReportSubmitter = isCurrentUserSubmitter(report);
@@ -1117,6 +1145,12 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
+    // An archived workspace is read-only, so restrict the report's More menu to the actions that don't
+    // write to or transition state within the archived workspace.
+    if (isPolicyArchived(policy)) {
+        return options.filter((option) => ARCHIVED_POLICY_ALLOWED_SECONDARY_ACTIONS.has(option));
+    }
+
     return options;
 }
 
@@ -1132,6 +1166,12 @@ function getReportAccountingExportActions(
     policy?: Policy,
 ): Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> = [];
+
+    // Accounting/integration exports write to the connection, which is blocked for archived (read-only) workspaces.
+    if (isPolicyArchived(policy)) {
+        return options;
+    }
+
     if (isExportAction(currentUserLogin, report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
@@ -1221,6 +1261,12 @@ function getSecondaryTransactionThreadActions({
 
     if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, reportAction ? [reportAction] : [])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
+    }
+
+    // An archived workspace is read-only, so restrict the transaction's More menu to the actions that don't
+    // write to or transition state within the archived workspace.
+    if (isPolicyArchived(policy)) {
+        return options.filter((option) => ARCHIVED_POLICY_ALLOWED_TRANSACTION_SECONDARY_ACTIONS.has(option));
     }
 
     return options;

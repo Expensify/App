@@ -15,6 +15,7 @@ import {
     canSendInvoiceFromWorkspace,
     findVendorByID,
     getActivePolicies,
+    getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
@@ -56,6 +57,7 @@ import {
     hasVendorFeature,
     isMergeHRCompleteSetupNeededSelector,
     isPerDiemEnabled,
+    isPolicyArchived,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     isXeroActiveMatchingSource,
@@ -341,6 +343,15 @@ describe('PolicyUtils', () => {
             expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PAYMENTS_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(true);
         });
 
+        it('makes an archived workspace read-only: admins can still read but cannot write any feature', () => {
+            const policy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), archivedDate: '2026-08-03 00:00:00'};
+
+            for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
+                expect(canMemberRead(policy, memberLogin, feature)).toBe(true);
+                expect(canMemberWrite(policy, memberLogin, feature)).toBe(false);
+            }
+        });
+
         it('limits People Admin member role management to members and auditors', () => {
             const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
 
@@ -435,7 +446,53 @@ describe('PolicyUtils', () => {
             );
             expect(getActivePolicies(policies, undefined)).toHaveLength(1);
         });
+
+        it('excludes archived policies', () => {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: createMock<Policy>({...createRandomPolicy(1), name: 'workspace', pendingAction: null, role: CONST.POLICY.ROLE.ADMIN}),
+                [`${ONYXKEYS.COLLECTION.POLICY}2`]: createMock<Policy>({
+                    ...createRandomPolicy(2),
+                    name: 'workspace',
+                    pendingAction: null,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    archivedDate: '2026-08-03 00:00:00',
+                }),
+            };
+            const result = getActivePolicies(policies, undefined);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.id).toBe('1');
+        });
     });
+    describe('isPolicyArchived', () => {
+        it('returns true only when the policy has an archivedDate', () => {
+            expect(isPolicyArchived(undefined)).toBe(false);
+            expect(isPolicyArchived({...createRandomPolicy(1), archivedDate: undefined})).toBe(false);
+            expect(isPolicyArchived({...createRandomPolicy(1), archivedDate: '2026-08-03 00:00:00'})).toBe(true);
+        });
+    });
+
+    describe('getActivePoliciesWithExpenseChat', () => {
+        it('excludes archived policies', () => {
+            const login = 'admin@test.com';
+            const buildActivePolicy = (id: number): Policy =>
+                createMock<Policy>({
+                    ...createRandomPolicy(id, CONST.POLICY.TYPE.CORPORATE),
+                    name: 'workspace',
+                    pendingAction: null,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    isPolicyExpenseChatEnabled: true,
+                });
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildActivePolicy(1),
+                [`${ONYXKEYS.COLLECTION.POLICY}2`]: {...buildActivePolicy(2), archivedDate: '2026-08-03 00:00:00'},
+            };
+
+            const result = getActivePoliciesWithExpenseChat(policies, login);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.id).toBe('1');
+        });
+    });
+
     describe('getCustomUnitsForDuplication', () => {
         const perDiemUnit = {
             customUnitID: '123',
@@ -1034,6 +1091,22 @@ describe('PolicyUtils', () => {
             // The result should be false since it is a policy which is pending deletion.
             expect(result).toEqual(false);
         });
+        it('should exclude archived policies by default', () => {
+            const policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                pendingAction: null,
+                archivedDate: '2026-01-01',
+            };
+            expect(shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL)).toBe(false);
+        });
+        it('should include archived policies when includeArchivedPolicy is true', () => {
+            const policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                pendingAction: null,
+                archivedDate: '2026-01-01',
+            };
+            expect(shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL, true)).toBe(true);
+        });
     });
 
     describe('getManagerAccountID', () => {
@@ -1210,6 +1283,22 @@ describe('PolicyUtils', () => {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 isPolicyExpenseChatEnabled: true,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
+            expect(result).toBe(false);
+        });
+
+        it('returns false if policy is archived', async () => {
+            const currentUserLogin = employeeEmail;
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                isPolicyExpenseChatEnabled: true,
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                },
+                pendingAction: null,
+                archivedDate: '2026-08-03 00:00:00',
             };
             const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
             expect(result).toBe(false);

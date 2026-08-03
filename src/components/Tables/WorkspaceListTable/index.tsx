@@ -34,6 +34,7 @@ type WorkspaceRowData = TableData & {
     icon: AvatarSource;
     isDefault: boolean;
     isDeleted: boolean;
+    isArchived: boolean;
     isJoinRequestPending: boolean;
     shouldAnimateInHighlight: boolean;
     policyID: string;

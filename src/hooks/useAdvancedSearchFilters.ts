@@ -299,6 +299,7 @@ function useAdvancedSearchFiltersWorkspaces(policies: OnyxCollection<Policy>, se
         selectedPolicyIDs: undefined,
         searchTerm: searchTerm ?? '',
         localeCompare,
+        includeArchivedPolicy: true,
     });
 
     return {workspaces, shouldShowWorkspaceSearchInput};

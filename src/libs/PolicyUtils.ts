@@ -95,7 +95,12 @@ function isPolicyFieldListEmpty(policy: OnyxEntry<Policy>): boolean {
 function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
         (policy): policy is Policy =>
-            !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id && !!getPolicyRole(policy, currentUserLogin),
+            !!policy &&
+            policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            !!policy.name &&
+            !!policy.id &&
+            !!getPolicyRole(policy, currentUserLogin) &&
+            !isPolicyArchived(policy),
     );
 }
 
@@ -113,6 +118,7 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             !!policy.name &&
             !!policy.id &&
             !!getPolicyRole(policy, currentUserLogin) &&
+            !isPolicyArchived(policy) &&
             (isPaidGroupPolicy(policy) || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)),
     );
 }
@@ -191,6 +197,11 @@ function hasPolicyFeaturePermission(policy: OnyxInputOrEntry<Policy>, login: str
 
     if (requiredAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.READ) {
         return access === CONST.POLICY.POLICY_FEATURE_ACCESS.READ || access === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
+    }
+
+    // Archived policies are read-only: no member can write to any feature regardless of their role.
+    if (isPolicyArchived(policy)) {
+        return false;
     }
 
     return access === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
@@ -623,10 +634,11 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
  * Note: Using a local ONYXKEYS.NETWORK subscription will cause a delay in
  * updating the screen. Passing the offline status from the component.
  */
-function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePolicy: boolean, currentUserLogin: string | undefined): boolean {
+function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePolicy: boolean, currentUserLogin: string | undefined, includeArchivedPolicy = false): boolean {
     return (
         !!policy?.isJoinRequestPending ||
         (!!policy &&
+            (includeArchivedPolicy || !isPolicyArchived(policy)) &&
             policy?.type !== CONST.POLICY.TYPE.PERSONAL &&
             (shouldShowPendingDeletePolicy || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!getPolicyRole(policy, currentUserLogin))
@@ -796,6 +808,13 @@ const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy
  * Checks if the current user is an owner (creator) of the policy.
  */
 const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number | undefined): boolean => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID;
+
+/**
+ * Checks if a policy is archived.
+ */
+function isPolicyArchived(policy: OnyxInputOrEntry<Policy>): boolean {
+    return !!policy?.archivedDate;
+}
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
@@ -3057,6 +3076,7 @@ export {
     isPolicyFieldListEmpty,
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyOwner,
+    isPolicyArchived,
     isPolicyMember,
     isPolicyPayer,
     getReimburserEmail,

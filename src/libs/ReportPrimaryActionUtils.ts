@@ -15,6 +15,7 @@ import {
     hasIntegrationAutoSync,
     isGroupPolicy,
     isPaidGroupPolicy,
+    isPolicyArchived,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyApprover,
     isPreferredExporter,
@@ -494,6 +495,12 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return '';
     }
 
+    // Reports in an archived workspace are read-only: every primary action transitions the report
+    // state or writes to the workspace, so none of them are available.
+    if (isPolicyArchived(policy)) {
+        return '';
+    }
+
     const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
     const isPayActionWithAllExpensesHeld =
         isPrimaryPayAction({
@@ -615,6 +622,11 @@ function getTransactionThreadPrimaryAction(
     policy: OnyxEntry<Policy>,
     isFromReviewDuplicates: boolean,
 ): ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '' {
+    // Transactions in an archived workspace are read-only: none of the primary actions are available.
+    if (isPolicyArchived(policy)) {
+        return '';
+    }
+
     if (isMarkAsResolvedAction(parentReport, violations, policy)) {
         return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
