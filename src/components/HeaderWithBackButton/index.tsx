@@ -69,6 +69,7 @@ function HeaderWithBackButton({
     subtitle = '',
     title = '',
     titleColor,
+    numberOfTitleLines = 1,
     threeDotsAnchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -161,7 +162,7 @@ function HeaderWithBackButton({
                 subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
                 textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
                 subTitleLink={subTitleLink}
-                numberOfTitleLines={1}
+                numberOfTitleLines={numberOfTitleLines}
                 isScreenHeader
                 shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
             />
@@ -184,6 +185,7 @@ function HeaderWithBackButton({
         title,
         titleColor,
         titleStyles,
+        numberOfTitleLines,
         translate,
         openParentReportInCurrentTab,
         shouldDisplayStatus,
