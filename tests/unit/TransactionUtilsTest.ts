@@ -4126,3 +4126,17 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
         expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(true);
     });
 });
+
+describe('isTransactionSubmittable', () => {
+    it('returns false for a transaction that is on hold', () => {
+        const transaction = generateTransaction({comment: {hold: 'holdID'}});
+
+        expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(false);
+    });
+
+    it('returns true for a transaction that is not on hold', () => {
+        const transaction = generateTransaction();
+
+        expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(true);
+    });
+});

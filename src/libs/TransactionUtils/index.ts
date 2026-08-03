@@ -3125,7 +3125,12 @@ function isTransactionSubmittable(
     policy: OnyxEntry<Policy>,
     isTransactionScanning: (transactionToCheck: OnyxEntry<Transaction>) => boolean = isScanning,
 ): boolean {
-    if (isTransactionScanning(transaction) || (isExpensifyCardTransaction(transaction) && isPending(transaction)) || hasSmartScanFailedWithMissingFields([transaction], report)) {
+    if (
+        isOnHold(transaction) ||
+        isTransactionScanning(transaction) ||
+        (isExpensifyCardTransaction(transaction) && isPending(transaction)) ||
+        hasSmartScanFailedWithMissingFields([transaction], report)
+    ) {
         return false;
     }
 

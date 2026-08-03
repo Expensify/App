@@ -1422,6 +1422,11 @@ function submitReport({
     const reportTransactions = getReportTransactions(expenseReport.reportID);
     const heldTransactions = reportTransactions.filter((transaction) => isOnHold(transaction));
     const hasHeldExpenses = heldTransactions.length > 0;
+
+    if (reportTransactions.length > 0 && heldTransactions.length === reportTransactions.length) {
+        return;
+    }
+
     const submittedTotal = hasHeldExpenses ? (expenseReport.unheldTotal ?? expenseReport.total ?? 0) : (expenseReport.total ?? 0);
 
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(

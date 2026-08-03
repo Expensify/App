@@ -426,6 +426,106 @@ describe('actions/IOU/ReportWorkflow', () => {
             mockFetch?.resume?.();
         });
 
+        it('is a no-op when every transaction on the report is on hold', async () => {
+            // Given an open expense report with a single held expense
+            const policyID = generatePolicyID();
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                id: policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: CARLOS_EMAIL,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+
+            const chatReport: Report = {
+                ...createRandomReport(456, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: '456',
+                isOwnPolicyExpenseChat: true,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                iouReportID: '123',
+                policyID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(123, undefined),
+                reportID: '123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                policyID,
+                parentReportID: chatReport.reportID,
+                chatReportID: chatReport.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: CONST.CURRENCY.USD,
+                total: 6000,
+                unheldTotal: 0,
+                reimbursableTotal: 6000,
+                unheldReimbursableTotal: 0,
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+            };
+
+            const heldTransaction = buildOptimisticTransaction({
+                transactionParams: {amount: 6000, currency: CONST.CURRENCY.USD, reportID: expenseReport.reportID},
+            });
+
+            const iouAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: heldTransaction.amount,
+                currency: heldTransaction.currency,
+                comment: '',
+                participants: [],
+                transactionID: heldTransaction.transactionID,
+            });
+            const reportActions: ReportActions = {[iouAction.reportActionID]: iouAction};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`, heldTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, reportActions);
+            await waitForBatchedUpdates();
+
+            // Hold the only expense on the report
+            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, []);
+            await waitForBatchedUpdates();
+
+            // When submitting the report while offline (callers pass the live report, refreshed by the hold)
+            mockFetch?.pause?.();
+            const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+            submitReport({
+                submitterLogin: CARLOS_EMAIL,
+                expenseReport: freshExpenseReport,
+                policy,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: true,
+                expenseReportCurrentNextStepDeprecated: nextStep,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the report stays Open, and the transaction stays on the same report and on hold
+            const reportAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(reportAfter?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect(reportAfter?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+
+            const transactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`);
+            expect(transactionAfter?.reportID).toBe(expenseReport.reportID);
+            expect(transactionAfter?.comment?.hold).toBeTruthy();
+
+            mockFetch?.resume?.();
+        });
+
         it('splits held expenses onto a new Draft report when submitting offline on a Submit and Close policy', async () => {
             // Given an open expense report on a Submit and Close policy with two expenses, one of which is held
             const policyID = generatePolicyID();
