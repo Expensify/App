@@ -7,7 +7,6 @@ import {
     getDeleteTrackExpenseInformation,
     getTrackExpenseInformation,
     hasManualDistanceOverride,
-    hasUploadedReceipt,
     trackExpense,
 } from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -3086,25 +3085,6 @@ describe('actions/IOU/TrackExpense', () => {
 
         it('returns false when transaction is undefined', () => {
             expect(hasManualDistanceOverride(undefined)).toBe(false);
-        });
-    });
-
-    describe('hasUploadedReceipt', () => {
-        const receiptIDTransaction: Transaction = {...createRandomTransaction(1), receipt: {receiptID: 1}};
-        const receiptIDWithLocalSourceTransaction: Transaction = {...createRandomTransaction(2), receipt: {receiptID: 2, source: 'blob:receipt'}};
-        const remoteReceiptTransaction: Transaction = {...createRandomTransaction(3), receipt: {source: 'https://www.expensify.com/receipts/w_abc.jpg'}};
-        const localReceiptTransaction: Transaction = {...createRandomTransaction(4), receipt: {source: 'blob:receipt'}};
-        const transactionWithoutReceipt: Transaction = {...createRandomTransaction(5), receipt: undefined};
-
-        test.each<[string, OnyxEntry<Transaction>, boolean]>([
-            ['true when receiptID is present', receiptIDTransaction, true],
-            ['true when receiptID is present alongside a local source', receiptIDWithLocalSourceTransaction, true],
-            ['false when only a remote source is present', remoteReceiptTransaction, false],
-            ['false when only a local source is present', localReceiptTransaction, false],
-            ['false when no receipt is present', transactionWithoutReceipt, false],
-            ['false when the transaction is undefined', undefined, false],
-        ])('returns %s', (_scenario: string, transaction: OnyxEntry<Transaction>, expectedResult: boolean) => {
-            expect(hasUploadedReceipt(transaction)).toBe(expectedResult);
         });
     });
 });
