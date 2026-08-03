@@ -4,7 +4,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {resolvePopoverLauncherElement, setActivePopoverLauncher} from '@libs/LauncherStack';
 
 import variables from '@styles/variables';
 
@@ -81,14 +80,6 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     });
 
     const toggleFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
-        // Register before the blur below — FocusTrapForModal.onActivate only reads document.activeElement, which is
-        // body once we blur, so without this NavigationFocusReturn has no launcher to restore on Back.
-        if (!isActive) {
-            const launcher = resolvePopoverLauncherElement(fabPressable);
-            if (launcher) {
-                setActivePopoverLauncher(launcher);
-            }
-        }
         // Drop focus to avoid blue focus ring.
         fabPressable.current?.blur();
         onPress(event);
