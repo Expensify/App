@@ -16,7 +16,6 @@ import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import useBottomSafeSafeAreaPaddingStyle from './useBottomSafeSafeAreaPaddingStyle';
 import useIsInLandscapeMode from './useIsInLandscapeMode';
 import useOnyx from './useOnyx';
 import usePopoverPosition from './usePopoverPosition';
@@ -55,7 +54,6 @@ type UseReportSubmitToPopoverParams = {
 function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT, getAnchorRef}: UseReportSubmitToPopoverParams) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
     const {windowHeight} = useWindowDimensions();
     const viewportOffsetTop = useViewportOffsetTop();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -262,7 +260,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             >
                 <View
                     collapsable={false}
-                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, styles.flex1, styles.w100, styles.pt4, bottomSafeAreaPaddingStyle]}
+                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, styles.flex1, styles.w100, styles.pt4]}
                 >
                     <ReportSubmitToContent
                         key={submitToContentKey}
@@ -301,7 +299,6 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         isSearchSubmitFlow,
         handleSearchSubmitWithManagerEmail,
         submitToContentKey,
-        bottomSafeAreaPaddingStyle,
     ]);
 
     return {
