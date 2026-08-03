@@ -470,6 +470,55 @@ describe('ReportNameUtils', () => {
             );
             expect(name).toBe(expected);
         });
+        test('VBBA pay parent action uses action accountNumber before current policy account', () => {
+            const policyID = '123';
+            const thread: Report = {
+                ...createWorkspaceThread(61),
+                policyID,
+            };
+            const parentAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                    accountNumber: 'XXXX1111',
+                },
+            };
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.parentReportID}`]: {
+                    [String(thread.parentReportActionID)]: parentAction,
+                },
+            };
+            const policiesCollection: Record<string, Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
+                    ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    achAccount: {
+                        accountNumber: 'XXXX2222',
+                    },
+                },
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                policiesCollection,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', undefined, '1111'));
+        });
         test('Cross-border pay parent action', () => {
             // Given a thread on a payment that converted currency for the employee
             const thread: Report = createWorkspaceThread(60);
