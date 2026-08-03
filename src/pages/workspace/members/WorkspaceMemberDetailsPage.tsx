@@ -30,15 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
-import {
-    getAllCardsForWorkspace,
-    getCardFeedIcon,
-    getCardFeedWithDomainID,
-    getPlaidInstitutionIconUrl,
-    hasActiveExpensifyCardAssigned,
-    lastFourNumbersFromCardName,
-    maskCardNumber,
-} from '@libs/CardUtils';
+import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPersonalDetailByEmail, getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -155,7 +147,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const phoneNumber = getPhoneNumber(details);
     const reimburserEmail = getReimburserEmail(policy);
     const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
-    const hasActiveExpensifyCard = hasActiveExpensifyCardAssigned(workspaceCards, accountID);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -189,11 +180,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     let confirmModalPrompt = translate('workspace.people.removeMembersWarningPrompt', displayName, policyOwnerDisplayName);
 
-    if (hasActiveExpensifyCard) {
-        confirmModalPrompt = translate('workspace.people.removeMemberPromptExpensifyCard', {
-            memberName: displayName,
-        });
-    } else if (isTechnicalContact) {
+    if (isTechnicalContact) {
         confirmModalPrompt = translate('workspace.people.removeMemberPromptTechContact', {
             memberName: displayName,
             workspaceOwner: policyOwnerDisplayName,
@@ -282,7 +269,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             showRuleBotGuardModal('remove', policyID);
             return;
         }
-        if (hasActiveExpensifyCard || isReimburser) {
+        if (isReimburser) {
             showConfirmModal({
                 shouldShowCancelButton: false,
                 success: true,
@@ -346,12 +333,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
                                 <Avatar
-                                    containerStyles={[styles.avatarXLarge, styles.mb4, styles.noOutline]}
-                                    imageStyles={[styles.avatarXLarge]}
+                                    containerStyles={[styles.mb4, styles.noOutline]}
                                     source={details.avatar}
                                     avatarID={accountID}
                                     type={CONST.ICON_TYPE_AVATAR}
-                                    size={CONST.AVATAR_SIZE.X_LARGE}
+                                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                     fallbackIcon={fallbackIcon}
                                 />
                             </OfflineWithFeedback>

@@ -129,6 +129,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   sortedActions,
                   conciergeReportID,
                   isTrackIntentUser,
+                  translate,
               }).options;
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
