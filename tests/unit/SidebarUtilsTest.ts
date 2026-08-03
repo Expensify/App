@@ -1734,11 +1734,6 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        const reportAttributes: Record<string, ReportAttributes> = {
-                            [MOCK_REPORT.reportID]: createMock<ReportAttributes>({
-                                reportName: 'Report (archived)',
-                            }),
-                        };
                         return SidebarUtils.getWelcomeMessage({
                             report: MOCK_REPORT,
                             policy: undefined,
@@ -1747,7 +1742,7 @@ describe('SidebarUtils', () => {
                             translate: translateLocal,
                             localeCompare,
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
-                            reportAttributes,
+                            derivedReportName: 'Report (archived)',
                             isReportArchived: isReportArchived.current,
                         });
                     })
@@ -1934,12 +1929,6 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const reportAttributes: Record<string, ReportAttributes> = {
-                [archivedInvoiceRoom.reportID]: createMock<ReportAttributes>({
-                    reportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`,
-                }),
-            };
-
             const result = SidebarUtils.getWelcomeMessage({
                 report: archivedInvoiceRoom,
                 policy: senderPolicy,
@@ -1948,7 +1937,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
-                reportAttributes,
+                derivedReportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`,
                 isReportArchived: true,
                 reportDetailsLink: 'https://example.com/report',
             });

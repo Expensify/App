@@ -439,6 +439,7 @@ const translations: TranslationDeepObject<typeof en> = {
         perDiem: 'Tagegeld',
         validate: 'Validieren',
         downloadAsPDF: 'Als PDF herunterladen',
+        downloadReceipts: 'Belege herunterladen',
         downloadAsCSV: 'Als CSV herunterladen',
         submitViaPDF: 'Per PDF einreichen',
         print: 'Drucken',
@@ -5965,6 +5966,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             balanceWillBeSettledOn: (settlementDate: string) => `Der Saldo wird am ${settlementDate} ausgeglichen.`,
             settleBalance: 'Saldo ausgleichen',
             cardLimit: 'Kartenlimit',
+            remaining: 'Verbleibend',
             remainingLimit: 'Verbleibendes Limit',
             requestLimitIncrease: 'Anhebung des Anfragelimits',
             remainingLimitDescription:
@@ -6137,6 +6139,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         subsections: {
                             currentTravelSpendLabel: 'Aktuelle Reisekosten',
                             currentTravelSpendPaymentQueued: (amount: string) => `Die Zahlung über ${amount} ist in der Warteschlange und wird in Kürze bearbeitet.`,
+                            currentTravelSpendInvoiceQueued: 'Eine neue Rechnung für Ihre Reisekosten wird erstellt und Ihnen in Kürze zugesandt.',
+                            currentTravelSpendInvoicePending: (amount: string) => `Eine Rechnung über ${amount} wurde gesendet und wartet auf Bezahlung.`,
                             currentTravelSpendCta: 'Saldo bezahlen',
                             viewOnSpend: 'In Ausgaben anzeigen',
                             currentTravelLimitLabel: 'Aktuelles Reisekontingent',
@@ -6150,6 +6154,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                                 'Wenn Sie das Limit reduzieren, können Mitglieder, die diesen Betrag bereits überschritten haben, bis zum nächsten Monat keine neuen Reisebuchungen vornehmen.',
                             provisioningError:
                                 'Wir konnten einige Mitglieder Ihres Arbeitsbereichs nicht für die Konsolidierte Reiseabrechnung einrichten. Bitte versuchen Sie es später erneut oder wenden Sie sich für Unterstützung an Concierge.',
+                            sendInvoiceNowCta: 'Rechnung jetzt senden',
                         },
                     },
                     disableModal: {
@@ -6172,6 +6177,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     invalidDateRangeError: 'Das Startdatum muss vor dem Enddatum liegen',
                     enabled: 'Zentrale Reiseabrechnung aktiviert!',
                     enabledDescription: 'Alle Reisekosten in diesem Workspace werden nun in einer monatlichen Rechnung zentralisiert.',
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Rechnung über ${amount} senden?`,
+                        body: 'Wir erstellen eine Rechnung für Ihre aktuellen Reisekosten. Ihr Reiselimit wird wieder frei, sobald die Rechnung bezahlt ist.',
+                    },
                 },
                 personalDetailsDescription: 'Um eine Reise zu buchen, gib bitte deinen amtlichen Namen genau so ein, wie er auf deinem amtlichen Ausweis steht.',
             },
@@ -7513,8 +7522,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 note: 'Sie verlieren den Zugriff auf die folgenden Funktionen',
                 benefits: {
                     confirm: 'Sie müssen den „Plantyp“ jedes Arbeitsbereichs auf „Collect“ ändern, um den Collect-Tarif zu sichern.',
-                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
-                    benefit2: 'Workday, Certinia',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics, Certinia',
+                    benefit2: 'Gusto, TriNet, Workday',
                     benefit3: 'SSO/SAML',
                     benefit4: 'Intelligente Spesenregeln, Tagegelder, Genehmigungen mit mehreren Ebenen, benutzerdefinierte Berichte und Budgetierung',
                     headsUp: 'Achtung!',
@@ -10032,8 +10041,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 benefit1: 'Alles im Collect-Tarif',
                 benefit2: 'Genehmigungs-Workflows mit mehreren Ebenen',
                 benefit3: 'Benutzerdefinierte Ausgabenregeln',
-                benefit4: 'ERP-Integrationen (NetSuite, Sage Intacct, Oracle)',
-                benefit5: 'HR-Integrationen (Workday, Certinia)',
+                benefit4: 'ERP-Integrationen (NetSuite, Sage Intacct, Oracle, Certinia)',
+                benefit5: 'HR-Integrationen (Gusto, TriNet, Workday)',
                 benefit6: 'SAML/SSO',
                 benefit7: 'Individuelle Einblicke und Berichte',
                 benefit8: 'Budgetierung',
@@ -10395,6 +10404,11 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        receiptsFailedBody: 'Ihre Belege konnten nicht heruntergeladen werden. Bitte versuchen Sie es später erneut.',
+        noReceiptsTitle: 'Keine Belege zum Herunterladen',
+        noReceiptsBody: 'Keine der Ausgaben in diesem Bericht hat herunterladbare Belege.',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} von ${total} Belegen wurden erfolgreich exportiert. Falls der Download nicht automatisch gestartet wurde, verwenden Sie die Schaltfläche unten.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
