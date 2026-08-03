@@ -109,7 +109,6 @@
 "../../src/components/AvatarCropModal/ImageCropView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AvatarCropModal/Slider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AvatarSelector.tsx"	"no-restricted-syntax"	2
-"../../src/components/AvatarWithDisplayName.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/components/AvatarWithImagePicker.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AvatarWithImagePicker.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/BookTravelButton.tsx"	"no-restricted-imports"	1
@@ -252,7 +251,6 @@
 "../../src/components/MoneyRequestConfirmationList/hooks/useTransactionReportForConfirmation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestConfirmationList/sections/AmountField.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestConfirmationList/sections/AttendeeField.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/MoneyRequestConfirmationList/sections/ReportField.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/components/MoneyRequestConfirmationList/sections/TaxFields.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestConfirmationList/sections/selectors.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/MoneyRequestConfirmationListFooter/ConfirmationFieldList.tsx"	"no-restricted-imports"	1
@@ -328,12 +326,10 @@
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/useReportPreviewActionDecision.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
-"../../src/components/ReportActionItem/MoneyRequestView.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	2
 "../../src/components/ReportActionItem/TaskPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TaskView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TransactionPreview/TransactionPreviewContent.tsx"	"no-restricted-imports"	1
 "../../src/components/ReportActionItem/receiptHoverUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/ReportWelcomeText.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/components/RoomHeaderAvatars.tsx"	"no-restricted-syntax"	2
 "../../src/components/Rule/RuleBooleanBase.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Rule/TextBase.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -401,7 +397,6 @@
 "../../src/components/Search/SearchRouter/getUpdatedSubstitutionsMap.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchSingleSelectionPicker.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Search/chartGroupByConfig.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
-"../../src/components/Search/hooks/useFilterReportValue.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/components/Search/hooks/useOptimisticSearchTracking.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/components/Search/hooks/useStableOptimisticSortedData.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -770,7 +765,7 @@
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	71
 "../../src/libs/SearchUIUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/SelectionScraper/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../src/libs/SidebarUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	4
+"../../src/libs/SidebarUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	3
 "../../src/libs/SidebarUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Sound/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/Sound/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
