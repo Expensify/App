@@ -1,4 +1,3 @@
-import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocalizedTranslate, LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
