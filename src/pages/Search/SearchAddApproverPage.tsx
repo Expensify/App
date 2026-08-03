@@ -138,17 +138,18 @@ function SearchAddApproverPage() {
                 }
 
                 const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
-                addReportApprover(
+                addReportApprover({
                     report,
-                    selectedApproverEmail,
-                    Number(employeeAccountID),
-                    currentUserDetails.accountID,
-                    currentUserDetails.email ?? '',
+                    newApproverEmail: selectedApproverEmail,
+                    newApproverAccountID: Number(employeeAccountID),
+                    accountID: currentUserDetails.accountID,
+                    email: currentUserDetails.email ?? '',
                     policy,
                     hasViolations,
                     isASAPSubmitBetaEnabled,
                     isTrackIntentUser,
-                );
+                    formatPhoneNumber,
+                });
             }
 
             // Note: This clears both reports and transactions

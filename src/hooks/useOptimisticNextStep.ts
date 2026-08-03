@@ -1,5 +1,5 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {buildOptimisticFixIssueNextStep, getReportNextStep} from '@libs/NextStepUtils';
+import {buildOptimisticFixIssueNextStep, shouldShowDynamicExternalWorkflowApproveErrorNextStep, getReportNextStep} from '@libs/NextStepUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {
@@ -68,7 +68,7 @@ function useOptimisticNextStep(reportID: string | undefined) {
             const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, currentUserLogin ?? '', accountID, undefined, isArchivedReport);
             const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
             const isCurrentUserTheApprover = moneyRequestReport?.managerID === accountID;
-            if (hasDEWApproveFailed && isCurrentUserTheApprover) {
+            if (shouldShowDynamicExternalWorkflowApproveErrorNextStep(gbrResult?.reportAction, hasDEWApproveFailed, isCurrentUserTheApprover)) {
                 optimisticNextStep = buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
             }
         }

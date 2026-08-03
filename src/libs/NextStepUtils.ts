@@ -1,7 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -12,6 +12,7 @@ import {Str} from 'expensify-common';
 
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
+import {getOriginalMessage, isDynamicExternalWorkflowApproveFailedAction} from './ReportActionsUtils';
 import {
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -336,4 +337,25 @@ function getReportNextStep(
     return currentNextStep;
 }
 
-export {getReportNextStep, buildNextStepMessage, buildOptimisticNextStep, buildOptimisticFixIssueNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled};
+/**
+ * Whether to show the DEW approve-error next step.
+ * Only manual approve failures (`automaticAction` false/absent) for the current approver should show it.
+ * Auto-approval blocks keep the normal workflow next step.
+ */
+function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: OnyxEntry<ReportAction>, hasDEWApproveFailed: boolean, isCurrentUserTheApprover: boolean): boolean {
+    if (!hasDEWApproveFailed || !isCurrentUserTheApprover || !isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
+        return false;
+    }
+
+    const {automaticAction} = getOriginalMessage(reportAction) ?? {};
+    return !automaticAction;
+}
+
+export {
+    getReportNextStep,
+    buildNextStepMessage,
+    buildOptimisticNextStep,
+    buildOptimisticFixIssueNextStep,
+    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
+    shouldShowDynamicExternalWorkflowApproveErrorNextStep,
+};
