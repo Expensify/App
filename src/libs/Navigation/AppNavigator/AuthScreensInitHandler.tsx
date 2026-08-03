@@ -79,6 +79,8 @@ function AuthScreensInitHandler() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
     const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -91,7 +93,7 @@ function AuthScreensInitHandler() {
     useReconcileHighContrastIntent();
     useAIFeaturesPromoModal(session);
 
-    const topmostReportID = useRootNavigationState(Navigation.getTopmostReportId);
+    const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
     const topmostOneTransactionThreadReportID = useOneTransactionThreadReportID(topmostReportID);
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const topmostOneTransactionThreadReportIDRef = useRef(topmostOneTransactionThreadReportID);
@@ -168,7 +170,7 @@ function AuthScreensInitHandler() {
         } else if (SessionUtils.didUserLogInDuringSession()) {
             const reportID = getReportIDFromLink(initialURL ?? null);
             if (reportID && !isAuthenticatedAtStartup) {
-                Report.openReport({reportID, introSelected, betas});
+                Report.openReport({reportID, introSelected, betas, hasReportActions: false, currentUserAccountID: session?.accountID});
                 // Don't want to call `openReport` again when logging out and then logging in
                 setIsAuthenticatedAtStartup(true);
             }
@@ -188,6 +190,7 @@ function AuthScreensInitHandler() {
             hasActiveAdminPolicies,
             lastWorkspaceNumber,
             translate,
+            conciergeChat,
         );
 
         Download.clearDownloads();

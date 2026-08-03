@@ -32,7 +32,9 @@ Before you can enable either program, you must have a valid payment card on file
 2. Select **Save the world**.
 3. In the **Enable Personal Karma** section, turn Personal Karma on or off.
 4. Add a payment card if prompted.
-   
+
+![The "Save the world" page showing the "Enable Personal Karma" section with its on/off toggle]({{site.url}}/assets/images/ExpensiHelp-Manage-Personal-Karma-and-Corporate-Karma.png){:width="100%"}
+
 ---
 
 ## How to manage Corporate Karma

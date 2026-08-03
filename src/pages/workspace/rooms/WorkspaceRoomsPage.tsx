@@ -5,10 +5,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceRoomsTable from '@components/Tables/WorkspaceRoomsTable';
 import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -16,18 +16,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {openPolicyRoomsPage} from '@libs/actions/Policy/Room';
+import {openReport} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -43,7 +43,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
     const headerIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const illustrations = useMemoizedLazyIllustrations(['Hashtag']);
     const policyID = route.params.policyID;
@@ -54,14 +53,22 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const reportAttributes = useReportAttributes();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const personalDetails = usePersonalDetails();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const [policyReports] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT,
-        {
-            selector: policyChatRoomsSelector(policyID, reportNameValuePairs),
+    const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyChatRoomsSelector(policyID, reportNameValuePairs)});
+    const [hasReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        selector: (reportActions) => {
+            return policyReports?.reduce(
+                (acc, curr) => {
+                    acc[curr.reportID] = !!reportActions?.[curr.reportID];
+                    return acc;
+                },
+                {} as Record<string, boolean>,
+            );
         },
-        [policyID, reportNameValuePairs],
-    );
+    });
 
     // The newly created room reportID is stored in Onyx right before navigating back here so its row can play the highlight animation.
     // It is cleared by the create page once the navigation transition ends (see WorkspaceNewRoomPage), so the animation doesn't replay on a later visit.
@@ -71,11 +78,18 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const rooms: WorkspaceRoomRowData[] = (policyReports ?? []).map((report) => ({
         keyForList: report.reportID,
         reportID: report.reportID,
-        name: getReportName(report, reportAttributes),
+        name: deprecatedGetReportName(report, reportAttributes),
         memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
         action: () => {
-            const targetRoute = isAdmin ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(report.reportID)) : ROUTES.REPORT_WITH_ID.getRoute(report.reportID);
-            Navigation.navigate(targetRoute);
+            if (isAdmin) {
+                // Admins open the details RHP directly instead of the room report, so the report is never fetched via ReportScreen.
+                // Fetch it here so the RHP has full data (participants, metadata) for Join, Invite and renaming.
+                // shouldMarkAsRead is false because the user only views the room details, not the conversation itself.
+                openReport({reportID: report.reportID, introSelected, betas, shouldMarkAsRead: false, hasReportActions: !!hasReportActions?.[report.reportID], currentUserAccountID});
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(report.reportID)));
+                return;
+            }
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
         },
     }));
 
@@ -84,10 +98,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     });
 
     return (
-        <AccessOrNotFoundWrapper
-            policyID={policyID}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.WORKSPACE_ROOMS_PAGE)}
-        >
+        <AccessOrNotFoundWrapper policyID={policyID}>
             <ScreenWrapper
                 testID={WorkspaceRoomsPage.displayName}
                 style={[styles.defaultModalContainer]}

@@ -16,6 +16,7 @@ import type {MockFetch} from '../utils/TestHelper';
 
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import * as RequestModule from '../../src/libs/Request';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -406,6 +407,31 @@ describe('SequentialQueue', () => {
             onyxUpdateSpy.mockRestore();
         }
     });
+
+    it('should reset the shared throttle when the queue stops because the app went offline', async () => {
+        const offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
+        mockFetch.mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
+
+        try {
+            await SequentialQueue.push(request);
+            await waitForBatchedUpdates();
+
+            // The request failed once, so the throttle is now carrying a retry count and a wait time.
+            const scheduledWait = SequentialQueue.sequentialQueueRequestThrottle.getLastRequestWaitTime();
+            expect(scheduledWait).toBeGreaterThan(0);
+
+            // Go offline while the retry is still sleeping. When it wakes, process() stops on its offline guard.
+            offlineSpy.mockReturnValue(true);
+            await new Promise((resolve) => {
+                setTimeout(resolve, scheduledWait + 10);
+            });
+
+            // The next command must start from a fresh count and a floor-range wait rather than inherit this one.
+            expect(SequentialQueue.sequentialQueueRequestThrottle.getLastRequestWaitTime()).toBe(0);
+        } finally {
+            offlineSpy.mockRestore();
+        }
+    });
 });
 
 describe('SequentialQueue - reconnect coverage collapse', () => {
@@ -559,5 +585,36 @@ describe('SequentialQueue - QueueFlushedData', () => {
         await SequentialQueue.saveQueueFlushedData(...updates);
         await SequentialQueue.clearQueueFlushedData();
         expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    // Pushes an OpenApp request carrying queueFlushedData, with processWithMiddleware mocked to resolve with the given jsonCode.
+    async function pushOpenAppAndWaitForIdle(jsonCode: number) {
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldFailAllRequests: false, shouldForceOffline: false});
+        await clearPersistedRequests();
+        await waitForBatchedUpdates();
+
+        const flushedUpdate: OnyxUpdate<typeof ONYXKEYS.HAS_LOADED_APP> = {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.HAS_LOADED_APP, value: true};
+        jest.spyOn(RequestModule, 'processWithMiddleware').mockResolvedValue({jsonCode});
+        SequentialQueue.push({command: 'OpenApp', queueFlushedData: [flushedUpdate]});
+        await SequentialQueue.waitForIdle();
+        await waitForBatchedUpdates();
+    }
+
+    it('does not commit queueFlushedData when the resolved response is not a 200', async () => {
+        await pushOpenAppAndWaitForIdle(CONST.JSON_CODE.BAD_REQUEST);
+
+        // A failed-but-resolved OpenApp must not stage HAS_LOADED_APP, or the next boot runs ReconnectApp only and can't self-heal.
+        expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
+        expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBeFalsy();
+    });
+
+    it('commits queueFlushedData when the resolved response is a 200', async () => {
+        await pushOpenAppAndWaitForIdle(CONST.JSON_CODE.SUCCESS);
+
+        expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBe(true);
     });
 });

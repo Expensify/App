@@ -4,8 +4,8 @@ import type {IconSize} from '@components/EReceiptThumbnail';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoadingIndicator';
 import ImageWithLoading from '@components/ImageWithLoading';
-import PDFThumbnail from '@components/PDFThumbnail';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
+import LocalPDFReceiptPreview from '@components/ReportActionItem/LocalPDFReceiptPreview';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import ThumbnailImage from '@components/ThumbnailImage';
 
@@ -191,10 +191,11 @@ function ReceiptImage({
 
     if (isPDFThumbnail) {
         return (
-            <PDFThumbnail
-                previewSourceURL={source ?? ''}
-                style={[styles.w100, styles.h100]}
+            <LocalPDFReceiptPreview
+                sourceURL={source ?? ''}
+                shouldUseFullHeight={shouldUseFullHeight}
                 onLoadSuccess={onLoad}
+                onLoadFailure={onLoadFailure}
             />
         );
     }

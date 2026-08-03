@@ -3,7 +3,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -54,9 +54,8 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
-    const reportAttributes = useReportAttributes();
     const policyID = selectedParticipants?.at(0)?.policyID;
-    const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)}, [policyID]);
+    const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     // Self-resolved narrow slice of the transaction; replaces the previously prop-drilled `transaction` object.
@@ -108,8 +107,10 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
         return [reportIDToUse, reportToUse ?? undefined] as const;
     })();
 
+    const derivedReportName = useDerivedReportNameByReportID(selectedReportID);
+
     const reportName = (() => {
-        const name = getReportName(selectedReport, reportAttributes);
+        const name = getReportName(selectedReport, derivedReportName);
         if (!name) {
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }

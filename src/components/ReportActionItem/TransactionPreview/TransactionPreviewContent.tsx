@@ -24,6 +24,7 @@ import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -81,7 +82,7 @@ function TransactionPreviewContent({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const transactionDetails = useMemo<Partial<TransactionDetails>>(
@@ -97,6 +98,7 @@ function TransactionPreviewContent({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {selector: getStableReportSelector});
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const ownerLogin = getLoginByAccountID(ownerAccountID, personalDetails);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -106,6 +108,7 @@ function TransactionPreviewContent({
     const transactionPreviewCommonArguments = useMemo(
         () => ({
             iouReport: report,
+            iouReportOwnerLogin: ownerLogin,
             policy,
             transaction,
             action,
@@ -113,7 +116,7 @@ function TransactionPreviewContent({
             violations,
             transactionDetails,
         }),
-        [action, report, policy, isBillSplit, transaction, transactionDetails, violations],
+        [action, report, ownerLogin, policy, isBillSplit, transaction, transactionDetails, violations],
     );
 
     const conditionals = useMemo(
@@ -238,7 +241,14 @@ function TransactionPreviewContent({
             }
         }
 
-        return calculateAmount(isParentPolicyExpenseChat ? 1 : originalParticipantCount - 1, amount ?? 0, requestCurrency ?? '', actorAccountID === sessionAccountID);
+        return calculateAmount(
+            isParentPolicyExpenseChat ? 1 : originalParticipantCount - 1,
+            amount ?? 0,
+            requestCurrency ?? '',
+            actorAccountID === sessionAccountID,
+            false,
+            getCurrencyDecimals,
+        );
     }, [
         shouldShowSplitShare,
         isParentPolicyExpenseChat,
@@ -250,6 +260,7 @@ function TransactionPreviewContent({
         isBillSplit,
         action,
         actorAccountID,
+        getCurrencyDecimals,
     ]);
 
     const shouldWrapDisplayAmount = !(isBillSplit || shouldShowMerchantOrDescription || isTransactionScanning);
@@ -305,7 +316,7 @@ function TransactionPreviewContent({
                                         participantFromDisplayName={from.displayName ?? from.login ?? translate('common.hidden')}
                                         participantToDisplayName={to.displayName ?? to.login ?? translate('common.hidden')}
                                         participantTo={to}
-                                        avatarSize="mid-subscript"
+                                        avatarSize={CONST.AVATAR_SIZE.XXX_SMALL}
                                         infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
                                         infoCellsAvatarStyle={styles.pr1}
                                         style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}
@@ -322,7 +333,7 @@ function TransactionPreviewContent({
                                                         sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.ID,
                                                         useCardBG: true,
                                                     }}
-                                                    size={CONST.AVATAR_SIZE.SUBSCRIPT}
+                                                    size={CONST.AVATAR_SIZE.XX_SMALL}
                                                 />
                                             </View>
                                         )}

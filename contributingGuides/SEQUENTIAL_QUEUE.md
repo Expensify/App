@@ -234,11 +234,13 @@ async push()  (online · idle · no conflict)
 **How it works today.**
 - **`getRequestWaitTime`** seeds the first wait with a random jitter in `[MIN_RETRY_WAIT_TIME_MS, MAX_RANDOM_RETRY_WAIT_TIME_MS]` = `[10, 100]` ms, then **doubles** the prior wait on each retry, capped at `MAX_RETRY_WAIT_TIME_MS` (10 s).
 - **`sleep`** increments the retry count and picks the cap: `MAX_OPEN_APP_REQUEST_RETRIES` (2) for the `OPEN_APP` command, else `MAX_REQUEST_RETRIES` (10). Within the cap it resolves after the wait; once exceeded it **rejects with no argument**. This argument-less rejection is the give-up signal that `process()`'s catch consumes.
-- **`clear`** resets the wait, the retry count, and any pending timeout. It is called on success and on any non-retryable outcome.
+- **`clear`** resets the wait, the retry count, and any pending timeout. It is called on success, on any non-retryable outcome, and on the `isQueuePaused` and `isOfflineNetwork()` early returns in `process()`. A sleeping retry always wakes up back into `process()`, so those two guards are where a retry chain stops and where its state would otherwise be left behind.
 - The queue uses a single shared instance, `sequentialQueueRequestThrottle`.
 
 **Sharp edges.**
 - After the retry cap, a request is **permanently dropped** (see the [give-up row](#error-handling)), for non-`OPEN_APP` commands with no user-facing modal.
+- The instance is shared, so state earned by one command is charged to whichever command runs next. The two `clear()` calls above stop that state from crossing an offline gap or a gap sync, but it still crosses between two commands that fail back to back while online.
+- `clear()` is deliberately called only from inside the retry chain's own flow. `clear()` does `clearTimeout` on the pending `sleep` timeout, which is the `resolve` the chain is awaiting, so calling it from outside (a `NetworkState` edge, `Reconnect.ts`) during a fast flap would leave `currentRequestPromise` unsettled and wedge the queue.
 - `clear()` fires on every success, so a burst that interleaves successes with failures keeps resetting backoff to the floor, weakening the intended exponential spacing against a degraded backend.
 
 ## QueuedOnyxUpdates and queueFlushedData
@@ -251,7 +253,7 @@ These are **two distinct deferral mechanisms** that are easy to confuse.
 
 **Problem `queueFlushedData` solves.** Apply a small piece of data **only after a full drain**: mark the app as loaded only once the queue has actually emptied, not mid-drain.
 
-**How `queueFlushedData` works.** It is a **distinct, Onyx-persisted** buffer (`QUEUE_FLUSHED_DATA`), separate from the in-memory `QueuedOnyxUpdates`. `SequentialQueue.saveQueueFlushedData` appends a successfully-processed request's `queueFlushedData` field; the queue applies it via `Onyx.update` and clears it only when fully drained (after `flushOnyxUpdatesQueue`). Its sole producer is `App.getOnyxDataForOpenOrReconnect` (`OPEN_APP` / `ReconnectApp`), currently carrying exactly one entry: a merge of `HAS_LOADED_APP = true`.
+**How `queueFlushedData` works.** It is a **distinct, Onyx-persisted** buffer (`QUEUE_FLUSHED_DATA`), separate from the in-memory `QueuedOnyxUpdates`. `SequentialQueue.saveQueueFlushedData` appends a request's `queueFlushedData` field only when the response's `jsonCode` is `CONST.JSON_CODE.SUCCESS`; a resolved-but-failed response (`HttpUtils.xhr` resolves application-level failures instead of rejecting them) does not save it, so it cannot wrongly mark `HAS_LOADED_APP` true on the next boot. The queue applies it via `Onyx.update` and clears it only when fully drained (after `flushOnyxUpdatesQueue`). Its sole producer is `App.getOnyxDataForOpenOrReconnect` (`OPEN_APP` / `ReconnectApp`), currently carrying exactly one entry: a merge of `HAS_LOADED_APP = true`.
 
 **Sharp edges.**
 - Both apply **only** when the queue reaches fully-empty. Under sustained WRITE pressure neither applies, so `HAS_LOADED_APP` never flips and the buffers accumulate.
@@ -317,7 +319,7 @@ The blocks above describe what the queue does; this is the inbound surface: who 
 | `isReadyPromisePending` | Idempotency guard for `setIsReadyPromisePending()` (prevents orphaning READs parked on a prior pending promise) | `true` when a pending promise is armed | `false` inside `resolveIsReadyPromise` | At most one pending `isReadyPromise` is armed at a time |
 | `shouldFailAllRequests` | Sticky `NETWORK`-key flag → erroring requests are failed and dropped | `NETWORK` Onyx callback | `NETWORK` Onyx callback | Test/debug only |
 | `queueFlushedDataToStore` | In-memory mirror of `QUEUE_FLUSHED_DATA` | the `QUEUE_FLUSHED_DATA` connect-callback echo of `saveQueueFlushedData`'s `Onyx.set` | `clearQueueFlushedData` | Applied only on full drain |
-| `sequentialQueueRequestThrottle` | Shared backoff state (wait time, retry count, pending timeout) | `sleep()` on each generic-error retry | `clear()` on success and every non-retryable outcome | Backoff state never survives a settled request |
+| `sequentialQueueRequestThrottle` | Shared backoff state (wait time, retry count, pending timeout) | `sleep()` on each generic-error retry | `clear()` on success, every non-retryable outcome, and the paused and offline early returns in `process()` | Backoff state never survives a settled request, an offline gap, or a gap sync |
 
 ### Why `isReadyPromise` resolves on offline, not on paused
 

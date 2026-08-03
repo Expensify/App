@@ -1,3 +1,4 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDecisionModal from '@hooks/useDecisionModal';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
@@ -34,6 +35,8 @@ type MoneyReportHeaderModalsProps = {
 function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsProps) {
     // PDF modal state
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
+    // Callback invoked when the PDF modal is dismissed while still generating (e.g. Submit via PDF retracts the submit).
+    const onPDFCancelRef = useRef<(() => void) | undefined>(undefined);
 
     // Educational modals ref
     const educationalModalsRef = useRef<MoneyReportHeaderEducationalModalsHandle>(null);
@@ -44,6 +47,7 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
+    const {convertToDisplayString} = useCurrencyListActions();
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactions);
     const {accountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -52,7 +56,7 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID);
     const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true);
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton, transactions);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton, transactions, convertToDisplayString);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const transactionIDs = transactions.map((t) => t.transactionID);
 
@@ -106,7 +110,10 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
 
     const contextValue = {
         openHoldMenu,
-        openPDFDownload: () => setIsPDFModalVisible(true),
+        openPDFDownload: (options?: {onCancel?: () => void}) => {
+            onPDFCancelRef.current = options?.onCancel;
+            setIsPDFModalVisible(true);
+        },
         openHoldEducational: () => educationalModalsRef.current?.openHoldEducational(),
         openRejectModal: (action: RejectModalAction) => educationalModalsRef.current?.openRejectModal(action),
         showOfflineModal,
@@ -127,6 +134,7 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
                     reportID={moneyRequestReport?.reportID}
                     isVisible={isPDFModalVisible}
                     onClose={() => setIsPDFModalVisible(false)}
+                    onCancel={() => onPDFCancelRef.current?.()}
                 />
             </MoneyReportTransactionThreadProvider>
         </MoneyReportHeaderModalsContext.Provider>

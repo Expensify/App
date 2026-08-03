@@ -11,6 +11,8 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import {clearSignInData} from '@userActions/Session';
 
+import ROUTES from '@src/ROUTES';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -38,7 +40,7 @@ function SessionExpiredPage() {
                         <TextLink
                             onPress={() => {
                                 clearSignInData();
-                                Navigation.goBack();
+                                Navigation.goBack(ROUTES.HOME);
                             }}
                         >
                             {translate('deeplinkWrapper.signIn')}

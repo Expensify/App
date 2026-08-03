@@ -1,6 +1,7 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
+import {createTransaction} from '@libs/actions/IOU/MoneyRequest';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {notifyNewAction} from '@libs/actions/Report';
@@ -44,8 +45,9 @@ import type {MockFetch} from '../../utils/TestHelper';
 import currencyList from '../../unit/currencyList.json';
 import createPersonalDetails from '../../utils/collections/personalDetails';
 import {createRandomReport} from '../../utils/collections/reports';
+import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
+import {expectAPICommandToHaveBeenCalled, formatPhoneNumber, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
@@ -193,6 +195,7 @@ describe('actions/IOU', () => {
             let transactionThreadCreatedAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -228,7 +231,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -283,7 +285,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connection);
 
@@ -330,7 +331,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (reportActionsForTransactionThread) => {
                                     Onyx.disconnect(connection);
 
@@ -353,7 +353,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                                waitForCollectionCallback: true,
                                 callback: (allTransactions) => {
                                     Onyx.disconnect(connection);
 
@@ -389,7 +388,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.SNAPSHOT,
-                                waitForCollectionCallback: true,
                                 callback: (snapshotData) => {
                                     Onyx.disconnect(connection);
 
@@ -406,7 +404,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connection);
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
@@ -423,7 +420,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                                waitForCollectionCallback: false,
                                 callback: (transaction) => {
                                     Onyx.disconnect(connection);
                                     expect(transaction?.pendingAction).toBeFalsy();
@@ -460,6 +456,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     requestMoney({
+                        conciergeChat: undefined,
                         report: chatReport,
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
@@ -496,7 +493,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -525,7 +521,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (allIOUReportActions) => {
                                     Onyx.disconnect(connection);
 
@@ -563,7 +558,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                                waitForCollectionCallback: true,
                                 callback: (allTransactions) => {
                                     Onyx.disconnect(connection);
 
@@ -602,7 +596,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connection);
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
@@ -695,6 +688,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
@@ -732,7 +726,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -757,7 +750,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connection);
 
@@ -794,7 +786,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                                waitForCollectionCallback: true,
                                 callback: (allTransactions) => {
                                     Onyx.disconnect(connection);
 
@@ -824,7 +815,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                waitForCollectionCallback: false,
                                 callback: (reportActionsForIOUReport) => {
                                     Onyx.disconnect(connection);
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(3);
@@ -841,7 +831,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                                waitForCollectionCallback: true,
                                 callback: (allTransactions) => {
                                     Onyx.disconnect(connection);
                                     for (const transaction of Object.values(allTransactions ?? {})) {
@@ -866,6 +855,7 @@ describe('actions/IOU', () => {
             let transactionThreadAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -902,7 +892,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
-                                    waitForCollectionCallback: true,
                                     callback: (allReports) => {
                                         Onyx.disconnect(connection);
 
@@ -934,7 +923,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                    waitForCollectionCallback: false,
                                     callback: (reportActionsForIOUReport) => {
                                         Onyx.disconnect(connection);
 
@@ -981,7 +969,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                                    waitForCollectionCallback: true,
                                     callback: (allTransactions) => {
                                         Onyx.disconnect(connection);
 
@@ -1013,7 +1000,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                    waitForCollectionCallback: false,
                                     callback: (reportActionsForIOUReport) => {
                                         Onyx.disconnect(connection);
                                         expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
@@ -1031,7 +1017,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                                    waitForCollectionCallback: true,
                                     callback: (reportActionsForTransactionThread) => {
                                         Onyx.disconnect(connection);
                                         expect(Object.values(reportActionsForTransactionThread ?? {}).length).toBe(3);
@@ -1049,7 +1034,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                                    waitForCollectionCallback: false,
                                     callback: (transaction) => {
                                         Onyx.disconnect(connection);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -1078,7 +1062,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
-                                    waitForCollectionCallback: false,
                                     callback: (reportActionsForReport) => {
                                         Onyx.disconnect(connection);
                                         iouAction = Object.values(reportActionsForReport ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
@@ -1097,7 +1080,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                    waitForCollectionCallback: false,
                                     callback: (reportActionsForReport) => {
                                         Onyx.disconnect(connection);
                                         iouAction = Object.values(reportActionsForReport ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
@@ -1116,7 +1098,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
-                                    waitForCollectionCallback: false,
                                     callback: (reportActionsForReport) => {
                                         Onyx.disconnect(connection);
                                         expect(reportActionsForReport).toMatchObject({});
@@ -1132,7 +1113,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                                    waitForCollectionCallback: false,
                                     callback: (transaction) => {
                                         Onyx.disconnect(connection);
                                         expect(transaction).toBeFalsy();
@@ -1162,7 +1142,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
-                                    waitForCollectionCallback: true,
                                     callback: (allReports) => {
                                         Onyx.disconnect(connection);
                                         for (const report of Object.values(allReports ?? {})) {
@@ -1180,7 +1159,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                                    waitForCollectionCallback: false,
                                     callback: (allReportActions) => {
                                         Onyx.disconnect(connection);
                                         for (const reportAction of Object.values(allReportActions ?? {})) {
@@ -1198,7 +1176,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                                    waitForCollectionCallback: true,
                                     callback: (allTransactions) => {
                                         Onyx.disconnect(connection);
                                         for (const transaction of Object.values(allTransactions ?? {})) {
@@ -1275,6 +1252,7 @@ describe('actions/IOU', () => {
 
             // First create a tracked expense in self DM
             trackExpense({
+                conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -1311,7 +1289,6 @@ describe('actions/IOU', () => {
             let selfDMReportID: string | undefined;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
                 callback: (reports) => {
                     const selfDMReportOnyx = Object.values(reports ?? {}).find((report) => report?.reportID === selfDMReport.reportID);
                     selfDMReportID = selfDMReportOnyx?.reportID;
@@ -1326,7 +1303,6 @@ describe('actions/IOU', () => {
             let linkedTrackedExpenseReportID: string | undefined;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     const transaction = Object.values(allTransactions ?? {}).find((t) => !isEmptyObject(t));
                     linkedTrackedExpenseReportID = transaction?.reportID;
@@ -1336,6 +1312,7 @@ describe('actions/IOU', () => {
             // Now pause fetch and share the tracked expense with accountant
             mockFetch?.pause?.();
             trackExpense({
+                conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.SHARE,
@@ -1360,6 +1337,9 @@ describe('actions/IOU', () => {
                 },
                 accountantParams: {
                     accountant,
+                    newAccountIDs: [],
+                    newLogins: [],
+                    formatPhoneNumber,
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
@@ -1394,6 +1374,7 @@ describe('actions/IOU', () => {
 
         it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1428,6 +1409,7 @@ describe('actions/IOU', () => {
 
         it('trigger notifyNewAction when doing the money request in a chat report', () => {
             requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: '123'},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1462,6 +1444,7 @@ describe('actions/IOU', () => {
 
         it('should pass isSelfTourViewed true to the request when user has viewed the tour', () => {
             const {iouReport} = requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1514,6 +1497,7 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
 
             requestMoney({
+                conciergeChat: undefined,
                 report: expenseReport,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1560,6 +1544,7 @@ describe('actions/IOU', () => {
             expect(nonReimbursableTotal).toBe(0);
 
             requestMoney({
+                conciergeChat: undefined,
                 report: expenseReport,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1631,6 +1616,7 @@ describe('actions/IOU', () => {
 
             // When requesting money
             requestMoney({
+                conciergeChat: undefined,
                 report: expenseReport,
                 existingIOUReport: expenseReport,
                 participantParams: {
@@ -1704,6 +1690,7 @@ describe('actions/IOU', () => {
             const merchant = 'Test Store';
 
             const {iouReport} = requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1779,6 +1766,7 @@ describe('actions/IOU', () => {
 
             const amount = 10000;
             const {iouReport} = requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1825,6 +1813,7 @@ describe('actions/IOU', () => {
             const amount = 2500;
 
             const {iouReport} = requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1891,6 +1880,7 @@ describe('actions/IOU', () => {
 
             // Create a tracked expense
             trackExpense({
+                conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -1924,7 +1914,6 @@ describe('actions/IOU', () => {
             const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports);
@@ -1947,7 +1936,6 @@ describe('actions/IOU', () => {
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -1967,7 +1955,6 @@ describe('actions/IOU', () => {
             const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
                         resolve(transactions);
@@ -1984,6 +1971,7 @@ describe('actions/IOU', () => {
 
             // When: submitting the tracked expense to another user
             const {iouReport} = requestMoney({
+                conciergeChat: undefined,
                 action: CONST.IOU.ACTION.SUBMIT,
                 report: chatReport,
                 participantParams: {
@@ -2024,7 +2012,6 @@ describe('actions/IOU', () => {
             const updatedTransactionThreadReport = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`]);
@@ -2065,6 +2052,7 @@ describe('actions/IOU', () => {
                     // Request money from CARLOS, but pass the existing chat report with JULES
                     // This simulates the scenario where submit frequency is disabled and user selects a different participant
                     requestMoney({
+                        conciergeChat: undefined,
                         report: existingChatReport,
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
@@ -2101,7 +2089,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -2154,6 +2141,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // Request money from CARLOS with matching chat report
                     requestMoney({
+                        conciergeChat: undefined,
                         report: existingChatReport,
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
@@ -2190,7 +2178,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -2234,6 +2221,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // Request money with isPolicyExpenseChat: true - should skip participant validation
                     requestMoney({
+                        conciergeChat: undefined,
                         report: policyExpenseChatReport,
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
@@ -2270,7 +2258,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -2309,6 +2296,7 @@ describe('actions/IOU', () => {
                     // Request money from CARLOS but passing a policy expense chat report with different participants (JULES)
                     // Since the chatReport is a policy expense chat, participant validation should be skipped
                     requestMoney({
+                        conciergeChat: undefined,
                         report: policyExpenseChatReport,
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
@@ -2345,7 +2333,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -2384,6 +2371,7 @@ describe('actions/IOU', () => {
                     // Track expense in self-DM with accountID: 0 (as getMoneyRequestParticipantsFromReport does)
                     // This simulates the scenario where user starts an expense from "Your Space"
                     requestMoney({
+                        conciergeChat: undefined,
                         report: selfDMReport,
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
@@ -2421,7 +2409,6 @@ describe('actions/IOU', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
@@ -2458,6 +2445,7 @@ describe('actions/IOU', () => {
                 mockFetch?.pause?.();
 
                 requestMoney({
+                    conciergeChat: undefined,
                     report: {reportID: ''},
                     participantParams: {
                         payeeEmail: RORY_EMAIL,
@@ -2492,7 +2480,6 @@ describe('actions/IOU', () => {
                 let iouReport: Report | undefined;
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (allReports) => {
                         iouReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
                     },
@@ -2510,6 +2497,58 @@ describe('actions/IOU', () => {
                 expect(iouAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
 
                 await mockFetch?.resume?.();
+            });
+        });
+
+        describe('conciergeChat forwarding', () => {
+            it('threads the conciergeChat report into prepareOnboardingOnyxData for test drive expenses', async () => {
+                const prepareOnboardingOnyxDataSpy = jest.spyOn(require('@libs/ReportUtils'), 'prepareOnboardingOnyxData');
+                const conciergeChat = {reportID: 'concierge-test-drive-1'};
+                mockFetch?.pause?.();
+
+                requestMoney({
+                    conciergeChat,
+                    report: {reportID: ''},
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                    },
+                    transactionParams: {
+                        amount: 10000,
+                        attendees: [],
+                        currency: CONST.CURRENCY.USD,
+                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                        merchant: 'Test',
+                        comment: 'test drive concierge test',
+                        isTestDrive: true,
+                    },
+                    shouldGenerateTransactionThreadReport: true,
+                    isASAPSubmitBetaEnabled: false,
+                    transactionViolations: {},
+                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                    currentUserEmailParam: RORY_EMAIL,
+                    policyRecentlyUsedCurrencies: [],
+                    existingTransactionDraft: undefined,
+                    draftTransactionIDs: [],
+                    isSelfTourViewed: false,
+                    quickAction: undefined,
+                    betas: [CONST.BETAS.ALL],
+                    personalDetails: {},
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
+                });
+                await waitForBatchedUpdates();
+
+                expect(prepareOnboardingOnyxDataSpy).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        conciergeChat,
+                        engagementChoice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER,
+                    }),
+                );
+
+                await mockFetch?.resume?.();
+                prepareOnboardingOnyxDataSpy.mockRestore();
             });
         });
     });
@@ -2532,6 +2571,7 @@ describe('actions/IOU', () => {
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
             // When an expense is created
             requestMoney({
+                conciergeChat: undefined,
                 action,
                 report: {reportID: ''},
                 participantParams: {
@@ -2598,6 +2638,7 @@ describe('actions/IOU', () => {
 
             // When the expense is submitted
             requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -2662,6 +2703,7 @@ describe('actions/IOU', () => {
             const getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue(currentSearchQueryJSON);
 
             requestMoney({
+                conciergeChat: undefined,
                 action: CONST.IOU.ACTION.CREATE,
                 report: {reportID: ''},
                 participantParams: {
@@ -2740,6 +2782,7 @@ describe('actions/IOU', () => {
 
             // When a track expense is created
             trackExpense({
+                conciergeChat: undefined,
                 report: {reportID: '123', policyID: 'A'},
                 isDraftPolicy: false,
                 action,
@@ -2762,7 +2805,8 @@ describe('actions/IOU', () => {
                     },
                     linkedTrackedExpenseReportID: '1',
                 },
-                accountantParams: action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}} : undefined,
+                accountantParams:
+                    action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}, newAccountIDs: [], newLogins: [], formatPhoneNumber} : undefined,
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
@@ -2792,6 +2836,68 @@ describe('actions/IOU', () => {
             for (const value of Object.values(params as Record<string, unknown>)) {
                 expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
             }
+        });
+    });
+    describe('createTransaction', () => {
+        const CREATE_TRANSACTION_USER_ACCOUNT_ID = 1;
+        const CREATE_TRANSACTION_USER_LOGIN = 'test@test.com';
+
+        const buildCreateTransactionParams = (iouType: string, report: Report) => {
+            const transaction = {
+                ...createRandomTransaction(90),
+                transactionID: 'create-transaction-tx',
+            };
+            return {
+                transactions: [transaction],
+                iouType,
+                report,
+                currentUserAccountID: CREATE_TRANSACTION_USER_ACCOUNT_ID,
+                currentUserEmail: CREATE_TRANSACTION_USER_LOGIN,
+                shouldGenerateTransactionThreadReport: false,
+                isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
+                files: [{transactionID: transaction.transactionID, source: 'receipt-source'}],
+                participant: {accountID: CREATE_TRANSACTION_USER_ACCOUNT_ID, login: CREATE_TRANSACTION_USER_LOGIN},
+                allTransactionDrafts: {},
+                isSelfTourViewed: false,
+                betas: [],
+                personalDetails: {},
+                recentWaypoints: [],
+                optimisticTransactionIDs: ['create-transaction-optimistic-tx'],
+                optimisticChatReportID: undefined,
+                currentUserLocalCurrency: 'USD',
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+            };
+        };
+
+        it('routes the track flow through trackExpense (the branch that defers conciergeChat threading)', async () => {
+            await signInWithTestUser(CREATE_TRANSACTION_USER_ACCOUNT_ID, CREATE_TRANSACTION_USER_LOGIN);
+            const selfDMReport: Report = {
+                ...createRandomReport(90, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'create-transaction-self-direct-message',
+            };
+
+            createTransaction(buildCreateTransactionParams(CONST.IOU.TYPE.TRACK, selfDMReport));
+            await waitForBatchedUpdates();
+
+            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.TRACK_EXPENSE, 1);
+            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REQUEST_MONEY, 0);
+        });
+
+        it('routes the submit flow through requestMoney', async () => {
+            await signInWithTestUser(CREATE_TRANSACTION_USER_ACCOUNT_ID, CREATE_TRANSACTION_USER_LOGIN);
+            const chatReport: Report = {
+                ...createRandomReport(91, undefined),
+                reportID: 'create-transaction-chat',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            createTransaction(buildCreateTransactionParams(CONST.IOU.TYPE.SUBMIT, chatReport));
+            await waitForBatchedUpdates();
+
+            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REQUEST_MONEY, 1);
+            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.TRACK_EXPENSE, 0);
         });
     });
 });

@@ -49,10 +49,7 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const targetReport = isChatThread(report) ? parentReport : report;
-    const [ownerDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsDisplayNameSelector(targetReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, translate)}, [
-        targetReport?.ownerAccountID,
-        translate,
-    ]);
+    const [ownerDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsDisplayNameSelector(targetReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, translate)});
     const submitterDisplayName = formatPhoneNumber(ownerDisplayName ?? '');
     const paymentType = getOriginalMessage(action)?.paymentType ?? '';
     const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, bankAccountList);
@@ -75,7 +72,7 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
                         ref={kycWallRef}
                         onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                        addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
+                        addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL.getRoute()}
                         addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                         chatReportID={targetReport?.reportID}
                         iouReport={iouReport}
