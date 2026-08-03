@@ -38,13 +38,12 @@ Different platforms come with varying storage capacities and Onyx has a way to g
 - A least recently accessed key will only be deleted when an Onyx operation retries after failing.
 
 ## Reading Onyx data: `useOnyx` vs `Onyx.connectWithoutView`
-There are three ways to read Onyx data, listed in order of preference. Always reach for the earliest one that fits.
-1. **A pure function** that receives the data it needs as parameters — no Onyx connection at all.
-2. **`useOnyx`** (from `@hooks/useOnyx`) — the default for anything a React component renders.
-3. **`Onyx.connectWithoutView`** — an imperative subscription for non-render logic, used only when the two options above genuinely do not fit.
+There are only two ways to read Onyx data, and `Onyx.connect` is deprecated:
+1. **`useOnyx`** (from `@hooks/useOnyx`) — the default for anything a React component renders.
+2. **`Onyx.connectWithoutView`** — an imperative subscription for non-render logic, used only when `useOnyx` genuinely does not fit.
 
-### - Pure functions take precedence over any Onyx connection
-Before adding any Onyx subscription, check whether the code can be a pure function that takes the data it needs as parameters. A pure function needs no connection, is trivial to test, and cannot cause extra rerenders. Prefer this even when it means passing more arguments. This rule takes precedence over everything below.
+### - Prefer a pure function over reading Onyx at all
+A pure function does not read Onyx itself — it receives the data it needs as parameters, and its caller does the reading (with `useOnyx` or `Onyx.connectWithoutView`) and passes it in. Before adding either subscription, check whether the code can be a pure function instead: it needs no connection, is trivial to test, and cannot cause extra rerenders. Prefer this even when it means passing more arguments. This takes precedence over everything below.
 
 ### - Components MUST read Onyx with `useOnyx`, never `Onyx.connectWithoutView`
 Any value used during render belongs in `useOnyx` so the UI updates when the value changes.
@@ -53,7 +52,10 @@ Any value used during render belongs in `useOnyx` so the UI updates when the val
 It is appropriate for module-level state in actions/libraries that is read by non-React logic (e.g. network layer, pusher subscriptions, test files, etc.), where `useOnyx` is not possible. 
 
 ### - Existing `Onyx.connectWithoutView` usage is NOT a template to copy
-Do not add a new `Onyx.connectWithoutView` just because nearby code uses it. Justify each new use on its own against the rule above; when in doubt, use a pure function or `useOnyx`.
+Do not add a new `Onyx.connectWithoutView` just because nearby code uses it. Justify each new use on its own against the rule above; when in doubt, use `useOnyx`.
+
+### - Every new `Onyx.connectWithoutView` MUST have a comment explaining why it is needed
+Add an inline comment at each new `Onyx.connectWithoutView` call stating why the data cannot come from a pure function or `useOnyx`, so reviewers and future readers can see the choice was deliberate.
 
 ### - Using `Onyx.connectWithoutView` in a component for performance REQUIRES @frontend-performance approval
 In rare cases a component that subscribes to multiple large collections through `useOnyx` suffers a significant performance regression. Reaching for `Onyx.connectWithoutView` to avoid that is an explicit exception, not a self-serve option: it MUST be approved by the `@frontend-performance` team on Slack, and the PR description MUST link to that discussion.
