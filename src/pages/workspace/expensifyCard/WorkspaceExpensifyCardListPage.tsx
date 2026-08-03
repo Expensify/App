@@ -147,6 +147,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     name: card.nameValuePairs?.cardTitle ?? '',
                     cardholder: personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID],
                     limit: card.nameValuePairs?.unapprovedExpenseLimit ?? 0,
+                    remainingLimit: card.availableSpend ?? 0,
                     currency: settlementCurrency,
                     isVirtual: !!card.nameValuePairs?.isVirtual,
                     limitType: card.nameValuePairs?.limitType,
