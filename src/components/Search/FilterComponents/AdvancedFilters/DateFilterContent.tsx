@@ -24,7 +24,7 @@ type DateFilterContentProps = {
     value: SearchDateValues;
     selectedDateModifier: SearchDateModifier | null;
     hasFeed: boolean;
-    size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, 'small'>;
+    size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
     style?: StyleProp<ViewStyle>;
     onDateModifierSelected: (modifier: SearchDateModifier | null) => void;
     onChange: (values: SearchDateValues) => void;

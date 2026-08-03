@@ -23,7 +23,7 @@ type TextInputFilterContentProps = {
     baseFilterKey: Exclude<SearchTextFilterKeys, typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT | ReportFieldTextKey>;
     value: string | undefined;
     isNegated: boolean;
-    size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, 'small'>;
+    size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
     autoFocus?: boolean;
     style?: StyleProp<ViewStyle>;
     onChange: (value: string | undefined, isNegated: boolean) => void;

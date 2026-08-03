@@ -17,7 +17,7 @@ import {ValueOf} from 'type-fest';
 type ReportFieldFilterContentProps = {
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     selectedField: PolicyReportField | null;
-    size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, 'small'>;
+    size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
     style?: StyleProp<ViewStyle>;
     onFieldSelected: (field: PolicyReportField | null) => void;
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
