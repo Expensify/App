@@ -11,9 +11,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {
+    canClearRequireFieldsField,
     getRequireFieldsFieldCouplingTooltipKey,
     isRequireFieldsFieldCouplingDisabled,
-    isRequireFieldsFieldDeselectable,
     REQUIRE_FIELDS_COUPLING_TOOLTIP_NAMES,
 } from '@libs/RequireFieldsRulesUtils';
 import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
@@ -147,7 +147,7 @@ function FieldRequirementSettingRow({
             <FieldRequirementsDirectionToggle
                 direction={setting}
                 disabled={!canWriteRules || isCouplingDisabled}
-                canDeselect={isRequireFieldsFieldDeselectable(fieldKey)}
+                canDeselect={canClearRequireFieldsField(fieldKey)}
                 onSelect={handleSelectSetting}
             />
         </View>

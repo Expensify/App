@@ -844,9 +844,9 @@ type RequireFieldsDisplayedSettingParams = {
 /**
  * Description and Attendees are stored as booleans, so "Don't require" is indistinguishable from having no
  * override and there is no third state to deselect back to. Receipt fields do have one — no override at all,
- * meaning the policy-level receipt requirement still applies — so only those stay deselectable.
+ * meaning the policy-level receipt requirement still applies — so only those can be cleared.
  */
-function isRequireFieldsFieldDeselectable(fieldKey: RequireFieldsRuleSettingFieldKey): boolean {
+function canClearRequireFieldsField(fieldKey: RequireFieldsRuleSettingFieldKey): boolean {
     return fieldKey === INPUT_IDS.RECEIPT_SETTING || fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING;
 }
 
@@ -884,7 +884,7 @@ function getRequireFieldsDisplayedSetting({
 
     // A missing value on a boolean-backed field means Don't require, so show it selected rather than
     // leaving the toggle blank. Receipt fields keep a blank state for "no override".
-    if (displayedSetting === undefined && !isRequireFieldsFieldDeselectable(fieldKey)) {
+    if (displayedSetting === undefined && !canClearRequireFieldsField(fieldKey)) {
         return CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE;
     }
 
@@ -969,6 +969,7 @@ function getRequireFieldsFieldCouplingTooltipKey(
 }
 
 export {
+    canClearRequireFieldsField,
     categoryHasAnyRequireFieldsRule,
     deleteRequireFieldsRule,
     REQUIRE_FIELDS_COUPLING_TOOLTIP_NAMES,
@@ -988,7 +989,6 @@ export {
     getRequireFieldsTableData,
     hasRequireFieldsRuleChanges,
     isRequireFieldsFieldCouplingDisabled,
-    isRequireFieldsFieldDeselectable,
     saveRequireFieldsRule,
 };
 export type {FieldRequirementsDirection, RequireFieldsTableItem};
