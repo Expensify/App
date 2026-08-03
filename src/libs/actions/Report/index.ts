@@ -8191,12 +8191,12 @@ function resolveConciergeDescriptionOptions(
  */
 function setOptimisticTransactionThread(reportID?: string, parentReportID?: string, parentReportActionID?: string, policyID?: string) {
     if (!reportID) {
-        return;
+        return Promise.resolve();
     }
 
     // Use merge with selective updates to avoid overwriting existing comprehensive data
     // This will only add/update the specified fields without overwriting existing data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         reportID,
         policyID,
         parentReportID,

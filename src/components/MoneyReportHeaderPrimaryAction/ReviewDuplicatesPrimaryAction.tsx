@@ -9,6 +9,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {isDuplicate} from '@libs/TransactionUtils';
 
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@userActions/Report';
@@ -41,7 +42,12 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
     return (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
-            onPress={() => {
+            onPress={async () => {
+                if (transactionThreadReportID) {
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.getRoute(transactionThreadReportID)));
+                    return;
+                }
+
                 const duplicateTransaction = transactions.find((reportTransaction) =>
                     isDuplicate(
                         reportTransaction,
@@ -53,14 +59,18 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
                         allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + reportTransaction.transactionID],
                     ),
                 );
-                const iouAction = duplicateTransaction ? getIOUActionForTransactionID(reportActions, duplicateTransaction.transactionID) : undefined;
-                let threadID = transactionThreadReportID ?? iouAction?.childReportID;
+                if (!duplicateTransaction) {
+                    return;
+                }
+
+                const iouAction = getIOUActionForTransactionID(reportActions, duplicateTransaction.transactionID);
+                let threadID = iouAction?.childReportID;
 
                 if (threadID) {
-                    if (iouAction) {
-                        setOptimisticTransactionThread(threadID, moneyRequestReport?.reportID, iouAction.reportActionID, moneyRequestReport?.policyID);
+                    if (!getReportOrDraftReport(threadID)?.reportID) {
+                        await setOptimisticTransactionThread(threadID, moneyRequestReport?.reportID, iouAction?.reportActionID, moneyRequestReport?.policyID);
                     }
-                } else if (duplicateTransaction) {
+                } else {
                     const createdTransactionThreadReport = createTransactionThreadReport({
                         introSelected,
                         currentUserLogin: email ?? '',
@@ -68,13 +78,13 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
                         betas,
                         iouReport: moneyRequestReport,
                         iouReportAction: iouAction,
+                        transaction: duplicateTransaction,
                     });
                     threadID = createdTransactionThreadReport?.reportID;
                 }
 
-                const reportIDToNavigate = threadID;
-                if (reportIDToNavigate) {
-                    requestAnimationFrame(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.getRoute(reportIDToNavigate))));
+                if (threadID) {
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.getRoute(threadID)));
                 }
             }}
         >
