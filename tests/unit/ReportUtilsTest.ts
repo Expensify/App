@@ -3886,6 +3886,22 @@ describe('ReportUtils', () => {
             expect(result).toBe('Your space');
         });
 
+        it('should return the Concierge subtitle only when the threaded conciergeReportID matches the report', () => {
+            const report = {
+                ...createRandomReport(2, undefined),
+                reportID: 'concierge-subtitle-1',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            // When the threaded conciergeReportID matches the report
+            const conciergeSubtitle = getChatRoomSubtitle(report, undefined, report.reportID, translateLocal);
+            expect(conciergeSubtitle).toBe(translateLocal('reportActionsView.conciergeSupport'));
+
+            // And an identical report with a non-matching conciergeReportID is not treated as Concierge
+            const regularSubtitle = getChatRoomSubtitle(report, undefined, 'a-different-report-id', translateLocal);
+            expect(regularSubtitle).not.toBe(translateLocal('reportActionsView.conciergeSupport'));
+        });
+
         it('should return "Invoices" for invoice room', () => {
             const report = createInvoiceRoom(1);
             const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
@@ -11843,6 +11859,18 @@ describe('ReportUtils', () => {
             expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(true);
         });
 
+        it('should return false for a task off a group chat', () => {
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP),
+                type: CONST.REPORT.TYPE.TASK,
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
+            };
+
+            expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(false);
+        });
+
         it('should return true for policy expense chat if the user is not the owner and the user is not an admin', () => {
             const report: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
@@ -12104,6 +12132,17 @@ describe('ReportUtils', () => {
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
             expect(isRootGroupChat(report)).toBe(true);
+        });
+
+        it('should return false if the report is a task off a group chat', () => {
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP),
+                type: CONST.REPORT.TYPE.TASK,
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+            };
+
+            expect(isRootGroupChat(report)).toBe(false);
         });
     });
     describe('isWhisperAction', () => {

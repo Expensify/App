@@ -474,6 +474,7 @@ const translations = {
         perDiem: 'Per diem',
         validate: 'Validate',
         downloadAsPDF: 'Download as PDF',
+        downloadReceipts: 'Download receipts',
         downloadAsCSV: 'Download as CSV',
         submitViaPDF: 'Submit via PDF',
         print: 'Print',
@@ -1710,8 +1711,11 @@ const translations = {
         approveOnly: 'Approve only',
         holdEducationalTitle: 'Should you hold this expense?',
         whatIsHoldExplain: "Hold is like hitting “pause” on an expense until you're ready to submit it.",
+        whatIsHoldExplainDM: "Hold is like hitting 'pause' on an expense until you're ready to send it.",
         holdIsLeftBehind: 'Held expenses are left behind even if you submit an entire report.',
+        holdIsLeftBehindDM: "Held expenses won't be sent until you remove the hold.",
         unholdWhenReady: "Unhold expenses when you're ready to submit them.",
+        unholdWhenReadyDM: "Unhold expenses when you're ready to send them.",
         changePolicyEducational: {
             title: 'You moved this report!',
             description: 'Double-check these items, which tend to change when moving reports to a new workspace.',
@@ -4857,6 +4861,11 @@ const translations = {
                 title: 'Per diem',
                 subtitle: 'Set per diem rates to control daily employee spend. Import rates from a spreadsheet to get started.',
             },
+            requestEmptyList: {
+                title: 'No per diem rates yet',
+                subtitle: "This workspace doesn't have any per diem rates, ask your Admin to add some.",
+                adminSubtitle: 'Add per diem rates to organize your spend.',
+            },
             importPerDiemRates: 'Import per diem rates',
             editPerDiemRate: 'Edit per diem rate',
             editPerDiemRates: 'Edit per diem rates',
@@ -6042,6 +6051,7 @@ const translations = {
             balanceWillBeSettledOn: (settlementDate: string) => `Balance will be settled on ${settlementDate}`,
             settleBalance: 'Settle balance',
             cardLimit: 'Card limit',
+            remaining: 'Remaining',
             remainingLimit: 'Remaining limit',
             requestLimitIncrease: 'Request limit increase',
             remainingLimitDescription:
@@ -6215,7 +6225,10 @@ const translations = {
                         subsections: {
                             currentTravelSpendLabel: 'Current travel spend',
                             currentTravelSpendPaymentQueued: (amount: string) => `Payment of ${amount} is queued and will be processed soon.`,
+                            currentTravelSpendInvoiceQueued: 'A new invoice for your travel spend will be created and sent to you soon.',
+                            currentTravelSpendInvoicePending: (amount: string) => `An invoice for ${amount} has been sent and is awaiting payment.`,
                             currentTravelSpendCta: 'Pay balance',
+                            sendInvoiceNowCta: 'Send invoice now',
                             viewOnSpend: 'View on Spend',
                             currentTravelLimitLabel: 'Current travel limit',
                             settlementAccountLabel: 'Settlement account',
@@ -6242,6 +6255,10 @@ const translations = {
                     payBalanceModal: {
                         title: (amount: string) => `Pay balance of ${amount}?`,
                         body: 'The payment will be queued and processed shortly after. This action cannot be undone once started.',
+                    },
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Send invoice for ${amount}?`,
+                        body: "We'll create an invoice for your current travel spend. Your travel limit is freed up once the invoice is paid.",
                     },
                     exportToPDF: 'Export to PDF',
                     exportToCSV: 'Export to CSV',
@@ -10540,6 +10557,11 @@ const translations = {
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        receiptsFailedBody: 'Your receipts could not be downloaded. Please try again later.',
+        noReceiptsTitle: 'No receipts to download',
+        noReceiptsBody: 'None of the expenses on this report have downloadable receipts.',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} receipts were exported successfully. If it didn't automatically download, use the button below.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
