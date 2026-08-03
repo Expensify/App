@@ -17,12 +17,13 @@ import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native'
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import {ValueOf} from 'type-fest';
 
 type TextInputFilterContentProps = {
     baseFilterKey: Exclude<SearchTextFilterKeys, typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT | ReportFieldTextKey>;
     value: string | undefined;
     isNegated: boolean;
-    largeButton?: boolean;
+    size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, 'small'>;
     autoFocus?: boolean;
     style?: StyleProp<ViewStyle>;
     onChange: (value: string | undefined, isNegated: boolean) => void;
@@ -32,7 +33,7 @@ function isTextInput(element: BaseTextInputRef | RNTextInput | null): element is
     return !!element && 'isFocused' in element;
 }
 
-function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, largeButton, style, onChange}: TextInputFilterContentProps) {
+function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, size, style, onChange}: TextInputFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
@@ -69,7 +70,7 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
             <Button
                 style={[styles.ph5, styles.pb5]}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
-                size={largeButton ? CONST.BUTTON_SIZE.LARGE : undefined}
+                size={size}
                 onPress={() => {
                     if (error) {
                         return;

@@ -12,17 +12,18 @@ import type {PolicyReportField} from '@src/types/onyx';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef, useState} from 'react';
+import {ValueOf} from 'type-fest';
 
 type ReportFieldFilterContentProps = {
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     selectedField: PolicyReportField | null;
-    largeButton?: boolean;
+    size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, 'small'>;
     style?: StyleProp<ViewStyle>;
     onFieldSelected: (field: PolicyReportField | null) => void;
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function ReportFieldFilterContent({values, selectedField, largeButton, style, onFieldSelected, onChange}: ReportFieldFilterContentProps) {
+function ReportFieldFilterContent({values, selectedField, size, style, onFieldSelected, onChange}: ReportFieldFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const reportFieldRef = useRef<ReportFieldHandle>(null);
@@ -44,7 +45,7 @@ function ReportFieldFilterContent({values, selectedField, largeButton, style, on
                 <Button
                     style={[styles.ph5, styles.pb5, styles.pt3, styles.mtAuto]}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={largeButton ? CONST.BUTTON_SIZE.LARGE : undefined}
+                    size={size}
                     onPress={() => {
                         if (error) {
                             return;

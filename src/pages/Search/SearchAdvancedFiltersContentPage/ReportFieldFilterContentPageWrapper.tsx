@@ -22,7 +22,7 @@ function ReportFieldFilterContentPageWrapper({values: initialValues, onChange}: 
             <ReportFieldFilterContent
                 values={values}
                 selectedField={selectedField}
-                largeButton
+                size={CONST.BUTTON_SIZE.LARGE}
                 onFieldSelected={setSelectedField}
                 onChange={(newValues) => setValues((prevValues) => ({...prevValues, ...newValues}))}
             />
