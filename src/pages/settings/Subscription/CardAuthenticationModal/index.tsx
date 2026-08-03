@@ -1,5 +1,5 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LoadingIndicator from '@components/LoadingIndicator';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useCallback, useEffect, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 
 type CardAuthenticationModalProps = {
     /** Title shown in the header of the modal */
@@ -110,14 +110,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                             setIsLoading(false);
                         }}
                     />
-                    {isLoading && (
-                        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                reasonAttributes={reasonAttributes}
-                            />
-                        </View>
-                    )}
+                    {isLoading && <LoadingIndicator reasonAttributes={reasonAttributes} />}
                 </View>
             </ScreenWrapper>
         </Modal>
