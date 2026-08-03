@@ -14,12 +14,7 @@ If a key admin is leaving your company or changing roles, follow this checklist 
 - **Domain Admin**
 - **Bank Account Owner**
 
-**Important:**  This checklist applies **only when a Workspace Admin or Domain Admin is being offboarded**.
-
-**Important:** This checklist applies **only when a Workspace Admin or Domain Admin is being offboarded**.
- - All steps **must** be completed if the **sole Workspace Admin or billing owner** is leaving the company.
-
-**Note:** If you're only taking over billing or payment management, follow [these steps to switch billing owners and add a payment account](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Billing-Overview#how-to-transfer-billing-ownership). You don’t need the full checklist.
+This checklist applies **only when a Workspace Admin or Domain Admin is being offboarded**.
 
 ---
 
@@ -52,14 +47,15 @@ Domain Admins control company-wide permission, so this step is required before o
 
 If you’re the current bank account owner in Expensify, [share the bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account) with the new Workspace Admin or another Workspace Admin so they can continue reimbursements and payments.
 Domain Admins control company-wide permissions, so this step is required before offboarding the previous Domain Admin.
+
 ---
 
 ## How to take over billing and payment responsibilities
 
-If you’re the new Workspace Admin taking over billing and payment responsibilities, follow these steps to transfer workspace ownership and payment details. 
+If you’re the new Workspace Admin taking over billing and payment responsibilities, follow these guides to transfer workspace ownership and payment details. 
 
-1. [Follow the steps to become the Billing Owner and add a payment method](https://help.expensify.com/articles/new-expensify/workspaces/Managing-Workspace-Members#transfer-workspace-ownership).
-2. Make sure your payment details are valid to prevent service interruption.
+ - [How to transfer workspace ownership](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership#how-to-transfer-workspace-ownership)
+ - [How to add or update a payment card](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Add-or-Update-a-Payment-Card#how-to-add-a-payment-card)
 
  **Note:** The new Workspace Admin must transfer ownership of **all** company workspaces to consolidate billing under a single Billing Owner. If the former admin remains Billing Owner on any workspace, billing may split across multiple subscriptions.
 
@@ -119,15 +115,11 @@ If they’re leaving entirely, remove them completely.
 
 ---
 
-By completing this checklist, you’ll ensure uninterrupted billing, secure financial access, and a smooth transition of admin duties.
-
----
-
 # FAQ
 
 ## Do I need to complete this checklist if I only want to manage billing?
 
-No. If you're only taking over billing and payment responsibilities, follow [these steps](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Billing-Overview#how-to-transfer-billing-ownership) instead. The full checklist is only needed if an admin is leaving or changing roles.
+No. If you're only taking over billing and payment responsibilities, follow the steps to [transfer over workspace ownership](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership#how-to-transfer-workspace-ownership) instead. The full checklist is only needed if an admin is leaving or changing roles.
 
 ## Who can verify a shared business bank account?
 

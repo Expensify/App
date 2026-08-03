@@ -15,6 +15,7 @@ import Section from '@components/Section';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,6 +26,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -38,7 +40,7 @@ import {clearAgentAvatarUpdateError} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
@@ -69,18 +71,17 @@ function ProfilePage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
     useDocumentTitle(translate('common.profile'));
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isAppLoadPending = useIsAppLoadPending();
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
     };
-    const logins = useMemo(() => getContactMethodsOptions(translate, loginList, session?.email), [loginList, session?.email, translate]);
+    const logins = useMemo(() => getContactMethodsOptions(translate, formatPhoneNumber, loginList, session?.email), [loginList, session?.email, translate, formatPhoneNumber]);
 
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const isAgentAccount = useIsAgentAccount();
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
-    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart];
     const {asset: Profile} = useMemoizedLazyAsset(() => loadIllustration('Profile' as IllustrationName));
     const icons = useMemoizedLazyExpensifyIcons(['QrCode']);
 
@@ -113,7 +114,7 @@ function ProfilePage() {
                 .map((login) => login?.menuItemTitle)
                 .filter(Boolean)
                 .join(', '),
-            pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
+            pageRoute: createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, ROUTES.SETTINGS_PROFILE.route),
             brickRoadIndicator: contactMethodBrickRoadIndicator,
             testID: 'contact-method-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHODS,
@@ -188,7 +189,7 @@ function ProfilePage() {
 
     const privateSectionReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'ProfilePage.privateSection',
-        isLoadingApp: !!isLoadingApp,
+        isLoadingApp: isAppLoadPending,
     };
 
     return (
@@ -232,7 +233,7 @@ function ProfilePage() {
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
                                     <AvatarSkeleton
-                                        size={CONST.AVATAR_SIZE.X_LARGE}
+                                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                         reasonAttributes={{
                                             context: 'ProfilePage',
                                             isPersonalDetailsEmpty: isEmptyObject(currentUserPersonalDetails),
@@ -252,8 +253,8 @@ function ProfilePage() {
                                                 source={avatarURL}
                                                 avatarID={accountID}
                                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
-                                                size={CONST.AVATAR_SIZE.X_LARGE}
-                                                avatarStyle={avatarStyle}
+                                                size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                                                avatarStyle={styles.alignSelfStart}
                                                 pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                                 fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                                                 editIconStyle={styles.profilePageAvatar}
@@ -297,7 +298,7 @@ function ProfilePage() {
                             childrenStyles={styles.pt3}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
-                            {isLoadingApp ? (
+                            {isAppLoadPending ? (
                                 <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
                                     <ActivityIndicator
                                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
