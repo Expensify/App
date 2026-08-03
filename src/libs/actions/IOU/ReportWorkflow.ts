@@ -131,6 +131,7 @@ type SubmitReportFunctionParams = {
     onSubmitted?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    delegateAccountID: number | undefined;
     submitterLogin: string | undefined;
     managerEmail?: string;
     /** When provided (e.g. from the submit-to popover selection), used for optimistic managerID before falling back to email resolution. */
@@ -1396,6 +1397,7 @@ function submitReport({
     onSubmitted,
     ownerBillingGracePeriodEnd,
     delegateEmail,
+    delegateAccountID,
     submitterLogin,
     managerEmail,
     managerAccountID: managerAccountIDFromPopover,
@@ -1716,6 +1718,7 @@ function submitReport({
             isApprovalFlow: false,
             // Needed only so ASAP_SUBMIT can affect the new report's initial state; no other override is required here.
             betas: isASAPSubmitBetaEnabled ? [CONST.BETAS.ASAP_SUBMIT] : [],
+            delegateAccountID,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
