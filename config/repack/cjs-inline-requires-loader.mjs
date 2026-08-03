@@ -3,16 +3,10 @@
  * import-cycle tolerance Metro gets from `inlineRequires` (see metro.config.js), which this app
  * relies on to boot.
  *
- * Uses Metro's own `inlineRequiresPlugin` rather than SWC's `module.lazy`. Both defer evaluation,
- * but SWC's lazy mode emits a memoizing wrapper function per imported module, and at this app's
- * import volume that is expensive: it added ~103k function declarations to the bundle. Inlining
- * the require at the use site defers identically and emits no wrapper.
- *
- * Measured on iOS, production-minified, against the Metro build of the same tree:
- *   SWC module.lazy    50.22MB HBC (+20.69% vs Metro), 176,816 functions
- *   this loader        43.43MB HBC  (+4.37% vs Metro),  83,639 functions
- * Both defer ~100% of imports. Metro reaches full deferral more cheaply because its
- * `_$$_IMPORT_DEFAULT('x')` helper resolves the module id at runtime, which webpack cannot do.
+ * Uses Metro's own `inlineRequiresPlugin` rather than SWC's `module.lazy`. Both defer ~100% of
+ * imports, but SWC's lazy mode emits a memoizing wrapper function per imported module — ~103k
+ * extra functions here, worth ~7MB of Hermes bytecode. Inlining the require at the use site
+ * defers identically and emits no wrapper.
  *
  * Needed as a separate stage because OXC transpiles only and has no CJS lowering.
  */
@@ -30,7 +24,7 @@ const INTEROP_HELPERS = new Set(['_interop_require_default', '_interop_require_w
 /**
  * Extends inline-requires to SWC's interop-wrapped imports, which Metro's plugin alone cannot
  * defer: it requires `arguments[0]` to be a string literal (SWC passes a `require()` call) and
- * rejects callees that have a local binding (SWC declares the helper in-file). Without this,
+ * skips any call whose function is bound locally (SWC declares the helper in-file). Without this,
  * default and namespace imports stay hoisted and eager — about half of all imports here, and
  * exactly the cycle tolerance the loader exists to provide.
  *
