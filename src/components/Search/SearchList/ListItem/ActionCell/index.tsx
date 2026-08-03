@@ -61,7 +61,7 @@ function ActionCell({
 
     if (shouldUseViewAction || (isChildListItem && action !== CONST.SEARCH.ACTION_TYPES.UNDELETE)) {
         const text = translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]);
-        const buttonInnerStyles = isSelected ? styles.buttonDefaultSelected : {};
+        const buttonInnerStyles = isSelected && styles.buttonDefaultSelected;
         const ViewButton = isChildListItem ? LinkButton : Button;
 
         return (
@@ -104,7 +104,7 @@ function ActionCell({
     const text = shouldUseMarkAsDone ? translate('common.done') : translate(actionTranslationsMap[action]);
 
     const shouldBeDisabledOffline = action !== CONST.SEARCH.ACTION_TYPES.UNDELETE && isOffline;
-    const buttonInnerStyles = isSelected && action === CONST.SEARCH.ACTION_TYPES.UNDELETE ? styles.buttonDefaultSelected : {};
+    const buttonInnerStyles = isSelected && action === CONST.SEARCH.ACTION_TYPES.UNDELETE && styles.buttonDefaultSelected;
 
     return (
         <Button

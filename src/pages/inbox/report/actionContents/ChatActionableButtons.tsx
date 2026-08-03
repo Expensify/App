@@ -280,12 +280,12 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
             shouldUseLocalization={!isPhrasalConciergeOptions}
             textProps={{
                 numberOfLines: actionableButtonsNoLines,
-                style: isPhrasalConciergeOptions ? styles.actionableItemButtonText : undefined,
+                style: isPhrasalConciergeOptions && styles.actionableItemButtonText,
             }}
             buttonProps={{
-                innerStyles: isPhrasalConciergeOptions ? styles.actionableItemButton : undefined,
+                innerStyles: isPhrasalConciergeOptions && styles.actionableItemButton,
             }}
-            wrapperStyle={isPhrasalConciergeOptions ? styles.mt4 : undefined}
+            wrapperStyle={isPhrasalConciergeOptions && styles.mt4}
         />
     );
 }
