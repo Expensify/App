@@ -39,6 +39,7 @@ import React from 'react';
 import useConfirmModal from './useConfirmModal';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -88,6 +89,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: delegateEmailSelector,
     });
+    const delegateAccountID = useDelegateAccountID();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
     });
@@ -195,6 +197,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 startApprovedAnimation();
             },
             delegateEmail,
+            delegateAccountID,
             isTrackIntentUser,
         });
         if (skipAnimation) {

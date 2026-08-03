@@ -95,6 +95,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 onApproved: animationCallback,
                 expenseReportPolicy: policy,
                 delegateEmail,
+                delegateAccountID,
                 isTrackIntentUser,
             });
         } else if (currentChatReport && paymentType) {

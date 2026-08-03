@@ -969,6 +969,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 ownerBillingGracePeriodEnd,
                 ownerLogin: getLoginByAccountID(expenseReport.ownerAccountID, personalDetails),
                 delegateEmail,
+                delegateAccountID,
                 full: true,
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
                 shouldPlaySuccessSound: false,
@@ -1011,6 +1012,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchKey,
         isTrackIntentUser,
         personalDetails,
+        delegateAccountID,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {

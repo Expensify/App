@@ -313,6 +313,7 @@ function useSelectionModePayment({
             expenseReportPolicy: policy,
             isTrackIntentUser,
             ownerLogin,
+            delegateAccountID,
         });
     };
 

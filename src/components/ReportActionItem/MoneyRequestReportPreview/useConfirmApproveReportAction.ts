@@ -32,7 +32,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const {iouReport, policy, ownerLogin, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail} = actionButtonData;
+    const {iouReport, policy, ownerLogin, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail, delegateAccountID} = actionButtonData;
 
     return () => {
         if (isDelegateAccessRestricted) {
@@ -55,6 +55,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
                 full: true,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
+                delegateAccountID,
                 isTrackIntentUser,
             });
         }
