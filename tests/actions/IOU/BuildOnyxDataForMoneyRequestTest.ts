@@ -9,7 +9,6 @@ import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import {createSelfDM} from '../../utils/collections/reports';
-import {formatPhoneNumber} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
