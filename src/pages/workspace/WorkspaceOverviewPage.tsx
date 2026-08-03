@@ -261,8 +261,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const workspaceAvatar = (
         <WorkspaceAvatar
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-            source={policy?.avatarURL || getDefaultWorkspaceAvatar(policyName)}
+            source={policy?.avatarURL}
             size={CONST.AVATAR_SIZE.XXXX_LARGE}
             name={policyName}
             avatarID={policyID ?? CONST.DEFAULT_NUMBER_ID}
