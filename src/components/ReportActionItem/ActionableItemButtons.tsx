@@ -17,9 +17,7 @@ type ActionableItem = {
     isPrimary?: boolean;
     key: string;
     onPress: () => void;
-    text: string;
-    shouldUseLocalization?: boolean;
-};
+} & ({translationKey: TranslationPaths; text?: never} | {text: string; translationKey?: never});
 
 type ActionableItemButtonsProps = {
     items: ActionableItem[];
@@ -49,7 +47,7 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
                     variant={item.isPrimary ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                     {...props.buttonProps}
                 >
-                    <Button.Text {...props.textProps}>{props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}</Button.Text>
+                    <Button.Text {...props.textProps}>{item.translationKey ? translate(item.translationKey) : item.text}</Button.Text>
                 </Button>
             ))}
         </View>
