@@ -221,7 +221,10 @@ function IOURequestStepDistance({
             // Split edits skip the transaction backup, so their pre-edit route lives in `originalSplitTransactionDraft`.
             const committedTransaction = isEditingSplit ? originalSplitTransactionDraft : transactionBackup;
             const waypointsChanged = getWaypointsHasUnsavedChanges(transaction, committedTransaction?.comment?.waypoints, waypoints, isCreatingNewRequest);
-            const routeChanged = !isCreatingNewRequest && !!committedTransaction?.routes && getHasSelectedRouteChanged(committedTransaction, waypointsChanged);
+
+            const committedTransactionWithRoutes =
+                committedTransaction && !committedTransaction.routes ? {...committedTransaction, routes: currentTransaction?.routes} : committedTransaction;
+            const routeChanged = !isCreatingNewRequest && getHasSelectedRouteChanged(committedTransactionWithRoutes, waypointsChanged);
             return manualDistanceChanged || waypointsChanged || routeChanged;
         },
     });
