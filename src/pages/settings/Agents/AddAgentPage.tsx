@@ -1,8 +1,7 @@
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
-import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues, FormRef} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,18 +10,16 @@ import TextInput from '@components/TextInput';
 
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useKeyboardState from '@hooks/useKeyboardState';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {buildFileFromAvatarCropResult} from '@libs/AvatarCropUtils';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import {isMobile} from '@libs/Browser';
-import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -42,9 +39,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
-import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE, COLLAPSIBLE_HEADER_OFFSET} from './const';
-import scrollToMultilineInput from './scrollToMultilineInput';
-
 type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
 type AddAgentPageContentProps = {
@@ -56,20 +50,15 @@ type AddAgentPageContentProps = {
 };
 
 function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
-    const StyleUtils = useStyleUtils();
     const policyID = route.params?.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const {isKeyboardActive} = useKeyboardState();
-    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
-    const shouldUseScrollableLayout = isInLandscapeMode || (isMobile() && windowWidth > windowHeight);
-    const shouldShrinkPromptInput = shouldUseScrollableLayout && isKeyboardActive;
+    const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
     const {displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
-    const avatarStyle = [styles.avatarXLarge, styles.alignSelfCenter];
     const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
     const isDraftLoading = isLoadingOnyxValue(avatarDraftMetadata);
     const hasSubmittedRef = useRef(false);
@@ -135,9 +124,6 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         Navigation.dismissModal();
     };
 
-    const formWrapperRef = useRef<FormRef>(null);
-    const handleInputFocus = () => scrollToMultilineInput(formWrapperRef, shouldUseScrollableLayout);
-
     return (
         <ScreenWrapper
             testID={AddAgentPage.displayName}
@@ -145,12 +131,10 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight={shouldUseScrollableLayout}
         >
-            <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={COLLAPSIBLE_HEADER_OFFSET}>
-                <HeaderWithBackButton
-                    title={translate('addAgentPage.title')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_NEW.getRoute(policyID ? {policyID} : undefined))}
-                />
-            </CollapsibleHeaderOnKeyboard>
+            <HeaderWithBackButton
+                title={translate('addAgentPage.title')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_NEW.getRoute(policyID ? {policyID} : undefined))}
+            />
             <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_AGENT_FORM}
                 onSubmit={handleSubmit}
@@ -161,7 +145,6 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                 submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
-                ref={formWrapperRef}
                 // Block submit until the draft has loaded, so we never create the agent without the preset/photo it will restore.
                 isSubmitDisabled={isDraftLoading}
             >
@@ -171,8 +154,8 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                             text={translate('addAgentPage.editAvatar')}
                             source={avatarSource}
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR)}
-                            size={CONST.AVATAR_SIZE.X_LARGE}
-                            avatarStyle={avatarStyle}
+                            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                            avatarStyle={styles.alignSelfCenter}
                             editIcon={expensifyIcons.Pencil}
                             editIconStyle={styles.smallEditIconAccount}
                             sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}
@@ -188,7 +171,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                         spellCheck={false}
                         defaultValue={defaultAgentName}
                     />
-                    <View style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [shouldUseScrollableLayout ? styles.h42 : styles.flex1]}>
+                    <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}
@@ -197,13 +180,13 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={defaultPrompt}
                             multiline
-                            containerStyles={[styles.h100]}
+                            containerStyles={[styles.flex1]}
                             touchableInputWrapperStyle={[styles.flex1]}
+                            textInputContainerStyles={[styles.flex1]}
                             inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
-                            onFocus={handleInputFocus}
                         />
                     </View>
-                    <Text style={[styles.textLabelSupporting]}>{translate('addAgentPage.copilotNote')}</Text>
+                    <Text style={[styles.textLabelSupporting]}>{`${translate('addAgentPage.copilotNote')} ${translate('workspace.rules.agentRules.disclaimer')}`}</Text>
                 </View>
             </FormProvider>
         </ScreenWrapper>

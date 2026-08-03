@@ -7,6 +7,7 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -28,6 +29,7 @@ import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/Category';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {pickReportForPolicy} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {hasAccountingConnections, isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -64,6 +66,7 @@ function IOURequestStepCategory({
     },
     transaction,
 }: IOURequestStepCategoryProps) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
@@ -73,7 +76,9 @@ function IOURequestStepCategory({
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
     const participantReport = useReportOrReportDraft(transaction?.participants?.at(0)?.reportID);
     const report = reportReal ?? reportDraft ?? transactionReport ?? participantReport;
-    const policyIdReal = getIOURequestPolicyID(transaction, reportReal ?? transactionReport ?? participantReport);
+    // The self-DM a submissions-disabled workspace flow is seeded onto carries the placeholder '_FAKE_' policy;
+    // don't let that shadow the selected workspace chat's real policy, or this page's categories never load. See #96576.
+    const policyIdReal = getIOURequestPolicyID(transaction, pickReportForPolicy(reportReal, transactionReport, participantReport));
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -172,7 +177,7 @@ function IOURequestStepCategory({
         if (transaction) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit) {
-                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: updatedCategory}, policy);
+                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: updatedCategory}, policy, undefined, undefined, getCurrencyDecimals);
                 saveAndNavigateBack();
                 return;
             }
@@ -196,13 +201,14 @@ function IOURequestStepCategory({
                     delegateAccountID,
                     reportPolicyTags,
                     isTrackIntentUser,
+                    getCurrencyDecimals,
                 });
                 saveAndNavigateBack();
                 return;
             }
         }
 
-        setMoneyRequestCategory(transactionID, updatedCategory, policy);
+        setMoneyRequestCategory(transactionID, updatedCategory, policy, getCurrencyDecimals);
 
         if (action === CONST.IOU.ACTION.CATEGORIZE && !backTo) {
             if (report?.reportID) {

@@ -29,7 +29,7 @@ jest.mock('@libs/Notification/LocalNotification', () => ({
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
-        getTopmostReportId: jest.fn(() => 'other-report-id'),
+        getFocusedReportId: jest.fn(() => 'other-report-id'),
         navigate: jest.fn(),
     },
 }));
