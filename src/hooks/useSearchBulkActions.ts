@@ -1387,6 +1387,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`],
                     delegateAccountID,
                     isTrackIntentUser,
+                    conciergeChat,
                 });
                 paidReportCount += 1;
             }

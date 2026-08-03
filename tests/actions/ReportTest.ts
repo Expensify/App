@@ -2953,6 +2953,7 @@ describe('actions/Report', () => {
             const {onboardingMessages} = getOnboardingMessages();
 
             Report.completeOnboarding({
+                conciergeChat: undefined,
                 engagementChoice,
                 onboardingMessage: onboardingMessages[engagementChoice],
                 adminsChatReportID,
@@ -2988,6 +2989,7 @@ describe('actions/Report', () => {
             const selectedInterestedFeatures = [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED, CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED];
 
             Report.completeOnboarding({
+                conciergeChat: undefined,
                 engagementChoice,
                 onboardingMessage: onboardingMessages[engagementChoice],
                 adminsChatReportID: '7957055873634068',
