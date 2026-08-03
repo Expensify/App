@@ -57,7 +57,7 @@ import {
 
 function SearchEditMultiplePage() {
     const {translate, localeCompare} = useLocalize();
-    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
+    const {convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {currentSearchHash} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
@@ -222,6 +222,8 @@ function SearchEditMultiplePage() {
                 delegateAccountID,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 personalDetailsList,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
             // Bulk edit can start from report (ID-based selection) or search (map-based selection),
             // so clear both stores to keep deselection behavior consistent.

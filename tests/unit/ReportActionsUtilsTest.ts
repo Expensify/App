@@ -2464,6 +2464,35 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
+
+        it('should return false for a whisper targeted to another user when currentUserAccountID is provided', () => {
+            const OTHER_USER_ACCOUNT_ID = 999;
+            const CURRENT_USER_ACCOUNT_ID = 123;
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'secret', type: 'COMMENT', text: 'secret', whisperedTo: [OTHER_USER_ACCOUNT_ID]}],
+                originalMessage: {html: 'secret', whisperedTo: [OTHER_USER_ACCOUNT_ID]},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, CURRENT_USER_ACCOUNT_ID);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for a whisper targeted to the current user when currentUserAccountID is provided', () => {
+            const CURRENT_USER_ACCOUNT_ID = 123;
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'secret', type: 'COMMENT', text: 'secret', whisperedTo: [CURRENT_USER_ACCOUNT_ID]}],
+                originalMessage: {html: 'secret', whisperedTo: [CURRENT_USER_ACCOUNT_ID]},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, CURRENT_USER_ACCOUNT_ID);
+            expect(actual).toBe(true);
+        });
     });
 
     describe('getPolicyChangeLogUpdateEmployee', () => {
@@ -4862,6 +4891,64 @@ describe('ReportActionsUtils', () => {
 
             expect(result).toBe(
                 `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '9999')}${translateLocal('iou.reimbursedWithACH', {
+                    creditBankAccount: '5678',
+                    expectedDate: undefined,
+                })}`,
+            );
+        });
+
+        it('shows the credited amount and both accounts for a cross-border FX reimbursement', () => {
+            // Given a reimbursed action carrying the credited amount and currency of a cross-border payment
+            const action = buildReimbursedAction({
+                paymentMethod: 'ACH',
+                debitBankAccountLast4: '9999',
+                creditBankAccountLast4: '5678',
+                creditedAmount: 8050,
+                creditedCurrency: 'USD',
+            });
+
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined);
+
+            // Then the message reports the credited amount instead of the report total and names both accounts
+            expect(result).toBe(translateLocal('iou.reimbursedCrossBorder', {amount: '$80.50', debitBankAccount: '9999', creditBankAccount: '5678'}));
+        });
+
+        it('uses the standard wording when a credited amount arrives without its currency', () => {
+            // Given a reimbursed action whose credited amount is missing the currency it is denominated in
+            const action = buildReimbursedAction({
+                paymentMethod: 'ACH',
+                debitBankAccountLast4: '9999',
+                creditBankAccountLast4: '5678',
+                creditedAmount: 8050,
+            });
+
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined);
+
+            // Then we describe the payment without an amount rather than guessing a currency
+            expect(result).toBe(
+                `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '9999')}${translateLocal('iou.reimbursedWithACH', {
+                    creditBankAccount: '5678',
+                    expectedDate: undefined,
+                })}`,
+            );
+        });
+
+        it('keeps the hold-release wording when the submitter adds a bank account for a cross-border payment', () => {
+            // Given a cross-border payment retried because the submitter added a deposit account
+            const action = buildReimbursedAction({
+                paymentMethod: 'ACH',
+                isSubmitterAddingBankAccount: true,
+                debitBankAccountLast4: '9999',
+                creditBankAccountLast4: '5678',
+                creditedAmount: 8050,
+                creditedCurrency: 'USD',
+            });
+
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, 'submitter@expensify.com', undefined);
+
+            // Then the message announces the submitter taking the report off hold rather than the credited amount
+            expect(result).toBe(
+                `${translateLocal('iou.reimbursedSubmitterAddedBankAccount', 'submitter@expensify.com')}${translateLocal('iou.reimbursedWithACH', {
                     creditBankAccount: '5678',
                     expectedDate: undefined,
                 })}`,

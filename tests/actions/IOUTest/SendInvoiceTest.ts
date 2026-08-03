@@ -158,6 +158,28 @@ describe('actions/SendInvoice', () => {
             participants: baseParticipants,
         };
 
+        const existingInvoiceChatReportFixture: OnyxEntry<Report> = {
+            reportID: 'invoice_chat_123',
+            chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '123': {
+                    role: CONST.REPORT.ROLE.MEMBER,
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '456': {
+                    role: CONST.REPORT.ROLE.MEMBER,
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+            },
+            invoiceReceiver: {
+                type: 'individual',
+                accountID: 456,
+            },
+        };
+
         it('should merge policyRecentlyUsedCategories when provided', () => {
             const currentUserAccountID = 123;
             const existingRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories> = [];
@@ -288,11 +310,12 @@ describe('actions/SendInvoice', () => {
             expect(result.onyxData.failureData).toBeDefined();
         });
 
-        it('stamps hasOnceLoadedReportActions for the invoice report and the new invoice room', () => {
-            // Given: a brand new invoice (no existing chat report), which creates both an invoice report and an invoice room
+        it('should set report loading state in failure data for new invoice chat report', () => {
+            const currentUserAccountID = 123;
+
             const result = getSendInvoiceInformation({
                 transaction: baseTransaction as OnyxEntry<Transaction>,
-                currentUserAccountID: 123,
+                currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
                 receiptFile: undefined,
@@ -307,13 +330,58 @@ describe('actions/SendInvoice', () => {
                 delegateAccountID: undefined,
             });
 
+            const reportLoadingStateUpdate = result.onyxData.failureData?.find(
+                (update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceRoom.reportID}`,
+            );
+
+            expect(reportLoadingStateUpdate).toMatchObject({
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    hasOnceLoadedReportActions: true,
+                    isLoadingInitialReportActions: false,
+                },
+            });
+        });
+
+        it('should not set report loading state in failure data for existing invoice chat report', () => {
+            const currentUserAccountID = 123;
+            const transaction: OnyxEntry<Transaction> = {
+                ...baseTransaction,
+                participants: [
+                    {accountID: 123, isSender: true, policyID: 'workspace_456'},
+                    {accountID: 456, isSender: false},
+                ],
+            };
+
+            const result = getSendInvoiceInformation({
+                transaction,
+                currentUserAccountID,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: existingInvoiceChatReportFixture,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: 'Client Company Ltd.',
+                companyWebsite: 'https://clientcompany.com',
+                policyRecentlyUsedCategories: [],
+                senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+            });
+
+            const reportLoadingStateUpdate = result.onyxData.failureData?.find(
+                (update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceRoom.reportID}`,
+            );
+
+            expect(reportLoadingStateUpdate).toBeUndefined();
             // Then: both reports are stamped as "actions already loaded" so they never hang on an infinite skeleton once online
             const optimisticData = result.onyxData.optimisticData ?? [];
             const invoiceReportLoadingState = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceReportID}`);
             const invoiceRoomLoadingState = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceRoom.reportID}`);
 
             expect(invoiceReportLoadingState?.value).toMatchObject({hasOnceLoadedReportActions: true});
-            expect(invoiceRoomLoadingState?.value).toMatchObject({hasOnceLoadedReportActions: true});
+            expect(invoiceRoomLoadingState).toBeUndefined();
         });
 
         describe('delegateAccountID forwarding', () => {
@@ -353,46 +421,22 @@ describe('actions/SendInvoice', () => {
         });
 
         it('should return correct invoice information with existing chat report', () => {
-            // Given: Existing invoice chat report
-            const existingInvoiceChatReport = {
-                reportID: 'invoice_chat_123',
-                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
-                type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '123': {
-                        accountID: 123,
-                        role: CONST.REPORT.ROLE.MEMBER,
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '456': {
-                        accountID: 456,
-                        role: CONST.REPORT.ROLE.MEMBER,
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                },
-                invoiceReceiver: {
-                    type: 'individual',
-                    accountID: 456,
-                    displayName: 'Client Company',
-                    login: 'client@example.com',
-                },
-            };
-
             const currentUserAccountID = 123;
 
-            const transaction = {
+            const transaction: OnyxEntry<Transaction> = {
                 ...baseTransaction,
-                participants: [{...baseParticipants.at(0), policyID: 'workspace_456'}, baseParticipants.at(1)],
+                participants: [
+                    {accountID: 123, isSender: true, policyID: 'workspace_456'},
+                    {accountID: 456, isSender: false},
+                ],
             };
 
             // When: Call getSendInvoiceInformation with existing chat report
             const result = getSendInvoiceInformation({
-                transaction: transaction as OnyxEntry<Transaction>,
+                transaction,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
-                invoiceChatReport: existingInvoiceChatReport as OnyxEntry<Report>,
+                invoiceChatReport: existingInvoiceChatReportFixture,
                 receiptFile: undefined,
                 policy: undefined,
                 policyTagList: undefined,

@@ -1,3 +1,5 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -73,11 +75,19 @@ function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, tran
  * @param currency - Used to know how many decimal places are valid when splitting the total
  * @param isDefaultUser - Whether we are calculating the amount for the remainder holder
  * @param useFloorToLastRounding - `false` (default, legacy behavior) or `true` to floor all and put full remainder on the default user
+ * @param getCurrencyDecimals - Currency lookup supplied by React consumers. Falls back during staged migration.
  */
-function calculateAmount(numberOfSplits: number, total: number, currency: string, isDefaultUser = false, useFloorToLastRounding = false): number {
+function calculateAmount(
+    numberOfSplits: number,
+    total: number,
+    currency: string,
+    isDefaultUser = false,
+    useFloorToLastRounding = false,
+    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'],
+): number {
     // Since the backend can maximum store 2 decimal places, any currency with more than 2 decimals
     // has to be capped to 2 decimal places
-    const currencyUnit = Math.min(100, getCurrencyUnit(currency));
+    const currencyUnit = Math.min(100, getCurrencyDecimals ? 10 ** getCurrencyDecimals(currency) : getCurrencyUnit(currency));
     const totalInCurrencySubunit = (total / 100) * currencyUnit;
     const totalParticipants = numberOfSplits + 1;
 
@@ -331,6 +341,17 @@ function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy
         !isPerDiemRequest &&
         (!isMovingTransactionFromTrackExpense(action) || isGroupPolicy(policy))
     );
+}
+
+// From global create or a track expense, per diem enablement on any active policy is enough to show the tab -
+// rates load lazily and may be absent right after a cache clear, so visibility must not gate on them.
+function shouldShowPerDiemTabOption(iouType: IOUType, isFromGlobalCreate: boolean, hasCurrentPolicyPerDiemEnabled: boolean, doesPerDiemPolicyExist: boolean): boolean {
+    if (iouType === CONST.IOU.TYPE.SPLIT) {
+        return false;
+    }
+    const hasCurrentPolicyPerDiem = !isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled;
+    const hasAnyPolicyPerDiem = (iouType === CONST.IOU.TYPE.TRACK || isFromGlobalCreate) && doesPerDiemPolicyExist;
+    return hasCurrentPolicyPerDiem || hasAnyPolicyPerDiem;
 }
 
 function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType) {
@@ -618,6 +639,7 @@ export {
     formatCurrentUserToAttendee,
     navigateToParticipantPage,
     shouldShowReceiptEmptyState,
+    shouldShowPerDiemTabOption,
     navigateToConfirmationPage,
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,

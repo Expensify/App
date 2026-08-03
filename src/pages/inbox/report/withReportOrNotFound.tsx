@@ -1,5 +1,6 @@
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
@@ -92,6 +93,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
             const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
             const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+            const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
             const isFocused = useIsFocused();
             const contentShown = React.useRef(false);
             const isReportIdInRoute = !!reportID?.length;
@@ -108,9 +110,9 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     return;
                 }
 
-                openReport({reportID, introSelected, betas, hasReportActions});
+                openReport({reportID, introSelected, betas, hasReportActions, currentUserAccountID});
                 // eslint-disable-next-line react-hooks/exhaustive-deps
-            }, [shouldFetchReport, isReportLoaded, reportID]);
+            }, [shouldFetchReport, isReportLoaded, reportID, currentUserAccountID]);
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);
