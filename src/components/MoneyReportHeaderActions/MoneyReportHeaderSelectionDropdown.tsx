@@ -77,7 +77,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
@@ -164,7 +163,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
               violations,
               bankAccountList,
               policy,
-              reportNameValuePairs,
               moveExpenseReportNameValuePairs,
               reportActions,
               reportMetadata,

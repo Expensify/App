@@ -164,7 +164,6 @@ function useSelectionModeReportActions({
             violations: allTransactionViolations,
             bankAccountList,
             policy,
-            reportNameValuePairs,
             moveExpenseReportNameValuePairs,
             reportActions,
             reportMetadata,
