@@ -121,15 +121,6 @@ type DirectionProps = {
 
     // ID of the layer to place the line layer below
     belowLayerID?: string;
-
-    // Whether the direction is selected, true by default if not provided. Should be used if alternative directions are available
-    // Determines what style to apply to the direction.
-    isSelected?: boolean;
-
-    id?: string;
-
-    // Callback to call when the direction is pressed
-    onPress?: () => void;
 };
 
 type AlternateDirection = {

@@ -3221,7 +3221,12 @@ function hasManualDistanceOverride(transaction: OnyxInputOrEntry<Transaction>): 
     }
 
     const unit = transaction?.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    return quantity !== roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(selectedRouteDistanceInMeters, unit));
+    const quantityMatchesDistance = (distanceInMeters: number) => quantity === roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit));
+
+    // The saved quantity was computed from the route distance at creation time (`routeDistanceMeters`); a later
+    // re-fetch can return a slightly different distance for the same route, which must not read as an override.
+    const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
+    return !quantityMatchesDistance(selectedRouteDistanceInMeters) && !(routeDistanceMeters && quantityMatchesDistance(routeDistanceMeters));
 }
 
 export {

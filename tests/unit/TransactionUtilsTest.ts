@@ -4127,6 +4127,16 @@ describe('hasManualDistanceOverride', () => {
         expect(TransactionUtils.hasManualDistanceOverride(withQuantity(1))).toBe(false);
     });
 
+    it('does not flag a route-derived quantity when the re-fetched route distance drifted', () => {
+        // The expense was created from a 1 mi route (`routeDistanceMeters`), but the re-fetch returned 1.01 mi for
+        // the same route. The quantity still matches the creation-time distance, so it is not a manual override.
+        const transaction = generateTransaction({
+            comment: {customUnit: {distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity: 1, routeDistanceMeters: 1609.344}},
+            routes: {route0: {distance: 1625.4, geometry: {type: 'LineString' as const, coordinates: [[0, 0] as [number, number]]}}},
+        });
+        expect(TransactionUtils.hasManualDistanceOverride(transaction)).toBe(false);
+    });
+
     it('compares against the selected alternate route, not the primary one', () => {
         // 2 mi is route1's own distance — an alternate route selection, not an override.
         expect(TransactionUtils.hasManualDistanceOverride(withQuantity(2, {selectedRouteKey: 'route1'}))).toBe(false);

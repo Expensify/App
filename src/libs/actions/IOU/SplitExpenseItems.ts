@@ -3,7 +3,7 @@ import DateUtils from '@libs/DateUtils';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translate} from '@libs/Localize';
-import {rand64} from '@libs/NumberUtils';
+import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {
@@ -585,7 +585,7 @@ function updateSplitExpenseField(
             // reading them first here would silently replace the override when any other field of the split is saved.
             const quantity =
                 splitSelectedRouteDistanceInMeters && splitDistanceUnit && !hasManualDistanceOverride(splitExpenseDraftTransaction)
-                    ? DistanceRequestUtils.convertDistanceUnit(splitSelectedRouteDistanceInMeters, splitDistanceUnit)
+                    ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(splitSelectedRouteDistanceInMeters, splitDistanceUnit))
                     : (splitExpenseDraftTransaction?.comment?.customUnit?.quantity ?? 0);
 
             const updatedItem: SplitExpense = {
