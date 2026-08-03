@@ -1,8 +1,9 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {CHART_TYPE, POLAR_CONTAINER_HEIGHT_RATIO} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
-import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import {useVictoryChartContext, VictoryChartScaledProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 import Modal from '@components/Modal';
+import MultiGestureCanvas from '@components/MultiGestureCanvas';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -16,6 +17,7 @@ import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
 
 import VictoryChartContent from './VictoryChartContent';
 
@@ -31,12 +33,11 @@ type VictoryChartExpandModalProps = {
  * Centered full-screen modal that re-renders the current chart scaled up to the viewport.
  * Must be rendered inside a VictoryChartProvider so VictoryChartContent can read the parsed chart context.
  *
- * The chart is rendered at its design size and uniformly transform-scaled to fit the modal —
- * the same technique the inline scaled container uses to shrink charts. This keeps the canvas
- * and the absolutely-positioned label/legend overlays (whose coordinates are design-based)
- * perfectly aligned, so the expanded chart looks identical to the inline one, only larger.
- * Rendering fluidly instead would resize only the canvas and leave labels at design coordinates,
- * misplacing them (and potentially overlaying the header, blocking the back button).
+ * The chart is re-rendered natively at the target size through VictoryChartScaledProvider, which
+ * scales every pixel-space value (labels, legends, axes, paddings) by the same uniform factor —
+ * so the expanded chart is a sharp Skia render that looks identical to the inline one, only larger.
+ * The chart is wrapped in MultiGestureCanvas, giving it the same pinch/double-tap zoom and pan
+ * gestures as image attachments.
  */
 function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalProps) {
     const styles = useThemeStyles();
@@ -46,8 +47,12 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {chartContentStyles, chartContainerStyles, type} = useVictoryChartContext();
     const [availableSize, setAvailableSize] = useState({width: 0, height: 0});
+    // No pager wraps this canvas, so scrolling never needs to be handed back to one.
+    const isPagerScrollEnabled = useSharedValue(false);
 
     const onContainerLayout = (event: LayoutChangeEvent) => {
+        // Ignore layout changes while the modal is closing — re-measuring mid-animation
+        // would rescale the chart and cause a visible flicker.
         if (!isVisible) {
             return;
         }
@@ -68,6 +73,11 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
 
     // Uniform scale that fits the chart's (clipped) design box inside the available modal area (may be > 1).
     const scale = hasDesignDimensions && effectiveDesignHeight !== undefined && isMeasured ? Math.min(availableSize.width / designWidth, availableSize.height / effectiveDesignHeight) : 1;
+
+    // Target render size: the chart is drawn natively at these dimensions for a sharp result.
+    const targetWidth = (designWidth ?? 0) * scale;
+    const targetHeight = (designHeight ?? 0) * scale;
+    const clippedTargetHeight = (effectiveDesignHeight ?? 0) * scale;
 
     // Visual styles parsed from the chart HTML — resolved and applied the same way
     // VictoryChartContainerFixed does inline, so the expanded chart keeps the same
@@ -103,32 +113,44 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
                     >
                         {isMeasured &&
                             (hasDesignDimensions && effectiveDesignHeight !== undefined ? (
-                                // Clip the container (not the content) so polar dead space is hidden while the chart renders at full fidelity.
-                                <View
-                                    style={[
-                                        StyleUtils.getWidthAndHeightStyle(designWidth * scale, effectiveDesignHeight * scale),
-                                        typeof borderRadius === 'number' && isPolar && StyleUtils.getBorderRadiusStyle(borderRadius),
-                                        styles.overflowHidden,
-                                    ]}
+                                // Pinch/double-tap zoom and pan, matching the image attachment viewer.
+                                <MultiGestureCanvas
+                                    isActive={isVisible}
+                                    canvasSize={availableSize}
+                                    contentSize={{width: targetWidth, height: clippedTargetHeight}}
+                                    isUsedInCarousel={false}
+                                    isPagerScrollEnabled={isPagerScrollEnabled}
                                 >
-                                    {/* Fixed design-size box so the fluid chart renders at design size, then scaled uniformly. */}
+                                    {/* Clip the container (not the content) so polar dead space is hidden while the chart renders at full fidelity. */}
                                     <View
                                         style={[
-                                            chartContentStyles,
-                                            StyleUtils.getWidthAndHeightStyle(designWidth, designHeight),
-                                            backgroundColor !== undefined && StyleUtils.getBackgroundColorStyle(backgroundColor),
-                                            typeof borderRadius === 'number' && StyleUtils.getBorderRadiusStyle(borderRadius),
+                                            StyleUtils.getWidthAndHeightStyle(targetWidth, clippedTargetHeight),
+                                            typeof borderRadius === 'number' && isPolar && StyleUtils.getBorderRadiusStyle(borderRadius),
                                             styles.overflowHidden,
-                                            styles.chartExpandedContent,
-                                            StyleUtils.getTransformScaleStyle(scale),
                                         ]}
                                     >
-                                        {/* The Skia canvas is removed as soon as closing starts: WebGL canvases can
-                                        flash white when re-composited during the close animation (visible on dark
-                                        themes). The card box stays so the modal animates out looking intact. */}
-                                        {isVisible && <VictoryChartContent />}
+                                        <View
+                                            style={[
+                                                StyleUtils.getWidthAndHeightStyle(targetWidth, targetHeight),
+                                                backgroundColor !== undefined && StyleUtils.getBackgroundColorStyle(backgroundColor),
+                                                typeof borderRadius === 'number' && StyleUtils.getBorderRadiusStyle(borderRadius),
+                                                styles.overflowHidden,
+                                            ]}
+                                        >
+                                            {/* The Skia canvas is removed as soon as closing starts: WebGL canvases can
+                                            flash white when re-composited during the close animation (visible on dark
+                                            themes). The card box stays so the modal animates out looking intact. */}
+                                            {isVisible && (
+                                                <VictoryChartScaledProvider scale={scale}>
+                                                    <VictoryChartContent
+                                                        explicitSize={{width: targetWidth, height: targetHeight}}
+                                                        headless={false}
+                                                    />
+                                                </VictoryChartScaledProvider>
+                                            )}
+                                        </View>
                                     </View>
-                                </View>
+                                </MultiGestureCanvas>
                             ) : (
                                 // Charts without design dimensions have no design-based label coordinates, so fluid
                                 // rendering is safe. Background/rounding are still applied so the expanded chart

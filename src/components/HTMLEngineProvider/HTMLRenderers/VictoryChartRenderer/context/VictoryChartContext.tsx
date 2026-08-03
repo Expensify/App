@@ -2,10 +2,11 @@ import type {ChartType, LabelItem, LegendItem, ProcessNodeResult} from '@compone
 import computeAdjustedOverlayY from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeAdjustedOverlayY';
 import computeDynamicChartHeight from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeDynamicChartHeight';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
+import scaleVictoryChartContextValue from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scaleVictoryChartContextValue';
 
 import type {TNode} from 'react-native-render-html';
 
-import React, {createContext, useContext} from 'react';
+import React, {createContext, useContext, useMemo} from 'react';
 
 type VictoryChartContextValue = {
     tnode: TNode;
@@ -76,6 +77,24 @@ function VictoryChartProvider({tnode, processedResult, type, children}: VictoryC
     return <VictoryChartContext.Provider value={contextValue}>{children}</VictoryChartContext.Provider>;
 }
 
+type VictoryChartScaledProviderProps = {
+    /** Uniform factor to scale all pixel-space chart config by (may be > 1) */
+    scale: number;
+
+    children: React.ReactNode;
+};
+
+/**
+ * Re-provides the current chart context with every pixel-space value scaled by a uniform factor.
+ * Used by the expand modal to re-render the chart natively at a larger size (sharp Skia output)
+ * while keeping labels, legends, axes, and paddings proportionally identical to the inline chart.
+ */
+function VictoryChartScaledProvider({scale, children}: VictoryChartScaledProviderProps) {
+    const value = useVictoryChartContext();
+    const scaledValue = useMemo(() => scaleVictoryChartContextValue(value, scale), [value, scale]);
+    return <VictoryChartContext.Provider value={scaledValue}>{children}</VictoryChartContext.Provider>;
+}
+
 function useVictoryChartContext(): VictoryChartContextValue {
     const context = useContext(VictoryChartContext);
     if (!context) {
@@ -84,4 +103,5 @@ function useVictoryChartContext(): VictoryChartContextValue {
     return context;
 }
 
-export {VictoryChartProvider, useVictoryChartContext};
+export {VictoryChartProvider, VictoryChartScaledProvider, useVictoryChartContext};
+export type {VictoryChartContextValue};
