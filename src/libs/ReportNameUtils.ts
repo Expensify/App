@@ -821,7 +821,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isCardIssuedAction(parentReportAction)) {
-        return getCardIssuedMessage({reportAction: parentReportAction, translate});
+        return getCardIssuedMessage({reportAction: parentReportAction, translate, currentUserAccountID});
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED)) {
         return getAddedCardFeedMessage(translate, parentReportAction);
