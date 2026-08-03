@@ -51,6 +51,12 @@ type NavigationContentWrapperProps = React.PropsWithChildren<CustomCodeProps<Pla
 // A React component that renders extra content within the navigator, like a header or footer.
 type NavigationContentWrapper = (props: NavigationContentWrapperProps) => React.ReactElement | null;
 
+// Determines how non-top screens are wrapped to avoid re-render work while they are covered.
+// With 'freeze' the screen is suspended via react-freeze and processes no updates at all.
+// With 'activity' the screen is wrapped in React <Activity>, which defers updates to background priority
+// and runs effect cleanups while the screen is hidden.
+type NonTopScreensBehavior = 'freeze' | 'activity';
+
 // Options for creating the PlatformStackNavigator using createPlatformStackNavigatorComponent.
 type CreatePlatformStackNavigatorComponentOptions<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions, ParamList extends ParamListBase = ParamListBase> = {
     createRouter?: PlatformStackRouterFactory<ParamList, RouterOptions>;
@@ -59,7 +65,7 @@ type CreatePlatformStackNavigatorComponentOptions<RouterOptions extends Platform
     Effects?: NavigatorEffects<ParamList>;
     ExtraContent?: ExtraContent;
     NavigationContentWrapper?: NavigationContentWrapper;
-    freezeNonTopScreens?: boolean;
+    nonTopScreensBehavior?: NonTopScreensBehavior;
 };
 
-export type {CustomCodeProps, CustomStateHookProps, CustomEffectsHookProps, CreatePlatformStackNavigatorComponentOptions, ExtraContentProps};
+export type {CustomCodeProps, CustomStateHookProps, CustomEffectsHookProps, CreatePlatformStackNavigatorComponentOptions, ExtraContentProps, NonTopScreensBehavior};

@@ -22,6 +22,10 @@ const RightModalNavigatorComponent = createPlatformStackNavigatorComponent(NAVIG
     createRouter: RightModalRouter,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     Effects: RightModalNavigatorEffects,
+    // A covered wide RHP stays visible behind the top card, so its content must stay painted (CustomViewWrapper)
+    // and its width registration must survive the effect unmount that hiding causes - useRHPWidth deregisters
+    // only when the route has actually left the navigation state.
+    nonTopScreensBehavior: 'activity',
 });
 
 function createRightModalNavigator<
