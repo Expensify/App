@@ -9712,6 +9712,32 @@ describe('SearchUIUtils', () => {
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
         });
 
+        test('Should keep the conversion amount column the groups are sorted by', () => {
+            const domesticGroup = {
+                entryID: 4,
+                count: 1,
+                total: -10000,
+                currency: 'USD',
+                accountNumber: '1234',
+                bankName: CONST.BANK_NAMES.CHASE,
+                debitPosted: '2026-01-02',
+                state: 8,
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {[`group_${domesticGroup.entryID}`]: domesticGroup};
+
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data,
+                visibleColumns: [],
+                groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+            });
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
+        });
+
         test('Should hide To for strict default expense columns', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const tx = {

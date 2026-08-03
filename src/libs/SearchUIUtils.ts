@@ -5929,6 +5929,7 @@ function getColumnsToShow({
     shouldUseStrictDefaultExpenseColumns = false,
     isPolicyTaxEnabled = false,
     fallbackPolicyID,
+    sortBy,
 }: {
     currentAccountID: number | undefined;
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
@@ -5945,6 +5946,7 @@ function getColumnsToShow({
     shouldUseStrictDefaultExpenseColumns?: boolean;
     isPolicyTaxEnabled?: boolean;
     fallbackPolicyID?: string;
+    sortBy?: SearchSortBy;
 }): SearchColumnType[] {
     const reportCustomColumns = new Set<SearchColumnType>([
         CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
@@ -6070,7 +6072,9 @@ function getColumnsToShow({
                 return result;
             }
 
-            return result.filter((column) => !isConversionAmountGroupColumn(column) || hasGroupWithConversionAmount(column, data));
+            // The column the results are sorted by has to stay, even with nothing to show in it. Both the header and the
+            // Sort by option come from this list, so dropping it would leave the sort applied with no way to change it.
+            return result.filter((column) => !isConversionAmountGroupColumn(column) || column === sortBy || hasGroupWithConversionAmount(column, data));
         }
     }
 
