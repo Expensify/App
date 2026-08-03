@@ -497,7 +497,7 @@ function getCrossBorderReimbursedMessage(
     }
 
     return translate('iou.reimbursedCrossBorder', {
-        amount: convertToDisplayString(creditedAmount, creditedCurrency),
+        amount: convertToDisplayStringCurrencyUtils(creditedAmount, creditedCurrency),
         debitBankAccount: originalMessage.debitBankAccountLast4 ?? fallbackDebitBankAccountLast4 ?? '',
         creditBankAccount: originalMessage.creditBankAccountLast4 ?? '',
     });
@@ -4682,7 +4682,10 @@ function getActionableCard3DSTransactionApprovalMessage(
         return undefined;
     }
     const {amount, currency, merchant} = originalMessage;
-    const formattedAmount = amount ? (currency ? convertToDisplayString(amount, currency) : convertToDisplayStringWithoutCurrency(amount)) : '';
+    let formattedAmount = '';
+    if (amount) {
+        formattedAmount = currency ? convertToDisplayString(amount, currency) : convertToDisplayStringWithoutCurrency(amount);
+    }
     return translate('report.actions.type.actionableCard3DSTransactionApproval', formattedAmount, merchant);
 }
 
