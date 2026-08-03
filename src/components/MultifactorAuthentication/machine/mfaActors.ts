@@ -10,7 +10,15 @@ import {getDeviceBiometricsOnyxKey, requestRegistrationChallenge} from '@userAct
 
 import {fromPromise} from 'xstate';
 
-import type {CheckLocalCredentialsInput, ReadHasAcceptedSoftPromptInput, RequestRegistrationChallengeInput, RequestRegistrationChallengeOutput, ValidateDeviceInput} from './types';
+import type {
+    CheckLocalCredentialsInput,
+    CreateCredentialInput,
+    CreateCredentialOutput,
+    ReadHasAcceptedSoftPromptInput,
+    RequestRegistrationChallengeInput,
+    RequestRegistrationChallengeOutput,
+    ValidateDeviceInput,
+} from './types';
 
 /**
  * A refused device resolves as a failed MFAResult, so the machine's onError transition for this
@@ -46,11 +54,25 @@ const requestRegistrationChallengeActor = fromPromise<RequestRegistrationChallen
 });
 
 /**
+ * Turns a pending registration challenge into a real credential: platform ceremony, then backend
+ * registration.
+ */
+const createCredentialActor = fromPromise<CreateCredentialOutput, CreateCredentialInput>(async () => {
+    throw new Error('Not implemented');
+});
+
+/**
  * Builds the side-effect actors that the machine states invoke. The machine is always created with
  * these working implementations, so no caller needs to provide stubs or overrides.
  */
 function createActors() {
-    return {validateDevice, readHasAcceptedSoftPrompt, checkLocalCredentials, requestRegistrationChallenge: requestRegistrationChallengeActor};
+    return {
+        validateDevice,
+        readHasAcceptedSoftPrompt,
+        checkLocalCredentials,
+        requestRegistrationChallenge: requestRegistrationChallengeActor,
+        createCredential: createCredentialActor,
+    };
 }
 
 export default createActors;

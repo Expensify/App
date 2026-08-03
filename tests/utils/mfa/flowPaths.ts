@@ -11,7 +11,13 @@ import type {ActorLogic, DoneActorEvent, ErrorActorEvent, InputFrom, SnapshotFro
 import {matchesState} from 'xstate';
 import {getShortestPaths, TestModel} from 'xstate/graph';
 
-import createInitEvent, {MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR, MFA_TEST_INVALID_CODE_ERROR, MFA_TEST_REGISTRATION_CHALLENGE, MFA_TEST_VALIDATE_CODE} from './flowFixtures';
+import createInitEvent, {
+    MFA_TEST_CREDENTIAL_CREATION_ERROR,
+    MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR,
+    MFA_TEST_INVALID_CODE_ERROR,
+    MFA_TEST_REGISTRATION_CHALLENGE,
+    MFA_TEST_VALIDATE_CODE,
+} from './flowFixtures';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
@@ -115,6 +121,34 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         ],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`,
     },
+    // creatingCredential has two entries (a persisted-acceptance skip and a live prompt approval), and
+    // the state's UI assertion differs between them, so both routes need a driving journey: the
+    // generated shortest paths would otherwise only ever walk one of the two.
+    {
+        description: 'the credential-creation journey via the persisted soft-prompt acceptance skips the prompt',
+        events: [
+            createInitEvent(),
+            createActorDoneEvent('validateDevice', {success: true}),
+            createActorDoneEvent('checkLocalCredentials', false),
+            {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
+            createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
+            createActorDoneEvent('readHasAcceptedSoftPrompt', true),
+        ],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.CREATING_CREDENTIAL}`,
+    },
+    {
+        description: 'the credential-creation journey via soft-prompt approval reaches creatingCredential after the user accepts',
+        events: [
+            createInitEvent(),
+            createActorDoneEvent('validateDevice', {success: true}),
+            createActorDoneEvent('checkLocalCredentials', false),
+            {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
+            createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
+            createActorDoneEvent('readHasAcceptedSoftPrompt', false),
+            {type: 'SOFT_PROMPT_APPROVED'},
+        ],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.CREATING_CREDENTIAL}`,
+    },
 ];
 
 type MfaEventFixtures = {
@@ -167,6 +201,7 @@ const MFA_ACTOR_EVENT_FIXTURES = {
         {success: false, error: MFA_TEST_INVALID_CODE_ERROR},
         {success: false, error: MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR},
     ),
+    createCredential: createActorEvents('createCredential', {success: true}, {success: false, error: MFA_TEST_CREDENTIAL_CREATION_ERROR}),
 } satisfies MfaActorEventFixtures;
 
 /** Every concrete event the traversal can offer, in the order its fixtures declare them. */

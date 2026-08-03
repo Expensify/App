@@ -1,4 +1,5 @@
 import type {AllowedAuthenticationMethods} from '@components/MultifactorAuthentication/biometrics/checkDeviceEligibility';
+import type {CreateCredentialParams} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import type {MultifactorAuthenticationScenarioConfigFor} from '@components/MultifactorAuthentication/config';
 import type {
     MultifactorAuthenticationScenario,
@@ -89,8 +90,16 @@ type RequestRegistrationChallengeInput = {validateCode: string};
 /** A successful response must carry the validated registration challenge. */
 type RequestRegistrationChallengeOutput = MFAResult<{challenge: RegistrationChallenge}>;
 
+/** Input the machine passes to the credential-creation actor: everything `CreateCredentialParams` needs except the abort signal, which the actor supplies itself. */
+type CreateCredentialInput = Omit<CreateCredentialParams, 'signal'>;
+
+/** The credential-creation actor's result. `keyInfo` never leaves the actor, so a success carries no additional data. */
+type CreateCredentialOutput = MFAResult;
+
 export type {
     CheckLocalCredentialsInput,
+    CreateCredentialInput,
+    CreateCredentialOutput,
     MfaContext,
     MfaEvent,
     MfaModalState,

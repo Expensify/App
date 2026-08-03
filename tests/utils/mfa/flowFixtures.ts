@@ -2,7 +2,7 @@ import {getScenarioConfig} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationInitEvent} from '@components/MultifactorAuthentication/machine/types';
 
 import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
-import {createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
 import CONST from '@src/CONST';
 
@@ -22,6 +22,8 @@ const MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR = createMFAErrorFromApiRespons
     CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.UNRECOGNIZED,
     'Graph-traversal fatal registration challenge rejection',
 );
+// A reason outside the two device-check reasons, so the walk lands on the generic failure copy.
+const MFA_TEST_CREDENTIAL_CREATION_ERROR = createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.KEY_CREATION_FAILED, 'Graph-traversal credential creation failure');
 
 /**
  * Builds the INIT event fixture for the test scenario.
@@ -37,4 +39,11 @@ function createInitEvent(): MultifactorAuthenticationInitEvent<typeof MFA_TEST_S
 }
 
 export default createInitEvent;
-export {MFA_TEST_ACCOUNT_ID, MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR, MFA_TEST_INVALID_CODE_ERROR, MFA_TEST_REGISTRATION_CHALLENGE, MFA_TEST_VALIDATE_CODE};
+export {
+    MFA_TEST_ACCOUNT_ID,
+    MFA_TEST_CREDENTIAL_CREATION_ERROR,
+    MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR,
+    MFA_TEST_INVALID_CODE_ERROR,
+    MFA_TEST_REGISTRATION_CHALLENGE,
+    MFA_TEST_VALIDATE_CODE,
+};

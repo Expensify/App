@@ -1,3 +1,4 @@
+import type {CreateCredentialParams, CreateCredentialResult} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 
 import {decodeLibraryError, getKeyAlias} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
@@ -11,8 +12,9 @@ import {getAllKeys, isSensorAvailable} from '@sbaiahmed1/react-native-biometrics
 import {mfaCredentialIDsSelector} from '@selectors/Account';
 
 /**
- * Platform-resolved biometric operations for the MFA machine's pre-screen checks. These functions
- * read no React state, so the machine actors and other non-React callers can import them directly.
+ * Platform-resolved biometric operations for the MFA machine's pre-screen checks and credential
+ * creation ceremony. These functions read no React state, so the machine actors and other
+ * non-React callers can import them directly.
  */
 
 /** The authentication method this platform verifies with. Native verifies with HSM-backed biometrics. */
@@ -58,4 +60,9 @@ async function areLocalCredentialsKnownToServer(accountID: number, signal?: Abor
     return (mfaCredentialIDsSelector(account) ?? []).includes(localCredentialID);
 }
 
-export {areLocalCredentialsKnownToServer, deviceVerificationType, deviceCheckFailureReason, doesDeviceSupportAuthenticationMethod};
+/** Runs the platform HSM key-creation ceremony. */
+async function createCredential(params: CreateCredentialParams): Promise<CreateCredentialResult> {
+    throw new Error('Not implemented');
+}
+
+export {areLocalCredentialsKnownToServer, createCredential, deviceVerificationType, deviceCheckFailureReason, doesDeviceSupportAuthenticationMethod};

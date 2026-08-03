@@ -230,6 +230,7 @@ const MFA_STATE = {
     REQUESTING_REGISTRATION_CHALLENGE: 'requestingRegistrationChallenge',
     PROMPT: 'prompt',
     AWAITING_SOFT_PROMPT: 'awaitingSoftPrompt',
+    CREATING_CREDENTIAL: 'creatingCredential',
     OUTCOME: 'outcome',
     RESOLVING_OUTCOME: 'resolvingOutcome',
     SUCCESS: 'success',
