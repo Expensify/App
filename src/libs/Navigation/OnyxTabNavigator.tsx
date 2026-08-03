@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Growl from '@libs/Growl';
 import Log from '@libs/Log';
 
@@ -19,7 +20,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import KeyboardUtils from '@src/utils/keyboard';
 
 import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
 import type {EventArg, EventMapCore, NavigationProp, NavigationState, ParamListBase, ScreenListeners} from '@react-navigation/native';
@@ -72,13 +72,9 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
 
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
-
-    /** Whether to wait for the keyboard to close before switching tabs that share keyboard-avoiding layout */
-    shouldDismissKeyboardBeforeTabSwitch?: boolean;
 };
 
 const TopTab = createMaterialTopTabNavigator<ParamListBase, string>();
-const DISMISS_KEYBOARD_BEFORE_TAB_SWITCH_TIMEOUT = CONST.MAX_TRANSITION_DURATION_MS;
 
 // The TabFocusTrapContext is to collect the focus trap container element of each tab screen.
 // This provider is placed in the OnyxTabNavigator component and the consumer is in the TabScreenWithFocusTrapWrapper component.
@@ -102,27 +98,6 @@ const getTabNames = (children: React.ReactNode): string[] => {
     return result;
 };
 
-// Some tab groups share a keyboard-avoiding layout, so delay tab switching until the keyboard finishes closing to avoid mounting the next tab in a keyboard-shrunk layout.
-const dismissKeyboardBeforeTabSwitch = async (): Promise<void> => {
-    let fallbackTimeoutID: ReturnType<typeof setTimeout> | undefined;
-
-    try {
-        await Promise.race([
-            KeyboardUtils.dismiss().catch((error: unknown) => {
-                Log.warn('[OnyxTabNavigator] Failed to dismiss keyboard before tab switch', {error});
-            }),
-            new Promise<void>((resolve) => {
-                fallbackTimeoutID = setTimeout(() => {
-                    Log.warn('[OnyxTabNavigator] Timed out waiting for keyboard dismiss before tab switch');
-                    resolve();
-                }, DISMISS_KEYBOARD_BEFORE_TAB_SWITCH_TIMEOUT);
-            }),
-        ]);
-    } finally {
-        clearTimeout(fallbackTimeoutID);
-    }
-};
-
 // This takes all the same props as MaterialTopTabsNavigator: https://reactnavigation.org/docs/material-top-tab-navigator/#props,
 // except ID is now required, and it gets a `selectedTab` from Onyx
 // It also takes 2 more optional callbacks to manage the focus trap container elements of the tab bar and the active tab
@@ -139,7 +114,6 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     lazyLoadEnabled = false,
     onTabSelect,
     equalWidth = false,
-    shouldDismissKeyboardBeforeTabSwitch = false,
     ...rest
 }: OnyxTabNavigatorProps<TTabName>) {
     const styles = useThemeStyles();
@@ -181,8 +155,6 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     // Tab-switch discard guards, keyed by tab name. Tab screens register via `useDiscardChangesConfirmation`.
     const guardsRef = useRef<Map<string, TabSwitchGuard>>(new Map());
     const isDiscardModalOpenRef = useRef(false);
-    // Avoid handling repeated tab presses while a keyboard dismiss is already delaying a tab switch.
-    const isTabSwitchPendingRef = useRef(false);
 
     const registerTabGuard: RegisterTabSwitchGuard = (guard) => {
         guardsRef.current.set(guard.tabName, guard);
@@ -195,71 +167,44 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         };
     };
 
-    const runAfterKeyboardDismiss = (callback: () => void) => {
-        if (!shouldDismissKeyboardBeforeTabSwitch) {
-            callback();
-            return;
-        }
-
-        isTabSwitchPendingRef.current = true;
-        dismissKeyboardBeforeTabSwitch()
-            .then(callback)
-            .catch((error: unknown) => {
-                Log.warn('[OnyxTabNavigator] Failed to run tab switch after keyboard dismiss', {error});
-            })
-            .finally(() => {
-                isTabSwitchPendingRef.current = false;
-            });
-    };
-
     const handleTabPress = (navigation: NavigationProp<ParamListBase>, event: EventArg<'tabPress', true, undefined>) => {
-        if (isDiscardModalOpenRef.current || isTabSwitchPendingRef.current) {
+        if (isDiscardModalOpenRef.current) {
             event.preventDefault();
             return;
         }
         const navState = navigation.getState();
         const currentRouteName = navState.routes.at(navState.index)?.name;
+        const guard = currentRouteName ? guardsRef.current.get(currentRouteName) : undefined;
+        if (!guard || !guard.getHasUnsavedChanges()) {
+            return;
+        }
         const targetRoute = navState.routes.find((tabRoute) => tabRoute.key === event.target);
         if (!targetRoute || targetRoute.name === currentRouteName) {
             return;
         }
-        const guard = currentRouteName ? guardsRef.current.get(currentRouteName) : undefined;
-        if (!guard || !guard.getHasUnsavedChanges()) {
-            if (!shouldDismissKeyboardBeforeTabSwitch) {
-                return;
-            }
-
-            event.preventDefault();
-            runAfterKeyboardDismiss(() => navigation.dispatch(TabActions.jumpTo(targetRoute.name)));
-            return;
-        }
         event.preventDefault();
         isDiscardModalOpenRef.current = true;
-
-        const showDiscardModal = () => {
-            showConfirmModal({
-                ...getDiscardChangesModalConfig(translate),
-                shouldIgnoreBackHandlerDuringTransition: true,
-            }).then((result) => {
-                isDiscardModalOpenRef.current = false;
-                if (result.action !== ModalActions.CONFIRM) {
-                    guard.onCancel?.();
-                    return;
-                }
-                // User confirmed: always jump to the target tab, even if onDiscard fails, rather than stranding them with no feedback.
-                Promise.resolve()
-                    .then(() => guard.onDiscard())
-                    .catch((error: unknown) => {
-                        Log.warn('[OnyxTabNavigator] Failed to run tab-switch onDiscard callback', {error});
-                        Growl.error(translate('common.genericErrorMessage'));
-                    })
-                    .then(() => {
-                        runAfterKeyboardDismiss(() => navigation.dispatch(TabActions.jumpTo(targetRoute.name)));
-                    });
-            });
-        };
-
-        runAfterKeyboardDismiss(showDiscardModal);
+        ComposerFocusManager.blurActiveInput();
+        showConfirmModal({
+            ...getDiscardChangesModalConfig(translate),
+            shouldIgnoreBackHandlerDuringTransition: true,
+        }).then((result) => {
+            isDiscardModalOpenRef.current = false;
+            if (result.action !== ModalActions.CONFIRM) {
+                guard.onCancel?.();
+                return;
+            }
+            // User confirmed: always jump to the target tab, even if onDiscard fails, rather than stranding them with no feedback.
+            Promise.resolve()
+                .then(() => guard.onDiscard())
+                .catch((error: unknown) => {
+                    Log.warn('[OnyxTabNavigator] Failed to run tab-switch onDiscard callback', {error});
+                    Growl.error(translate('common.genericErrorMessage'));
+                })
+                .then(() => {
+                    navigation.dispatch(TabActions.jumpTo(targetRoute.name));
+                });
+        });
     };
 
     /**

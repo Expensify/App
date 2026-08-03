@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -603,7 +604,12 @@ function IOURequestStepDistanceOdometer({
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
         >
-            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}>
+            <KeyboardAvoidingView
+                key={isCreatingNewRequest ? (isFocused ? 'focused' : 'unfocused') : 'editing'}
+                behavior="padding"
+                enabled={isCreatingNewRequest}
+                style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
+            >
                 <View>
                     {/* Start Reading */}
                     <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
@@ -740,7 +746,7 @@ function IOURequestStepDistanceOdometer({
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_ODOMETER_NEXT_BUTTON}
                     />
                 </View>
-            </View>
+            </KeyboardAvoidingView>
         </StepScreenWrapper>
     );
 }
