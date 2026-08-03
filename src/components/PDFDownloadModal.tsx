@@ -102,7 +102,7 @@ function PDFDownloadModal({
             innerContainerStyle={styles.pv0}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[styles.flexRow, styles.m5, bottomSafeAreaPaddingStyle]}>
+            <View style={bottomSafeAreaPaddingStyle}>
                 <View style={[styles.flex1]}>
                     <View style={[styles.flexRow, styles.mb4]}>
                         <View style={[styles.flex1]}>
