@@ -305,19 +305,28 @@ function SubmitDetailsPage({
         shouldPreservePreInsertedRouteOnUnmount: () => hasCalledReveal.current,
     });
 
-    // Once the optimistically created destination report lands in Onyx, reveal it directly over the modal —
-    // navigating before it exists would dismiss to the inbox and flash it while the report screen mounts.
-    useEffect(() => {
-        if (!pendingNavigationReportID || !pendingNavigationReport?.reportID || hasStartedPendingNavigation.current) {
+    // Single entry point for the pending-navigation reveal — the ref guard makes it safe to call from either
+    // path below, so whichever fires first wins and the other becomes a no-op.
+    const revealPendingNavigation = (reportID: string) => {
+        if (hasStartedPendingNavigation.current) {
             return;
         }
         hasStartedPendingNavigation.current = true;
-        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(pendingNavigationReportID), {
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(reportID), {
             afterTransition: () => {
                 setIsConfirming(false);
             },
         });
-    }, [pendingNavigationReportID, pendingNavigationReport?.reportID]);
+    };
+
+    // Once the optimistically created destination report lands in Onyx, reveal it directly over the modal —
+    // navigating before it exists would dismiss to the inbox and flash it while the report screen mounts.
+    useEffect(() => {
+        if (!pendingNavigationReportID || !pendingNavigationReport?.reportID) {
+            return;
+        }
+        revealPendingNavigation(pendingNavigationReportID);
+    }, [pendingNavigationReportID, pendingNavigationReport?.reportID, revealPendingNavigation]);
 
     // Fallback: if optimistic report lands under different ID, still reveal to intended destination after timeout.
     useEffect(() => {
@@ -325,20 +334,10 @@ function SubmitDetailsPage({
             return;
         }
 
-        const timeoutId = setTimeout(() => {
-            if (hasStartedPendingNavigation.current || pendingNavigationReport?.reportID) {
-                return;
-            }
-            hasStartedPendingNavigation.current = true;
-            Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(pendingNavigationReportID), {
-                afterTransition: () => {
-                    setIsConfirming(false);
-                },
-            });
-        }, 500);
+        const timeoutId = setTimeout(() => revealPendingNavigation(pendingNavigationReportID), 500);
 
         return () => clearTimeout(timeoutId);
-    }, [pendingNavigationReportID, pendingNavigationReport?.reportID]);
+    }, [pendingNavigationReportID, pendingNavigationReport?.reportID, revealPendingNavigation]);
 
     // Timeout for pending report arrival — if optimistic write doesn't land within 5s, something's broken anyway.
     // Fallback dismisses spinner and lets user navigate back without indefinite hang.
