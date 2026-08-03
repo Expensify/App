@@ -5263,7 +5263,7 @@ describe('actions/Policy', () => {
 
             // When enablePolicyWorkflows is called to enable workflows
             mockFetch.pause();
-            Policy.enablePolicyWorkflows(policyID, true, undefined, undefined, undefined, undefined);
+            Policy.enablePolicyWorkflows(policyID, true, undefined, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             // Then workflows should be enabled optimistically
@@ -5279,7 +5279,7 @@ describe('actions/Policy', () => {
             expect(updatedPolicy?.pendingFields?.areWorkflowsEnabled).toBeUndefined();
         });
 
-        it('should revert policy workflows when fail', async () => {
+        it('should disable policy workflows with instant submission optimistically and succeed', async () => {
             // Given a policy with workflows enabled
             const policyID = '1';
             const fakePolicy = {
@@ -5287,26 +5287,98 @@ describe('actions/Policy', () => {
                 areWorkflowsEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 autoReporting: true,
-                harvesting: {enabled: true, jobID: 123},
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+                harvesting: {enabled: false},
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
             };
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            // When enablePolicyWorkflows is called to disable workflows and fails
-            mockFetch.fail();
-            Policy.enablePolicyWorkflows(policyID, false, fakePolicy.approvalMode, fakePolicy.autoReporting, fakePolicy.harvesting, fakePolicy.reimbursementChoice);
+            // When enablePolicyWorkflows is called to disable workflows
+            mockFetch.pause();
+            Policy.enablePolicyWorkflows(
+                policyID,
+                false,
+                fakePolicy.approvalMode,
+                fakePolicy.autoReporting,
+                fakePolicy.autoReportingFrequency,
+                fakePolicy.harvesting,
+                fakePolicy.reimbursementChoice,
+            );
             await waitForBatchedUpdates();
 
-            // Then workflows should be reverted to enabled and other fields restored
-            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-            expect(updatedPolicy?.areWorkflowsEnabled).toBe(true);
-            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+            // Then workflows should be disabled with instant submission optimistically
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.areWorkflowsEnabled).toBe(false);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
             expect(updatedPolicy?.autoReporting).toBe(true);
+            expect(updatedPolicy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
             expect(updatedPolicy?.harvesting?.enabled).toBe(true);
-            expect(updatedPolicy?.reimbursementChoice).toBe(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES);
+            expect(updatedPolicy?.reimbursementChoice).toBe(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO);
+            expect(updatedPolicy?.pendingFields).toMatchObject({
+                areWorkflowsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                autoReportingFrequency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                harvesting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            });
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then all workflow pending fields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(updatedPolicy?.pendingFields?.areWorkflowsEnabled).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.approvalMode).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.autoReporting).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.autoReportingFrequency).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.harvesting).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.reimbursementChoice).toBeUndefined();
         });
+
+        it.each([CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY, undefined] as const)(
+            'should revert policy workflows when fail with auto reporting frequency %s',
+            async (autoReportingFrequency) => {
+                // Given a policy with workflows enabled
+                const policyID = '1';
+                const fakePolicy = {
+                    id: policyID,
+                    areWorkflowsEnabled: true,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    autoReporting: true,
+                    autoReportingFrequency,
+                    harvesting: {enabled: true, jobID: 123},
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                };
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+                await waitForBatchedUpdates();
+
+                // When enablePolicyWorkflows is called to disable workflows and fails
+                mockFetch.fail();
+                Policy.enablePolicyWorkflows(
+                    policyID,
+                    false,
+                    fakePolicy.approvalMode,
+                    fakePolicy.autoReporting,
+                    fakePolicy.autoReportingFrequency,
+                    fakePolicy.harvesting,
+                    fakePolicy.reimbursementChoice,
+                );
+                await waitForBatchedUpdates();
+
+                // Then workflows should be reverted to enabled and other fields restored
+                const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+                expect(updatedPolicy?.areWorkflowsEnabled).toBe(true);
+                expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+                expect(updatedPolicy?.autoReporting).toBe(true);
+                expect(updatedPolicy?.autoReportingFrequency).toBe(autoReportingFrequency);
+                expect(updatedPolicy?.harvesting?.enabled).toBe(true);
+                expect(updatedPolicy?.reimbursementChoice).toBe(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES);
+                expect(updatedPolicy?.pendingFields?.areWorkflowsEnabled).toBeUndefined();
+                expect(updatedPolicy?.pendingFields?.autoReportingFrequency).toBeUndefined();
+            },
+        );
     });
     describe('enableDistanceRequestTax', () => {
         it('should enable distance request tax optimistically and succeed', async () => {

@@ -495,7 +495,15 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                enablePolicyWorkflows(policyID, isEnabled, policy?.approvalMode, policy?.autoReporting, policy?.harvesting, policy?.reimbursementChoice);
+                                enablePolicyWorkflows(
+                                    policyID,
+                                    isEnabled,
+                                    policy?.approvalMode,
+                                    policy?.autoReporting,
+                                    policy?.autoReportingFrequency,
+                                    policy?.harvesting,
+                                    policy?.reimbursementChoice,
+                                );
                             }}
                             onPress={() => {
                                 if (!policyID) {

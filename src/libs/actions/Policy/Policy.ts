@@ -5230,6 +5230,7 @@ function enablePolicyWorkflows(
     enabled: boolean,
     currentApprovalMode: Policy['approvalMode'],
     currentAutoReporting: Policy['autoReporting'],
+    currentAutoReportingFrequency: Policy['autoReportingFrequency'],
     currentHarvesting: Policy['harvesting'],
     currentReimbursementChoice: Policy['reimbursementChoice'],
 ) {
@@ -5243,9 +5244,10 @@ function enablePolicyWorkflows(
                     ...(!enabled
                         ? {
                               approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-                              autoReporting: false,
+                              autoReporting: true,
+                              autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                               harvesting: {
-                                  enabled: false,
+                                  enabled: true,
                               },
                               reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
                           }
@@ -5256,6 +5258,7 @@ function enablePolicyWorkflows(
                             ? {
                                   approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  autoReportingFrequency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   harvesting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                               }
@@ -5275,6 +5278,7 @@ function enablePolicyWorkflows(
                             ? {
                                   approvalMode: null,
                                   autoReporting: null,
+                                  autoReportingFrequency: null,
                                   harvesting: null,
                                   reimbursementChoice: null,
                               }
@@ -5293,6 +5297,7 @@ function enablePolicyWorkflows(
                         ? {
                               approvalMode: currentApprovalMode,
                               autoReporting: currentAutoReporting,
+                              autoReportingFrequency: currentAutoReportingFrequency ?? null,
                               harvesting: currentHarvesting,
                               reimbursementChoice: currentReimbursementChoice,
                           }
@@ -5303,6 +5308,7 @@ function enablePolicyWorkflows(
                             ? {
                                   approvalMode: null,
                                   autoReporting: null,
+                                  autoReportingFrequency: null,
                                   harvesting: null,
                                   reimbursementChoice: null,
                               }
