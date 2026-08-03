@@ -1,5 +1,8 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
+import {buildParticipantsPolicyTags} from '@libs/actions/IOU';
 import {
     getMoneyRequestParticipantOptions,
     setCustomUnitRateID,
@@ -10,7 +13,6 @@ import {
 } from '@libs/actions/IOU/MoneyRequest';
 import {createDistanceRequest, resetSplitShares} from '@libs/actions/IOU/Split';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -86,6 +88,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     selfDMReport: OnyxEntry<Report>;
     gpsCoordinates?: string;
     gpsDistance?: number;
+    gpsModifiedDistance?: number;
     odometerStart?: number;
     odometerEnd?: number;
     odometerDistance?: number;
@@ -107,6 +110,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     delegateAccountID: number | undefined;
     policyTagList: PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -118,6 +122,7 @@ function buildDistanceAmountAndMerchant({
     policy,
     translate,
     personalPolicyOutputCurrency,
+    getCurrencySymbol,
 }: {
     isManualDistance: boolean;
     distance: number | undefined;
@@ -126,6 +131,7 @@ function buildDistanceAmountAndMerchant({
     policy: OnyxEntry<Policy>;
     translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
     personalPolicyOutputCurrency: string | undefined;
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }): {amount: number; merchant: string} {
     if (!isManualDistance || distance === undefined || !unit) {
         return {amount: 0, merchant: translate('iou.fieldPending')};
@@ -183,6 +189,7 @@ function handleMoneyRequestStepDistanceNavigation({
     selfDMReport,
     gpsCoordinates,
     gpsDistance,
+    gpsModifiedDistance,
     policyForMovingExpenses,
     odometerStart,
     odometerEnd,
@@ -205,6 +212,7 @@ function handleMoneyRequestStepDistanceNavigation({
     delegateAccountID,
     policyTagList,
     formatPhoneNumber,
+    getCurrencySymbol,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -272,6 +280,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 policy,
                 translate,
                 personalPolicyOutputCurrency: personalOutputCurrency,
+                getCurrencySymbol,
             });
             setMoneyRequestMerchant(transactionID, merchant, false);
             const distanceDefaultTaxCode = getDefaultTaxCode(policy, transaction);
@@ -297,6 +306,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             transactionParams: {
                                 amount,
                                 distance,
+                                modifiedDistance: gpsModifiedDistance,
                                 currency: transaction?.currency ?? 'USD',
                                 created: transaction?.created ?? '',
                                 merchant,
@@ -323,6 +333,8 @@ function handleMoneyRequestStepDistanceNavigation({
                             isASAPSubmitBetaEnabled,
                             currentUser: {accountID: currentUserAccountID, email: currentUserLogin ?? ''},
                             introSelected,
+                            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+                            conciergeChat: undefined,
                             quickAction,
                             draftTransactionIDs,
                             recentWaypoints,
@@ -372,6 +384,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         transactionParams: {
                             amount,
                             distance,
+                            modifiedDistance: gpsModifiedDistance,
                             comment: '',
                             created: transaction?.created ?? '',
                             currency: transaction?.currency ?? 'USD',
@@ -409,6 +422,9 @@ function handleMoneyRequestStepDistanceNavigation({
                         isTrackIntentUser,
                         delegateAccountID,
                         formatPhoneNumber,
+                        // buildParticipantsPolicyTags is deprecated but still needed here until this call site is migrated to useOnyx (https://github.com/Expensify/App/issues/72721)
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                        participantsPolicyTags: buildParticipantsPolicyTags(participants),
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,

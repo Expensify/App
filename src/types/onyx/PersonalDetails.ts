@@ -48,6 +48,13 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Is current user validated */
     validated?: boolean;
 
+    /**
+     * True when this account was merged away. A merged-away account is served with the `MERGED_`
+     * prefix stripped from its login, so it can collide with the live account's login — use this
+     * flag to prefer the live entry.
+     */
+    isClosed?: boolean;
+
     /** Phone number of the current user from their personal details   */
     phoneNumber?: string;
 

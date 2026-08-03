@@ -175,6 +175,7 @@ function MoneyRequestReceiptView({
     }, [parentReportAction]);
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
@@ -381,7 +382,11 @@ function MoneyRequestReceiptView({
     const shouldShowReceiptAudit = !isInvoice && (shouldShowReceiptEmptyState || hasReceipt || hasReceiptUploadError);
 
     const fallbackReceiptError = useMemo(() => {
-        if (hasReceiptUploadError || isEmptyObject(reportCreationError) || !hasReceipt || !transaction?.receipt) {
+        // Map/route distance expenses carry a generated map e-receipt (no real uploaded file), so they should not
+        // surface a receipt-upload error on a create/report failure - the transaction's own generic error should be
+        // shown instead. Odometer / pure-manual distance flows can have a real uploaded file, so the fallback is kept
+        // for them (isMapBasedDistanceRequest is false for those).
+        if (hasReceiptUploadError || isEmptyObject(reportCreationError) || !hasReceipt || !transaction?.receipt || isMapDistanceRequest) {
             return {};
         }
 
@@ -390,7 +395,7 @@ function MoneyRequestReceiptView({
             source: transaction.receipt.source?.toString() ?? '',
             filename: transaction.receipt.filename ?? '',
         });
-    }, [hasReceiptUploadError, reportCreationError, hasReceipt, transaction]);
+    }, [hasReceiptUploadError, reportCreationError, hasReceipt, transaction, isMapDistanceRequest]);
 
     const errors = useMemo(() => {
         if (hasReceiptUploadError) {
@@ -564,6 +569,7 @@ function MoneyRequestReceiptView({
             transactionPolicyCategories: policyCategories,
             transactionPolicyTagList: policyTagList,
             transactionViolations: rawTransactionViolations,
+            transactionReport,
         });
     };
 
