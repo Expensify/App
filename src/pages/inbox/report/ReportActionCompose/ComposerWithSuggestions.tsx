@@ -287,14 +287,7 @@ function ComposerWithSuggestions({
     });
 
     // Save the draft of the report action. This debounced so that we're not ceaselessly saving your edit.
-    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending} = useDebouncedSaveDraft(
-        useCallback(
-            (comment: string) => {
-                saveReportActionDraft(reportID, editingReportAction, reportActions, comment);
-            },
-            [reportID, editingReportAction, reportActions],
-        ),
-    );
+    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending} = useDebouncedSaveDraft(saveReportActionDraft);
 
     // Save the draft of the report comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
     // allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
@@ -561,7 +554,7 @@ function ComposerWithSuggestions({
             if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && shouldUseNarrowLayout) {
                 setEditingMessage(newCommentConverted);
                 if (shouldDebounceSaveComment) {
-                    debouncedSaveReportActionDraft(newCommentConverted);
+                    debouncedSaveReportActionDraft(reportID, editingReportAction, reportActions, newCommentConverted);
                     return;
                 }
 
@@ -595,6 +588,7 @@ function ComposerWithSuggestions({
             setEditingMessage,
             reportID,
             editingReportActionID,
+            editingReportAction,
             reportActions,
             debouncedSaveReportActionDraft,
             debouncedSaveComment,

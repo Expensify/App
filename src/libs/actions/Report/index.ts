@@ -3058,9 +3058,7 @@ function broadcastUserIsLeavingRoom(reportID: string, currentUserAccountID: numb
 function deleteReportComment(
     report: OnyxEntry<Report>,
     reportAction: ReportAction,
-    // Report actions of the original report, used to locate actionable mention whispers to hide.
     originalReportActions: OnyxEntry<ReportActions>,
-    // Report actions of `report`, used to resolve the original report ID.
     reportActions: OnyxEntry<ReportActions>,
     ancestors: Ancestor[],
     isReportArchived: boolean | undefined,
