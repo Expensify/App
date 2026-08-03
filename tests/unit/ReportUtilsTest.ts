@@ -19961,7 +19961,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(1)};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal);
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal, undefined);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -19975,7 +19975,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(2)};
-            const result = getChatListItemReportName(action, regularReport, conciergeReportID, translateLocal);
+            const result = getChatListItemReportName(action, regularReport, conciergeReportID, translateLocal, undefined);
             expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -19985,7 +19985,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
-            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal);
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal, undefined);
             expect(result).toBe('Custom Action Name');
         });
 
@@ -19999,7 +19999,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(4)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, translateLocal);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, translateLocal, undefined);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -20015,7 +20015,7 @@ describe('ReportUtils', () => {
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
 
             const action = {...createRandomReportAction(5)};
-            const result = getChatListItemReportName(action, invoiceReport, undefined, translateWithMarker);
+            const result = getChatListItemReportName(action, invoiceReport, undefined, translateWithMarker, undefined);
 
             expect(result).toBe('PayerOwesMarker');
         });
@@ -20030,7 +20030,7 @@ describe('ReportUtils', () => {
             };
 
             const action = {...createRandomReportAction(6)};
-            const result = getChatListItemReportName(action, invoiceReport, undefined, translateLocal);
+            const result = getChatListItemReportName(action, invoiceReport, undefined, translateLocal, undefined);
 
             expect(result).toBe('Invoice #42');
         });
@@ -20063,7 +20063,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(7)};
-                const result = getChatListItemReportName(action, invoiceReport, undefined, translateWithMarker);
+                const result = getChatListItemReportName(action, invoiceReport, undefined, translateWithMarker, undefined);
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -20078,7 +20078,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(8)};
-                const result = getChatListItemReportName(action, invoiceReport, undefined, translateWithMarker);
+                const result = getChatListItemReportName(action, invoiceReport, undefined, translateWithMarker, undefined);
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -20092,7 +20092,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(9)};
-                getChatListItemReportName(action, invoiceReport, undefined, translateWithMarker);
+                getChatListItemReportName(action, invoiceReport, undefined, translateWithMarker, undefined);
 
                 expect(invoiceReport.chatReportID).toBeUndefined();
             });
@@ -20117,7 +20117,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(10)};
-                const result = getChatListItemReportName(action, invoiceThread, undefined, translateWithMarker);
+                const result = getChatListItemReportName(action, invoiceThread, undefined, translateWithMarker, undefined);
 
                 expect(result).toBe('PayerOwesMarker');
             });
