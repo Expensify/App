@@ -43,8 +43,6 @@ Only **Workspace Admins** can turn on Submissions and choose a submission freque
    - **Manually** — Expenses are still **auto-added to a report** as they're created, but members must submit the report manually.
 5. Select **Save** to apply the frequency. Selecting a frequency updates the checkmark but does not take effect until you save.
 
-**Note:** If you choose a monthly frequency, an additional row appears for the day of the month reports are submitted. Select the row, choose a day, and select **Save** on that page, then select **Save** on the **Frequency** page to apply both.
-
 ![Submissions section in Expensify Workflows settings, showing the toggle enabled and Frequency set to By trip]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceSubmissions_ND.png){:width="100%"}
 
 ---
