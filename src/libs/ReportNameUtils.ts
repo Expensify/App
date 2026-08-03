@@ -26,6 +26,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
+import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -48,6 +49,7 @@ import {
     getCompanyCardConnectionBroken30DaysMessage,
     getCompanyCardConnectionBrokenMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    getCrossBorderReimbursedMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
@@ -188,8 +190,7 @@ type ComputeReportName = {
     currentUserAccountID?: number;
     currentUserLogin: string;
     translate: LocalizedTranslate;
-    // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
-    conciergeReportID?: string;
+    conciergeReportID: string | undefined;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     isTrackIntentUser: boolean | undefined;
 };
@@ -426,7 +427,7 @@ function getMoneyRequestReportName({
     let payerOrApproverName;
     if (isExpenseReport(report)) {
         const parentReport = getParentReport(report);
-        payerOrApproverName = getPolicyName({report: parentReport ?? report, policy});
+        payerOrApproverName = getPolicyName({report: parentReport ?? report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
     } else if (isInvoiceReport(report)) {
         const chatReport = getReportOrDraftReport(report?.chatReportID);
         payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPolicy);
@@ -738,6 +739,10 @@ function computeReportNameBasedOnReportAction(
                 return getElsewherePaymentReportActionMessage(translate, originalMessage);
             }
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+                const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits);
+                if (crossBorderMessage) {
+                    return crossBorderMessage;
+                }
                 if (originalMessage.automaticAction) {
                     return Parser.htmlToText(translate('iou.automaticallyPaidWithBusinessBankAccount', undefined, last4Digits));
                 }
@@ -862,6 +867,15 @@ function computeReportNameBasedOnReportAction(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE)) {
         return getRemoveExpensifyCardRuleMessage(translate, parentReportAction);
     }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE)) {
+        return getAddAgentRuleMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE)) {
+        return getUpdateAgentRuleMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE)) {
+        return getDeleteAgentRuleMessage(translate, parentReportAction);
+    }
     if (isPolicyCopyReportAction(parentReportAction)) {
         return Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, parentReportAction));
     }
@@ -935,6 +949,8 @@ function computeChatThreadReportName(
         const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
         const modifiedMessageWithHTML = getForReportAction({
             translate,
+            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+            convertToDisplayString,
             reportAction: parentReportAction,
             movedFromReport,
             movedToReport,
@@ -1045,8 +1061,7 @@ function computeReportName({
         return chatThreadReportName;
     }
 
-    const transactionsArray = transactions ? (Object.values(transactions).filter(Boolean) as Array<OnyxEntry<Transaction>>) : undefined;
-    if (isClosedExpenseReportWithNoExpenses(report, transactionsArray)) {
+    if (isClosedExpenseReportWithNoExpenses(report, transactions)) {
         return translate('parentReportAction.deletedReport');
     }
 

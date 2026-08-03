@@ -13,7 +13,8 @@ runs:
       run: echo "VERSION=$(jq -r '.dependencies["react-native"]' package.json)" >> "$GITHUB_OUTPUT"
 
     - name: Checkout upstream React Native prebuild files
-      uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+      # This action only runs from macOS jobs, where Blacksmith's git-mirror cache can't work (see workflows/README.md)
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         repository: facebook/react-native
         ref: v${{ steps.rnVersion.outputs.VERSION }}

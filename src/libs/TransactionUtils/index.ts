@@ -4,10 +4,12 @@ import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToBackendAmount, getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -32,8 +34,8 @@ import {
     isCurrentUserSubmitter,
     isInvoiceReport,
     isOpenExpenseReport,
+    isOpenReport,
     isProcessingReport,
-    isReportIDApproved,
     isSelfDM,
     isSettled,
     isThread,
@@ -607,16 +609,22 @@ function getUpdatedTransaction({
     isFromExpenseReport,
     shouldUpdateReceiptState = true,
     policy = undefined,
+    policies = undefined,
     isSplitTransaction = false,
     personalPolicyOutputCurrency,
+    getCurrencyDecimals,
+    getCurrencySymbol,
 }: {
     transaction: Transaction;
     transactionChanges: TransactionChanges;
     isFromExpenseReport: boolean;
     shouldUpdateReceiptState?: boolean;
     policy?: OnyxEntry<Policy>;
+    policies?: OnyxCollection<Policy>;
     isSplitTransaction?: boolean;
     personalPolicyOutputCurrency: string | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }): Transaction {
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -737,7 +745,26 @@ function getUpdatedTransaction({
             // When the waypoints are being fetched from the server, we have no information about the distance, and cannot recalculate the updated amount.
             // Otherwise, recalculate the fields based on the new rate.
 
-            const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
+            let updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
+
+            // The provided `policy` may not own the new rate, leaving the amount at 0. Fall back to
+            // resolving the rate across every policy the user belongs to.
+            if (!updatedMileageRate.rate && transactionChanges.customUnitRateID) {
+                const rateFromAnyPolicy = DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(transactionChanges.customUnitRateID, policies);
+                if (rateFromAnyPolicy?.rate) {
+                    updatedMileageRate = rateFromAnyPolicy;
+
+                    // The fallback rate wasn't known when the distance unit/quantity were set above from the
+                    // (rate-less) provided policy, so redo that conversion against the fallback rate's actual unit.
+                    if (rateFromAnyPolicy.unit && rateFromAnyPolicy.unit !== newDistanceUnit && !isOdometerDistanceRequest(transaction)) {
+                        lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', rateFromAnyPolicy.unit);
+                        const fallbackConversionFactor =
+                            newDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
+                        const currentQuantity = updatedTransaction?.comment?.customUnit?.quantity ?? 0;
+                        lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(currentQuantity * fallbackConversionFactor));
+                    }
+                }
+            }
             const {unit, rate} = updatedMileageRate;
 
             const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
@@ -785,7 +812,7 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
-        const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy);
+        const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, getCurrencyDecimals);
         if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
             updatedTransaction.taxCode = categoryTaxCode;
             updatedTransaction.taxAmount = categoryTaxAmount;
@@ -2324,6 +2351,7 @@ function getDistanceRateTaxUpdates(
     policy: OnyxEntry<Policy>,
     transaction: OnyxEntry<Transaction>,
     customUnitRateID: string,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     distanceUnit?: Unit,
 ): {taxAmount: number; taxCode: string; taxValue: string | undefined} {
     const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
@@ -2589,8 +2617,30 @@ function removeTransactionFromDuplicateTransactionViolation(
     }
 }
 
+/**
+ * Whether a report is still editable for a duplicate merge, i.e. one that Auth's MergeTransactions command would
+ * accept. A report is mergeable when it is open, awaiting first-level approval, or unresolved (unreported expenses
+ * stay editable in Auth). Anything approved, closed (Submit & Close), or reimbursed is rejected server-side.
+ */
+function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
+    return !report || isOpenReport(report) || isProcessingReport(report);
+}
+
+/**
+ * Keeps only transactions that Auth's MergeTransactions command would accept, so filtering here prevents sending a
+ * merge request that would fail server-side.
+ */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
-    return transactions.filter((transaction) => !!transaction && !isSettled(transaction?.reportID) && !isReportIDApproved(transaction?.reportID)) as Transaction[];
+    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport(transaction.reportID))) as Transaction[];
+}
+
+/**
+ * Whether a duplicate merge can be submitted. Auth's MergeTransactions rejects the merge when the kept expense's
+ * report is no longer editable or when there are no duplicates left to merge, so callers should block the request
+ * in those cases.
+ */
+function canMergeDuplicates(keptReport: OnyxEntry<Report>, transactionIDList: string[]): boolean {
+    return isReportMergeableForDuplicates(keptReport) && transactionIDList.length > 0;
 }
 
 /**
@@ -2827,7 +2877,7 @@ function buildMergeDuplicatesParams(
     };
 }
 
-function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
+function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']) {
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
     if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction)) {
         return {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
@@ -2885,6 +2935,15 @@ function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction
 
 function isSplitChildTransaction(transaction: OnyxEntry<Transaction> | Transaction): boolean {
     return transaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
+}
+
+/**
+ * The original (container) transaction of a split lives in SPLIT_REPORT_ID while the split exists, so it's
+ * hidden and has no dismiss UI of its own. Used to decide whether a split failure error on the original
+ * should be cleared alongside the visible child's error.
+ */
+function isSplitContainerTransaction(transaction: OnyxEntry<Transaction> | Transaction): boolean {
+    return transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID;
 }
 
 function hasSplitExpenseInSelection(transactions: Transaction[]): boolean {
@@ -3241,6 +3300,7 @@ export {
     getTransactionID,
     buildNewTransactionAfterReviewingDuplicates,
     buildMergeDuplicatesParams,
+    canMergeDuplicates,
     getReimbursable,
     isPayAtEndExpense,
     removeSettledAndApprovedTransactions,
@@ -3274,6 +3334,7 @@ export {
     isExpenseSplit,
     hasSplitExpenseInSelection,
     isSplitChildTransaction,
+    isSplitContainerTransaction,
     getAttendeesListDisplayString,
     isCorporateCardTransaction,
     isExpenseUnreported,

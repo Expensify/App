@@ -60,12 +60,13 @@ function useSpendOverTimeData() {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {accountID, login} = useCurrentUserPersonalDetails();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
 
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
 
-    const onConfigChanged = useEffectEvent(() => {
+    const retry = () => {
         // `search.isLoading` is persisted and may be stale after a reload. Call `search()` again and let it ignore a request that is still running.
         if (!queryJSON || isOffline) {
             return;
@@ -79,6 +80,10 @@ function useSpendOverTimeData() {
             isLoading: false,
             shouldUpdateLastSearchParams: false,
         });
+    };
+
+    const onConfigChanged = useEffectEvent(() => {
+        retry();
     });
 
     useEffect(() => {
@@ -102,7 +107,7 @@ function useSpendOverTimeData() {
                       translate,
                       formatPhoneNumber,
                       bankAccountList: undefined,
-                      conciergeReportID: undefined,
+                      conciergeReportID,
                       convertToDisplayString,
                       reportAttributesDerivedValue: undefined,
                   })[0],
@@ -123,6 +128,7 @@ function useSpendOverTimeData() {
         view,
         sortedData,
         state,
+        retry,
     };
 }
 
