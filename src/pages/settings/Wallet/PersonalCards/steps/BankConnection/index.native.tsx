@@ -45,7 +45,7 @@ function BankConnection() {
     const onImportPlaidAccounts = useImportPersonalPlaidAccounts();
     const newCard = useGetNewPersonalCard();
     const isNewCardError = !isEmptyObject(addNewCard?.errors);
-    const webViewReasonAttributes: SkeletonSpanReasonAttributes = {
+    const fullscreenReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'PersonalCardBankConnection',
     };
     const activityReasonAttributes: SkeletonSpanReasonAttributes = {
@@ -56,10 +56,7 @@ function BankConnection() {
     };
 
     const renderLoading = () => (
-        <LoadingIndicator
-            style={styles.flex1}
-            reasonAttributes={webViewReasonAttributes}
-        />
+        <LoadingIndicator reasonAttributes={fullscreenReasonAttributes} />
     );
 
     const handleBackButtonPress = () => {
