@@ -195,6 +195,7 @@ describe('actions/IOU', () => {
             let transactionThreadCreatedAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -456,6 +457,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     requestMoney({
+                        conciergeChat: undefined,
                         report: chatReport,
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
@@ -688,6 +690,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
@@ -855,6 +858,7 @@ describe('actions/IOU', () => {
             let transactionThreadAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1374,6 +1378,7 @@ describe('actions/IOU', () => {
 
         it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1409,6 +1414,7 @@ describe('actions/IOU', () => {
 
         it('trigger notifyNewAction when doing the money request in a chat report', () => {
             requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: '123'},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1444,6 +1450,7 @@ describe('actions/IOU', () => {
 
         it('should pass isSelfTourViewed true to the request when user has viewed the tour', () => {
             const {iouReport} = requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1497,6 +1504,7 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
 
             requestMoney({
+                conciergeChat: undefined,
                 report: expenseReport,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1544,6 +1552,7 @@ describe('actions/IOU', () => {
             expect(nonReimbursableTotal).toBe(0);
 
             requestMoney({
+                conciergeChat: undefined,
                 report: expenseReport,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1616,6 +1625,7 @@ describe('actions/IOU', () => {
 
             // When requesting money
             requestMoney({
+                conciergeChat: undefined,
                 report: expenseReport,
                 existingIOUReport: expenseReport,
                 participantParams: {
@@ -1690,6 +1700,7 @@ describe('actions/IOU', () => {
             const merchant = 'Test Store';
 
             const {iouReport} = requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1766,6 +1777,7 @@ describe('actions/IOU', () => {
 
             const amount = 10000;
             const {iouReport} = requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1813,6 +1825,7 @@ describe('actions/IOU', () => {
             const amount = 2500;
 
             const {iouReport} = requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1971,6 +1984,7 @@ describe('actions/IOU', () => {
 
             // When: submitting the tracked expense to another user
             const {iouReport} = requestMoney({
+                conciergeChat: undefined,
                 action: CONST.IOU.ACTION.SUBMIT,
                 report: chatReport,
                 participantParams: {
@@ -2052,6 +2066,7 @@ describe('actions/IOU', () => {
                     // Request money from CARLOS, but pass the existing chat report with JULES
                     // This simulates the scenario where submit frequency is disabled and user selects a different participant
                     requestMoney({
+                        conciergeChat: undefined,
                         report: existingChatReport,
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
@@ -2141,6 +2156,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // Request money from CARLOS with matching chat report
                     requestMoney({
+                        conciergeChat: undefined,
                         report: existingChatReport,
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
@@ -2221,6 +2237,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // Request money with isPolicyExpenseChat: true - should skip participant validation
                     requestMoney({
+                        conciergeChat: undefined,
                         report: policyExpenseChatReport,
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
@@ -2296,6 +2313,7 @@ describe('actions/IOU', () => {
                     // Request money from CARLOS but passing a policy expense chat report with different participants (JULES)
                     // Since the chatReport is a policy expense chat, participant validation should be skipped
                     requestMoney({
+                        conciergeChat: undefined,
                         report: policyExpenseChatReport,
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
@@ -2371,6 +2389,7 @@ describe('actions/IOU', () => {
                     // Track expense in self-DM with accountID: 0 (as getMoneyRequestParticipantsFromReport does)
                     // This simulates the scenario where user starts an expense from "Your Space"
                     requestMoney({
+                        conciergeChat: undefined,
                         report: selfDMReport,
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
@@ -2445,6 +2464,7 @@ describe('actions/IOU', () => {
                 mockFetch?.pause?.();
 
                 requestMoney({
+                    conciergeChat: undefined,
                     report: {reportID: ''},
                     participantParams: {
                         payeeEmail: RORY_EMAIL,
@@ -2499,6 +2519,58 @@ describe('actions/IOU', () => {
                 await mockFetch?.resume?.();
             });
         });
+
+        describe('conciergeChat forwarding', () => {
+            it('threads the conciergeChat report into prepareOnboardingOnyxData for test drive expenses', async () => {
+                const prepareOnboardingOnyxDataSpy = jest.spyOn(require('@libs/ReportUtils'), 'prepareOnboardingOnyxData');
+                const conciergeChat = {reportID: 'concierge-test-drive-1'};
+                mockFetch?.pause?.();
+
+                requestMoney({
+                    conciergeChat,
+                    report: {reportID: ''},
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                    },
+                    transactionParams: {
+                        amount: 10000,
+                        attendees: [],
+                        currency: CONST.CURRENCY.USD,
+                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                        merchant: 'Test',
+                        comment: 'test drive concierge test',
+                        isTestDrive: true,
+                    },
+                    shouldGenerateTransactionThreadReport: true,
+                    isASAPSubmitBetaEnabled: false,
+                    transactionViolations: {},
+                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                    currentUserEmailParam: RORY_EMAIL,
+                    policyRecentlyUsedCurrencies: [],
+                    existingTransactionDraft: undefined,
+                    draftTransactionIDs: [],
+                    isSelfTourViewed: false,
+                    quickAction: undefined,
+                    betas: [CONST.BETAS.ALL],
+                    personalDetails: {},
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
+                });
+                await waitForBatchedUpdates();
+
+                expect(prepareOnboardingOnyxDataSpy).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        conciergeChat,
+                        engagementChoice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER,
+                    }),
+                );
+
+                await mockFetch?.resume?.();
+                prepareOnboardingOnyxDataSpy.mockRestore();
+            });
+        });
     });
 
     describe('should have valid parameters', () => {
@@ -2519,6 +2591,7 @@ describe('actions/IOU', () => {
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
             // When an expense is created
             requestMoney({
+                conciergeChat: undefined,
                 action,
                 report: {reportID: ''},
                 participantParams: {
@@ -2586,6 +2659,7 @@ describe('actions/IOU', () => {
 
             // When the expense is submitted
             requestMoney({
+                conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -2651,6 +2725,7 @@ describe('actions/IOU', () => {
             const getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue(currentSearchQueryJSON);
 
             requestMoney({
+                conciergeChat: undefined,
                 action: CONST.IOU.ACTION.CREATE,
                 report: {reportID: ''},
                 participantParams: {

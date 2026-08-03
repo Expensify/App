@@ -2186,6 +2186,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            conciergeChat: undefined,
             report: chatReport,
             betas: [CONST.BETAS.ALL],
             participantParams: {
@@ -2416,6 +2417,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            conciergeChat: undefined,
             report: chatReport,
             betas: [CONST.BETAS.ALL],
             participantParams: {
@@ -3674,6 +3676,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            conciergeChat: undefined,
             report: chatReport,
             betas: [CONST.BETAS.ALL],
             participantParams: {
@@ -4258,6 +4261,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
         requestMoney({
+            conciergeChat: undefined,
             report: chatReport,
             participantParams: {
                 payeeEmail: RORY_EMAIL,
@@ -4438,6 +4442,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
         requestMoney({
+            conciergeChat: undefined,
             report: chatReport,
             participantParams: {
                 payeeEmail: CARLOS_EMAIL,
@@ -4623,6 +4628,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            conciergeChat: undefined,
             report: chatReport,
             participantParams: {
                 payeeEmail: RORY_EMAIL,
@@ -4818,6 +4824,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Create the initial expense
         requestMoney({
+            conciergeChat: undefined,
             report: chatReport,
             participantParams: {
                 payeeEmail: RORY_EMAIL,
@@ -5083,6 +5090,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            conciergeChat: undefined,
             report: chatReport,
             participantParams: {
                 payeeEmail: RORY_EMAIL,
@@ -5220,6 +5228,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            conciergeChat: undefined,
             report: chatReport,
             participantParams: {
                 payeeEmail: RORY_EMAIL,
@@ -5359,6 +5368,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            conciergeChat: undefined,
             report: chatReport,
             participantParams: {
                 payeeEmail: RORY_EMAIL,
@@ -5508,6 +5518,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            conciergeChat: undefined,
             report: chatReport,
             participantParams: {
                 payeeEmail: RORY_EMAIL,

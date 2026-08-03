@@ -594,6 +594,7 @@ describe('actions/Transaction', () => {
                     },
                 });
                 requestMoney({
+                    conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: RORY_EMAIL,
@@ -774,6 +775,7 @@ describe('actions/Transaction', () => {
                     },
                 });
                 requestMoney({
+                    conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: CARLOS_EMAIL,
@@ -959,6 +961,7 @@ describe('actions/Transaction', () => {
                 });
 
                 requestMoney({
+                    conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: RORY_EMAIL,
@@ -1154,6 +1157,7 @@ describe('actions/Transaction', () => {
 
                 // Create the initial expense
                 requestMoney({
+                    conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: RORY_EMAIL,

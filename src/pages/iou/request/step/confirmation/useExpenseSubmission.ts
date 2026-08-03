@@ -534,6 +534,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 existingTransactionDraft,
                 draftTransactionIDs,
                 isSelfTourViewed,
+                conciergeChat,
                 betas,
                 personalDetails,
                 isTrackIntentUser,
