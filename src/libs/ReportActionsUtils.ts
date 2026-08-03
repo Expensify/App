@@ -55,7 +55,13 @@ import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils
 
 import {getBankName, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayStringWithExplicitCurrency, convertToShortDisplayString} from './CurrencyUtils';
+import {
+    convertAmountToDisplayString,
+    convertToBackendAmount,
+    convertToDisplayString as convertToDisplayStringUtil,
+    convertToDisplayStringWithExplicitCurrency,
+    convertToShortDisplayString,
+} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
@@ -491,7 +497,7 @@ function getCrossBorderReimbursedMessage(
     }
 
     return translate('iou.reimbursedCrossBorder', {
-        amount: convertToDisplayString(creditedAmount, creditedCurrency),
+        amount: convertToDisplayStringUtil(creditedAmount, creditedCurrency),
         debitBankAccount: originalMessage.debitBankAccountLast4 ?? fallbackDebitBankAccountLast4 ?? '',
         creditBankAccount: originalMessage.creditBankAccountLast4 ?? '',
     });
