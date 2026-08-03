@@ -165,7 +165,7 @@ describe('actions/IOU/Receipt', () => {
             const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: {source: 'original.jpg'}});
 
             // When replaceReceipt is called without a file
-            replaceReceipt({transaction, file: undefined, source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+            replaceReceipt({transaction, file: undefined, source, transactionPolicy: undefined, transactionPolicyTagList: undefined, transactionReport: undefined});
             await waitForBatchedUpdates();
 
             // Then the receipt source remains unchanged
@@ -178,7 +178,7 @@ describe('actions/IOU/Receipt', () => {
             const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: {source: 'test1'}});
 
             // When replaceReceipt is called with a new file
-            replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+            replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined, transactionReport: undefined});
             await waitForBatchedUpdates();
 
             // Then both the transaction and its snapshot entry reflect the new receipt
@@ -196,7 +196,15 @@ describe('actions/IOU/Receipt', () => {
             const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: {source: 'test1', state: CONST.IOU.RECEIPT_STATE.SCAN_READY}});
 
             // When replaceReceipt is called with the same state explicitly passed
-            replaceReceipt({transaction, file: createFile(), source, state: CONST.IOU.RECEIPT_STATE.SCAN_READY, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+            replaceReceipt({
+                transaction,
+                file: createFile(),
+                source,
+                state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                transactionPolicy: undefined,
+                transactionPolicyTagList: undefined,
+                transactionReport: undefined,
+            });
             await waitForBatchedUpdates();
 
             // Then the new receipt retains the provided state instead of falling back to OPEN
@@ -214,7 +222,7 @@ describe('actions/IOU/Receipt', () => {
             const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: null});
 
             // When replaceReceipt is called
-            replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+            replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined, transactionReport: undefined});
             await waitForBatchedUpdates();
 
             // Then the receipt is created with the new source on both the transaction and snapshot
@@ -234,7 +242,7 @@ describe('actions/IOU/Receipt', () => {
 
             try {
                 // When replaceReceipt is called
-                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined, transactionReport: undefined});
                 await waitForBatchedUpdates();
 
                 // Then the optimisticData marks the receipt field as pending UPDATE
@@ -258,7 +266,7 @@ describe('actions/IOU/Receipt', () => {
 
             try {
                 // When replaceReceipt is called
-                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined, transactionReport: undefined});
                 await waitForBatchedUpdates();
 
                 // Then API.write is invoked with the REPLACE_RECEIPT command and the correct transactionID
@@ -296,7 +304,7 @@ describe('actions/IOU/Receipt', () => {
             await waitForBatchedUpdates();
 
             // When replaceReceipt is called with the paid group policy
-            replaceReceipt({transaction, file: createFile(), source, transactionPolicy: policy, transactionPolicyTagList: undefined});
+            replaceReceipt({transaction, file: createFile(), source, transactionPolicy: policy, transactionPolicyTagList: undefined, transactionReport: undefined});
             await waitForBatchedUpdates();
 
             // Then transaction violations are computed and stored
@@ -312,7 +320,7 @@ describe('actions/IOU/Receipt', () => {
 
             try {
                 // When replaceReceipt is called
-                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined, transactionReport: undefined});
                 await waitForBatchedUpdates();
 
                 // Then the failureData restores the original receipt, clears pendingFields, and attaches errors
@@ -337,7 +345,7 @@ describe('actions/IOU/Receipt', () => {
 
             try {
                 // When replaceReceipt is called
-                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined, transactionReport: undefined});
                 await waitForBatchedUpdates();
 
                 // Then the failureData sets receipt to null since there was nothing to restore
@@ -361,7 +369,7 @@ describe('actions/IOU/Receipt', () => {
 
             try {
                 // When replaceReceipt is called
-                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined, transactionReport: undefined});
                 await waitForBatchedUpdates();
 
                 // Then the successData clears the pending field for the receipt
@@ -383,7 +391,7 @@ describe('actions/IOU/Receipt', () => {
 
             try {
                 // When replaceReceipt is called
-                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined, transactionReport: undefined});
                 await waitForBatchedUpdates();
 
                 // Then no snapshot updates are included in either optimisticData or failureData
@@ -404,7 +412,7 @@ describe('actions/IOU/Receipt', () => {
 
             try {
                 // When replaceReceipt is called
-                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined, transactionReport: undefined});
                 await waitForBatchedUpdates();
 
                 // Then the failureData restores the original receipt inside the snapshot entry
@@ -431,6 +439,7 @@ describe('actions/IOU/Receipt', () => {
                     state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
                     transactionPolicy: undefined,
                     transactionPolicyTagList: undefined,
+                    transactionReport: undefined,
                     isSameReceipt: true,
                 });
                 await waitForBatchedUpdates();
@@ -481,7 +490,15 @@ describe('actions/IOU/Receipt', () => {
             // When replaceReceipt is called with the paid group policy
             const writeSpy = mockApiWrite();
             try {
-                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: policy, transactionPolicyTagList: undefined, transactionViolations: existingViolations});
+                replaceReceipt({
+                    transaction,
+                    file: createFile(),
+                    source,
+                    transactionPolicy: policy,
+                    transactionPolicyTagList: undefined,
+                    transactionReport: undefined,
+                    transactionViolations: existingViolations,
+                });
                 await waitForBatchedUpdates();
 
                 // Then the failureData restores the original violations
@@ -535,7 +552,7 @@ describe('actions/IOU/Receipt', () => {
         it('should do nothing when transactionID is undefined', async () => {
             const transactionsBefore = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
 
-            detachReceipt(undefined, undefined, undefined, undefined);
+            detachReceipt(undefined, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             const transactionsAfter = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -548,7 +565,7 @@ describe('actions/IOU/Receipt', () => {
             await seedOnyx();
 
             try {
-                detachReceipt(transaction, undefined, undefined, undefined);
+                detachReceipt(transaction, undefined, undefined, undefined, undefined);
                 await waitForBatchedUpdates();
 
                 const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {optimisticData?: Array<{key: string; value: unknown}>};
@@ -567,7 +584,7 @@ describe('actions/IOU/Receipt', () => {
         it('should create an optimistic report action and update report timestamps', async () => {
             await seedOnyx();
 
-            detachReceipt(transaction, undefined, undefined, undefined);
+            detachReceipt(transaction, undefined, undefined, undefined, report);
             await waitForBatchedUpdates();
 
             // Then a new report action should be created on the report
@@ -586,7 +603,7 @@ describe('actions/IOU/Receipt', () => {
             await seedOnyx();
 
             try {
-                detachReceipt(transaction, undefined, undefined, undefined);
+                detachReceipt(transaction, undefined, undefined, undefined, undefined);
                 await waitForBatchedUpdates();
 
                 expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DETACH_RECEIPT, expect.objectContaining({transactionID}), expect.anything(), expect.anything());
@@ -598,7 +615,7 @@ describe('actions/IOU/Receipt', () => {
         it('should compute violations when policy is paid group', async () => {
             await seedOnyx();
 
-            detachReceipt(transaction, policy, policyTagList, undefined);
+            detachReceipt(transaction, policy, policyTagList, undefined, undefined);
             await waitForBatchedUpdates();
 
             const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);

@@ -3886,6 +3886,22 @@ describe('ReportUtils', () => {
             expect(result).toBe('Your space');
         });
 
+        it('should return the Concierge subtitle only when the threaded conciergeReportID matches the report', () => {
+            const report = {
+                ...createRandomReport(2, undefined),
+                reportID: 'concierge-subtitle-1',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            // When the threaded conciergeReportID matches the report
+            const conciergeSubtitle = getChatRoomSubtitle(report, undefined, report.reportID, translateLocal);
+            expect(conciergeSubtitle).toBe(translateLocal('reportActionsView.conciergeSupport'));
+
+            // And an identical report with a non-matching conciergeReportID is not treated as Concierge
+            const regularSubtitle = getChatRoomSubtitle(report, undefined, 'a-different-report-id', translateLocal);
+            expect(regularSubtitle).not.toBe(translateLocal('reportActionsView.conciergeSupport'));
+        });
+
         it('should return "Invoices" for invoice room', () => {
             const report = createInvoiceRoom(1);
             const result = getChatRoomSubtitle(report, policy, undefined, translateLocal);
@@ -17841,6 +17857,7 @@ describe('ReportUtils', () => {
 
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: '1',
+                reportActions: undefined,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: '1',
                 introSelected: undefined,
@@ -17883,6 +17900,7 @@ describe('ReportUtils', () => {
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with the restricted policy
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: '1',
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
@@ -17923,6 +17941,7 @@ describe('ReportUtils', () => {
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: '1',
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
@@ -17966,6 +17985,7 @@ describe('ReportUtils', () => {
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: '1',
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
@@ -18011,6 +18031,7 @@ describe('ReportUtils', () => {
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: '2',
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '2',
                     introSelected: undefined,
@@ -18043,6 +18064,7 @@ describe('ReportUtils', () => {
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: '1',
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
@@ -18096,6 +18118,7 @@ describe('ReportUtils', () => {
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: '1',
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
@@ -18145,6 +18168,7 @@ describe('ReportUtils', () => {
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: '1',
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
@@ -18193,6 +18217,7 @@ describe('ReportUtils', () => {
                 // When we call with amountOwed = 0
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: '1',
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
@@ -18234,6 +18259,7 @@ describe('ReportUtils', () => {
                 // When we call with amountOwed = 50
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: '1',
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
@@ -18277,6 +18303,7 @@ describe('ReportUtils', () => {
                 // When we pass the policy via policies param with no activePolicy
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: '1',
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.CATEGORIZE,
                     reportActionID: '1',
                     introSelected: undefined,
@@ -18315,6 +18342,7 @@ describe('ReportUtils', () => {
                 // When we call with SUBMIT action and policies containing a valid policy
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: '1',
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.SUBMIT,
                     reportActionID: '1',
                     introSelected: undefined,
@@ -18346,6 +18374,7 @@ describe('ReportUtils', () => {
                 // When we call with a non-SUBMIT, non-CATEGORIZE, non-SHARE action and empty policies
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: '1',
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.SUBMIT,
                     reportActionID: '1',
                     introSelected: undefined,

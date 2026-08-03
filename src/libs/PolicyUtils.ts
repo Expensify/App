@@ -1446,13 +1446,17 @@ function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
 /**
  * Collect workspaces can access a limited subset of Rules features. When a Collect admin tries to
  * access a Control-only Rules feature, navigate to the upgrade flow and return true.
+ *
+ * @param shouldReplace - Replace the current screen instead of pushing the upgrade page on top of it. Use this when
+ * the redirect happens from the Control-only page itself, so pressing Back doesn't land back on a page Collect
+ * can't use. Press handlers on a page Collect *can* use should keep the default push.
  */
-function tryNavigateToControlPolicyUpgrade(policy: OnyxEntry<Policy>, upgradeFeatureAlias: string, backTo?: string): boolean {
+function tryNavigateToControlPolicyUpgrade(policy: OnyxEntry<Policy>, upgradeFeatureAlias: string, backTo?: string, shouldReplace = false): boolean {
     if (!policy?.id || isControlPolicy(policy) || !isCollectPolicy(policy)) {
         return false;
     }
 
-    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy.id, upgradeFeatureAlias, backTo ?? ROUTES.WORKSPACE_RULES.getRoute(policy.id)));
+    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy.id, upgradeFeatureAlias, backTo ?? ROUTES.WORKSPACE_RULES.getRoute(policy.id)), {forceReplace: shouldReplace});
     return true;
 }
 
