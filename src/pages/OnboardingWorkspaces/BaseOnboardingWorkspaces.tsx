@@ -177,7 +177,15 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             return;
         }
 
-        finishOnboarding(defaultPolicy as unknown as JoinablePolicy);
+        finishOnboarding({
+            policyID: defaultPolicy.id,
+            policyName: defaultPolicy.name,
+            policyOwner: defaultPolicy.owner,
+            employeeCount: 0,
+            hasPendingAccess: false,
+            automaticJoiningEnabled: false,
+            policyType: defaultPolicy.type,
+        });
     }, [isLoadingJoinablePolicies, joinablePoliciesLoading, joinablePoliciesLength, defaultPolicy, finishOnboarding]);
 
     const skipJoiningWorkspaces = () => {
@@ -213,7 +221,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 onSelectRow={() => {}}
                 ListItem={BareUserListItem}
                 style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}}
-                shouldShowLoadingPlaceholder={isLoadingJoinablePolicies || joinablePoliciesLoading || policyIDItems.length === 0}
+                shouldShowLoadingPlaceholder={isLoadingJoinablePolicies || !!joinablePoliciesLoading || policyIDItems.length === 0}
                 shouldStopPropagation
                 showScrollIndicator
                 customListHeader={
