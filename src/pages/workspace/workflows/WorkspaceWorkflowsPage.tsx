@@ -70,6 +70,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import {
     convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
+    filterRulesForPolicy,
     getApprovalWorkflowRulesForPolicy,
     getEligibleExistingBusinessBankAccounts,
     INITIAL_APPROVAL_WORKFLOW,
@@ -93,7 +94,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type Rule from '@src/types/onyx/Rule';
 
+import type {OnyxCollection} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -200,7 +203,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {accountID: currentUserAccountID, email: currentUserEmail = '', login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const isUserReimburser = account?.primaryLogin !== undefined && (policy?.achAccount?.reimburser ?? policy?.owner) === account?.primaryLogin;
     const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
-    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const policyRulesSelector = useCallback((rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, route.params.policyID), [route.params.policyID]);
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector});
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(() => {
         const params = {
             policy,

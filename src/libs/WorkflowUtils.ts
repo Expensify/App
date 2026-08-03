@@ -1388,6 +1388,26 @@ function getSubmitterRuleIDs(submitter: string, rules: Record<string, ApprovalWo
 }
 
 /**
+ * Keep only the rules belonging to `policyID`, preserving the collection shape so the result can still be
+ * handed to anything that takes the whole rules collection.
+ */
+function filterRulesForPolicy(rulesCollection: OnyxCollection<Rule>, policyID: string | undefined): NonNullable<OnyxCollection<Rule>> {
+    const result: NonNullable<OnyxCollection<Rule>> = {};
+    if (!rulesCollection || !policyID) {
+        return result;
+    }
+
+    for (const [onyxKey, rule] of Object.entries(rulesCollection)) {
+        if (rule?.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policyID) {
+            continue;
+        }
+        result[onyxKey] = rule;
+    }
+
+    return result;
+}
+
+/**
  * Convert the `ONYXKEYS.COLLECTION.RULE` collection into the `ruleID -> rule body` map used by the
  * builder, reconcilers and converters, keeping only non-deleted rules scoped to `policyID`.
  */
@@ -1613,6 +1633,7 @@ export {
     extractSubmitterEmails,
     getApprovalLimitDescription,
     getApprovalWorkflowRulesForPolicy,
+    filterRulesForPolicy,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,

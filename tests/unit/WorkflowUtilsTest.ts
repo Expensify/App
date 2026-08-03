@@ -10,6 +10,7 @@ import {
     convertApprovalWorkflowToPolicyEmployees,
     convertPolicyEmployeesToApprovalWorkflows,
     extractSubmitterEmails,
+    filterRulesForPolicy,
     getApprovalLimitDescription,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
@@ -31,6 +32,7 @@ import type {BankAccountList} from '@src/types/onyx/BankAccount';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
+import type Rule from '@src/types/onyx/Rule';
 
 import createRandomPolicy from '../utils/collections/policies';
 import {buildPersonalDetails, convertToDisplayString, localeCompare, translateLocal} from '../utils/TestHelper';
@@ -2013,6 +2015,36 @@ describe('WorkflowUtils', () => {
                         .sort(),
                 ).toEqual(['2@example.com', '3@example.com', '4@example.com']);
             });
+        });
+    });
+
+    describe('filterRulesForPolicy', () => {
+        const ruleForPolicy = (scopeID: string, extra: Partial<Rule> = {}): Rule => ({
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID,
+            triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+            filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
+            actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'b@example.com'}},
+            ...extra,
+        });
+
+        it('keeps only the rules scoped to the given policy, preserving the collection keys', () => {
+            const mine = ruleForPolicy('policy1');
+            const collection = {rules_1: mine, rules_2: ruleForPolicy('policy2')};
+
+            // The value is passed through by reference so callers still see the full rule.
+            expect(filterRulesForPolicy(collection, 'policy1')).toEqual({rules_1: mine});
+        });
+
+        it('keeps rules pending deletion, leaving that decision to the caller', () => {
+            const pendingDelete = ruleForPolicy('policy1', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+            expect(filterRulesForPolicy({rules_1: pendingDelete}, 'policy1')).toEqual({rules_1: pendingDelete});
+        });
+
+        it('returns an empty collection when there is no policy or no rules', () => {
+            expect(filterRulesForPolicy({rules_1: ruleForPolicy('policy1')}, undefined)).toEqual({});
+            expect(filterRulesForPolicy(undefined, 'policy1')).toEqual({});
         });
     });
 });
