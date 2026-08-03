@@ -34,7 +34,7 @@ export default Repack.defineRspackConfig((env) => {
                 path.resolve(projectRoot, 'babel.config.js'),
                 path.resolve(projectRoot, 'config/babel/reactCompilerConfig.js'),
                 path.resolve(projectRoot, 'config/repack/rspack.config.mjs'),
-                path.resolve(projectRoot, 'config/repack/swc-lazy-imports-loader.mjs'),
+                path.resolve(projectRoot, 'config/repack/cjs-inline-requires-loader.mjs'),
                 path.resolve(projectRoot, 'config/repack/expoVirtualEnv.ts'),
                 path.resolve(projectRoot, 'config/rsbuild/loaders/fullstory-annotation-loader.mjs'),
                 path.resolve(projectRoot, 'config/rsbuild/loaders/oxc-react-compiler-loader.mjs'),
@@ -76,13 +76,13 @@ export default Repack.defineRspackConfig((env) => {
             rules: [
                 // App source: the web build's OXC pipeline (config/rsbuild/loaders), so React Compiler
                 // runs through the same Rust compiler on both platforms. Loaders run bottom-up:
-                // fullstory (needs JSX) → oxc → worklets → lazy-CJS lowering.
+                // fullstory (needs JSX) → oxc → worklets → CJS lowering with inlined requires.
                 {
                     test: /\.[cm]?[jt]sx?$/,
                     include: [path.resolve(projectRoot, 'src')],
                     type: 'javascript/auto',
                     use: [
-                        {loader: path.resolve(__dirname, './swc-lazy-imports-loader.mjs')},
+                        {loader: path.resolve(__dirname, './cjs-inline-requires-loader.mjs')},
                         {loader: path.resolve(__dirname, '../rsbuild/loaders/worklets-loader.mjs')},
                         {
                             loader: path.resolve(__dirname, '../rsbuild/loaders/oxc-react-compiler-loader.mjs'),

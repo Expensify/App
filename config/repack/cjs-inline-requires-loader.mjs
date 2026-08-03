@@ -1,0 +1,124 @@
+/**
+ * Lowers ES modules to CommonJS and defers each `require()` to its first use site — the same
+ * import-cycle tolerance Metro gets from `inlineRequires` (see metro.config.js), which this app
+ * relies on to boot.
+ *
+ * Uses Metro's own `inlineRequiresPlugin` rather than SWC's `module.lazy`. Both defer evaluation,
+ * but SWC's lazy mode emits a memoizing wrapper function per imported module, and at this app's
+ * import volume that is expensive: it added ~103k function declarations to the bundle. Inlining
+ * the require at the use site defers identically and emits no wrapper.
+ *
+ * Measured on iOS, production-minified, against the Metro build of the same tree:
+ *   SWC module.lazy    50.22MB HBC (+20.69% vs Metro), 176,816 functions
+ *   this loader        43.43MB HBC  (+4.37% vs Metro),  83,639 functions
+ * Both defer ~100% of imports. Metro reaches full deferral more cheaply because its
+ * `_$$_IMPORT_DEFAULT('x')` helper resolves the module id at runtime, which webpack cannot do.
+ *
+ * Needed as a separate stage because OXC transpiles only and has no CJS lowering.
+ */
+import babel from '@babel/core';
+import remapping from '@jridgewell/remapping';
+import {rspack} from '@rspack/core';
+// CommonJS with lazy getters, so named ESM imports are not statically detectable.
+import metroTransformPlugins from 'metro-transform-plugins';
+
+const {inlineRequiresPlugin} = metroTransformPlugins;
+
+/** SWC's interop wrappers for `import x from` and `import * as x from`. */
+const INTEROP_HELPERS = new Set(['_interop_require_default', '_interop_require_wildcard']);
+
+/**
+ * Extends inline-requires to SWC's interop-wrapped imports, which Metro's plugin alone cannot
+ * defer: it requires `arguments[0]` to be a string literal (SWC passes a `require()` call) and
+ * rejects callees that have a local binding (SWC declares the helper in-file). Without this,
+ * default and namespace imports stay hoisted and eager — about half of all imports here, and
+ * exactly the cycle tolerance the loader exists to provide.
+ *
+ * Metro sidesteps the problem with a global `_$$_IMPORT_DEFAULT('x')` helper that resolves the
+ * module id at runtime. That is not portable to webpack, which must see a literal `require('x')`
+ * to add the module to the graph at all. So instead of hoisting the helper, we inline the whole
+ * initializer — interop call and literal require together — down to each use site.
+ *
+ * Repeating the interop call per use site is cheap: `_interop_require_wildcard` early-returns for
+ * `__esModule` objects and memoizes the rest in a WeakMap, and `_interop_require_default` is a
+ * single object literal on the non-ESM path.
+ */
+function inlineInteropRequiresPlugin({types: t}) {
+    const isInteropRequire = (node) =>
+        t.isCallExpression(node) &&
+        t.isIdentifier(node.callee) &&
+        INTEROP_HELPERS.has(node.callee.name) &&
+        node.arguments.length >= 1 &&
+        t.isCallExpression(node.arguments[0]) &&
+        t.isIdentifier(node.arguments[0].callee, {name: 'require'}) &&
+        node.arguments[0].arguments.length === 1 &&
+        t.isStringLiteral(node.arguments[0].arguments[0]);
+
+    return {
+        visitor: {
+            Program(programPath) {
+                for (const binding of Object.values(programPath.scope.bindings)) {
+                    if (!binding.path.isVariableDeclarator() || !isInteropRequire(binding.path.node.init)) {
+                        continue;
+                    }
+                    // Reassignment would make the inlined copies diverge from the original binding.
+                    if (!binding.constant) {
+                        continue;
+                    }
+                    // With no references there is nothing to inline into, and dropping the
+                    // declaration would stop the module loading at all - side-effect imports rely
+                    // on it. Metro's plugin does remove these; staying conservative here.
+                    if (binding.referencePaths.length === 0) {
+                        continue;
+                    }
+                    for (const reference of binding.referencePaths) {
+                        reference.replaceWith(t.cloneNode(binding.path.node.init, true));
+                    }
+                    binding.path.remove();
+                }
+            },
+        },
+    };
+}
+
+export default async function cjsInlineRequiresLoader(source, inputSourceMap) {
+    const callback = this.async();
+    try {
+        const sourceMaps = !!this.sourceMap;
+
+        const swcResult = await rspack.experiments.swc.transform(source, {
+            filename: this.resourcePath,
+            isModule: true,
+            env: {
+                targets: {node: 24},
+                include: ['transform-block-scoping'],
+            },
+            module: {type: 'commonjs', lazy: false},
+            sourceMaps,
+            inputSourceMap: inputSourceMap ? JSON.stringify(inputSourceMap) : undefined,
+        });
+
+        const babelResult = await babel.transformAsync(swcResult.code, {
+            babelrc: false,
+            configFile: false,
+            filename: this.resourcePath,
+            // Interop-wrapped imports first, then Metro's plugin for the bare `require` form.
+            plugins: [inlineInteropRequiresPlugin, inlineRequiresPlugin],
+            sourceMaps,
+            // The minifier handles formatting; keeping newlines makes build output readable.
+            compact: false,
+        });
+
+        if (!sourceMaps || !babelResult.map) {
+            callback(null, babelResult.code);
+            return;
+        }
+
+        // swcResult.map already folds in inputSourceMap (passed above), so composing the Babel map
+        // onto it is enough to keep stack traces pointing at original sources.
+        const map = swcResult.map ? remapping([babelResult.map, swcResult.map], () => null) : babelResult.map;
+        callback(null, babelResult.code, map);
+    } catch (error) {
+        callback(error);
+    }
+}
