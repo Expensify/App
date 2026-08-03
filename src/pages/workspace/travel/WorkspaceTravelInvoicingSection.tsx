@@ -161,7 +161,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const isOnWaitlist = !!cardOnWaitlist;
     const isLoading = !!cardSettings?.isLoading;
     const hasOutstandingBalance = hasOutstandingTravelBalance(travelSettings);
-    const hasTravelProvisioningErrors = isTravelInvoicingEnabled && !!domainMemberData?.settings?.travelInvoicing?.errors?.length;
+    const travelProvisioningErrors = domainMemberData?.settings?.travelInvoicing?.errors;
+    const hasTravelProvisioningErrors = isTravelInvoicingEnabled && !!travelProvisioningErrors && Object.keys(travelProvisioningErrors).length > 0;
 
     /**
      * Opens the pay balance confirmation modal.
@@ -329,7 +330,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     <FormHelpMessageRowWithRetryButton
                         message={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.provisioningError')}
                         size={CONST.BUTTON_SIZE.SMALL}
-                        onRetry={() => retryTravelCardsProvisioning(policyID, workspaceAccountID, domainMemberData?.settings?.travelInvoicing?.errors ?? [])}
+                        onRetry={() => retryTravelCardsProvisioning(policyID, workspaceAccountID, travelProvisioningErrors ?? {})}
                         variant={CONST.BUTTON_VARIANT.DANGER}
                         shouldAlignButtonToMessage
                     />

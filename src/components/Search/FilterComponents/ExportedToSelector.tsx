@@ -129,6 +129,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
             value={selectedExportedTo}
             items={sortedExportedToPickerOptions}
             isSearchable={exportedToPickerOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            isNegatable
             autoFocus={autoFocus}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
