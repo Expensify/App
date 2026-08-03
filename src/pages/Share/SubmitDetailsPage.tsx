@@ -461,7 +461,7 @@ function SubmitDetailsPage({
                     optimisticTransactionID,
                     isTrackIntentUser,
                     delegateAccountID,
-                    optimisticChatReportID: reportOrAccountID,
+                    optimisticChatReportID: routeReportID,
                 });
             }
         };
@@ -472,7 +472,7 @@ function SubmitDetailsPage({
             draftTransactionIDs,
             transactionID: optimisticTransactionID,
             isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-            optimisticChatReportID: reportOrAccountID,
+            optimisticChatReportID: routeReportID,
             navigationReportID: postSubmitNavigationReportID,
             linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
         };
