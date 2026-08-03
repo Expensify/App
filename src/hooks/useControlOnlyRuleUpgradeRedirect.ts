@@ -41,9 +41,7 @@ function useControlOnlyRuleUpgradeRedirect(policyID: string, backTo?: Route) {
 
         // Replace rather than push: Back from the upgrade page must not land on a page Collect can't use.
         hasRedirectedToUpgrade.current = tryNavigateToControlPolicyUpgrade(policy, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, upgradeBackTo, true);
-        // `policy` changes identity on unrelated writes, so gate on the derived flags instead.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isCollect, isRulesFeatureEnabled, upgradeBackTo]);
+    }, [isCollect, isRulesFeatureEnabled, policy, upgradeBackTo]);
 }
 
 export default useControlOnlyRuleUpgradeRedirect;
