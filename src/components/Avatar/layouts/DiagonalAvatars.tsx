@@ -52,9 +52,8 @@ function DiagonalAvatars({size, shouldShowTooltip, icons, isInReportAction, seco
             size={size}
             iconCount={icons.length}
             containerStyle={StyleUtils.getContainerStyles(size, isInReportAction)}
-            primaryIcon={primaryIcon}
-            secondaryIcon={secondaryIcon}
-            secondaryContainerStyle={secondaryAvatarContainerStyles}
+            primaryContainerStyle={primaryIcon?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, primaryIcon.type)}
+            secondaryContainerStyle={[secondaryAvatarContainerStyles, secondaryIcon?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, secondaryIcon.type)]}
             primary={
                 <UserDetailsTooltip
                     accountID={Number(primaryIcon?.id)}
