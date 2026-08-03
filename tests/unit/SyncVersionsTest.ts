@@ -30,7 +30,8 @@ let tmpRoot: string;
 let appDir: string;
 
 function git(cwd: string, ...args: string[]): string {
-    return execFileSync('git', args, {cwd, encoding: 'utf-8', env: {...process.env, ...GIT_ALLOW_FILE_TRANSPORT}}).trim();
+    // Pipe stderr rather than letting it reach the parent, so fixture setup doesn't spam the CI log
+    return execFileSync('git', args, {cwd, encoding: 'utf-8', stdio: 'pipe', env: {...process.env, ...GIT_ALLOW_FILE_TRANSPORT}}).trim();
 }
 
 function readVersion(filePath: string): unknown {
@@ -78,8 +79,8 @@ function createRepoWithRemote(name: string, populate: (workingDir: string) => vo
     const remote = path.join(tmpRoot, `${name}.git`);
     const workingDir = path.join(tmpRoot, name);
 
-    execFileSync('git', ['init', '--bare', '--initial-branch=main', remote]);
-    execFileSync('git', ['init', '--initial-branch=main', workingDir]);
+    execFileSync('git', ['init', '--bare', '--initial-branch=main', remote], {stdio: 'pipe'});
+    execFileSync('git', ['init', '--initial-branch=main', workingDir], {stdio: 'pipe'});
     git(workingDir, 'config', 'user.name', 'test');
     git(workingDir, 'config', 'user.email', 'test@test.com');
 
