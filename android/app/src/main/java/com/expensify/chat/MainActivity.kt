@@ -38,13 +38,11 @@ class MainActivity : ReactActivity() {
      * Returns the instance of the [ReactActivityDelegate]. Here we use a util class [ ] which allows you to easily enable Fabric and Concurrent React
      * (aka React 18) with two boolean flags.
      */
-    override fun createReactActivityDelegate() = ReactActivityDelegateWrapper(
-        this, BuildConfig.IS_NEW_ARCHITECTURE_ENABLED, DefaultReactActivityDelegate(
+    override fun createReactActivityDelegate() = ReactActivityDelegateWrapper(this, BuildConfig.IS_NEW_ARCHITECTURE_ENABLED, DefaultReactActivityDelegate(
             this,
             mainComponentName,  // If you opted-in for the New Architecture, we enable the Fabric Renderer.
             fabricEnabled
-        )
-    )
+        ))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         getSharedPreferences(APP_START_TIME_PREFERENCES, MODE_PRIVATE)
@@ -53,9 +51,6 @@ class MainActivity : ReactActivity() {
             .apply()
         BootSplash.init(this)
         super.onCreate(null)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            setRecentsScreenshotEnabled(false)
-        }
 
         // Sets translucent status bar. This code is based on what the react-native StatusBar
         // module does, but we need to do it here to avoid the splash screen jumping on app start.
@@ -80,8 +75,7 @@ class MainActivity : ReactActivity() {
 
         if (intent.hasCategory(Intent.CATEGORY_LAUNCHER)
             && intent.getAction() != null
-            && intent.getAction().equals(Intent.ACTION_MAIN)
-        ) {
+            && intent.getAction().equals(Intent.ACTION_MAIN)) {
             wasAppRelaunchedFromIcon = true
         }
 

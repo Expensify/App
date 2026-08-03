@@ -5,14 +5,14 @@
 //  Created by Marcin Warchoł on 08/04/2025.
 //
 
+import UIKit
+import React
+import React_RCTAppDelegate
+import ReactAppDependencyProvider
+import Firebase
+internal import Expo
 import ActivityKit
 import AirshipFrameworkProxy
-internal import Expo
-import Firebase
-import React
-import ReactAppDependencyProvider
-import React_RCTAppDelegate
-import UIKit
 
 private enum BackupExclusionHelper {
 	private static func excludeDirectoryFromBackup(_ directoryPath: String?) {
@@ -34,14 +34,9 @@ private enum BackupExclusionHelper {
 	static func excludeAllAppDataFromBackup() {
 		// Covers all app data: Documents directory, Library directory, and the shared app group container.
 		let fileManager = FileManager.default
-		excludeDirectoryFromBackup(
-			fileManager.urls(for: .documentDirectory, in: .userDomainMask).first?.path)
-		excludeDirectoryFromBackup(
-			fileManager.urls(for: .libraryDirectory, in: .userDomainMask).first?.path)
-		excludeDirectoryFromBackup(
-			fileManager.containerURL(
-				forSecurityApplicationGroupIdentifier: "group.com.expensify.new")?
-				.path)
+		excludeDirectoryFromBackup(fileManager.urls(for: .documentDirectory, in: .userDomainMask).first?.path)
+		excludeDirectoryFromBackup(fileManager.urls(for: .libraryDirectory, in: .userDomainMask).first?.path)
+		excludeDirectoryFromBackup(fileManager.containerURL(forSecurityApplicationGroupIdentifier: "group.com.expensify.new")?.path)
 	}
 }
 
@@ -52,10 +47,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
 	var reactNativeFactory: RCTReactNativeFactory?
 	private var privacyOverlay: UIView?
 
-	override func application(
-		_ application: UIApplication,
-		didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
-	) -> Bool {
+  override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
 		// Initialize Sentry before any native telemetry (e.g. certificate pinning monitor reports).
 		SentryNativeSDKManager.shared.initialize()
 
@@ -64,8 +56,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
 		BackupExclusionHelper.excludeAllAppDataFromBackup()
 
 		let appStartTimePreferencesKey = "AppStartTime"
-		UserDefaults.standard.set(
-			Date().timeIntervalSince1970 * 1000, forKey: appStartTimePreferencesKey)
+    	UserDefaults.standard.set(Date().timeIntervalSince1970 * 1000, forKey: appStartTimePreferencesKey)
 		let delegate = ReactNativeDelegate()
 		let factory = ExpoReactNativeFactory(delegate: delegate)
 		delegate.dependencyProvider = RCTAppDependencyProvider()
@@ -89,7 +80,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
 		_ = super.application(application, didFinishLaunchingWithOptions: launchOptions)
 
 		if let rootView = self.window?.rootViewController?.view as? RCTRootView {
-			RCTBootSplash.initWithStoryboard("BootSplash", rootView: rootView)  // <- initialization using the storyboard file name
+        RCTBootSplash.initWithStoryboard("BootSplash", rootView: rootView) // <- initialization using the storyboard file name
 		}
 
 		// Define UNUserNotificationCenter
@@ -159,20 +150,14 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
 		}
 	}
 
-	override func application(
-		_ application: UIApplication, open url: URL,
-		options: [UIApplication.OpenURLOptionsKey: Any] = [:]
-	) -> Bool {
+  override func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
 		return RCTLinkingManager.application(application, open: url, options: options)
 	}
 
-	override func application(
-		_ application: UIApplication,
-		continue userActivity: NSUserActivity,
-		restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
-	) -> Bool {
-		return RCTLinkingManager.application(
-			application,
+  override func application(_ application: UIApplication,
+			continue userActivity: NSUserActivity,
+			restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+      	return RCTLinkingManager.application(application,
 			continue: userActivity,
 			restorationHandler: restorationHandler)
 	}
