@@ -7,6 +7,7 @@ import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue, getEmptyDateValues} from '@libs/SearchQueryUtils';
@@ -38,6 +39,8 @@ type DateFilterBaseProps = {
     defaultDateValues: SearchDateValues;
     /** The date presets to display (e.g. "This month", "Last month") */
     presets: SearchDatePreset[];
+    /** Whether to show the "Custom date" (On/After/Before) option. Defaults to true. */
+    shouldShowCustomDate?: boolean;
     /** Whether the search advanced filters form Onyx data is loading or not */
     isSearchAdvancedFiltersFormLoading?: boolean;
     /** Callback when the back button is pressed. Required when shouldShowHeader is true. */
@@ -69,6 +72,7 @@ function DateFilterBase({
     title,
     defaultDateValues,
     presets,
+    shouldShowCustomDate,
     isSearchAdvancedFiltersFormLoading,
     onBackButtonPress,
     onSubmit,
@@ -85,6 +89,7 @@ function DateFilterBase({
 }: DateFilterBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const normalizedDefaultDateValues = useMemo(() => ({...getEmptyDateValues(), ...defaultDateValues}), [defaultDateValues]);
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
@@ -197,8 +202,9 @@ function DateFilterBase({
             return;
         }
 
-        onSubmit(searchDatePresetFilterBaseRef.current.getDateValues());
-    }, [onDateModifierChange, onSubmit, selectedDateModifier, setSelectedDateModifier]);
+        const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
+        startWithLoading(() => onSubmit(dateValues));
+    }, [onDateModifierChange, onSubmit, selectedDateModifier, setSelectedDateModifier, startWithLoading]);
 
     useImperativeHandle(
         ref,
@@ -231,6 +237,7 @@ function DateFilterBase({
                     selectedDateModifier={selectedDateModifier}
                     onSelectDateModifier={handleSelectDateModifier}
                     presets={presets}
+                    shouldShowCustomDate={shouldShowCustomDate}
                     isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
                     onDateValuesChange={handleDateValuesChange}
                     onRangeValidationErrorChange={setShouldShowRangeError}
@@ -264,6 +271,8 @@ function DateFilterBase({
                         buttonText={translate('common.save')}
                         containerStyles={[styles.m4, styles.mt3, styles.mb5]}
                         onSubmit={save}
+                        isLoading={isLoading}
+                        shouldShowLoadingImmediatelyOnPress={false}
                         enabledWhenOffline
                     />
                 </>

@@ -5,17 +5,14 @@ import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
-import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
-import type {OnyxFormKey} from '@src/ONYXKEYS';
-import type {Form} from '@src/types/form';
+import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -55,6 +52,15 @@ type FormWrapperProps = ChildrenProps &
 
         /** Whether the form is loading */
         isLoading?: boolean;
+
+        /** Whether the fix errors alert should be visible */
+        isAlertVisible?: boolean;
+
+        /** Server side field errors keyed by field name */
+        serverErrorFields?: ErrorFields | null;
+
+        /** Server side error message */
+        serverErrorMessage?: string;
 
         /** If enabled, the content will have a bottom padding equal to account for the safe bottom area inset. */
         addBottomSafeAreaPadding?: boolean;
@@ -96,12 +102,14 @@ function FormWrapper({
     formID,
     shouldUseScrollView = true,
     scrollContextEnabled = false,
-    shouldHideFixErrorsAlert = false,
     disablePressOnEnter = false,
     enterKeyEventListenerPriority = 1,
     isSubmitDisabled = false,
     shouldRenderFooterAboveSubmit = false,
     isLoading = false,
+    isAlertVisible = false,
+    serverErrorFields,
+    serverErrorMessage,
     shouldScrollToEnd = false,
     addBottomSafeAreaPadding,
     addOfflineIndicatorBottomSafeAreaPadding,
@@ -121,12 +129,8 @@ function FormWrapper({
     const fallbackAnnouncementMessage = getFallbackAnnouncementMessage();
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
-    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
-
-    const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
-
     const onFixTheErrorsLinkPressed = () => {
-        const errorFields = !isEmptyObject(errors) ? errors : (formState?.errorFields ?? {});
+        const errorFields = !isEmptyObject(errors) ? errors : (serverErrorFields ?? {});
         const focusKey = Object.keys(inputRefs.current ?? {}).find((key) => key in errorFields);
 
         if (!focusKey) {
@@ -196,9 +200,11 @@ function FormWrapper({
         <FormAlertWithSubmitButton
             buttonText={submitButtonText}
             isDisabled={isSubmitDisabled}
-            isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
-            isLoading={!!formState?.isLoading || isLoading}
-            message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
+            isAlertVisible={isAlertVisible}
+            isLoading={isLoading}
+            message={isEmptyObject(serverErrorFields) ? serverErrorMessage : undefined}
+            // FormProvider drives the loading state, so opt out here to delay the spinner until after validations run.
+            shouldShowLoadingImmediatelyOnPress={false}
             onSubmit={onSubmit}
             footerContent={footerContent}
             onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}

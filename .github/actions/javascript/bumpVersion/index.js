@@ -1765,6 +1765,375 @@ exports.checkBypass = checkBypass;
 
 /***/ }),
 
+/***/ 7720:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/**
+ * This file contains a CLI utility class which can be used to declaratively implement a strongly-typed CLI.
+ * You provide a CLIConfig defining your arguments, then the class will handle parsing argv, type validation, error handling, and help messages.
+ */
+const readline = __importStar(__nccwpck_require__(4521));
+const SafeString_js_1 = __importDefault(__nccwpck_require__(6690));
+class CLI {
+    constructor(config) {
+        var _a, _b, _c, _d, _e, _f;
+        this.config = config;
+        const rawArgs = process.argv.slice(2);
+        // Initialize all flags to false by default (including built-in flags)
+        this.flags = Object.assign(Object.assign({}, Object.fromEntries(Object.keys((_a = config.flags) !== null && _a !== void 0 ? _a : {}).map((key) => [key, false]))), { yes: false, no: false, help: false });
+        try {
+            const parsedNamedArgs = {};
+            const parsedPositionalArgs = {};
+            const providedNamedArgs = new Set();
+            let positionalIndex = 0;
+            for (let i = 0; i < rawArgs.length; i++) {
+                const rawArg = rawArgs.at(i);
+                if (rawArg === undefined) {
+                    continue;
+                }
+                if (rawArg.startsWith('--')) {
+                    // Either a flag or a named param
+                    const [rawArgName, rawArgValue] = rawArg.slice(2).split('=');
+                    if (rawArgName in this.flags) {
+                        // Arg is a flag
+                        this.flags[rawArgName] = true;
+                    }
+                    else if (config.namedArgs && rawArgName in config.namedArgs) {
+                        // Arg is a named arg
+                        providedNamedArgs.add(rawArgName);
+                        // Grab the value from the split token, otherwise go for the next token
+                        let argValueBeforeParse = '';
+                        if (rawArgValue) {
+                            argValueBeforeParse = rawArgValue;
+                        }
+                        else {
+                            argValueBeforeParse = (_b = rawArgs.at(++i)) !== null && _b !== void 0 ? _b : '';
+                            if (!argValueBeforeParse || argValueBeforeParse.startsWith('--')) {
+                                throw new Error(`Missing value for --${rawArgName}`);
+                            }
+                        }
+                        const spec = config.namedArgs[rawArgName];
+                        parsedNamedArgs[rawArgName] = CLI.parseStringArg(argValueBeforeParse, rawArgName, spec);
+                    }
+                    else {
+                        console.error(`Unknown flag: --${rawArgName}`);
+                        process.exit(1);
+                    }
+                }
+                else {
+                    // Arg is a positional arg
+                    const spec = (_c = config.positionalArgs) === null || _c === void 0 ? void 0 : _c.at(positionalIndex);
+                    if (spec === undefined) {
+                        throw new Error(`Unexpected arg: ${rawArg}`);
+                    }
+                    if (spec.variadic) {
+                        // Variadic: collect this and all remaining non-flag args into an array
+                        const collected = [];
+                        for (let j = i; j < rawArgs.length; j++) {
+                            const remaining = rawArgs.at(j);
+                            if (remaining === undefined || remaining.startsWith('--')) {
+                                break;
+                            }
+                            collected.push(remaining);
+                        }
+                        parsedPositionalArgs[spec.name] = collected;
+                        break;
+                    }
+                    parsedPositionalArgs[spec.name] = CLI.parseStringArg(rawArg, spec.name, spec);
+                    positionalIndex++;
+                }
+            }
+            // Handle help command
+            if (this.flags.help) {
+                this.printHelp();
+                process.exit(0);
+            }
+            // Handle supersession logic
+            const supersededArgs = new Set();
+            for (const [name, spec] of Object.entries((_d = config.namedArgs) !== null && _d !== void 0 ? _d : {})) {
+                if (providedNamedArgs.has(name) && spec.supersedes) {
+                    for (const supersededArg of spec.supersedes) {
+                        supersededArgs.add(supersededArg);
+                        if (providedNamedArgs.has(supersededArg)) {
+                            console.warn(`⚠️  Warning: --${supersededArg} is superseded by --${name} and will be ignored.`);
+                        }
+                    }
+                }
+            }
+            // Validate that all required args are present, assign defaults where values are not parsed
+            for (const [name, spec] of Object.entries((_e = config.namedArgs) !== null && _e !== void 0 ? _e : {})) {
+                if (name in parsedNamedArgs) {
+                    if (supersededArgs.has(name)) {
+                        parsedNamedArgs[name] = undefined;
+                    }
+                }
+                else if (supersededArgs.has(name)) {
+                    // This arg was superseded, so don't require it and don't assign a default
+                    continue;
+                }
+                else if (spec.default !== undefined) {
+                    parsedNamedArgs[name] = spec.default;
+                }
+                else if (spec.required === false) {
+                    // Explicitly marked as optional, leave undefined
+                    continue;
+                }
+                else {
+                    // Arguments without defaults are required by default (unless explicitly marked as optional)
+                    throw new Error(`Missing required named argument --${name}`);
+                }
+            }
+            for (const spec of (_f = config.positionalArgs) !== null && _f !== void 0 ? _f : []) {
+                if (!(spec.name in parsedPositionalArgs)) {
+                    if (spec.default !== undefined) {
+                        parsedPositionalArgs[spec.name] = spec.default;
+                    }
+                    else if (spec.variadic) {
+                        parsedPositionalArgs[spec.name] = [];
+                    }
+                    else {
+                        throw new Error(`Missing required positional argument --${spec.name}`);
+                    }
+                }
+            }
+            this.namedArgs = parsedNamedArgs;
+            this.positionalArgs = parsedPositionalArgs;
+        }
+        catch (err) {
+            // If help flag was set, the error is from process.exit(0) in tests (where it's mocked to throw) - just rethrow it
+            if (this.flags.help) {
+                throw err;
+            }
+            if (err instanceof Error) {
+                console.error(err.message);
+                this.printHelp();
+            }
+            else {
+                console.error('An unexpected error occurred initializing the CLI.');
+            }
+            process.exit(1);
+        }
+    }
+    printHelp() {
+        var _a;
+        const { flags = {}, namedArgs = {}, positionalArgs = [] } = this.config;
+        const scriptName = (_a = process.argv.at(1)) !== null && _a !== void 0 ? _a : 'script.ts';
+        const positionalUsage = positionalArgs
+            .map((arg) => {
+            const label = arg.variadic ? `${arg.name}...` : arg.name;
+            return arg.default === undefined ? `<${label}>` : `[${label}]`;
+        })
+            .join(' ');
+        const namedArgUsage = Object.keys(namedArgs)
+            .map((key) => `[--${key} <value>]`)
+            .join(' ');
+        const flagUsage = [...Object.keys(flags), '--yes', '--no', '--help'].map((key) => `[${key.startsWith('--') ? key : `--${key}`}]`).join(' ');
+        console.log(`\nUsage: ${CLI.detectRuntimeCommand()} ${scriptName} ${flagUsage} ${namedArgUsage} ${positionalUsage}\n`);
+        console.log('Flags:');
+        for (const [name, spec] of Object.entries(flags)) {
+            console.log(`  --${name.padEnd(20)} ${spec.description}`);
+        }
+        // Built-in flags
+        console.log(`  --${'yes'.padEnd(20)} Automatically answer "yes" to all confirmation prompts.`);
+        console.log(`  --${'no'.padEnd(20)} Automatically answer "no" to all confirmation prompts.`);
+        console.log(`  --${'help'.padEnd(20)} Show this help message.`);
+        console.log('');
+        if (Object.keys(namedArgs).length > 0) {
+            console.log('Named Arguments:');
+            for (const [name, spec] of Object.entries(namedArgs)) {
+                const defaultLabel = spec.default !== undefined ? ` (default: ${(0, SafeString_js_1.default)(spec.default)})` : '';
+                const supersededLabel = spec.supersedes && spec.supersedes.length > 0 ? ` (supersedes: ${spec.supersedes.join(', ')})` : '';
+                console.log(`  --${name.padEnd(20)} ${spec.description}${defaultLabel}${supersededLabel}`);
+            }
+            console.log('');
+        }
+        if (positionalArgs.length > 0) {
+            console.log('Positional Arguments:');
+            for (const arg of positionalArgs) {
+                const defaultLabel = arg.default !== undefined ? ` (default: ${(0, SafeString_js_1.default)(arg.default)})` : '';
+                console.log(`  ${arg.name.padEnd(22)} ${arg.description}${defaultLabel}`);
+            }
+            console.log('');
+        }
+    }
+    /**
+     * Attempts to detect the command used to invoke the currently-running script, for display in the usage line of the help message.
+     * Checked in order of most to least reliable signal; falls back to plain `node` if nothing else matches.
+     */
+    static detectRuntimeCommand() {
+        // Bun's own public, documented signal. Cast needed since @types/node's ProcessVersions type has no `bun` key.
+        if (process.versions.bun) {
+            return 'bun';
+        }
+        // Internal symbol ts-node sets on `process` when its register hook is active (the same mechanism other tools, e.g. fastify-autoload, rely on to detect ts-node).
+        if (Reflect.get(process, Symbol.for('ts-node.register.instance'))) {
+            return 'npx ts-node';
+        }
+        // tsx registers its loader hooks via --require/--import flags pointing into its own package, visible in execArgv regardless of how it was installed.
+        if (process.execArgv.some((arg) => arg.includes('tsx/dist/'))) {
+            return 'npx tsx';
+        }
+        return 'node';
+    }
+    static parseStringArg(rawString, paramName, spec) {
+        if ('parse' in spec && !!spec.parse) {
+            try {
+                return spec.parse(rawString);
+            }
+            catch (error) {
+                let errorMessage = '';
+                if (error instanceof Error) {
+                    errorMessage = error.message;
+                }
+                console.error(`Invalid value for --${paramName}: ${errorMessage}`);
+                process.exit(1);
+            }
+        }
+        else {
+            return rawString;
+        }
+    }
+    /**
+     * Prompts the user for confirmation and returns true if they confirm (y/yes), false otherwise.
+     * If --yes flag was passed, returns true immediately without prompting.
+     * If --no flag was passed, returns false immediately without prompting.
+     */
+    promptUserConfirmation(message) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Check for built-in flags first
+            if (this.flags.yes) {
+                return true;
+            }
+            if (this.flags.no) {
+                return false;
+            }
+            const rl = readline.createInterface({
+                input: process.stdin,
+                output: process.stdout,
+            });
+            return new Promise((resolve) => {
+                rl.question(message, (answer) => {
+                    rl.close();
+                    const normalizedAnswer = answer.trim().toLowerCase();
+                    resolve(normalizedAnswer === 'y' || normalizedAnswer === 'yes');
+                });
+            });
+        });
+    }
+}
+exports["default"] = CLI;
+
+
+/***/ }),
+
+/***/ 6690:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = SafeString;
+/**
+ * SafeString is a utility function that converts a value to a string.
+ * It handles the problematic case of plain objects by converting them to JSON.
+ * It helps with eslint rule https://typescript-eslint.io/rules/no-base-to-string
+ * @param value - The value to convert to a string.
+ * @returns The string representation of the value.
+ */
+function SafeString(value) {
+    if (value === undefined || value === null) {
+        return '';
+    }
+    // Handle primitives explicitly so the final fallback never receives an object.
+    const valueType = typeof value;
+    if (valueType === 'string') {
+        return value;
+    }
+    if (valueType === 'number' || valueType === 'boolean' || valueType === 'function' || valueType === 'bigint' || valueType === 'symbol') {
+        const primitive = value;
+        return String(primitive);
+    }
+    if (valueType === 'object') {
+        if (Array.isArray(value)) {
+            try {
+                return JSON.stringify(value);
+            }
+            catch (_a) {
+                return '[object Array]';
+            }
+        }
+        const obj = value;
+        const hasCustomToString = obj.toString && obj.toString !== Object.prototype.toString;
+        if (hasCustomToString) {
+            return obj.toString();
+        }
+        if (value instanceof Map) {
+            return '[object Map]';
+        }
+        if (value instanceof Set) {
+            return '[object Set]';
+        }
+        try {
+            return JSON.stringify(obj);
+        }
+        catch (_b) {
+            return '[object Object]';
+        }
+    }
+    return '';
+}
+
+
+/***/ }),
+
 /***/ 8088:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -3593,6 +3962,7 @@ exports.updateAndroid = updateAndroid;
 exports.generateAndroidVersionCode = generateAndroidVersionCode;
 const versionUpdater = __importStar(__nccwpck_require__(8982));
 const child_process_1 = __nccwpck_require__(2081);
+const CLI_1 = __importDefault(__nccwpck_require__(7720));
 const fs_1 = __nccwpck_require__(7147);
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const major_1 = __importDefault(__nccwpck_require__(6688));
@@ -3848,6 +4218,14 @@ module.exports = require("os");
 
 "use strict";
 module.exports = require("path");
+
+/***/ }),
+
+/***/ 4521:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("readline");
 
 /***/ }),
 

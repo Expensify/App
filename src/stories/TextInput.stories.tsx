@@ -3,7 +3,7 @@ import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types
 
 import variables from '@styles/variables';
 
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React, {useState} from 'react';
 

@@ -10,7 +10,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {Meta} from '@storybook/react-webpack5';
+import type {Meta} from 'storybook-react-rsbuild';
 
 import React from 'react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';

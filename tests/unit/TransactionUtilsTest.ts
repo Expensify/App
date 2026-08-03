@@ -10,7 +10,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import type {Card, Policy, Report, Transaction} from '../../src/types/onyx';
+import type {Card, Policy, Report, ReviewDuplicates, Transaction} from '../../src/types/onyx';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
@@ -856,6 +856,7 @@ describe('TransactionUtils', () => {
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
                 [transaction1, transaction2],
                 undefined,
+                undefined,
                 policy,
                 transactionViolations,
                 CURRENT_USER_EMAIL,
@@ -1144,7 +1145,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When checking if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
 
                 // Then it should return true
                 expect(result).toBe(true);
@@ -1158,7 +1159,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When checking if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
 
                 // Then it should return false
                 expect(result).toBe(false);
@@ -1178,7 +1179,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When checking if violation is dismissed for current user
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
 
                 // Then it should return false since current user hasn't dismissed it
                 expect(result).toBe(false);
@@ -1207,7 +1208,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When current user (admin, not the owner) checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, OTHER_USER_EMAIL, undefined);
 
                 // Then it should return true because admin sees owner's perspective on open reports
                 expect(result).toBe(true);
@@ -1234,7 +1235,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When current user (admin, not the owner) checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined, undefined);
 
                 // Then it should return false because on processing reports, admin must dismiss separately
                 expect(result).toBe(false);
@@ -1261,7 +1262,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When current user (the submitter) checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined, undefined);
 
                 // Then it should return false (condition 2 doesn't apply to submitters)
                 expect(result).toBe(false);
@@ -1290,7 +1291,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
 
                 // When current user checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, policy);
 
                 // Then it should return true because on instant submit, anyone's dismissal counts
                 expect(result).toBe(true);
@@ -1317,7 +1318,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
 
                 // When current user checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, policy);
 
                 // Then it should return false because on non-instant submit, each person must dismiss separately
                 expect(result).toBe(false);
@@ -1344,7 +1345,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When current user checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, policy);
 
                 // Then it should return false because condition 3 only applies to RTER violations
                 expect(result).toBe(false);
@@ -1372,7 +1373,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
 
                 // When current user checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, policy);
 
                 // Then it should return true
                 expect(result).toBe(true);
@@ -1382,13 +1383,13 @@ describe('TransactionUtils', () => {
         describe('Edge cases and data validation', () => {
             it('should return false when transaction is null', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
-                const result = TransactionUtils.isViolationDismissed(undefined, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(undefined, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
                 expect(result).toBe(false);
             });
 
             it('should return false when violation is null', () => {
                 const transaction = generateTransaction({});
-                const result = TransactionUtils.isViolationDismissed(transaction, undefined, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, undefined, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
                 expect(result).toBe(false);
             });
 
@@ -1403,7 +1404,7 @@ describe('TransactionUtils', () => {
                     },
                 });
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
                 expect(result).toBe(false);
             });
         });
@@ -1440,13 +1441,8 @@ describe('TransactionUtils', () => {
 
             expect(result).toBeDefined();
             expect(result?.email).toBe(OTHER_USER_EMAIL);
-            expect(result?.login).toBe(OTHER_USER_EMAIL);
             expect(result?.displayName).toBe(OTHER_USER_EMAIL);
-            expect(result?.accountID).toBe(SECOND_USER_ID);
-            expect(result?.text).toBe(OTHER_USER_EMAIL);
-            expect(result?.searchText).toBe(OTHER_USER_EMAIL);
             expect(result?.avatarUrl).toBe(avatar);
-            expect(result?.selected).toBe(true);
         });
 
         it('should return current user as attendee for unreported expense', () => {
@@ -1454,13 +1450,8 @@ describe('TransactionUtils', () => {
 
             expect(result).toBeDefined();
             expect(result?.email).toBe(CURRENT_USER_EMAIL);
-            expect(result?.login).toBe(CURRENT_USER_EMAIL);
             expect(result?.displayName).toBe(currentUserPersonalDetails.displayName);
-            expect(result?.accountID).toBe(CURRENT_USER_ID);
-            expect(result?.text).toBe(currentUserPersonalDetails.displayName);
-            expect(result?.searchText).toBe(currentUserPersonalDetails.displayName);
             expect(result?.avatarUrl).toBe('');
-            expect(result?.selected).toBe(true);
         });
     });
 
@@ -1514,19 +1505,13 @@ describe('TransactionUtils', () => {
             const attendees: Attendee[] = [
                 {
                     email: 'attendee1@example.com',
-                    login: 'attendee1@example.com',
                     displayName: 'Attendee One',
                     avatarUrl: '',
-                    accountID: 3,
-                    selected: true,
                 },
                 {
                     email: 'attendee2@example.com',
-                    login: 'attendee2@example.com',
                     displayName: 'Attendee Two',
                     avatarUrl: '',
-                    accountID: 4,
-                    selected: false,
                 },
             ];
             const transaction = generateTransaction({
@@ -1550,30 +1535,29 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getOriginalAttendees(transaction, {accountID: CURRENT_USER_ID, displayName: '', avatarUrl: '', selected: true});
+            const result = TransactionUtils.getOriginalAttendees(transaction, {email: CURRENT_USER_EMAIL, displayName: '', avatarUrl: ''});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
-            expect(result.at(0)?.selected).toBe(true);
+            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
         });
 
-        it('should normalize login-only attendees from comment', () => {
+        it('should normalize email-only attendees from comment', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
-                    attendees: [{displayName: '   ', login: '  login-only@example.com  ', avatarUrl: ''}],
+                    attendees: [{displayName: '   ', email: '  email-only@example.com  ', avatarUrl: ''}],
                 },
             });
 
             const result = TransactionUtils.getOriginalAttendees(transaction, undefined);
 
-            expect(result).toEqual([{displayName: 'login-only@example.com', login: 'login-only@example.com', avatarUrl: ''}]);
+            expect(result).toEqual([{displayName: 'email-only@example.com', email: 'email-only@example.com', avatarUrl: ''}]);
         });
 
         it('should handle attendees stored as a plain object', () => {
             const attendeesArray: Attendee[] = [
-                {email: 'attendee1@example.com', login: 'attendee1@example.com', displayName: 'Attendee One', avatarUrl: '', accountID: 3, selected: true},
-                {email: 'attendee2@example.com', login: 'attendee2@example.com', displayName: 'Attendee Two', avatarUrl: '', accountID: 4, selected: false},
+                {email: 'attendee1@example.com', displayName: 'Attendee One', avatarUrl: ''},
+                {email: 'attendee2@example.com', displayName: 'Attendee Two', avatarUrl: ''},
             ];
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
@@ -1595,21 +1579,15 @@ describe('TransactionUtils', () => {
             const originalAttendees: Attendee[] = [
                 {
                     email: 'original@example.com',
-                    login: 'original@example.com',
                     displayName: 'Original Attendee',
                     avatarUrl: '',
-                    accountID: 5,
-                    selected: true,
                 },
             ];
             const modifiedAttendees: Attendee[] = [
                 {
                     email: 'modified@example.com',
-                    login: 'modified@example.com',
                     displayName: 'Modified Attendee',
                     avatarUrl: '',
-                    accountID: 6,
-                    selected: true,
                 },
             ];
             const transaction = generateTransaction({
@@ -1631,11 +1609,8 @@ describe('TransactionUtils', () => {
             const attendees: Attendee[] = [
                 {
                     email: 'attendee@example.com',
-                    login: 'attendee@example.com',
                     displayName: 'Attendee',
                     avatarUrl: '',
-                    accountID: 7,
-                    selected: true,
                 },
             ];
             const transaction = generateTransaction({
@@ -1658,11 +1633,10 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: '', selected: true});
+            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
-            expect(result.at(0)?.selected).toBe(true);
+            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
         });
 
         it('should return empty array when transaction has no reportID and no attendees', () => {
@@ -1682,11 +1656,8 @@ describe('TransactionUtils', () => {
             const originalAttendees: Attendee[] = [
                 {
                     email: 'original@example.com',
-                    login: 'original@example.com',
                     displayName: 'Original Attendee',
                     avatarUrl: '',
-                    accountID: 8,
-                    selected: true,
                 },
             ];
 
@@ -1698,11 +1669,11 @@ describe('TransactionUtils', () => {
                 modifiedAttendees: [],
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
 
             // When modifiedAttendees is empty array and no report owner fallback applies
             expect(result.length).toBe(1);
-            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
         });
 
         it('should normalize modified attendees with undefined email', () => {
@@ -1711,16 +1682,16 @@ describe('TransactionUtils', () => {
                 comment: {
                     attendees: [],
                 },
-                modifiedAttendees: [{displayName: '   ', login: '  edited@example.com  ', avatarUrl: ''}],
+                modifiedAttendees: [{displayName: '   ', email: '  edited@example.com  ', avatarUrl: ''}],
             });
 
             const result = TransactionUtils.getAttendees(transaction);
 
-            expect(result).toEqual([{displayName: 'edited@example.com', login: 'edited@example.com', avatarUrl: ''}]);
+            expect(result).toEqual([{displayName: 'edited@example.com', email: 'edited@example.com', avatarUrl: ''}]);
         });
 
         it('should handle comment attendees stored as a plain object', () => {
-            const attendeesArray: Attendee[] = [{email: 'attendee@example.com', login: 'attendee@example.com', displayName: 'Attendee', avatarUrl: '', accountID: 7, selected: true}];
+            const attendeesArray: Attendee[] = [{email: 'attendee@example.com', displayName: 'Attendee', avatarUrl: ''}];
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
@@ -1735,9 +1706,7 @@ describe('TransactionUtils', () => {
         });
 
         it('should handle modifiedAttendees stored as a plain object', () => {
-            const modifiedAttendeesArray: Attendee[] = [
-                {email: 'modified@example.com', login: 'modified@example.com', displayName: 'Modified Attendee', avatarUrl: '', accountID: 6, selected: true},
-            ];
+            const modifiedAttendeesArray: Attendee[] = [{email: 'modified@example.com', displayName: 'Modified Attendee', avatarUrl: ''}];
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
@@ -1760,10 +1729,10 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
         });
 
         it('should fall back to report owner when modifiedAttendees is an empty plain object', () => {
@@ -1775,10 +1744,10 @@ describe('TransactionUtils', () => {
                 modifiedAttendees: {} as unknown as Attendee[],
             });
 
-            const result = TransactionUtils.getAttendees(transaction, {accountID: CURRENT_USER_ID, avatarUrl: '', displayName: ''});
+            const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
 
             expect(result.length).toBe(1);
-            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
         });
     });
 
@@ -1787,40 +1756,40 @@ describe('TransactionUtils', () => {
 
         it('preserves insertion order when no localeCompare is provided', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees)).toBe('banana, apple');
         });
 
         it('returns attendees alphabetically regardless of insertion order (deploy blocker #89130)', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('apple, banana');
         });
 
         it('uses numeric-aware sort so "User 9" comes before "User 10"', () => {
             const attendees: Attendee[] = [
-                {email: '10@x.com', displayName: 'User 10', avatarUrl: '', login: '10@x.com'},
-                {email: '9@x.com', displayName: 'User 9', avatarUrl: '', login: '9@x.com'},
+                {email: '10@x.com', displayName: 'User 10', avatarUrl: ''},
+                {email: '9@x.com', displayName: 'User 9', avatarUrl: ''},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('User 9, User 10');
         });
 
         it('compares case-insensitively so the joined string matches pill order', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'Bob', avatarUrl: '', login: 'b@x.com'},
-                {email: 'a@x.com', displayName: 'alice', avatarUrl: '', login: 'a@x.com'},
+                {email: 'b@x.com', displayName: 'Bob', avatarUrl: ''},
+                {email: 'a@x.com', displayName: 'alice', avatarUrl: ''},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('alice, Bob');
         });
 
         it('strips the @expensify.sms domain so phone-login attendees render the same as in pills', () => {
             const attendees: Attendee[] = [
-                {displayName: '+15551234567@expensify.sms', avatarUrl: '', login: '+15551234567@expensify.sms'},
-                {displayName: 'Alice', avatarUrl: '', login: 'alice@x.com'},
+                {displayName: '+15551234567@expensify.sms', avatarUrl: ''},
+                {displayName: 'Alice', avatarUrl: ''},
             ];
             expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('+15551234567, Alice');
         });
@@ -1831,8 +1800,8 @@ describe('TransactionUtils', () => {
 
         it('does not mutate the input array', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
             ];
             const snapshot = [...attendees];
             TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare);
@@ -3354,6 +3323,155 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('buildMergeDuplicatesParams', () => {
+        const MERGE_KEPT_OPEN_REPORT_ID = 'mergeKeptOpenReport';
+        const MERGE_SUBMITTED_REPORT_ID = 'mergeSubmittedReport';
+        const MERGE_APPROVED_REPORT_ID = 'mergeApprovedReport';
+        const MERGE_CLOSED_REPORT_ID = 'mergeClosedReport';
+        const MERGE_REIMBURSED_REPORT_ID = 'mergeReimbursedReport';
+
+        beforeAll(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_KEPT_OPEN_REPORT_ID}`, {
+                reportID: MERGE_KEPT_OPEN_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_SUBMITTED_REPORT_ID}`, {
+                reportID: MERGE_SUBMITTED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_APPROVED_REPORT_ID}`, {
+                reportID: MERGE_APPROVED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            });
+            // Submit & Close workspaces leave the report approved but closed, the state from the reported bug.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_CLOSED_REPORT_ID}`, {
+                reportID: MERGE_CLOSED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_REIMBURSED_REPORT_ID}`, {
+                reportID: MERGE_REIMBURSED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        function buildReviewDuplicates(keptTransactionID: string, duplicateIDs: string[]): ReviewDuplicates {
+            return {
+                transactionID: keptTransactionID,
+                duplicates: duplicateIDs,
+                reportID: MERGE_KEPT_OPEN_REPORT_ID,
+                merchant: '',
+                category: '',
+                tag: '',
+                taxCode: '',
+                taxAmount: 0,
+                description: '',
+                comment: {},
+                reimbursable: true,
+                billable: false,
+            };
+        }
+
+        it('keeps only duplicates whose report is open or awaiting first approval', () => {
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const openDuplicate = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const submittedDuplicate = generateTransaction({reportID: MERGE_SUBMITTED_REPORT_ID});
+            const approvedDuplicate = generateTransaction({reportID: MERGE_APPROVED_REPORT_ID});
+            const closedDuplicate = generateTransaction({reportID: MERGE_CLOSED_REPORT_ID});
+            const reimbursedDuplicate = generateTransaction({reportID: MERGE_REIMBURSED_REPORT_ID});
+            const duplicates = [openDuplicate, submittedDuplicate, approvedDuplicate, closedDuplicate, reimbursedDuplicate];
+
+            const params = TransactionUtils.buildMergeDuplicatesParams(
+                buildReviewDuplicates(
+                    keptTransaction.transactionID,
+                    duplicates.map((transaction) => transaction.transactionID),
+                ),
+                duplicates,
+                keptTransaction,
+            );
+
+            expect(params.transactionIDList).toEqual([openDuplicate.transactionID, submittedDuplicate.transactionID]);
+        });
+
+        it('excludes a duplicate on a Submit & Close (approved and closed) report', () => {
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const closedDuplicate = generateTransaction({reportID: MERGE_CLOSED_REPORT_ID});
+
+            const params = TransactionUtils.buildMergeDuplicatesParams(
+                buildReviewDuplicates(keptTransaction.transactionID, [closedDuplicate.transactionID]),
+                [closedDuplicate],
+                keptTransaction,
+            );
+
+            expect(params.transactionIDList).toEqual([]);
+        });
+
+        it('returns an empty transactionIDList when every duplicate is non-editable', () => {
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const approvedDuplicate = generateTransaction({reportID: MERGE_APPROVED_REPORT_ID});
+            const reimbursedDuplicate = generateTransaction({reportID: MERGE_REIMBURSED_REPORT_ID});
+            const duplicates = [approvedDuplicate, reimbursedDuplicate];
+
+            const params = TransactionUtils.buildMergeDuplicatesParams(
+                buildReviewDuplicates(
+                    keptTransaction.transactionID,
+                    duplicates.map((transaction) => transaction.transactionID),
+                ),
+                duplicates,
+                keptTransaction,
+            );
+
+            expect(params.transactionIDList).toEqual([]);
+        });
+    });
+
+    describe('canMergeDuplicates', () => {
+        const DUPLICATE_IDS = ['1', '2'];
+
+        function buildReportWithState(stateNum: Report['stateNum'], statusNum: Report['statusNum']): Report {
+            return {...createRandomReport(1), stateNum, statusNum};
+        }
+
+        it('allows merging when the kept report is open and there are duplicates', () => {
+            const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
+            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(true);
+        });
+
+        it('allows merging when the kept report is awaiting first approval', () => {
+            const report = buildReportWithState(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED);
+            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(true);
+        });
+
+        it('allows merging when the kept expense is unreported (no resolvable report)', () => {
+            expect(TransactionUtils.canMergeDuplicates(undefined, DUPLICATE_IDS)).toBe(true);
+        });
+
+        it('blocks merging when the kept report is approved and closed (Submit & Close)', () => {
+            const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED);
+            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(false);
+        });
+
+        it('blocks merging when the kept report is reimbursed', () => {
+            const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED);
+            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(false);
+        });
+
+        it('blocks merging when there are no duplicates left to merge', () => {
+            const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
+            expect(TransactionUtils.canMergeDuplicates(report, [])).toBe(false);
+        });
+    });
+
     describe('buildNewTransactionAfterReviewingDuplicates', () => {
         it('preserves the kept transaction tax amount when the selected tax code matches the existing tax code', () => {
             const duplicatedTransaction = generateTransaction({
@@ -3890,6 +4008,27 @@ describe('TransactionUtils', () => {
                 comment: {waypoints: {}},
             });
             expect(TransactionUtils.isMapBasedDistanceRequest(transaction)).toBe(false);
+        });
+    });
+
+    describe('isSplitContainerTransaction', () => {
+        it('returns true when the transaction lives in SPLIT_REPORT_ID (hidden container)', () => {
+            const transaction = generateTransaction({reportID: CONST.REPORT.SPLIT_REPORT_ID});
+            expect(TransactionUtils.isSplitContainerTransaction(transaction)).toBe(true);
+        });
+
+        it('returns false for a transaction in a normal report (e.g. restored original)', () => {
+            const transaction = generateTransaction({reportID: '123456'});
+            expect(TransactionUtils.isSplitContainerTransaction(transaction)).toBe(false);
+        });
+
+        it('returns false for an unreported transaction', () => {
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+            expect(TransactionUtils.isSplitContainerTransaction(transaction)).toBe(false);
+        });
+
+        it('returns false for undefined', () => {
+            expect(TransactionUtils.isSplitContainerTransaction(undefined)).toBe(false);
         });
     });
 });

@@ -7,11 +7,10 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 
 const queryJSON: SearchQueryJSON = {
     inputQuery: '',
-    hash: 0,
-    recentSearchHash: 0,
-    similarSearchHash: 0,
+    hash: 1261888645,
+    recentSearchHash: 1239358332,
+    similarSearchHash: 1141398512,
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
     view: CONST.SEARCH.VIEW.LINE,
     sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
@@ -21,7 +20,16 @@ const queryJSON: SearchQueryJSON = {
 };
 
 const defaultSearchResults: SearchResults = {
-    search: {offset: 0, type: queryJSON.type, status: queryJSON.status, hasMoreResults: false, hasResults: true, isLoading: false},
+    search: {
+        offset: 0,
+        hash: 1261888645,
+        sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
+        sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+        type: queryJSON.type,
+        hasMoreResults: false,
+        hasResults: true,
+        isLoading: false,
+    },
     data: {},
 };
 

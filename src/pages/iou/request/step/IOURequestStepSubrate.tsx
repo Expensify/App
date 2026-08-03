@@ -260,6 +260,9 @@ function IOURequestStepSubrate({
                                     waitForUpcomingTransition: true,
                                 });
                             }}
+                            onOpen={() => {
+                                textInputRef.current?.blur();
+                            }}
                         />
                     </View>
                     <InputWrapperWithRef

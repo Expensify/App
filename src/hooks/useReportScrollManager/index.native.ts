@@ -3,7 +3,7 @@ import {useActionListContext} from '@pages/inbox/ActionListContext';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 
-import type ReportScrollManagerData from './types';
+import type {ReportScrollManagerData, ScrollToIndexOptions} from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
     const {getListRef} = useActionListContext();
@@ -13,12 +13,12 @@ function useReportScrollManager(): ReportScrollManagerData {
      * implementation but is a no-op here, matching the previous native behavior. `animated`
      * defaults to `false` to match FlashList's default (the previous native call omitted it).
      */
-    const scrollToIndex = (index: number, {animated = false}: {isEditing?: boolean; animated?: boolean} = {}) => {
+    const scrollToIndex = (index: number, {animated = false, viewOffset, viewPosition}: ScrollToIndexOptions = {}) => {
         const listRef = getListRef();
         if (!listRef?.current) {
             return;
         }
-        listRef.current.scrollToIndex({index, animated});
+        listRef.current.scrollToIndex({index, animated, viewOffset, viewPosition});
     };
 
     /**

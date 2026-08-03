@@ -98,6 +98,9 @@ type SelectedTransactionInfo = {
 
     /** The group key this transaction belongs to when in a grouped view */
     groupKey?: string;
+
+    /** Whether the transaction was selected through its group header */
+    isSelectedViaGroup?: boolean;
 };
 
 /** Model of selected transactions */
@@ -155,7 +158,6 @@ type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
 type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
 type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
-type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
 // PieChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
@@ -281,6 +283,11 @@ type QueryFilter = {
     value: string | number;
 };
 
+type Filter = {
+    value: string[] | undefined;
+    isNegated: boolean;
+};
+
 // Report fields are dynamic keys, that policies can configure. They match:
 // reportField-<key> : Normal report field
 // reportField<modifier>-<key> : Report field with a modifier, such as On, After, Before, Not, so that we can handle Dates and negation
@@ -317,7 +324,6 @@ type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, 
 type SearchFilterKey =
     | SyntaxFilterKey
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
@@ -345,13 +351,11 @@ type SearchQueryString = string;
 
 type SearchQueryAST = {
     type: SearchDataTypes;
-    status: SearchStatus;
     sortBy: SearchSortBy;
     sortOrder: SortOrder;
     groupBy?: SearchGroupBy;
     view: SearchView;
     filters: ASTNode;
-    policyID?: string[];
     rawFilterList?: RawQueryFilter[];
     columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
     limit?: number;
@@ -366,6 +370,8 @@ type SearchQueryJSON = {
     similarSearchHash: number;
     flatFilters: QueryFilters;
     isViewExplicitlySet?: boolean;
+    /** Filters generated for a specific group that must keep exact-match semantics when sent to the backend. */
+    exactMatchFilterKeys?: SearchFilterKey[];
 } & SearchQueryAST;
 
 type SearchAutocompleteResult = {
@@ -439,6 +445,7 @@ type SearchFilterCommonProps<T> = {
     selectionListStyle?: SelectionListStyle;
     autoFocus?: boolean;
     ready?: boolean;
+    isNegatable?: boolean;
     footer?: React.ReactNode;
     onChange: (value: T) => void;
 };
@@ -452,7 +459,6 @@ export type {
     SearchDateKey,
     SearchAmountFilterKeys,
     SearchAmountValues,
-    SearchStatus,
     SearchQueryJSON,
     SearchQueryString,
     ReportFieldKey,
@@ -472,6 +478,7 @@ export type {
     SearchRowSelectionActionsValue,
     ASTNode,
     QueryFilter,
+    Filter,
     QueryFilters,
     SyntaxFilterKey,
     RawQueryFilter,

@@ -223,6 +223,11 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         [TabBar, onTabBarFocusTrapContainerElementChanged, shouldShowLabelWhenInactive, equalWidth],
     );
 
+    // Keep the generic type casts outside the nested screenListeners callback because OXC cannot hoist
+    // type-parameter references while outlining that callback.
+    const persistSelectedTab = Tab.setSelectedTab as (tabID: string, tabName: string) => void;
+    const notifyTabSelected = onTabSelected as (newTabName: string | undefined) => void;
+
     // If the selected tab changes, we need to update the focus trap container element of the active tab
     useEffect(() => {
         onActiveTabFocusTrapContainerElementChanged?.(selectedTab ? focusTrapContainerElementMapping[selectedTab] : null);
@@ -262,9 +267,9 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                                     return;
                                 }
                                 if (newSelectedTab) {
-                                    Tab.setSelectedTab<TTabName>(id, newSelectedTab as TTabName);
+                                    persistSelectedTab(id, newSelectedTab);
                                 }
-                                onTabSelected(newSelectedTab as TTabName);
+                                notifyTabSelected(newSelectedTab);
                             },
                             tabPress: (e) => {
                                 // Let a caller's own tabPress run first; if it blocked the switch, don't also run the guard.
