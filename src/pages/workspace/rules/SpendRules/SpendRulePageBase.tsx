@@ -30,6 +30,7 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -40,13 +41,14 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type SpendRulePageBaseProps = {
@@ -54,6 +56,9 @@ type SpendRulePageBaseProps = {
     ruleID?: string;
     titleKey: TranslationPaths;
     testID: string;
+
+    /** Where the Control upgrade page should return to. Defaults to the workspace Rules page. */
+    upgradeBackTo?: Route;
 };
 
 function getErrorMessage(hasSelectedCards: boolean, hasAnyRuleApplied: boolean, translate: (path: TranslationPaths) => string) {
@@ -69,7 +74,7 @@ function getErrorMessage(hasSelectedCards: boolean, hasAnyRuleApplied: boolean, 
     return '';
 }
 
-function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBaseProps) {
+function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: SpendRulePageBaseProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -99,6 +104,25 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         const hasNoMerchantRestrictions = !existingFormValues?.merchantNames.length && !existingFormValues?.categories?.length;
         return isNewRule || hasNoMerchantRestrictions;
     });
+
+    // Card restrictions are Control-only, so Collect admins get the upgrade page rather than a Not Found page.
+    // This runs here rather than as an `accessVariants` CONTROL check because AccessOrNotFoundWrapper can only
+    // render Not Found, and because deep links (Wallet > card > Edit spend rules) skip the Rules page's own
+    // upgrade gating entirely.
+    const isCollect = isCollectPolicy(policy);
+    const hasRedirectedToUpgrade = useRef(false);
+    const rulesUpgradeBackTo = upgradeBackTo ?? ROUTES.WORKSPACE_RULES.getRoute(policyID);
+
+    useEffect(() => {
+        if (!isCollect || hasRedirectedToUpgrade.current) {
+            return;
+        }
+
+        // Replace rather than push: Back from the upgrade page must not land on this page, which Collect can't use.
+        hasRedirectedToUpgrade.current = tryNavigateToControlPolicyUpgrade(policy, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, rulesUpgradeBackTo, true);
+        // `policy` changes identity on unrelated writes, so gate on the plan type to avoid re-navigating.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isCollect, rulesUpgradeBackTo]);
 
     useEffect(() => () => clearDraftSpendRule(), []);
 
@@ -491,7 +515,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
             shouldBeBlocked={!!policy?.id && !canWriteSpendRules}
         >
             <ScreenWrapper
