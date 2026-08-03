@@ -8430,6 +8430,7 @@ const CONST = {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',
             VICTORY_CHART_EXPAND_BUTTON: 'HTMLRenderer-VictoryChartExpandButton',
+            TABLE_ROW: 'HTMLRenderer-TableRow',
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',
