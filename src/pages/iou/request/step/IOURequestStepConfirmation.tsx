@@ -817,7 +817,10 @@ function IOURequestStepConfirmation({
                 />
             </View>
         ) : (
-            <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />
+            <FullScreenLoadingIndicator
+                reasonAttributes={reasonAttributes}
+                shouldUseGoBackButton
+            />
         );
     }
 
