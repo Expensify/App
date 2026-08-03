@@ -1,9 +1,9 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LoadingIndicator from '@components/LoadingIndicator';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemProvider';
@@ -901,19 +901,16 @@ function IOURequestStepConfirmation({
                      */}
                     <View style={styles.flex1}>
                         {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && (
-                            // Overlay the loader across the content region only. It uses ActivityIndicator (not
-                            // FullScreenLoadingIndicator) so the header/back button, which sits outside this container,
-                            // remains usable while loading.
-                            <View style={[styles.pAbsolute, styles.h100, styles.w100, styles.fullScreenLoading]}>
-                                <ActivityIndicator
-                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                    reasonAttributes={{
-                                        context: 'IOURequestStepConfirmation',
-                                        isLoading,
-                                        isScanRequestWithNoReceipts: isScanRequest(transaction) && !Object.values(receiptFiles).length,
-                                    }}
-                                />
-                            </View>
+                            // LoadingIndicator overlays the content region only. Its absolute-fill styling is relative to
+                            // this container (a sibling below the header), so the header/back button stays interactive
+                            // while loading — the user is never trapped.
+                            <LoadingIndicator
+                                reasonAttributes={{
+                                    context: 'IOURequestStepConfirmation',
+                                    isLoading,
+                                    isScanRequestWithNoReceipts: isScanRequest(transaction) && !Object.values(receiptFiles).length,
+                                }}
+                            />
                         )}
                         {PDFValidationComponent}
                         <DragAndDropConsumer onDrop={handleDroppingReceipt}>
