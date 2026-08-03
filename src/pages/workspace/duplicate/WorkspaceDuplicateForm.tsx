@@ -1,3 +1,4 @@
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -12,7 +13,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
 
 import {generatePolicyID, setDuplicateWorkspaceData} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
@@ -84,11 +84,14 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
 
     const stashedLocalAvatarImage = workspaceAvatar?.avatarUri ?? undefined;
 
-    const workspaceAvatarNode = useWorkspaceConfirmationAvatar({
-        policyID,
-        source: stashedLocalAvatarImage,
-        name: workspaceNameFirstCharacter,
-    });
+    const workspaceAvatarNode = (
+        <WorkspaceAvatar
+            source={stashedLocalAvatarImage}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+            name={workspaceNameFirstCharacter}
+            avatarID={policyID ?? CONST.DEFAULT_NUMBER_ID}
+        />
+    );
 
     return (
         <>
