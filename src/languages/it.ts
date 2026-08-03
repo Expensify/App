@@ -439,6 +439,7 @@ const translations: TranslationDeepObject<typeof en> = {
         perDiem: 'Diaria',
         validate: 'Convalida',
         downloadAsPDF: 'Scarica come PDF',
+        downloadReceipts: 'Scarica ricevute',
         downloadAsCSV: 'Scarica come CSV',
         submitViaPDF: 'Invia tramite PDF',
         print: 'Stampa',
@@ -5931,6 +5932,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             balanceWillBeSettledOn: (settlementDate: string) => `Il saldo sarà regolato il ${settlementDate}`,
             settleBalance: 'Saldo da saldare',
             cardLimit: 'Limite carta',
+            remaining: 'Rimanente',
             remainingLimit: 'Limite rimanente',
             requestLimitIncrease: 'Richiedi aumento limite',
             remainingLimitDescription:
@@ -10367,6 +10369,11 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        receiptsFailedBody: 'Non è stato possibile scaricare le ricevute. Riprova più tardi.',
+        noReceiptsTitle: 'Nessuna ricevuta da scaricare',
+        noReceiptsBody: 'Nessuna delle spese in questo report ha ricevute scaricabili.',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} ricevute su ${total} sono state esportate con successo. Se il download non è partito automaticamente, usa il pulsante qui sotto.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',

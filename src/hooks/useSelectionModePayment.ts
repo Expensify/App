@@ -222,6 +222,7 @@ function useSelectionModePayment({
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
+                conciergeChat,
             });
             refreshSearchAfterReportAction({
                 currentSearchQueryJSON,
@@ -317,6 +318,7 @@ function useSelectionModePayment({
             expenseReportPolicy: policy,
             isTrackIntentUser,
             ownerLogin,
+            delegateAccountID,
         });
     };
 
