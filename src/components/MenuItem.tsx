@@ -440,6 +440,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Should enable copy to clipboard action */
         copyable?: boolean;
 
+        /** Whether the title text should be directly selectable */
+        isTitleSelectable?: boolean;
+
         /** Plaid image for the bank */
         plaidUrl?: string;
 
@@ -616,6 +619,7 @@ function MenuItem({
     plaidUrl,
     copyValue = title,
     copyable = false,
+    isTitleSelectable = false,
     hasSubMenuItems = false,
     forwardedFSClass,
     ref,
@@ -819,7 +823,7 @@ function MenuItem({
             return;
         }
 
-        if (shouldSuppressCopyableTextRowPress(copyable)) {
+        if (shouldSuppressCopyableTextRowPress(isTitleSelectable)) {
             return;
         }
 
@@ -886,7 +890,7 @@ function MenuItem({
                             <PressableWithSecondaryInteraction
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
                                 onMouseDown={(event) => {
-                                    markMouseDownOnCopyableText(event?.target, copyable);
+                                    markMouseDownOnCopyableText(event?.target, isTitleSelectable);
                                 }}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
@@ -1064,10 +1068,10 @@ function MenuItem({
                                                                         style={[
                                                                             styles.renderHTMLTitle,
                                                                             styles.textAlignLeft,
-                                                                            copyable && styles.userSelectText,
+                                                                            isTitleSelectable && styles.userSelectText,
                                                                             shouldApplyIconPaddingToHTMLTitle && iconLeftPadding,
                                                                         ]}
-                                                                        dataSet={copyable ? COPYABLE_TEXT_DATA_SET : undefined}
+                                                                        dataSet={isTitleSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
                                                                     >
                                                                         {/* Use Text instead of RenderHTML when the title is plain text.
                                                                             Titles with shouldRenderAsHTML use baseFontStyle, which differs from combinedTitleTextStyle below.
@@ -1085,9 +1089,9 @@ function MenuItem({
                                                                         numberOfLines={numberOfLinesTitle || undefined}
                                                                         dataSet={{
                                                                             [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled,
-                                                                            ...(copyable ? COPYABLE_TEXT_DATA_SET : {}),
+                                                                            ...(isTitleSelectable ? COPYABLE_TEXT_DATA_SET : {}),
                                                                         }}
-                                                                        selectable={copyable}
+                                                                        selectable={isTitleSelectable}
                                                                         accessibilityRole={titleAccessibilityRole}
                                                                     >
                                                                         {renderTitleContent()}
