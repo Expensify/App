@@ -406,6 +406,7 @@ const CONST = {
             MULTIPLE_DIAGONAL: 'multipleDiagonal',
             MULTIPLE_HORIZONTAL: 'multipleHorizontal',
             SUBSCRIPT: 'subscript',
+            SUBSCRIPT_CARD_FEED: 'subscriptCardFeed',
             SINGLE: 'single',
         },
         SORT_BY: {
