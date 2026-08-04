@@ -565,6 +565,34 @@ describe('MoneyRequestReportPreview', () => {
             expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(`thread_${mockSecondTransactionID}`, undefined, undefined, ''));
         });
 
+        it('fetches the report actions when the thread resolved only from the transaction, so the carousel can resolve siblings', async () => {
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+            // Cache-clear shape: the IOU report's actions are absent, but each transaction still carries its own
+            // transactionThreadReportID, so the press resolves a thread WITHOUT loading the report's actions.
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
+            mockUseReportTransactionsCollection.mockImplementation(() =>
+                toCollectionDataSet(
+                    ONYXKEYS.COLLECTION.TRANSACTION,
+                    [
+                        {...mockTransaction, transactionThreadReportID: `thread_${mockTransaction.transactionID}`},
+                        {...mockTransaction, transactionID: mockSecondTransactionID, transactionThreadReportID: `thread_${mockSecondTransactionID}`},
+                    ],
+                    (transaction) => transaction.transactionID,
+                ),
+            );
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            // The expense opens straight away from the transaction's own thread id...
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
+            // ...but the report's actions must still be fetched. The prev/next carousel resolves each sibling through
+            // those actions; without them an arrow press cannot find the sibling's existing thread and mints a
+            // parentless duplicate instead.
+            expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
+        });
+
         it('keeps an offline-deleted sibling out of the expense view prev/next carousel', async () => {
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             mockUseNetwork.mockReturnValue({isOffline: true});

@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {createTransactionThreadReport, openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
-import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getIOUActionForReportID,
@@ -247,9 +247,11 @@ function MoneyRequestReportPreview({
                         // The user may have closed the report's wide RHP or navigated away during the cascade delay;
                         // don't reopen the expense over whatever screen is now active.
                         if (!Navigation.isActiveRoute(reportRoute)) {
-                            // Drop the width hint we set for the expense, otherwise it would force that thread to
-                            // open wide later from an unrelated entry point.
+                            // The expense never opened, so drop what we staged for it: the width hint would force
+                            // that thread to open wide later from an unrelated entry point, and the seeded sibling
+                            // IDs would never reach the screen that clears them on unmount.
                             unmarkReportRHPWidth(childReportID);
+                            clearActiveTransactionIDs();
                             return;
                         }
                         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
@@ -287,8 +289,16 @@ function MoneyRequestReportPreview({
                 return;
             }
 
+            const isIOUActionLoaded = !!getIOUActionForReportID(transaction.reportID, transaction.transactionID);
             const childReportID = resolveChildReportID(transaction);
             if (childReportID) {
+                // The thread resolved from the transaction's own transactionThreadReportID rather than from a loaded
+                // IOU action, which means the report's actions aren't in OnyxDB yet. The expense view's prev/next
+                // carousel resolves each sibling through those actions, so fetch them in the background — without
+                // them an arrow press can't resolve the sibling's existing thread and mints a parentless duplicate.
+                if (!isIOUActionLoaded && iouReportID && !isOffline) {
+                    openReport({reportID: iouReportID, introSelected, betas});
+                }
                 navigateToExpense(childReportID);
                 return;
             }
@@ -298,7 +308,6 @@ function MoneyRequestReportPreview({
             // report and losing the pressed expense. Skip this while offline: openReport can't fetch, so the
             // deferred press would never fire (dead tap) — fall through to opening the cached parent report
             // instead, matching the "View" button.
-            const isIOUActionLoaded = !!getIOUActionForReportID(transaction.reportID, transaction.transactionID);
             if (!isIOUActionLoaded && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = transaction;
                 openReport({reportID: iouReportID, introSelected, betas});
