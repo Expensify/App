@@ -169,7 +169,10 @@ function SearchTransactionsChangeReport() {
         );
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         const policyTagList = policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : {};
-        const reportsForCall = {[`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: optimisticReport, ...reports};
+        const reportsForCall = {
+            ...reports,
+            [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
+        };
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
                 transactionIDs: selectedTransactionsKeys,

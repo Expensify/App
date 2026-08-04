@@ -148,7 +148,10 @@ function DynamicIOURequestStepUpgrade({
 
             const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
-            const reportsForCall = {[`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: optimisticReport, ...reports};
+            const reportsForCall = {
+                ...reports,
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
+            };
 
             // Move ALL selected transactions to the new report
             changeTransactionsReport({
