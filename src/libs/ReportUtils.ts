@@ -297,6 +297,7 @@ import {
     isReceiptBeingScanned,
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
+    isTransactionPendingDelete,
 } from './TransactionUtils';
 import addTrailingForwardSlash from './UrlUtils';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
@@ -9280,7 +9281,7 @@ function getPolicyIDsWithEmptyReportsForAccount(
         }
 
         // Ignore transactions that are already pending deletion so we treat the report as empty once the removal is queued.
-        const transactions = (reportsTransactionsParam[report.reportID] ?? []).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const transactions = (reportsTransactionsParam[report.reportID] ?? []).filter((transaction) => !isTransactionPendingDelete(transaction));
         if (transactions.length === 0) {
             policyLookup[report.policyID] = true;
         }
@@ -9450,15 +9451,15 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
             if (!potentialReport) {
                 return false;
             }
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
-            // Ignore transactions that are already pending deletion (e.g. a reverted split child) so the LHN RBR stays
-            // consistent with what the opened report renders, which also filters out DELETE-pending transactions.
-            const transactions = getReportTransactions(potentialReport.reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-
             // Allow both open and processing reports to show RBR for violations
             if (!isOpenOrProcessingReport(potentialReport)) {
                 return false;
             }
+
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
+            // Ignore transactions that are already pending deletion (e.g. a reverted split child) so the LHN RBR stays
+            // consistent with what the opened report renders, which also filters out DELETE-pending transactions.
+            const transactions = getReportTransactions(potentialReport.reportID).filter((transaction) => !isTransactionPendingDelete(transaction));
 
             const excludedNoticeNamesForLHN = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
 
@@ -13014,9 +13015,7 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
 }
 
 function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>, shouldExcludeDeletedTransactions = false): boolean {
-    const transactions = getReportTransactions(iouReport?.reportID).filter(
-        (transaction) => !shouldExcludeDeletedTransactions || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
+    const transactions = getReportTransactions(iouReport?.reportID).filter((transaction) => !shouldExcludeDeletedTransactions || !isTransactionPendingDelete(transaction));
 
     return isIOUReport(iouReport) && transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) <= 0);
 }
