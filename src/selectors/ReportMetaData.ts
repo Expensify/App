@@ -13,6 +13,16 @@ const hasOnceLoadedReportActionsSelector = (loadingState: OnyxEntry<ReportLoadin
 const reportActionsLoadingStateSelector = (loadingState: OnyxEntry<ReportLoadingState>): Pick<ReportLoadingState, 'hasOnceLoadedReportActions'> | undefined =>
     loadingState ? {hasOnceLoadedReportActions: loadingState.hasOnceLoadedReportActions} : undefined;
 
+const reportActionsListLoadingStateSelector = (
+    loadingState: OnyxEntry<ReportLoadingState>,
+): Pick<ReportLoadingState, 'hasOnceLoadedReportActions' | 'isLoadingInitialReportActions'> | undefined =>
+    loadingState
+        ? {
+              hasOnceLoadedReportActions: loadingState.hasOnceLoadedReportActions,
+              isLoadingInitialReportActions: loadingState.isLoadingInitialReportActions,
+          }
+        : undefined;
+
 const isLoadingInitialReportActionsSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.isLoadingInitialReportActions;
 
 const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
@@ -28,6 +38,7 @@ export {
     isActionLoadingSelector,
     hasOnceLoadedReportActionsSelector,
     reportActionsLoadingStateSelector,
+    reportActionsListLoadingStateSelector,
     isLoadingInitialReportActionsSelector,
     isOptimisticReportSelector,
     pendingNewTransactionIDsSelector,

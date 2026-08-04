@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -24,6 +25,7 @@ import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Tran
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {navigateToCreatedReportInReports} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -41,7 +43,7 @@ import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
@@ -62,6 +64,7 @@ function IOURequestStepUpgrade({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const activePolicy = useActivePolicy();
+    const personalPolicy = usePersonalPolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
@@ -219,7 +222,13 @@ function IOURequestStepUpgrade({
                     });
                 } else {
                     Navigation.goBack();
-                    navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                    // `getActiveRoute()` still resolves to the upgrade screen here, so anchor the suffix to the expense's report instead.
+                    navigateWithMicrotask(
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID),
+                            ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                        ),
+                    );
                 }
 
                 break;
@@ -279,12 +288,17 @@ function IOURequestStepUpgrade({
         }
 
         const email = currentUserPersonalDetails?.email ?? '';
+
+        // In the split-expense flow inherit the user's chosen default currency (personal policy
+        // `outputCurrency`) rather than the geo-derived `localCurrencyCode`.
+        const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
+        const upgradeCurrency = (isSplitExpense ? personalPolicy?.outputCurrency : undefined) ?? currentUserPersonalDetails?.localCurrencyCode ?? '';
         const policyData = Policy.createWorkspace({
             policyOwnerEmail: undefined,
             policyName: Policy.generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
             policyID: undefined,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-            currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
+            currency: upgradeCurrency,
             featuresMap: [
                 {
                     id: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
