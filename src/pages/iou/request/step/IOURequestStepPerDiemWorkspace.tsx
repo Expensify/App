@@ -91,6 +91,14 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
         }
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
         setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined, getCurrencyDecimals);
+
+        // Retarget the start route this selector lives on before opening the destination step. The destination and
+        // time steps are dynamic routes appended to this route's path and carry no `:reportID` of their own, so the
+        // whole per diem URL is generated from the params below. Leaving them on the report the flow started from
+        // makes the URL describe a report that has no per diem rates: refreshing or sharing the destination/time
+        // URL then resolves an empty policy and renders Not Found, and the start page treats its own draft as
+        // stale (`isStaleTransactionDraft`) because the draft's reportID no longer matches the route's.
+        navigation.setParams({reportID: targetReport.reportID});
         Navigation.navigate(
             createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path, ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport.reportID)),
         );
