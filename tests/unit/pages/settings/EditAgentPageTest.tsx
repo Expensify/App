@@ -153,12 +153,13 @@ const mockUseIsFocused = jest.mocked(useIsFocused);
 
 const TEST_ACCOUNT_ID = 12345;
 const TEST_REAL_ACCOUNT_ID = 67890;
+const TEST_NAVIGATOR_KEY = 'SettingsSplitNavigator-test';
 
 type EditAgentPageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>['route'];
 type EditAgentPageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>['navigation'];
 
 const mockRoute = {key: 'Settings_Agents_Edit-test', params: {accountID: TEST_ACCOUNT_ID}} as EditAgentPageRoute;
-const mockNavigation = {} as EditAgentPageNavigation;
+const mockNavigation = {getState: () => ({key: TEST_NAVIGATOR_KEY})} as EditAgentPageNavigation;
 const getSelectedAccountID = (options: Parameters<typeof useOnyx>[1], mapping: OptimisticAgentAccountIDMapping | undefined): number | undefined => {
     const selectedAccountID = options?.selector?.(mapping);
     return typeof selectedAccountID === 'number' ? selectedAccountID : undefined;
@@ -347,7 +348,7 @@ describe('EditAgentPage', () => {
         expect(serialized).toContain('Real Agent');
         expect(serialized).toContain('Real prompt');
         expect(serialized).not.toContain('notFound.notHere');
-        expect(mockSetParams).toHaveBeenCalledWith({accountID: TEST_REAL_ACCOUNT_ID}, mockRoute.key);
+        expect(mockSetParams).toHaveBeenCalledWith({accountID: TEST_REAL_ACCOUNT_ID}, mockRoute.key, TEST_NAVIGATOR_KEY);
     });
 
     it('does not update the optimistic edit route while the edit page is not focused', () => {

@@ -37,11 +37,12 @@ import {View} from 'react-native';
 
 type EditAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>;
 
-function EditAgentPage({route}: EditAgentPageProps) {
+function EditAgentPage({route, navigation}: EditAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'Users']);
     const isFocused = useIsFocused();
+    const navigatorKey = navigation.getState()?.key;
     const routeAccountID = route.params.accountID;
     const [resolvedAccountID] = useOnyx(ONYXKEYS.RAM_ONLY_OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {
         selector: (mapping: OptimisticAgentAccountIDMapping | null | undefined) => mapping?.[routeAccountID],
@@ -53,8 +54,8 @@ function EditAgentPage({route}: EditAgentPageProps) {
             return;
         }
 
-        Navigation.setParams({accountID}, route.key);
-    }, [accountID, isFocused, route.key, routeAccountID]);
+        Navigation.setParams({accountID}, route.key, navigatorKey);
+    }, [accountID, isFocused, navigatorKey, route.key, routeAccountID]);
 
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
