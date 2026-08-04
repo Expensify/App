@@ -43,7 +43,7 @@ import {createSidebarReportsCollection, createSidebarTestData} from '../utils/co
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {convertToDisplayString, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, localeCompare, translateLocal, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -390,6 +390,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
 
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
@@ -413,6 +414,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
 
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -1495,6 +1497,7 @@ describe('SidebarUtils', () => {
                 translate: translateWithHiddenMarker,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toContain('HiddenMarker');
         });
@@ -1521,6 +1524,7 @@ describe('SidebarUtils', () => {
                 translate: translateWithUnavailableMarker,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
         });
@@ -1546,6 +1550,7 @@ describe('SidebarUtils', () => {
                 translate: translateWithUnavailableMarker,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
         });
@@ -1571,6 +1576,7 @@ describe('SidebarUtils', () => {
                 translate: translateWithUnavailableMarker,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
         });
@@ -1605,6 +1611,7 @@ describe('SidebarUtils', () => {
                             translate: translateLocal,
                             localeCompare,
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                            formatPhoneNumber,
                         });
                         expect(result.messageHtml).toContain('This chat is with');
                         expect(result.messageHtml).toContain('<user-details accountid="1">');
@@ -1637,6 +1644,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toBe('This chat is with Email One.');
             expect(result.messageHtml).toContain('<user-details accountid="1">Email One</user-details>');
@@ -1668,6 +1676,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toMatch(/^This chat is with .+ and .+\.$/);
             expect(result.messageText).toContain(' and ');
@@ -1701,6 +1710,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toMatch(/^This chat is with .+, .+, and .+\.$/);
             expect(result.messageText).toContain(', and ');
@@ -1746,6 +1756,7 @@ describe('SidebarUtils', () => {
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                             derivedReportName: 'Report (archived)',
                             isReportArchived: isReportArchived.current,
+                            formatPhoneNumber,
                         });
                     })
 
@@ -1785,6 +1796,7 @@ describe('SidebarUtils', () => {
                             localeCompare,
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                             isReportArchived: isReportArchived.current,
+                            formatPhoneNumber,
                         });
                     })
 
@@ -1826,6 +1838,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
 
             expect(result.messageText).toContain('Client Corporation');
@@ -1862,6 +1875,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
 
             // When invoiceReceiverPolicy is undefined (individual payer), it should handle gracefully
@@ -1898,6 +1912,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
 
             // Should not contain invoice-specific messaging
@@ -1942,6 +1957,7 @@ describe('SidebarUtils', () => {
                 derivedReportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`,
                 isReportArchived: true,
                 reportDetailsLink: 'https://example.com/report',
+                formatPhoneNumber,
             });
 
             // Should show archived message
@@ -1976,6 +1992,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
 
             // Should still return a message, even if invoiceReceiverPolicy is missing
@@ -2011,6 +2028,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toBe('Concierge can answer questions, update expenses, and more.');
         });
@@ -2040,6 +2058,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toBe('This chat is with Email One.');
             expect(result.messageText).not.toContain('Concierge');
@@ -2062,6 +2081,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toBeUndefined();
             expect(result.messageText).toBeUndefined();
@@ -2082,6 +2102,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toBeTruthy();
             expect(result.messageText).not.toContain('Concierge');
@@ -2120,6 +2141,7 @@ describe('SidebarUtils', () => {
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                 isTrackIntentUser: true,
                 currentUserAccountID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toBe("This is where you'll track expenses.");
         });
@@ -2166,6 +2188,7 @@ describe('SidebarUtils', () => {
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                 isTrackIntentUser: true,
                 currentUserAccountID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toContain('will submit expenses to');
         });
@@ -2203,6 +2226,7 @@ describe('SidebarUtils', () => {
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                 isTrackIntentUser: false,
                 currentUserAccountID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toContain('will submit expenses to');
         });
@@ -2241,6 +2265,7 @@ describe('SidebarUtils', () => {
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                 isTrackIntentUser: true,
                 currentUserAccountID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toBe('Custom workspace description');
         });
@@ -2308,6 +2333,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -2375,6 +2401,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -2417,6 +2444,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('changed the custom tax name to "VAT" (previously "Sales Tax")');
@@ -2458,6 +2486,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('changed the workspace currency default tax rate to "Reduced Rate" (previously "Standard Rate")');
@@ -2499,6 +2528,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")');
@@ -2546,6 +2576,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Tax Exempt (0%)")');
@@ -2587,6 +2618,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(enabledResult?.alternateText).toBe('enabled the company card purchases requirement');
@@ -2621,6 +2653,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(disabledResult?.alternateText).toBe('disabled the company card purchases requirement');
@@ -2662,6 +2695,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('added card feed "Visa Commercial"');
@@ -2703,6 +2737,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('removed card feed "Amex Corporate"');
@@ -2744,6 +2779,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('renamed card feed to "New Feed" (previously "Old Feed")');
@@ -2785,6 +2821,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('assigned user@example.com "US Bank" company card ending in 1234');
@@ -2826,6 +2863,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('unassigned user@example.com "US Bank" company card ending in 5678');
@@ -2867,6 +2905,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('enabled cardholders to delete card transactions for card feed "Visa Commercial"');
@@ -2908,6 +2947,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")');
@@ -2977,6 +3017,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             // Then the alternate text should show @Hidden.
@@ -3031,6 +3072,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -3078,6 +3120,7 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
 
                     reportAttributesDerived: undefined,
+                    formatPhoneNumber,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -3120,6 +3163,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -3262,6 +3306,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: 0,
 
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
 
                     reportAttributesDerived: mockReportAttributesDerived,
                 });
@@ -3311,6 +3356,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -3387,6 +3433,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: session.accountID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -3452,6 +3499,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: session.accountID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
@@ -3508,6 +3556,7 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: report.lastMessageText,
                     currentUserAccountID: session.accountID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(result?.alternateText).toBe('You: someMessage');
@@ -3606,6 +3655,7 @@ describe('SidebarUtils', () => {
                             [lastAction.reportActionID]: true,
                         },
                     },
+                    formatPhoneNumber,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -3730,6 +3780,7 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: 'test action',
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
@@ -3820,6 +3871,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 expect(result?.alternateText).toBe(`One: submitted`);
@@ -3922,6 +3974,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: managerID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 const reportPreviewMessage = getReportPreviewReportActionMessage({
@@ -4033,6 +4086,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: managerID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 const reportPreviewMessage = getReportPreviewReportActionMessage({
@@ -4076,6 +4130,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 // Then isConciergeChat should be true
@@ -4109,6 +4164,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 // Then isConciergeChat should be false
@@ -4141,6 +4197,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                 });
 
                 // Then isConciergeChat should be false
@@ -4191,6 +4248,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(result?.alternateText).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
@@ -4977,6 +5035,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: '',
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
         }
 
