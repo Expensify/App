@@ -46,26 +46,7 @@ describe('convertHeicImage (native)', () => {
         expect(onSuccess).toHaveBeenCalledWith(expect.objectContaining({uri: 'file:///photo.jpg', name: 'photo.jpg', type: 'image/jpeg'}));
     });
 
-    it('retries once when conversion fails, and succeeds on the retry', async () => {
-        // "Image context has been lost" is the transient memory-pressure failure this retry exists for.
-        mockRenderAsync.mockRejectedValueOnce(new Error('Image context has been lost'));
-        mockRenderSuccess();
-        const onSuccess = jest.fn();
-        const onError = jest.fn();
-        const onFinish = jest.fn();
-
-        convertHeicImage(heicFile, {onSuccess, onError, onFinish});
-        await jest.runAllTimersAsync();
-
-        expect(mockRenderAsync).toHaveBeenCalledTimes(2);
-        expect(onError).not.toHaveBeenCalled();
-        expect(onSuccess).toHaveBeenCalledWith(expect.objectContaining({type: 'image/jpeg'}));
-        // The first attempt must not fire onFinish: the retry owns it, so the caller sees exactly one completion.
-        expect(onFinish).toHaveBeenCalledTimes(1);
-    });
-
-    it('reports an error, and never falls back to the original HEIC, once the retry is exhausted', async () => {
-        mockRenderAsync.mockRejectedValueOnce(new Error('Image context has been lost'));
+    it('reports an error on conversion failure, and never falls back to the original HEIC', async () => {
         mockRenderAsync.mockRejectedValueOnce(new Error('Image context has been lost'));
         const onSuccess = jest.fn();
         const onError = jest.fn();
@@ -74,7 +55,7 @@ describe('convertHeicImage (native)', () => {
         convertHeicImage(heicFile, {onSuccess, onError, onFinish});
         await jest.runAllTimersAsync();
 
-        expect(mockRenderAsync).toHaveBeenCalledTimes(2);
+        expect(mockRenderAsync).toHaveBeenCalledTimes(1);
         expect(onError).toHaveBeenCalledTimes(1);
         expect(onFinish).toHaveBeenCalledTimes(1);
         // The raw HEIC must never be surfaced as a success: the server rejects image/heic.

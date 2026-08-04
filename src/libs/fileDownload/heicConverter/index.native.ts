@@ -6,9 +6,6 @@ import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 
 import type {HeicConverterFunction} from './types';
 
-/** Conversion failures are usually transient memory-pressure errors, so a single delayed retry recovers most of them */
-const HEIC_CONVERSION_RETRY_DELAY_MS = 300;
-
 /**
  * Helper function to convert HEIC/HEIF image to JPEG using ImageManipulator
  * @param file - The original file object
@@ -29,9 +26,7 @@ const convertImageWithManipulator = (
         onError?: (error: unknown, originalFile: FileObject) => void;
         onFinish?: () => void;
     } = {},
-    retriesLeft = 1,
 ) => {
-    let willRetry = false;
     const imageManipulatorContext = ImageManipulator.manipulate(sourceUri);
     imageManipulatorContext
         .renderAsync()
@@ -48,19 +43,10 @@ const convertImageWithManipulator = (
             onSuccess(convertedFile);
         })
         .catch((err) => {
-            if (retriesLeft > 0) {
-                willRetry = true;
-                Log.info('HEIC/HEIF conversion failed, retrying', false, {error: err instanceof Error ? err.message : String(err)});
-                setTimeout(() => convertImageWithManipulator(file, sourceUri, originalExtension, {onSuccess, onError, onFinish}, retriesLeft - 1), HEIC_CONVERSION_RETRY_DELAY_MS);
-                return;
-            }
             Log.warn('Error converting HEIC/HEIF to JPEG', {error: err instanceof Error ? err.message : String(err)});
             onError(err, file);
         })
         .finally(() => {
-            if (willRetry) {
-                return;
-            }
             onFinish();
         });
 };
