@@ -96,6 +96,7 @@ import {
     getHarvestOriginalReportID,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
+    getInvoiceReceiverPersonalDetail,
     getIOUReportActionDisplayMessage,
     getLinkedIOUTransaction,
     getMoneyRequestSpendBreakdown,
@@ -21801,5 +21802,41 @@ describe('areAllRequestsBeingSmartScanned', () => {
         const transactions = [buildScanningTransaction(1), scannedReceipt];
 
         expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
+    });
+});
+
+describe('getInvoiceReceiverPersonalDetail', () => {
+    it('returns the personal detail of the receiver account when the receiver is an individual', () => {
+        const report = {reportID: '1', invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1}} as Report;
+
+        expect(getInvoiceReceiverPersonalDetail(report, participantsPersonalDetails)).toBe(participantsPersonalDetails['1']);
+    });
+
+    it('returns undefined when the receiver is an individual but the account is missing from the list', () => {
+        const report = {reportID: '1', invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 999}} as Report;
+
+        expect(getInvoiceReceiverPersonalDetail(report, participantsPersonalDetails)).toBeUndefined();
+    });
+
+    it('returns undefined when the receiver is a business', () => {
+        const report = {reportID: '1', invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID: 'ABC123'}} as Report;
+
+        expect(getInvoiceReceiverPersonalDetail(report, participantsPersonalDetails)).toBeUndefined();
+    });
+
+    it('returns undefined when the report has no invoice receiver', () => {
+        const report = {reportID: '1'} as Report;
+
+        expect(getInvoiceReceiverPersonalDetail(report, participantsPersonalDetails)).toBeUndefined();
+    });
+
+    it('returns undefined when the report is undefined', () => {
+        expect(getInvoiceReceiverPersonalDetail(undefined, participantsPersonalDetails)).toBeUndefined();
+    });
+
+    it('returns undefined when the personal details list is undefined', () => {
+        const report = {reportID: '1', invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1}} as Report;
+
+        expect(getInvoiceReceiverPersonalDetail(report, undefined)).toBeUndefined();
     });
 });
