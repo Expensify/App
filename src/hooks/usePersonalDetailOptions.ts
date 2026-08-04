@@ -12,6 +12,8 @@ import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {useEffect} from 'react';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -129,6 +131,13 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
     const {accountID} = useCurrentUserPersonalDetails();
     const {formatPhoneNumber, translate} = useLocalize();
     const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
+    const [reportAttributes, reportAttributesMetadata] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+    const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const personalDetails = usePersonalDetails();
+
+    // This mutable Set must be created after every hook call above: React Compiler cannot wrap a
+    // value in a reactive scope if its creation and usage span a hook call, and an unmemoized Set
+    // here cascades into recreating the whole options list on every render.
     const reportIDsSet = (() => {
         if (!reports) {
             return new Set<string>();
@@ -141,10 +150,6 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
         }
         return validReportIDs;
     })();
-
-    const [reportAttributes, reportAttributesMetadata] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
-    const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const personalDetails = usePersonalDetails();
 
     const isLoading = !enabled || isLoadingOnyxValue(reportsMetadata, reportAttributesMetadata, reportNameValuePairsMetadata);
 

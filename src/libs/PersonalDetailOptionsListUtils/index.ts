@@ -239,6 +239,10 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite'>, currentUserL
 }
 
 function matchesSearchTerms(option: OptionData, searchTerms: string[], extraSearchTerms?: string[]): boolean {
+    // Every option matches an empty search, so skip building the normalized search text entirely
+    if (searchTerms.length === 0) {
+        return true;
+    }
     let searchText = deburr(`${option.text} ${option.login ?? ''}`.toLocaleLowerCase());
     if (extraSearchTerms?.length) {
         searchText += ` ${deburr(extraSearchTerms.join(' ').toLocaleLowerCase())}`;
