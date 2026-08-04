@@ -90,6 +90,22 @@ function isFocusableTextInputRef(ref: BaseTextInputRef): ref is AnimatedTextInpu
 const isWeb = Platform.OS === 'web';
 const OdometerContainer = isWeb ? View : KeyboardAvoidingView;
 
+function getOdometerContainerConfig(isWebPlatform: boolean, isCreatingNewRequest: boolean, isFocused: boolean) {
+    let key = 'editing';
+    if (!isWebPlatform && isCreatingNewRequest) {
+        key = isFocused ? 'focused' : 'unfocused';
+    }
+    const props = isWebPlatform
+        ? // Web already receives the iOS 26 Safari keyboard compensation from the parent ScreenWrapper.
+          {}
+        : {
+              behavior: 'padding' as const,
+              enabled: isCreatingNewRequest,
+          };
+
+    return {key, props};
+}
+
 function IOURequestStepDistanceOdometer({
     report,
     route: {
@@ -606,17 +622,7 @@ function IOURequestStepDistanceOdometer({
     }, [fromLocaleDigit, startReading, endReading, odometerStartImage, odometerEndImage, translate, setFormError]);
 
     // Remount the native create-flow avoider when tab focus changes so stale keyboard padding is cleared.
-    let odometerContainerKey = 'editing';
-    if (!isWeb && isCreatingNewRequest) {
-        odometerContainerKey = isFocused ? 'focused' : 'unfocused';
-    }
-    // Web already receives the iOS 26 Safari keyboard compensation from the parent ScreenWrapper.
-    const odometerContainerProps = isWeb
-        ? {}
-        : {
-              behavior: 'padding' as const,
-              enabled: isCreatingNewRequest,
-          };
+    const {key: odometerContainerKey, props: odometerContainerProps} = getOdometerContainerConfig(isWeb, isCreatingNewRequest, isFocused);
 
     return (
         <StepScreenWrapper
@@ -781,4 +787,5 @@ const IOURequestStepDistanceOdometerWithWritableReportOrNotFound = withWritableR
 
 const IOURequestStepDistanceOdometerWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceOdometerWithWritableReportOrNotFound);
 
+export {getOdometerContainerConfig};
 export default IOURequestStepDistanceOdometerWithFullTransactionOrNotFound;
