@@ -49,6 +49,7 @@ type UseSearchFiltersBarResult = {
 
 type FilterPopupProps = {
     baseFilterKey: SearchFilter['key'];
+    isDefault: boolean;
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>;
     closeOverlay: () => void;
     setPopoverWidth: PopoverComponentProps['setPopoverWidth'];
@@ -59,7 +60,7 @@ function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilter
     return `Search-Filter-${filterKey}`;
 }
 
-function FilterPopup({baseFilterKey, searchAdvancedFiltersForm, closeOverlay, setPopoverWidth, updateFilterForm}: FilterPopupProps) {
+function FilterPopup({baseFilterKey, isDefault, searchAdvancedFiltersForm, closeOverlay, setPopoverWidth, updateFilterForm}: FilterPopupProps) {
     const {translate} = useLocalize();
     const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
 
@@ -130,6 +131,7 @@ function FilterPopup({baseFilterKey, searchAdvancedFiltersForm, closeOverlay, se
     return (
         <ListPopup
             baseFilterKey={baseFilterKey}
+            isDefault={isDefault}
             values={searchAdvancedFiltersForm}
             label={label}
             closeOverlay={closeOverlay}
@@ -160,6 +162,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                 <ListFilterHeightContextProvider>
                     <FilterPopup
                         baseFilterKey={removeNegation(filterKey)}
+                        isDefault={isDefault}
                         searchAdvancedFiltersForm={searchAdvancedFiltersForm}
                         closeOverlay={closeOverlay}
                         setPopoverWidth={setPopoverWidth}
