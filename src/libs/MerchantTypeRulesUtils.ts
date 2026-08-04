@@ -4,8 +4,8 @@ import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseD
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
 import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
+import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
 import type {Policy} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 
@@ -213,4 +213,12 @@ function getExpenseDefaultsTableData({
     return [...merchantRules, ...merchantTypeRules];
 }
 
-export {getDefaultMccGroupCategory, getExpenseDefaultsTableData, getMerchantCodingRulesTableData, getMerchantTypeRuleFormFromMccGroup, isDefaultMccGroupID, isMerchantTypeRuleKey, saveMerchantTypeRule};
+export {
+    getDefaultMccGroupCategory,
+    getExpenseDefaultsTableData,
+    getMerchantCodingRulesTableData,
+    getMerchantTypeRuleFormFromMccGroup,
+    isDefaultMccGroupID,
+    isMerchantTypeRuleKey,
+    saveMerchantTypeRule,
+};
