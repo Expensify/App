@@ -3098,6 +3098,7 @@ function deleteReportComment(
     report: OnyxEntry<Report>,
     reportAction: ReportAction,
     originalReportActions: OnyxEntry<ReportActions>,
+    reportActions: OnyxEntry<ReportActions>,
     ancestors: Ancestor[],
     isReportArchived: boolean | undefined,
     isOriginalReportArchived: boolean | undefined,
@@ -3105,7 +3106,7 @@ function deleteReportComment(
     visibleReportActionsDataParam?: VisibleReportActionsDerivedValue,
 ) {
     const reportID = report?.reportID;
-    const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
+    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions);
     const reportActionID = reportAction.reportActionID;
 
     if (!reportActionID || !originalReportID || !reportID) {
@@ -3515,12 +3516,12 @@ function clearAllReportActionDrafts() {
 }
 
 /** Saves the draft for a comment report action. This will put the comment into "edit mode" */
-function saveReportActionDraft(reportID: string | undefined, reportAction: ReportAction | null, draftMessage: string) {
+function saveReportActionDraft(reportID: string | undefined, reportAction: ReportAction | null, reportActions: OnyxEntry<ReportActions>, draftMessage: string) {
     if (!reportAction) {
         return;
     }
 
-    const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
+    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions);
     if (!originalReportID) {
         return;
     }
