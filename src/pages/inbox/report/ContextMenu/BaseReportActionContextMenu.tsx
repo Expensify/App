@@ -29,11 +29,11 @@ import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {
     getLinkedTransactionID,
+    getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReportAction,
     isActionOfType,
-    isDeletedAction,
     isMemberChangeAction,
     withDEWRoutedActionsObject,
 } from '@libs/ReportActionsUtils';
@@ -223,10 +223,12 @@ function BaseReportActionContextMenu({
     const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const transactionThreadReportID = useMemo(
-        () => getOneTransactionThreadReportID(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
+    const transactionThreadReportAction = useMemo(
+        () => getOneTransactionThreadReportAction(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
         [paginatedReportActions, isOffline, childReport, childChatReport],
     );
+    // Since we don't always create the transaction thread optimistically, we fall back to CONST.FAKE_REPORT_ID
+    const transactionThreadReportID = transactionThreadReportAction ? (transactionThreadReportAction.childReportID ?? CONST.FAKE_REPORT_ID) : undefined;
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
 
@@ -235,8 +237,10 @@ function BaseReportActionContextMenu({
 
     const requestParentReportAction = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
+            // The transaction thread report can be missing from Onyx (e.g. right after clearing the cache), so we can't look up its parent action.
+            // In that case we use the action the transaction thread was derived from, which applies the same request-action selection logic.
             if (transactionThreadReportID === CONST.FAKE_REPORT_ID || !transactionThreadReport?.parentReportActionID) {
-                return Object.values(childReportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isDeletedAction(action));
+                return transactionThreadReportAction;
             }
             if (!paginatedReportActions) {
                 return undefined;
@@ -244,7 +248,15 @@ function BaseReportActionContextMenu({
             return paginatedReportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
         }
         return parentReportAction;
-    }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID, transactionThreadReportID, childReportActions]);
+    }, [
+        parentReportAction,
+        isMoneyRequestReport,
+        isInvoiceReport,
+        paginatedReportActions,
+        transactionThreadReport?.parentReportActionID,
+        transactionThreadReportID,
+        transactionThreadReportAction,
+    ]);
 
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
     const isChildReportArchived = useReportIsArchived(childReport?.reportID);
