@@ -192,7 +192,7 @@ describe('BaseLoginForm', () => {
         // The error must survive the mount the same way the success message does.
         await Onyx.set(ONYXKEYS.ACCOUNT, {
             isLoading: false,
-            errors: {1: 'unlinkLoginForm.unlinkError'},
+            errors: {[Date.now()]: 'unlinkLoginForm.unlinkError'},
         });
         await waitForBatchedUpdates();
 
@@ -209,7 +209,7 @@ describe('BaseLoginForm', () => {
         // other leftover error (e.g. from an earlier failed sign-in attempt) must still be cleared.
         await Onyx.set(ONYXKEYS.ACCOUNT, {
             isLoading: false,
-            errors: {1: 'loginForm.error.invalidFormatEmailLogin'},
+            errors: {[Date.now()]: 'loginForm.error.invalidFormatEmailLogin'},
         });
         await waitForBatchedUpdates();
 
