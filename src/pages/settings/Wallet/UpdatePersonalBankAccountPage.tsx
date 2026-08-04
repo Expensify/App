@@ -7,7 +7,7 @@ import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCompletedStepsForBankAccount} from '@libs/BankAccountUtils';
@@ -16,6 +16,10 @@ import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 
 import Navigation from '@navigation/Navigation';
+
+import Address from '@pages/AddPersonalBankAccountPage/substeps/AddressStep';
+import LegalName from '@pages/AddPersonalBankAccountPage/substeps/LegalNameStep';
+import PhoneNumber from '@pages/AddPersonalBankAccountPage/substeps/PhoneNumberStep';
 
 import {clearPersonalBankAccount, clearPersonalBankAccountErrors, updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
@@ -28,10 +32,6 @@ import type {BankAccountList} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect} from 'react';
-
-import Address from './InternationalDepositAccount/PersonalInfo/substeps/AddressStep';
-import LegalName from './InternationalDepositAccount/PersonalInfo/substeps/LegalNameStep';
-import PhoneNumber from './InternationalDepositAccount/PersonalInfo/substeps/PhoneNumberStep';
 
 const PAGE_NAME = CONST.UPDATE_PERSONAL_BANK_ACCOUNT.PAGE_NAME;
 
@@ -46,7 +46,7 @@ type SubmittedAddress = {
     country: string | undefined;
 };
 
-function UpdateLegalName({isEditing, onNext, onMove}: SubStepProps) {
+function UpdateLegalName({isEditing, onNext, onMove}: SubPageProps) {
     return (
         <LegalName
             isEditing={isEditing}
@@ -58,7 +58,7 @@ function UpdateLegalName({isEditing, onNext, onMove}: SubStepProps) {
 }
 UpdateLegalName.displayName = 'UpdateLegalName';
 
-function AddressWithDraft({isEditing, onNext, onMove}: SubStepProps) {
+function AddressWithDraft({isEditing, onNext, onMove}: SubPageProps) {
     return (
         <Address
             isEditing={isEditing}
@@ -72,7 +72,7 @@ function AddressWithDraft({isEditing, onNext, onMove}: SubStepProps) {
 }
 AddressWithDraft.displayName = 'AddressWithDraft';
 
-function DelayedPhoneNumber({isEditing, onNext, onMove}: SubStepProps) {
+function DelayedPhoneNumber({isEditing, onNext, onMove}: SubPageProps) {
     return (
         <PhoneNumber
             isEditing={isEditing}

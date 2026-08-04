@@ -1,6 +1,6 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,20 +17,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {shouldShowPerDiemTabOption} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import {
-    getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
-    getActivePoliciesWithExpenseChatAndTimeEnabled,
-    getPerDiemCustomUnit,
-    isControlPolicy,
-    isPerDiemEnabled,
-    isTimeTrackingEnabled,
-} from '@libs/PolicyUtils';
+import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getActivePoliciesWithExpenseChatAndTimeEnabled, isControlPolicy, isPerDiemEnabled, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
-import {isScanRequest} from '@libs/TransactionUtils';
+import {isPerDiemRequest, isScanRequest} from '@libs/TransactionUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -113,23 +107,19 @@ function IOURequestStartPage({
 
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const policiesWithPerDiemEnabledAndHasRates = useMemo(
-        () => getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(allPolicies, currentUserPersonalDetails.login),
+    const policiesWithPerDiemEnabled = useMemo(
+        () => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserPersonalDetails.login),
         [allPolicies, currentUserPersonalDetails.login],
     );
     const policiesWithTimeEnabled = useMemo(
         () => getActivePoliciesWithExpenseChatAndTimeEnabled(allPolicies, currentUserPersonalDetails.login),
         [allPolicies, currentUserPersonalDetails.login],
     );
-    const doesPerDiemPolicyExist = policiesWithPerDiemEnabledAndHasRates.length > 0;
-    const moreThanOnePerDiemExist = policiesWithPerDiemEnabledAndHasRates.length > 1;
+    const doesPerDiemPolicyExist = policiesWithPerDiemEnabled.length > 0;
+    const moreThanOnePerDiemExist = policiesWithPerDiemEnabled.length > 1;
     const hasCurrentPolicyPerDiemEnabled = isControlPolicy(policy) && isPerDiemEnabled(policy);
     const hasCurrentPolicyTimeTrackingEnabled = policy ? isTimeTrackingEnabled(policy) : false;
-    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-    const hasPolicyPerDiemRates = !isEmptyObject(perDiemCustomUnit?.rates);
-    const hasCurrentPolicyPerDiemWithRates = !isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled && hasPolicyPerDiemRates;
-    const hasAnyPolicyPerDiemWithRates = (iouType === CONST.IOU.TYPE.TRACK || isFromGlobalCreate) && doesPerDiemPolicyExist;
-    const shouldShowPerDiemOption = iouType !== CONST.IOU.TYPE.SPLIT && (hasCurrentPolicyPerDiemWithRates || hasAnyPolicyPerDiemWithRates);
+    const shouldShowPerDiemOption = shouldShowPerDiemTabOption(iouType, isFromGlobalCreate, hasCurrentPolicyPerDiemEnabled, doesPerDiemPolicyExist);
     const shouldShowTimeOption =
         (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) &&
         ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!policiesWithTimeEnabled.length));
@@ -241,12 +231,23 @@ function IOURequestStartPage({
                 reportDraft={reportDraft}
             />
         );
-    } else if (isScanRequest(transaction)) {
-        // When switching from the Scan tab, the shared draft is briefly still a scan request (with the uploaded
-        // receipt) until the tab-switch reset rebuilds it as manual. Mounting the embedded confirmation against that
-        // stale scan draft does throwaway work (scan loader, reading the receipt blob and a heavy first render) that
-        // is immediately discarded once the reset lands. Wait for the reset so the manual confirmation mounts once.
-        manualTabContent = <FullScreenLoadingIndicator reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}} />;
+    } else if (isScanRequest(transaction) || isPerDiemRequest(transaction)) {
+        // When switching from the Scan or Per diem tab, the shared draft is briefly still a scan/per-diem request
+        // until the tab-switch reset rebuilds it as manual. Mounting the embedded confirmation against that stale
+        // draft does throwaway work that is immediately discarded once the reset lands - for scan a heavy first
+        // render (scan loader, reading the receipt blob), and for per diem the confirmation renders per-diem UI
+        // (wrong fields, and the "Confirm page shows per diem" bug). Wait for the reset so the manual confirmation
+        // mounts once against the rebuilt manual draft.
+        // The header and tab bar remain visible above this loader, so per UI-1 use ActivityIndicator (users can still go back) instead of FullScreenLoadingIndicator.
+        manualTabContent = (
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                <ActivityIndicator
+                    testID="manualTabPendingReset"
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}}
+                />
+            </View>
+        );
     } else {
         manualTabContent = (
             <IOURequestStepConfirmation
@@ -333,7 +334,7 @@ function IOURequestStartPage({
                                                     <DynamicIOURequestStepDestination
                                                         openedFromStartPage
                                                         ref={perDiemInputRef}
-                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabledAndHasRates.at(0)?.id}
+                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabled.at(0)?.id}
                                                         route={route}
                                                         navigation={navigation}
                                                     />
