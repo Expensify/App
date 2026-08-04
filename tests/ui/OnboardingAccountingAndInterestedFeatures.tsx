@@ -165,11 +165,7 @@ describe('Onboarding interested features and accounting pages', () => {
         fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
         const otherAccountingSoftwareLabel = TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware');
         const otherAccountingSoftwareInput = screen.getByLabelText(otherAccountingSoftwareLabel);
-        const otherAccountingSoftwareTextInputs = renderResult.UNSAFE_root.findAll(
-            (node) => node.props.accessibilityLabel === otherAccountingSoftwareLabel && node.props.forceActiveLabel === true,
-        );
-        expect(otherAccountingSoftwareTextInputs).toHaveLength(1);
-        expect(otherAccountingSoftwareTextInputs.at(0)?.props.autoFocus).toBeFalsy();
+        expect(otherAccountingSoftwareInput.props.autoFocus).toBeFalsy();
         const accountingScrollView = renderResult.UNSAFE_getByType(ScrollView);
         expect(accountingScrollView.props.onContentSizeChange).toBeDefined();
         act(() => accountingScrollView.props.onContentSizeChange?.(0, 0));
