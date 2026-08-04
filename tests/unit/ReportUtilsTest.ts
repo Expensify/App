@@ -21895,14 +21895,14 @@ describe('getPendingDeleteMemberAccountIDs', () => {
         expect(result).toEqual(['1']);
     });
 
-    it('deduplicates account IDs that appear in multiple DELETE entries', () => {
+    it('returns one entry per DELETE entry, leaving deduplication to the callers', () => {
         const pendingChatMembers = [
             {accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
             {accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
         ];
 
         const result = getPendingDeleteMemberAccountIDs(pendingChatMembers);
-        expect(result).toEqual(['1']);
+        expect(result).toEqual(['1', '1']);
     });
 
     it('includes an account ID if any entry marks it DELETE, matching the original behavior', () => {
