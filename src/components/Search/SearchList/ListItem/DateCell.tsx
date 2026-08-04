@@ -18,9 +18,16 @@ type DateCellProps = {
     showTooltip: boolean;
     isLargeScreenWidth: boolean;
     suffixText?: string;
+
+    /**
+     * When true, `date` is a full UTC datetime representing a real instant (e.g. submitted/approved/exported) and is rendered
+     * in the user's selected timezone, so the day shown matches report history. When false (default), `date` is treated as a
+     * calendar value (e.g. transaction date/posted) and rendered with UTC formatting so the displayed day never shifts.
+     */
+    shouldUseLocalTimeZone?: boolean;
 } & EditableProps<string>;
 
-function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, canEdit, onSave}: DateCellProps) {
+function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseLocalTimeZone = false, canEdit, onSave}: DateCellProps) {
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const {isInNarrowPaneModal} = useResponsiveLayout();
@@ -30,7 +37,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, canEdit, o
         onSave,
     });
 
-    const formattedDate = DateUtils.formatTransactionListDate(date, preferredLocale);
+    const formattedDate = shouldUseLocalTimeZone ? DateUtils.formatTransactionListDateInLocalTimezone(date, preferredLocale) : DateUtils.formatTransactionListDate(date, preferredLocale);
     const displayText = suffixText ? `${formattedDate} • ${suffixText}` : formattedDate;
 
     const displayContent = (

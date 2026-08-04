@@ -1154,12 +1154,20 @@ function formatInUTCToLong(date: Date | string, locale: Locale): string {
     return formatIntl(locale, 'LONG_DATE', toUTCDate(date), 'UTC');
 }
 
-/** Transaction-list convention: MEDIUM ("Jul 9, 2023") for past years, SHORT ("Jul 9") for current. */
+/** Transaction-list convention: MEDIUM ("Jul 9, 2023") for past years, SHORT ("Jul 9") for current. UTC-anchored — use for calendar dates (transaction date, posted) so the day never shifts by viewer timezone. */
 function formatTransactionListDate(date: string, locale: Locale): string {
     if (!date) {
         return '';
     }
     return doesDateBelongToAPastYear(date) ? formatInUTCToMedium(date, locale) : formatInUTCToShort(date, locale);
+}
+
+/** Local-timezone twin of `formatTransactionListDate` — use for real-instant timestamps (submitted / approved / exported) so the displayed day matches the user's report-history view. */
+function formatTransactionListDateInLocalTimezone(date: string, locale: Locale): string {
+    if (!date) {
+        return '';
+    }
+    return doesDateBelongToAPastYear(date) ? formatToMediumDate(date, locale) : formatIntl(locale, 'MONTH_DAY', toLocalDate(date));
 }
 
 /** Full ISO timestamp only. Date-only `'yyyy-MM-dd'` would silently day-shift on timezone application — use `formatToReadableString` or `formatInUTCToLong` instead. */
@@ -1393,6 +1401,7 @@ const DateUtils = {
     formatInUTCToShort,
     formatInUTCToLong,
     formatTransactionListDate,
+    formatTransactionListDateInLocalTimezone,
     formatInTimeZoneToLong,
     formatInTimeZoneToShortTime,
     formatInTimeZoneToWeekday,
