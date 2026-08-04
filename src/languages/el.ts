@@ -6937,7 +6937,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'ενσωμάτωση';
                 return `Αποσύνδεση ${integrationName}`;
             },
-            connectTitle: ({connectionName}: ConnectionNameParams) => `Συνδέστε ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'ενσωμάτωση λογιστικής'}`,
+            connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `Συνδέστε ${connectionName}`,
             syncError: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -6972,8 +6972,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'αυτή η ενοποίηση';
                 return `Είστε βέβαιοι ότι θέλετε να αποσυνδέσετε το ${integrationName};`;
             },
-            connectPrompt: ({connectionName}: ConnectionNameParams) =>
-                `Είστε βέβαιοι ότι θέλετε να συνδέσετε το ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'αυτή την ενοποίηση λογιστικής'}; Αυτό θα αφαιρέσει τυχόν υπάρχουσες λογιστικές συνδέσεις.`,
+            connectPrompt: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Είστε βέβαιοι ότι θέλετε να συνδέσετε το ${connectionName}; Αυτό θα αφαιρέσει τυχόν υπάρχουσες λογιστικές συνδέσεις.`,
             reconnect: 'Επανασύνδεση',
             enterCredentials: 'Εισαγάγετε τα διαπιστευτήριά σας',
             updateCredentials: 'Ενημέρωση διαπιστευτηρίων',
