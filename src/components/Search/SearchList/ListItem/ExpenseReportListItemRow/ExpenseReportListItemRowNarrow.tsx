@@ -1,6 +1,7 @@
 import Checkbox from '@components/Checkbox';
 import getExpenseReportRowDisplayValues from '@components/Search/SearchList/ListItem/getExpenseReportRowDisplayValues';
-import TextWithTooltip from '@components/TextWithTooltip';
+import Text from '@components/Text';
+import {COPYABLE_TEXT_DATA_SET} from '@components/TextWithTooltip/selection';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -37,29 +38,37 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
             )}
             <View style={[styles.flexColumn, styles.gap1, styles.flex1]}>
                 <View style={[styles.flexRow, styles.gap2]}>
-                    <TextWithTooltip
-                        text={item.reportName ?? ''}
+                    <Text
                         numberOfLines={2}
                         style={[styles.lh20, styles.flex1]}
-                        isCopyable
-                    />
-                    <TextWithTooltip
-                        text={amountText}
+                        selectable
+                        dataSet={COPYABLE_TEXT_DATA_SET}
+                    >
+                        {item.reportName ?? ''}
+                    </Text>
+                    <Text
                         style={[styles.lh20, styles.flexShrink0, styles.textAlignRight]}
-                        isCopyable
-                    />
+                        selectable
+                        dataSet={COPYABLE_TEXT_DATA_SET}
+                    >
+                        {amountText}
+                    </Text>
                 </View>
                 <View style={[styles.flexRow, styles.gap2]}>
-                    <TextWithTooltip
-                        text={formattedDate}
+                    <Text
                         style={[styles.mutedNormalTextLabel, styles.flex1]}
-                        isCopyable
-                    />
-                    <TextWithTooltip
-                        text={expenseCountText}
+                        selectable
+                        dataSet={COPYABLE_TEXT_DATA_SET}
+                    >
+                        {formattedDate}
+                    </Text>
+                    <Text
                         style={[styles.mutedNormalTextLabel, styles.flexShrink0, styles.textAlignRight]}
-                        isCopyable
-                    />
+                        selectable
+                        dataSet={COPYABLE_TEXT_DATA_SET}
+                    >
+                        {expenseCountText}
+                    </Text>
                 </View>
             </View>
         </View>
