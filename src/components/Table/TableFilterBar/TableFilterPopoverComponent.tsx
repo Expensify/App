@@ -1,3 +1,5 @@
+import MultiSelect from '@components/Search/FilterComponents/MultiSelect';
+import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
@@ -21,6 +23,24 @@ export default function TableFilterPopoverComponent({closeOverlay}: PopoverCompo
         text: option.label,
         value: option.value,
     }));
+
+    if (config.immediate && config.filterType === CONST.TABLES.FILTER_TYPE.MULTI_SELECT) {
+        const selectedValues = Array.isArray(activeFilters[filterKey]) ? activeFilters[filterKey] : [];
+        const value: Array<MultiSelectItem<string>> = items.filter((item) => selectedValues.includes(item.value));
+
+        return (
+            <MultiSelect
+                items={items}
+                value={value}
+                onChange={(selectedItems) => {
+                    tableMethods.updateFilter({
+                        key: filterKey,
+                        value: selectedItems.map((item) => item.value),
+                    });
+                }}
+            />
+        );
+    }
 
     if (config.filterType === CONST.TABLES.FILTER_TYPE.MULTI_SELECT) {
         const selectedValues = Array.isArray(activeFilters[filterKey]) ? activeFilters[filterKey] : [];

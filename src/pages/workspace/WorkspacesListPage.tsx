@@ -64,7 +64,7 @@ function WorkspacesListPage() {
     // Light, flat projection of the policy collection. Deep, frequently mutated policy fields (isLoading*
     // flags, employeeList, connections, etc.) are excluded, so background writes to them no longer commit
     // this page. Per-row error indicators subscribe to those fields themselves in WorkspaceRowBrickRoadIndicator.
-    const [workspaceListPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createWorkspaceListPoliciesSelector(session?.email)});
+    const [workspaceListPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createWorkspaceListPoliciesSelector(session?.email, true)});
 
     // IDs of every workspace eligible as a copy-settings target. Derived once per policy write (not per row) so each row can cheaply decide whether to offer "Copy settings".
     const [copySettingsEligibleTargets] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createCopySettingsEligibleTargetsSelector(session?.email)});
@@ -124,6 +124,7 @@ function WorkspacesListPage() {
                 title: policy.nonMemberDetails.name,
                 role: CONST.POLICY.ROLE.USER,
                 isDeleted: false,
+                isArchived: false,
                 isJoinRequestPending: true,
                 isEligibleToCopy: false,
                 isDefault: activePolicyID === policyID,
@@ -154,6 +155,7 @@ function WorkspacesListPage() {
                 role: policy.role,
                 ownerAccountID: policy.ownerAccountID,
                 isJoinRequestPending: false,
+                isArchived: policy.isArchived,
                 isEligibleToCopy,
                 shouldAnimateInHighlight: duplicateWorkspace?.policyID === policyID,
                 isDefault: activePolicyID === policyID,

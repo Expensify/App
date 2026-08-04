@@ -16,6 +16,7 @@ type FilterConfigEntry = {
     label: string;
     filterType?: ValueOf<typeof CONST.TABLES.FILTER_TYPE>;
     options: Array<{label: string; value: string}>;
+    immediate?: boolean;
 };
 
 /**
@@ -124,15 +125,9 @@ function filter<DataType extends TableData, FilterKey extends string = string>({
 
     return data.filter((item) => {
         return filterKeys.every((filterKey) => {
-            const filterValue = currentFilters[filterKey];
-
-            // When no filter value is set, we keep the item.
-            if (!filterValue?.length) {
-                return true;
-            }
+            const filterValue = currentFilters[filterKey] ?? [];
 
             if (!isItemInFilter) {
-                // Without a filter callback, we do not exclude any items.
                 return true;
             }
 

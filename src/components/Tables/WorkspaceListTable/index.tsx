@@ -1,4 +1,4 @@
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -16,7 +16,7 @@ import type {AvatarSource} from '@libs/UserUtils';
 
 import variables from '@styles/variables';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
@@ -34,6 +34,7 @@ type WorkspaceRowData = TableData & {
     icon: AvatarSource;
     isDefault: boolean;
     isDeleted: boolean;
+    isArchived: boolean;
     isJoinRequestPending: boolean;
     shouldAnimateInHighlight: boolean;
     policyID: string;
@@ -129,6 +130,49 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
         );
     };
 
+    const WORKSPACE_STATUS_FILTER_VALUES = {
+        ACTIVE: 'active',
+        ARCHIVED: 'archived',
+    } as const;
+
+    const canSeeFilter = workspaces.some((w) => w.role === CONST.POLICY.ROLE.ADMIN || w.role === CONST.POLICY.ROLE.OWNER || w.role === CONST.POLICY.ROLE.AUDITOR);
+
+    const isItemInFilter: IsItemInFilterCallback<WorkspaceRowData> = (item, filterValues) => {
+        if (!filterValues || filterValues.length === 0) {
+            return !item.isArchived;
+        }
+
+        if (filterValues.includes(WORKSPACE_STATUS_FILTER_VALUES.ACTIVE) && !item.isArchived) {
+            return true;
+        }
+
+        if (filterValues.includes(WORKSPACE_STATUS_FILTER_VALUES.ARCHIVED) && item.isArchived) {
+            return true;
+        }
+
+        return false;
+    };
+
+    const filterConfig: FilterConfig | undefined = canSeeFilter
+        ? {
+              status: {
+                  label: translate('workspace.common.workspaceStatus'),
+                  filterType: CONST.TABLES.FILTER_TYPE.MULTI_SELECT,
+                  immediate: true,
+                  options: [
+                      {
+                          label: translate('workspace.common.active'),
+                          value: WORKSPACE_STATUS_FILTER_VALUES.ACTIVE,
+                      },
+                      {
+                          label: translate('workspace.common.archived'),
+                          value: WORKSPACE_STATUS_FILTER_VALUES.ARCHIVED,
+                      },
+                  ],
+              },
+          }
+        : undefined;
+
     const emptyStateButtons = !isRestrictedPolicyCreation
         ? [
               {
@@ -142,7 +186,7 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
     return (
         <Table
             ref={ref}
-            data={workspaces}
+            data={canSeeFilter ? workspaces : workspaces.filter((w) => !w.isArchived)}
             columns={workspaceTableColumns}
             renderItem={renderTableItem}
             compareItems={compareTableItems}
@@ -150,6 +194,8 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
             initialSortColumn="workspaces"
             title={translate('common.workspaces')}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
+            filters={filterConfig}
+            isItemInFilter={isItemInFilter}
         >
             <Table.FilterBar label={translate('workspace.common.findWorkspace')} />
             <Table.NoResultsState />
