@@ -199,6 +199,11 @@ You can move to a top-level destination without using the navigation tabs by typ
 2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
 3. Select the destination to open it.
 
+You can also use keyboard shortcuts on web to jump directly to specific items:
+
+- Press **⌘+Shift+G** (Mac) or **Ctrl+Shift+G** (Windows/Linux), then enter a report ID to open that report.
+- Press **⌘+Shift+P** (Mac) or **Ctrl+Shift+P** (Windows/Linux), then enter a report ID to jump directly to the workspace that report belongs to.
+- 
 ---
 
 # FAQ
@@ -243,3 +248,10 @@ Account Managers are typically assigned to accounts with subscriptions that incl
 ## Why don't I see the Book a call button?
 
 You'll only see the **Book a call** button if you have an assigned Account Manager who has a scheduling link configured. If either isn't set up, the button won't appear.
+
+## Are there keyboard shortcuts for opening reports or workspaces?
+
+Yes. On web:
+
+- Press **⌘+Shift+G** (Mac) or **Ctrl+Shift+G** (Windows/Linux) to search for and open a report by its report ID.
+- Press **⌘+Shift+P** (Mac) or **Ctrl+Shift+P** (Windows/Linux) to jump to the workspace that a report belongs to by entering its report ID.
