@@ -241,6 +241,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
+                conciergeChat,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
