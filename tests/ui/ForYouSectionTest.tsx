@@ -132,7 +132,7 @@ jest.mock('react-native-reanimated', () => {
 });
 
 const mockNavigate = jest.mocked(Navigation.navigate);
-const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockUseTodoCounts = jest.mocked(useTodoCounts);
 
 const ACCOUNT_ID = 12345;
@@ -813,7 +813,11 @@ describe('ForYouSection', () => {
             pressFirstBeginButton();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            const calledRoute = mockNavigate.mock.calls.at(0)?.at(0) as string;
+            const calledRoute = mockNavigate.mock.calls.at(0)?.at(0);
+            expect(typeof calledRoute).toBe('string');
+            if (typeof calledRoute !== 'string') {
+                return;
+            }
             expect(calledRoute).toContain(ROUTES.SEARCH_ROOT.route);
         });
 
@@ -832,7 +836,11 @@ describe('ForYouSection', () => {
             pressFirstBeginButton();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            const calledRoute = mockNavigate.mock.calls.at(0)?.at(0) as string;
+            const calledRoute = mockNavigate.mock.calls.at(0)?.at(0);
+            expect(typeof calledRoute).toBe('string');
+            if (typeof calledRoute !== 'string') {
+                return;
+            }
             expect(calledRoute).toContain(ROUTES.SEARCH_ROOT.route);
         });
     });
