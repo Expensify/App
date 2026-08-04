@@ -1453,23 +1453,6 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
  */
 type CardProgramKey = typeof CONST.COUNTRY.US | typeof CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT | typeof CONST.COUNTRY.GB | typeof CONST.TRAVEL.PROGRAM_TRAVEL_US;
 
-/**
- * Detects which card program key exists in the card settings object.
- * Returns the first matching program key (US, CURRENT, or GB), or undefined if none found.
- * Used to determine the correct nested key for optimistic writes.
- */
-function getCardProgramKey(cardSettings: OnyxEntry<ExpensifyCardSettings>): CardProgramKey | undefined {
-    if (!cardSettings) {
-        return undefined;
-    }
-
-    const programKeys: CardProgramKey[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB];
-    return programKeys.find((key) => {
-        const value = cardSettings[key];
-        return value !== null && typeof value === 'object' && !Array.isArray(value);
-    });
-}
-
 /** The Expensify Card programs a user can issue into/select, in display order (US before GB). */
 const EXPENSIFY_CARD_ISSUABLE_PROGRAMS = [CONST.COUNTRY.US, CONST.COUNTRY.GB] as const;
 
@@ -1638,8 +1621,7 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
     // Auto-detect: try known card programs in priority order.
     // Newer domains nest settings under US/GB, legacy ones under CURRENT.
     // The flat root fallback supports domains that the backend still sends without nesting
-    // (e.g. older accounts that haven't been migrated). Writes always go to the nested key
-    // (via getCardProgramKey), so this flat path is read-only display fallback only.
+    // (e.g. older accounts that haven't been migrated). This flat path is a read-only display fallback only.
     return (
         getMergedProgramSettings(CONST.COUNTRY.US) ??
         getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ??
@@ -2295,7 +2277,6 @@ export {
     isExpensifyCardFullySetUp,
     getCardSettings,
     getCardSettingsForSelectedProgram,
-    getCardProgramKey,
     getConfiguredExpensifyCardProgramKeys,
     getProgramKeyForCard,
     filterCardsListByProgram,
