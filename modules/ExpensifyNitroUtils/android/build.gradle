@@ -31,7 +31,18 @@ def getExtOrDefault(name) {
 }
 
 def getExtOrIntegerDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["ExpensifyNitroUtils_" + name]).toInteger()
+    return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["ExpensifyNitroUtils_" + name]).toInteger()
+}
+
+def pgoMode = rootProject.findProperty('pgoMode') ?: 'off'
+def pgoProfile = rootProject.findProperty('pgoProfile')
+
+if (!(pgoMode in ['off', 'generate', 'use'])) {
+  throw new GradleException("Unsupported pgoMode '${pgoMode}'. Use off, generate, or use.")
+}
+
+if (pgoMode == 'use' && !pgoProfile) {
+  throw new GradleException('pgoProfile is required when pgoMode=use.')
 }
 
 android {
@@ -47,7 +58,10 @@ android {
     externalNativeBuild {
       cmake {
         cppFlags "-O2 -frtti -fexceptions -Wall -fstack-protector-all"
-        arguments "-DANDROID_STL=c++_shared"
+        arguments "-DANDROID_STL=c++_shared", "-DEXPENSIFY_PGO_MODE=${pgoMode}"
+        if (pgoMode == 'use') {
+          arguments "-DEXPENSIFY_PGO_PROFILE=${file(pgoProfile).absolutePath}"
+        }
         abiFilters (*reactNativeArchitectures())
       }
     }
@@ -126,4 +140,3 @@ dependencies {
   // Add a dependency on NitroModules
   implementation project(":react-native-nitro-modules")
 }
-
