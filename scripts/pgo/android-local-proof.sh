@@ -7,13 +7,18 @@ readonly ANDROID_NDK_HOME="/Users/chris/Library/Android/sdk/ndk/$NDK_VERSION"
 
 readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 readonly PACKAGE_NAME="org.me.mobiexpensifyg"
+readonly RELEASE_BUILD_VARIANT="Release"
 readonly INSTRUMENTED_BUILD_VARIANT="PgoInstrumented"
 readonly OPTIMIZED_BUILD_VARIANT="PgoOptimized"
 
 readonly PROFILE_DIR="$ROOT_DIR/.pgo/android/arm64-v8a"
+readonly BENCHMARK_DIR="$ROOT_DIR/.pgo/android/benchmarks"
 readonly ANDROID_DIR="$ROOT_DIR/Mobile-Expensify/Android"
+readonly RELEASE_APK_PATH="$ANDROID_DIR/build/outputs/apk/release/Expensify-release.apk"
 readonly INSTRUMENTED_APK_PATH="$ANDROID_DIR/build/outputs/apk/pgoInstrumented/Expensify-pgoInstrumented.apk"
 readonly OPTIMIZED_APK_PATH="$ANDROID_DIR/build/outputs/apk/pgoOptimized/Expensify-pgoOptimized.apk"
+readonly RELEASE_BENCHMARK_PATH="$BENCHMARK_DIR/release.csv"
+readonly OPTIMIZED_BENCHMARK_PATH="$BENCHMARK_DIR/pgo-optimized.csv"
 readonly DEVICE_PROFILE_DIR="/sdcard/Android/data/$PACKAGE_NAME/cache"
 readonly START_ACTIVITY="$PACKAGE_NAME/.ExpensifyActivityBase"
 readonly APP_READY_LOG_TAG="NewDotStartup"
@@ -23,8 +28,10 @@ readonly DEFAULT_APP_READY_TIMEOUT_SECONDS=30
 readonly STARTUP_RELAUNCH_DELAY_SECONDS=0.5
 readonly PROFILE_DUMP_TIMEOUT_SECONDS=5
 
+APP_READY_DURATION_MS=""
+
 function usage() {
-    echo "Usage: $0 {build-instrumented|verify-instrumented|install-instrumented|install-optimized|record-startups [runs] [ready-timeout-seconds]|dump|pull|merge|build-optimized}"
+    echo "Usage: $0 {build-release|build-instrumented|build-optimized|verify-instrumented|install-release|install-instrumented|install-optimized|record-startups [runs] [ready-timeout-seconds]|benchmark-release [runs] [ready-timeout-seconds]|benchmark-optimized [runs] [ready-timeout-seconds]|benchmark [runs] [ready-timeout-seconds]|compare-benchmarks|dump|pull|merge}"
 }
 
 function ndk_tool() {
@@ -54,6 +61,13 @@ function build_instrumented() {
         -PpatchedArtifacts.forceBuildFromSource=true \
         -PreactNativeArchitectures=arm64-v8a \
         -PpgoMode=generate
+}
+
+function build_release() {
+    gradle ":assemble$RELEASE_BUILD_VARIANT" \
+        -PpatchedArtifacts.forceBuildFromSource=true \
+        -PreactNativeArchitectures=arm64-v8a \
+        -PpgoMode=off
 }
 
 function build_optimized() {
@@ -157,14 +171,7 @@ function record_startups() {
     local runs="${1:-$DEFAULT_STARTUP_RUNS}"
     local ready_timeout_seconds="${2:-$DEFAULT_APP_READY_TIMEOUT_SECONDS}"
 
-    if [[ ! "$runs" =~ ^[1-9][0-9]*$ ]]; then
-        echo "Startup run count must be a positive integer, received: $runs" >&2
-        exit 1
-    fi
-    if [[ ! "$ready_timeout_seconds" =~ ^[1-9][0-9]*$ ]]; then
-        echo "App-ready timeout must be a positive integer, received: $ready_timeout_seconds" >&2
-        exit 1
-    fi
+    validate_startup_arguments "$runs" "$ready_timeout_seconds"
 
     echo "Clearing previous device PGO profiles from $DEVICE_PROFILE_DIR."
     adb shell "rm -f '$DEVICE_PROFILE_DIR'/newdot-*.profraw"
@@ -184,16 +191,147 @@ function record_startups() {
     merge_profiles
 }
 
+function validate_startup_arguments() {
+    local runs="$1"
+    local ready_timeout_seconds="$2"
+
+    if [[ ! "$runs" =~ ^[1-9][0-9]*$ ]]; then
+        echo "Startup run count must be a positive integer, received: $runs" >&2
+        exit 1
+    fi
+    if [[ ! "$ready_timeout_seconds" =~ ^[1-9][0-9]*$ ]]; then
+        echo "App-ready timeout must be a positive integer, received: $ready_timeout_seconds" >&2
+        exit 1
+    fi
+}
+
+function measure_startup() {
+    local ready_timeout_seconds="$1"
+
+    adb shell am force-stop "$PACKAGE_NAME"
+    sleep "$STARTUP_RELAUNCH_DELAY_SECONDS"
+    adb logcat -c
+    adb shell am start -W -n "$START_ACTIVITY"
+    wait_for_app_ready "$ready_timeout_seconds"
+
+    if [[ -z "$APP_READY_DURATION_MS" ]]; then
+        echo "APP_READY did not contain a numeric durationMs marker. Rebuild the APK with the startup metric changes." >&2
+        return 1
+    fi
+}
+
+function benchmark_startups() {
+    local label="$1"
+    local apk_path="$2"
+    local benchmark_path="$3"
+    local runs="$4"
+    local ready_timeout_seconds="$5"
+
+    validate_startup_arguments "$runs" "$ready_timeout_seconds"
+    install_apk "$apk_path"
+    mkdir -p "$BENCHMARK_DIR"
+
+    echo "Running one unmeasured warm-up startup for $label."
+    measure_startup "$ready_timeout_seconds"
+
+    printf 'run,duration_ms\n' > "$benchmark_path"
+    local run
+    for ((run = 1; run <= runs; run++)); do
+        echo "Benchmarking $label cold-process startup $run/$runs."
+        measure_startup "$ready_timeout_seconds"
+        printf '%d,%s\n' "$run" "$APP_READY_DURATION_MS" >> "$benchmark_path"
+    done
+
+    echo "Recorded $runs $label startup samples: $benchmark_path"
+}
+
+function benchmark_stats() {
+    local benchmark_path="$1"
+
+    awk -F, '
+        NR > 1 && $2 ~ /^[0-9]+$/ {
+            values[++count] = $2
+            sum += $2
+        }
+        END {
+            if (count == 0) {
+                exit 1
+            }
+            for (i = 1; i <= count; i++) {
+                for (j = i + 1; j <= count; j++) {
+                    if (values[i] > values[j]) {
+                        temporary = values[i]
+                        values[i] = values[j]
+                        values[j] = temporary
+                    }
+                }
+            }
+            if (count % 2 == 1) {
+                median = values[(count + 1) / 2]
+            } else {
+                median = (values[count / 2] + values[count / 2 + 1]) / 2
+            }
+            printf "%d %.2f %.2f %d %d\n", count, sum / count, median, values[1], values[count]
+        }
+    ' "$benchmark_path"
+}
+
+function compare_benchmarks() {
+    if [[ ! -f "$RELEASE_BENCHMARK_PATH" || ! -f "$OPTIMIZED_BENCHMARK_PATH" ]]; then
+        echo "Missing benchmark data. Run benchmark-release and benchmark-optimized first." >&2
+        exit 1
+    fi
+
+    local release_count release_mean release_median release_min release_max
+    read -r release_count release_mean release_median release_min release_max < <(benchmark_stats "$RELEASE_BENCHMARK_PATH")
+    local optimized_count optimized_mean optimized_median optimized_min optimized_max
+    read -r optimized_count optimized_mean optimized_median optimized_min optimized_max < <(benchmark_stats "$OPTIMIZED_BENCHMARK_PATH")
+
+    local mean_improvement median_improvement
+    mean_improvement="$(awk -v release="$release_mean" -v optimized="$optimized_mean" 'BEGIN { printf "%.2f", ((release - optimized) / release) * 100 }')"
+    median_improvement="$(awk -v release="$release_median" -v optimized="$optimized_median" 'BEGIN { printf "%.2f", ((release - optimized) / release) * 100 }')"
+
+    printf '%-18s %6s %10s %10s %8s %8s\n' 'Build' 'Runs' 'Mean ms' 'Median ms' 'Min ms' 'Max ms'
+    printf '%-18s %6d %10.2f %10.2f %8d %8d\n' 'Release' "$release_count" "$release_mean" "$release_median" "$release_min" "$release_max"
+    printf '%-18s %6d %10.2f %10.2f %8d %8d\n' 'PGO optimized' "$optimized_count" "$optimized_mean" "$optimized_median" "$optimized_min" "$optimized_max"
+    echo "PGO mean startup improvement: ${mean_improvement}%"
+    echo "PGO median startup improvement: ${median_improvement}%"
+    echo "Positive percentages are faster; negative percentages are regressions."
+}
+
+function benchmark_release() {
+    benchmark_startups "release" "$RELEASE_APK_PATH" "$RELEASE_BENCHMARK_PATH" "${1:-$DEFAULT_STARTUP_RUNS}" "${2:-$DEFAULT_APP_READY_TIMEOUT_SECONDS}"
+}
+
+function benchmark_optimized() {
+    benchmark_startups "PGO optimized" "$OPTIMIZED_APK_PATH" "$OPTIMIZED_BENCHMARK_PATH" "${1:-$DEFAULT_STARTUP_RUNS}" "${2:-$DEFAULT_APP_READY_TIMEOUT_SECONDS}"
+}
+
+function benchmark_all() {
+    local runs="${1:-$DEFAULT_STARTUP_RUNS}"
+    local ready_timeout_seconds="${2:-$DEFAULT_APP_READY_TIMEOUT_SECONDS}"
+
+    benchmark_release "$runs" "$ready_timeout_seconds"
+    benchmark_optimized "$runs" "$ready_timeout_seconds"
+    compare_benchmarks
+}
+
 function wait_for_app_ready() {
     local timeout_seconds="$1"
     local started_at="$SECONDS"
 
+    APP_READY_DURATION_MS=""
     echo "Waiting up to ${timeout_seconds}s for $APP_READY_LOG_TAG: $APP_READY_LOG_MESSAGE."
     while ((SECONDS - started_at < timeout_seconds)); do
         local startup_logs
         startup_logs="$(adb logcat -d -s "$APP_READY_LOG_TAG:I" '*:S')"
         if [[ "$startup_logs" == *"$APP_READY_LOG_MESSAGE"* ]]; then
-            echo "NewDot reported APP_READY."
+            if [[ "$startup_logs" =~ APP_READY\ durationMs=([0-9]+) ]]; then
+                APP_READY_DURATION_MS="${BASH_REMATCH[1]}"
+                echo "NewDot reported APP_READY after ${APP_READY_DURATION_MS}ms."
+            else
+                echo "NewDot reported APP_READY without a numeric duration marker."
+            fi
             return 0
         fi
         sleep 0.25
@@ -263,6 +401,9 @@ function verify_pgo_instrumentation() (
 )
 
 case "${1:-}" in
+    build-release)
+        build_release
+        ;;
     build-instrumented)
         build_instrumented
         ;;
@@ -271,6 +412,9 @@ case "${1:-}" in
         ;;
     install | install-instrumented)
         install_apk "$INSTRUMENTED_APK_PATH"
+        ;;
+    install-release)
+        install_apk "$RELEASE_APK_PATH"
         ;;
     install-optimized)
         install_apk "$OPTIMIZED_APK_PATH"
@@ -289,6 +433,18 @@ case "${1:-}" in
         ;;
     build-optimized)
         build_optimized
+        ;;
+    benchmark-release)
+        benchmark_release "${2:-}" "${3:-}"
+        ;;
+    benchmark-optimized)
+        benchmark_optimized "${2:-}" "${3:-}"
+        ;;
+    benchmark)
+        benchmark_all "${2:-}" "${3:-}"
+        ;;
+    compare-benchmarks)
+        compare_benchmarks
         ;;
     *)
         usage

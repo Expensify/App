@@ -57,7 +57,44 @@ scripts/pgo/android-local-proof.sh record-startups 10 30
 
 The command clears only existing `newdot-*.profraw` files on the device before the first run. It clears Logcat before each launch, waits for `NewDotStartup: APP_READY`, and fails rather than recording an incomplete startup if the marker does not appear before the timeout. LLVM's `%m` filename pattern merges each process into the same per-library raw profiles. Each process is dumped exactly once, and the final host-side `merge` converts those raw profiles into `.pgo/android/arm64-v8a/newdot.profdata`.
 
-The metrics build calls Android's `reportFullyDrawn()` and emits the native marker from `Expensify.tsx`'s `onSplashHide`, immediately after the `ManualAppStartup` Sentry span ends and after the splash exit animation and startup gates have completed.
+The metrics build calls Android's `reportFullyDrawn()` and emits the machine-readable `NewDotStartup: APP_READY durationMs=<milliseconds>` native marker from `Expensify.tsx`'s `onSplashHide`, immediately after the `ManualAppStartup` Sentry span ends and after the splash exit animation and startup gates have completed. The duration starts at the same native timestamp used by the Sentry span.
+
+## Benchmark startup
+
+Build the release and PGO-optimized APK from the same source revision, compiler, NDK, and ABI:
+
+```bash
+scripts/pgo/android-local-proof.sh build-release
+scripts/pgo/android-local-proof.sh build-optimized
+```
+
+Collect each benchmark independently. Each command installs its APK without clearing application data, performs one unmeasured warm-up, then records ten cold-process startup samples by default:
+
+```bash
+scripts/pgo/android-local-proof.sh benchmark-release
+scripts/pgo/android-local-proof.sh benchmark-optimized
+```
+
+The optional arguments select the measured run count and app-ready timeout:
+
+```bash
+scripts/pgo/android-local-proof.sh benchmark-release 20 30
+scripts/pgo/android-local-proof.sh benchmark-optimized 20 30
+```
+
+Compare previously collected samples:
+
+```bash
+scripts/pgo/android-local-proof.sh compare-benchmarks
+```
+
+Or run the release benchmark first, then the optimized benchmark, and compare them in one command:
+
+```bash
+scripts/pgo/android-local-proof.sh benchmark 10 30
+```
+
+Raw samples are stored in `.pgo/android/benchmarks/release.csv` and `.pgo/android/benchmarks/pgo-optimized.csv`. The comparison reports the mean, median, minimum, maximum, and percentage improvement. Positive improvement percentages mean the optimized build was faster.
 
 The `.pgo/` directory is intentionally local-only. Never apply this profile to another ABI, build mode, NDK version, or substantially different source revision. A production-release comparison additionally needs the repository's R8/SafetyNet dependency issue fixed; this local proof deliberately does not change that unrelated configuration.
 
