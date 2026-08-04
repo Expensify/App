@@ -55,7 +55,6 @@ function mockSearchResultsContext(overrides: Record<string, unknown> = {}) {
 
 function mockSearchQueryContext(overrides: Record<string, unknown> = {}) {
     mockUseSearchQueryContext.mockReturnValue({
-        currentDefaultSearchQueryString: '',
         currentDefaultSearchQueryFilterKeys: [],
         currentSearchQueryJSON: undefined,
         currentDefaultSearchQueryJSON: undefined,

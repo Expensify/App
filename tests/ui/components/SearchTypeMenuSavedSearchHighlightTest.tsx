@@ -52,7 +52,6 @@ const defaultSearchContext: SearchQueryContextValue = {
     currentSimilarSearchHash: -1,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
-    currentDefaultSearchQueryString: undefined,
     currentDefaultSearchQueryJSON: undefined,
     currentDefaultSearchQueryFilterKeys: new Set(),
     suggestedSearches: getSuggestedSearches(),

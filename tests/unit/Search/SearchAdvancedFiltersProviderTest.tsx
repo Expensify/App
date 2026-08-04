@@ -50,7 +50,6 @@ function renderProvider() {
 }
 
 type QueryContext = {
-    currentDefaultSearchQueryString: string;
     currentSearchQueryJSON: SearchQueryJSON | undefined;
     currentDefaultSearchQueryJSON: SearchQueryJSON | undefined;
 };
@@ -61,7 +60,6 @@ function mockOnyxForm(form: Partial<SearchAdvancedFiltersForm> | undefined) {
 
 function mockQueryContext(context: Partial<QueryContext>) {
     mockUseSearchQueryContext.mockReturnValue({
-        currentDefaultSearchQueryString: '',
         currentSearchQueryJSON: undefined,
         currentDefaultSearchQueryJSON: undefined,
         ...context,

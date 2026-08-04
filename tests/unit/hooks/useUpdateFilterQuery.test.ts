@@ -17,9 +17,11 @@ jest.mock('@hooks/useOnyx', () => ({
 }));
 
 const mockResetSearchKey = jest.fn();
+const mockUseSearchQueryContext = jest.fn();
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryActions: () => ({resetSearchKey: mockResetSearchKey}),
+    useSearchQueryContext: () => mockUseSearchQueryContext(),
 }));
 
 jest.mock('@libs/Navigation/Navigation');
@@ -45,6 +47,7 @@ describe('useUpdateFilterQuery', () => {
     beforeEach(() => {
         onyxData[ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM] = {type: CONST.SEARCH.DATA_TYPES.EXPENSE} satisfies Partial<SearchAdvancedFiltersForm>;
         mockResetSearchKey.mockClear();
+        mockUseSearchQueryContext.mockReturnValue({currentSearchHash: -1});
     });
 
     describe('setFilterQueryParams', () => {
@@ -55,6 +58,15 @@ describe('useUpdateFilterQuery', () => {
 
             expect(mockResetSearchKey).toHaveBeenCalledTimes(1);
             expect(mockResetSearchKey).toHaveBeenCalledWith(true, expect.objectContaining({type: CONST.SEARCH.DATA_TYPES.INVOICE}));
+        });
+
+        it('does not reset the search key when the new query is the current query', () => {
+            mockUseSearchQueryContext.mockReturnValue({currentSearchHash: queryJSON.hash});
+            const {result} = renderHook(() => useUpdateFilterQuery(queryJSON));
+
+            result.current.setFilterQueryParams({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
+
+            expect(mockResetSearchKey).not.toHaveBeenCalled();
         });
 
         it('does not reset the search key when the type is unchanged', () => {

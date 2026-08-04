@@ -133,7 +133,6 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         currentSimilarSearchHash,
         currentSearchKey,
         currentSearchQueryJSON,
-        currentDefaultSearchQueryString,
         currentDefaultSearchQueryJSON,
         currentDefaultSearchQueryFilterKeys,
         suggestedSearches,

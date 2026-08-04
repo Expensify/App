@@ -4069,8 +4069,13 @@ describe('SearchQueryUtils', () => {
             expect(doesQueryMatchDefaultFilterKeysAndType(undefined, undefined)).toBe(true);
         });
 
-        it('returns false when the query is undefined but the default query has filter keys', () => {
-            expect(doesQueryMatchDefaultFilterKeysAndType(undefined, defaultQueryJSON)).toBe(false);
+        it('returns true when the query is undefined since there is nothing to compare', () => {
+            expect(doesQueryMatchDefaultFilterKeysAndType(undefined, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns true when the default query is undefined since there are no default filter keys to enforce', () => {
+            const queryJSON = buildSearchQueryJSON('type:invoice');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, undefined)).toBe(true);
         });
     });
 
