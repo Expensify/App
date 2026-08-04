@@ -44,13 +44,13 @@ function GPSTripStateChecker() {
 
             // A trip kept across a forced re-auth belongs to whoever started it, so it is never offered to another user.
             const currentAccountID = (await OnyxUtils.get(ONYXKEYS.SESSION))?.accountID;
-            const isTripStartedByAnotherUser = gpsTrip?.accountID !== undefined && gpsTrip.accountID !== currentAccountID;
+            const isTripFromDifferentUser = gpsTrip?.accountID !== undefined && gpsTrip.accountID !== currentAccountID;
 
-            if (isTripStartedByAnotherUser) {
+            if (isTripFromDifferentUser) {
                 resetGPSDraftDetails();
             }
 
-            if (!gpsTrip?.isTracking || isTripStartedByAnotherUser) {
+            if (!gpsTrip?.isTracking || isTripFromDifferentUser) {
                 const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
                 if (isBackgroundTaskRunning) {
                     stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) =>
