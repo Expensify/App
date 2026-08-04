@@ -10535,7 +10535,6 @@ const translations = {
         currentView: 'Current view',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
-        multipleTaxExport: 'Canadian Multiple Tax Export',
         exportInProgress: 'Export in progress',
         conciergeWillSend: 'Concierge will send you the file shortly.',
     },
