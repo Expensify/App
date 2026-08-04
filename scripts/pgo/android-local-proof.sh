@@ -2,14 +2,19 @@
 
 set -euo pipefail
 
+readonly NDK_VERSION="27.1.12297006"
+readonly ANDROID_NDK_HOME="/Users/chris/Library/Android/sdk/ndk/$NDK_VERSION"
+
 readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
-readonly ANDROID_DIR="$ROOT_DIR/Mobile-Expensify/Android"
 readonly PACKAGE_NAME="org.me.mobiexpensifyg"
-readonly PROFILE_DIR="$ROOT_DIR/.pgo/android/arm64-v8a"
 readonly BUILD_VARIANT="Release"
 
+readonly PROFILE_DIR="$ROOT_DIR/.pgo/android/arm64-v8a"
+readonly ANDROID_DIR="$ROOT_DIR/Mobile-Expensify/Android"
+readonly APK_PATH="$ANDROID_DIR/build/outputs/apk/release/Expensify-release.apk"
+
 function usage() {
-    echo "Usage: $0 {build-instrumented|dump|pull|merge|build-optimized}"
+    echo "Usage: $0 {build-instrumented|verify-instrumented|dump|pull|merge|build-optimized}"
 }
 
 function ndk_tool() {
@@ -34,12 +39,57 @@ function gradle() {
     )
 }
 
+function verify_pgo_instrumentation() (
+    local apk_path="${1:-$APK_PATH}"
+    if [[ ! -f "$apk_path" ]]; then
+        echo "Missing APK at $apk_path. Build the instrumented release first." >&2
+        exit 1
+    fi
+
+    local extracted_dir
+    extracted_dir="$(mktemp -d "${TMPDIR:-/tmp}/expensify-pgo-apk.XXXXXX")"
+    trap 'rm -rf "$extracted_dir"' EXIT
+
+    local llvm_readelf
+    if ! llvm_readelf="$(ndk_tool llvm-readelf)"; then
+        exit 1
+    fi
+
+    local libraries=(
+        libreactnative.so
+        libhermesvm.so
+        libjsi.so
+        libExpensifyNitroUtils.so
+    )
+    local library
+    for library in "${libraries[@]}"; do
+        local apk_entry="lib/arm64-v8a/$library"
+        if ! zipinfo -1 "$apk_path" | rg -Fx "$apk_entry" >/dev/null; then
+            echo "Missing expected arm64 library in APK: $apk_entry" >&2
+            exit 1
+        fi
+
+        local extracted_library="$extracted_dir/$library"
+        unzip -p "$apk_path" "$apk_entry" > "$extracted_library"
+        local section_headers
+        section_headers="$("$llvm_readelf" -SW "$extracted_library")"
+        if [[ "$section_headers" != *"__llvm_prf_data"* || "$section_headers" != *"__llvm_prf_cnts"* || "$section_headers" != *"__llvm_prf_names"* ]]; then
+            echo "LLVM PGO instrumentation is missing from $apk_entry." >&2
+            exit 1
+        fi
+        echo "Verified LLVM PGO instrumentation: $apk_entry"
+    done
+)
+
 case "${1:-}" in
     build-instrumented)
         gradle ":assemble$BUILD_VARIANT" \
             -PpatchedArtifacts.forceBuildFromSource=true \
             -PreactNativeArchitectures=arm64-v8a \
             -PpgoMode=generate
+        ;;
+    verify-instrumented)
+        verify_pgo_instrumentation
         ;;
     dump)
         adb shell am broadcast \
