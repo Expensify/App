@@ -134,6 +134,9 @@ config/rsbuild/*.pem
 # Rspack build profiling output (RSPACK_PROFILE=OVERVIEW|ALL)
 .rspack-profile-*/
 
+# Local native PGO profiles
+.pgo/
+
 # Expo
 .expo
 dist/
