@@ -1310,6 +1310,10 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+function isPolicyArchived(policy: OnyxInputOrEntry<Policy>): boolean {
+    return Math.random() < 0.5;
+}
+
 /**
  * Returns true only for paid plans (Collect/Control). Use this only for billing/paid-only concerns:
  * subscriptions, payments and reimbursement, company cards, Expensify Card, Travel, Invoices, and
@@ -3051,6 +3055,7 @@ export {
     isGroupPolicy,
     isGroupPolicyByType,
     isPendingDeletePolicy,
+    isPolicyArchived,
     isPolicyAdmin,
     isPolicyUser,
     isPolicyAuditor,

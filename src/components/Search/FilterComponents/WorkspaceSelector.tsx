@@ -1,8 +1,12 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import Checkbox from '@components/Checkbox';
 import type {SearchFilterCommonProps} from '@components/Search/types';
-import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
-import type {ListItem, TextInputOptions} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+import type {TextInputOptions} from '@components/SelectionList/types';
+import Text from '@components/Text';
 
 import {advancedSearchPoliciesSelector, useAdvancedSearchFiltersWorkspaces} from '@hooks/useAdvancedSearchFilters';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -34,7 +38,59 @@ import type {MultiSelectItem} from './MultiSelect';
 
 import ListFilterView from './ListFilterViewWrapper';
 
+type WorkspaceFilterItem = ListItem & {
+    value: string;
+    isArchived: boolean;
+};
+
 type WorkspaceSelectorProps = SearchFilterCommonProps<string[] | undefined>;
+
+function SectionHeader({
+    title,
+    selectAllLabel,
+    items,
+    selectedValues,
+    onToggle,
+}: {
+    title: string;
+    selectAllLabel: string;
+    items: WorkspaceFilterItem[];
+    selectedValues: string[];
+    onToggle: (values: string[]) => void;
+}) {
+    const styles = useThemeStyles();
+    const selectedCount = items.filter((item) => selectedValues.includes(item.value)).length;
+    const isAllSelected = items.length > 0 && selectedCount === items.length;
+    const isIndeterminate = selectedCount > 0 && selectedCount < items.length;
+
+    const handlePress = () => {
+        if (isAllSelected) {
+            const sectionValues = new Set(items.map((item) => item.value));
+            onToggle(selectedValues.filter((v) => !sectionValues.has(v)));
+        } else {
+            const sectionValues = items.map((item) => item.value);
+            const merged = new Set([...selectedValues, ...sectionValues]);
+            onToggle([...merged]);
+        }
+    };
+
+    return (
+        <View>
+            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, styles.ph5]}>
+                <Text style={[styles.textLabelSupporting]}>{title}</Text>
+            </View>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv2]}>
+                <Text style={[styles.textNormal]}>{selectAllLabel}</Text>
+                <Checkbox
+                    isChecked={isAllSelected}
+                    isIndeterminate={isIndeterminate}
+                    onPress={handlePress}
+                    accessibilityLabel={`${selectAllLabel} ${title}`}
+                />
+            </View>
+        </View>
+    );
+}
 
 function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: WorkspaceSelectorProps) {
     const {isOffline} = useNetwork();
@@ -44,22 +100,17 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
     const isAppLoadPending = useIsAppLoadPending();
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>(), policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    // Fetch the full (unfiltered) workspace list and apply the search filter locally, so pinning is decided from the
-    // full list length rather than the filtered result count (see reordering below).
     const {workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFiltersWorkspaces(policies);
-    const workspaceOptions: Array<MultiSelectItem<string>> = workspaces
+    const workspaceOptions: Array<MultiSelectItem<string> & {isArchived: boolean}> = workspaces
         .flatMap((section) => section.data)
         .filter((workspace): workspace is typeof workspace & {policyID: string; icons: Icon[]} => !!workspace.policyID && !!workspace.icons)
         .map((workspace) => ({
             text: workspace.text,
             value: workspace.policyID,
             icons: workspace.icons,
+            isArchived: !!workspace.isArchived,
         }));
 
-    // Snapshot the workspaces selected when the filter first opened so they can be floated to the top of a long list on
-    // first render without repinning rows that are toggled afterwards. moveInitialSelectionToTop gates on the *unfiltered*
-    // list length so the decision doesn't flip as the user types, and reordering before filtering keeps the pinned items
-    // on top among the results that still match.
     const initialSelectedValues = useInitialValue(() => value);
     const orderedOptions = moveInitialSelectionToTop(workspaceOptions, initialSelectedValues);
     const filteredOptions = tokenizedSearch(orderedOptions, debouncedSearchTerm, (option) => [option.text]);
@@ -74,18 +125,60 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
         onChange(newValue);
     };
 
-    const listData: ListItem[] = filteredOptions.map((item) => ({
-        text: item.text,
+    const toFilterItem = (item: (typeof filteredOptions)[number]): WorkspaceFilterItem => ({
+        text: `${item.text}${item.isArchived ? ` (${translate('search.filters.workspace.archived')})` : ''}`,
         keyForList: item.value,
         isSelected: value.includes(item.value),
         icons: item.icons,
-    }));
+        value: item.value,
+        isArchived: item.isArchived,
+    });
+
+    const activeItems = filteredOptions.filter((item) => !item.isArchived).map(toFilterItem);
+    const archivedItems = filteredOptions.filter((item) => item.isArchived).map(toFilterItem);
+    const hasArchived = archivedItems.length > 0;
+    const selectAllLabel = translate('search.filters.workspace.selectAll');
+
+    const sections: Array<Section<WorkspaceFilterItem>> = [
+        {
+            data: activeItems,
+            sectionIndex: 0,
+            customHeader: hasArchived ? (
+                <SectionHeader
+                    title={translate('search.filters.workspace.active')}
+                    selectAllLabel={selectAllLabel}
+                    items={activeItems}
+                    selectedValues={value}
+                    onToggle={onChange}
+                />
+            ) : undefined,
+        },
+    ];
+
+    if (hasArchived) {
+        sections.push({
+            data: archivedItems,
+            sectionIndex: 1,
+            customHeader: (
+                <SectionHeader
+                    title={translate('search.filters.workspace.archived')}
+                    selectAllLabel={selectAllLabel}
+                    items={archivedItems}
+                    selectedValues={value}
+                    onToggle={onChange}
+                />
+            ),
+        });
+    }
+
+    const itemCount = activeItems.length + archivedItems.length;
+    const headerExtraHeight = hasArchived ? 2 * 60 : 0;
 
     const textInputOptions: TextInputOptions = {
         value: searchTerm,
         label: shouldShowWorkspaceSearchInput ? translate('common.search') : undefined,
         onChangeText: setSearchTerm,
-        headerMessage: shouldShowWorkspaceSearchInput && listData.length === 0 ? translate('common.noResultsFound') : undefined,
+        headerMessage: shouldShowWorkspaceSearchInput && itemCount === 0 ? translate('common.noResultsFound') : undefined,
         style: {
             containerStyle: selectionListTextInputStyle,
         },
@@ -96,9 +189,10 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
 
     return (
         <ListFilterView
-            itemCount={listData.length}
+            itemCount={itemCount}
             isSearchable={shouldShowWorkspaceSearchInput}
             isNegatable
+            extraHeight={headerExtraHeight}
         >
             {isAppLoadPending && !isOffline ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
@@ -109,15 +203,21 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
                     />
                 </View>
             ) : (
-                <SelectionList
-                    shouldSingleExecuteRowSelect
-                    shouldUpdateFocusedIndex
-                    shouldShowLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !ready}
-                    data={listData}
+                <SelectionListWithSections<WorkspaceFilterItem>
+                    sections={sections}
                     ListItem={MultiSelectListItem}
                     onSelectRow={updateSelectedItems}
+                    shouldPreventDefaultFocusOnSelectRow={false}
+                    shouldShowTextInput={shouldShowWorkspaceSearchInput}
+                    shouldShowLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !ready}
                     textInputOptions={textInputOptions}
-                    style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
+                    shouldStopPropagation
+                    canSelectMultiple
+                    shouldSingleExecuteRowSelect
+                    shouldClearInputOnSelect={false}
+                    shouldUpdateFocusedIndex
+                    shouldPreventAutoScrollOnSelect
+                    style={selectionListStyle}
                     footerContent={footer}
                 />
             )}

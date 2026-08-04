@@ -2,7 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {WorkspaceListItemType as WorkspaceListItem} from '@components/SelectionList/ListItem/types';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 
-import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
+import {isPolicyAdmin, isPolicyArchived, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -63,6 +63,7 @@ function useWorkspaceList({
                 ],
                 keyForList: `${policy.id}`,
                 isPolicyAdmin: isPolicyAdmin(policy),
+                isArchived: isPolicyArchived(policy),
                 isSelected: policy.id && selectedPolicyIDs ? selectedPolicyIDs.includes(policy.id) : false,
             });
         }
