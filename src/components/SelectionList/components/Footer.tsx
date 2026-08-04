@@ -49,7 +49,7 @@ function Footer<TItem extends ListItem>({footerContent, confirmButtonOptions, ad
                     isDisabled={isConfirmButtonDisabled}
                 >
                     <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
-                    {confirmButtonText && <Button.Text>{confirmButtonText}</Button.Text>}
+                    {!!confirmButtonText && <Button.Text>{confirmButtonText}</Button.Text>}
                 </Button>
             </FixedFooter>
         );
