@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
+import {resetGPSDraftDetails} from '@libs/actions/GPSDraftDetails';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
@@ -41,7 +42,15 @@ function GPSTripStateChecker() {
             await checkAndCleanGpsNotification();
             const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
 
-            if (!gpsTrip?.isTracking) {
+            // A trip kept across a forced re-auth belongs to whoever started it, so it is never offered to another user.
+            const currentAccountID = (await OnyxUtils.get(ONYXKEYS.SESSION))?.accountID;
+            const isTripStartedByAnotherUser = gpsTrip?.accountID !== undefined && gpsTrip.accountID !== currentAccountID;
+
+            if (isTripStartedByAnotherUser) {
+                resetGPSDraftDetails();
+            }
+
+            if (!gpsTrip?.isTracking || isTripStartedByAnotherUser) {
                 const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
                 if (isBackgroundTaskRunning) {
                     stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) =>
