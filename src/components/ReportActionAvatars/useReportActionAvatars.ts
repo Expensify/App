@@ -50,7 +50,6 @@ function useReportActionAvatars({
     policy: policyProp,
     fallbackDisplayName = '',
     invitedEmailsToAccountIDs,
-    shouldUseCustomFallbackAvatar = false,
     chatReportID: passedChatReportID,
     shouldUseRealActor = false,
 }: {
@@ -63,7 +62,6 @@ function useReportActionAvatars({
     policy?: OnyxInputOrEntry<Policy>;
     fallbackDisplayName?: string;
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
-    shouldUseCustomFallbackAvatar?: boolean;
     chatReportID?: string;
     /** When true, returns the action's real author instead of the Concierge display override used in inbox timelines. */
     shouldUseRealActor?: boolean;
@@ -141,8 +139,8 @@ function useReportActionAvatars({
             personalDetails,
             defaultAvatars,
             invitedEmail,
-            shouldUseCustomFallbackAvatar,
-            shouldUseDisplayName: shouldUseActorAccountID,
+            // Invoice actors are named after their display name; every other icon falls back to the login inside `buildUserIcon`.
+            name: shouldUseActorAccountID ? (personalDetails?.[id]?.displayName ?? invitedEmail ?? '') : undefined,
         });
     });
 

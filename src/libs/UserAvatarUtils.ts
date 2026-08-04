@@ -494,33 +494,27 @@ type BuildUserIconArgsType = DefaultAvatarsType & {
     /** Personal details from the `OnyxListItemProvider` context */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 
-    /** Email tied to an invited (not-yet-registered) account, used as a fallback name and for the deterministic fallback avatar */
+    /**
+     * Email tied to an invited (not-yet-registered) account. Its presence also seeds a deterministic fallback avatar,
+     * so an invited account keeps the same avatar before and after it registers.
+     */
     invitedEmail?: string;
 
-    /** Whether to compute a deterministic fallback avatar from the account email/ID */
-    shouldUseCustomFallbackAvatar?: boolean;
-
-    /** Whether to name the icon after the account's display name instead of its login */
-    shouldUseDisplayName?: boolean;
+    /** Overrides the icon name, which otherwise comes from the account's login. Pass `''` to leave it blank. */
+    name?: string;
 };
 
 /**
  * Resolves a single account ID into an avatar {@link Icon} using the personal-details context and the default-avatar set.
- * Shared by `UserAvatar` and `useReportActionAvatars` so the resolution stays in one place.
+ * Shared by `AccountAvatar` and `useReportActionAvatars` so the resolution stays in one place.
  */
-function buildUserIcon({accountID, personalDetails, defaultAvatars, invitedEmail, shouldUseCustomFallbackAvatar = false, shouldUseDisplayName = false}: BuildUserIconArgsType): Icon {
+function buildUserIcon({accountID, personalDetails, defaultAvatars, invitedEmail, name}: BuildUserIconArgsType): Icon {
     return {
         id: accountID,
         type: CONST.ICON_TYPE_AVATAR,
         source: personalDetails?.[accountID]?.avatar ?? defaultAvatars.FallbackAvatar,
-        name: personalDetails?.[accountID]?.[shouldUseDisplayName ? 'displayName' : 'login'] ?? invitedEmail ?? '',
-        fallbackIcon: shouldUseCustomFallbackAvatar
-            ? getDefaultAvatar({
-                  accountID,
-                  accountEmail: addSMSDomainIfPhoneNumber(invitedEmail ?? ''),
-                  defaultAvatars,
-              })
-            : undefined,
+        name: name ?? personalDetails?.[accountID]?.login ?? invitedEmail ?? '',
+        fallbackIcon: invitedEmail ? getDefaultAvatar({accountID, accountEmail: addSMSDomainIfPhoneNumber(invitedEmail), defaultAvatars}) : undefined,
     };
 }
 

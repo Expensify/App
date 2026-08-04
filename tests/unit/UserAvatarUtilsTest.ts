@@ -507,31 +507,31 @@ describe('UserAvatarUtils', () => {
 
         it.each([
             ['the login by default', personalDetails, {}, 'john@example.com'],
-            ['the display name when shouldUseDisplayName is set', personalDetails, {shouldUseDisplayName: true}, 'John Doe'],
+            ['the passed name when one is given', personalDetails, {name: 'John Doe'}, 'John Doe'],
+            ['nothing when the passed name is blank, rather than falling back to the login', personalDetails, {name: ''}, ''],
             ['the invited email when the account has no personal details', {}, {invitedEmail: 'invited@example.com'}, 'invited@example.com'],
             ['an empty string when nothing is known about the account', {}, {}, ''],
-        ])('should name the icon after %s', (_case, details: PersonalDetailsList, options: {invitedEmail?: string; shouldUseDisplayName?: boolean}, expectedName: string) => {
+        ])('should name the icon after %s', (_case, details: PersonalDetailsList, options: {invitedEmail?: string; name?: string}, expectedName: string) => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
             const icon = UserAvatarUtils.buildUserIcon({accountID: ACCOUNT_ID, personalDetails: details, defaultAvatars: avatars.current, ...options});
 
             expect(icon.name).toBe(expectedName);
         });
 
-        it('should not compute a custom fallback icon by default', () => {
+        it('should not compute a custom fallback icon for a registered account', () => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
             const icon = UserAvatarUtils.buildUserIcon({accountID: ACCOUNT_ID, personalDetails, defaultAvatars: avatars.current});
 
             expect(icon.fallbackIcon).toBeUndefined();
         });
 
-        it('should compute a deterministic custom fallback icon when requested', () => {
+        it('should compute a deterministic custom fallback icon for an invited account', () => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
             const icon = UserAvatarUtils.buildUserIcon({
                 accountID: ACCOUNT_ID,
                 personalDetails: {},
                 defaultAvatars: avatars.current,
                 invitedEmail: 'invited@example.com',
-                shouldUseCustomFallbackAvatar: true,
             });
 
             expect(icon.fallbackIcon).toBe(
