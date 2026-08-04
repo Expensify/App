@@ -1,6 +1,6 @@
 # Local Android PGO proof
 
-This is an experimental, local-only LLVM PGO workflow for the standalone Android arm64 build. It uses the project's `release` variant: optimized native code and a bundled production JavaScript bundle, signed with the local debug key so it can be installed without release credentials. It does not publish artifacts and it does not add application metrics.
+This is an experimental, local-only LLVM PGO workflow for the standalone Android arm64 build. It uses the release-derived `pgoInstrumented` and `pgoOptimized` variants: optimized native code and a bundled production JavaScript bundle, signed with the local debug key so it can be installed without release credentials. It does not publish artifacts and it does not add application metrics.
 
 ## Preconditions
 
@@ -15,7 +15,7 @@ This is an experimental, local-only LLVM PGO workflow for the standalone Android
 
    ```bash
    scripts/pgo/android-local-proof.sh build-instrumented
-   scripts/pgo/android-local-proof.sh install
+   scripts/pgo/android-local-proof.sh install-instrumented
    ```
 
 2. Run the manual authenticated journey once: open and scroll chats, send a message, visit and modify reversible workspace settings, attach an image and document, view attachments, then use search.
@@ -33,6 +33,12 @@ This is an experimental, local-only LLVM PGO workflow for the standalone Android
 
    ```bash
    scripts/pgo/android-local-proof.sh build-optimized
+   ```
+
+   The instrumented and optimized APKs remain available separately at `Mobile-Expensify/Android/build/outputs/apk/pgoInstrumented/Expensify-pgoInstrumented.apk` and `Mobile-Expensify/Android/build/outputs/apk/pgoOptimized/Expensify-pgoOptimized.apk`. Install the optimized APK with:
+
+   ```bash
+   scripts/pgo/android-local-proof.sh install-optimized
    ```
 
 ### Collect a startup-focused profile

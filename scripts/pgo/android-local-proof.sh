@@ -7,16 +7,24 @@ readonly ANDROID_NDK_HOME="/Users/chris/Library/Android/sdk/ndk/$NDK_VERSION"
 
 readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 readonly PACKAGE_NAME="org.me.mobiexpensifyg"
-readonly BUILD_VARIANT="Release"
+readonly INSTRUMENTED_BUILD_VARIANT="PgoInstrumented"
+readonly OPTIMIZED_BUILD_VARIANT="PgoOptimized"
 
 readonly PROFILE_DIR="$ROOT_DIR/.pgo/android/arm64-v8a"
 readonly ANDROID_DIR="$ROOT_DIR/Mobile-Expensify/Android"
-readonly APK_PATH="$ANDROID_DIR/build/outputs/apk/release/Expensify-release.apk"
+readonly INSTRUMENTED_APK_PATH="$ANDROID_DIR/build/outputs/apk/pgoInstrumented/Expensify-pgoInstrumented.apk"
+readonly OPTIMIZED_APK_PATH="$ANDROID_DIR/build/outputs/apk/pgoOptimized/Expensify-pgoOptimized.apk"
 readonly DEVICE_PROFILE_DIR="/sdcard/Android/data/$PACKAGE_NAME/cache"
 readonly START_ACTIVITY="$PACKAGE_NAME/.ExpensifyActivityBase"
+readonly APP_READY_LOG_TAG="NewDotStartup"
+readonly APP_READY_LOG_MESSAGE="APP_READY"
+readonly DEFAULT_STARTUP_RUNS=10
+readonly DEFAULT_APP_READY_TIMEOUT_SECONDS=30
+readonly STARTUP_RELAUNCH_DELAY_SECONDS=0.5
+readonly PROFILE_DUMP_TIMEOUT_SECONDS=5
 
 function usage() {
-    echo "Usage: $0 {build-instrumented|verify-instrumented|install|record-startups [runs] [settle-seconds]|dump|pull|merge|build-optimized}"
+    echo "Usage: $0 {build-instrumented|verify-instrumented|install-instrumented|install-optimized|record-startups [runs] [ready-timeout-seconds]|dump|pull|merge|build-optimized}"
 }
 
 function ndk_tool() {
@@ -41,19 +49,71 @@ function gradle() {
     )
 }
 
-function install_apk() {
-    if [[ ! -f "$APK_PATH" ]]; then
-        echo "Missing APK at $APK_PATH. Build the APK first." >&2
+function build_instrumented() {
+    gradle ":assemble$INSTRUMENTED_BUILD_VARIANT" \
+        -PpatchedArtifacts.forceBuildFromSource=true \
+        -PreactNativeArchitectures=arm64-v8a \
+        -PpgoMode=generate
+}
+
+function build_optimized() {
+    if [[ ! -f "$PROFILE_DIR/newdot.profdata" ]]; then
+        echo "Missing $PROFILE_DIR/newdot.profdata. Run merge first." >&2
         exit 1
     fi
 
-    adb install -r "$APK_PATH"
+    gradle ":assemble$OPTIMIZED_BUILD_VARIANT" \
+        -PpatchedArtifacts.forceBuildFromSource=true \
+        -PreactNativeArchitectures=arm64-v8a \
+        -PpgoMode=use \
+        -PpgoProfile="$PROFILE_DIR/newdot.profdata"
+}
+
+function install_apk() {
+    local apk_path="$1"
+    if [[ ! -f "$apk_path" ]]; then
+        echo "Missing APK at $apk_path. Build the APK first." >&2
+        exit 1
+    fi
+
+    adb install -r "$apk_path"
 }
 
 function dump_profiles() {
+    adb logcat -c
     adb shell am broadcast \
         -a "$PACKAGE_NAME.action.WRITE_PGO_PROFILES" \
         -n "$PACKAGE_NAME/.PgoProfileReceiver"
+
+    wait_for_profile_dump
+}
+
+function wait_for_profile_dump() {
+    local started_at="$SECONDS"
+
+    while ((SECONDS - started_at < PROFILE_DUMP_TIMEOUT_SECONDS)); do
+        local profile_logs
+        profile_logs="$(adb logcat -d -s 'PgoProfileReceiver:I' '*:S')"
+
+        if [[ "$profile_logs" =~ Wrote\ ([1-9][0-9]*)\ LLVM\ PGO\ profile ]]; then
+            echo "${BASH_REMATCH[0]}(s)."
+            return 0
+        fi
+        if [[ "$profile_logs" == *"Ignoring PGO profile request in a non-instrumented build."* ]]; then
+            echo "The installed APK is not instrumented. Build and install build-instrumented before recording profiles; build-optimized cannot generate .profraw files." >&2
+            return 1
+        fi
+        if [[ "$profile_logs" == *"Wrote 0 LLVM PGO profile(s)."* ]]; then
+            echo "The receiver found no instrumented native libraries in the installed APK. Rebuild and install build-instrumented before recording profiles." >&2
+            return 1
+        fi
+
+        sleep 0.1
+    done
+
+    echo "The PGO receiver did not confirm a profile write within ${PROFILE_DUMP_TIMEOUT_SECONDS}s." >&2
+    adb logcat -d -s 'PgoProfileReceiver:I' '*:S' >&2
+    return 1
 }
 
 function pull_profiles() {
@@ -113,6 +173,8 @@ function record_startups() {
     for ((run = 1; run <= runs; run++)); do
         echo "Recording cold-process startup $run/$runs."
         adb shell am force-stop "$PACKAGE_NAME"
+        sleep "$STARTUP_RELAUNCH_DELAY_SECONDS"
+        adb logcat -c
         adb shell am start -W -n "$START_ACTIVITY"
         echo "Waiting ${settle_seconds}s for NewDot to become ready before dumping."
         sleep "$settle_seconds"
@@ -124,7 +186,7 @@ function record_startups() {
 }
 
 function verify_pgo_instrumentation() (
-    local apk_path="${1:-$APK_PATH}"
+    local apk_path="${1:-$INSTRUMENTED_APK_PATH}"
     if [[ ! -f "$apk_path" ]]; then
         echo "Missing APK at $apk_path. Build the instrumented release first." >&2
         exit 1
@@ -191,8 +253,11 @@ case "${1:-}" in
     verify-instrumented)
         verify_pgo_instrumentation
         ;;
-    install)
-        install_apk
+    install | install-instrumented)
+        install_apk "$INSTRUMENTED_APK_PATH"
+        ;;
+    install-optimized)
+        install_apk "$OPTIMIZED_APK_PATH"
         ;;
     record-startups)
         record_startups "${2:-10}" "${3:-10}"
