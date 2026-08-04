@@ -61,6 +61,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
                         activity.setTaskDescription(
                             ActivityManager.TaskDescription.Builder()
                                 .setBackgroundColor(activity.getColor(R.color.bootsplash_background))
+                                .setStatusBarColor(activity.getColor(R.color.bootsplash_background))
                                 .build()
                         )
                     }
