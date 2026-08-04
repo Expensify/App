@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalBankAccountDetailsFormSubmit from '@hooks/usePersonalBankAccountDetailsFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
-import {appendCountryCode} from '@libs/LoginUtils';
+import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
 import {getFieldRequiredErrors, isValidPhoneNumber} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
