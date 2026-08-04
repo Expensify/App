@@ -201,11 +201,21 @@ function MoneyRequestReportTransactionItemBody({
         handleOnPress(transaction.transactionID);
     };
 
-    const handlePressIn = () => {
+    const handlePressIn: React.ComponentProps<typeof PressableWithFeedback>['onPressIn'] = (event) => {
         wasEditingOnMouseDownRef.current = wasEditingOnMouseDownRef.current || isEditingCell;
-        if (canUseTouchScreen()) {
-            ControlSelection.block();
+        // Selection only needs to be blocked for touch interactions; desktop mouse selection is handled by onMouseDown.
+        if (!canUseTouchScreen()) {
+            return;
         }
+
+        // Let copyable values use native long-press/drag selection instead of applying the global selection blocker.
+        const isCopyableTarget = markMouseDownOnCopyableText(event?.target as unknown as EventTarget | null | undefined);
+        if (isCopyableTarget) {
+            return;
+        }
+
+        // Preserve the existing row behavior for non-copyable touch targets.
+        ControlSelection.block();
     };
 
     const handlePressableLongPress = () => {
