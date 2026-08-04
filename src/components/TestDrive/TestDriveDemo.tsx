@@ -68,7 +68,13 @@ function TestDriveDemo() {
             setSelfTourViewed();
             if (conciergeReportID && !hasCalledOpenReportRef.current) {
                 hasCalledOpenReportRef.current = true;
-                openReport({reportID: conciergeReportID, introSelected, betas, hasReportActions: hasConciergeReportActions});
+                openReport({
+                    reportID: conciergeReportID,
+                    introSelected,
+                    betas,
+                    hasReportActions: hasConciergeReportActions,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                });
             }
             return;
         }
