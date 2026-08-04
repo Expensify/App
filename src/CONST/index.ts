@@ -1007,6 +1007,7 @@ const CONST = {
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
+        CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
