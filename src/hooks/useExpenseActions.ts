@@ -103,7 +103,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
@@ -330,7 +330,17 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (transactions.length !== 1) {
                     return;
                 }
-                initSplitExpense(currentTransaction, moneyRequestReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {isProduction});
+                initSplitExpense(
+                    currentTransaction,
+                    moneyRequestReport,
+                    splitEffectivePolicy,
+                    selfDMReportID,
+                    restrictedActionPolicyID,
+                    personalPolicy?.outputCurrency,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
+                    {isProduction},
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
@@ -478,13 +488,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     return;
                 }
                 Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(
-                        CONST.IOU.ACTION.EDIT,
-                        CONST.IOU.TYPE.SUBMIT,
-                        moneyRequestReport.reportID,
-                        true,
-                        Navigation.getActiveRoute(),
-                        transactionToMove.transactionID,
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SUBMIT, moneyRequestReport.reportID, true, transactionToMove.transactionID),
                     ),
                 );
             },

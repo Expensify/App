@@ -303,6 +303,9 @@ type SearchTextFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_USER_ID
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_PAYROLL_ID
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
     | ReportFieldTextKey;
 
@@ -445,6 +448,7 @@ type SearchFilterCommonProps<T> = {
     selectionListStyle?: SelectionListStyle;
     autoFocus?: boolean;
     ready?: boolean;
+    isNegatable?: boolean;
     footer?: React.ReactNode;
     onChange: (value: T) => void;
 };
