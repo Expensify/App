@@ -24,6 +24,7 @@ import type {OnyxEntry, OnyxMergeCollectionInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
+import createMock from '../../utils/createMock';
 import {getGlobalFetchMock, formatPhoneNumber} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -245,14 +246,14 @@ describe('actions/IOU', () => {
             } as Report;
 
             const splitExpenses: SplitExpense[] = [
-                {
+                createMock<SplitExpense>({
                     reportID: 'splitReport1',
                     amount: 2000,
-                } as SplitExpense,
-                {
+                }),
+                createMock<SplitExpense>({
                     reportID: 'splitReport2',
                     amount: 3000,
-                } as SplitExpense,
+                }),
             ];
 
             const allReportsList = {
@@ -286,14 +287,14 @@ describe('actions/IOU', () => {
             } as Report;
 
             const splitExpenses: SplitExpense[] = [
-                {
+                createMock<SplitExpense>({
                     reportID: undefined,
                     amount: 2000,
-                } as SplitExpense,
-                {
+                }),
+                createMock<SplitExpense>({
                     reportID: 'splitReport1',
                     amount: 3000,
-                } as SplitExpense,
+                }),
             ];
 
             const allReportsList = {
@@ -323,18 +324,18 @@ describe('actions/IOU', () => {
 
             // Two split expenses with the same reportID
             const splitExpenses: SplitExpense[] = [
-                {
+                createMock<SplitExpense>({
                     reportID: 'splitReport1',
                     amount: 2000,
-                } as SplitExpense,
-                {
+                }),
+                createMock<SplitExpense>({
                     reportID: 'splitReport1', // Duplicate reportID
                     amount: 3000,
-                } as SplitExpense,
-                {
+                }),
+                createMock<SplitExpense>({
                     reportID: 'splitReport2',
                     amount: 1500,
-                } as SplitExpense,
+                }),
             ];
 
             const allReportsList = {
@@ -368,10 +369,10 @@ describe('actions/IOU', () => {
             } as Report;
 
             const splitExpenses: SplitExpense[] = [
-                {
+                createMock<SplitExpense>({
                     reportID: 'splitReport1',
                     amount: 2000,
-                } as SplitExpense,
+                }),
             ];
 
             const allReportsList = {
@@ -434,7 +435,7 @@ describe('actions/IOU', () => {
     });
 
     it('handleNavigateAfterExpenseCreate', async () => {
-        const mockedIsReportTopmostSplitNavigator = isReportTopmostSplitNavigator as jest.MockedFunction<typeof isReportTopmostSplitNavigator>;
+        const mockedIsReportTopmostSplitNavigator = jest.mocked(isReportTopmostSplitNavigator);
         const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
         const activeReportID = '1';
         const transactionID = '1';
@@ -728,7 +729,7 @@ describe('actions/IOU', () => {
                         },
                     ],
                     transactionParamOverrides: {tag: tagName},
-                    participantsPolicyTags: {[policyID]: policyTagsList} as unknown as Record<string, PolicyTagLists>,
+                    participantsPolicyTags: {[policyID]: createMock<PolicyTagLists>(policyTagsList)},
                 }),
             );
 
