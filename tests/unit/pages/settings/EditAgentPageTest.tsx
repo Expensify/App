@@ -160,7 +160,8 @@ type EditAgentPageNavigation = PlatformStackScreenProps<SettingsNavigatorParamLi
 const mockRoute = {key: 'Settings_Agents_Edit-test', params: {accountID: TEST_ACCOUNT_ID}} as EditAgentPageRoute;
 const mockNavigation = {} as EditAgentPageNavigation;
 const getSelectedAccountID = (options: Parameters<typeof useOnyx>[1], mapping: OptimisticAgentAccountIDMapping | undefined): number | undefined => {
-    return options?.selector?.(mapping) as number | undefined;
+    const selectedAccountID = options?.selector?.(mapping);
+    return typeof selectedAccountID === 'number' ? selectedAccountID : undefined;
 };
 
 describe('EditAgentPage', () => {
