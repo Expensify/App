@@ -12,10 +12,26 @@ import {findVendorByID, getMatchingVendors, isXeroActiveMatchingSource} from '@l
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 
 import React, {useMemo} from 'react';
 
 type AddVendorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_VENDOR>;
+
+type VendorSelectionItem = {name: string; value: string};
+
+/** Maps the policy's matching vendors to picker items (label = vendor name, value = the integration's external vendor ID). */
+function getVendorSelectionItems(policy: Policy | undefined): VendorSelectionItem[] {
+    return getMatchingVendors(policy).map((vendor) => ({name: vendor.name, value: vendor.id}));
+}
+
+/**
+ * Resolves the picker's currently-selected item for a stored vendorID. Falls back to the raw external ID as the
+ * label when the vendor can't be resolved (list not synced yet, or the vendor was removed from the integration).
+ */
+function getSelectedVendorItem(policy: Policy | undefined, vendorID: string | undefined): VendorSelectionItem | undefined {
+    return vendorID ? {name: findVendorByID(policy, vendorID)?.name ?? vendorID, value: vendorID} : undefined;
+}
 
 function AddVendorPage({route}: AddVendorPageProps) {
     const {policyID, ruleID} = route.params;
@@ -24,9 +40,9 @@ function AddVendorPage({route}: AddVendorPageProps) {
     const policy = usePolicy(policyID);
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
 
-    const selectedVendorItem = form?.vendorID ? {name: findVendorByID(policy, form.vendorID)?.name ?? form.vendorID, value: form.vendorID} : undefined;
+    const selectedVendorItem = getSelectedVendorItem(policy, form?.vendorID);
 
-    const vendorItems = useMemo(() => getMatchingVendors(policy).map((vendor) => ({name: vendor.name, value: vendor.id})), [policy]);
+    const vendorItems = useMemo(() => getVendorSelectionItems(policy), [policy]);
 
     const backToRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
 
@@ -51,3 +67,4 @@ function AddVendorPage({route}: AddVendorPageProps) {
 }
 
 export default AddVendorPage;
+export {getSelectedVendorItem, getVendorSelectionItems};
