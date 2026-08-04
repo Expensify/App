@@ -6869,7 +6869,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 },
             },
             connections: {
-                syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                syncStageName: ({stage, integrationName = 'QuickBooks Online'}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -6895,13 +6895,13 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Steuercodes importieren';
                         case 'quickbooksOnlineCheckConnection':
-                            return 'QuickBooks Online-Verbindung wird geprüft';
+                            return `${integrationName}-Verbindung wird geprüft`;
                         case 'quickbooksOnlineImportMain':
-                            return 'QuickBooks-Online-Daten werden importiert';
+                            return `${integrationName}-Daten werden importiert`;
                         case 'startingImportXero':
                             return 'Xero-Daten werden importiert';
                         case 'startingImportQBO':
-                            return 'QuickBooks-Online-Daten werden importiert';
+                            return `${integrationName}-Daten werden importiert`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'QuickBooks-Desktop-Daten importieren';
@@ -6916,7 +6916,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'Synchronisiere weiterhin Daten mit QuickBooks … Bitte stelle sicher, dass der Web Connector ausgeführt wird';
                         case 'quickbooksOnlineSyncTitle':
-                            return 'QuickBooks Online-Daten werden synchronisiert';
+                            return `${integrationName}-Daten werden synchronisiert`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':

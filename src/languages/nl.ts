@@ -6832,7 +6832,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 },
             },
             connections: {
-                syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                syncStageName: ({stage, integrationName = 'QuickBooks Online'}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -6858,13 +6858,13 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Belastingscodes importeren';
                         case 'quickbooksOnlineCheckConnection':
-                            return 'QuickBooks Online-verbinding controleren';
+                            return `${integrationName}-verbinding controleren`;
                         case 'quickbooksOnlineImportMain':
-                            return 'QuickBooks Online-gegevens importeren';
+                            return `${integrationName}-gegevens importeren`;
                         case 'startingImportXero':
                             return 'Xero-gegevens importeren';
                         case 'startingImportQBO':
-                            return 'QuickBooks Online-gegevens importeren';
+                            return `${integrationName}-gegevens importeren`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'QuickBooks Desktop-gegevens importeren';
@@ -6879,7 +6879,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'Nog steeds gegevens synchroniseren met QuickBooks... Zorg ervoor dat de Web Connector actief is';
                         case 'quickbooksOnlineSyncTitle':
-                            return 'QuickBooks Online-gegevens synchroniseren';
+                            return `${integrationName}-gegevens synchroniseren`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':

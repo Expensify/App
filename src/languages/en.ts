@@ -6973,7 +6973,7 @@ const translations = {
                 },
             },
             connections: {
-                syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                syncStageName: ({stage, integrationName = 'QuickBooks Online'}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -6999,13 +6999,13 @@ const translations = {
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Importing tax codes';
                         case 'quickbooksOnlineCheckConnection':
-                            return 'Checking QuickBooks Online connection';
+                            return `Checking ${integrationName} connection`;
                         case 'quickbooksOnlineImportMain':
-                            return 'Importing QuickBooks Online data';
+                            return `Importing ${integrationName} data`;
                         case 'startingImportXero':
                             return 'Importing Xero data';
                         case 'startingImportQBO':
-                            return 'Importing QuickBooks Online data';
+                            return `Importing ${integrationName} data`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'Importing QuickBooks Desktop data';
@@ -7020,7 +7020,7 @@ const translations = {
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'Still syncing data with QuickBooks... Please make sure the Web Connector is running';
                         case 'quickbooksOnlineSyncTitle':
-                            return 'Syncing QuickBooks Online data';
+                            return `Syncing ${integrationName} data`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':

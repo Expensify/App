@@ -6606,7 +6606,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 },
             },
             connections: {
-                syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                syncStageName: ({stage, integrationName = 'QuickBooks Online'}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -6632,13 +6632,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'quickbooksOnlineSyncTaxCodes':
                             return '导入税码';
                         case 'quickbooksOnlineCheckConnection':
-                            return '正在检查 QuickBooks Online 连接';
+                            return `正在检查 ${integrationName} 连接`;
                         case 'quickbooksOnlineImportMain':
-                            return '正在导入 QuickBooks Online 数据';
+                            return `正在导入 ${integrationName} 数据`;
                         case 'startingImportXero':
                             return '导入 Xero 数据';
                         case 'startingImportQBO':
-                            return '正在导入 QuickBooks Online 数据';
+                            return `正在导入 ${integrationName} 数据`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return '导入 QuickBooks Desktop 数据';
@@ -6653,7 +6653,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'quickbooksDesktopWebConnectorReminder':
                             return '仍在与 QuickBooks 同步数据…请确保 Web Connector 正在运行';
                         case 'quickbooksOnlineSyncTitle':
-                            return '正在同步 QuickBooks Online 数据';
+                            return `正在同步 ${integrationName} 数据`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':

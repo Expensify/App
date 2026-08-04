@@ -6812,7 +6812,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 },
             },
             connections: {
-                syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                syncStageName: ({stage, integrationName = 'QuickBooks Online'}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -6838,13 +6838,13 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Importowanie kodów podatkowych';
                         case 'quickbooksOnlineCheckConnection':
-                            return 'Sprawdzanie połączenia z QuickBooks Online';
+                            return `Sprawdzanie połączenia z ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
-                            return 'Importowanie danych z QuickBooks Online';
+                            return `Importowanie danych z ${integrationName}`;
                         case 'startingImportXero':
                             return 'Importowanie danych z Xero';
                         case 'startingImportQBO':
-                            return 'Importowanie danych z QuickBooks Online';
+                            return `Importowanie danych z ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'Importowanie danych z QuickBooks Desktop';
@@ -6859,7 +6859,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'Trwa synchronizowanie danych z QuickBooks… Upewnij się, że Web Connector jest uruchomiony';
                         case 'quickbooksOnlineSyncTitle':
-                            return 'Synchronizowanie danych QuickBooks Online';
+                            return `Synchronizowanie danych ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':

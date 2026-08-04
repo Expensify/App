@@ -7024,7 +7024,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
             },
             connections: {
-                syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                syncStageName: ({stage, integrationName = 'QuickBooks Online'}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -7050,13 +7050,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Εισαγωγή κωδικών φόρου';
                         case 'quickbooksOnlineCheckConnection':
-                            return 'Γίνεται έλεγχος σύνδεσης με το QuickBooks Online';
+                            return `Γίνεται έλεγχος σύνδεσης με το ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
-                            return 'Εισαγωγή δεδομένων από το QuickBooks Online';
+                            return `Εισαγωγή δεδομένων από το ${integrationName}`;
                         case 'startingImportXero':
                             return 'Εισαγωγή δεδομένων Xero';
                         case 'startingImportQBO':
-                            return 'Εισαγωγή δεδομένων από το QuickBooks Online';
+                            return `Εισαγωγή δεδομένων από το ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'Εισαγωγή δεδομένων από το QuickBooks Desktop';
@@ -7071,7 +7071,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'Συνεχίζεται ο συγχρονισμός δεδομένων με το QuickBooks... Βεβαιωθείτε ότι το Web Connector εκτελείται';
                         case 'quickbooksOnlineSyncTitle':
-                            return 'Συγχρονισμός δεδομένων QuickBooks Online';
+                            return `Συγχρονισμός δεδομένων ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':

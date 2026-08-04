@@ -109,7 +109,7 @@ type ExportIntegrationSelectedParams = {connectionName: ConnectionName};
 
 type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
 
-type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
+type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage; integrationName?: string};
 
 type DelegateRoleParams = {role: DelegateRole};
 

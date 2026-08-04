@@ -545,7 +545,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
         let connectionMessage;
         if (isSyncInProgress && connectionSyncProgress?.stageInProgress) {
-            connectionMessage = translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncProgress?.stageInProgress});
+            connectionMessage = translate('workspace.accounting.connections.syncStageName', {
+                stage: connectionSyncProgress.stageInProgress,
+                integrationName: integrationData?.title,
+            });
         } else if (!isConnectionVerified) {
             connectionMessage = translate('workspace.accounting.notSync');
         } else {
