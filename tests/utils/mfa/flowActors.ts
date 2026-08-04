@@ -7,7 +7,7 @@ import type {StateValue} from 'xstate';
 import {createActor} from 'xstate';
 
 import createInitEvent from './flowFixtures';
-import {createActorDoneEvent} from './flowPaths';
+import {createActorDoneEvent, mfaMachineWithLifecycleEvents} from './flowPaths';
 
 /**
  * Builds the context a flow carries right after INIT seeds it. Overrides express a spec's starting
@@ -35,7 +35,7 @@ function createFlowContext(overrides: Partial<MfaContext> = {}): MfaContext {
  */
 function createActorAtState(value: StateValue, contextOverrides?: Partial<MfaContext>) {
     const snapshot = mfaMachine.resolveState({value, context: createFlowContext(contextOverrides)});
-    return createActor(mfaMachine, {snapshot});
+    return createActor(mfaMachineWithLifecycleEvents, {snapshot});
 }
 
 /**

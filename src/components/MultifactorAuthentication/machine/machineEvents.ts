@@ -17,10 +17,9 @@ type MfaActorErrorEvent<Id extends MfaActorId = MfaActorId> = Id extends MfaActo
 type MfaInternalEvent = {type: 'xstate.init'} | {type: `xstate.after${string}`};
 
 /**
- * Everything the machine receives. XState leaves its own events out of a declared event union, which
- * is enough for the machine itself because `invoke` types its `onDone` and `onError` transitions from
- * the actor. The graph traversal has to drive those events explicitly, so declaring them here keeps
- * its fixtures assignable without an assertion.
+ * Everything the machine receives at runtime. The machine declares only `MfaEvent` so that
+ * production code cannot send the events XState raises itself, such as a fabricated actor result.
+ * The test harness drives them explicitly through the widened view in `tests/utils/mfa/flowPaths.ts`.
  */
 type MfaMachineEvent = MfaEvent | MfaActorDoneEvent | MfaActorErrorEvent | MfaInternalEvent;
 

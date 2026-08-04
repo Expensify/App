@@ -6,7 +6,7 @@ import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFARes
 
 import CONST from '@src/CONST';
 
-import type {DoneActorEvent, ErrorActorEvent, SnapshotFrom} from 'xstate';
+import type {ActorLogic, DoneActorEvent, ErrorActorEvent, InputFrom, SnapshotFrom} from 'xstate';
 
 import {matchesState} from 'xstate';
 import {getShortestPaths, TestModel} from 'xstate/graph';
@@ -231,15 +231,23 @@ function getTraversalEvents(snapshot: MfaSnapshot): MfaMachineEvent[] {
     return events;
 }
 
+/**
+ * The machine re-typed over `MfaMachineEvent`, so the tests can send the events XState raises
+ * itself. The assertion is safe because the running machine really handles that union, and it goes
+ * through `unknown` because the two unions are not assignable to each other.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+const mfaMachineWithLifecycleEvents = mfaMachine as unknown as ActorLogic<MfaSnapshot, MfaMachineEvent, InputFrom<typeof mfaMachine>>;
+
 // `createTestModel` rejects the machine's `after` transition, so this uses the constructor directly.
 // The custom matcher lets state assertion keys use dot paths such as `open.outcome.success`.
-const mfaTestModel = new TestModel(mfaMachine, {
+const mfaTestModel = new TestModel(mfaMachineWithLifecycleEvents, {
     stateMatcher: (state, stateValue) => matchesState(stateValue, state.value),
 });
 
 /** Returns the shortest coverage paths over the machine graph. */
 function getMfaShortestPaths() {
-    return getShortestPaths(mfaMachine, {events: getTraversalEvents});
+    return getShortestPaths(mfaMachineWithLifecycleEvents, {events: getTraversalEvents});
 }
 
 /** Returns each driving journey together with the paths the test model builds from its event sequence. */
@@ -262,4 +270,4 @@ function getWalkedPaths() {
 }
 
 export default getWalkedPaths;
-export {actorDoneEventType, actorErrorEventType, createActorDoneEvent, getDrivingJourneyPaths, getMfaShortestPaths, isAutoDrivenEvent};
+export {actorDoneEventType, actorErrorEventType, createActorDoneEvent, getDrivingJourneyPaths, getMfaShortestPaths, isAutoDrivenEvent, mfaMachineWithLifecycleEvents};

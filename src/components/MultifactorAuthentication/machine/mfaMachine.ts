@@ -13,8 +13,7 @@ import SCREENS from '@src/SCREENS';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import {assign, setup} from 'xstate';
 
-import type {MfaMachineEvent} from './machineEvents';
-import type {MfaContext} from './types';
+import type {MfaContext, MfaEvent} from './types';
 
 import createActors from './mfaActors';
 
@@ -55,7 +54,7 @@ const MFAMachine = setup({
     /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
     types: {
         context: {} as MfaContext,
-        events: {} as MfaMachineEvent,
+        events: {} as MfaEvent,
     },
     /* eslint-enable @typescript-eslint/no-unsafe-type-assertion */
     actors: createActors(),
