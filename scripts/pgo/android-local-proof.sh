@@ -12,6 +12,7 @@ readonly BUILD_VARIANT="Release"
 readonly PROFILE_DIR="$ROOT_DIR/.pgo/android/arm64-v8a"
 readonly ANDROID_DIR="$ROOT_DIR/Mobile-Expensify/Android"
 readonly APK_PATH="$ANDROID_DIR/build/outputs/apk/release/Expensify-release.apk"
+readonly DEVICE_PROFILE_DIR="/sdcard/Android/data/$PACKAGE_NAME/cache"
 
 function usage() {
     echo "Usage: $0 {build-instrumented|verify-instrumented|dump|pull|merge|build-optimized}"
@@ -77,6 +78,18 @@ function verify_pgo_instrumentation() (
             echo "LLVM PGO instrumentation is missing from $apk_entry." >&2
             exit 1
         fi
+
+        local dynamic_symbols
+        dynamic_symbols="$("$llvm_nm" -D --defined-only "$extracted_library")"
+        if [[ "$dynamic_symbols" != *"expensify_llvm_profile_set_filename"* || "$dynamic_symbols" != *"expensify_llvm_profile_write_file"* ]]; then
+            echo "LLVM PGO profile-writing APIs are not exported from $apk_entry." >&2
+            exit 1
+        fi
+
+        if [[ "$library" == "libExpensifyNitroUtils.so" && "$dynamic_symbols" != *"Java_org_me_mobiexpensifyg_PgoProfileWriter_writeProfiles"* ]]; then
+            echo "The PGO JNI writer is missing from $apk_entry. Rebuild the native module before installing." >&2
+            exit 1
+        fi
         echo "Verified LLVM PGO instrumentation: $apk_entry"
     done
 )
@@ -99,8 +112,16 @@ case "${1:-}" in
     pull)
         rm -rf "$PROFILE_DIR/raw"
         mkdir -p "$PROFILE_DIR/raw"
-        adb exec-out run-as "$PACKAGE_NAME" tar -C cache -cf - . | tar -C "$PROFILE_DIR/raw" -xf -
-        find "$PROFILE_DIR/raw" -name '*.profraw' -print
+        adb pull "$DEVICE_PROFILE_DIR/." "$PROFILE_DIR/raw"
+        profiles=()
+        while IFS= read -r profile; do
+            profiles+=("$profile")
+        done < <(find "$PROFILE_DIR/raw" -name '*.profraw' -type f)
+        if [[ "${#profiles[@]}" -eq 0 ]]; then
+            echo "No .profraw files found in $DEVICE_PROFILE_DIR. Run dump first." >&2
+            exit 1
+        fi
+        printf '%s\n' "${profiles[@]}"
         ;;
     merge)
         mkdir -p "$PROFILE_DIR"
@@ -114,13 +135,14 @@ case "${1:-}" in
         fi
         "$(ndk_tool llvm-profdata)" merge --output="$PROFILE_DIR/newdot.profdata" "${profiles[@]}"
         "$(ndk_tool llvm-profdata)" show --all-functions "$PROFILE_DIR/newdot.profdata" > "$PROFILE_DIR/newdot.profdata.txt"
+        echo "Merged PGO profile: $PROFILE_DIR/newdot.profdata"
         ;;
     build-optimized)
         if [[ ! -f "$PROFILE_DIR/newdot.profdata" ]]; then
             echo "Missing $PROFILE_DIR/newdot.profdata. Run merge first." >&2
             exit 1
         fi
-        gradle ":app:assemble$BUILD_VARIANT" \
+        gradle ":assemble$BUILD_VARIANT" \
             -PpatchedArtifacts.forceBuildFromSource=true \
             -PreactNativeArchitectures=arm64-v8a \
             -PpgoMode=use \

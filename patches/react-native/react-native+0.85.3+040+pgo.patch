@@ -76,7 +76,7 @@ new file mode 100644
 index 0000000..bcc335d
 --- /dev/null
 +++ b/node_modules/react-native/ReactAndroid/hermes-engine/pgo.cmake
-@@ -0,0 +1,21 @@
+@@ -0,0 +1,25 @@
 +if(PGO_MODE STREQUAL "generate")
 +  execute_process(
 +    COMMAND ${CMAKE_CXX_COMPILER} --print-resource-dir
@@ -91,8 +91,12 @@ index 0000000..bcc335d
 +  add_link_options(
 +    -fprofile-generate
 +    "-Wl,--whole-archive,${PGO_RUNTIME},--no-whole-archive"
-+    -Wl,--export-dynamic-symbol=__llvm_profile_set_filename
-+    -Wl,--export-dynamic-symbol=__llvm_profile_write_file
++    -Wl,--undefined=__llvm_profile_set_filename
++    -Wl,--undefined=__llvm_profile_write_file
++    -Wl,--defsym=expensify_llvm_profile_set_filename=__llvm_profile_set_filename
++    -Wl,--defsym=expensify_llvm_profile_write_file=__llvm_profile_write_file
++    -Wl,--export-dynamic-symbol=expensify_llvm_profile_set_filename
++    -Wl,--export-dynamic-symbol=expensify_llvm_profile_write_file
 +  )
 +elseif(PGO_MODE STREQUAL "use")
 +  add_compile_options("-fprofile-use=${PGO_PROFILE}")
@@ -102,7 +106,7 @@ diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/CMakeLists.txt 
 index 8125e02..d466798 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/CMakeLists.txt
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/CMakeLists.txt
-@@ -8,6 +8,28 @@ set(CMAKE_VERBOSE_MAKEFILE on)
+@@ -8,6 +8,32 @@ set(CMAKE_VERBOSE_MAKEFILE on)
  
  project(ReactAndroid)
  
@@ -120,8 +124,12 @@ index 8125e02..d466798 100644
 +  add_link_options(
 +    -fprofile-generate
 +    "-Wl,--whole-archive,${PGO_RUNTIME},--no-whole-archive"
-+    -Wl,--export-dynamic-symbol=__llvm_profile_set_filename
-+    -Wl,--export-dynamic-symbol=__llvm_profile_write_file
++    -Wl,--undefined=__llvm_profile_set_filename
++    -Wl,--undefined=__llvm_profile_write_file
++    -Wl,--defsym=expensify_llvm_profile_set_filename=__llvm_profile_set_filename
++    -Wl,--defsym=expensify_llvm_profile_write_file=__llvm_profile_write_file
++    -Wl,--export-dynamic-symbol=expensify_llvm_profile_set_filename
++    -Wl,--export-dynamic-symbol=expensify_llvm_profile_write_file
 +  )
 +elseif(PGO_MODE STREQUAL "use")
 +  add_compile_options("-fprofile-use=${PGO_PROFILE}")

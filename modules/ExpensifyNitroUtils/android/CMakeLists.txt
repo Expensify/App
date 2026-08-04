@@ -19,8 +19,12 @@ if(EXPENSIFY_PGO_MODE STREQUAL "generate")
     add_link_options(
         -fprofile-generate
         "-Wl,--whole-archive,${PGO_RUNTIME},--no-whole-archive"
-        -Wl,--export-dynamic-symbol=__llvm_profile_set_filename
-        -Wl,--export-dynamic-symbol=__llvm_profile_write_file
+        -Wl,--undefined=__llvm_profile_set_filename
+        -Wl,--undefined=__llvm_profile_write_file
+        -Wl,--defsym=expensify_llvm_profile_set_filename=__llvm_profile_set_filename
+        -Wl,--defsym=expensify_llvm_profile_write_file=__llvm_profile_write_file
+        -Wl,--export-dynamic-symbol=expensify_llvm_profile_set_filename
+        -Wl,--export-dynamic-symbol=expensify_llvm_profile_write_file
     )
 elseif(EXPENSIFY_PGO_MODE STREQUAL "use")
     add_compile_options("-fprofile-use=${EXPENSIFY_PGO_PROFILE}")
