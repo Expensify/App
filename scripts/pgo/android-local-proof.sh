@@ -64,6 +64,10 @@ function verify_pgo_instrumentation() (
     if ! llvm_readelf="$(ndk_tool llvm-readelf)"; then
         exit 1
     fi
+    local llvm_nm
+    if ! llvm_nm="$(ndk_tool llvm-nm)"; then
+        exit 1
+    fi
 
     local libraries=(
         libreactnative.so
