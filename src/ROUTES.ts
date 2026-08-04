@@ -141,6 +141,10 @@ const DYNAMIC_ROUTES = {
             SCREENS.SEARCH.ROOT,
         ],
     },
+    BANK_ACCOUNT_VERIFY_ACCOUNT: {
+        path: 'verify-bank-account',
+        entryScreens: [SCREENS.REIMBURSEMENT_ACCOUNT],
+    },
     OWNER_SELECTOR: {
         path: 'owner-selector',
         entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT],
@@ -251,6 +255,47 @@ const DYNAMIC_ROUTES = {
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
         ],
         getRoute: (cardID: string) => `missing-personal-details/${cardID}/confirm-validate-code` as const,
+    },
+    MONEY_REQUEST_STEP_REPORT: {
+        path: 'expense-report',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, reportActionID?: string) =>
+            getUrlWithParams('expense-report', {action, iouType, transactionID, reportID, reportActionID}),
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    MONEY_REQUEST_EDIT_REPORT: {
+        path: 'expense-report-edit',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (action: IOUAction, iouType: IOUType, reportID: string | undefined, shouldTurnOffSelectionMode?: boolean, transactionID?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID while building route MONEY_REQUEST_EDIT_REPORT');
+            }
+            return getUrlWithParams('expense-report-edit', {action, iouType, reportID, shouldTurnOffSelectionMode: shouldTurnOffSelectionMode ? 'true' : undefined, transactionID});
+        },
+        queryParams: ['action', 'iouType', 'reportID', 'shouldTurnOffSelectionMode', 'transactionID'],
+    },
+    MONEY_REQUEST_STEP_TAG: {
+        path: 'expense-tag',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+        ],
+        // `orderWeight` is stringified explicitly because the first tag list has index 0, which `getUrlWithParams` would drop as falsy.
+        getRoute: (action: IOUAction, iouType: IOUType, orderWeight: number, transactionID: string, reportID?: string, reportActionID?: string) =>
+            getUrlWithParams('expense-tag', {action, iouType, orderWeight: String(orderWeight), transactionID, reportID, reportActionID}),
+        queryParams: ['action', 'iouType', 'orderWeight', 'transactionID', 'reportID', 'reportActionID'],
     },
     MONEY_REQUEST_STEP_DESTINATION: {
         path: 'per-diem-destination',
@@ -1202,6 +1247,10 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
     },
+    HOLD_TRANSACTIONS: {
+        path: 'hold',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+    },
     WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE: {
         path: 'initial-list-value',
         entryScreens: [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE],
@@ -1526,14 +1575,6 @@ const ROUTES = {
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
-    SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
-        route: 'search/r/:reportID/hold',
-        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
-            const baseRoute = `search/r/${reportID}/hold` as const;
-
-            return getUrlWithBackToParam(baseRoute, backTo);
-        },
-    },
     SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS: {
         route: 'search/r/:reportID/reject',
         getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}/reject` as const,
@@ -1593,11 +1634,6 @@ const ROUTES = {
     SIGN_IN_MODAL: 'sign-in-modal',
 
     BANK_ACCOUNT: 'bank-account',
-    BANK_ACCOUNT_VERIFY_ACCOUNT: {
-        route: `bank-account/${VERIFY_ACCOUNT}`,
-
-        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`bank-account/${VERIFY_ACCOUNT}?policyID=${policyID}`, backTo),
-    },
     BANK_ACCOUNT_PERSONAL: {
         route: 'bank-account/personal-info/:subPage?/:action?',
         getRoute: (subPage?: string, action?: 'edit') => {
@@ -2285,11 +2321,6 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, pageIndex = 0, backTo = '') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/subrate/${transactionID}/${reportID}/edit/${pageIndex}`, backTo),
     },
-    MONEY_REQUEST_STEP_REPORT: {
-        route: ':action/:iouType/report/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
-    },
     MONEY_REQUEST_RECEIPT_PREVIEW: {
         route: ':action/:iouType/receipt/:transactionID/:reportID',
         getRoute: (reportID: string, transactionID: string, action: IOUAction, iouType: IOUType) => {
@@ -2312,18 +2343,6 @@ const ROUTES = {
                 Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_ODOMETER_PREVIEW route');
             }
             return `${action as string}/${iouType as string}/odometer-image-preview/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}?readonly=false&imageType=${imageType}${isEditingConfirmation ? '&isEditingConfirmation=true' : ''}` as const;
-        },
-    },
-    MONEY_REQUEST_EDIT_REPORT: {
-        route: ':action/:iouType/report/:reportID/edit',
-        getRoute: (action: IOUAction, iouType: IOUType, reportID?: string, shouldTurnOffSelectionMode?: boolean, backTo = '', transactionID?: string) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID while building route MONEY_REQUEST_EDIT_REPORT');
-            }
-            const queryParams = [shouldTurnOffSelectionMode ? 'shouldTurnOffSelectionMode=true' : '', transactionID ? `transactionID=${transactionID}` : ''].filter(Boolean).join('&');
-            const queryString = queryParams ? `?${queryParams}` : '';
-
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit${queryString}`, backTo);
         },
     },
     SET_DEFAULT_WORKSPACE: {
@@ -2461,14 +2480,6 @@ const ROUTES = {
 
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/scan/${transactionID}/${reportID}`, backTo);
         },
-    },
-    MONEY_REQUEST_STEP_TAG: {
-        route: ':action/:iouType/tag/:orderWeight/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, orderWeight: number, transactionID: string, reportID?: string, backTo = '', reportActionID?: string) =>
-            getUrlWithBackToParam(
-                `${action as string}/${iouType as string}/tag/${orderWeight}/${transactionID}${reportID ? `/${reportID}` : ''}${reportActionID ? `/${reportActionID}` : ''}`,
-                backTo,
-            ),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
         route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
