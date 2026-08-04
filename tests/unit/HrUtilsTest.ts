@@ -119,12 +119,10 @@ function makeSyncProgress(connectionName: ConnectionName, stage: PolicyConnectio
 }
 
 const stubGetLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'] = (datetime) => (datetime ? new Date(datetime) : new Date(0));
-const stubTranslate: LocaleContextProps['translate'] = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => {
-    if (parameters.length > 0) {
-        return path;
-    }
+function stubTranslate<TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string;
+function stubTranslate(path: TranslationPaths): string {
     return path;
-};
+}
 
 function getRow(card: HRCardDescriptor | undefined, field: string) {
     return card?.configRows?.find((row) => row.field === field);

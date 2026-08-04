@@ -7,13 +7,15 @@ import useHasPhoneNumberLogin from '@hooks/useHasPhoneNumberLogin';
 
 import CONST from '@src/CONST';
 
+import type ReactNative from 'react-native';
+
 import React from 'react';
 
 jest.mock('@hooks/useHasLoggedIntoMobileApp');
 jest.mock('@hooks/useHasPhoneNumberLogin');
 jest.mock('@components/RenderHTML', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
-    const {Text} = jest.requireActual<{Text: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
 
     return ({html}: {html: string}) => {
         const plainText = html.replaceAll(/<[^>]*>/g, '');

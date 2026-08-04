@@ -122,6 +122,27 @@ afterAll(() => {
     jest.clearAllMocks();
 });
 
+function mockDeployChecklistIssuesByLabel(responseByLabel: Partial<Record<string, Parameters<typeof createMock<ListForRepoResponse>>[0]['data']>>) {
+    mockListIssues.mockImplementation((...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
+        const receivedParameters = parameters[0];
+        if (!receivedParameters) {
+            throw new Error('GithubUtils issues.listForRepo mock requires request parameters.');
+        }
+        let labels: string | undefined;
+        if ('url' in receivedParameters) {
+            const {url} = receivedParameters;
+            if (typeof url !== 'string') {
+                throw new Error('GithubUtils issues.listForRepo request options require a string URL.');
+            }
+            labels = new URL(url).searchParams.get('labels') ?? undefined;
+        } else {
+            labels = receivedParameters.labels;
+        }
+        const data = labels === undefined ? [] : (responseByLabel[labels] ?? []);
+        return Promise.resolve(createMock<ListForRepoResponse>({data, headers: {}}));
+    });
+}
+
 const LABELS = {
     STAGING_DEPLOY_CASH: {
         id: 2783847782,
@@ -282,26 +303,8 @@ describe('createOrUpdateDeployChecklist', () => {
             return {mergedPRs: [], submoduleUpdates: []};
         });
 
-        mockListIssues.mockImplementation((...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
-            const receivedParameters = parameters[0];
-            if (!receivedParameters) {
-                throw new Error('GithubUtils issues.listForRepo mock requires request parameters.');
-            }
-            let labels: string | undefined;
-            if ('url' in receivedParameters) {
-                const {url} = receivedParameters;
-                if (typeof url !== 'string') {
-                    throw new Error('GithubUtils issues.listForRepo request options require a string URL.');
-                }
-                labels = new URL(url).searchParams.get('labels') ?? undefined;
-            } else {
-                labels = receivedParameters.labels;
-            }
-            if (labels === CONST.LABELS.STAGING_DEPLOY) {
-                return Promise.resolve(createMock<ListForRepoResponse>({data: [closedDeployChecklist], headers: {}}));
-            }
-
-            return Promise.resolve(createMock<ListForRepoResponse>({data: [], headers: {}}));
+        mockDeployChecklistIssuesByLabel({
+            [CONST.LABELS.STAGING_DEPLOY]: [closedDeployChecklist],
         });
 
         const result = await run();
@@ -349,26 +352,8 @@ describe('createOrUpdateDeployChecklist', () => {
             return {mergedPRs: [], submoduleUpdates: []};
         });
 
-        mockListIssues.mockImplementation((...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
-            const receivedParameters = parameters[0];
-            if (!receivedParameters) {
-                throw new Error('GithubUtils issues.listForRepo mock requires request parameters.');
-            }
-            let labels: string | undefined;
-            if ('url' in receivedParameters) {
-                const {url} = receivedParameters;
-                if (typeof url !== 'string') {
-                    throw new Error('GithubUtils issues.listForRepo request options require a string URL.');
-                }
-                labels = new URL(url).searchParams.get('labels') ?? undefined;
-            } else {
-                labels = receivedParameters.labels;
-            }
-            if (labels === CONST.LABELS.STAGING_DEPLOY) {
-                return Promise.resolve(createMock<ListForRepoResponse>({data: [closedDeployChecklist], headers: {}}));
-            }
-
-            return Promise.resolve(createMock<ListForRepoResponse>({data: [], headers: {}}));
+        mockDeployChecklistIssuesByLabel({
+            [CONST.LABELS.STAGING_DEPLOY]: [closedDeployChecklist],
         });
 
         const result = await run();
@@ -459,49 +444,23 @@ describe('createOrUpdateDeployChecklist', () => {
                 return {mergedPRs: [], submoduleUpdates: []};
             });
 
-            mockListIssues.mockImplementation((...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
-                const receivedParameters = parameters[0];
-                if (!receivedParameters) {
-                    throw new Error('GithubUtils issues.listForRepo mock requires request parameters.');
-                }
-                let labels: string | undefined;
-                if ('url' in receivedParameters) {
-                    const {url} = receivedParameters;
-                    if (typeof url !== 'string') {
-                        throw new Error('GithubUtils issues.listForRepo request options require a string URL.');
-                    }
-                    labels = new URL(url).searchParams.get('labels') ?? undefined;
-                } else {
-                    labels = receivedParameters.labels;
-                }
-                if (labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve(createMock<ListForRepoResponse>({data: [openDeployChecklistBefore, closedDeployChecklist], headers: {}}));
-                }
-
-                if (labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return Promise.resolve(
-                        createMock<ListForRepoResponse>({
-                            data: [
-                                ...currentDeployBlockers,
-                                {
-                                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/11`, // New
-                                    number: 11,
-                                    state: 'open',
-                                    labels: [LABELS.DEPLOY_BLOCKER_CASH],
-                                },
-                                {
-                                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/12`, // New
-                                    number: 12,
-                                    state: 'open',
-                                    labels: [LABELS.DEPLOY_BLOCKER_CASH],
-                                },
-                            ],
-                            headers: {},
-                        }),
-                    );
-                }
-
-                return Promise.resolve(createMock<ListForRepoResponse>({data: [], headers: {}}));
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [openDeployChecklistBefore, closedDeployChecklist],
+                [CONST.LABELS.DEPLOY_BLOCKER]: [
+                    ...currentDeployBlockers,
+                    {
+                        html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/11`, // New
+                        number: 11,
+                        state: 'open',
+                        labels: [LABELS.DEPLOY_BLOCKER_CASH],
+                    },
+                    {
+                        html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/12`, // New
+                        number: 12,
+                        state: 'open',
+                        labels: [LABELS.DEPLOY_BLOCKER_CASH],
+                    },
+                ],
             });
 
             const result = await run();
@@ -556,50 +515,24 @@ describe('createOrUpdateDeployChecklist', () => {
                 }
                 return {mergedPRs: [], submoduleUpdates: []};
             });
-            mockListIssues.mockImplementation((...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
-                const receivedParameters = parameters[0];
-                if (!receivedParameters) {
-                    throw new Error('GithubUtils issues.listForRepo mock requires request parameters.');
-                }
-                let labels: string | undefined;
-                if ('url' in receivedParameters) {
-                    const {url} = receivedParameters;
-                    if (typeof url !== 'string') {
-                        throw new Error('GithubUtils issues.listForRepo request options require a string URL.');
-                    }
-                    labels = new URL(url).searchParams.get('labels') ?? undefined;
-                } else {
-                    labels = receivedParameters.labels;
-                }
-                if (labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve(createMock<ListForRepoResponse>({data: [openDeployChecklistBefore, closedDeployChecklist], headers: {}}));
-                }
-
-                if (labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return Promise.resolve(
-                        createMock<ListForRepoResponse>({
-                            data: [
-                                // Suppose the first deploy blocker is demoted, it should not be removed from the checklist and instead just be checked off
-                                ...currentDeployBlockers.slice(1),
-                                {
-                                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/11`, // New
-                                    number: 11,
-                                    state: 'open',
-                                    labels: [LABELS.DEPLOY_BLOCKER_CASH],
-                                },
-                                {
-                                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/12`, // New
-                                    number: 12,
-                                    state: 'open',
-                                    labels: [LABELS.DEPLOY_BLOCKER_CASH],
-                                },
-                            ],
-                            headers: {},
-                        }),
-                    );
-                }
-
-                return Promise.resolve(createMock<ListForRepoResponse>({data: [], headers: {}}));
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [openDeployChecklistBefore, closedDeployChecklist],
+                [CONST.LABELS.DEPLOY_BLOCKER]: [
+                    // Suppose the first deploy blocker is demoted, it should not be removed from the checklist and instead just be checked off
+                    ...currentDeployBlockers.slice(1),
+                    {
+                        html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/11`, // New
+                        number: 11,
+                        state: 'open',
+                        labels: [LABELS.DEPLOY_BLOCKER_CASH],
+                    },
+                    {
+                        html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/12`, // New
+                        number: 12,
+                        state: 'open',
+                        labels: [LABELS.DEPLOY_BLOCKER_CASH],
+                    },
+                ],
             });
 
             const result = await run();
@@ -651,30 +584,9 @@ describe('createOrUpdateDeployChecklist', () => {
                 }
                 return {mergedPRs: [], submoduleUpdates: []};
             });
-            mockListIssues.mockImplementation((...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
-                const receivedParameters = parameters[0];
-                if (!receivedParameters) {
-                    throw new Error('GithubUtils issues.listForRepo mock requires request parameters.');
-                }
-                let labels: string | undefined;
-                if ('url' in receivedParameters) {
-                    const {url} = receivedParameters;
-                    if (typeof url !== 'string') {
-                        throw new Error('GithubUtils issues.listForRepo request options require a string URL.');
-                    }
-                    labels = new URL(url).searchParams.get('labels') ?? undefined;
-                } else {
-                    labels = receivedParameters.labels;
-                }
-                if (labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve(createMock<ListForRepoResponse>({data: [openDeployChecklistBefore, closedDeployChecklist], headers: {}}));
-                }
-
-                if (labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return Promise.resolve(createMock<ListForRepoResponse>({data: currentDeployBlockers, headers: {}}));
-                }
-
-                return Promise.resolve(createMock<ListForRepoResponse>({data: [], headers: {}}));
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [openDeployChecklistBefore, closedDeployChecklist],
+                [CONST.LABELS.DEPLOY_BLOCKER]: currentDeployBlockers,
             });
 
             const result = await run();
@@ -750,36 +662,14 @@ describe('createOrUpdateDeployChecklist', () => {
             }));
 
             // Mock list of issues to return a closed previous checklist
-            mockListIssues.mockImplementation((...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
-                const receivedParameters = parameters[0];
-                if (!receivedParameters) {
-                    throw new Error('GithubUtils issues.listForRepo mock requires request parameters.');
-                }
-                let labels: string | undefined;
-                if ('url' in receivedParameters) {
-                    const {url} = receivedParameters;
-                    if (typeof url !== 'string') {
-                        throw new Error('GithubUtils issues.listForRepo request options require a string URL.');
-                    }
-                    labels = new URL(url).searchParams.get('labels') ?? undefined;
-                } else {
-                    labels = receivedParameters.labels;
-                }
-                if (labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve(
-                        createMock<ListForRepoResponse>({
-                            data: [
-                                {
-                                    number: 29,
-                                    state: 'closed',
-                                    labels: [LABELS.STAGING_DEPLOY_CASH],
-                                },
-                            ],
-                            headers: {},
-                        }),
-                    );
-                }
-                return Promise.resolve(createMock<ListForRepoResponse>({data: [], headers: {}}));
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [
+                    {
+                        number: 29,
+                        state: 'closed',
+                        labels: [LABELS.STAGING_DEPLOY_CASH],
+                    },
+                ],
             });
 
             const result = await run();
@@ -840,36 +730,14 @@ describe('createOrUpdateDeployChecklist', () => {
                 version: '1.0.2-1',
             }));
 
-            mockListIssues.mockImplementation((...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
-                const receivedParameters = parameters[0];
-                if (!receivedParameters) {
-                    throw new Error('GithubUtils issues.listForRepo mock requires request parameters.');
-                }
-                let labels: string | undefined;
-                if ('url' in receivedParameters) {
-                    const {url} = receivedParameters;
-                    if (typeof url !== 'string') {
-                        throw new Error('GithubUtils issues.listForRepo request options require a string URL.');
-                    }
-                    labels = new URL(url).searchParams.get('labels') ?? undefined;
-                } else {
-                    labels = receivedParameters.labels;
-                }
-                if (labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve(
-                        createMock<ListForRepoResponse>({
-                            data: [
-                                {
-                                    number: 29,
-                                    state: 'closed',
-                                    labels: [LABELS.STAGING_DEPLOY_CASH],
-                                },
-                            ],
-                            headers: {},
-                        }),
-                    );
-                }
-                return Promise.resolve(createMock<ListForRepoResponse>({data: [], headers: {}}));
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [
+                    {
+                        number: 29,
+                        state: 'closed',
+                        labels: [LABELS.STAGING_DEPLOY_CASH],
+                    },
+                ],
             });
 
             const result = await run();
@@ -939,25 +807,8 @@ describe('createOrUpdateDeployChecklist', () => {
                 return undefined;
             });
 
-            mockListIssues.mockImplementation((...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
-                const receivedParameters = parameters[0];
-                if (!receivedParameters) {
-                    throw new Error('GithubUtils issues.listForRepo mock requires request parameters.');
-                }
-                let labels: string | undefined;
-                if ('url' in receivedParameters) {
-                    const {url} = receivedParameters;
-                    if (typeof url !== 'string') {
-                        throw new Error('GithubUtils issues.listForRepo request options require a string URL.');
-                    }
-                    labels = new URL(url).searchParams.get('labels') ?? undefined;
-                } else {
-                    labels = receivedParameters.labels;
-                }
-                if (labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve(createMock<ListForRepoResponse>({data: [closedDeployChecklist], headers: {}}));
-                }
-                return Promise.resolve(createMock<ListForRepoResponse>({data: [], headers: {}}));
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [closedDeployChecklist],
             });
 
             const result = await run();
@@ -1006,25 +857,8 @@ describe('createOrUpdateDeployChecklist', () => {
                 return {mergedPRs: [], submoduleUpdates: []};
             });
 
-            mockListIssues.mockImplementation((...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
-                const receivedParameters = parameters[0];
-                if (!receivedParameters) {
-                    throw new Error('GithubUtils issues.listForRepo mock requires request parameters.');
-                }
-                let labels: string | undefined;
-                if ('url' in receivedParameters) {
-                    const {url} = receivedParameters;
-                    if (typeof url !== 'string') {
-                        throw new Error('GithubUtils issues.listForRepo request options require a string URL.');
-                    }
-                    labels = new URL(url).searchParams.get('labels') ?? undefined;
-                } else {
-                    labels = receivedParameters.labels;
-                }
-                if (labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve(createMock<ListForRepoResponse>({data: [closedDeployChecklist], headers: {}}));
-                }
-                return Promise.resolve(createMock<ListForRepoResponse>({data: [], headers: {}}));
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [closedDeployChecklist],
             });
 
             const result = await run();
@@ -1098,28 +932,9 @@ describe('createOrUpdateDeployChecklist', () => {
                 state: 'open',
             };
 
-            mockListIssues.mockImplementation((...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
-                const receivedParameters = parameters[0];
-                if (!receivedParameters) {
-                    throw new Error('GithubUtils issues.listForRepo mock requires request parameters.');
-                }
-                let labels: string | undefined;
-                if ('url' in receivedParameters) {
-                    const {url} = receivedParameters;
-                    if (typeof url !== 'string') {
-                        throw new Error('GithubUtils issues.listForRepo request options require a string URL.');
-                    }
-                    labels = new URL(url).searchParams.get('labels') ?? undefined;
-                } else {
-                    labels = receivedParameters.labels;
-                }
-                if (labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve(createMock<ListForRepoResponse>({data: [openDeployChecklistWithSubmodule, closedDeployChecklist], headers: {}}));
-                }
-                if (labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return Promise.resolve(createMock<ListForRepoResponse>({data: [], headers: {}}));
-                }
-                return Promise.resolve(createMock<ListForRepoResponse>({data: [], headers: {}}));
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [openDeployChecklistWithSubmodule, closedDeployChecklist],
+                [CONST.LABELS.DEPLOY_BLOCKER]: [],
             });
 
             const result = await run();
@@ -1196,25 +1011,8 @@ describe('createOrUpdateDeployChecklist', () => {
                 return {mergedPRs: [], submoduleUpdates: []};
             });
 
-            mockListIssues.mockImplementation((...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
-                const receivedParameters = parameters[0];
-                if (!receivedParameters) {
-                    throw new Error('GithubUtils issues.listForRepo mock requires request parameters.');
-                }
-                let labels: string | undefined;
-                if ('url' in receivedParameters) {
-                    const {url} = receivedParameters;
-                    if (typeof url !== 'string') {
-                        throw new Error('GithubUtils issues.listForRepo request options require a string URL.');
-                    }
-                    labels = new URL(url).searchParams.get('labels') ?? undefined;
-                } else {
-                    labels = receivedParameters.labels;
-                }
-                if (labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve(createMock<ListForRepoResponse>({data: [closedDeployChecklist], headers: {}}));
-                }
-                return Promise.resolve(createMock<ListForRepoResponse>({data: [], headers: {}}));
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [closedDeployChecklist],
             });
 
             const result = await run();
@@ -1275,25 +1073,8 @@ describe('createOrUpdateDeployChecklist', () => {
                 return {mergedPRs: [], submoduleUpdates: []};
             });
 
-            mockListIssues.mockImplementation((...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
-                const receivedParameters = parameters[0];
-                if (!receivedParameters) {
-                    throw new Error('GithubUtils issues.listForRepo mock requires request parameters.');
-                }
-                let labels: string | undefined;
-                if ('url' in receivedParameters) {
-                    const {url} = receivedParameters;
-                    if (typeof url !== 'string') {
-                        throw new Error('GithubUtils issues.listForRepo request options require a string URL.');
-                    }
-                    labels = new URL(url).searchParams.get('labels') ?? undefined;
-                } else {
-                    labels = receivedParameters.labels;
-                }
-                if (labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve(createMock<ListForRepoResponse>({data: [closedDeployChecklist], headers: {}}));
-                }
-                return Promise.resolve(createMock<ListForRepoResponse>({data: [], headers: {}}));
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [closedDeployChecklist],
             });
 
             const result = await run();

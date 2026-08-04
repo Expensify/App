@@ -7,7 +7,7 @@ import useCompanyCards from '@hooks/useCompanyCards';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
+import type {CombinedCardFeed, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 
 import Onyx from 'react-native-onyx';
 
@@ -52,18 +52,20 @@ const mockOAuthFeedData = {
     },
 };
 
-// @ts-expect-error -- This fixture intentionally preserves a runtime Plaid feed key outside the static CombinedCardFeeds key union.
+const mockPlaidFeedDetails: CombinedCardFeed = {
+    liabilityType: 'corporate',
+    pending: false,
+    domainID: workspaceAccountID,
+    customFeedName: 'Plaid Bank cards',
+    // @ts-expect-error -- This bare runtime Plaid provider ID is outside the current static feed union.
+    feed: 'plaid.ins_123',
+    accountList: ['Plaid Checking 0000', 'Plaid Credit Card 3333'],
+    credentials: 'xxxxx',
+    expiration: 1730998958,
+};
+
 const mockPlaidFeedData: NonNullable<ReturnType<typeof useCardFeeds>[0]> = {
-    [mockPlaidFeed]: {
-        liabilityType: 'corporate',
-        pending: false,
-        domainID: workspaceAccountID,
-        customFeedName: 'Plaid Bank cards',
-        feed: 'plaid.ins_123',
-        accountList: ['Plaid Checking 0000', 'Plaid Credit Card 3333'],
-        credentials: 'xxxxx',
-        expiration: 1730998958,
-    },
+    [mockPlaidFeed]: mockPlaidFeedDetails,
 };
 
 const mockCardsList: NonNullable<ReturnType<typeof useCardsList>[0]> = {
