@@ -16,9 +16,10 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 
+import useAppFocusEvent from './useAppFocusEvent';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useIsReportActionsLoaded from './useIsReportActionsLoaded';
@@ -60,6 +61,11 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         });
         return unsubscribe;
     }, []);
+
+    // A visible browser window can regain OS focus without any visibility change, and nothing else re-runs the
+    // read catch-up in that case, so bump a counter on app focus to re-run it.
+    const [appFocusCount, setAppFocusCount] = useState(0);
+    useAppFocusEvent(useCallback(() => setAppFocusCount((count) => count + 1), []));
 
     const readActionSkippedRef = useRef(false);
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
@@ -146,6 +152,12 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             return;
         }
 
+        // readNewestAction marks everything up to now as read, so newer actions outside the loaded slice would be
+        // consumed without ever being seen. Mirrors the !hasNewerActions guard on the report-change path.
+        if (hasNewerActions) {
+            return;
+        }
+
         const newMessageTimeReference = lastMessageTime.current && report?.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report?.lastReadTime;
         lastMessageTime.current = null;
 
@@ -169,7 +181,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
     // Only re-run when app visibility/focus changes, so action updates don't keep marking the report as read.
     useEffect(() => {
         handleAppVisibilityMarkAsRead(isFocused);
-    }, [isVisible, isFocused]);
+    }, [isVisible, isFocused, appFocusCount]);
 
     const markNewestActionAsRead = () => {
         readActionSkippedRef.current = false;
