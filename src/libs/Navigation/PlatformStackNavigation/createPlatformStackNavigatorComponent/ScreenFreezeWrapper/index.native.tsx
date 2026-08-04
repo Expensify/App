@@ -1,11 +1,10 @@
-import React, {useLayoutEffect, useState} from 'react';
-import type {PropsWithChildren} from 'react';
-import {Freeze} from 'react-freeze';
-import {NativeComponentRegistry} from 'react-native';
-import type {ViewStyle} from 'react-native';
-// @ts-expect-error No declaration file for this internal React Native module
-import ReactNativeStyleAttributes from 'react-native/Libraries/Components/View/ReactNativeStyleAttributes';
+import DisplayContentsView from '@components/DisplayContentsView';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {useLayoutEffect, useState} from 'react';
+import {Freeze} from 'react-freeze';
+
 import type ScreenFreezeWrapperProps from './types';
 
 // Delay freezing long enough for screen transition and modal/popover dismiss
@@ -13,26 +12,6 @@ import type ScreenFreezeWrapperProps from './types';
 // is still in flight (e.g. a popover closing or a swipe-back gesture finishing)
 // blocks React rendering and can cause the app to become unresponsive.
 const FREEZE_DELAY_MS = 500;
-
-type NativeComponentRegistryParams = Parameters<typeof NativeComponentRegistry.get<PropsWithChildren<{style: ViewStyle}>>>;
-type ViewConfigProvider = NativeComponentRegistryParams[1];
-
-const VIEW_CONFIG = {
-    uiViewClassName: 'RCTView',
-    validAttributes: {
-        style: {
-            ...(ReactNativeStyleAttributes as Record<string, unknown>),
-            display: {
-                process: () => 'contents',
-            },
-        },
-    },
-} as ReturnType<ViewConfigProvider>;
-
-// Keeps the underlay screen visible during swipe-back gestures on mobile,
-// preventing a blank screen flash while navigating between screens.
-// Uses internal RN APIs (NativeComponentRegistry, ReactNativeStyleAttributes) — validated with RN 0.83.1. Re-verify after upgrades.
-const CustomViewWrapper = NativeComponentRegistry.get<PropsWithChildren<{style: ViewStyle}>>('CustomViewWrapper', () => VIEW_CONFIG);
 
 function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperProps) {
     const [frozen, setFrozen] = useState(false);
@@ -64,7 +43,7 @@ function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperPro
 
     return (
         <Freeze freeze={frozen}>
-            <CustomViewWrapper style={styles.flex1}>{children}</CustomViewWrapper>
+            <DisplayContentsView style={styles.flex1}>{children}</DisplayContentsView>
         </Freeze>
     );
 }

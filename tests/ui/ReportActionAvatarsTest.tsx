@@ -1,16 +1,24 @@
 import {render, screen} from '@testing-library/react-native';
-import {View as MockedAvatarData} from 'react-native';
-import Onyx from 'react-native-onyx';
+
+import type {UserAvatarProps} from '@components/Avatar/UserAvatar';
+import type {WorkspaceAvatarProps} from '@components/Avatar/WorkspaceAvatar';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import {View as MockedAvatarData} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import {actionR14932} from '../../__mocks__/reportData/actions';
 import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {policy420A} from '../../__mocks__/reportData/policies';
@@ -18,13 +26,6 @@ import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/repo
 import {transactionR14932} from '../../__mocks__/reportData/transactions';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-
-type AvatarProps = {
-    source?: AvatarSource;
-    name?: string;
-    avatarID?: number | string;
-    testID?: string;
-};
 
 type AvatarData = {
     uri: string;
@@ -53,8 +54,23 @@ const parseSource = (source: AvatarSource | IconAsset): string => {
     return source?.toString() ?? 'No Source';
 };
 
-jest.mock('@src/components/Avatar', () => {
-    return ({source, name, avatarID, testID = 'Avatar'}: AvatarProps) => {
+jest.mock('@components/Avatar/UserAvatar', () => {
+    return ({source, accountID, testID = 'Avatar'}: UserAvatarProps) => {
+        return (
+            <MockedAvatarData
+                dataSet={{
+                    avatarID: accountID,
+                    uri: parseSource(source ?? '') || 'No Source',
+                    parent: testID,
+                }}
+                testID="MockedAvatarData"
+            />
+        );
+    };
+});
+
+jest.mock('@components/Avatar/WorkspaceAvatar', () => {
+    return ({source, name, avatarID, testID = 'Avatar'}: WorkspaceAvatarProps) => {
         return (
             <MockedAvatarData
                 dataSet={{
@@ -465,7 +481,7 @@ describe('ReportActionAvatars', () => {
         it('renders a horizontal "+N" overlay when stacked avatars exceed the row limit', async () => {
             const retrievedData = await retrieveDataFromAvatarView({
                 accountIDs: [LOGGED_USER_ID, SECOND_USER_ID, THIRD_USER_ID],
-                horizontalStacking: {maxAvatarsInRow: 2},
+                horizontalStacking: {maxAvatarsPerRow: 2},
             });
 
             // Only the first two avatars render inline; the third collapses into the overlay
@@ -494,30 +510,48 @@ describe('ReportActionAvatars', () => {
         it.each([CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME, CONST.REPORT_ACTION_AVATARS.SORT_BY.ID, CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE])(
             'applies "%s" sorting to horizontally stacked avatars',
             async (sort) => {
-                const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], horizontalStacking: {sort}});
+                const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], horizontalStacking: true, sort});
                 isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR, stacked: true});
             },
         );
 
-        it.each([CONST.AVATAR_SIZE.SMALL, CONST.AVATAR_SIZE.SMALL_NORMAL, CONST.AVATAR_SIZE.X_LARGE])('renders a subscript avatar at size "%s"', async (size) => {
+        it.each([CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME, CONST.REPORT_ACTION_AVATARS.SORT_BY.ID, CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE])(
+            'does not let "%s" sorting reorder the primary and subscript avatars',
+            async (sort) => {
+                const retrievedData = await retrieveDataFromAvatarView({reportID: iouReport.reportID, sort});
+
+                // The user stays the main avatar and the workspace stays the subscript regardless of sorting
+                isSubscriptAvatarRendered(retrievedData);
+            },
+        );
+
+        it.each([CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME, CONST.REPORT_ACTION_AVATARS.SORT_BY.ID, CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE])(
+            'does not let "%s" sorting reorder diagonal avatars',
+            async (sort) => {
+                const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], sort});
+                isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR});
+            },
+        );
+
+        it.each([CONST.AVATAR_SIZE.SMALL, CONST.AVATAR_SIZE.XXXX_LARGE])('renders a subscript avatar at size "%s"', async (size) => {
             const retrievedData = await retrieveDataFromAvatarView({reportID: iouReport.reportID, size});
             isSubscriptAvatarRendered(retrievedData);
         });
 
-        it.each([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.X_LARGE])('renders diagonal avatars at size "%s"', async (size) => {
+        it.each([CONST.AVATAR_SIZE.XXX_LARGE, CONST.AVATAR_SIZE.XXXX_LARGE])('renders diagonal avatars at size "%s"', async (size) => {
             const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], size});
             isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR});
         });
 
-        it('renders diagonal avatars with mid-subscript sizing', async () => {
-            const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], useMidSubscriptSizeForMultipleAvatars: true});
+        it('renders diagonal avatars at small size', async () => {
+            const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], size: CONST.AVATAR_SIZE.SMALL});
             isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR});
         });
 
-        it('splits horizontally stacked avatars into two rows when displayInRows is enabled', async () => {
+        it('splits horizontally stacked avatars into two rows when maxRows allows it', async () => {
             const retrievedData = await retrieveDataFromAvatarView({
                 accountIDs: [LOGGED_USER_ID, SECOND_USER_ID, THIRD_USER_ID],
-                horizontalStacking: {displayInRows: true, maxAvatarsInRow: 2},
+                horizontalStacking: {maxRows: 2, maxAvatarsPerRow: 2},
             });
             const rows = retrievedData.fragments.filter((fragment) => fragment === 'ReportActionAvatars-MultipleAvatars-StackedHorizontally-Row');
             expect(rows).toHaveLength(2);

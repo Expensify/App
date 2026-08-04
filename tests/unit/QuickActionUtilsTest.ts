@@ -1,11 +1,14 @@
-import Onyx from 'react-native-onyx';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isQuickActionAllowed} from '@libs/QuickActionUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
+
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -155,6 +158,7 @@ describe('QuickActionUtils', () => {
                     },
                 } as unknown as Policy;
                 mockedPolicyUtils.isControlPolicy.mockReturnValue(true);
+                mockedPolicyUtils.isPerDiemEnabled.mockReturnValue(true);
 
                 expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(true);
             });
@@ -167,6 +171,8 @@ describe('QuickActionUtils', () => {
                 expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
             });
             it("should not allow per diem action when policy doesn't have per diem enabled", () => {
+                mockedPolicyUtils.isControlPolicy.mockReturnValue(true);
+                mockedPolicyUtils.isPerDiemEnabled.mockReturnValue(false);
                 const policy = {
                     id: '1',
                     arePerDiemRatesEnabled: false,

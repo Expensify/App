@@ -1,6 +1,6 @@
-import React from 'react';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -9,11 +9,18 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import WorkspaceTravelInvoicingSection from './WorkspaceTravelInvoicingSection';
 
 type GetStartedTravelProps = {

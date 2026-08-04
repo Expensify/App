@@ -1,6 +1,8 @@
 import React, {createContext, useContext} from 'react';
-import {defaultCustomStatusBarAndBackgroundActionsContextValue, defaultCustomStatusBarAndBackgroundStateContextValue} from './default';
+
 import type {CustomStatusBarAndBackgroundActionsContextType, CustomStatusBarAndBackgroundStateContextType} from './types';
+
+import {defaultCustomStatusBarAndBackgroundActionsContextValue, defaultCustomStatusBarAndBackgroundStateContextValue} from './default';
 
 const CustomStatusBarAndBackgroundStateContext = createContext<CustomStatusBarAndBackgroundStateContextType>(defaultCustomStatusBarAndBackgroundStateContextValue);
 const CustomStatusBarAndBackgroundActionsContext = createContext<CustomStatusBarAndBackgroundActionsContextType>(defaultCustomStatusBarAndBackgroundActionsContextValue);

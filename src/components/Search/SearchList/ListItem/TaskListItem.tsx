@@ -1,20 +1,28 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import FS from '@libs/Fullstory';
+
 import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
-import TaskListItemRow from './TaskListItemRow';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import type {TaskListItemProps, TaskListItemType} from './types';
+
+import TaskListItemRow from './TaskListItemRow';
 
 /**
  * A task row in search results showing date, title, description, creator, assignee,
@@ -36,8 +44,9 @@ function TaskListItem<TItem extends ListItem>({
     const taskItem = item as unknown as TaskListItemType;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskItem?.parentReportID}`];
     const parentReportID = taskItem?.parentReportID;
-    const parentReportAttributeNameSelector = (value: OnyxEntry<ReportAttributesDerivedValue>) => (parentReportID ? value?.reports?.[parentReportID]?.reportName : undefined);
-    const [liveParentReportAttributeName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: parentReportAttributeNameSelector}, [parentReportID]);
+    const [liveParentReportAttributeName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: (value: OnyxEntry<ReportAttributesDerivedValue>) => (parentReportID ? value?.reports?.[parentReportID]?.reportName : undefined),
+    });
     const liveTaskItem: TaskListItemType =
         liveParentReportAttributeName && liveParentReportAttributeName !== taskItem.parentReportName ? {...taskItem, parentReportName: liveParentReportAttributeName} : taskItem;
     const styles = useThemeStyles();

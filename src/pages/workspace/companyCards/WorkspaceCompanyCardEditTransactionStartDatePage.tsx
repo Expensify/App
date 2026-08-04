@@ -1,35 +1,44 @@
-import {format, parseISO} from 'date-fns';
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DatePicker from '@components/DatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {updateCardTransactionStartDate} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
+
+import {format, parseISO} from 'date-fns';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+import {getCompanyCardDetailsBackPath} from './utils';
 
 type DateOption = ValueOf<typeof CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS>;
 type WorkspaceCompanyCardEditTransactionStartDatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE>;
 
-function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceCompanyCardEditTransactionStartDatePageProps) {
+function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: WorkspaceCompanyCardEditTransactionStartDatePageProps) {
     const {policyID, cardID} = route.params;
     const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
     const bank = getCompanyCardFeed(feedName);
@@ -42,6 +51,7 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
+    const goBackToCardDetails = () => Navigation.goBack(getCompanyCardDetailsBackPath(policyID, feedName, cardID, navigation.getState()));
 
     const [allBankCards] = useCardsList(feedName);
     const card = allBankCards?.[cardID];
@@ -81,7 +91,7 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
         const newStartDate = dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? '' : startDate;
 
         updateCardTransactionStartDate(domainOrWorkspaceAccountID, cardID, newStartDate, bank, currentStartDate);
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID), {compareParams: false});
+        goBackToCardDetails();
     };
 
     const dateOptions = [
@@ -112,7 +122,7 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
             >
                 <HeaderWithBackButton
                     title={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID), {compareParams: false})}
+                    onBackButtonPress={goBackToCardDetails}
                 />
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.editStartDateDescription')}</Text>
                 <View style={styles.flex1}>
@@ -126,12 +136,13 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
                         addBottomSafeAreaPadding
                         footerContent={
                             <Button
-                                success
-                                large
-                                pressOnEnter
-                                text={translate('common.save')}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 onPress={submit}
-                            />
+                            >
+                                <Button.KeyboardShortcut />
+                                <Button.Text>{translate('common.save')}</Button.Text>
+                            </Button>
                         }
                         listFooterContent={
                             dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (

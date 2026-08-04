@@ -1,27 +1,33 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback} from 'react';
 import Accordion from '@components/Accordion';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateNetSuiteAutoSync} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearNetSuiteAutoSyncErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useCallback} from 'react';
 
 function DynamicNetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();

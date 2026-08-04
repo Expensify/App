@@ -1,11 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
 import {useSelectionCounts} from '@components/Search/SearchSelectionProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SearchResults} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import SearchActionsBarCreateButton from './SearchActionsBarCreateButton';
 import SearchAdvancedFiltersButton from './SearchAdvancedFiltersButton';
 import SearchDisplayDropdownButton from './SearchDisplayDropdownButton';

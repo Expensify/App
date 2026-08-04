@@ -1,13 +1,17 @@
-import React, {useState} from 'react';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
+
 import useOnyx from '@hooks/useOnyx';
+
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useState} from 'react';
 
 type SearchAdvancedFiltersValue = {
     currentDraftFilters: Partial<SearchAdvancedFiltersForm>;

@@ -1,13 +1,16 @@
-import {render} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+import {render, screen} from '@testing-library/react-native';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {createAdminRoom, createAnnounceRoom} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-// Capture props passed to UserAvatar
+// Capture props passed to UserAvatar (only rendered for non-Concierge agents).
 let mockCapturedAvatarProps: Record<string, unknown> = {};
 
 jest.mock('@components/Avatars/UserAvatar', () => {
@@ -19,15 +22,24 @@ jest.mock('@components/Avatars/UserAvatar', () => {
     };
 });
 
-// Admin and announce rooms surface Concierge as the only candidate agent, so the mock returns
-// Concierge's accountID here. `mock` prefix lets jest's hoist plugin reference this from inside
-// the factory below.
-const mockPersonaAccountID = CONST.ACCOUNT_ID.CONCIERGE;
+// Concierge renders a branded Lottie animation instead of UserAvatar; stub it so the test
+// doesn't pull in Lottie and so we can assert it rendered.
+jest.mock('@pages/home/report/ConciergeAnimatedAvatar', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return () => <View testID="MockedConciergeAnimatedAvatar" />;
+});
 
-// Mock the AgentZero context to render one bubble for Concierge.
+// The candidate agent set the room is processing for. Mutable so individual tests can switch between
+// Concierge and a custom agent. `mock` prefix lets jest's hoist plugin reference it from the factory.
+const conciergeAccountID = CONST.ACCOUNT_ID.CONCIERGE;
+const customAgentAccountID = 424242;
+let mockCandidateAgentIDs: number[] = [conciergeAccountID];
+
+// Mock the AgentZero context to render one bubble per candidate agent.
 jest.mock('@pages/inbox/AgentZeroStatusContext', () => ({
     useAgentZeroStatus: () => ({
-        candidateAgentIDs: [mockPersonaAccountID],
+        candidateAgentIDs: mockCandidateAgentIDs,
     }),
 }));
 
@@ -46,7 +58,10 @@ jest.mock('@hooks/useShouldSuppressConciergeIndicators', () => jest.fn(() => fal
 
 // Suppress reanimated/lazy-asset warnings in test
 jest.mock('@hooks/useLazyAsset', () => ({
-    useMemoizedLazyExpensifyIcons: () => ({UpArrow: 'UpArrow', DownArrow: 'DownArrow'}),
+    useMemoizedLazyExpensifyIcons: () => ({
+        UpArrow: 'UpArrow',
+        DownArrow: 'DownArrow',
+    }),
 }));
 
 // Avoid loading the full ReportActionItemMessageHeaderSender
@@ -59,21 +74,31 @@ jest.mock('@pages/inbox/report/ReportActionItemMessageHeaderSender', () => {
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const ConciergeThinkingMessage = require('@pages/home/report/ConciergeThinkingMessage').default;
 
-const conciergeAccountID = CONST.ACCOUNT_ID.CONCIERGE;
 const conciergeAvatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/icons/concierge_2022.png';
 const adminPolicyID = '7777';
 const adminRoomReportID = 9001;
 const announceRoomReportID = 9003;
 
-const mockAdminRoom = {...createAdminRoom(adminRoomReportID), policyID: adminPolicyID};
-const mockAnnounceRoom = {...createAnnounceRoom(announceRoomReportID), policyID: adminPolicyID};
+const mockAdminRoom = {
+    ...createAdminRoom(adminRoomReportID),
+    policyID: adminPolicyID,
+};
+const mockAnnounceRoom = {
+    ...createAnnounceRoom(announceRoomReportID),
+    policyID: adminPolicyID,
+};
 
-const conciergePersonalDetails: PersonalDetailsList = {
+const personalDetails: PersonalDetailsList = {
     [conciergeAccountID]: {
         accountID: conciergeAccountID,
         displayName: 'Concierge',
         login: 'concierge@expensify.com',
         avatar: conciergeAvatarURL,
+    },
+    [customAgentAccountID]: {
+        accountID: customAgentAccountID,
+        displayName: 'Custom Agent',
+        login: 'agent@expensify.com',
     },
 };
 
@@ -83,7 +108,8 @@ beforeAll(() => {
 
 beforeEach(async () => {
     mockCapturedAvatarProps = {};
-    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, conciergePersonalDetails);
+    mockCandidateAgentIDs = [conciergeAccountID];
+    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
     await waitForBatchedUpdates();
 });
 
@@ -92,15 +118,44 @@ afterEach(() => {
 });
 
 describe('ConciergeThinkingMessage avatar prop integration', () => {
-    test('should pass accountIDs=CONCIERGE to UserAvatar in admin room', () => {
-        render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
+    describe('Concierge bubble', () => {
+        test('should render the animated avatar (not UserAvatar) in admin room', () => {
+            render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
-        expect(mockCapturedAvatarProps.accountID).toEqual(conciergeAccountID);
+            expect(screen.getByTestId('MockedConciergeAnimatedAvatar')).toBeTruthy();
+            expect(screen.queryByTestId('MockedUserAvatar')).toBeNull();
+        });
+
+        test('should render the animated avatar (not UserAvatar) in announce room', () => {
+            render(<ConciergeThinkingMessage reportID={mockAnnounceRoom.reportID} />);
+
+            expect(screen.getByTestId('MockedConciergeAnimatedAvatar')).toBeTruthy();
+            expect(screen.queryByTestId('MockedUserAvatar')).toBeNull();
+        });
     });
 
-    test('should pass accountIDs=CONCIERGE to UserAvatar in announce room', () => {
-        render(<ConciergeThinkingMessage reportID={mockAnnounceRoom.reportID} />);
+    describe('Custom agent bubble', () => {
+        beforeEach(() => {
+            mockCandidateAgentIDs = [customAgentAccountID];
+        });
 
-        expect(mockCapturedAvatarProps.accountID).toEqual(conciergeAccountID);
+        test('should render UserAvatar (not the Concierge animation)', () => {
+            render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
+
+            expect(screen.getByTestId('MockedUserAvatar')).toBeTruthy();
+            expect(screen.queryByTestId('MockedConciergeAnimatedAvatar')).toBeNull();
+        });
+
+        test('should pass accountID=agentAccountID to UserAvatar', () => {
+            render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
+
+            expect(mockCapturedAvatarProps.accountID).toBe(customAgentAccountID);
+        });
+
+        test('should not pass reportID to UserAvatar (report context would override the agent avatar with the report-preview sender)', () => {
+            render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
+
+            expect(mockCapturedAvatarProps.reportID).toBeUndefined();
+        });
     });
 });

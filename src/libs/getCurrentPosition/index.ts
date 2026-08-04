@@ -1,7 +1,10 @@
-import {getCurrentPositionAsync, PermissionStatus, requestForegroundPermissionsAsync} from 'expo-location';
 import type {PermissionResponse} from 'expo-location';
-import {GeolocationErrorCode} from './getCurrentPosition.types';
+
+import {getCurrentPositionAsync, PermissionStatus, requestForegroundPermissionsAsync} from 'expo-location';
+
 import type {GetCurrentPosition} from './getCurrentPosition.types';
+
+import {GeolocationErrorCode} from './getCurrentPosition.types';
 import getGeolocationError from './getGeolocationError';
 
 const getCurrentPosition: GetCurrentPosition = async (success, error, options) => {

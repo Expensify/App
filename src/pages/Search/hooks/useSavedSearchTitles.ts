@@ -1,7 +1,9 @@
-import {useDeferredValue} from 'react';
 import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
 import type {BuildUserReadableQueryStringParams} from '@libs/SearchQueryUtils';
+
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
+
+import {useDeferredValue} from 'react';
 
 type SavedSearchCollection = Record<string, SaveSearchItem>;
 

@@ -1,11 +1,14 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import type {ValueOf} from 'type-fest';
+
 import type {CardID} from './Card';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
+import type {PolicyChangeLogCopyReportActionNames} from './ReportAction';
 import type ReportActionName from './ReportActionName';
 import type {Reservation, TransactionCommentVendor} from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
@@ -90,6 +93,18 @@ type OriginalMessageIOU = {
 
     /** Currency of the transaction money */
     currency?: string;
+
+    /** Cross-border FX reimbursement: amount credited to the employee, in their deposit currency */
+    creditedAmount?: number;
+
+    /** Cross-border FX reimbursement: currency of `creditedAmount` (the employee deposit currency) */
+    creditedCurrency?: string;
+
+    /** Cross-border FX reimbursement: last 4 of the company withdrawal (VBA) account that was debited */
+    debitBankAccountLast4?: string;
+
+    /** Cross-border FX reimbursement: last 4 of the employee deposit account that was credited */
+    creditBankAccountLast4?: string;
 
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
@@ -822,6 +837,9 @@ type OriginalMessagePolicyChangeLog = {
 /** Amount operators for spend rules */
 type SpendRuleAmountOperator = typeof CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN | typeof CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO;
 
+/** Currency operators for spend rules */
+type SpendRuleCurrencyOperator = typeof CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO | typeof CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
+
 /** Model of an Expensify card spend rule change log action (add, update, or remove) */
 type OriginalMessageSpendRuleChangeLog = {
     /** Spend rule action */
@@ -841,6 +859,24 @@ type OriginalMessageSpendRuleChangeLog = {
 
     /** Previous list of categories when a spend rule was updated */
     oldCategories?: string[];
+
+    /** Currencies included in the spend rule */
+    currencies?: Array<{
+        /** Operator (`eq` for "is", `ne` for "is not") */
+        operator: SpendRuleCurrencyOperator;
+
+        /** Currency value */
+        value: string[];
+    }>;
+
+    /** Old currencies included in the spend rule */
+    oldCurrencies?: Array<{
+        /** Operator (`eq` for "is", `ne` for "is not") */
+        operator: SpendRuleCurrencyOperator;
+
+        /** Currency value */
+        value: string[];
+    }>;
 
     /** Max-amount filters in a spend rule */
     amounts?: Array<{
@@ -880,6 +916,30 @@ type OriginalMessageSpendRuleChangeLog = {
 
     /** Currency of the spend rule */
     currency?: string;
+};
+
+/** Model of a workspace agent rule change log action (add, update, or delete) */
+type OriginalMessageAgentRuleChangeLog = {
+    /** ID of the policy the agent rule belongs to */
+    policyID?: string;
+
+    /** ID of the agent rule that changed */
+    ruleID?: string;
+
+    /** Server-generated one-line title of the agent rule */
+    ruleTitle?: string;
+
+    /** Natural-language prompt of the agent rule (present for add/update, omitted for delete) */
+    prompt?: string;
+};
+
+/** Model of a policy copy change log action */
+type OriginalMessagePolicyChangeCopyLog = {
+    /** The ID of the source policy from which the user copied settings */
+    sourcePolicyID?: string;
+
+    /** The quantity of the item copied from source policy */
+    quantity?: number;
 };
 
 /** Model of `join policy` report action */
@@ -1275,6 +1335,12 @@ type OriginalMessageReimbursed = {
 
     /** For StripeConnect payments, indicates payment type ('card' or 'bank account') */
     stripePaymentType?: string;
+
+    /** Cents credited to the employee on a cross-border FX reimbursement, in the employee's deposit currency */
+    creditedAmount?: number;
+
+    /** Currency the creditedAmount is denominated in (the employee's deposit currency) */
+    creditedCurrency?: string;
 };
 
 /** Model of `trip room preview` report action */
@@ -1542,6 +1608,9 @@ type OriginalMessageIntegrationMessage = {
     result: {
         /** Wether action was successful */
         success: boolean;
+
+        /** Whether the message is informational (the export was reconciled as already recorded in the integration) rather than an error */
+        reconciled?: boolean;
     };
 };
 
@@ -1613,6 +1682,17 @@ type OriginalMessageReimbursementDirectorInformationRequired = {
     completed: boolean;
 };
 
+/**
+ * Model of the travel nudge report action Concierge posts on an out-of-platform travel expense.
+ */
+type OriginalMessageTravelNudge = {
+    /** The kind of bookable travel the expense was classified as */
+    travelType: ValueOf<typeof CONST.RESERVATION_TYPE>;
+
+    /** Whether the expense was created from a card import or manually */
+    origination: ValueOf<typeof CONST.TRAVEL_NUDGE.ORIGINATION>;
+};
+
 /** The map type of original message */
 /* eslint-disable jsdoc/require-jsdoc */
 type OriginalMessageMap = {
@@ -1682,6 +1762,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.TASK_EDITED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL]: OriginalMessageTakeControl;
+    [CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE]: OriginalMessageTravelNudge;
     [CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE]: OriginalMessageTravelUpdate;
     [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED]: OriginalMessageUnapproved;
     [CONST.REPORT.ACTIONS.TYPE.UNHOLD]: never;
@@ -1720,11 +1801,15 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
-} & OldDotOriginalMessageMap &
-    Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> & {
+} & Omit<OldDotOriginalMessageMap, typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> &
+    Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
+    Record<PolicyChangeLogCopyReportActionNames, OriginalMessagePolicyChangeCopyLog> & {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
     } & Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
 type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageMap[T] : never;

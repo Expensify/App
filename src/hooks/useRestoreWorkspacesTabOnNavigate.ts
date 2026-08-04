@@ -5,9 +5,11 @@ import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspa
 import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {DomainSplitNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';

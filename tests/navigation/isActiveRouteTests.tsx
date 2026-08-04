@@ -1,7 +1,9 @@
 import {afterEach, beforeEach, describe, expect, it, jest} from '@jest/globals';
+
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import type {Route} from '@src/ROUTES';
 
 jest.mock('@libs/Navigation/navigationRef', () => {

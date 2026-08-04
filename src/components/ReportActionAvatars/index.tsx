@@ -1,32 +1,42 @@
-import lodashSortBy from 'lodash/sortBy';
-import React from 'react';
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import DiagonalAvatars from '@components/Avatars/Primitives/DiagonalAvatars';
-import HorizontalAvatars from '@components/Avatars/Primitives/HorizontalAvatars';
-import type {HorizontalStackingOptions} from '@components/Avatars/Primitives/HorizontalAvatars';
-import SingleAvatar from '@components/Avatars/Primitives/SingleAvatar';
-import SubscriptAvatar from '@components/Avatars/Primitives/SubscriptAvatar';
+import DiagonalAvatars from '@components/Avatar/layouts/DiagonalAvatars';
+import getAvatarLayout from '@components/Avatar/layouts/getAvatarLayout';
+import HorizontalAvatars from '@components/Avatar/layouts/HorizontalAvatars';
+import type {HorizontalStackingOptions} from '@components/Avatar/layouts/HorizontalAvatars';
+import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
+import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
+import SubscriptCardFeedAvatar from '@components/Avatar/layouts/SubscriptCardFeedAvatar';
+import type {AvatarIcon} from '@components/Avatar/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import {sortIconsByName} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+
+import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import lodashSortBy from 'lodash/sortBy';
+import React from 'react';
+
 import useReportActionAvatars from './useReportActionAvatars';
 
 type SortingOptions = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
 
-type HorizontalStacking = HorizontalStackingOptions & {
-    sort?: SortingOptions | SortingOptions[];
-};
-
 type ReportActionAvatarsProps = {
-    horizontalStacking?: HorizontalStacking | boolean;
+    horizontalStacking?: HorizontalStackingOptions | boolean;
+
+    /** How to order the avatars before rendering them. Only applies to a horizontal stack, where every avatar sits in an equivalent slot */
+    sort?: SortingOptions | SortingOptions[];
 
     /** Report ID for the report action avatars */
     reportID?: string;
@@ -55,9 +65,6 @@ type ReportActionAvatarsProps = {
     /** Style for Second Avatar */
     secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether #focus mode is on */
-    useMidSubscriptSizeForMultipleAvatars?: boolean;
-
     /** Whether avatars are displayed within a reportAction */
     isInReportAction?: boolean;
 
@@ -75,9 +82,6 @@ type ReportActionAvatarsProps = {
 
     /** Size of the subscript card feed icon */
     subscriptCardFeedIconSize?: {width: number; height: number};
-
-    /** Whether we want to be redirected to profile on avatars click */
-    useProfileNavigationWrapper?: boolean;
 
     /** Display name used as a fallback for avatar tooltip */
     fallbackDisplayName?: string;
@@ -114,15 +118,14 @@ function ReportActionAvatars({
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldShowTooltip = true,
     horizontalStacking,
+    sort: sortAvatars,
     singleAvatarContainerStyle,
     subscriptAvatarBorderColor,
     noRightMarginOnSubscriptContainer = false,
     subscriptCardFeed,
     subscriptCardFeedIconSize,
     secondaryAvatarContainerStyle,
-    useMidSubscriptSizeForMultipleAvatars = false,
     isInReportAction = false,
-    useProfileNavigationWrapper,
     fallbackDisplayName,
     invitedEmailsToAccountIDs,
     shouldUseCustomFallbackAvatar = false,
@@ -132,6 +135,8 @@ function ReportActionAvatars({
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
     const allPersonalDetails = usePersonalDetails();
     const {localeCompare} = useLocalize();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const reportID =
         potentialReportID ??
@@ -146,7 +151,7 @@ function ReportActionAvatars({
 
     const shouldStackHorizontally = !!horizontalStacking;
     const isHorizontalStackingAnObject = shouldStackHorizontally && typeof horizontalStacking !== 'boolean';
-    const {isHovered = false, sort: sortAvatars, ...horizontalStackingRest} = isHorizontalStackingAnObject ? horizontalStacking : ({} as HorizontalStacking);
+    const {isHovered = false, ...horizontalStackingRest} = isHorizontalStackingAnObject ? horizontalStacking : ({} as HorizontalStackingOptions);
 
     const {
         avatarType: notPreciseAvatarType,
@@ -168,8 +173,26 @@ function ReportActionAvatars({
         shouldUseRealActor,
     });
 
+    if (!unsortedIcons.length) {
+        return null;
+    }
+
+    const {
+        layout: avatarType,
+        primaryIcon: primaryAvatar,
+        secondaryIcon: secondaryAvatar,
+    } = getAvatarLayout({
+        icons: unsortedIcons,
+        avatarType: notPreciseAvatarType,
+        shouldStackHorizontally,
+        hasCardFeed: !!subscriptCardFeed,
+        shouldRequireSecondaryIconName: true,
+    });
+
+    // Sorting only reorders a horizontal stack. The other layouts assign meaning to each position — the primary avatar and
+    // the subscript/diagonal secondary — so reordering there would swap which icon lands in which slot.
     let icons: IconType[] = unsortedIcons;
-    if (sortAvatars) {
+    if (sortAvatars && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL) {
         if (sortAvatars.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME)) {
             icons = sortIconsByName(unsortedIcons, allPersonalDetails, localeCompare);
         } else if (sortAvatars.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.ID)) {
@@ -177,36 +200,50 @@ function ReportActionAvatars({
         }
 
         if (sortAvatars.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE)) {
-            icons = icons.reverse();
+            icons = [...icons].reverse();
         }
     }
 
-    let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;
-
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE && !icons.length) {
+    if (!primaryAvatar) {
         return null;
     }
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE) {
-        avatarType = shouldStackHorizontally ? CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL : CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL;
+    const delegateAccountIDFromAction = source.action?.delegateAccountID;
+    const singleAvatar: AvatarIcon = delegateAccountIDFromAction
+        ? {
+              ...primaryAvatar,
+              copilot: {
+                  accountID: delegateAccountIDFromAction,
+                  actedForAccountID: delegateAccountID,
+              },
+          }
+        : primaryAvatar;
+
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT_CARD_FEED && subscriptCardFeed) {
+        return (
+            <SubscriptCardFeedAvatar
+                primaryAvatar={primaryAvatar}
+                cardFeed={subscriptCardFeed}
+                cardFeedIconSize={subscriptCardFeedIconSize}
+                size={size}
+                shouldShowTooltip={shouldShowTooltip}
+                containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
+                subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+                fallbackDisplayName={fallbackDisplayName}
+            />
+        );
     }
 
-    const [primaryAvatar, secondaryAvatar] = icons;
-
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && (!!secondaryAvatar?.name || !!subscriptCardFeed)) {
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT) {
         return (
             <SubscriptAvatar
                 primaryAvatar={primaryAvatar}
                 secondaryAvatar={secondaryAvatar}
                 size={size}
                 shouldShowTooltip={shouldShowTooltip}
-                noRightMarginOnContainer={noRightMarginOnSubscriptContainer}
+                containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
-                subscriptCardFeed={subscriptCardFeed}
-                subscriptCardFeedIconSize={subscriptCardFeedIconSize}
-                useProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
-                reportID={reportID}
             />
         );
     }
@@ -220,42 +257,32 @@ function ReportActionAvatars({
                 icons={icons}
                 isInReportAction={isInReportAction}
                 shouldShowTooltip={shouldShowTooltip}
-                useProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
-                reportID={reportID}
             />
         );
     }
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && !!secondaryAvatar?.name) {
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL) {
         return (
             <DiagonalAvatars
                 shouldShowTooltip={shouldShowTooltip}
                 size={size}
                 icons={icons}
                 isInReportAction={isInReportAction}
-                useMidSubscriptSize={useMidSubscriptSizeForMultipleAvatars}
                 secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
                 isHovered={isHovered}
                 fallbackDisplayName={fallbackDisplayName}
-                useProfileNavigationWrapper={useProfileNavigationWrapper}
-                reportID={reportID}
             />
         );
     }
 
     return (
         <SingleAvatar
-            avatar={primaryAvatar}
+            avatar={singleAvatar}
             size={size}
-            containerStyles={shouldStackHorizontally ? [] : singleAvatarContainerStyle}
+            containerStyles={shouldStackHorizontally ? [] : (singleAvatarContainerStyle ?? StyleUtils.getContainerStyles(size, isInReportAction))}
             shouldShowTooltip={shouldShowTooltip}
-            accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-            delegateAccountID={source.action?.delegateAccountID}
-            fallbackIcon={primaryAvatar.fallbackIcon}
             fallbackDisplayName={fallbackDisplayName}
-            useProfileNavigationWrapper={useProfileNavigationWrapper}
-            reportID={reportID}
         />
     );
 }

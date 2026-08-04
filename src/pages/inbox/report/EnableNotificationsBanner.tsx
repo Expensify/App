@@ -1,13 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
 import Banner from '@components/Banner';
 import Button from '@components/Button';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {dismissForSession} from '@libs/actions/ConciergeNotificationBanner';
 import NotificationPermission from '@libs/Notification/notificationPermission';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 // Visual breathing room hidden behind the composer in addition to the corner-radius arc.
 const BANNER_EXTRA_OVERLAP_PX = 8;

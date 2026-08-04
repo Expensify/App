@@ -1,12 +1,14 @@
+import run from '@github/actions/javascript/waitForPreviousRuns/waitForPreviousRuns';
+import type {InternalOctokit} from '@github/libs/GithubUtils';
+import GithubUtils from '@github/libs/GithubUtils';
+
+import asMutable from '@src/types/utils/asMutable';
+
 /* eslint-disable @typescript-eslint/naming-convention */
 /**
  * @jest-environment node
  */
 import * as core from '@actions/core';
-import run from '@github/actions/javascript/waitForPreviousRuns/waitForPreviousRuns';
-import type {InternalOctokit} from '@github/libs/GithubUtils';
-import GithubUtils from '@github/libs/GithubUtils';
-import asMutable from '@src/types/utils/asMutable';
 
 const CURRENT_RUN_ID = 1000;
 const WORKFLOW_ID = 'testBuildOnPush.yml';

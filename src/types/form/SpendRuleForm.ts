@@ -1,8 +1,19 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type Form from './Form';
 
-const INPUT_IDS = CONST.SPEND_RULES.FORM.FIELDS;
+const INPUT_IDS = {
+    CARD_IDS: 'cardIDs',
+    RESTRICTION_ACTION: 'restrictionAction',
+    MERCHANT_NAMES: 'merchantNames',
+    MERCHANT_MATCH_TYPES: 'merchantMatchTypes',
+    CATEGORIES: 'categories',
+    MAX_AMOUNT: 'maxAmount',
+    CURRENCIES: 'currencies',
+} as const;
+
 type SpendRuleCategory = ValueOf<typeof CONST.SPEND_RULES.CATEGORIES>;
 const SPEND_RULE_CATEGORIES = Object.values(CONST.SPEND_RULES.CATEGORIES) as SpendRuleCategory[];
 

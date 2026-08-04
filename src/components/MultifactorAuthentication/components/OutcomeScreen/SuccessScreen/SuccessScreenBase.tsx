@@ -1,12 +1,17 @@
-import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import OutcomeScreenBase from '@components/MultifactorAuthentication/components/OutcomeScreen/OutcomeScreenBase';
+
 import useLocalize from '@hooks/useLocalize';
+
 // Spacing is needed for icon padding configuration
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
+
 import type {TranslationPaths} from '@src/languages/types';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
 
 type SuccessScreenBaseProps = {
     headerTitle: TranslationPaths;

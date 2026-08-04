@@ -47,6 +47,8 @@ For guidance, examples, and prompt-writing best practices, [learn how to write A
 
 When you create your first Agent rule, Expensify automatically creates RuleBot and adds it to the workspace as a Workspace Admin.
 
+After RuleBot is created, the **Agent rules** section displays **Agent rules are enforced by** followed by **RuleBot**. This indicates which agent enforces all Agent rules in the workspace.
+
 RuleBot immediately begins monitoring report activity and evaluating reports against all configured Agent rules.
 
 Agent rules apply to future report activity, but not existing Paid or Done reports. 
@@ -100,6 +102,19 @@ For example, RuleBot might:
 4. Click **Delete**.
 
 Deleting an Agent rule stops RuleBot from enforcing that rule on future report activity.
+
+---
+
+## How to review Agent rule changes in the #admins room
+
+Whenever an Agent rule is added, updated, or deleted, Expensify records a system message in your workspace's **#admins** room so admins have a visible history of the change.
+
+ - **Added** and **updated** messages show the rule's title and its full prompt.
+ - **Deleted** messages show the rule's title.
+
+Because the **#admins** room is visible only to Workspace Admins, this history stays private to your admin team. To review it, open your workspace's **#admins** room and find the relevant system message.
+
+Learn more about the [#admins room](/articles/new-expensify/chat/Expensify-Chat-Rooms-for-Admins).
 
 ---
 

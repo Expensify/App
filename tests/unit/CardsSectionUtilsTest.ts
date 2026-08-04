@@ -1,12 +1,16 @@
 import {renderHook} from '@testing-library/react-native';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+
 import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
+
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {BillingStatusResult} from '@src/pages/settings/Subscription/CardSection/utils';
 import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
 import type IconAsset from '@src/types/utils/IconAsset';
+
 import {STRIPE_CUSTOMER_ID} from '../utils/TestHelper';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- this param is required for the mock

@@ -1,6 +1,7 @@
+import {generateThumbnail} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+
 import {useEffect, useRef, useState, useTransition} from 'react';
 import {Image} from 'react-native';
-import {generateThumbnail} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 
 const thumbnailCache = new Map<string, string>();
 /** Track how many mounted hook instances reference each sourceUri */

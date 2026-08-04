@@ -1,7 +1,10 @@
-import {useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
+
+import {useMemo} from 'react';
+
 import useOnyx from './useOnyx';
 
 type PreferredCurrency = ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;

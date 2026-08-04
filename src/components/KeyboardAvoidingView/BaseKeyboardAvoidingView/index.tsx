@@ -1,11 +1,14 @@
+import type {KeyboardAvoidingViewProps} from '@components/KeyboardAvoidingView/types';
+
+import {isMobileSafariOnIos26} from '@libs/Browser';
+
+import KeyboardUtil from '@src/utils/keyboard';
+
 /*
  * The KeyboardAvoidingView stub implementation for web and other platforms where the keyboard is handled automatically.
  */
 import React, {useEffect} from 'react';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import type {KeyboardAvoidingViewProps} from '@components/KeyboardAvoidingView/types';
-import {isMobileSafariOnIos26} from '@libs/Browser';
-import KeyboardUtil from '@src/utils/keyboard';
 
 const isMobileSafariIos26 = isMobileSafariOnIos26();
 
