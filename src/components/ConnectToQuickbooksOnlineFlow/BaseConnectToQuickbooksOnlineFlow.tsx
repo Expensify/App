@@ -1,3 +1,7 @@
+/**
+ * Shared QuickBooks Online and Intuit Enterprise Suite connection flow.
+ * Development environments can select a production or sandbox connection before starting the platform-specific flow.
+ */
 import PopoverMenu from '@components/PopoverMenu';
 
 import useEnvironment from '@hooks/useEnvironment';
@@ -17,7 +21,7 @@ import {enablePolicyTaxes} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useEffect, useLayoutEffect, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 
@@ -36,10 +40,12 @@ function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, o
     const {popoverAnchorRefs} = useAccountingState();
     const {calculatePopoverPosition} = usePopoverPosition();
     const icons = useMemoizedLazyExpensifyIcons(['LinkCopy']);
-    const [isConnectionOptionsPopoverOpen, setIsConnectionOptionsPopoverOpen] = useState(false);
-    const [connectionOptionsPopoverPosition, setConnectionOptionsPopoverPosition] = useState<AnchorPosition | null>(null);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.QBO);
+    const shouldShowConnectionOptions = environment === CONST.ENVIRONMENT.DEV && !isAuthError;
+    const [isConnectionOptionsPopoverOpen, setIsConnectionOptionsPopoverOpen] = useState(shouldShowConnectionOptions);
+    const [connectionOptionsPopoverPosition, setConnectionOptionsPopoverPosition] = useState<AnchorPosition | null>(null);
+    const didInitialize = useRef(false);
     const integrationKey = isIntuitEnterpriseSuite ? CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE : CONST.POLICY.CONNECTIONS.NAME.QBO;
     const connectionButtonRef = popoverAnchorRefs?.current?.[integrationKey];
 
@@ -49,17 +55,18 @@ function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, o
     };
 
     useEffect(() => {
+        if (didInitialize.current) {
+            return;
+        }
+        didInitialize.current = true;
+
         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
         enablePolicyTaxes(policyID, false);
         // Reconnect starts from the overflow menu, so there is no connection button to anchor this popover to.
-        if (environment === CONST.ENVIRONMENT.DEV && !isAuthError) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setIsConnectionOptionsPopoverOpen(true);
-            return;
+        if (!shouldShowConnectionOptions) {
+            onConnect(false);
         }
-        onConnect(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [onConnect, policyID, shouldShowConnectionOptions]);
 
     useLayoutEffect(() => {
         if (!isConnectionOptionsPopoverOpen) {
