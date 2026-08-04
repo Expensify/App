@@ -1,5 +1,5 @@
 import {
-    getCardSettings,
+    getCardSettingsForSelectedProgram,
     getFundIdFromSettingsKey,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
@@ -25,9 +25,9 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
 function useDefaultFundID(policyID: string | undefined) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
-    const {fundID: lastSelectedFundID} = parseCardFeedKey(lastSelectedExpensifyCardFeed);
+    const {fundID: lastSelectedFundID, programKey: lastSelectedProgramKey} = parseCardFeedKey(lastSelectedExpensifyCardFeed);
     const [lastSelectedCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedFundID}`);
-    const lastSelectedSettings = getCardSettings(lastSelectedCardSettings);
+    const lastSelectedSettings = getCardSettingsForSelectedProgram(lastSelectedCardSettings, lastSelectedProgramKey);
 
     const getDomainFundID = useCallback(
         (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
