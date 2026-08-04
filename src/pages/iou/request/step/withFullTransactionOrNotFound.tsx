@@ -125,7 +125,11 @@ function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrN
                 />
             </View>
         ) : (
-            <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />
+            // Standalone RHP route: no navigation chrome renders behind this, so per UI-1 enable the emergency "Go Back" button in case the load hangs.
+            <FullScreenLoadingIndicator
+                reasonAttributes={reasonAttributes}
+                shouldUseGoBackButton
+            />
         );
     }
     return (
