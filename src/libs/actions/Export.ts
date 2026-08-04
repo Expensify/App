@@ -11,6 +11,18 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+// Export IDs started during this app session. The reload handler uses this to tell a leftover export from a
+// previous session (which it re-surfaces) apart from one the in-session modal is already showing.
+const exportIDsStartedThisSession = new Set<string>();
+
+function markExportStartedThisSession(exportID: string) {
+    exportIDsStartedThisSession.add(exportID);
+}
+
+function wasExportStartedThisSession(exportID: string): boolean {
+    return exportIDsStartedThisSession.has(exportID);
+}
+
 function sendExportFileFromConcierge(exportID: string, exportDownload: OnyxEntry<ExportDownload>) {
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -67,7 +79,10 @@ function clearStaleExportDownloads() {
             }
             for (const key of Object.keys(exportDownloads)) {
                 const exportDownload = exportDownloads[key];
-                if (!exportDownload || exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING) {
+                // Keep preparing and ready exports: preparing is still in flight, and ready is a finished file the
+                // user may not have seen yet (they closed or reloaded before it surfaced), so the reload handler can
+                // re-surface it. Only failed leftovers are cleared here.
+                if (!exportDownload || exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING || exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.READY) {
                     continue;
                 }
                 const exportID = key.replace(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD, '');
@@ -127,4 +142,4 @@ function exportReceiptsToZip(reportIDs: string[]): string {
     return exportID;
 }
 
-export {sendExportFileFromConcierge, clearExportDownload, clearStaleExportDownloads, exportReportsToPDF, exportReceiptsToZip};
+export {sendExportFileFromConcierge, clearExportDownload, clearStaleExportDownloads, exportReportsToPDF, exportReceiptsToZip, markExportStartedThisSession, wasExportStartedThisSession};

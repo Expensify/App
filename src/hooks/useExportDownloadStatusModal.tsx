@@ -1,11 +1,11 @@
 import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
 
-import {clearExportDownload} from '@libs/actions/Export';
+import {clearExportDownload, markExportStartedThisSession} from '@libs/actions/Export';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 
 import useOnyx from './useOnyx';
 
@@ -42,6 +42,13 @@ function useExportDownloadStatusModal(onCleanup?: () => void): UseExportDownload
         onCleanup?.();
     };
 
+    const trackExport = useCallback((exportID: string) => {
+        // Record the ID so the app-level reload handler knows this export is already being shown here and
+        // doesn't surface a duplicate modal for it.
+        markExportStartedThisSession(exportID);
+        setActiveExportID(exportID);
+    }, []);
+
     const exportDownloadStatusModal = activeExportID ? (
         <ExportDownloadStatusModal
             exportID={activeExportID}
@@ -50,7 +57,7 @@ function useExportDownloadStatusModal(onCleanup?: () => void): UseExportDownload
         />
     ) : null;
 
-    return {trackExport: setActiveExportID, exportDownloadStatusModal};
+    return {trackExport, exportDownloadStatusModal};
 }
 
 export default useExportDownloadStatusModal;
