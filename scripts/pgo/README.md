@@ -35,6 +35,24 @@ This is an experimental, local-only LLVM PGO workflow for the standalone Android
    scripts/pgo/android-local-proof.sh build-optimized
    ```
 
+### Collect a startup-focused profile
+
+To replace the manual journey with ten cold-process startup runs, then pull and merge the accumulated profiles automatically, run:
+
+```bash
+scripts/pgo/android-local-proof.sh record-startups
+```
+
+The optional arguments set the number of runs and the fixed settling time after `am start -W` respectively:
+
+```bash
+scripts/pgo/android-local-proof.sh record-startups 10 10
+```
+
+The command clears only existing `newdot-*.profraw` files on the device before the first run. LLVM's `%m` filename pattern merges each process into the same per-library raw profiles. Each process is dumped exactly once, and the final host-side `merge` converts those raw profiles into `.pgo/android/arm64-v8a/newdot.profdata`.
+
+The settling time is currently a fallback because the release app does not expose a device-visible NewDot-ready signal. A benchmark-only build should emit a native Logcat marker and call Android's `reportFullyDrawn()` from `Expensify.tsx`'s `onSplashHide`, after the splash exit animation and startup gates have completed. Keep that measurement marker on the separate metrics branch.
+
 The `.pgo/` directory is intentionally local-only. Never apply this profile to another ABI, build mode, NDK version, or substantially different source revision. A production-release comparison additionally needs the repository's R8/SafetyNet dependency issue fixed; this local proof deliberately does not change that unrelated configuration.
 
 ## Compare

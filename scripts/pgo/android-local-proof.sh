@@ -13,9 +13,10 @@ readonly PROFILE_DIR="$ROOT_DIR/.pgo/android/arm64-v8a"
 readonly ANDROID_DIR="$ROOT_DIR/Mobile-Expensify/Android"
 readonly APK_PATH="$ANDROID_DIR/build/outputs/apk/release/Expensify-release.apk"
 readonly DEVICE_PROFILE_DIR="/sdcard/Android/data/$PACKAGE_NAME/cache"
+readonly START_ACTIVITY="$PACKAGE_NAME/.ExpensifyActivityBase"
 
 function usage() {
-    echo "Usage: $0 {build-instrumented|verify-instrumented|install|dump|pull|merge|build-optimized}"
+    echo "Usage: $0 {build-instrumented|verify-instrumented|install|record-startups [runs] [settle-seconds]|dump|pull|merge|build-optimized}"
 }
 
 function ndk_tool() {
@@ -47,6 +48,36 @@ function install_apk() {
     fi
 
     adb install -r "$APK_PATH"
+}
+
+function record_startups() {
+    local runs="${1:-10}"
+    local settle_seconds="${2:-10}"
+
+    if [[ ! "$runs" =~ ^[1-9][0-9]*$ ]]; then
+        echo "Startup run count must be a positive integer, received: $runs" >&2
+        exit 1
+    fi
+    if [[ ! "$settle_seconds" =~ ^[0-9]+$ ]]; then
+        echo "Startup settle time must be a non-negative integer, received: $settle_seconds" >&2
+        exit 1
+    fi
+
+    echo "Clearing previous device PGO profiles from $DEVICE_PROFILE_DIR."
+    adb shell "rm -f '$DEVICE_PROFILE_DIR'/newdot-*.profraw"
+
+    local run
+    for ((run = 1; run <= runs; run++)); do
+        echo "Recording cold-process startup $run/$runs."
+        adb shell am force-stop "$PACKAGE_NAME"
+        adb shell am start -W -n "$START_ACTIVITY"
+        echo "Waiting ${settle_seconds}s for NewDot to become ready before dumping."
+        sleep "$settle_seconds"
+        "$0" dump
+    done
+
+    "$0" pull
+    "$0" merge
 }
 
 function verify_pgo_instrumentation() (
@@ -119,6 +150,9 @@ case "${1:-}" in
         ;;
     install)
         install_apk
+        ;;
+    record-startups)
+        record_startups "${2:-10}" "${3:-10}"
         ;;
     dump)
         adb shell am broadcast \
