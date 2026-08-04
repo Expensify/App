@@ -223,43 +223,41 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
     const accountManagerAccountID = bookCallDetails?.accountManagerAccountID;
-
-    // Show the "Book a call" button in the 1:1 DM with the assigned account manager
-    const shouldShowAccountManagerBookCallInDM =
-        !!accountManagerAccountID &&
-        !!bookCallDetails?.accountManagerCalendarLink &&
-        isOneOnOneChat(report) &&
-        !!report?.participants?.[Number(accountManagerAccountID)] &&
-        !!canUserPerformWriteAction(report, isReportArchived) &&
-        !isChatThread;
-    const shouldShowAccountManagerBookCallInConcierge = isConciergeChat && !!accountManagerAccountID && !!bookCallDetails?.accountManagerCalendarLink;
-    const shouldShowAccountManagerBookCall = shouldShowAccountManagerBookCallInDM || shouldShowAccountManagerBookCallInConcierge;
-
     const partnerManagerAccountID = bookCallDetails?.partnerManagerAccountID;
-
-    // Show the "Book a call" button in the 1:1 DM with the assigned partner manager
-    const shouldShowPartnerManagerBookCallInDM =
-        !!partnerManagerAccountID &&
-        !!bookCallDetails?.partnerManagerCalendarLink &&
-        isOneOnOneChat(report) &&
-        !!report?.participants?.[Number(partnerManagerAccountID)] &&
-        !!canUserPerformWriteAction(report, isReportArchived) &&
-        !isChatThread;
-    const shouldShowPartnerManagerBookCallInConcierge = isConciergeChat && !!partnerManagerAccountID && !!bookCallDetails?.partnerManagerCalendarLink;
-    const shouldShowPartnerManagerBookCall = shouldShowPartnerManagerBookCallInDM || shouldShowPartnerManagerBookCallInConcierge;
-
     // The guide book-call button is only shown before an account manager has been assigned, mirroring the #admins onboarding flow's guide-then-AM handoff
     const guideAccountID = accountGuideDetails?.email ? getPersonalDetailByEmail(accountGuideDetails.email)?.accountID : undefined;
     const isGuideEligibleForBooking =
         !accountManagerAccountID &&
-        !!guideAccountID &&
         !!accountGuideDetails?.calendarLink &&
         accountGuideDetails?.email !== CONST.EMAIL.CONCIERGE &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
-    const shouldShowGuideBookCallInDM =
-        isGuideEligibleForBooking && isOneOnOneChat(report) && !!report?.participants?.[Number(guideAccountID)] && !!canUserPerformWriteAction(report, isReportArchived) && !isChatThread;
-    const shouldShowGuideBookCallInConcierge = isGuideEligibleForBooking && isConciergeChat;
+
+    // Show the "Book a call" button in the 1:1 DM with the assigned support person, or in the Concierge chat
+    const getBookCallVisibility = (supportAccountID: string | number | undefined, calendarLink: string | undefined) => {
+        const canBookCall = !!supportAccountID && !!calendarLink;
+        return {
+            inDM: canBookCall && isOneOnOneChat(report) && !!report?.participants?.[Number(supportAccountID)] && !!canUserPerformWriteAction(report, isReportArchived) && !isChatThread,
+            inConcierge: canBookCall && isConciergeChat,
+        };
+    };
+
+    const {inDM: shouldShowAccountManagerBookCallInDM, inConcierge: shouldShowAccountManagerBookCallInConcierge} = getBookCallVisibility(
+        accountManagerAccountID,
+        bookCallDetails?.accountManagerCalendarLink,
+    );
+    const shouldShowAccountManagerBookCall = shouldShowAccountManagerBookCallInDM || shouldShowAccountManagerBookCallInConcierge;
+
+    const {inDM: shouldShowPartnerManagerBookCallInDM, inConcierge: shouldShowPartnerManagerBookCallInConcierge} = getBookCallVisibility(
+        partnerManagerAccountID,
+        bookCallDetails?.partnerManagerCalendarLink,
+    );
+    const shouldShowPartnerManagerBookCall = shouldShowPartnerManagerBookCallInDM || shouldShowPartnerManagerBookCallInConcierge;
+
+    const {inDM: shouldShowGuideBookCallInDM, inConcierge: shouldShowGuideBookCallInConcierge} = getBookCallVisibility(
+        isGuideEligibleForBooking ? guideAccountID : undefined,
+        accountGuideDetails?.calendarLink,
+    );
     const shouldShowGuideBookCall = shouldShowGuideBookCallInDM || shouldShowGuideBookCallInConcierge;
 
     const shouldShowBookCall = shouldShowAccountManagerBookCall || shouldShowPartnerManagerBookCall || shouldShowGuideBookCall;
