@@ -81,8 +81,7 @@ function DynamicIOURequestStepTime({
 
     const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(policy) || (isEditPage && isEmptyObject(transaction?.comment?.customUnit));
 
-    // In edit mode the `per-diem-time-edit` suffix sits on the confirmation base, so stripping it from the current URL
-    // yields the confirmation route's own path, whose params match the route sitting in the stack.
+    // The `per-diem-time-edit` suffix sits on the confirmation base, so stripping it yields that route's own path.
     const editBackPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.path);
     const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
     const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
@@ -95,11 +94,8 @@ function DynamicIOURequestStepTime({
 
         if (transaction?.isFromGlobalCreate || iouType === CONST.IOU.TYPE.TRACK) {
             // We want to navigate to the destination step only when the first step was the workspace selector.
-            // The destination step is a dynamic route, so it has to be rebuilt from this route's own params: the workspace
-            // selector retargets the report when it opens the destination step without re-navigating the start route
-            // beneath it, and the dynamic suffix carries no `:reportID`, so the URL keeps the start route's stale
-            // reportID. A back path derived from the URL therefore doesn't match the destination route in the stack and
-            // `goUp` REPLACEs it (duplicated suffix) or POP_TOs over its params — both land on a Not Found page (#97558).
+            // The destination step is rebuilt from this route's own params instead of the current URL: dynamic suffixes
+            // carry no `:reportID`, so a URL-derived back path can miss the destination route in the stack (#97558).
             if (hasMoreThanOnePolicyWithPerDiemEnabled) {
                 Navigation.goBack(
                     createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path, ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, reportID, backToReport)),

@@ -138,11 +138,10 @@ function renderNavigation(initialState: InitialState) {
 }
 
 /**
- * Renders the multi per diem policy wizard the way it exists after the workspace selector: the start route keeps the
- * report the flow was started from, while the destination and time steps - dynamic routes appended to that start
- * route - are targeted at the picked workspace's expense chat (see #97558).
+ * Renders the wizard as it exists after the workspace selector: the destination and time steps point at the picked
+ * workspace's expense chat, while the start route beneath them still points at the report the flow started from.
  */
-function renderTimeStepOverRetargetedDestination() {
+function renderTimeStepOverWorkspaceDestination() {
     renderNavigation({
         index: 1,
         routes: [
@@ -209,7 +208,7 @@ describe('Going back from the per diem time step', () => {
 
     it('Should pop to the destination step when the back path is rebuilt from the time route params', () => {
         // Given the time step opened on top of a destination step targeted at the picked workspace's expense chat
-        renderTimeStepOverRetargetedDestination();
+        renderTimeStepOverWorkspaceDestination();
 
         const routesBeforeGoBack = getMoneyRequestStackRoutes();
         expect(routesBeforeGoBack).toHaveLength(3);
@@ -231,7 +230,7 @@ describe('Going back from the per diem time step', () => {
 
     it('Should not match the destination step when the back path carries the start route reportID', () => {
         // Given the same stack, where the start route underneath still points at the report the flow was started from
-        renderTimeStepOverRetargetedDestination();
+        renderTimeStepOverWorkspaceDestination();
 
         // When going back to a destination step built on that start route, which is what deriving the back path from the
         // current URL produces because the dynamic suffixes carry no `:reportID` of their own

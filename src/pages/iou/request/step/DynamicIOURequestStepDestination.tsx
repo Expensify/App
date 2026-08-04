@@ -170,10 +170,8 @@ function DynamicIOURequestStepDestination({
             navigateBack();
         } else {
             // Time is a dynamic route: build it on the start base when the destination is shown inline on the start page
-            // (single per-diem policy) and on the destination base otherwise. Only the *shape* of this base reaches the
-            // stack — the base route already exists, so `navigate` pushes the Time leaf alone and the base keeps its own
-            // params. Time reads that shape to pick its back target; the reportID passed here lands on the Time route
-            // only, never on the base, so it is not authoritative for the URL (see #97558).
+            // (single per-diem policy) and on the destination base otherwise, so Time's back returns to the right step.
+            // Only the shape of this base reaches the stack - the base route already exists and keeps its own params.
             const timeBase = openedFromStartPage
                 ? ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport)
                 : createDynamicRoute(
