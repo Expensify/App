@@ -10,19 +10,19 @@ import Onyx from 'react-native-onyx';
 import {createAdminRoom, createAnnounceRoom} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-// Capture props passed to UserAvatar (only rendered for non-Concierge agents).
+// Capture props passed to AccountAvatar (only rendered for non-Concierge agents).
 let mockCapturedAvatarProps: Record<string, unknown> = {};
 
-jest.mock('@components/Avatar/connected/UserAvatar', () => {
+jest.mock('@components/Avatar/connected/AccountAvatar', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
     return (props: Record<string, unknown>) => {
         mockCapturedAvatarProps = props;
-        return <View testID="MockedUserAvatar" />;
+        return <View testID="MockedAccountAvatar" />;
     };
 });
 
-// Concierge renders a branded Lottie animation instead of UserAvatar; stub it so the test
+// Concierge renders a branded Lottie animation instead of AccountAvatar; stub it so the test
 // doesn't pull in Lottie and so we can assert it rendered.
 jest.mock('@pages/home/report/ConciergeAnimatedAvatar', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -110,18 +110,18 @@ afterEach(() => {
 
 describe('ConciergeThinkingMessage avatar prop integration', () => {
     describe('Concierge bubble', () => {
-        test('should render the animated avatar (not UserAvatar) in admin room', () => {
+        test('should render the animated avatar (not AccountAvatar) in admin room', () => {
             render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
             expect(screen.getByTestId('MockedConciergeAnimatedAvatar')).toBeTruthy();
-            expect(screen.queryByTestId('MockedUserAvatar')).toBeNull();
+            expect(screen.queryByTestId('MockedAccountAvatar')).toBeNull();
         });
 
-        test('should render the animated avatar (not UserAvatar) in announce room', () => {
+        test('should render the animated avatar (not AccountAvatar) in announce room', () => {
             render(<ConciergeThinkingMessage reportID={mockAnnounceRoom.reportID} />);
 
             expect(screen.getByTestId('MockedConciergeAnimatedAvatar')).toBeTruthy();
-            expect(screen.queryByTestId('MockedUserAvatar')).toBeNull();
+            expect(screen.queryByTestId('MockedAccountAvatar')).toBeNull();
         });
     });
 
@@ -130,14 +130,14 @@ describe('ConciergeThinkingMessage avatar prop integration', () => {
             mockCandidateAgentIDs = [customAgentAccountID];
         });
 
-        test('should render UserAvatar (not the Concierge animation)', () => {
+        test('should render AccountAvatar (not the Concierge animation)', () => {
             render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
-            expect(screen.getByTestId('MockedUserAvatar')).toBeTruthy();
+            expect(screen.getByTestId('MockedAccountAvatar')).toBeTruthy();
             expect(screen.queryByTestId('MockedConciergeAnimatedAvatar')).toBeNull();
         });
 
-        test('should pass accountID=agentAccountID to UserAvatar', () => {
+        test('should pass accountID=agentAccountID to AccountAvatar', () => {
             render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
             expect(mockCapturedAvatarProps.accountID).toBe(customAgentAccountID);

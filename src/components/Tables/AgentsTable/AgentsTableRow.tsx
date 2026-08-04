@@ -1,4 +1,4 @@
-import UserAvatar from '@components/Avatar/connected/UserAvatar';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import type {TableRow} from '@components/Table';
@@ -67,7 +67,7 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <UserAvatar
+                        <AccountAvatar
                             size={avatarSize}
                             accountID={item.accountID}
                             fallbackDisplayName={item.displayName}

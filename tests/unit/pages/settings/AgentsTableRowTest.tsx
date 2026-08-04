@@ -66,11 +66,11 @@ jest.mock('@components/Table/TableContext', () => ({
     })),
 }));
 
-jest.mock('@components/Avatar/connected/UserAvatar', () => {
-    function MockUserAvatar() {
+jest.mock('@components/Avatar/connected/AccountAvatar', () => {
+    function MockAccountAvatar() {
         return null;
     }
-    return MockUserAvatar;
+    return MockAccountAvatar;
 });
 
 jest.mock('@components/Icon', () => {

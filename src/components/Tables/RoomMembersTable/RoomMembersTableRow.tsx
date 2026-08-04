@@ -1,4 +1,4 @@
-import UserAvatar from '@components/Avatar/connected/UserAvatar';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -48,7 +48,7 @@ export default function RoomMembersTableRow({item, rowIndex}: RoomMembersTableRo
             {({hovered}) => (
                 <>
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                        <UserAvatar
+                        <AccountAvatar
                             accountID={item.accountID}
                             fallbackDisplayName={item.name ?? item.email}
                         />

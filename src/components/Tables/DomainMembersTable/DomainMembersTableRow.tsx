@@ -1,4 +1,4 @@
-import UserAvatar from '@components/Avatar/connected/UserAvatar';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
@@ -66,7 +66,7 @@ export default function DomainMembersTableRow({item, rowIndex, shouldUseNarrowTa
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <UserAvatar
+                        <AccountAvatar
                             size={avatarSize}
                             accountID={item.accountID}
                             fallbackDisplayName={item.name}

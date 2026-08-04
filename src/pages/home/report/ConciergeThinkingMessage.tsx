@@ -1,4 +1,4 @@
-import UserAvatar from '@components/Avatar/connected/UserAvatar';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -177,7 +177,7 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
                             </PressableWithoutFeedback>
                         </UserDetailsTooltip>
                     ) : (
-                        <UserAvatar
+                        <AccountAvatar
                             containerStyle={styles.actionAvatar}
                             shouldShowTooltip
                             accountID={accountID}

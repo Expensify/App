@@ -1,6 +1,6 @@
 import {render} from '@testing-library/react-native';
 
-import UserAvatar from '@components/Avatar/connected/UserAvatar';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 
 import CONST from '@src/CONST';
 import type {PersonalDetailsList} from '@src/types/onyx';
@@ -17,7 +17,7 @@ function MockFallbackAvatar() {
     return null;
 }
 
-// Captures the props `UserAvatar` hands to the layout primitive, which is the whole contract of this component.
+// Captures the props `AccountAvatar` hands to the layout primitive, which is the whole contract of this component.
 let mockCapturedSingleAvatarProps: Record<string, unknown> = {};
 
 const mockGetContainerStyles = jest.fn((size: string) => [{marginRight: 12, size}]);
@@ -47,7 +47,7 @@ jest.mock('@components/Avatar/layouts/SingleAvatar', () => {
     };
 });
 
-describe('UserAvatar (connected)', () => {
+describe('AccountAvatar (connected)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockCapturedSingleAvatarProps = {};
@@ -61,7 +61,7 @@ describe('UserAvatar (connected)', () => {
     });
 
     it('should resolve the icon for the account from the personal-details context', () => {
-        render(<UserAvatar accountID={ACCOUNT_ID} />);
+        render(<AccountAvatar accountID={ACCOUNT_ID} />);
 
         expect(mockCapturedSingleAvatarProps.avatar).toEqual({
             id: ACCOUNT_ID,
@@ -75,7 +75,7 @@ describe('UserAvatar (connected)', () => {
     it('should fall back to the default fallback avatar for an account with no personal details', () => {
         mockPersonalDetails = {};
 
-        render(<UserAvatar accountID={ACCOUNT_ID} />);
+        render(<AccountAvatar accountID={ACCOUNT_ID} />);
 
         expect(mockCapturedSingleAvatarProps.avatar).toEqual({
             id: ACCOUNT_ID,
@@ -91,7 +91,7 @@ describe('UserAvatar (connected)', () => {
         ['the passed size', CONST.AVATAR_SIZE.SMALL, CONST.AVATAR_SIZE.SMALL],
     ])('should derive the container styles from %s', (_case, size, expectedSize) => {
         render(
-            <UserAvatar
+            <AccountAvatar
                 accountID={ACCOUNT_ID}
                 size={size}
             />,
@@ -104,7 +104,7 @@ describe('UserAvatar (connected)', () => {
 
     it('should replace the derived container styles when containerStyle is passed', () => {
         render(
-            <UserAvatar
+            <AccountAvatar
                 accountID={ACCOUNT_ID}
                 containerStyle={CUSTOM_CONTAINER_STYLE}
             />,
@@ -118,7 +118,7 @@ describe('UserAvatar (connected)', () => {
         ['forward an explicit tooltip opt-out', false, false],
     ])('should %s', (_case, shouldShowTooltip, expected) => {
         render(
-            <UserAvatar
+            <AccountAvatar
                 accountID={ACCOUNT_ID}
                 shouldShowTooltip={shouldShowTooltip}
             />,
@@ -129,7 +129,7 @@ describe('UserAvatar (connected)', () => {
 
     it('should forward the tooltip fallback display name', () => {
         render(
-            <UserAvatar
+            <AccountAvatar
                 accountID={ACCOUNT_ID}
                 fallbackDisplayName="John Doe"
             />,

@@ -1,4 +1,4 @@
-import UserAvatar from '@components/Avatar/connected/UserAvatar';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
@@ -62,7 +62,7 @@ export default function DomainAdminsTableRow({item, rowIndex, shouldUseNarrowTab
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <UserAvatar
+                        <AccountAvatar
                             size={avatarSize}
                             accountID={item.accountID}
                             fallbackDisplayName={item.name}

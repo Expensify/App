@@ -1,4 +1,4 @@
-import UserAvatar from '@components/Avatar/connected/UserAvatar';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -53,7 +53,7 @@ function TableListItem<TItem extends ListItem>({
     const rowContent = () => (
         <>
             {!!item.accountID && (
-                <UserAvatar
+                <AccountAvatar
                     accountID={item.accountID}
                     fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                     shouldShowTooltip={showTooltip}
