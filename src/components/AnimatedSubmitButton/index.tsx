@@ -158,7 +158,7 @@ function AnimatedSubmitButton({
 
     // eslint-disable-next-line react-hooks/refs
     const showLoading = isShowingLoading || (isAnimationRunning && (!viewRef.current || (isDEWSubmission && !isDEWSubmissionComplete)));
-    const isShowingSubmittedState = isAnimationRunning && !showLoading;
+    const shouldShowIcon = isAnimationRunning && !showLoading;
 
     return (
         <Animated.View style={[containerStyles, {minWidth}]}>
@@ -175,9 +175,8 @@ function AnimatedSubmitButton({
                         isDisabled
                         stayNormalOnDisable
                     >
-                        {/* Transparent loading content still affects layout. Mount the icon only after loading so it does not widen the button. */}
-                        {isShowingSubmittedState && <Button.Icon src={icons.Send} />}
-                        <Button.Text>{isShowingSubmittedState ? translate(isMarkAsDone ? 'common.markedAsDoneStatus' : 'common.submitted') : text}</Button.Text>
+                        {shouldShowIcon && <Button.Icon src={icons.Send} />}
+                        <Button.Text>{shouldShowIcon ? translate(isMarkAsDone ? 'common.markedAsDoneStatus' : 'common.submitted') : text}</Button.Text>
                     </Button>
                 </Animated.View>
             )}

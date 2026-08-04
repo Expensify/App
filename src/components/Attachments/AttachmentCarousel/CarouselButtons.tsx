@@ -52,7 +52,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                     <View style={[styles.attachmentArrow, shouldUseNarrowLayout ? styles.l2 : styles.l8]}>
                         <Button
                             size={CONST.BUTTON_SIZE.SMALL}
-                            innerStyles={[styles.arrowIcon]}
+                            innerStyles={styles.arrowIcon}
                             onPress={onBack}
                             onPressIn={cancelAutoHideArrow}
                             onPressOut={autoHideArrow}
