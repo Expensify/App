@@ -2856,6 +2856,7 @@ describe('actions/IOU', () => {
 
                 // When it is submitted to a workspace with a stale local receipt file
                 requestMoney({
+                    conciergeChat: undefined,
                     action: CONST.IOU.ACTION.SUBMIT,
                     report: {
                         reportID: 'policy-expense-chat',
