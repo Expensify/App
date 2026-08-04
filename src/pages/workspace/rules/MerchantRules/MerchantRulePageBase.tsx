@@ -30,7 +30,7 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
+import {findVendorByID, getCleanedTagName, getTagLists, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -154,6 +154,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                 category: existingRule.category,
                 tag: existingRule.tag,
                 tax: existingRule.tax?.field_id_TAX?.externalID,
+                vendorID: existingRule.vendorID,
                 comment: commentMarkdown,
                 reimbursable: existingRule.reimbursable,
                 billable: existingRule.billable,
@@ -213,6 +214,10 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
     };
 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
+
+    const isVendorFeatureEnabled = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const vendorFieldLabel = translate(isXeroActiveMatchingSource(policy) ? 'common.supplier' : 'common.vendor');
+    const vendorDisplayName = form?.vendorID ? findVendorByID(policy, form.vendorID)?.name : undefined;
 
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     const taxDisplayName = () => {
@@ -392,6 +397,15 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                           title: taxDisplayName(),
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID, ruleID)),
                           icon: getItemIcon(icons.InvoiceGeneric),
+                      }
+                    : undefined,
+                isVendorFeatureEnabled
+                    ? {
+                          key: 'vendorID',
+                          description: vendorFieldLabel,
+                          title: vendorDisplayName,
+                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_VENDOR.getRoute(policyID, ruleID)),
+                          icon: getItemIcon(icons.Basket),
                       }
                     : undefined,
                 {
