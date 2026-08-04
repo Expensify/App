@@ -137,13 +137,30 @@ function TransactionListItemInner<TItem extends ListItem>({
         selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${parentReportActionID}`],
     });
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID)}`);
-    const [chatReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? snapshotReport?.parentReportID)}`);
-    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, delegateEmail, delegateAccountID} =
-        useReportPaymentContext({
-            reportID: transactionItem.reportID,
-            chatReportPolicyID: parentChatReport?.policyID,
-        });
+    const chatReportID = snapshotReport?.chatReportID ?? snapshotReport?.parentReportID;
+    const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(chatReportID)}`);
+    // Fall back to the search snapshot when the chat report isn't in live Onyx yet (e.g. offline or not fetched),
+    // matching the grouped-report path in ReportListItemHeader so the Pay flow can still resolve the chat report.
+    const snapshotChatReport = chatReportID ? snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
+    const chatReport = parentChatReport ?? snapshotChatReport;
+    const [chatReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? chatReportID)}`);
+    const {
+        amountOwed,
+        currentUserAccountID,
+        currentUserLogin,
+        introSelected,
+        betas,
+        isSelfTourViewed,
+        activePolicy,
+        nextStep,
+        chatReportPolicy,
+        delegateEmail,
+        delegateAccountID,
+        conciergeChat,
+    } = useReportPaymentContext({
+        reportID: transactionItem.reportID,
+        chatReportPolicyID: chatReport?.policyID,
+    });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const liveTransactionItem = useLiveRowCapabilities<TransactionListItemType>({
@@ -225,7 +242,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             betas,
             isSelfTourViewed,
             activePolicy,
-            chatReport: parentChatReport,
+            chatReport,
             chatReportPolicy,
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData: currentSearchResults?.data,
@@ -233,6 +250,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            conciergeChat,
         });
     };
 
@@ -260,6 +278,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         policyTagLists,
         nonPersonalAndWorkspaceCards,
         isAttendeesEnabledForMovingPolicy,
+        chatReport,
     };
 
     if (!isLargeScreenWidth) {
