@@ -4877,30 +4877,30 @@ ${amount} pour ${merchant} - ${date}`,
         },
         qbo: {
             connectedTo: 'Connecté à',
-            importDescription: 'Choisissez les configurations de codage à importer de QuickBooks Online vers Expensify.',
+            importDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Choisissez les configurations de codage à importer de ${integrationName} vers Expensify.`,
             classes: 'Cours',
             locations: 'Lieux',
             customers: 'Clients/projets',
             items: 'Articles',
-            accountsDescription: 'Votre plan comptable QuickBooks Online sera importé dans Expensify en tant que catégories.',
+            accountsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Votre plan comptable ${integrationName} sera importé dans Expensify en tant que catégories.`,
             accountsSwitchTitle: 'Choisissez d’importer les nouveaux comptes en tant que catégories activées ou désactivées.',
             accountsSwitchDescription: 'Les catégories activées seront disponibles pour que les membres puissent les sélectionner lors de la création de leurs dépenses.',
-            classesDescription: 'Choisissez comment gérer les classes QuickBooks Online dans Expensify.',
-            customersDescription: 'Choisissez comment gérer les clients/projets QuickBooks Online dans Expensify.',
-            locationsDescription: 'Choisissez comment gérer les emplacements QuickBooks Online dans Expensify.',
-            itemsDescription: 'Choisissez comment gérer les articles QuickBooks Online dans Expensify.',
-            taxesDescription: 'Choisissez comment traiter les taxes QuickBooks Online dans Expensify.',
-            locationsLineItemsRestrictionDescription:
-                'QuickBooks Online ne prend pas en charge les emplacements au niveau de la ligne pour les chèques ou les factures fournisseur. Si vous souhaitez disposer d’emplacements au niveau de la ligne, assurez-vous d’utiliser les écritures de journal et les dépenses par carte de crédit/débit.',
-            taxesJournalEntrySwitchNote:
-                'QuickBooks Online ne prend pas en charge les taxes sur les écritures comptables. Veuillez modifier votre option d’export en facture fournisseur ou chèque.',
-            exportDescription: 'Configurer l’exportation des données Expensify vers QuickBooks Online.',
+            classesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Choisissez comment gérer les classes ${integrationName} dans Expensify.`,
+            customersDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Choisissez comment gérer les clients/projets ${integrationName} dans Expensify.`,
+            locationsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Choisissez comment gérer les emplacements ${integrationName} dans Expensify.`,
+            itemsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Choisissez comment gérer les articles ${integrationName} dans Expensify.`,
+            taxesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Choisissez comment traiter les taxes ${integrationName} dans Expensify.`,
+            locationsLineItemsRestrictionDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `${integrationName} ne prend pas en charge les emplacements au niveau de la ligne pour les chèques ou les factures fournisseur. Si vous souhaitez disposer d’emplacements au niveau de la ligne, assurez-vous d’utiliser les écritures de journal et les dépenses par carte de crédit/débit.`,
+            taxesJournalEntrySwitchNote: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `${integrationName} ne prend pas en charge les taxes sur les écritures comptables. Veuillez modifier votre option d’export en facture fournisseur ou chèque.`,
+            exportDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Configurer l’exportation des données Expensify vers ${integrationName}.`,
             date: 'Date d’exportation',
             exportInvoices: 'Exporter les factures vers',
             exportExpensifyCard: 'Exporter les transactions de Carte Expensify en tant que',
             exportDate: {
                 label: 'Date d’exportation',
-                description: 'Utiliser cette date lors de l’export des notes de frais vers QuickBooks Online.',
+                description: ({integrationName = 'QuickBooks Online'} = {}) => `Utiliser cette date lors de l’export des notes de frais vers ${integrationName}.`,
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Date de la dernière dépense',
@@ -4908,7 +4908,7 @@ ${amount} pour ${merchant} - ${date}`,
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Date d’exportation',
-                        description: 'Date à laquelle la note de frais a été exportée vers QuickBooks Online.',
+                        description: ({integrationName = 'QuickBooks Online'} = {}) => `Date à laquelle la note de frais a été exportée vers ${integrationName}.`,
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Date de soumission',
@@ -4918,11 +4918,11 @@ ${amount} pour ${merchant} - ${date}`,
             },
             receivable: 'Comptes clients',
             archive: 'Archive des comptes clients',
-            exportInvoicesDescription: 'Utiliser ce compte lors de l’exportation des factures vers QuickBooks Online.',
-            exportCompanyCardsDescription: 'Définissez comment les achats par carte d’entreprise sont exportés vers QuickBooks Online.',
+            exportInvoicesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Utiliser ce compte lors de l’exportation des factures vers ${integrationName}.`,
+            exportCompanyCardsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Définissez comment les achats par carte d’entreprise sont exportés vers ${integrationName}.`,
             vendor: 'Fournisseur',
             defaultVendorDescription: 'Définissez un fournisseur par défaut qui s’appliquera à toutes les transactions par carte de crédit lors de l’exportation.',
-            exportOutOfPocketExpensesDescription: 'Définissez comment les dépenses hors poche sont exportées vers QuickBooks Online.',
+            exportOutOfPocketExpensesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Définissez comment les dépenses hors poche sont exportées vers ${integrationName}.`,
             exportCheckDescription: 'Nous créerons un chèque détaillé pour chaque note de frais Expensify et l’enverrons depuis le compte bancaire ci-dessous.',
             exportJournalEntryDescription: 'Nous créerons une écriture comptable détaillée pour chaque note de frais Expensify et la comptabiliserons sur le compte ci-dessous.',
             exportVendorBillDescription:
@@ -4935,25 +4935,29 @@ ${amount} pour ${merchant} - ${date}`,
             notConfigured: 'Non configuré',
             bankAccountDescription: 'Choisissez d’où envoyer les chèques.',
             creditCardAccount: 'Compte de carte de crédit',
-            travelInvoicingDescription: 'Les frais de voyage seront exportés comme des débits de carte de crédit vers le compte QuickBooks Online indiqué ci-dessous.',
-            companyCardsLocationEnabledDescription:
-                'QuickBooks Online ne prend pas en charge les emplacements dans les exports de factures fournisseur lorsque les emplacements sont importés en tant que tags. Comme vous avez des emplacements importés en tant que tags dans votre espace de travail, cette option d’export n’est pas disponible.',
-            outOfPocketTaxEnabledDescription:
-                'QuickBooks Online ne prend pas en charge les taxes sur les exportations d’écritures comptables. Comme les taxes sont activées sur votre espace de travail, cette option d’exportation n’est pas disponible.',
+            travelInvoicingDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Les frais de voyage seront exportés comme des débits de carte de crédit vers le compte ${integrationName} indiqué ci-dessous.`,
+            companyCardsLocationEnabledDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `${integrationName} ne prend pas en charge les emplacements dans les exports de factures fournisseur lorsque les emplacements sont importés en tant que tags. Comme vous avez des emplacements importés en tant que tags dans votre espace de travail, cette option d’export n’est pas disponible.`,
+            outOfPocketTaxEnabledDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `${integrationName} ne prend pas en charge les taxes sur les exportations d’écritures comptables. Comme les taxes sont activées sur votre espace de travail, cette option d’exportation n’est pas disponible.`,
             outOfPocketTaxEnabledError: 'Les écritures comptables ne sont pas disponibles lorsque les taxes sont activées. Veuillez choisir une autre option d’export.',
             advancedConfig: {
-                autoSyncDescription: 'Expensify se synchronisera automatiquement avec QuickBooks Online chaque jour.',
+                autoSyncDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Expensify se synchronisera automatiquement avec ${integrationName} chaque jour.`,
                 inviteEmployees: 'Inviter des employés',
-                inviteEmployeesDescription: 'Importer les fiches des employés QuickBooks Online et inviter les employés dans cet espace de travail.',
+                inviteEmployeesDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Importer les fiches des employés ${integrationName} et inviter les employés dans cet espace de travail.`,
                 createEntities: 'Créer automatiquement les entités',
-                createEntitiesDescription:
-                    'Expensify créera automatiquement les fournisseurs dans QuickBooks Online s’ils n’existent pas encore, et créera automatiquement les clients lors de l’exportation des factures.',
-                reimbursedReportsDescription:
-                    'Chaque fois qu’une note de frais est payée via Expensify ACH, le paiement de facture correspondant sera créé dans le compte QuickBooks Online ci-dessous.',
-                qboBillPaymentAccount: 'Compte de paiement de facture QuickBooks',
-                qboInvoiceCollectionAccount: 'Compte de recouvrement des factures QuickBooks',
-                accountSelectDescription: 'Choisissez l’endroit depuis lequel payer les factures et nous créerons le paiement dans QuickBooks Online.',
-                invoiceAccountSelectorDescription: 'Choisissez où recevoir les paiements de factures et nous créerons le paiement dans QuickBooks Online.',
+                createEntitiesDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Expensify créera automatiquement les fournisseurs dans ${integrationName} s’ils n’existent pas encore, et créera automatiquement les clients lors de l’exportation des factures.`,
+                reimbursedReportsDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Chaque fois qu’une note de frais est payée via Expensify ACH, le paiement de facture correspondant sera créé dans le compte ${integrationName} ci-dessous.`,
+                qboBillPaymentAccount: ({integrationName = 'QuickBooks Online'} = {}) => `Compte de paiement de facture ${integrationName}`,
+                qboInvoiceCollectionAccount: ({integrationName = 'QuickBooks Online'} = {}) => `Compte de recouvrement des factures ${integrationName}`,
+                accountSelectDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Choisissez l’endroit depuis lequel payer les factures et nous créerons le paiement dans ${integrationName}.`,
+                invoiceAccountSelectorDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Choisissez où recevoir les paiements de factures et nous créerons le paiement dans ${integrationName}.`,
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Carte de débit',
@@ -4961,10 +4965,10 @@ ${amount} pour ${merchant} - ${date}`,
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Facture fournisseur',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Écriture comptable',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Vérifier',
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
-                    'Nous associerons automatiquement le nom du commerçant sur la transaction par carte de débit à tous les fournisseurs correspondants dans QuickBooks. Si aucun fournisseur n’existe, nous créerons un fournisseur « Debit Card Misc. » pour l’association.',
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
-                    'Nous ferons automatiquement correspondre le nom du commerçant sur la transaction par carte de crédit aux fournisseurs correspondants dans QuickBooks. S’il n’existe aucun fournisseur, nous créerons un fournisseur « Dépenses carte de crédit diverses » pour l’association.',
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}Description`]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Nous associerons automatiquement le nom du commerçant sur la transaction par carte de débit à tous les fournisseurs correspondants dans ${integrationName}. Si aucun fournisseur n’existe, nous créerons un fournisseur « Debit Card Misc. » pour l’association.`,
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Nous ferons automatiquement correspondre le nom du commerçant sur la transaction par carte de crédit aux fournisseurs correspondants dans ${integrationName}. S’il n’existe aucun fournisseur, nous créerons un fournisseur « Dépenses carte de crédit diverses » pour l’association.`,
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Nous créerons une facture fournisseur détaillée pour chaque note de frais Expensify avec la date de la dernière dépense, et nous l’ajouterons au compte ci-dessous. Si cette période est clôturée, nous comptabiliserons au 1er jour de la prochaine période ouverte.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Choisissez où exporter les transactions de carte de débit.',
@@ -4983,12 +4987,15 @@ ${amount} pour ${merchant} - ${date}`,
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Choisissez un compte valide pour l’exportation de chèques',
             },
             exportDestinationSetupAccountsInfo: {
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Pour utiliser l’exportation des factures fournisseur, configurez un compte fournisseur dans QuickBooks Online',
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Pour utiliser l’export des écritures de journal, configurez un compte de journal dans QuickBooks Online',
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Pour utiliser l’exportation de chèques, configurez un compte bancaire dans QuickBooks Online',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Pour utiliser l’exportation des factures fournisseur, configurez un compte fournisseur dans ${integrationName}`,
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Pour utiliser l’export des écritures de journal, configurez un compte de journal dans ${integrationName}`,
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Pour utiliser l’exportation de chèques, configurez un compte bancaire dans ${integrationName}`,
             },
             noAccountsFound: 'Aucun compte trouvé',
-            noAccountsFoundDescription: 'Ajoutez le compte dans QuickBooks Online et synchronisez à nouveau la connexion.',
+            noAccountsFoundDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Ajoutez le compte dans ${integrationName} et synchronisez à nouveau la connexion.`,
             accountingMethods: {
                 label: 'Quand exporter',
                 description: 'Choisissez quand exporter les dépenses :',

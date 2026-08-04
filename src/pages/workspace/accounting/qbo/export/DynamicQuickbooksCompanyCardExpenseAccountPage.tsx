@@ -17,6 +17,7 @@ import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils
 
 import Navigation from '@navigation/Navigation';
 
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -30,6 +31,7 @@ import React from 'react';
 
 function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const policyID = policy?.id;
@@ -45,13 +47,20 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
     const isVendorFeatureAvailable = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) && isQBOVendorMatchingActive;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.path);
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!qboConfig?.autoCreateVendor);
+    const nonReimbursableExportDescription =
+        qboNonReimbursableDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD ||
+        qboNonReimbursableDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD
+            ? translate(`workspace.qbo.accounts.${qboNonReimbursableDestination}Description`, {integrationName})
+            : qboNonReimbursableDestination
+              ? translate(`workspace.qbo.accounts.${qboNonReimbursableDestination}Description`)
+              : undefined;
 
     const sections = [
         {
-            title: qboConfig?.nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.nonReimbursableExpensesExportDestination}`) : undefined,
+            title: qboNonReimbursableDestination ? translate(`workspace.qbo.accounts.${qboNonReimbursableDestination}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
             onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_CARD_SELECT.path)),
-            hintText: qboConfig?.nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.nonReimbursableExpensesExportDestination}Description`) : undefined,
+            hintText: nonReimbursableExportDescription,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_EXPORT_DESTINATION],
         },
         {
@@ -73,6 +82,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
             displayName="DynamicQuickbooksCompanyCardExpenseAccountPage"
             headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.qbo.exportCompanyCardsDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.exportCompanyCardsDescription', {integrationName})}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}

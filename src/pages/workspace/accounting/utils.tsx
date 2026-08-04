@@ -58,6 +58,10 @@ function isIntuitEnterpriseSuiteConnection(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.quickbooksOnline?.config?.credentials?.scope?.includes(INTUIT_ENTERPRISE_SUITE_SCOPE);
 }
 
+function getQuickbooksOnlineIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
+    return translate(isIntuitEnterpriseSuiteConnection(policy) ? 'workspace.accounting.intuitEnterpriseSuite' : 'workspace.accounting.qbo');
+}
+
 // eslint-disable-next-line @typescript-eslint/max-params
 function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
@@ -553,4 +557,4 @@ function getQBDReimbursableAccounts(
     return accounts;
 }
 
-export {getAccountingIntegrationData, getSynchronizationErrorMessage, getQBDReimbursableAccounts, isIntuitEnterpriseSuiteConnection};
+export {getAccountingIntegrationData, getSynchronizationErrorMessage, getQBDReimbursableAccounts, getQuickbooksOnlineIntegrationName, isIntuitEnterpriseSuiteConnection};

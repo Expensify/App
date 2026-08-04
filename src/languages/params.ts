@@ -109,6 +109,8 @@ type ExportIntegrationSelectedParams = {connectionName: ConnectionName};
 
 type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
 
+type AccountingIntegrationNameParams = {integrationName?: string};
+
 type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage; integrationName?: string};
 
 type DelegateRoleParams = {role: DelegateRole};
@@ -153,6 +155,7 @@ export type {
     RemovedFromApprovalWorkflowParams,
     DelegateRoleParams,
     RemoveCopilotAccessConfirmationParams,
+    AccountingIntegrationNameParams,
     SyncStageNameConnectionsParams,
     IntacctMappingTitleParams,
     ExportIntegrationSelectedParams,

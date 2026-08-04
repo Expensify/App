@@ -12,6 +12,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type {
+    AccountingIntegrationNameParams,
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionDisplayNameParams,
@@ -4984,29 +4985,33 @@ const translations = {
         },
         qbo: {
             connectedTo: 'Connected to',
-            importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
+            importDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                `Choose which coding configurations to import from ${integrationName} to Expensify.`,
             classes: 'Classes',
             locations: 'Locations',
             customers: 'Customers/projects',
             items: 'Items',
-            accountsDescription: 'Your QuickBooks Online chart of accounts will import into Expensify as categories.',
+            accountsDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                `Your ${integrationName} chart of accounts will import into Expensify as categories.`,
             accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
             accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
-            classesDescription: 'Choose how to handle QuickBooks Online classes in Expensify.',
-            customersDescription: 'Choose how to handle QuickBooks Online customers/projects in Expensify.',
-            locationsDescription: 'Choose how to handle QuickBooks Online locations in Expensify.',
-            itemsDescription: 'Choose how to handle QuickBooks Online items in Expensify.',
-            taxesDescription: 'Choose how to handle QuickBooks Online taxes in Expensify.',
-            locationsLineItemsRestrictionDescription:
-                "QuickBooks Online does not support Locations at the line-level for Checks or Vendor Bills. If you'd like to have locations at the line-level, make sure you are using Journal Entries and Credit/Debit Card expenses.",
-            taxesJournalEntrySwitchNote: "QuickBooks Online doesn't support taxes on journal entries. Please change your export option to vendor bill or check.",
-            exportDescription: 'Configure how Expensify data exports to QuickBooks Online.',
+            classesDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) => `Choose how to handle ${integrationName} classes in Expensify.`,
+            customersDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                `Choose how to handle ${integrationName} customers/projects in Expensify.`,
+            locationsDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) => `Choose how to handle ${integrationName} locations in Expensify.`,
+            itemsDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) => `Choose how to handle ${integrationName} items in Expensify.`,
+            taxesDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) => `Choose how to handle ${integrationName} taxes in Expensify.`,
+            locationsLineItemsRestrictionDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                `${integrationName} does not support Locations at the line-level for Checks or Vendor Bills. If you'd like to have locations at the line-level, make sure you are using Journal Entries and Credit/Debit Card expenses.`,
+            taxesJournalEntrySwitchNote: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                `${integrationName} doesn't support taxes on journal entries. Please change your export option to vendor bill or check.`,
+            exportDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) => `Configure how Expensify data exports to ${integrationName}.`,
             date: 'Export date',
             exportInvoices: 'Export invoices to',
             exportExpensifyCard: 'Export Expensify Card transactions as',
             exportDate: {
                 label: 'Export date',
-                description: 'Use this date when exporting reports to QuickBooks Online.',
+                description: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) => `Use this date when exporting reports to ${integrationName}.`,
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Date of last expense',
@@ -5014,7 +5019,7 @@ const translations = {
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Export date',
-                        description: 'Date the report was exported to QuickBooks Online.',
+                        description: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) => `Date the report was exported to ${integrationName}.`,
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Submitted date',
@@ -5024,11 +5029,12 @@ const translations = {
             },
             receivable: 'Accounts receivable', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             archive: 'Accounts receivable archive', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
-            exportInvoicesDescription: 'Use this account when exporting invoices to QuickBooks Online.',
-            exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Online.',
+            exportInvoicesDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) => `Use this account when exporting invoices to ${integrationName}.`,
+            exportCompanyCardsDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) => `Set how company card purchases export to ${integrationName}.`,
             vendor: 'Vendor',
             defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
-            exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
+            exportOutOfPocketExpensesDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                `Set how out-of-pocket expenses export to ${integrationName}.`,
             exportCheckDescription: "We'll create an itemized check for each Expensify report and send it from the bank account below.",
             exportJournalEntryDescription: "We'll create an itemized journal entry for each Expensify report and post it to the account below.",
             exportVendorBillDescription:
@@ -5041,23 +5047,30 @@ const translations = {
             notConfigured: 'Not configured',
             bankAccountDescription: 'Choose where to send checks from.',
             creditCardAccount: 'Credit card account',
-            travelInvoicingDescription: 'Travel expenses will export as credit card charges to the QuickBooks Online account specified below.',
-            companyCardsLocationEnabledDescription:
-                "QuickBooks Online doesn't support locations on vendor bill exports when locations are imported as tags. As you have locations imported as tags on your workspace, this export option is unavailable.",
-            outOfPocketTaxEnabledDescription:
-                "QuickBooks Online doesn't support taxes on journal entry exports. As you have taxes enabled on your workspace, this export option is unavailable.",
+            travelInvoicingDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                `Travel expenses will export as credit card charges to the ${integrationName} account specified below.`,
+            companyCardsLocationEnabledDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                `${integrationName} doesn't support locations on vendor bill exports when locations are imported as tags. As you have locations imported as tags on your workspace, this export option is unavailable.`,
+            outOfPocketTaxEnabledDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                `${integrationName} doesn't support taxes on journal entry exports. As you have taxes enabled on your workspace, this export option is unavailable.`,
             outOfPocketTaxEnabledError: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
             advancedConfig: {
-                autoSyncDescription: 'Expensify will automatically sync with QuickBooks Online every day.',
+                autoSyncDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                    `Expensify will automatically sync with ${integrationName} every day.`,
                 inviteEmployees: 'Invite employees',
-                inviteEmployeesDescription: 'Import QuickBooks Online employee records and invite employees to this workspace.',
+                inviteEmployeesDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                    `Import ${integrationName} employee records and invite employees to this workspace.`,
                 createEntities: 'Auto-create entities',
-                createEntitiesDescription: "Expensify will automatically create vendors in QuickBooks Online if they don't exist already, and auto-create customers when exporting invoices.",
-                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the QuickBooks Online account below.',
-                qboBillPaymentAccount: 'QuickBooks bill payment account',
-                qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
-                accountSelectDescription: "Choose where to pay bills from and we'll create the payment in QuickBooks Online.",
-                invoiceAccountSelectorDescription: "Choose where to receive invoice payments and we'll create the payment in QuickBooks Online.",
+                createEntitiesDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                    `Expensify will automatically create vendors in ${integrationName} if they don't exist already, and auto-create customers when exporting invoices.`,
+                reimbursedReportsDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                    `Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the ${integrationName} account below.`,
+                qboBillPaymentAccount: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) => `${integrationName} bill payment account`,
+                qboInvoiceCollectionAccount: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) => `${integrationName} invoice collections account`,
+                accountSelectDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                    `Choose where to pay bills from and we'll create the payment in ${integrationName}.`,
+                invoiceAccountSelectorDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                    `Choose where to receive invoice payments and we'll create the payment in ${integrationName}.`,
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Debit card',
@@ -5066,10 +5079,10 @@ const translations = {
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Journal entry',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Check',
 
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
-                    "We'll automatically match the merchant name on the debit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Debit Card Misc.' vendor for association.",
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
-                    "We'll automatically match the merchant name on the credit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Credit Card Misc.' vendor for association.",
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}Description`]: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                    `We'll automatically match the merchant name on the debit card transaction to any corresponding vendors in ${integrationName}. If no vendors exist, we'll create a 'Debit Card Misc.' vendor for association.`,
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                    `We'll automatically match the merchant name on the credit card transaction to any corresponding vendors in ${integrationName}. If no vendors exist, we'll create a 'Credit Card Misc.' vendor for association.`,
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     "We'll create an itemized vendor bill for each Expensify report with the date of the last expense, and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
 
@@ -5087,12 +5100,16 @@ const translations = {
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Choose a valid account for check export',
             },
             exportDestinationSetupAccountsInfo: {
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'To use vendor bill export, set up an accounts payable account in QuickBooks Online',
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'To use journal entry export, set up a journal account in QuickBooks Online',
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'To use check export, set up a bank account in QuickBooks Online',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                    `To use vendor bill export, set up an accounts payable account in ${integrationName}`,
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                    `To use journal entry export, set up a journal account in ${integrationName}`,
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                    `To use check export, set up a bank account in ${integrationName}`,
             },
             noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in QuickBooks Online and sync the connection again.',
+            noAccountsFoundDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                `Add the account in ${integrationName} and sync the connection again.`,
             accountingMethods: {
                 label: 'When to Export',
                 description: 'Choose when to export the expenses:',
