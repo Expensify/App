@@ -72,11 +72,12 @@ function getAccountingIntegrationData(
     expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare', IconAsset>,
     cardFeeds?: CombinedCardFeeds,
     cardList?: Record<string, WorkspaceCardsList | undefined>,
-    isIntuitEnterpriseSuite = false,
+    isIntuitEnterpriseSuiteOverride?: boolean,
 ): AccountingIntegration | undefined {
     const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const shouldUseIntuitEnterpriseSuite = isIntuitEnterpriseSuite || isIntuitEnterpriseSuiteConnection(policy);
+    // An explicit QBO or IES selection must take precedence over the existing connection identity.
+    const shouldUseIntuitEnterpriseSuite = isIntuitEnterpriseSuiteOverride ?? isIntuitEnterpriseSuiteConnection(policy);
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
     const getBackToAfterWorkspaceUpgradeRouteForIntacct = () => {
