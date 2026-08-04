@@ -35,7 +35,7 @@ This is an experimental, local-only LLVM PGO workflow for the standalone Android
    scripts/pgo/android-local-proof.sh build-optimized
    ```
 
-   The instrumented and optimized APKs remain available separately at `Mobile-Expensify/Android/build/outputs/apk/pgoInstrumented/Expensify-pgoInstrumented.apk` and `Mobile-Expensify/Android/build/outputs/apk/pgoOptimized/Expensify-pgoOptimized.apk`. Install the optimized APK with:
+   The instrumented and optimized APKs remain available separately at `Mobile-Expensify/Android/build/outputs/apk/pgoInstrumented/Expensify-pgoInstrumented.apk` and `Mobile-Expensify/Android/build/outputs/apk/pgoOptimized/Expensify-pgoOptimized.apk`. They use the application IDs `org.me.mobiexpensifyg.pgo.instrumented` and `org.me.mobiexpensifyg.pgo.optimized`, with the launcher names “Expensify PGO Instrumented” and “Expensify PGO Optimized”, so both can remain installed simultaneously. Install the optimized APK with:
 
    ```bash
    scripts/pgo/android-local-proof.sh install-optimized
@@ -63,4 +63,4 @@ The `.pgo/` directory is intentionally local-only. Never apply this profile to a
 
 ## Compare
 
-Install the non-PGO and PGO APKs separately. For each build, sign in once, exclude the first post-install run, force-stop before every subsequent run, and record ten repetitions of the same journey with `am start -W` and Perfetto. Keep attachment-upload latency diagnostic only; use cold start and local interaction/frame timing as the primary decision metrics.
+Install the instrumented and optimized APKs side by side. For each build, sign in once, exclude the first post-install run, force-stop before every subsequent run, and record ten repetitions of the same journey with `am start -W` and Perfetto. Keep attachment-upload latency diagnostic only; use cold start and local interaction/frame timing as the primary decision metrics.
