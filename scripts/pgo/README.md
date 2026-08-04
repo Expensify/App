@@ -61,7 +61,7 @@ The metrics build calls Android's `reportFullyDrawn()` and emits the machine-rea
 
 ## Benchmark startup
 
-Build the PGO-optimized APK and then the release APK from the same source revision, compiler, NDK, and ABI. Every mode initially uses Gradle's normal release output path, then the tool moves it into `.pgo/android/arm64-v8a/apk/`:
+Build the PGO-optimized APK and then the release APK from the same source revision, compiler, NDK, and ABI. Every mode uses Gradle's normal release output path, then the tool copies it into `.pgo/android/arm64-v8a/apk/`. The currently built APK remains in Gradle's release directory:
 
 ```bash
 scripts/pgo/android-local-proof.sh build-optimized

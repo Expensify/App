@@ -61,7 +61,7 @@ function build_instrumented() {
         -PpatchedArtifacts.forceBuildFromSource=true \
         -PreactNativeArchitectures=arm64-v8a \
         -PpgoMode=generate
-    archive_release_apk "$INSTRUMENTED_APK_PATH"
+    copy_release_apk "$INSTRUMENTED_APK_PATH"
 }
 
 function build_release() {
@@ -69,7 +69,7 @@ function build_release() {
         -PpatchedArtifacts.forceBuildFromSource=true \
         -PreactNativeArchitectures=arm64-v8a \
         -PpgoMode=off
-    archive_release_apk "$RELEASE_APK_PATH"
+    copy_release_apk "$RELEASE_APK_PATH"
 }
 
 function build_optimized() {
@@ -83,10 +83,10 @@ function build_optimized() {
         -PreactNativeArchitectures=arm64-v8a \
         -PpgoMode=use \
         -PpgoProfile="$PROFILE_DIR/newdot.profdata"
-    archive_release_apk "$OPTIMIZED_APK_PATH"
+    copy_release_apk "$OPTIMIZED_APK_PATH"
 }
 
-function archive_release_apk() {
+function copy_release_apk() {
     local archived_apk_path="$1"
     if [[ ! -f "$GRADLE_RELEASE_APK_PATH" ]]; then
         echo "Missing built release APK at $GRADLE_RELEASE_APK_PATH." >&2
@@ -94,8 +94,8 @@ function archive_release_apk() {
     fi
 
     mkdir -p "$APK_DIR"
-    mv -f "$GRADLE_RELEASE_APK_PATH" "$archived_apk_path"
-    echo "Archived release APK: $archived_apk_path"
+    cp -f "$GRADLE_RELEASE_APK_PATH" "$archived_apk_path"
+    echo "Copied release APK: $archived_apk_path"
 }
 
 function install_apk() {
