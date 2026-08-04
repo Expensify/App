@@ -1143,7 +1143,7 @@ function getShareDestination(
     policy: OnyxEntry<OnyxTypes.Policy>,
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
-    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
+    reportName?: string,
 ): ShareDestination {
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
@@ -1170,7 +1170,7 @@ function getShareDestination(
     }
     return {
         icons: ReportUtils.getIcons(report, formatPhoneNumber, translate, personalDetails, FallbackAvatar),
-        displayName: getReportName(report, report?.reportID ? reportAttributes?.[report.reportID]?.reportName : undefined),
+        displayName: getReportName(report, reportName),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),

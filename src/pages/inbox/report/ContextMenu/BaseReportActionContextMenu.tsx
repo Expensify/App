@@ -447,7 +447,6 @@ function BaseReportActionContextMenu({
                                 isOffline,
                                 conciergeReportID,
                                 delegateAccountID,
-                                reportAttributes,
                                 originalReportOfUnapprovedTransaction,
                                 memberChangeLogRoomReportName,
                             };

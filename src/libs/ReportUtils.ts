@@ -5686,15 +5686,12 @@ type GetReportPreviewMessageBaseParams = {
  * derived from report action content. Report action text is in English only, so this never needs
  * `translateLocal`.
  */
-function getReportPreviewMessageForCopy(
-    params: Pick<GetReportPreviewMessageBaseParams, 'reportOrID' | 'iouReportAction' | 'originalReportAction'> & {reportAttributes?: ReportAttributesDerivedValue['reports']},
-): string {
-    const {reportOrID, iouReportAction = null, reportAttributes} = params;
+function getReportPreviewMessageForCopy(params: Pick<GetReportPreviewMessageBaseParams, 'reportOrID' | 'iouReportAction' | 'originalReportAction'>): string {
+    const {reportOrID, iouReportAction = null} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     if (report) {
-        const attributes = reportAttributes ?? reportAttributesDerivedValue;
-        return getReportName(report, attributes?.[report.reportID]?.reportName) || (originalReportAction?.childReportName ?? '');
+        return getReportName(report, reportAttributesDerivedValue?.[report.reportID]?.reportName) || (originalReportAction?.childReportName ?? '');
     }
     return originalReportAction?.childReportName ?? '';
 }
@@ -7180,16 +7177,38 @@ function getDeletedTransactionMessage(translate: LocalizedTranslate, action: Rep
     return message;
 }
 
-function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, reportAttributes?: ReportAttributesDerivedValue['reports']) {
+/**
+ * Resolves the report a moved transaction message points at, along with the raw `fromReportID`
+ * that tells "moved to" apart from "moved from".
+ */
+function getMovedTransactionReportContext(action: ReportAction) {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
     const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
 
     const toReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
     const fromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
-    const report = fromReport ?? toReport;
+    return {report: fromReport ?? toReport, fromReportID};
+}
 
-    const reportName = Parser.htmlToText(getReportName(report, report?.reportID ? reportAttributes?.[report.reportID]?.reportName : undefined));
+/**
+ * ID of the report whose name a moved transaction message renders. Callers use this to look up that
+ * single report's derived name, so they never have to hold the whole report attributes map.
+ */
+function getMovedTransactionReportID(action: ReportAction): string | undefined {
+    return getMovedTransactionReportContext(action).report?.reportID;
+}
+
+/**
+ * `derivedReportName` only matters to callers that render this message: passing it (sourced via
+ * `useDerivedReportNameByReportID`, keyed by {@link getMovedTransactionReportID}) keeps the name reactive
+ * without subscribing to the whole report attributes map. Imperative callers can omit it and get the
+ * module-level derived value, which is already current whenever they run.
+ */
+function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, derivedReportName?: string) {
+    const {report, fromReportID} = getMovedTransactionReportContext(action);
+
+    const reportName = Parser.htmlToText(getReportName(report, derivedReportName ?? (report?.reportID ? reportAttributesDerivedValue?.[report.reportID]?.reportName : undefined)));
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         return reportName ? translate('iou.movedTransactionTo', reportUrl, reportName) : translate('iou.movedTransactionToAnotherReport');
@@ -7197,13 +7216,34 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
     return reportName ? translate('iou.movedTransactionFrom', reportUrl, reportName) : translate('iou.movedTransactionFromAnotherReport');
 }
 
-function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, reportAttributes?: ReportAttributesDerivedValue['reports']) {
+/**
+ * Resolves the report an unreported transaction message points at, along with the raw `fromReportID`,
+ * which stays meaningful even when no report exists for it (e.g. `UNREPORTED_REPORT_ID`).
+ */
+function getUnreportedTransactionReportContext(action: ReportAction) {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
     const {fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
 
-    const fromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+    return {report: deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`], fromReportID};
+}
 
-    const reportName = Parser.htmlToText(getReportName(fromReport, fromReport?.reportID ? reportAttributes?.[fromReport.reportID]?.reportName : undefined));
+/**
+ * ID of the report whose name an unreported transaction message renders. See {@link getMovedTransactionReportID}.
+ */
+function getUnreportedTransactionReportID(action: ReportAction): string | undefined {
+    return getUnreportedTransactionReportContext(action).report?.reportID;
+}
+
+/**
+ * `derivedReportName` behaves as described on {@link getMovedTransactionMessage}, keyed by
+ * {@link getUnreportedTransactionReportID}.
+ */
+function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, derivedReportName?: string) {
+    const {report: fromReport, fromReportID} = getUnreportedTransactionReportContext(action);
+
+    const reportName = Parser.htmlToText(
+        getReportName(fromReport, derivedReportName ?? (fromReport?.reportID ? reportAttributesDerivedValue?.[fromReport.reportID]?.reportName : undefined)),
+    );
 
     let reportUrl = getReportURLForCurrentContext(fromReportID);
 
@@ -14147,7 +14187,9 @@ export {
     getPolicyChangeMessage,
     getPolicyChangeLogCopyMessage,
     getMovedTransactionMessage,
+    getMovedTransactionReportID,
     getUnreportedTransactionMessage,
+    getUnreportedTransactionReportID,
     navigateToLinkedReportAction,
     buildOptimisticUnreportedTransactionAction,
     isBusinessInvoiceRoom,

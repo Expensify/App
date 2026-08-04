@@ -189,14 +189,14 @@ function getMovedFromOrToReportMessage(
     movedToReport: OnyxEntry<Report> | undefined,
     currentUserLogin: string,
     policy: OnyxEntry<Policy>,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
+    movedFromReportName?: string,
 ): string | undefined {
     if (movedToReport) {
         return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserLogin, policy);
     }
 
     if (movedFromReport) {
-        const originReportName = getReportName(movedFromReport, reportAttributes?.[movedFromReport.reportID]?.reportName);
+        const originReportName = getReportName(movedFromReport, movedFromReportName);
         return originReportName ? translate('iou.movedFromReport', originReportName) : translate('iou.movedFromReportNoName');
     }
 }
@@ -295,7 +295,14 @@ function getForReportAction({
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin, policy, reportAttributes);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(
+        translate,
+        movedFromReport,
+        movedToReport,
+        currentUserLogin,
+        policy,
+        movedFromReport ? reportAttributes?.[movedFromReport.reportID]?.reportName : undefined,
+    );
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }

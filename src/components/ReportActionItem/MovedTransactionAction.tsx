@@ -2,12 +2,12 @@ import RenderHTML from '@components/RenderHTML';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Parser from '@libs/Parser';
 import {getOriginalMessage, hasReasoning} from '@libs/ReportActionsUtils';
-import {getMovedTransactionMessage} from '@libs/ReportUtils';
+import {getMovedTransactionMessage, getMovedTransactionReportID} from '@libs/ReportUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
@@ -35,11 +35,11 @@ function MovedTransactionAction({action, originalReport}: MovedTransactionAction
 
     const [fromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
-    const reportAttributes = useReportAttributes();
 
     const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    const message = getMovedTransactionMessage(translate, action, reportAttributes);
+    const derivedReportName = useDerivedReportNameByReportID(getMovedTransactionReportID(action));
+    const message = getMovedTransactionMessage(translate, action, derivedReportName);
 
     if (hasReasoning(action)) {
         return (

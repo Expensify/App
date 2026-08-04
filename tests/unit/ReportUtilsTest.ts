@@ -16178,7 +16178,7 @@ describe('ReportUtils', () => {
             expect(result).toBe('Expense Report 2025-01-15');
         });
 
-        it('getReportPreviewMessageForCopy should use the report name from the reportAttributes param', async () => {
+        it('getReportPreviewMessageForCopy should use the report name from the report attributes derived value', async () => {
             const report = LHNTestUtils.getFakeReport();
             report.reportName = 'Stale Report Name';
             const reportAction: ReportAction = {
@@ -16196,13 +16196,14 @@ describe('ReportUtils', () => {
                     reportErrors: {},
                 },
             };
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: reportAttributes, locale: CONST.LOCALES.DEFAULT});
+            await waitForBatchedUpdates();
 
-            // When called with reportAttributes that provide a report name, it should be preferred over the report's own name
+            // When the derived report attributes provide a report name, it should be preferred over the report's own name
             const result = getReportPreviewMessageForCopy({
                 reportOrID: report,
                 iouReportAction: reportAction,
                 originalReportAction: reportAction,
-                reportAttributes,
             });
             expect(result).toBe('Computed Report Name');
         });
