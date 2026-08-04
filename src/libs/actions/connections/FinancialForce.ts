@@ -590,6 +590,7 @@ function updateFinancialForceCompany(policyID: string, companyID: string, previo
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                         config: {
+                            ...(hasPSA ? {export: {[CONST.CERTINIA_CONFIG.COMPANY_ID]: companyID}} : {[CONST.CERTINIA_CONFIG.COMPANY]: companyID}),
                             pendingFields: {
                                 [companyField]: null,
                             },
