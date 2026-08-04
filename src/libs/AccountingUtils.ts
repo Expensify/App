@@ -35,6 +35,8 @@ const STANDARD_EXPORT_TEMPLATE_NAME_MAPPING = {
     [CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT,
 };
 
+const STANDARD_EXPORT_TEMPLATE_LABELS = new Set<string>(Object.values(STANDARD_EXPORT_TEMPLATE_NAME_MAPPING));
+
 function getConnectionNameFromRouteParam(routeParam: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) {
     return ROUTE_NAME_MAPPING[routeParam];
 }
@@ -51,4 +53,21 @@ function getStandardExportTemplateDisplayName(templateName: string): string {
     return STANDARD_EXPORT_TEMPLATE_NAME_MAPPING[templateName as keyof typeof STANDARD_EXPORT_TEMPLATE_NAME_MAPPING] ?? templateName;
 }
 
-export {getConnectionNameFromRouteParam, getRouteParamForConnection, getSearchValueForConnection, getStandardExportTemplateDisplayName};
+/** Whether the given template ID belongs to one of the standard (i.e. not user-defined) export templates */
+function isStandardExportTemplate(templateName: string): boolean {
+    return templateName in STANDARD_EXPORT_TEMPLATE_NAME_MAPPING;
+}
+
+/** Whether the given export label, as sent by the backend on an export report action, belongs to one of the standard (i.e. not user-defined) export templates */
+function isStandardExportTemplateLabel(label: string): boolean {
+    return STANDARD_EXPORT_TEMPLATE_LABELS.has(label);
+}
+
+export {
+    getConnectionNameFromRouteParam,
+    getRouteParamForConnection,
+    getSearchValueForConnection,
+    getStandardExportTemplateDisplayName,
+    isStandardExportTemplate,
+    isStandardExportTemplateLabel,
+};
