@@ -28,6 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {OptimisticAgentAccountIDMapping} from '@src/types/onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
@@ -43,7 +44,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const isFocused = useIsFocused();
     const routeAccountID = route.params.accountID;
     const [resolvedAccountID] = useOnyx(ONYXKEYS.RAM_ONLY_OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {
-        selector: (mapping: Record<string, number> | null | undefined) => mapping?.[routeAccountID] ?? routeAccountID,
+        selector: (mapping: OptimisticAgentAccountIDMapping | null | undefined) => mapping?.[routeAccountID],
     });
     const accountID = resolvedAccountID ?? routeAccountID;
 

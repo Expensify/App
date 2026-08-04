@@ -116,6 +116,7 @@ import type Onboarding from './Onboarding';
 import type OnboardingRHPVariant from './OnboardingRHPVariant';
 import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
+import type OptimisticAgentAccountIDMapping from './OptimisticAgentAccountIDMapping';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type Pages from './Pages';
 import type PendingConciergeResponse from './PendingConciergeResponse';
@@ -280,6 +281,7 @@ export type {
     Modal,
     Network,
     OnyxInputOrEntry,
+    OptimisticAgentAccountIDMapping,
     OnyxUpdateEvent,
     OnyxUpdatesFromServer,
     AnyOnyxUpdatesFromServer,

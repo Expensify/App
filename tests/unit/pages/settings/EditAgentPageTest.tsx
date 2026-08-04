@@ -10,6 +10,7 @@ import EditAgentPage from '@pages/settings/Agents/EditAgentPage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {OptimisticAgentAccountIDMapping} from '@src/types/onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
@@ -158,9 +159,8 @@ type EditAgentPageNavigation = PlatformStackScreenProps<SettingsNavigatorParamLi
 
 const mockRoute = {key: 'Settings_Agents_Edit-test', params: {accountID: TEST_ACCOUNT_ID}} as EditAgentPageRoute;
 const mockNavigation = {} as EditAgentPageNavigation;
-const getSelectedAccountID = (options: Parameters<typeof useOnyx>[1], mapping: Record<string, number> | undefined, fallbackAccountID: number) => {
-    options?.selector?.(mapping);
-    return mapping?.[fallbackAccountID] ?? fallbackAccountID;
+const getSelectedAccountID = (options: Parameters<typeof useOnyx>[1], mapping: OptimisticAgentAccountIDMapping | undefined): number | undefined => {
+    return options?.selector?.(mapping) as number | undefined;
 };
 
 describe('EditAgentPage', () => {
@@ -292,7 +292,9 @@ describe('EditAgentPage', () => {
     it('renders the route agent data when no optimistic accountID mapping exists', () => {
         mockUseOnyx.mockImplementation((key, options) => {
             if (key === ONYXKEYS.RAM_ONLY_OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING && options?.selector) {
-                return [getSelectedAccountID(options, undefined, TEST_ACCOUNT_ID), {status: 'loaded'}];
+                const selectedAccountID = getSelectedAccountID(options, undefined);
+                expect(selectedAccountID).toBeUndefined();
+                return [selectedAccountID, {status: 'loaded'}];
             }
             if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`) {
                 return [{prompt: 'Route prompt'}, {status: 'loaded'}];
@@ -320,7 +322,9 @@ describe('EditAgentPage', () => {
     it('renders the real agent data and updates the route param when the backend maps the optimistic route accountID', () => {
         mockUseOnyx.mockImplementation((key, options) => {
             if (key === ONYXKEYS.RAM_ONLY_OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING && options?.selector) {
-                return [getSelectedAccountID(options, {[TEST_ACCOUNT_ID]: TEST_REAL_ACCOUNT_ID}, TEST_ACCOUNT_ID), {status: 'loaded'}];
+                const selectedAccountID = getSelectedAccountID(options, {[TEST_ACCOUNT_ID]: TEST_REAL_ACCOUNT_ID});
+                expect(selectedAccountID).toBe(TEST_REAL_ACCOUNT_ID);
+                return [selectedAccountID, {status: 'loaded'}];
             }
             if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_REAL_ACCOUNT_ID}`) {
                 return [{prompt: 'Real prompt'}, {status: 'loaded'}];
@@ -349,7 +353,9 @@ describe('EditAgentPage', () => {
         mockUseIsFocused.mockReturnValue(false);
         mockUseOnyx.mockImplementation((key, options) => {
             if (key === ONYXKEYS.RAM_ONLY_OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING && options?.selector) {
-                return [getSelectedAccountID(options, {[TEST_ACCOUNT_ID]: TEST_REAL_ACCOUNT_ID}, TEST_ACCOUNT_ID), {status: 'loaded'}];
+                const selectedAccountID = getSelectedAccountID(options, {[TEST_ACCOUNT_ID]: TEST_REAL_ACCOUNT_ID});
+                expect(selectedAccountID).toBe(TEST_REAL_ACCOUNT_ID);
+                return [selectedAccountID, {status: 'loaded'}];
             }
             if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_REAL_ACCOUNT_ID}`) {
                 return [{prompt: 'Real prompt'}, {status: 'loaded'}];
