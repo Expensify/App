@@ -7890,8 +7890,8 @@ ${reportName}`,
                 save: 'Αποθήκευση κανόνα',
             },
             categoriesDisabledEmptyState: {
-                title: 'Categories are not enabled',
-                subtitle: 'Enable categories to gain more control of your spend.',
+                title: 'Οι κατηγορίες δεν είναι ενεργοποιημένες',
+                subtitle: 'Ενεργοποιήστε τις κατηγορίες για να έχετε μεγαλύτερο έλεγχο των δαπανών σας.',
             },
             individualExpenseRules: {
                 title: 'Έξοδα',
