@@ -33,6 +33,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useMappedPolicies from './useMappedPolicies';
@@ -79,6 +80,7 @@ function useParticipantSubmission({
     isMovingTransactionFromTrackExpense,
     isFocused,
 }: UseParticipantSubmissionParams) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {translate} = useLocalize();
     const personalPolicy = usePersonalPolicy();
 
@@ -352,7 +354,13 @@ function useParticipantSubmission({
             const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
             const defaultCategory = isDistanceRequest(transaction) && policyDistance?.defaultCategory ? policyDistance?.defaultCategory : '';
             const category = isMovingTransactionFromTrackExpense ? (transaction?.category ?? '') : defaultCategory;
-            setMoneyRequestCategory(transaction.transactionID, category, isMovingTransactionFromTrackExpense ? movingPolicy : undefined, isMovingTransactionFromTrackExpense);
+            setMoneyRequestCategory(
+                transaction.transactionID,
+                category,
+                isMovingTransactionFromTrackExpense ? movingPolicy : undefined,
+                getCurrencyDecimals,
+                isMovingTransactionFromTrackExpense,
+            );
 
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);

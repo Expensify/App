@@ -7,10 +7,11 @@ import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
 
 import {useRoute} from '@react-navigation/native';
 
-import {useIsAppLoadPending, useIsReportLoadPending} from './useInFlightRequests';
+import {useIsAppLoadPending} from './useInFlightRequests';
 import useLoadReportActions from './useLoadReportActions';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -25,7 +26,7 @@ import useReportIsArchived from './useReportIsArchived';
  * session-start). The guard calls it once and passes `state`/`actions` via `ReportActionsListStateContext`
  * and `ReportActionsListActionsContext` so the content doesn't re-subscribe.
  */
-function useReportActionsListModel(reportID: string) {
+function useReportActionsListModel(reportID: string, isReportLoadPending: boolean) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
@@ -50,11 +51,13 @@ function useReportActionsListModel(reportID: string) {
 
     const parentReportAction = useParentReportAction(report);
 
-    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
+    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {
+        selector: reportActionsListLoadingStateSelector,
+    });
+    const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;
     const hasLoadingOlderReportActionsError = reportLoadingState?.hasLoadingOlderReportActionsError;
-    const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
 
     const {sessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
     const {setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
@@ -65,9 +68,6 @@ function useReportActionsListModel(reportID: string) {
     const canPerformWriteAction = !!canUserPerformWriteAction(report, isReportArchived);
 
     const isAppLoadPending = useIsAppLoadPending();
-    // Queue-derived, unlike `isLoadingInitialReportActions`: a loading flag with no matching OpenReport
-    // behind it in this session is ignored, so a stale flag can't block the backfill indefinitely.
-    const isReportLoadPending = useIsReportLoadPending(reportID);
 
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`);
 
@@ -121,11 +121,11 @@ function useReportActionsListModel(reportID: string) {
         isReportArchived,
         isReportTransactionThread,
         shouldBeAlignedToTop,
-        isLoadingInitialReportActions,
         isReportLoadPending,
         isLoadingOlderReportActions,
         hasLoadingOlderReportActionsError,
         hasOnceLoadedReportActions,
+        isLoadingInitialReportActions,
         isLoadingApp: isAppLoadPending,
         reportActionsLength: reportActions.length,
         oldestReportActionID: currentReportOldestActionID,
