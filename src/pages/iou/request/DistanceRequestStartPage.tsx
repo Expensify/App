@@ -114,6 +114,7 @@ function DistanceRequestStartPage({
             policyID={policy?.id}
             accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
         >
+            {/* IOURequestStepDistanceOdometer handles keyboard avoidance without resizing the shared tab layout. */}
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMinHeight={canUseTouchScreen()}

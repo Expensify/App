@@ -87,7 +87,8 @@ function isFocusableTextInputRef(ref: BaseTextInputRef): ref is AnimatedTextInpu
     return 'isFocused' in ref;
 }
 
-const OdometerContainer = Platform.OS === 'web' ? View : KeyboardAvoidingView;
+const isWeb = Platform.OS === 'web';
+const OdometerContainer = isWeb ? View : KeyboardAvoidingView;
 
 function IOURequestStepDistanceOdometer({
     report,
@@ -604,18 +605,18 @@ function IOURequestStepDistanceOdometer({
         Navigation.closeRHPFlow();
     }, [fromLocaleDigit, startReading, endReading, odometerStartImage, odometerEndImage, translate, setFormError]);
 
-    // Web already receives the iOS 26 Safari keyboard compensation from the parent ScreenWrapper.
+    // Remount the native create-flow avoider when tab focus changes so stale keyboard padding is cleared.
     let odometerContainerKey = 'editing';
-    if (isCreatingNewRequest) {
+    if (!isWeb && isCreatingNewRequest) {
         odometerContainerKey = isFocused ? 'focused' : 'unfocused';
     }
-    const odometerContainerProps =
-        Platform.OS === 'web'
-            ? {}
-            : {
-                  behavior: 'padding' as const,
-                  enabled: isCreatingNewRequest,
-              };
+    // Web already receives the iOS 26 Safari keyboard compensation from the parent ScreenWrapper.
+    const odometerContainerProps = isWeb
+        ? {}
+        : {
+              behavior: 'padding' as const,
+              enabled: isCreatingNewRequest,
+          };
 
     return (
         <StepScreenWrapper
