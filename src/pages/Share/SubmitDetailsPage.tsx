@@ -371,6 +371,7 @@ function SubmitDetailsPage({
                 existingTransaction: storedTransaction ?? transaction,
                 draftTransactionIDs,
                 isSelfTourViewed,
+                conciergeChat,
                 betas,
                 personalDetails,
                 optimisticTransactionID,
