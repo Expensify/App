@@ -17,7 +17,7 @@ import {shouldShowInitialCategoryFilterLoading} from '@hooks/useSearchFilterSync
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getQueryFilterWithoutKeywordHash, removeNegation} from '@libs/SearchQueryUtils';
+import {buildQueryStringWithResetFilters, getQueryFilterWithoutKeywordHash, removeNegation} from '@libs/SearchQueryUtils';
 import {FILTER_VIEW_MAP, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
@@ -146,8 +146,8 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {isOffline} = useNetwork();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
-    const {currentSearchQueryJSON, currentDefaultSearchQueryJSON, currentDefaultSearchQueryString, currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
-    const {setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    const {currentSearchQueryJSON, currentDefaultSearchQueryJSON, currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
+    const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const filters = mapFiltersFormToLabelValueList(
         searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
@@ -205,11 +205,11 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     );
 
     const resetFilters = () => {
-        if (currentDefaultSearchQueryString) {
-            Navigation.setParams({q: currentDefaultSearchQueryString, rawQuery: undefined});
-        } else {
-            setFilterQueryParams({[CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE]: queryJSON.type});
+        if (!currentSearchQueryJSON) {
+            return;
         }
+
+        Navigation.setParams({q: buildQueryStringWithResetFilters(currentSearchQueryJSON, currentDefaultSearchQueryJSON), rawQuery: undefined});
         setSearchContext(false);
     };
     const isCategoryFilterLoading = shouldShowInitialCategoryFilterLoading(queryJSON, areCategoriesLoaded, isLoadingCategories, isOffline);

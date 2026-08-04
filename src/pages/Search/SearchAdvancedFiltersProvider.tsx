@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getQueryFilterWithoutKeywordHash} from '@libs/SearchQueryUtils';
+import {buildQueryStringWithResetFilters, getQueryFilterWithoutKeywordHash} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,7 +41,7 @@ type SearchAdvancedFiltersProviderProps = {
 
 function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProviderProps) {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const {currentDefaultSearchQueryString, currentDefaultSearchQueryJSON, currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentDefaultSearchQueryJSON, currentSearchQueryJSON} = useSearchQueryContext();
     const {getUpdatedFilterFormValues, setFilterQueryParams} = useUpdateFilterQuery(currentSearchQueryJSON);
 
     const [values, setValues] = useState<Partial<SearchAdvancedFiltersForm>>(searchAdvancedFiltersForm ?? {});
@@ -51,13 +51,13 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
     };
 
     const resetFilters = () => {
+        if (!currentSearchQueryJSON) {
+            return;
+        }
+
         Navigation.dismissModal({
             afterTransition: () => {
-                if (currentDefaultSearchQueryString) {
-                    Navigation.setParams({q: currentDefaultSearchQueryString, rawQuery: undefined});
-                } else {
-                    setFilterQueryParams({[CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE]: searchAdvancedFiltersForm?.type});
-                }
+                Navigation.setParams({q: buildQueryStringWithResetFilters(currentSearchQueryJSON, currentDefaultSearchQueryJSON), rawQuery: undefined});
                 setSearchContext(false);
             },
         });

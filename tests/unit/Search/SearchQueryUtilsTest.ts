@@ -28,6 +28,7 @@ import {
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
     getParamsState,
+    buildQueryStringWithResetFilters,
     getQueryFilterWithoutKeywordHash,
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
@@ -1987,6 +1988,52 @@ describe('SearchQueryUtils', () => {
                 expect(withNegativeLimit?.hash).toEqual(withoutLimit?.hash);
                 expect(withDecimalLimit?.hash).toEqual(withoutLimit?.hash);
             });
+        });
+    });
+
+    describe('buildQueryStringWithResetFilters', () => {
+        function parse(query: string) {
+            const queryJSON = buildSearchQueryJSON(query);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+            return queryJSON;
+        }
+
+        const currentQuery = parse('type:expense category:travel merchant:Amazon group-currency:USD sortBy:merchant sortOrder:asc groupBy:from columns:merchant,category coffee');
+
+        it('restores the filter chips of the default query', () => {
+            const resetQuery = buildQueryStringWithResetFilters(currentQuery, parse('type:expense status:approved'));
+
+            expect(resetQuery).toContain('status:approved');
+            expect(resetQuery).not.toContain('category:travel');
+            expect(resetQuery).not.toContain('merchant:Amazon');
+        });
+
+        it('clears every filter chip when there is no default query', () => {
+            const resetQuery = buildQueryStringWithResetFilters(currentQuery, undefined);
+
+            expect(resetQuery).not.toContain('category:travel');
+            expect(resetQuery).not.toContain('merchant:Amazon');
+        });
+
+        it('keeps the keyword, sorting, grouping, and columns, which are not filters', () => {
+            const resetQuery = buildQueryStringWithResetFilters(currentQuery, parse('type:expense status:approved'));
+            expect(resetQuery).toContain('sortBy:merchant');
+            expect(resetQuery).toContain('sortOrder:asc');
+            expect(resetQuery).toContain('groupBy:from');
+            expect(resetQuery).toContain('groupCurrency:USD');
+            expect(resetQuery).toContain('columns:merchant,category');
+            expect(resetQuery).toContain('coffee');
+        });
+
+        it('keeps the keyword and the group currency of the current query over the ones of the default query', () => {
+            const resetQuery = buildQueryStringWithResetFilters(currentQuery, parse('type:expense group-currency:EUR tea'));
+
+            expect(resetQuery).toContain('groupCurrency:USD');
+            expect(resetQuery).toContain('coffee');
+            expect(resetQuery).not.toContain('groupCurrency:EUR');
+            expect(resetQuery).not.toContain('tea');
         });
     });
 

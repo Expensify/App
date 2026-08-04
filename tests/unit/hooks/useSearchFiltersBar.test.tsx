@@ -5,6 +5,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {buildQueryStringWithResetFilters} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 
@@ -120,28 +121,37 @@ describe('useSearchFiltersBar', () => {
     });
 
     describe('resetFilters', () => {
-        it('navigates to the default query string when one exists', () => {
-            mockSearchQueryContext({currentDefaultSearchQueryString: 'type:expense status:all'});
+        it('navigates to the query the filters reset to', () => {
+            const currentSearchQueryJSON = buildQueryJSON(categoryFilters);
+            const currentDefaultSearchQueryJSON = buildQueryJSON(merchantFilters);
+            mockSearchQueryContext({currentSearchQueryJSON, currentDefaultSearchQueryJSON});
 
             const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
             result.current.resetFilters();
 
-            expect(Navigation.setParams).toHaveBeenCalledTimes(1);
-            expect(Navigation.setParams).toHaveBeenCalledWith({q: 'type:expense status:all', rawQuery: undefined});
-            expect(mockSetFilterQueryParams).not.toHaveBeenCalled();
+            expect(Navigation.setParams).toHaveBeenCalledWith({q: buildQueryStringWithResetFilters(currentSearchQueryJSON, currentDefaultSearchQueryJSON), rawQuery: undefined});
             expect(setSearchContext).toHaveBeenCalledWith(false);
         });
 
-        it('resets to the query type when there is no default query string', () => {
+        it('navigates to the query the filters reset to when there is no default query', () => {
+            const currentSearchQueryJSON = buildQueryJSON(categoryFilters);
+            mockSearchQueryContext({currentSearchQueryJSON});
+
+            const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
+            result.current.resetFilters();
+
+            expect(Navigation.setParams).toHaveBeenCalledWith({q: buildQueryStringWithResetFilters(currentSearchQueryJSON, undefined), rawQuery: undefined});
+            expect(setSearchContext).toHaveBeenCalledWith(false);
+        });
+
+        it('does nothing when there is no current query', () => {
             mockSearchQueryContext();
 
             const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
             result.current.resetFilters();
 
-            expect(mockSetFilterQueryParams).toHaveBeenCalledTimes(1);
-            expect(mockSetFilterQueryParams).toHaveBeenCalledWith({[CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE]: queryJSON.type});
             expect(Navigation.setParams).not.toHaveBeenCalled();
-            expect(setSearchContext).toHaveBeenCalledWith(false);
+            expect(setSearchContext).not.toHaveBeenCalled();
         });
     });
 });

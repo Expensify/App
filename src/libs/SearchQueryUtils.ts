@@ -800,6 +800,19 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
     return queryParts.join(' ');
 }
 
+const NON_FILTER_CHIP_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
+function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
+    const resetFilters = (defaultQueryJSON?.flatFilters ?? []).filter((filter) => !NON_FILTER_CHIP_KEYS.has(filter.key));
+    const keptFilters = currentQueryJSON.flatFilters.filter((filter) => NON_FILTER_CHIP_KEYS.has(filter.key));
+
+    return buildSearchQueryString({
+        ...currentQueryJSON,
+        type: defaultQueryJSON?.type ?? currentQueryJSON.type,
+        flatFilters: [...resetFilters, ...keptFilters],
+    });
+}
+
 function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | undefined {
     if (!queryJSON.rawFilterList || queryJSON.rawFilterList.length === 0) {
         return undefined;
@@ -2617,6 +2630,7 @@ export {
     isFilterSupported,
     buildSearchQueryJSON,
     buildSearchQueryString,
+    buildQueryStringWithResetFilters,
     buildUserReadableQueryString,
     buildFilterValuesString,
     getDisplayQueryFiltersForKey,

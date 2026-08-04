@@ -3,7 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildQueryStringWithResetFilters, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import SearchAdvancedFiltersProvider, {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
 
@@ -146,30 +146,48 @@ describe('SearchAdvancedFiltersProvider', () => {
     });
 
     describe('resetFilters', () => {
-        it('navigates to the default query string when one exists', () => {
+        function parseQuery(query: string) {
+            const queryJSON = buildSearchQueryJSON(query);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+            return queryJSON;
+        }
+
+        const currentSearchQueryJSON = parseQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon category:Food`);
+
+        it('navigates to the query the filters reset to', () => {
             mockOnyxForm({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
-            mockQueryContext({currentDefaultSearchQueryString: 'type:expense status:all'});
+            const currentDefaultSearchQueryJSON = parseQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
+            mockQueryContext({currentDefaultSearchQueryJSON, currentSearchQueryJSON});
 
             const {result} = renderProvider();
             result.current.resetFilters();
 
-            expect(Navigation.setParams).toHaveBeenCalledTimes(1);
-            expect(Navigation.setParams).toHaveBeenCalledWith({q: 'type:expense status:all', rawQuery: undefined});
-            expect(mockSetFilterQueryParams).not.toHaveBeenCalled();
+            expect(Navigation.setParams).toHaveBeenCalledWith({q: buildQueryStringWithResetFilters(currentSearchQueryJSON, currentDefaultSearchQueryJSON), rawQuery: undefined});
             expect(mockSetSearchContext).toHaveBeenCalledWith(false);
         });
 
-        it('resets to the form type when there is no default query string', () => {
-            mockOnyxForm({type: CONST.SEARCH.DATA_TYPES.INVOICE});
-            mockQueryContext({currentDefaultSearchQueryString: ''});
+        it('navigates to the query the filters reset to when there is no default query', () => {
+            mockOnyxForm({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
+            mockQueryContext({currentDefaultSearchQueryJSON: undefined, currentSearchQueryJSON});
 
             const {result} = renderProvider();
             result.current.resetFilters();
 
-            expect(mockSetFilterQueryParams).toHaveBeenCalledTimes(1);
-            expect(mockSetFilterQueryParams).toHaveBeenCalledWith({[CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE]: CONST.SEARCH.DATA_TYPES.INVOICE});
-            expect(Navigation.setParams).not.toHaveBeenCalled();
+            expect(Navigation.setParams).toHaveBeenCalledWith({q: buildQueryStringWithResetFilters(currentSearchQueryJSON, undefined), rawQuery: undefined});
             expect(mockSetSearchContext).toHaveBeenCalledWith(false);
+        });
+
+        it('does nothing when there is no current query', () => {
+            mockOnyxForm({type: CONST.SEARCH.DATA_TYPES.INVOICE});
+            mockQueryContext({currentSearchQueryJSON: undefined});
+
+            const {result} = renderProvider();
+            result.current.resetFilters();
+
+            expect(Navigation.setParams).not.toHaveBeenCalled();
+            expect(mockSetSearchContext).not.toHaveBeenCalled();
         });
     });
 });
