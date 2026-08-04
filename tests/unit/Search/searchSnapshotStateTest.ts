@@ -256,5 +256,8 @@ describe('search snapshot terminal state', () => {
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
         expect(snapshot?.errors).toBeDefined();
+        // There is no response to read a code from, but the errors still need one so the error view can
+        // classify them after a reload. 0 records "failed without a usable code" rather than leaving a gap.
+        expect(snapshot?.search?.responseJsonCode).toBe(0);
     });
 });

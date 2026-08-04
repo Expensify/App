@@ -20,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -38,7 +38,6 @@ import Animated from 'react-native-reanimated';
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
-    searchRequestResponseStatusCode: number | null;
     isMobileSelectionModeEnabled: boolean;
     handleSearchAction: (value: SearchParams | string) => void;
     onSortPressedCallback: () => void;
@@ -52,7 +51,6 @@ type SearchPageWideProps = {
 function SearchPageWide({
     queryJSON,
     searchResults,
-    searchRequestResponseStatusCode,
     isMobileSelectionModeEnabled,
     handleSearchAction,
     onSortPressedCallback,
@@ -136,7 +134,7 @@ function SearchPageWide({
                                             isSearchLoading: !!searchResults?.search?.isLoading,
                                             hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
                                             hasErrors: Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline,
-                                            hasPendingResponse: searchRequestResponseStatusCode === null,
+                                            hasPendingResponse: isSearchPending(searchResults),
                                             shouldUseLiveData,
                                         }}
                                     />
@@ -149,7 +147,6 @@ function SearchPageWide({
                                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                         onSearchListScroll={scrollHandler}
                                         onSortPressedCallback={onSortPressedCallback}
-                                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                                         onDestinationVisible={endSubmitNavigationSpans}
                                         onContentReady={onSearchContentReady}
                                     />
