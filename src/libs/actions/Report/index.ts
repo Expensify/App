@@ -1798,6 +1798,8 @@ function openReport(params: OpenReportActionParams) {
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
     if (isCreatingNewReport) {
+        const shouldKeepPersonalDetailsOnFailure = shouldAddPendingFields && !isNewThread && !transaction && !newReportObject.parentReportID;
+
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
         const optimisticDataItem = optimisticData.at(0);
@@ -1899,11 +1901,13 @@ function openReport(params: OpenReportActionParams) {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: optimisticPersonalDetails,
         });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: settledPersonalDetails,
-        });
+        if (!shouldKeepPersonalDetailsOnFailure) {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: settledPersonalDetails,
+            });
+        }
 
         if (!isNewThread) {
             failureData.push({
@@ -4589,6 +4593,23 @@ function navigateToConciergeChatAndDeleteReport(
     );
 }
 
+function cleanUpOptimisticPersonalDetailsForFailedChat(report: OnyxEntry<Report>, currentUserAccountID: number) {
+    const personalDetailsToRemove: PersonalDetailsList = {};
+
+    for (const accountID of Object.keys(report?.participants ?? {}).map(Number)) {
+        if (accountID === currentUserAccountID || !allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
+            continue;
+        }
+        personalDetailsToRemove[accountID] = null;
+    }
+
+    if (isEmptyObject(personalDetailsToRemove)) {
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsToRemove);
+}
+
 function clearCreateChatError(
     report: OnyxEntry<Report>,
     conciergeReportID: string | undefined,
@@ -4605,6 +4626,10 @@ function clearCreateChatError(
     if (report?.errorFields?.createChat && !isOptimisticReport) {
         clearReportFieldKeyErrors(report.reportID, 'createChat');
         return;
+    }
+
+    if (report?.errorFields?.createChat && isOptimisticReport) {
+        cleanUpOptimisticPersonalDetailsForFailedChat(report, currentUserAccountID);
     }
 
     navigateToConciergeChatAndDeleteReport(

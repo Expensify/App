@@ -224,7 +224,13 @@ function DynamicIOURequestStepUpgrade({
                     });
                 } else {
                     Navigation.goBack();
-                    navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                    // `getActiveRoute()` still resolves to the upgrade screen here, so anchor the suffix to the expense's report instead.
+                    navigateWithMicrotask(
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID),
+                            ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                        ),
+                    );
                 }
 
                 break;

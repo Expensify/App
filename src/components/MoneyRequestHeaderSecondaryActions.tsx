@@ -581,7 +581,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     return;
                 }
                 Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, parentReport.reportID, true, Navigation.getActiveRoute(), transaction.transactionID),
+                    createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, parentReport.reportID, true, transaction.transactionID)),
                 );
             },
         },
