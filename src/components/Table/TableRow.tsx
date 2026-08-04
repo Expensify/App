@@ -23,6 +23,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import getGridTemplateColumns from './getGridTemplateColumns';
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext, useTableRowHasHeader, useTableRowSemanticID} from './TableContext';
 
@@ -91,7 +92,7 @@ export default function TableRow({
     const item = processedData.at(rowIndex);
     const rowCount = processedData.length;
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
-    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
+    const gridTemplateColumns = getGridTemplateColumns(columns);
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
 
     const isDisabled = !!disabled || isAccessibilityHidden;

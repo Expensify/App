@@ -148,6 +148,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     name: card.nameValuePairs?.cardTitle ?? '',
                     cardholder: personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID],
                     limit: card.nameValuePairs?.unapprovedExpenseLimit ?? 0,
+                    remainingLimit: card.availableSpend ?? 0,
                     currency: settlementCurrency,
                     isVirtual: !!card.nameValuePairs?.isVirtual,
                     limitType: card.nameValuePairs?.limitType,
@@ -209,12 +210,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
           ]
         : [];
     const getHeaderButtons = () => {
-        const headerButtonsRowStyle = [
-            styles.flexRow,
-            styles.gap2,
-            !shouldShowSelector && shouldDisplayButtonsInSeparateLine && styles.mb3,
-            shouldShowSelector && shouldDisplayButtonsInSeparateLine && styles.mt3,
-        ];
+        const headerButtonsRowStyle = [styles.flexRow, styles.gap2, !shouldShowSelector && shouldDisplayButtonsInSeparateLine && styles.mb3];
 
         const shouldShowBulkSelectionDropdown = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedCardIDs.length > 0;
 
@@ -298,7 +294,15 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         pageHeaderContent = <View style={styles.ph5}>{getHeaderButtons()}</View>;
     } else if (shouldShowSelector) {
         pageHeaderContent = (
-            <View style={[styles.w100, styles.ph5, styles.pb3, (!shouldChangeLayout || isInLandscapeMode) && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
+            <View
+                style={[
+                    styles.w100,
+                    styles.ph5,
+                    styles.pb3,
+                    styles.gap3,
+                    (!shouldChangeLayout || isInLandscapeMode) && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
+                ]}
+            >
                 <FeedSelector
                     wrapperStyle={isInLandscapeMode ? styles.flex1 : undefined}
                     onFeedSelect={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path))}
