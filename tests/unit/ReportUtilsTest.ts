@@ -21760,6 +21760,43 @@ describe('ReportUtils', () => {
             expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toEqual(splitAction);
         });
 
+        it('should NOT flag a split-bill action when its linked transaction is pending deletion (revert split / delete)', () => {
+            // Repro of the RBR-persists-after-revert class (cf. #96967 / PR #97706, which only fixed the
+            // violations path in getViolatingReportIDForRBRInLHN). The missing-smartscan-fields path never
+            // excludes DELETE-pending transactions, so a reverted/deleted expense with missing fields keeps
+            // lighting the LHN red-dot until the server confirms removal.
+            const splitTransactionID = '550';
+            const splitAction: ReportAction = {
+                ...createRandomReportAction(Number(splitTransactionID)),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: splitTransactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+                    amount: 0,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participantAccountIDs: [currentUserAccountID],
+                },
+            };
+            // Same missing-fields shape as the positive test above, but the transaction is queued for deletion.
+            const splitTransaction: Transaction = {
+                ...createRandomTransaction(Number(splitTransactionID)),
+                transactionID: splitTransactionID,
+                amount: 0,
+                merchant: 'Lunch',
+                modifiedMerchant: '',
+                created: testDate,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`]: splitTransaction,
+            };
+
+            expect(hasSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toBe(false);
+            expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toBeUndefined();
+        });
+
         it('should NOT flag a split-bill action when its linked transaction has all required fields', () => {
             const splitTransactionID = '600';
             const splitAction: ReportAction = {
