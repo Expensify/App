@@ -1,5 +1,6 @@
 import {
     getCardSettings,
+    getConfiguredExpensifyCardProgramKeys,
     getFundIdFromSettingsKey,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
@@ -27,7 +28,8 @@ function useDefaultFundID(policyID: string | undefined) {
     const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
     const {fundID: lastSelectedFundID, programKey: lastSelectedProgramKey} = parseCardFeedKey(lastSelectedExpensifyCardFeed);
     const [lastSelectedCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedFundID}`);
-    const lastSelectedSettings = lastSelectedProgramKey ? getCardSettings(lastSelectedCardSettings, lastSelectedProgramKey) : lastSelectedCardSettings;
+    const resolvedProgramKey = lastSelectedProgramKey ?? getConfiguredExpensifyCardProgramKeys(lastSelectedCardSettings).at(0);
+    const lastSelectedSettings = resolvedProgramKey ? getCardSettings(lastSelectedCardSettings, resolvedProgramKey) : lastSelectedCardSettings;
 
     const getDomainFundID = useCallback(
         (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
