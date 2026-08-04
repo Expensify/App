@@ -4048,7 +4048,7 @@ describe('SearchQueryUtils', () => {
 
     describe('stripSearchValueQuotes', () => {
         it('removes straight and curly quotes', () => {
-            expect(stripSearchValueQuotes('Simple,"sworkspace')).toBe('Simple,sworkspace');
+            expect(stripSearchValueQuotes('Acme,"Inc')).toBe('Acme,Inc');
             expect(stripSearchValueQuotes('Acme “US” Inc')).toBe('Acme US Inc');
         });
 
