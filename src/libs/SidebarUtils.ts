@@ -1522,7 +1522,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
 /**
  * Get welcome message based on room type
  */
-type getRoomWelcomeMessageParams = {
+type GetRoomWelcomeMessageParams = {
     translate: LocalizedTranslate;
     report: OnyxEntry<Report>;
     invoiceReceiverPolicy: OnyxEntry<Policy>;
@@ -1540,7 +1540,7 @@ function getRoomWelcomeMessage({
     isReportArchived = false,
     reportDetailsLink = '',
     formatPhoneNumber,
-}: getRoomWelcomeMessageParams): WelcomeMessage {
+}: GetRoomWelcomeMessageParams): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
     const reportName = getReportName(report ?? undefined, derivedReportName);
