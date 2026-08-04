@@ -89,6 +89,7 @@ function createOption(
             fallbackIcon: personalDetail.fallbackIcon,
         },
     ];
+    result.searchText = deburr(`${result.text} ${result.login ?? ''}`.toLocaleLowerCase());
 
     return result;
 }
@@ -243,7 +244,8 @@ function matchesSearchTerms(option: OptionData, searchTerms: string[], extraSear
     if (searchTerms.length === 0) {
         return true;
     }
-    let searchText = deburr(`${option.text} ${option.login ?? ''}`.toLocaleLowerCase());
+    // Prefer the normalized text precomputed in createOption to avoid re-deburring on every filter pass
+    let searchText = option.searchText ?? deburr(`${option.text} ${option.login ?? ''}`.toLocaleLowerCase());
     if (extraSearchTerms?.length) {
         searchText += ` ${deburr(extraSearchTerms.join(' ').toLocaleLowerCase())}`;
     }
