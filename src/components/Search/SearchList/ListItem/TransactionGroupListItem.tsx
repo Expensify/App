@@ -8,7 +8,6 @@ import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -232,13 +231,6 @@ function TransactionGroupListItemImpl({
     const StyleUtils = useStyleUtils();
     const {isSelected: liveRowSelected} = useRowSelection(item?.keyForList);
     const isItemSelected = isSelectAllChecked || liveRowSelected;
-
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
-        shouldApplyOtherStyles: false,
-    });
 
     const pressableStyle = [
         styles.transactionGroupListItemStyle,
@@ -577,7 +569,7 @@ function TransactionGroupListItemImpl({
                 onFocus={onFocus}
                 wrapperStyle={[
                     styles.mh5,
-                    animatedHighlightStyle,
+                    {backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG},
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]

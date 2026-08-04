@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
-import React, {useImperativeHandle} from 'react';
+import React from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps} from './searchViewProps';
@@ -49,7 +49,6 @@ function ChatSearchView({
     onScroll,
     contentContainerStyle,
     containerStyle,
-    ref,
 }: ChatSearchViewProps) {
     const {type} = queryJSON;
 
@@ -64,9 +63,6 @@ function ChatSearchView({
     // Chat is a flat list: no group children, no empty groups, so selection counts are a single pass.
     const selectedItemsLength = data.reduce((acc, item) => acc + (item.keyForList && selectedTransactions[item.keyForList]?.isSelected ? 1 : 0), 0);
     const totalItems = data.filter((item) => !isRowDeleted(item)).length;
-
-    // Flat data maps 1:1 to the rendered list, so highlight-scroll-to-index is the same as scroll-to-data-index.
-    useImperativeHandle(ref, () => ({scrollToIndex: scrollToListIndex}), [scrollToListIndex]);
 
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => (
         // Chat rows never animate their exit (only grouped expenses do), so the wrapper just preserves the overflow clip.

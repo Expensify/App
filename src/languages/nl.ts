@@ -1263,6 +1263,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Tijdkosten aanmaken',
     },
     iou: {
+        expenseAdded: 'Uitgave toegevoegd',
+        invoiceSent: 'Factuur verzonden',
         amount: 'Bedrag',
         percent: 'Procent',
         date: 'Datum',
