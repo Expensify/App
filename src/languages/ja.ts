@@ -9379,8 +9379,8 @@ ${reportName}`,
         error: {
             selectSuggestedAddress: '候補の住所を選択するか、現在地を使用してください',
             mapOrGpsDistanceRequired: {
-                title: '地図または GPS の距離が必要です',
-                description: 'このワークスペースでは、地図ベースまたは GPS 追跡による距離経費のいずれかが必要です。',
+                title: '地図またはGPSによる距離の入力が必要です',
+                description: 'このワークスペースでは、地図に基づく距離精算または GPS で追跡された距離精算のいずれかが必要です。',
             },
         },
         odometer: {
@@ -9399,10 +9399,10 @@ ${reportName}`,
             snapPhotoEnd: '<muted-text-label>走行の<strong>終了時</strong>に、オドメーターの写真を撮影してください。</muted-text-label>',
         },
         commuterExclusion: {
-            original: ({formattedDistance}: {formattedDistance: string}) => `元の値：${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `通勤分の距離 ${distance} ${unit} を削除しました`,
+            original: ({formattedDistance}: {formattedDistance: string}) => `元の距離: ${formattedDistance}`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} の通勤${unit}を削除しました`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ワークスペースの通勤距離設定</a>` : 'ワークスペースの通勤距離設定'}に基づき、通勤分としての${unit}を${distance}削除しました。`,
+                `${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ワークスペースの距離設定</a>` : 'ワークスペース距離設定'} に基づき、通勤距離 ${distance} ${unit} を削除しました。`,
         },
     },
     gps: {

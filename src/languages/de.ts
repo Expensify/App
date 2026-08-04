@@ -9531,7 +9531,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             selectSuggestedAddress: 'Bitte wählen Sie eine vorgeschlagene Adresse aus oder verwenden Sie den aktuellen Standort',
             mapOrGpsDistanceRequired: {
                 title: 'Karten- oder GPS-Entfernung erforderlich',
-                description: 'Dieser Workspace erfordert entweder kartenbasierte oder GPS-verfolgte Entfernungsspesen.',
+                description: 'Dieser Workspace erfordert entweder kartenbasierte oder GPS-verfolgte Entfernungskosten.',
             },
         },
         odometer: {
@@ -9551,9 +9551,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} ${unit} für den Arbeitsweg entfernt`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} Pendel-${unit} entfernt`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `${distance} ${unit} für den Arbeitsweg basierend auf den ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">Entfernungseinstellungen des Workspaces</a>` : 'Entfernungseinstellungen des Workspaces'} entfernt.`,
+                `${distance} Pendl${unit} basierend auf ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">Entfernungseinstellungen des Arbeitsbereichs</a>` : 'Arbeitsbereich-Entfernungseinstellungen'} entfernt.`,
         },
     },
     gps: {

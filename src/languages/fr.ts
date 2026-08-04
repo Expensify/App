@@ -9566,8 +9566,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         error: {
             selectSuggestedAddress: 'Veuillez sélectionner une adresse suggérée ou utiliser la position actuelle',
             mapOrGpsDistanceRequired: {
-                title: 'Distance carte ou GPS requise',
-                description: 'Cet espace de travail requiert des dépenses de distance soit basées sur une carte, soit suivies par GPS.',
+                title: 'Distance de carte ou GPS requise',
+                description: 'Cet espace de travail requiert des dépenses kilométriques calculées soit sur la base d’une carte, soit suivies par GPS.',
             },
         },
         odometer: {
@@ -9588,9 +9588,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original : ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} ${unit} de trajet domicile-travail supprimés`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} unité(s) de trajet domicile-travail ${unit} supprimée(s)`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `${distance} ${unit} de trajet domicile-travail supprimés d’après les ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">paramètres de distance de l’espace de travail</a>` : 'paramètres de distance de l’espace de travail'}.`,
+                `${distance} ${unit} de trajet domicile-travail supprimé(s) en fonction de ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">paramètres de distance de l’espace de travail</a>` : 'paramètres de distance de l’espace de travail'}.`,
         },
     },
     gps: {

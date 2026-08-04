@@ -9147,8 +9147,8 @@ ${reportName}`,
         error: {
             selectSuggestedAddress: '请选择一个推荐地址或使用当前位置',
             mapOrGpsDistanceRequired: {
-                title: '需要地图或 GPS 距离',
-                description: '此工作区要求使用基于地图或 GPS 轨迹的里程报销。',
+                title: '需要提供地图或 GPS 距离',
+                description: '此工作区要求里程报销必须基于地图或通过 GPS 进行轨迹跟踪。',
             },
         },
         odometer: {
@@ -9167,10 +9167,10 @@ ${reportName}`,
             snapPhotoEnd: '<muted-text-label>在行程<strong>结束</strong>时拍一张里程表的照片。</muted-text-label>',
         },
         commuterExclusion: {
-            original: ({formattedDistance}: {formattedDistance: string}) => `原始值：${formattedDistance}`,
+            original: ({formattedDistance}: {formattedDistance: string}) => `原始：${formattedDistance}`,
             removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `已移除 ${distance} ${unit} 通勤距离`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `根据${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">工作区距离设置</a>` : '工作区距离设置'}，已移除 ${distance} ${unit} 的通勤距离。`,
+                `已根据 ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">工作区距离设置</a>` : '工作区距离设置'} 移除 ${distance} ${unit} 的通勤距离。`,
         },
     },
     gps: {

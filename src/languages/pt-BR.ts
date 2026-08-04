@@ -9469,7 +9469,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             selectSuggestedAddress: 'Selecione um endereço sugerido ou use a localização atual',
             mapOrGpsDistanceRequired: {
                 title: 'Distância de mapa ou GPS obrigatória',
-                description: 'Este workspace exige despesas de distância baseadas em mapa ou rastreadas por GPS.',
+                description: 'Este espaço de trabalho exige despesas de distância baseadas em mapa ou rastreadas por GPS.',
             },
         },
         odometer: {
@@ -9489,9 +9489,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} ${unit} de deslocamento removidos`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Removeu ${distance} deslocamento ${unit}`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `${distance} ${unit} de deslocamento removidos com base nas ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">configurações de distância do workspace</a>` : 'configurações de distância do workspace'}.`,
+                `Removidos ${distance} ${unit} de deslocamento diário com base em ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">configurações de distância do workspace</a>` : 'configurações de distância do workspace'}.`,
         },
     },
     gps: {

@@ -9780,7 +9780,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual',
             mapOrGpsDistanceRequired: {
                 title: 'Se requiere distancia por mapa o GPS',
-                description: 'Este espacio de trabajo requiere gastos de distancia basados en mapa o rastreados por GPS.',
+                description: 'Este espacio de trabajo requiere gastos de distancia basados en mapa o con seguimiento por GPS.',
             },
         },
         odometer: {
@@ -9800,9 +9800,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Se eliminaron ${distance} ${unit} de trayecto`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Se eliminaron ${distance} ${unit} de viaje diario`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `Se eliminaron ${distance} ${unit} de trayecto según la ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">configuración de distancia del espacio de trabajo</a>` : 'configuración de distancia del espacio de trabajo'}.`,
+                `Se eliminaron ${distance} ${unit} de desplazamiento en base a ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">configuración de distancias del espacio de trabajo</a>` : 'ajustes de distancia del espacio de trabajo'}.`,
         },
     },
     reportCardLostOrDamaged: {

@@ -9478,8 +9478,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         error: {
             selectSuggestedAddress: 'Selecteer een voorgesteld adres of gebruik de huidige locatie',
             mapOrGpsDistanceRequired: {
-                title: 'Afstand op kaart of via GPS vereist',
-                description: 'Deze workspace vereist afstandskosten die zijn gebaseerd op een kaart of met GPS zijn gevolgd.',
+                title: 'Afstand van kaart of GPS vereist',
+                description: 'Deze workspace vereist afstandsdeclaraties die zijn gebaseerd op een kaart of via GPS worden bijgehouden.',
             },
         },
         odometer: {
@@ -9499,9 +9499,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Origineel: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} ${unit} woon-werkafstand verwijderd`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} woon-werk${unit} verwijderd`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `${distance} ${unit} woon-werkafstand verwijderd op basis van de ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">afstandsinstellingen van de workspace</a>` : 'afstandsinstellingen van de workspace'}.`,
+                `${distance} woon-werk-${unit} verwijderd op basis van ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">werkruimte-afstandsinstellingen</a>` : 'instelling voor werkruimte-afstand'}.`,
         },
     },
     gps: {

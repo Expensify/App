@@ -9712,6 +9712,10 @@ ${reportName}`,
         },
         error: {
             selectSuggestedAddress: 'Παρακαλείστε να επιλέξετε μια προτεινόμενη διεύθυνση ή να χρησιμοποιήσετε την τρέχουσα τοποθεσία',
+            mapOrGpsDistanceRequired: {
+                title: 'Απαιτείται απόσταση από χάρτη ή GPS',
+                description: 'Αυτός ο χώρος εργασίας απαιτεί έξοδα απόστασης είτε με βάση χάρτη είτε με παρακολούθηση GPS.',
+            },
         },
         odometer: {
             startReading: 'Ξεκινήστε την ανάγνωση',
@@ -9727,6 +9731,12 @@ ${reportName}`,
             cameraAccessRequired: 'Απαιτείται πρόσβαση στην κάμερα για τη λήψη φωτογραφιών.',
             snapPhotoStart: '<muted-text-label>Βγάλτε μια φωτογραφία το χιλιομετρητή σας στην <strong>αρχή</strong> του ταξιδιού σας.</muted-text-label>',
             snapPhotoEnd: '<muted-text-label>Βγάλτε μια φωτογραφία του χιλιομετρητή σας στο <strong>τέλος</strong> του ταξιδιού σας.</muted-text-label>',
+        },
+        commuterExclusion: {
+            original: ({formattedDistance}: {formattedDistance: string}) => `Αρχικό: ${formattedDistance}`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Αφαιρέθηκαν ${distance} διαδρομές εκτός έδρας (${unit})`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `Αφαιρέθηκαν ${distance} διαδρομές μετακίνησης ${unit} βάσει του ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ρυθμίσεις απόστασης χώρου εργασίας</a>` : 'ρυθμίσεις απόστασης χώρου εργασίας'}.`,
         },
     },
     gps: {

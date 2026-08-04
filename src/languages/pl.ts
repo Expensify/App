@@ -9455,7 +9455,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             selectSuggestedAddress: 'Wybierz sugerowany adres lub użyj bieżącej lokalizacji',
             mapOrGpsDistanceRequired: {
                 title: 'Wymagana odległość z mapy lub GPS',
-                description: 'Toje miejsce pracy wymaga wydatków za przejazdy obliczanych na podstawie mapy lub śledzonych za pomocą GPS.',
+                description: 'W tym obszarze roboczym wymagane są wydatki za przejazdy oparte na mapie lub śledzone za pomocą GPS.',
             },
         },
         odometer: {
@@ -9475,9 +9475,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Oryginał: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Usunięto ${distance} ${unit} dojazdu`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Usunięto ${distance} dojazdów (${unit})`,
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
-                `Usunięto ${distance} ${unit} dojazdu na podstawie ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ustawień odległości w przestrzeni roboczej</a>` : 'ustawień odległości w przestrzeni roboczej'}.`,
+                `Usunięto ${distance} dojazdowych ${unit} na podstawie ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ustawienia odległości w przestrzeni roboczej</a>` : 'ustawienia odległości w przestrzeni roboczej'}.`,
         },
     },
     gps: {
