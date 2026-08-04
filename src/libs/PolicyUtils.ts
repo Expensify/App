@@ -1311,7 +1311,7 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
 }
 
 function isPolicyArchived(policy: OnyxInputOrEntry<Policy>): boolean {
-    return Math.random() < 0.5;
+    return !!policy?.archivedDate;
 }
 
 /**
