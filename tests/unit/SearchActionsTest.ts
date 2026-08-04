@@ -6,7 +6,7 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate} from '@src/types/onyx';
+import type {ExportTemplate, Policy} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import {translateLocal} from '../utils/TestHelper';
@@ -257,5 +257,32 @@ describe('getExportTemplates', () => {
 
         // Basic export is sorted alphabetically alongside the other default templates, not pinned to the bottom
         expect(names).toEqual([translate('export.expenseLevelExport'), translate('export.reportLevelExport'), translate('export.basicExport')].sort(localeCompare));
+    });
+
+    it('includes the Canadian Multiple Tax Export template when the policy outputs in CAD', () => {
+        const policy = {outputCurrency: CONST.CURRENCY.CAD} as Policy;
+        const {defaultTemplates} = getExportTemplates([], {}, translate, localeCompare, policy);
+
+        expect(defaultTemplates.map((template) => template.templateName)).toContain(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT);
+    });
+
+    it('excludes the Canadian Multiple Tax Export template when the policy outputs in another currency', () => {
+        const policy = {outputCurrency: CONST.CURRENCY.USD} as Policy;
+        const {defaultTemplates} = getExportTemplates([], {}, translate, localeCompare, policy);
+
+        expect(defaultTemplates.map((template) => template.templateName)).not.toContain(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT);
+    });
+
+    it('includes the Canadian Multiple Tax Export template when includeMultipleTaxExport is true without a policy', () => {
+        const {defaultTemplates} = getExportTemplates([], {}, translate, localeCompare, undefined, true, false, true);
+
+        expect(defaultTemplates.map((template) => template.templateName)).toContain(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT);
+    });
+
+    it('excludes the Canadian Multiple Tax Export template when includeMultipleTaxExport is false for a CAD policy', () => {
+        const policy = {outputCurrency: CONST.CURRENCY.CAD} as Policy;
+        const {defaultTemplates} = getExportTemplates([], {}, translate, localeCompare, policy, true, false, false);
+
+        expect(defaultTemplates.map((template) => template.templateName)).not.toContain(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT);
     });
 });
