@@ -61,7 +61,7 @@ To learn about the available templates, see [Use Agent Templates](/articles/new-
 
 ## What are suggested rules? 
 
-Suggested rules are prewritten Agent rules for common workspace workflows.
+Suggested rules are pre-written Agent rules for common workspace workflows.
 
 Instead of starting with a blank Agent rule, you can choose a suggested rule and edit it before saving.
 
