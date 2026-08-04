@@ -137,7 +137,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps
                         setIsRequire2FAModalOpen(false);
                     }}
                     isVisible={isRequire2FAModalOpen}
-                    description={translate('twoFactorAuth.twoFactorAuthIsRequiredDescription')}
+                    description={translate('twoFactorAuth.twoFactorAuthIsRequiredNetSuiteDescription')}
                 />
             )}
         </>

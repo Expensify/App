@@ -2510,6 +2510,7 @@ const translations = {
         enableTwoFactorAuth: 'Enable two-factor authentication',
         pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
         twoFactorAuthIsRequiredDescription: 'For security purposes, Xero requires two-factor authentication to connect the integration.',
+        twoFactorAuthIsRequiredNetSuiteDescription: 'For security purposes, NetSuite requires two-factor authentication to connect the integration.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Two-factor authentication required',
         twoFactorAuthIsRequiredForAdminsTitle: 'Please enable two-factor authentication',
         twoFactorAuthIsRequiredXero: 'Your Xero accounting connection requires two-factor authentication.',

@@ -2425,6 +2425,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Scan de QR-code met je nieuwe apparaat en voer daarna de code in om de installatie te voltooien.',
         downloadCodes: 'Codes downloaden',
         copyCodes: 'Codes kopiëren',
+        twoFactorAuthIsRequiredNetSuiteDescription: 'Om veiligheidsredenen vereist NetSuite tweeledige verificatie om de koppeling te maken.',
     },
     recoveryCodeForm: {
         error: {

@@ -2347,6 +2347,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
         downloadCodes: '下载代码',
         copyCodes: '复制代码',
+        twoFactorAuthIsRequiredNetSuiteDescription: '出于安全考虑，NetSuite 要求使用双重身份验证来连接此集成。',
     },
     recoveryCodeForm: {
         error: {

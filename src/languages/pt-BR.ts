@@ -2418,6 +2418,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Escaneie o código QR com seu novo dispositivo e depois insira o código para concluir a configuração.',
         downloadCodes: 'Baixar códigos',
         copyCodes: 'Copiar códigos',
+        twoFactorAuthIsRequiredNetSuiteDescription: 'Por motivos de segurança, o NetSuite exige autenticação em duas etapas para conectar a integração.',
     },
     recoveryCodeForm: {
         error: {
