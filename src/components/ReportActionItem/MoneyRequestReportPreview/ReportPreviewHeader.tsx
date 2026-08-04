@@ -67,6 +67,12 @@ function ReportPreviewHeader() {
         [translate, numberOfRequests],
     );
 
+    // A cancelled payment is a report level event and it isn't surfaced by the status badge, so we show it next to the expense count.
+    const supportingText = useMemo(
+        () => (iouReport?.isCancelledIOU ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${expenseCount}` : expenseCount),
+        [iouReport?.isCancelledIOU, translate, expenseCount],
+    );
+
     const reportStateNum = iouReport?.stateNum ?? action?.childStateNum;
     const reportStatusNum = iouReport?.statusNum ?? action?.childStatusNum;
 
@@ -123,7 +129,7 @@ function ReportPreviewHeader() {
                                         tooltipText={reportStatusTooltip}
                                     />
                                 )}
-                                {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>}
+                                {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{supportingText}</Text>}
                             </View>
                         )
                     )}

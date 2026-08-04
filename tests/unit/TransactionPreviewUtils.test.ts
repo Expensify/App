@@ -185,7 +185,9 @@ describe('TransactionPreviewUtils', () => {
         it('should apply correct text when transaction is pending and not a bill split', () => {
             const functionArgs = {...basicProps, transaction: {...basicProps.transaction, status: CONST.TRANSACTION.STATUS.PENDING}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewTypeText).toEqual({translationPath: 'iou.pending'});
+            // Pending is a transaction status, so it belongs to the supporting line and must not replace the expense type.
+            expect(result.previewStatusText).toContainEqual({translationPath: 'iou.pending'});
+            expect(result.previewTypeText).toEqual({translationPath: 'iou.cash'});
         });
 
         it('handles currency and amount display during scanning correctly', () => {
@@ -226,13 +228,13 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });
 
-        it('shows approved message when the iouReport is canceled', () => {
+        it('does not show the canceled status when the iouReport is canceled, because it is shown at the report level instead', () => {
             const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewStatusText).toContainEqual({translationPath: 'iou.canceled'});
+            expect(result.previewStatusText).toEqual([]);
         });
 
-        it('should include "Approved" in the preview when the report is approved, regardless of whether RBR is shown', () => {
+        it('does not show the approved status when the report is approved, because it is redundant with the report status badge', () => {
             const functionArgs = {
                 ...basicProps,
                 iouReport: {
@@ -247,7 +249,7 @@ describe('TransactionPreviewUtils', () => {
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
 
-            expect(result.previewStatusText).toContainEqual({translationPath: 'iou.approved'});
+            expect(result.previewStatusText).toEqual([]);
         });
 
         it('should display the correct amount for a bill split transaction', () => {

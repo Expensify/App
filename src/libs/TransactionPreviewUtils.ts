@@ -36,7 +36,6 @@ import {
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
-    isManagedCardTransaction,
     isMerchantMissing,
     isOnHold,
     isPending,
@@ -196,7 +195,6 @@ function getUniqueActionErrorsForTransaction(reportActions: OnyxTypes.ReportActi
 
 function getTransactionPreviewTextAndTranslationPaths({
     iouReport,
-    iouReportOwnerLogin,
     policy,
     transaction,
     action,
@@ -206,13 +204,10 @@ function getTransactionPreviewTextAndTranslationPaths({
     shouldShowRBR,
     violationMessage,
     reportActions,
-    currentUserEmail,
-    currentUserAccountID,
     originalTransaction,
     convertToDisplayString,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
-    iouReportOwnerLogin: string | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     action: OnyxEntry<OnyxTypes.ReportAction>;
@@ -222,17 +217,13 @@ function getTransactionPreviewTextAndTranslationPaths({
     shouldShowRBR: boolean;
     violationMessage?: string;
     reportActions?: OnyxTypes.ReportActions;
-    currentUserEmail: string;
-    currentUserAccountID: number;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
-    const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
     const isMoneyRequestSettled = isSettled(iouReport?.reportID);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
-    const isPartialHold = isSettlementOrApprovalPartial && isTransactionOnHold;
 
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
     const shouldShowHoldMessage = !(isMoneyRequestSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
@@ -240,8 +231,6 @@ function getTransactionPreviewTextAndTranslationPaths({
     const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
     const isGroupPolicy = isGroupPolicyUtil(policy);
 
-    const hasViolationsOfTypeNotice =
-        hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport, iouReportOwnerLogin, policy, true) && isGroupPolicy;
     const hasActionWithErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
 
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
@@ -323,36 +312,18 @@ function getTransactionPreviewTextAndTranslationPaths({
         previewDateText = {text: date};
     }
 
+    // Report level statuses (Paid, Approved, Review required, Canceled) are intentionally omitted here because they are
+    // already surfaced by the report status badge and the violation row. Only transaction level statuses belong on this line.
     const previewStatusText: TranslationPathOrText[] = [];
-    const addPreviewStatusText = (statusText: TranslationPathOrText) => {
-        previewStatusText.push(statusText);
-    };
 
     if (isPending(transaction)) {
-        previewTypeText = {translationPath: 'iou.pending'};
+        previewStatusText.push({translationPath: 'iou.pending'});
     }
 
     if (hasPendingRTERViolation(violations)) {
-        addPreviewStatusText({translationPath: 'iou.pendingMatch'});
-    }
-
-    let isPreviewHeaderTextComplete = false;
-
-    if (isMoneyRequestSettled && !iouReport?.isCancelledIOU && !isPartialHold && !hasActionWithErrors) {
-        addPreviewStatusText({translationPath: isTransactionMadeWithCard ? 'common.done' : 'iou.settledExpensify'});
-        isPreviewHeaderTextComplete = true;
-    }
-
-    if (!isPreviewHeaderTextComplete) {
-        if (hasViolationsOfTypeNotice && transaction && !isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID)) {
-            addPreviewStatusText({translationPath: 'violations.reviewRequired'});
-        } else if (isExpenseReport(iouReport) && isGroupPolicyUtil(policy) && isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID) && !isPartialHold) {
-            addPreviewStatusText({translationPath: 'iou.approved'});
-        } else if (iouReport?.isCancelledIOU) {
-            addPreviewStatusText({translationPath: 'iou.canceled'});
-        } else if (shouldShowHoldMessage) {
-            addPreviewStatusText({translationPath: 'violations.hold'});
-        }
+        previewStatusText.push({translationPath: 'iou.pendingMatch'});
+    } else if (shouldShowHoldMessage) {
+        previewStatusText.push({translationPath: 'violations.hold'});
     }
 
     const amount = isBillSplit ? getAmount(originalTransaction ?? transaction) : requestAmount;
