@@ -1,5 +1,6 @@
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
@@ -88,6 +89,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true, areAllMatchingItemsSelected);
     const {isOffline} = useNetwork();
+    const preferredCurrency = usePreferredCurrency();
     const [footerCurrencyState, setFooterCurrencyState] = useState<FooterCurrencyState>({
         searchHash: undefined,
         selectedCurrency: undefined,
@@ -241,10 +243,10 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // Use the per-selection (client) total for a partial selection; nothing-selected and everything-selected both fall
     // to the whole-search grand total, which every search type now returns converted, keyed by the search hash.
     const shouldUseClientTotal = !metadataCount || hasPartialSelection;
-    const firstSelectedTransactionKey = selectedTransactionsKeys.at(0);
-    const firstSelectedTransaction = firstSelectedTransactionKey ? selectedTransactions[firstSelectedTransactionKey] : undefined;
-    const selectedTransactionDefaultCurrency = firstSelectedTransaction?.groupCurrency ?? firstSelectedTransaction?.currency;
-    const effectiveDefaultCurrency = defaultFooterCurrency ?? metadataCurrency ?? selectedTransactionDefaultCurrency;
+    // metadataCurrency is empty for a fresh no-workspace account until a search populates search.currency (e.g. after
+    // visiting Reports), so fall back to the user's live payment currency instead of an arbitrary selected expense's currency.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const effectiveDefaultCurrency = defaultFooterCurrency || metadataCurrency || preferredCurrency;
     const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== effectiveDefaultCurrency;
 
     // The most recent conversion request for this currency failed, so stop waiting on a converted value that isn't coming.
