@@ -551,6 +551,78 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.modifiedMerchant).not.toContain('20');
         });
 
+        it('keeps the commuter exclusion applied when the distance rate is changed', () => {
+            // Given a policy with a 3 mile fixed distance commuter exclusion and two rates
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 3,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            // getMileageRates keys its result by the rates map key, so it must match customUnitRateID
+                            ID1: {
+                                customUnitRateID: '1',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 1,
+                            },
+                            ID2: {
+                                customUnitRateID: '2',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 2,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+
+            // And a 10 mile expense whose reimbursable distance is 7 miles after the exclusion
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'ID1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                        commuterExclusion: 3,
+                        reimbursableDistance: 7,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            // When the rate is changed
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {customUnitRateID: 'ID2'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            // Then the commuter exclusion is still applied
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBe(3);
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBe(7);
+
+            // And the amount comes from the reimbursable distance at the new rate (7 × 2), not the full 10 miles
+            expect(updatedTransaction.modifiedAmount).toBe(14);
+
+            // And the merchant quotes that same reimbursable distance, so it agrees with the amount
+            expect(updatedTransaction.modifiedMerchant).toContain('7');
+            expect(updatedTransaction.modifiedMerchant).not.toContain('10');
+        });
+
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
             // A P2P distance expense (FAKE_P2P_ID) has no policy rate, so the mileage currency comes from the
             // resolved personal-policy currency that getUpdatedTransaction forwards to getRate. getRateForP2P only
