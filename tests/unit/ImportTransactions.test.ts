@@ -923,5 +923,55 @@ describe('ImportTransactions', () => {
             const optimisticData = getRequiredOnyxUpdates(onyxData, 'optimisticData');
             expect(optimisticData).not.toEqual(expect.arrayContaining([expect.objectContaining({key: ONYXKEYS.CARD_LIST})]));
         });
+
+        it('falls back to the settings of the previously saved layout when importing into an existing card', async () => {
+            const existingCardID = 987654321;
+            const previouslySavedLayout = createMock<SavedCSVColumnLayoutData>({
+                name: 'My Bank Card',
+                flipAmountSign: true,
+                reimbursable: false,
+                accountDetails: {
+                    bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
+                    currency: 'EUR',
+                    accountID: 'My Bank Card',
+                },
+            });
+
+            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, existingCardID, previouslySavedLayout);
+
+            const [, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(params.cardName).toBe('My Bank Card');
+            expect(params.currency).toBe('EUR');
+            expect(params.reimbursable).toBe(false);
+            // The saved layout flips the sign, so the parsed 5.50 and 25.00 amounts import as negative
+            expect(JSON.parse(String(params.transactionList))).toEqual([expect.objectContaining({amount: -550}), expect.objectContaining({amount: -2500})]);
+            expect(JSON.parse(String(params.columnMappings))).toEqual(expect.objectContaining({name: 'My Bank Card', flipAmountSign: true, reimbursable: false}));
+        });
+
+        it('keeps the settings chosen on the import settings page over the previously saved layout', async () => {
+            const existingCardID = 987654321;
+            const previouslySavedLayout = createMock<SavedCSVColumnLayoutData>({
+                name: 'My Bank Card',
+                flipAmountSign: true,
+                reimbursable: false,
+                accountDetails: {
+                    bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
+                    currency: 'EUR',
+                    accountID: 'My Bank Card',
+                },
+            });
+            const spreadsheetWithSettings = {
+                ...validSpreadsheet,
+                importTransactionSettings: {cardDisplayName: 'Renamed Card', currency: 'GBP', isReimbursable: true, flipAmountSign: false},
+            };
+
+            await importTransactionsFromCSV(spreadsheetWithSettings, CURRENT_USER_ACCOUNT_ID, existingCardID, previouslySavedLayout);
+
+            const [, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(params.cardName).toBe('Renamed Card');
+            expect(params.currency).toBe('GBP');
+            expect(params.reimbursable).toBe(true);
+            expect(JSON.parse(String(params.transactionList))).toEqual([expect.objectContaining({amount: 550}), expect.objectContaining({amount: 2500})]);
+        });
     });
 });

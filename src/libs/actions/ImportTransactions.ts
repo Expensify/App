@@ -245,7 +245,7 @@ function buildOptimisticTransactions(transactionList: TransactionFromCSV[], card
  * @param spreadsheet - The imported spreadsheet data
  * @param accountID - The current (importing) user's accountID, used as the cardholder for a new optimistic card
  * @param existingCardID - Optional cardID to add transactions to an existing card instead of creating a new one
- * @param previouslySavedLayout - Optional previous saved layout to restore on failure
+ * @param previouslySavedLayout - Optional previous saved layout, used to fall back to the settings of the last import and to restore on failure
  */
 async function importTransactionsFromCSV(
     spreadsheet: ImportedSpreadsheet,
@@ -254,10 +254,20 @@ async function importTransactionsFromCSV(
     previouslySavedLayout?: SavedCSVColumnLayoutData,
 ): Promise<ImportFinalModal> {
     const settings = spreadsheet.importTransactionSettings ?? {};
-    const {cardDisplayName = 'Imported Card', currency = CONST.CURRENCY.USD, isReimbursable = true, flipAmountSign = false} = settings;
+
+    // Uploading another file to an existing card skips the import settings page, so the settings from the first
+    // upload are not in Onyx anymore. Fall back to the values persisted in that card's saved layout before
+    // falling back to the hard defaults, so repeat uploads reuse the configuration the user already chose.
+    const resolvedSettings: ImportTransactionSettings = {
+        cardDisplayName: settings.cardDisplayName ?? previouslySavedLayout?.name ?? 'Imported Card',
+        currency: settings.currency ?? previouslySavedLayout?.accountDetails?.currency ?? CONST.CURRENCY.USD,
+        isReimbursable: settings.isReimbursable ?? previouslySavedLayout?.reimbursable ?? true,
+        flipAmountSign: settings.flipAmountSign ?? previouslySavedLayout?.flipAmountSign ?? false,
+    };
+    const {cardDisplayName = 'Imported Card', currency = CONST.CURRENCY.USD, isReimbursable = true, flipAmountSign = false} = resolvedSettings;
 
     // Build transaction list from spreadsheet
-    const transactionList = buildTransactionListFromSpreadsheet(spreadsheet, settings);
+    const transactionList = buildTransactionListFromSpreadsheet(spreadsheet, resolvedSettings);
 
     if (transactionList.length === 0) {
         return {
