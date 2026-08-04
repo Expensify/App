@@ -234,11 +234,13 @@ async push()  (online · idle · no conflict)
 **How it works today.**
 - **`getRequestWaitTime`** seeds the first wait with a random jitter in `[MIN_RETRY_WAIT_TIME_MS, MAX_RANDOM_RETRY_WAIT_TIME_MS]` = `[10, 100]` ms, then **doubles** the prior wait on each retry, capped at `MAX_RETRY_WAIT_TIME_MS` (10 s).
 - **`sleep`** increments the retry count and picks the cap: `MAX_OPEN_APP_REQUEST_RETRIES` (2) for the `OPEN_APP` command, else `MAX_REQUEST_RETRIES` (10). Within the cap it resolves after the wait; once exceeded it **rejects with no argument**. This argument-less rejection is the give-up signal that `process()`'s catch consumes.
-- **`clear`** resets the wait, the retry count, and any pending timeout. It is called on success and on any non-retryable outcome.
+- **`clear`** resets the wait, the retry count, and any pending timeout. It is called on success, on any non-retryable outcome, and on the `isQueuePaused` and `isOfflineNetwork()` early returns in `process()`. A sleeping retry always wakes up back into `process()`, so those two guards are where a retry chain stops and where its state would otherwise be left behind.
 - The queue uses a single shared instance, `sequentialQueueRequestThrottle`.
 
 **Sharp edges.**
 - After the retry cap, a request is **permanently dropped** (see the [give-up row](#error-handling)), for non-`OPEN_APP` commands with no user-facing modal.
+- The instance is shared, so state earned by one command is charged to whichever command runs next. The two `clear()` calls above stop that state from crossing an offline gap or a gap sync, but it still crosses between two commands that fail back to back while online.
+- `clear()` is deliberately called only from inside the retry chain's own flow. `clear()` does `clearTimeout` on the pending `sleep` timeout, which is the `resolve` the chain is awaiting, so calling it from outside (a `NetworkState` edge, `Reconnect.ts`) during a fast flap would leave `currentRequestPromise` unsettled and wedge the queue.
 - `clear()` fires on every success, so a burst that interleaves successes with failures keeps resetting backoff to the floor, weakening the intended exponential spacing against a degraded backend.
 
 ## QueuedOnyxUpdates and queueFlushedData
@@ -318,7 +320,7 @@ The blocks above describe what the queue does; this is the inbound surface: who 
 | `isReadyPromisePending` | Idempotency guard for `setIsReadyPromisePending()` (prevents orphaning READs parked on a prior pending promise) | `true` when a pending promise is armed | `false` inside `resolveIsReadyPromise` | At most one pending `isReadyPromise` is armed at a time |
 | `shouldFailAllRequests` | Sticky `NETWORK`-key flag → erroring requests are failed and dropped | `NETWORK` Onyx callback | `NETWORK` Onyx callback | Test/debug only |
 | `queueFlushedDataToStore` | In-memory mirror of `QUEUE_FLUSHED_DATA` | the `QUEUE_FLUSHED_DATA` connect-callback echo of `saveQueueFlushedData`'s `Onyx.set` | `clearQueueFlushedData` | Applied only on full drain |
-| `sequentialQueueRequestThrottle` | Shared backoff state (wait time, retry count, pending timeout) | `sleep()` on each generic-error retry | `clear()` on success and every non-retryable outcome | Backoff state never survives a settled request |
+| `sequentialQueueRequestThrottle` | Shared backoff state (wait time, retry count, pending timeout) | `sleep()` on each generic-error retry | `clear()` on success, every non-retryable outcome, and the paused and offline early returns in `process()` | Backoff state never survives a settled request, an offline gap, or a gap sync |
 
 ### Why `isReadyPromise` resolves on offline, not on paused
 
