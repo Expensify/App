@@ -1,5 +1,6 @@
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
+import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -7,7 +8,7 @@ import {translate} from '@libs/Localize';
 import {rand64} from '@libs/NumberUtils';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
-import {buildOptimisticTransaction, getAmount, getCurrency, isDistanceRequest as isDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
+import {buildOptimisticTransaction, calculateTaxAmount, getAmount, getCurrency, isDistanceRequest as isDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -732,6 +733,7 @@ function updateSplitExpenseAmountField(
             let updatedSplitExpense: SplitExpense = {
                 ...splitExpense,
                 amount,
+                taxAmount: convertToBackendAmount(calculateTaxAmount(splitExpense.taxValue, amount, getCurrencyDecimals(currency))),
                 isManuallyEdited: true,
             };
 

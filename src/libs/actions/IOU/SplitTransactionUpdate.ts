@@ -3,9 +3,9 @@ import type {SearchActionsContextValue, SearchStateContextValue} from '@componen
 import {write as apiWrite} from '@libs/API';
 import type {RevertSplitTransactionParams, SplitTransactionParams, SplitTransactionSplitsParam} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import popReportsSplitNavigatorToReport from '@libs/Navigation/helpers/popReportsSplitNavigatorToReport';
@@ -46,7 +46,6 @@ import {
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
-    calculateTaxAmount,
     getChildTransactions,
     hasValidModifiedAmount,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -345,7 +344,7 @@ function updateSplitTransactions({
                 reimbursable: split?.reimbursable,
                 billable: split?.billable,
                 taxCode: split?.taxCode,
-                taxAmount: convertToBackendAmount(calculateTaxAmount(split?.taxValue, split.amount, getCurrencyDecimals(originalTransactionDetails?.currency ?? CONST.CURRENCY.USD))),
+                taxAmount: split?.taxAmount,
                 taxValue: split?.taxValue,
                 quantity: split.customUnit?.quantity ?? undefined,
                 customUnitRateID: split.customUnit?.customUnitRateID,
@@ -638,13 +637,9 @@ function updateSplitTransactions({
                 pendingFields: splitTransaction ? splitTransaction.pendingFields : undefined,
                 reimbursable: splitExpense.reimbursable ?? originalTransactionDetails?.reimbursable,
                 taxCode: splitExpense.taxCode ?? originalTransactionDetails?.taxCode,
-                taxAmount: convertToBackendAmount(
-                    calculateTaxAmount(
-                        splitExpense.taxValue ?? originalTransactionDetails?.taxValue,
-                        splitExpense.amount ?? 0,
-                        getCurrencyDecimals(originalTransactionDetails?.currency ?? CONST.CURRENCY.USD),
-                    ),
-                ),
+                taxAmount:
+                    splitExpense.taxAmount ??
+                    calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
                 taxValue: splitExpense.taxValue ?? originalTransactionDetails?.taxValue,
                 billable: splitExpense.billable ?? originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
@@ -687,13 +682,9 @@ function updateSplitTransactions({
                 attendees: originalTransactionDetails?.attendees as Attendee[],
                 linkedTrackedExpenseReportAction: reverseSplitLinkedTrackedExpenseReportAction,
                 taxCode: splitExpense.taxCode ?? originalTransactionDetails?.taxCode,
-                taxAmount: convertToBackendAmount(
-                    calculateTaxAmount(
-                        splitExpense.taxValue ?? originalTransactionDetails?.taxValue,
-                        splitExpense.amount ?? 0,
-                        getCurrencyDecimals(originalTransactionDetails?.currency ?? CONST.CURRENCY.USD),
-                    ),
-                ),
+                taxAmount:
+                    splitExpense.taxAmount ??
+                    calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
                 taxValue: splitExpense.taxValue ?? originalTransactionDetails?.taxValue,
                 reimbursable: splitExpense.reimbursable ?? originalTransactionDetails?.reimbursable,
                 billable: splitExpense.billable ?? originalTransactionDetails?.billable,
