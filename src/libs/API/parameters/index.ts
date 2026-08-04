@@ -400,6 +400,7 @@ export type {default as SetPolicyCashExpenseModeParams} from './SetPolicyCashExp
 export type {default as DisablePolicyBillableModeParams} from './DisablePolicyBillableModeParams';
 export type {default as SetWorkspaceEReceiptsEnabled} from './SetWorkspaceEReceiptsEnabled';
 export type {default as SetPolicyAttendeeTrackingEnabledParams} from './SetPolicyAttendeeTrackingEnabledParams';
+export type {default as SetPolicyPublicReceiptVisibilityEnabledParams} from './SetPolicyPublicReceiptVisibilityEnabledParams';
 export type {default as ConfigureExpensifyCardsForPolicyParams} from './ConfigureExpensifyCardsForPolicyParams';
 export type {default as SetExpensifyCardRuleParams} from './SetExpensifyCardRuleParams';
 export type {default as CreateExpensifyCardParams} from './CreateExpensifyCardParams';
@@ -487,6 +488,7 @@ export type {default as ImportPerDiemRatesParams} from './ImportPerDiemRatesPara
 export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
 export type {default as ExportReportPDFParams} from './ExportReportPDFParams';
 export type {default as ExportReportsToPDFParams} from './ExportReportsToPDFParams';
+export type {default as ExportReceiptsToZipParams} from './ExportReceiptsToZipParams';
 export type {default as UpdateWorkspaceCustomUnitParams} from './UpdateWorkspaceCustomUnitParams';
 export type {default as DismissProductTrainingParams} from './DismissProductTraining';
 export type {default as AddWorkEmailParams} from './AddWorkEmailParams';
