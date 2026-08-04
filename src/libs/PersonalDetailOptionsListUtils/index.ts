@@ -244,7 +244,7 @@ function matchesSearchTerms(option: OptionData, searchTerms: string[], extraSear
     if (searchTerms.length === 0) {
         return true;
     }
-    // Prefer the normalized text precomputed in createOption to avoid re-deburring on every filter pass
+
     let searchText = option.searchText ?? deburr(`${option.text} ${option.login ?? ''}`.toLocaleLowerCase());
     if (extraSearchTerms?.length) {
         searchText += ` ${deburr(extraSearchTerms.join(' ').toLocaleLowerCase())}`;
