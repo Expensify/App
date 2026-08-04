@@ -1850,6 +1850,7 @@ describe('ReportNameUtils', () => {
                 currentUserAccountID,
                 currentUserLogin,
                 translate: translateLocal,
+                reportTransactions: {},
                 isTrackIntentUser: false,
             });
             expect(nameWithMatchingID).toBe(CONST.CONCIERGE_DISPLAY_NAME);
@@ -1862,6 +1863,7 @@ describe('ReportNameUtils', () => {
                 currentUserAccountID,
                 currentUserLogin,
                 translate: translateLocal,
+                reportTransactions: {},
                 isTrackIntentUser: false,
             });
             expect(nameWithDifferentID).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
