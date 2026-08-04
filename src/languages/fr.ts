@@ -8098,6 +8098,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 subtitle: 'Créez une règle pour automatiser les politiques de votre espace de travail.',
                 cta: 'Ajouter une règle IA',
             },
+            categoriesDisabledEmptyState: {title: 'Les catégories ne sont pas activées', subtitle: 'Activez les catégories pour mieux contrôler vos dépenses.'},
         },
         planTypePage: {
             planTypes: {
@@ -10357,6 +10358,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             buildReports: 'Créez des rapports de dépenses en quelques secondes',
             categorize: 'Catégorisez vos dépenses',
             inviteBoss: 'Invitez votre responsable quand vous êtes prêt',
+        },
+    },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nouveaux types de rôles pour les administrateurs',
+                body: 'Offrez à votre équipe des autorisations plus granulaires avec de nouveaux rôles d’administrateur pour les cartes, les personnes et les paiements.',
+                cta: 'Essayer',
+            },
         },
     },
     productTrainingTooltip: {

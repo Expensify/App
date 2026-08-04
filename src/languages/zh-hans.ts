@@ -7745,6 +7745,7 @@ ${reportName}`,
                 thenFlagForReview: '然后在以下情况下标记为待审核：',
             },
             agentRulesEmptyState: {title: '未添加代理规则', subtitle: '创建规则以自动化您的工作区策略。', cta: '添加 AI 规则'},
+            categoriesDisabledEmptyState: {title: '类别未启用', subtitle: '启用类别以更好地控制您的支出。'},
         },
         planTypePage: {
             planTypes: {
@@ -9920,6 +9921,15 @@ ${reportName}`,
             buildReports: '几秒钟即可创建费用报告',
             categorize: '为你的支出分类',
             inviteBoss: '准备好后即可邀请你的上司',
+        },
+    },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: '新的管理员角色类型',
+                body: '通过新增卡片、成员和付款管理员角色，为你的团队提供更精细的权限控制。',
+                cta: '试用一下',
+            },
         },
     },
     productTrainingTooltip: {

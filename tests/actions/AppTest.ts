@@ -14,6 +14,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import type Request from '../../src/types/onyx/Request';
+import type {MockFetch} from '../utils/TestHelper';
 
 import * as App from '../../src/libs/actions/App';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
@@ -26,6 +27,8 @@ jest.mock('@src/components/ConfirmedRoute.tsx');
 OnyxUpdateManager();
 
 describe('actions/App', () => {
+    let mockFetch: MockFetch;
+
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -33,7 +36,8 @@ describe('actions/App', () => {
     });
 
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        mockFetch = TestHelper.createGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -68,6 +72,33 @@ describe('actions/App', () => {
 
         // The lastFullReconnectTime should NOT be updated
         expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBeUndefined();
+    });
+
+    test('reconnectAppWithSideEffects falls back to openApp when the app has not finished loading', async () => {
+        // Given OpenApp hasn't finished yet, so there's no base app state
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, false);
+
+        // When the pause watchdog escalates with an incremental reconnect
+        await App.reconnectAppWithSideEffects(123);
+        await waitForBatchedUpdates();
+
+        // Then it must fall back to a full OpenApp instead of sending a nonsensical incremental reconnect
+        const calledCommands = mockFetch.mock.calls.map(([input]) => (typeof input === 'string' ? input.match(/api\/(\w+)\?/)?.[1] : undefined));
+        expect(calledCommands).toContain('OpenApp');
+        expect(calledCommands).not.toContain('ReconnectApp');
+    });
+
+    test('reconnectAppWithSideEffects is a no-op when using imported state', async () => {
+        // Given the app has loaded from imported state
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+        await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
+
+        // When the pause watchdog escalates with an incremental reconnect
+        await App.reconnectAppWithSideEffects(123);
+        await waitForBatchedUpdates();
+
+        // Then no API call should be made, since imported state never makes API calls
+        expect(mockFetch).not.toHaveBeenCalled();
     });
 
     test('trigger full reconnect', async () => {
