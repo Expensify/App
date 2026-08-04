@@ -45,7 +45,7 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel, disabled, pending, showLockIcon, disabledAction, isNested}: SwitchProps) {
+function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, showLockIcon, disabledAction, isNested}: SwitchProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);

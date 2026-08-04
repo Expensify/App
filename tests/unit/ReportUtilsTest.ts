@@ -11753,6 +11753,7 @@ describe('ReportUtils', () => {
             expect(onyxData.optimisticData).toContainEqual(
                 expect.objectContaining({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${taglessTransaction.transactionID}`,
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     value: expect.not.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.MISSING_TAG})]),
                 }),
             );
