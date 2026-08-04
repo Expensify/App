@@ -4670,7 +4670,7 @@ const CONST = {
             COPY_EXISTING: 'copy',
             CREATE_NEW: 'create',
         },
-        MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
+        MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card-US',
         PIN: {
             LENGTH: 4,
             INVALID_PINS: [
@@ -8361,6 +8361,10 @@ const CONST = {
         AGENTS_RULES_BANNER: {
             CTA: 'AgentsRulesBanner-CTA',
             DISMISS: 'AgentsRulesBanner-Dismiss',
+        },
+        PRODUCT_MARKETING_WINDOW: {
+            CTA: 'ProductMarketingWindow-CTA',
+            DISMISS: 'ProductMarketingWindow-Dismiss',
         },
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
