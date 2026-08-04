@@ -45,7 +45,7 @@ function IouReportActionMessage({action, displayAsGroup, reportID, style, isHidd
     const isIOUAction = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU);
     const originalMessageType = isIOUAction ? getOriginalMessage(action)?.type : undefined;
     if (isIOUAction && originalMessageType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
-        iouMessage = getIOUReportActionDisplayMessage(translate, action, convertToDisplayString, transaction, report, bankAccountList, policy);
+        iouMessage = getIOUReportActionDisplayMessage(translate, action, convertToDisplayString, policy, transaction, report, bankAccountList);
     }
 
     return (
