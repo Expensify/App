@@ -7,7 +7,6 @@ import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringWithResetFilters, getQueryFilterWithoutKeywordHash} from '@libs/SearchQueryUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
