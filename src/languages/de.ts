@@ -5449,12 +5449,13 @@ ${amount} für ${merchant} – ${date}`,
                         netSuiteAccountIDDescription: 'Wechsel in NetSuite zu *Setup > Integration > SOAP Web Services Preferences*.',
                     },
                     enableOAuth: {
-                        title: '[de] Enable OAuth 2.0',
-                        description: '[de] In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > under *Manage Authentication*, enable *OAuth 2.0*.',
+                        title: 'OAuth 2.0 aktivieren',
+                        description: 'Gehen Sie in NetSuite zu *Setup > Company > Enable Features > SuiteCloud* und aktivieren Sie unter *Manage Authentication* die Option *OAuth 2.0*.',
                     },
                     enableRestWebServices: {
-                        title: '[de] Enable REST web services',
-                        description: '[de] In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > under *SuiteTalk (Web Services)*, enable *REST Web Services*.',
+                        title: 'REST-Webdienste aktivieren',
+                        description:
+                            'Gehen Sie in NetSuite zu *Setup > Company > Enable Features > SuiteCloud* und aktivieren Sie unter *SuiteTalk (Web Services)* die Option *REST Web Services*.',
                     },
                 },
             },
