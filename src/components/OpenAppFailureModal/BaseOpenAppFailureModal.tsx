@@ -37,6 +37,7 @@ function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppF
         <Modal
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             isVisible={isOpenAppFailureModalOpen}
+            shouldTreatModalAsCovering
             innerContainerStyle={styles.pv0}
             onClose={() => setIsOpenAppFailureModalOpen(false)}
             enableEdgeToEdgeBottomSafeAreaPadding

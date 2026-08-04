@@ -81,6 +81,7 @@ function DecisionModal({
         <Modal
             onClose={onClose}
             isVisible={isVisible}
+            shouldTreatModalAsCovering
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
             onModalHide={onModalHide}
