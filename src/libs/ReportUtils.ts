@@ -5703,6 +5703,11 @@ function getReportActionWithMissingSmartscanFields(
         if (isEmptyObject(transaction)) {
             return false;
         }
+        // Skip transactions queued for deletion so a reverted/deleted expense stops lighting the RBR red-dot
+        // while it waits for the server to confirm removal.
+        if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return false;
+        }
         if (!wasActionTakenByCurrentUser(action, currentUserAccountID)) {
             return false;
         }
@@ -11402,7 +11407,11 @@ function getReportActionWithSmartscanError(
 
         const transactionID = isSplitOrTrackAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        const isTransactionThreadError = isSplitOrTrackAction && hasMissingSmartscanFieldsTransactionUtils(transaction, report);
+        // A transaction queued for deletion (e.g. after reverting a split) still lives in Onyx until the
+        // server confirms removal; it must not keep lighting the RBR red-dot. Mirrors the DELETE-pending
+        // filtering added to the violations path in getViolatingReportIDForRBRInLHN.
+        const isTransactionPendingDelete = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        const isTransactionThreadError = isSplitOrTrackAction && !isTransactionPendingDelete && hasMissingSmartscanFieldsTransactionUtils(transaction, report);
 
         return isTransactionThreadError;
     });
