@@ -949,7 +949,7 @@ function MenuItem({
                                                             accountIDs={iconAccountID ? [iconAccountID] : undefined}
                                                         />
                                                     )}
-                                                    {!icon && shouldPutLeftPaddingWhenNoIcon && (
+                                                    {!icon && iconType !== CONST.ICON_TYPE_WORKSPACE && shouldPutLeftPaddingWhenNoIcon && (
                                                         <View
                                                             style={[
                                                                 styles.popoverMenuIcon,
@@ -959,7 +959,7 @@ function MenuItem({
                                                             ]}
                                                         />
                                                     )}
-                                                    {!!icon && !Array.isArray(icon) && (
+                                                    {(!!icon || iconType === CONST.ICON_TYPE_WORKSPACE) && !Array.isArray(icon) && (
                                                         <View
                                                             style={[
                                                                 styles.popoverMenuIcon,
