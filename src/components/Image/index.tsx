@@ -4,7 +4,7 @@ import {useSession} from '@components/OnyxListItemProvider';
 import useNetwork from '@hooks/useNetwork';
 
 import {isExpiredSession} from '@libs/actions/Session';
-import activateReauthenticator from '@libs/actions/Session/AttachmentImageReauthenticator';
+import activateReauthenticator, {canReauthenticateSilently} from '@libs/actions/Session/AttachmentImageReauthenticator';
 
 import CONST from '@src/CONST';
 
@@ -128,6 +128,7 @@ function Image({
             session,
             isAuthTokenRequired,
             isOffline,
+            canReauthenticateSilently: canReauthenticateSilently(),
         });
 
         if (resolvedImageSource.shouldReauthenticate && session) {
