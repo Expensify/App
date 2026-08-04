@@ -49,35 +49,42 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
           }
         : undefined;
 
+    const hasTrailing = !!item.badgeText || !!item.brickRoadIndicator || !!item.iconRight;
+
     return (
-        <MenuItem
-            wrapperStyle={wrapperStyle}
-            title={keyTitle}
-            icon={item.icon}
-            iconType={item.iconType}
-            disabled={isExecuting}
-            onPress={onPress}
-            iconStyles={item.iconStyles}
-            badgeText={item.badgeText}
-            badgeStyle={item.badgeStyle}
-            isBadgeSuccess={item.isBadgeSuccess}
-            isBadgeStrong={item.isBadgeStrong}
-            isBadgeCondensed={item.isBadgeCondensed}
-            fallbackIcon={item.fallbackIcon}
-            brickRoadIndicator={item.brickRoadIndicator}
-            shouldStackHorizontally={item.shouldStackHorizontally}
+        <MenuItem.Root
             ref={popoverAnchor}
-            shouldBlockSelection={!!item.link}
+            style={wrapperStyle}
+            onPress={onPress}
             onSecondaryInteraction={onSecondaryInteraction}
-            shouldShowContextMenuHint={!!item.link}
-            focused={isFocused}
+            isDisabled={isExecuting}
+            isActive={isFocused}
             role={CONST.ROLE.TAB}
-            isPaneMenu
             sentryLabel={item.sentryLabel}
-            iconRight={item.iconRight}
-            shouldShowRightIcon={item.shouldShowRightIcon}
-            shouldIconUseAutoWidthStyle
-        />
+        >
+            <MenuItem.Row>
+                <MenuItem.Icon
+                    src={item.icon}
+                    variant={CONST.MENU_ITEM.ICON_VARIANT.COMPACT}
+                />
+                <MenuItem.Content>
+                    <MenuItem.Title>{keyTitle}</MenuItem.Title>
+                </MenuItem.Content>
+                {hasTrailing && (
+                    <MenuItem.Trailing>
+                        {!!item.badgeText && (
+                            <MenuItem.Badge
+                                text={item.badgeText}
+                                success={item.isBadgeSuccess}
+                                isCondensed={item.isBadgeCondensed}
+                            />
+                        )}
+                        {!!item.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={item.brickRoadIndicator} />}
+                        {!!item.iconRight && <MenuItem.Chevron src={item.iconRight} />}
+                    </MenuItem.Trailing>
+                )}
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 }
 

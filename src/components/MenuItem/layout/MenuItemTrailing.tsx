@@ -1,0 +1,32 @@
+import {useIsCompactMenu} from '@components/CompactMenuContext';
+
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {PropsWithChildren} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
+type MenuItemTrailingProps = PropsWithChildren & {
+    /** Any additional styles to apply to the trailing container */
+    style?: StyleProp<ViewStyle>;
+};
+
+/**
+ * The right-side cell of a `MenuItem.Row`. A horizontal cluster for indicators and actions —
+ * the consumer decides which to include and in what order.
+ */
+function MenuItemTrailing({children, style}: MenuItemTrailingProps) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isCompactMenu = useIsCompactMenu();
+    const isCompact = isCompactMenu && !shouldUseNarrowLayout;
+
+    return <View style={[styles.flexRow, styles.mlAuto, styles.alignItemsCenter, styles.gap2, StyleUtils.getMenuItemTextContainerStyle(isCompact), style]}>{children}</View>;
+}
+
+export default MenuItemTrailing;

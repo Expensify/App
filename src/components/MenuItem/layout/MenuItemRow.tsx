@@ -1,0 +1,32 @@
+import {useIsCompactMenu} from '@components/CompactMenuContext';
+import {useMenuItemState} from '@components/MenuItem/MenuItemContext';
+
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {PropsWithChildren} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
+type MenuItemRowProps = PropsWithChildren & {
+    /** Any additional styles to apply to the row */
+    style?: StyleProp<ViewStyle>;
+};
+
+/**
+ * The main horizontal line of a menu item. A plain flex row — it never inspects its children;
+ * the consumer decides which cells to include and in what order.
+ */
+function MenuItemRow({children, style}: MenuItemRowProps) {
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isDisabled} = useMenuItemState();
+    const isCompactMenu = useIsCompactMenu();
+    const isCompact = isCompactMenu && !shouldUseNarrowLayout;
+
+    return <View style={[styles.flexRow, styles.pointerEventsAuto, styles.gap3, isDisabled && styles.cursorDisabled, isCompact && styles.alignItemsCenter, style]}>{children}</View>;
+}
+
+export default MenuItemRow;

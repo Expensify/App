@@ -1,0 +1,137 @@
+/**
+ * MenuItem — single entry point for both the legacy monolith and the compound API.
+ *
+ * The default export is the legacy `MenuItem` (so the ~120 existing `@components/MenuItem`
+ * imports keep working), extended with the compound sub-components following the
+ * composition-over-configuration pattern: instead of ~135 props configuring one monolith,
+ * the consumer assembles the row from sub-components and interaction state
+ * (hover/press/focus/disabled) is shared through context.
+ *
+ * New code should use the compound API. Once the migration is finished the legacy component
+ * will be deleted and only the compound API will remain — the import path and the
+ * `MenuItem.Root` / `MenuItem.*` call sites below will not change.
+ *
+ * The row's accessibility label is derived from the `Title`/`Description` text (in render order) and
+ * enriched with announcements contributed by sub-components (e.g. a `NewWindow` chevron → "opens in new
+ * tab", a `BrickRoadIndicator` → "your review is required") — pass `accessibilityLabel` to `Root` only
+ * to override the derived text.
+ *
+ * @example Simple navigation row
+ * ```tsx
+ * import MenuItem from '@components/MenuItem';
+ *
+ * <MenuItem.Root onPress={onNavigate}>
+ *     <MenuItem.Row>
+ *         <MenuItem.Icon src={icons.Gear} />
+ *         <MenuItem.Content>
+ *             <MenuItem.Title>{translate('common.settings')}</MenuItem.Title>
+ *         </MenuItem.Content>
+ *         <MenuItem.Trailing>
+ *             <MenuItem.Chevron />
+ *         </MenuItem.Trailing>
+ *     </MenuItem.Row>
+ * </MenuItem.Root>
+ * ```
+ *
+ * @example Field row with a description above the title and an attention indicator
+ * ```tsx
+ * <MenuItem.Root onPress={onEdit}>
+ *     <MenuItem.Row>
+ *         <MenuItem.Content>
+ *             <MenuItem.Description>{description}</MenuItem.Description>
+ *             <MenuItem.Title>{title}</MenuItem.Title>
+ *         </MenuItem.Content>
+ *         <MenuItem.Trailing>
+ *             <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+ *             <MenuItem.Chevron />
+ *         </MenuItem.Trailing>
+ *     </MenuItem.Row>
+ * </MenuItem.Root>
+ * ```
+ */
+import MenuItemContent from './layout/MenuItemContent';
+import MenuItemRoot from './layout/MenuItemRoot';
+import MenuItemRow from './layout/MenuItemRow';
+import MenuItemTrailing from './layout/MenuItemTrailing';
+import MenuItemAvatar from './leaves/leading/MenuItemAvatar';
+import MenuItemIcon from './leaves/leading/MenuItemIcon';
+import MenuItemDescription from './leaves/text/MenuItemDescription';
+import MenuItemLabel from './leaves/text/MenuItemLabel';
+import MenuItemTitle from './leaves/text/MenuItemTitle';
+import MenuItemBadge from './leaves/trailing/MenuItemBadge';
+import MenuItemBrickRoadIndicator from './leaves/trailing/MenuItemBrickRoadIndicator';
+import MenuItemChevron from './leaves/trailing/MenuItemChevron';
+import MenuItemCopyButton from './leaves/trailing/MenuItemCopyButton';
+import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
+import LegacyMenuItem from './MenuItem';
+
+type MenuItemType = {
+    /**
+     * The legacy monolithic MenuItem.
+     *
+     * @deprecated Use the compound API instead — `MenuItem.Root` with the `MenuItem.*` sub-components.
+     */
+    (...props: Parameters<typeof LegacyMenuItem>): ReturnType<typeof LegacyMenuItem>;
+
+    /** The compound root — a pressable row sharing interaction state with the sub-components below */
+    Root: typeof MenuItemRoot;
+
+    /** The main horizontal line holding the leading, content and trailing cells */
+    Row: typeof MenuItemRow;
+
+    /** The flexible middle cell — stacks Title/Description (in any order) vertically */
+    Content: typeof MenuItemContent;
+
+    /** The right-side cluster for indicators and actions */
+    Trailing: typeof MenuItemTrailing;
+
+    /** Leading icon whose fill follows the row's interaction state */
+    Icon: typeof MenuItemIcon;
+
+    /** Leading user/workspace avatar */
+    Avatar: typeof MenuItemAvatar;
+
+    /** Small supporting label rendered above the main line */
+    Label: typeof MenuItemLabel;
+
+    /** The (bold) title text */
+    Title: typeof MenuItemTitle;
+
+    /** The supporting description text — above or below the title depending on declaration order */
+    Description: typeof MenuItemDescription;
+
+    /** Badge that follows the row's focused state */
+    Badge: typeof MenuItemBadge;
+
+    /** Right arrow (or custom) navigation indicator, dimmed until hovered */
+    Chevron: typeof MenuItemChevron;
+
+    /** Right-aligned supporting text (covers legacy `rightLabel` and `subtitle`) */
+    RightLabel: typeof MenuItemRightLabel;
+
+    /** Red/green dot signalling the row needs attention */
+    BrickRoadIndicator: typeof MenuItemBrickRoadIndicator;
+
+    /** Hover-revealed copy-to-clipboard button (devices with hover support) */
+    CopyButton: typeof MenuItemCopyButton;
+};
+
+const MenuItem: MenuItemType = Object.assign(LegacyMenuItem, {
+    Root: MenuItemRoot,
+    Row: MenuItemRow,
+    Content: MenuItemContent,
+    Trailing: MenuItemTrailing,
+    Icon: MenuItemIcon,
+    Avatar: MenuItemAvatar,
+    Label: MenuItemLabel,
+    Title: MenuItemTitle,
+    Description: MenuItemDescription,
+    Badge: MenuItemBadge,
+    Chevron: MenuItemChevron,
+    RightLabel: MenuItemRightLabel,
+    BrickRoadIndicator: MenuItemBrickRoadIndicator,
+    CopyButton: MenuItemCopyButton,
+});
+
+export default MenuItem;
+export type {MenuItemBaseProps, MenuItemProps} from './MenuItem';
