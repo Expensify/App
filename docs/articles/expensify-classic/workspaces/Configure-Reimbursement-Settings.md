@@ -48,11 +48,11 @@ More information on setting up Global Reimbursement can be found in the **[Enabl
 
 For cross-border reimbursements, you can choose whether your company or your employee absorbs the foreign exchange (FX) rate difference and conversion fee when a reimbursement is paid in a currency other than your business bank account's currency.
 
-Once Global Reimbursement is enabled, a **Currency conversion fees** setting appears in the same **Make or track payments > Direct** panel with two options:
-- **Company pays** — Your company absorbs the FX rate difference and conversion fee, so the employee receives the full intended amount in their local currency. Your business bank account is debited more than the report total to cover these costs.
+Once Global Reimbursement is enabled, a **Currency conversion fees** setting appears in the same **Make or track payments > Direct** panel, with two options:
+- **Company pays** — Your company absorbs the FX rate difference and conversion fee, so the employee receives the full amount they originally paid in their local currency. Your business bank account is debited more than the report total to cover these costs.
 - **Employee pays** — The employee absorbs the FX rate difference and conversion fee, so the amount deposited into their account can be less than the report total.
 
-Existing Global Reimbursement setups default to **Employee pays**. New Global Reimbursement setups default to **Company pays**.
+New Global Reimbursement setups default to **Company pays**.
 
 **Note:** The manual reimbursement threshold applies to the report total and may not include currency conversion fees. When your company pays currency conversion fees, the amount debited from your business bank account can exceed the report total.
 
