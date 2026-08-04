@@ -19,9 +19,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
+import type {ViewStyle} from 'react-native';
+
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports -- React Native primitives are imported directly to inspect their test instances
+import {ScrollView, StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import * as TestHelper from '../utils/TestHelper';
@@ -146,11 +150,17 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
     });
 
-    it('focuses Other without animating its label, keeps the input value when reselected, and completes with a trimmed integration name', async () => {
+    it('keeps Other half-width, reveals its input without auto-focusing, and completes with a trimmed integration name', async () => {
+        const scrollToEndSpy = jest.spyOn(ScrollView.prototype, 'scrollToEnd');
         const renderResult = renderAccountingPage();
 
         await waitForBatchedUpdatesWithAct();
         expect(screen.queryByText(TestHelper.translateLocal('onboarding.accounting.none'))).not.toBeOnTheScreen();
+        const wideLayoutSpacers = renderResult.UNSAFE_root.findAll((node) => {
+            const style = StyleSheet.flatten(node.props.style) as ViewStyle | undefined;
+            return node.children.length === 0 && style?.backgroundColor === 'transparent' && style.flexBasis === '35%' && style.flexGrow === 1;
+        });
+        expect(wideLayoutSpacers).toHaveLength(1);
 
         fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
         const otherAccountingSoftwareLabel = TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware');
@@ -158,7 +168,14 @@ describe('Onboarding interested features and accounting pages', () => {
         const otherAccountingSoftwareTextInputs = renderResult.UNSAFE_root.findAll(
             (node) => node.props.accessibilityLabel === otherAccountingSoftwareLabel && node.props.forceActiveLabel === true,
         );
-        expect(otherAccountingSoftwareTextInputs.some((node) => node.props.autoFocus === true)).toBe(true);
+        expect(otherAccountingSoftwareTextInputs).toHaveLength(1);
+        expect(otherAccountingSoftwareTextInputs.at(0)?.props.autoFocus).toBeFalsy();
+        const accountingScrollView = renderResult.UNSAFE_getByType(ScrollView);
+        expect(accountingScrollView.props.onContentSizeChange).toBeDefined();
+        act(() => accountingScrollView.props.onContentSizeChange?.(0, 0));
+        expect(scrollToEndSpy).toHaveBeenCalledWith({animated: false});
+        act(() => accountingScrollView.props.onContentSizeChange?.(0, 0));
+        expect(scrollToEndSpy).toHaveBeenCalledTimes(1);
         fireEvent.changeText(otherAccountingSoftwareInput, '  Acme Books  ');
         fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
         expect(screen.getByLabelText(otherAccountingSoftwareLabel).props.value).toBe('  Acme Books  ');
