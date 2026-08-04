@@ -79,4 +79,3 @@ const measureTextWidth: MeasureTextWidth = (text, font = {}) => {
 };
 
 export default measureTextWidth;
-export type {MeasurableFont, MeasureTextWidth} from './types';

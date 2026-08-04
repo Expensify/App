@@ -123,7 +123,7 @@ function measureHeaderLabelWidth(label: string): number | null {
  * Resolves the CSS grid tracks for a table whose columns are sized from their content.
  *
  * The tracks have to be identical for the header and every data row, because each row is its own grid: a content-based
- * CSS track (`max-content`) would resolve per row and misalign the columns. So the widths are measured once here and
+ * CSS track (`max-content`) would resolve per row, leaving the columns out of line. So the widths are measured once and
  * shared, and the result is a plain track list the header and rows both render.
  *
  * Returns `undefined` when dynamic sizing doesn't apply — it isn't enabled, the table hasn't been measured yet, text
@@ -195,16 +195,14 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
             return noDynamicWidths;
         }
 
-        let dynamicColumnIndex = 0;
-        const gridTemplateColumns = columns.map((column) => {
-            if (typeof column.width === 'number') {
-                return `${column.width}px`;
-            }
+        // Keyed by column rather than tracked with a running index, so the tracks can be built without mutating a counter
+        // from inside the mapping callback (which the React Compiler can't compile).
+        const widthByColumnKey = new Map<ColumnKey, number>();
+        for (const [index, column] of dynamicColumns.entries()) {
+            widthByColumnKey.set(column.key, widths.at(index) ?? 0);
+        }
 
-            const width = widths.at(dynamicColumnIndex) ?? 0;
-            dynamicColumnIndex++;
-            return `${width}px`;
-        });
+        const gridTemplateColumns = columns.map((column) => (typeof column.width === 'number' ? `${column.width}px` : `${widthByColumnKey.get(column.key) ?? 0}px`));
 
         if (!shouldScrollHorizontally) {
             return {gridTemplateColumns, scrollWidth: undefined};

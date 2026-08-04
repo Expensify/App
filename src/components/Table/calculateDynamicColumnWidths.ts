@@ -121,4 +121,4 @@ function calculateDynamicColumnWidths(constraints: DynamicColumnConstraints[], a
 }
 
 export default calculateDynamicColumnWidths;
-export type {DynamicColumnConstraints, CalculatedDynamicColumnWidths};
+export type {DynamicColumnConstraints};

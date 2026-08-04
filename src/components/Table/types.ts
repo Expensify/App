@@ -255,8 +255,6 @@ export type {
     TableData,
     TableRow,
     TableColumn,
-    TableColumnDynamicSizing,
-    MeasurableCellContent,
     TableRenderRowProps,
     TableMethods,
     TableHandle,
