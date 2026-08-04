@@ -1,4 +1,6 @@
 import Log from '@libs/Log';
+import {deleteFiles, isFileStorageSupported, isQueuedFileRef, keepOnly, storeFile} from '@libs/QueuedFileStorage';
+import type {QueuedFileRef} from '@libs/QueuedFileStorage';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,6 +16,11 @@ let persistedRequests: AnyRequest[] = [];
 let ongoingRequest: AnyRequest | null = null;
 let pendingSaveOperations: AnyRequest[] = [];
 let isInitialized = false;
+// The initial orphan-file sweep must wait until both the queue and the ongoing request have loaded,
+// otherwise it would delete the file of an ongoing (in-flight) upload that isn't in the queue yet.
+let persistedRequestsLoaded = false;
+let ongoingRequestLoaded = false;
+let initialFileSweepDone = false;
 // Tracks all request indexes this tab has ever seen (from disk init, save(), or other tabs).
 // Used to distinguish stale own-write callbacks (ignore) from new requests enqueued
 // by other browser tabs (merge into memory).
@@ -56,11 +63,31 @@ function onCrossTabRequestsMerged(callbackFunction: () => void) {
     crossTabRequestsCallback = callbackFunction;
 }
 
+/**
+ * Delete stored files whose owning request is gone (e.g. crashed after storeFile but before the
+ * queue was persisted). Runs once, only after both the queue and the ongoing request have loaded,
+ * so the in-flight ongoing request's file is kept.
+ */
+function runInitialFileSweepIfReady() {
+    if (initialFileSweepDone || !persistedRequestsLoaded || !ongoingRequestLoaded) {
+        return;
+    }
+    initialFileSweepDone = true;
+    const requests = ongoingRequest ? [...persistedRequests, ongoingRequest] : persistedRequests;
+    keepOnly(collectFileKeys(requests));
+}
+
 // We have opted for connectWithoutView here as this module is strictly non-UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_REQUESTS,
     callback: (val) => {
         Log.info('[PersistedRequests] hit Onyx connect callback', false, {isValNullish: val == null, isInitialized});
+
+        // Onyx.clear() (logout/reset) nulls the queue but not the file store, orphaning every
+        // stored file. Purge it here (initial-load null is covered by the sweep below).
+        if (isInitialized && val == null) {
+            keepOnly([]);
+        }
 
         // After initialization, in-memory is authoritative — ignore stale disk
         // callbacks to prevent out-of-order Onyx.set() from overwriting the
@@ -85,7 +112,7 @@ Onyx.connectWithoutView({
                     }
                 }
                 persistedRequests = [...persistedRequests, ...newFromOtherTabs];
-                trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests));
+                persistQueue(persistedRequests);
                 crossTabRequestsCallback?.();
                 return;
             }
@@ -150,7 +177,7 @@ Onyx.connectWithoutView({
             }
             const requests = [...persistedRequests, ...pendingSaveOperations];
             persistedRequests = requests;
-            trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests));
+            persistQueue(requests);
             pendingSaveOperations = [];
         }
 
@@ -175,6 +202,8 @@ Onyx.connectWithoutView({
             Log.info('[PersistedRequests] Triggering initialization callback', false);
             triggerInitializationCallback();
         }
+        persistedRequestsLoaded = true;
+        runInitialFileSweepIfReady();
         isInitialized = true;
     },
 });
@@ -192,6 +221,9 @@ Onyx.connectWithoutView({
 
         const previousOngoingRequest = ongoingRequest;
         ongoingRequest = val ?? null;
+
+        ongoingRequestLoaded = true;
+        runInitialFileSweepIfReady();
 
         Log.info('[PersistedRequests] ONGOING_REQUEST changed', false, {
             previousOngoingCommand: previousOngoingRequest?.command ?? 'null',
@@ -216,6 +248,8 @@ function clear() {
     pendingSaveOperations = [];
     knownRequestIDs.clear();
     knownOngoingRequestIDs.clear();
+    // Delete every stored file since the queue is being emptied (fire-and-forget).
+    keepOnly([]);
     Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, null);
     return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []));
 }
@@ -225,9 +259,14 @@ function getLength(): number {
     return persistedRequests.length + (ongoingRequest ? 1 : 0);
 }
 
-function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<void> {
+async function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<void> {
+    // On web, move any inline File/Blob to the separate file store and keep only a key in the queue.
+    // Native has no blob-write limit and keeps files inline, so it skips the swap. Only file requests await.
+    const shouldSwap = isFileStorageSupported && dataContainsFileOrBlob(requestToPersist.data);
+    const request = shouldSwap ? await storeFilesAndSwap(requestToPersist) : requestToPersist;
+
     Log.info('[PersistedRequests] Saving request to queue started', false, {
-        command: requestToPersist.command,
+        command: request.command,
         currentQueueLength: persistedRequests.length,
         ongoingRequest: ongoingRequest?.command ?? 'null',
         isInitialized,
@@ -237,36 +276,36 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<vo
         Log.info('[PersistedRequests] Queueing request until initialization completes', false, {
             pendingSaveOperationsLength: pendingSaveOperations.length,
         });
-        pendingSaveOperations.push(requestToPersist as AnyRequest);
-        return Promise.resolve();
+        pendingSaveOperations.push(request as AnyRequest);
+        return;
     }
 
     // If the command is not in the keepLastInstance array, add the new request as usual
-    const requests = [...persistedRequests, requestToPersist];
+    const requests = [...persistedRequests, request];
     const previousLength = persistedRequests.length;
     persistedRequests = requests as AnyRequest[];
-    const requestIndex = getClientRequestIndex(requestToPersist as AnyRequest);
+    const requestIndex = getClientRequestIndex(request as AnyRequest);
     if (requestIndex != null) {
         knownRequestIDs.add(requestIndex);
     }
 
     Log.info('[PersistedRequests] Request added to memory, persisting to disk', false, {
-        command: requestToPersist.command,
+        command: request.command,
         previousQueueLength: previousLength,
         newQueueLength: requests.length,
     });
 
-    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests as AnyRequest[]))
+    return persistQueue(requests as AnyRequest[])
         .then(() => {
             Log.info('[PersistedRequests] Request successfully persisted to disk', false, {
-                command: requestToPersist.command,
+                command: request.command,
                 queueLength: getLength(),
             });
         })
         .catch((error) => {
             // Disk-write failure risks losing this request on a crash — alert as a storage emergency.
             Log.alert('[PersistedRequests] ERROR: Failed to persist request to disk', {
-                command: requestToPersist.command,
+                command: request.command,
                 queueLength: getLength(),
                 error,
             });
@@ -299,6 +338,10 @@ function endRequestAndRemoveFromQueue<TKey extends OnyxKey>(requestToRemove: Req
         foundIndex: index,
         wasInQueue: index !== -1,
     });
+
+    // The ongoing request is already sliced out of the queue, so delete its file by its own keys.
+    // Runs only on terminal outcomes, never on retry (rollback keeps the file). Fire-and-forget.
+    deleteFiles(collectFileKeys([requestToRemove]));
 
     if (index !== -1) {
         requests.splice(index, 1);
@@ -335,11 +378,15 @@ function deleteRequestsByIndices(indices: number[]): Promise<void> {
     // Create a Set from the indices array for efficient lookup
     const indicesSet = new Set(indices);
 
+    // Delete the stored files for the requests we are about to remove (fire-and-forget).
+    const removedRequests = persistedRequests.filter((_, index) => indicesSet.has(index));
+    deleteFiles(collectFileKeys(removedRequests));
+
     // Create a new array excluding elements at the specified indices
     persistedRequests = persistedRequests.filter((_, index) => !indicesSet.has(index));
 
     // Update the persisted requests in storage or state as necessary
-    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests))
+    return persistQueue(persistedRequests)
         .then(() => {
             Log.info(`Multiple (${indices.length}) requests removed from the queue. Queue length is ${persistedRequests.length}`);
         })
@@ -363,7 +410,7 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
     if (requestIndex != null) {
         knownRequestIDs.add(requestIndex);
     }
-    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests)).catch((error) => {
+    return persistQueue(requests).catch((error) => {
         // Swallow so the conflict promise resolves (in-memory queue is the source of truth); alert as a storage emergency.
         Log.alert('[PersistedRequests] ERROR: Failed to persist updated request to disk', {
             command: newRequest.command,
@@ -373,16 +420,63 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
     });
 }
 
-function shouldPersistOngoingRequest(request: AnyRequest | null): boolean {
-    if (!request?.data) {
-        return true;
-    }
+function isFileOrBlob(value: unknown): value is File | Blob {
+    return (typeof File !== 'undefined' && value instanceof File) || (typeof Blob !== 'undefined' && value instanceof Blob);
+}
 
-    return !Object.values(request.data).some((value) => {
-        const isFile = typeof File !== 'undefined' && value instanceof File;
-        const isBlob = typeof Blob !== 'undefined' && value instanceof Blob;
-        return isFile || isBlob;
-    });
+function dataContainsFileOrBlob(data: Record<string, unknown> | undefined): boolean {
+    if (!data) {
+        return false;
+    }
+    return Object.values(data).some(isFileOrBlob);
+}
+
+/**
+ * Save each inline File/Blob to Cache Storage and keep only a small QueuedFileRef in the queue, so
+ * the single networkRequestQueue record stays tiny (an inline file bloated it until the IndexedDB
+ * write failed with `Failed to write blobs`) while the file still survives a restart.
+ */
+async function storeFilesAndSwap<TKey extends OnyxKey>(request: Request<TKey>): Promise<Request<TKey>> {
+    if (!dataContainsFileOrBlob(request.data)) {
+        return request;
+    }
+    const entries = Object.entries(request.data ?? {});
+    // Save every file in parallel, then rebuild the data with a key in place of each file.
+    const swapped = await Promise.all(
+        entries.map(async ([key, value]): Promise<[string, unknown]> => {
+            if (!isFileOrBlob(value)) {
+                return [key, value];
+            }
+            const ref: QueuedFileRef = {queuedFileKey: await storeFile(value), name: value instanceof File ? value.name : undefined, type: value.type};
+            return [key, ref];
+        }),
+    );
+    const storedCount = entries.filter(([, value]) => isFileOrBlob(value)).length;
+    Log.info('[PersistedRequests] Saved inline file(s) to the separate file store', false, {storedCount, queueLength: persistedRequests.length});
+    return {...request, data: Object.fromEntries(swapped)} as Request<TKey>;
+}
+
+/** Collect every stored-file key referenced by the given requests' data. */
+function collectFileKeys(requests: AnyRequest[]): string[] {
+    const keys: string[] = [];
+    for (const request of requests) {
+        for (const value of Object.values(request.data ?? {})) {
+            if (isQueuedFileRef(value)) {
+                keys.push(value.queuedFileKey);
+            }
+        }
+    }
+    return keys;
+}
+
+function persistQueue(requests: AnyRequest[]): Promise<void> {
+    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests));
+}
+
+// Requests now only ever hold serializable file references, so the ongoing request is always
+// safe to persist to disk (and doing so keeps it crash-safe across a restart).
+function shouldPersistOngoingRequest(request: AnyRequest | null): boolean {
+    return !dataContainsFileOrBlob(request?.data);
 }
 
 function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
@@ -447,10 +541,8 @@ function processNextRequest(): AnyRequest | null {
     // Persist both the updated queue and the ongoing request to disk atomically.
     // This ensures that if the app crashes mid-flight, the ongoing request is not
     // lost (Bug #80759 Issue 3a) and the queue on disk matches memory (Issue 3c).
-    // Skip persisting ongoingRequest when it contains non-serializable values
-    // (e.g. File objects in data.file or data.receipt). IndexedDB cannot clone
-    // native File objects (DataCloneError). These requests cannot survive a crash
-    // anyway since File references are lost on restart.
+    // Requests hold only serializable file references now, so the defensive skip
+    // below only trips for a raw File that never went through save().
     if (shouldPersistOngoingRequest(ongoingRequest)) {
         trackOnyxWrite(
             Onyx.multiSet({
