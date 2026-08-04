@@ -8015,6 +8015,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 thenFlagForReview: 'Então sinalizar para revisão quando:',
             },
             agentRulesEmptyState: {title: 'Nenhuma regra de agente adicionada', subtitle: 'Crie uma regra para automatizar as políticas do seu workspace.', cta: 'Adicionar regra de IA'},
+            categoriesDisabledEmptyState: {title: 'Categorias não estão ativadas', subtitle: 'Ative categorias para ter mais controle sobre seus gastos.'},
         },
         planTypePage: {
             planTypes: {
