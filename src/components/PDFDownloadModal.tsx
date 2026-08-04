@@ -41,6 +41,9 @@ type PDFDownloadModalProps = {
     /** Whether the modal is visible */
     isVisible: boolean;
 
+    /** Whether this modal should count as covering the product marketing window */
+    shouldTreatModalAsCovering?: boolean;
+
     /** Called when the modal is closed */
     onClose: () => void;
 
@@ -61,6 +64,7 @@ function PDFDownloadModal({
     shouldCloseOnDownload = false,
     shouldUseSuccessButton = false,
     isVisible,
+    shouldTreatModalAsCovering = false,
     onClose,
     onModalHide,
 }: PDFDownloadModalProps) {
@@ -95,6 +99,7 @@ function PDFDownloadModal({
             onClose={onClose}
             onModalHide={onModalHide}
             isVisible={isVisible}
+            shouldTreatModalAsCovering={shouldTreatModalAsCovering}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
         >
