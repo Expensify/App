@@ -33,7 +33,9 @@ const mockTrackedFilterBarUnmount = jest.fn();
 function TrackedFilterBar() {
     React.useEffect(() => {
         mockTrackedFilterBarMount();
-        return () => mockTrackedFilterBarUnmount();
+        return () => {
+            mockTrackedFilterBarUnmount();
+        };
     }, []);
     return <View testID="tracked-filter-bar" />;
 }
