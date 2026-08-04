@@ -486,7 +486,7 @@ function hasReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boo
 }
 
 /**
- * Whether the transaction already has its receipt stored server-side, so a move command must not re-send the file.
+ * Whether the transaction already has its receipt stored server-side.
  */
 function hasUploadedReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boolean {
     return !!transaction?.receipt?.receiptID;
