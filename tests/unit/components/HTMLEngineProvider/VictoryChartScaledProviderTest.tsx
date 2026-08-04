@@ -4,11 +4,11 @@ import {render, screen} from '@testing-library/react-native';
 import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext, VictoryChartProvider, VictoryChartScaledProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import Text from '@components/Text';
 
 import type {TNode} from 'react-native-render-html';
 
 import React from 'react';
-import {Text} from 'react-native';
 
 const tnode = {attributes: {width: '680', height: '340'}, children: []} as unknown as TNode;
 
