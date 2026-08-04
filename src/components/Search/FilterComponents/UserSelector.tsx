@@ -18,6 +18,7 @@ import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
 
@@ -62,10 +63,17 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         const logins = new Set<string>();
         const selectedPolicies = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies);
         for (const policy of selectedPolicies) {
-            const employeeLogins = Object.keys(policy.employeeList ?? {});
-            for (const login of employeeLogins) {
-                logins.add(login);
+            if (policy.employeeList) {
+                const employeeLogins = Object.keys(policy.employeeList);
+                for (const login of employeeLogins) {
+                    const employee = policy.employeeList[login];
+                    if (employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(employee.errors)) {
+                        continue;
+                    }
+                    logins.add(login);
+                }
             }
+            logins.add(policy.owner);
         }
         for (const accountID of initialSelectedValues) {
             const login = personalDetails?.[accountID]?.login;
