@@ -76,6 +76,18 @@ describe('getLinkColumnIndex', () => {
 
         expect(getLinkColumnIndex(mixedTable as unknown as TNode)).toBeUndefined();
     });
+
+    it('returns undefined when a cell holds more than one link, since one row destination cannot stand in for both', () => {
+        const twoLinkCellTable = table([[node('span', [link('Airbnb', AIRBNB_URL), link('Uber', UBER_URL)]), text('£404.60')]]);
+
+        expect(getLinkColumnIndex(twoLinkCellTable as unknown as TNode)).toBeUndefined();
+    });
+
+    it('returns undefined when the linked cell has an anchor without an href', () => {
+        const hreflessTable = table([[node('a', [text('Airbnb')]), text('£404.60')]]);
+
+        expect(getLinkColumnIndex(hreflessTable as unknown as TNode)).toBeUndefined();
+    });
 });
 
 describe('getRowLinkURL', () => {

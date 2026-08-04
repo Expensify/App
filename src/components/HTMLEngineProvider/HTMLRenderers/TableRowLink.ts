@@ -1,3 +1,7 @@
+/**
+ * Helpers for treating a table's link column as the link of each row: finding the single column whose cells hold
+ * links, resolving each row's destination, and spotting the anchor that renders as plain text because of it.
+ */
 import type {TNode} from 'react-native-render-html';
 
 import {getElementChildren} from './TableChildrenRenderer';
@@ -8,31 +12,49 @@ function getBodyRows(tableTnode: TNode): TNode[] {
         .flatMap((section) => getElementChildren(section));
 }
 
-function findAnchor(node: TNode): TNode | undefined {
+function getAnchors(node: TNode): TNode[] {
     if (node.tagName === 'a') {
-        return node;
+        return [node];
     }
-    return (node.children ?? []).reduce<TNode | undefined>((found, child) => found ?? findAnchor(child), undefined);
+    return (node.children ?? []).flatMap(getAnchors);
+}
+
+/** The destination of a cell, defined only when the cell holds exactly one link and that link has an href. */
+function getCellLinkURL(cell: TNode): string | undefined {
+    const anchors = getAnchors(cell);
+    if (anchors.length !== 1) {
+        return undefined;
+    }
+
+    return anchors.at(0)?.attributes?.href || undefined;
 }
 
 /**
  * The single column whose cells hold links, or undefined when the table has no such column.
  *
  * Concierge expense tables link one cell per row — the merchant — and that link points at the row's transaction, so
- * the row as a whole can navigate there. Requiring the links to sit in exactly one column leaves any other table
- * (no links, or links spread across columns) rendering as a plain table with its own per-cell anchors.
+ * the row as a whole can navigate there. Requiring the links to sit in exactly one column, each cell holding a single
+ * link with an href, leaves every other table (no links, links spread across columns, or a cell whose several links
+ * one row destination could not stand in for) rendering as a plain table with its own per-cell anchors.
  */
 function getLinkColumnIndex(tableTnode: TNode): number | undefined {
     const columnsWithLinks = new Set<number>();
+    let hasCellWithoutSingleLink = false;
     for (const row of getBodyRows(tableTnode)) {
         for (const [columnIndex, cell] of getElementChildren(row).entries()) {
-            if (findAnchor(cell)) {
-                columnsWithLinks.add(columnIndex);
+            if (getAnchors(cell).length === 0) {
+                continue;
             }
+            columnsWithLinks.add(columnIndex);
+            hasCellWithoutSingleLink = hasCellWithoutSingleLink || !getCellLinkURL(cell);
         }
     }
 
-    return columnsWithLinks.size === 1 ? columnsWithLinks.values().next().value : undefined;
+    if (hasCellWithoutSingleLink || columnsWithLinks.size !== 1) {
+        return undefined;
+    }
+
+    return columnsWithLinks.values().next().value;
 }
 
 /**
@@ -76,7 +98,7 @@ function getRowLinkURL(rowTnode: TNode, linkColumnIndex: number | undefined): st
     }
 
     const linkCell = getElementChildren(rowTnode).at(linkColumnIndex);
-    return linkCell ? findAnchor(linkCell)?.attributes?.href : undefined;
+    return linkCell ? getCellLinkURL(linkCell) : undefined;
 }
 
 export {getLinkColumnIndex, getRowLinkURL, getTextContent, isLinkColumnAnchor};
