@@ -49,7 +49,8 @@ function FloatingPillButton({variant, onPress, icon, iconFill, label, textStyle}
             size={CONST.BUTTON_SIZE.SMALL}
             onPress={onPress}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.FLOATING_MESSAGE_COUNTER}
-            innerStyles={styles.ph1}
+            // Restores the 12px horizontal padding from the legacy implementation.
+            innerStyles={styles.ph3}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Icon
