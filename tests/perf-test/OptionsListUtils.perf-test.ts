@@ -103,7 +103,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const options = createFilteredOptionList(personalDetails, reports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
+const options = createFilteredOptionList(personalDetails, reports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {conciergeReportID: undefined, isSearching: true});
 
 const ValidOptionsConfig = {
     betas: mockedBetas,
@@ -141,6 +141,7 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
             getSearchOptions({
+                translate: translateLocal,
                 options,
                 betas: mockedBetas,
                 draftComments: {},
@@ -167,6 +168,7 @@ describe('OptionsListUtils', () => {
             MOCK_CURRENT_USER_EMAIL,
             undefined,
             ValidOptionsConfig,
+            translateLocal,
         );
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
@@ -183,6 +185,7 @@ describe('OptionsListUtils', () => {
             MOCK_CURRENT_USER_EMAIL,
             undefined,
             ValidOptionsConfig,
+            translateLocal,
         );
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
@@ -216,6 +219,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
+                translateLocal,
             ),
         );
     });
@@ -289,6 +293,7 @@ describe('OptionsListUtils', () => {
             // Inputs are referentially identical across measured runs, so clear the cache to measure the build path.
             clearFilteredOptionListCache();
             return createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                conciergeReportID: undefined,
                 maxRecentReports: 500,
                 isSearching: false,
             });
@@ -299,6 +304,7 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
             createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                conciergeReportID: undefined,
                 maxRecentReports: 500,
                 isSearching: true,
             }),
@@ -332,12 +338,14 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] getSearchOptions with isSearching is true', async () => {
         await waitForBatchedUpdates();
         const optionLists = createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+            conciergeReportID: undefined,
             maxRecentReports: 500,
             isSearching: true,
         });
 
         await measureFunction(() =>
             getSearchOptions({
+                translate: translateLocal,
                 options: optionLists,
                 betas: mockedBetas,
                 draftComments: {},

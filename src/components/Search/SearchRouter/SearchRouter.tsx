@@ -86,6 +86,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
@@ -154,7 +155,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     // Debounced value gates expensive filtering in the autocomplete list
     const [, debouncedAutocompleteQueryValue, setAutocompleteQueryValue] = useDebouncedState(initialQuery, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
     const [selection, setSelection] = useState({start: initialQuery.length, end: initialQuery.length});
-    const navigationSuggestions = useNavigationSuggestions(textInputValue);
 
     useEffect(() => {
         clearPendingRouterState();
@@ -163,6 +163,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
     const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
+    // Only watch for reports awaiting approval while the router is active as a popover or full-screen page.
+    const navigationSuggestions = useNavigationSuggestions(textInputValue, !!isSearchRouterDisplayed || isSearchRouterScreen);
 
     const contextualReport = useReportOrReportDraft(contextualReportID);
     const [contextualReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`, {
@@ -211,20 +213,18 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     return undefined;
                 }
 
-                const option = createOptionFromReport(
-                    contextualReport,
+                const option = createOptionFromReport({
+                    report: contextualReport,
                     personalDetails,
-                    contextualReportNVP,
-                    contextualReportPolicy,
+                    privateIsArchived: contextualReportNVP,
+                    policy: contextualReportPolicy,
                     sortedActions,
-                    undefined,
-                    {
+                    conciergeReportID,
+                    config: {
                         showPersonalDetails: true,
                     },
-                    undefined,
-                    undefined,
                     isTrackIntentUser,
-                );
+                });
                 reportForContextualSearch = option;
             }
 
@@ -278,6 +278,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         },
         [
             contextualReportID,
+            conciergeReportID,
             navigationSuggestions,
             textInputValue,
             isSearchRouterDisplayed,

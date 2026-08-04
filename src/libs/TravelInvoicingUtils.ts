@@ -44,6 +44,13 @@ function getIsTravelInvoicingEnabled(cardSettings: ExpensifyCardSettingsBase | u
 }
 
 /**
+ * Checks whether the workspace pays its Travel Invoicing settlement by invoice (wire) instead of an ACH debit.
+ */
+function getIsTravelBillingPayByInvoice(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
+    return typeof cardSettings?.invoiceTo === 'string' && cardSettings.invoiceTo.length > 0;
+}
+
+/**
  * Checks if a settlement account is configured for Travel Invoicing.
  */
 function hasTravelInvoicingSettlementAccount(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
@@ -64,13 +71,23 @@ function getTravelLimit(cardSettings: ExpensifyCardSettingsBase | undefined): nu
 }
 
 /**
+ * Gets the amount (in cents) awaiting payment on a sent Consolidated Travel Billing invoice.
+ * Non-zero for pay-by-invoice customers between the invoice being sent and paid.
+ * Returns 0 if no settings are available.
+ */
+function getPendingTravelInvoiceAmount(cardSettings: ExpensifyCardSettingsBase | undefined): number {
+    return cardSettings?.pendingInvoiceAmount ?? 0;
+}
+
+/**
  * Checks if the workspace has an outstanding Travel Invoicing balance.
- * Returns true if there is unpaid travel spend, blocking disable.
+ * Returns true if there is unpaid travel spend, a queued settlement, or an unpaid invoice, blocking disable.
  */
 function hasOutstandingTravelBalance(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
     const currentBalance = cardSettings?.currentBalance ?? 0;
     const pendingSettlementAmount = cardSettings?.pendingSettlementAmount ?? 0;
-    return currentBalance > 0 || pendingSettlementAmount > 0;
+    const pendingInvoiceAmount = cardSettings?.pendingInvoiceAmount ?? 0;
+    return currentBalance > 0 || pendingSettlementAmount > 0 || pendingInvoiceAmount > 0;
 }
 
 /**
@@ -138,6 +155,13 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
 }
 
 /**
+ * Builds the card-feed ID for a Travel Invoicing card feed (the `_TRAVEL_US` variant).
+ */
+function getTravelInvoicingFeedID(fundID: number | string): `${string}_${typeof CONST.EXPENSIFY_CARD.BANK}_${typeof CONST.TRAVEL.PROGRAM_TRAVEL_US}` {
+    return `${fundID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
+}
+
+/**
  * Downloads a cached Travel Invoice Statement PDF.
  * Constructs a secure URL with encrypted auth token and triggers the download.
  */
@@ -178,13 +202,16 @@ function isTravelCVVEligible(cardList: OnyxEntry<CardList>): boolean {
 
 export {
     getIsTravelInvoicingEnabled,
+    getIsTravelBillingPayByInvoice,
     hasTravelInvoicingSettlementAccount,
     hasOutstandingTravelBalance,
     getTravelLimit,
     getTravelSpend,
+    getPendingTravelInvoiceAmount,
     getTravelSettlementAccount,
     getTravelSettlementFrequency,
     getTravelInvoicingCardSettingsKey,
+    getTravelInvoicingFeedID,
     downloadTravelInvoiceStatementPDF,
     getTravelInvoicingCard,
     isTravelCVVEligible,

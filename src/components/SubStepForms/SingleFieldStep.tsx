@@ -8,7 +8,7 @@ import TextInput from '@components/TextInput';
 
 import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
 import useLocalize from '@hooks/useLocalize';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -23,7 +23,7 @@ import type {InputModeOptions} from 'react-native';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
-type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
+type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
     ForwardedFSClassProps & {
         /** The ID of the form */
         formID: TFormID;
