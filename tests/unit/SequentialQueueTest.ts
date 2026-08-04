@@ -687,6 +687,25 @@ describe('SequentialQueue - pause watchdog', () => {
         expect(SequentialQueue.isPaused()).toBe(false);
     });
 
+    it('does not let a clear of the applied-update key reset the watermark and re-arm on the next value', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);
+        SequentialQueue.pause();
+
+        // Troubleshoot → "Clear Onyx data" wipes the key mid-pause.
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, null);
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+        // A value that does not clear the pre-clear watermark is not progress, so the original deadline must hold.
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 60);
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+
+        expect(escalation).toHaveBeenCalledTimes(1);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
     it('does not re-arm from another tab advancing the shared key once this tab is demoted', async () => {
         const escalation = jest.fn(() => Promise.resolve());
         SequentialQueue.registerPauseWatchdogEscalation(escalation);

@@ -136,9 +136,11 @@ function armPauseWatchdog() {
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (value) => {
-        const updateID = value ?? 0;
-        const didAdvance = updateID > lastSeenUpdateID;
-        lastSeenUpdateID = updateID;
+        if (value === undefined) {
+            return;
+        }
+        const didAdvance = value > lastSeenUpdateID;
+        lastSeenUpdateID = value;
         if (!isQueuePaused || !didAdvance || !isClientTheLeader()) {
             return;
         }
