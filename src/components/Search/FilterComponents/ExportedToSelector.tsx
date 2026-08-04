@@ -31,6 +31,7 @@ type ExportedToSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
 const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
     [CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
     [CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
+    [CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT,
 };
 
 function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: ExportedToSelectorProps) {
