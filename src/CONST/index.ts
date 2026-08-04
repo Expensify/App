@@ -2555,6 +2555,12 @@ const CONST = {
         SUSTAINED_FAILURE_WINDOW_MS: 10 * 1000,
         RECONNECT_STAMPEDE_JITTER_MS: 5000,
         STALLED_UPDATES_FETCH_BACKOFF_TIME_MS: 60 * 1000,
+        MAX_PAUSE_WATCHDOG_TIME_MS: 60 * 1000,
+        MAX_PAUSE_WATCHDOG_ESCALATION_TIME_MS: 15 * 1000,
+        // Hard ceiling on a single pause, measured from pause() and not extendable by progress. The re-arm signal
+        // ("some update was applied") can keep firing while the gap that paused us stays open, so the per-window
+        // timer alone doesn't actually bound how long the queue can sit paused.
+        MAX_PAUSE_WATCHDOG_ABSOLUTE_TIME_MS: 2 * 60 * 1000,
     },
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
@@ -4670,7 +4676,7 @@ const CONST = {
             COPY_EXISTING: 'copy',
             CREATE_NEW: 'create',
         },
-        MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
+        MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card-US',
         PIN: {
             LENGTH: 4,
             INVALID_PINS: [
@@ -8361,6 +8367,10 @@ const CONST = {
         AGENTS_RULES_BANNER: {
             CTA: 'AgentsRulesBanner-CTA',
             DISMISS: 'AgentsRulesBanner-Dismiss',
+        },
+        PRODUCT_MARKETING_WINDOW: {
+            CTA: 'ProductMarketingWindow-CTA',
+            DISMISS: 'ProductMarketingWindow-Dismiss',
         },
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
