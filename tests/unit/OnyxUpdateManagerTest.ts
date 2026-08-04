@@ -680,6 +680,18 @@ describe('OnyxUpdateManager', () => {
             expect(SequentialQueue.isPaused()).toBe(false);
         });
 
+        it('should skip the escalation when the client has never received an update ID, instead of firing a full ReconnectApp', async () => {
+            await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 0);
+
+            // At 0 the escalation would call reconnectAppWithSideEffects(0), which omits updateIDFrom and so pulls the
+            // FULL app payload — applied outside the queue while WRITEs are still pending. handleMissingOnyxUpdates has
+            // a dedicated flow for this state; the watchdog must not race it.
+            await letTheWatchdogFire();
+
+            expect(App.reconnectAppWithSideEffects).not.toHaveBeenCalled();
+            expect(SequentialQueue.isPaused()).toBe(false);
+        });
+
         it('should skip the escalation on a follower client, but still let the pause self-heal', async () => {
             mockedIsClientTheLeader.mockReturnValue(false);
 

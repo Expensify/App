@@ -129,6 +129,14 @@ registerPauseWatchdogEscalation(() => {
         return Promise.resolve();
     }
 
+    // Without a client update ID there is no incremental range to ask for, so the reconnect would return the full app
+    // payload and apply it outside the queue with WRITEs still pending. handleMissingOnyxUpdates owns this state (its
+    // `!lastUpdateIDFromClient` flow, guarded against concurrent reconnects) — just unpause and let it run.
+    if (!lastUpdateIDFromClient) {
+        Log.info('[OnyxUpdateManager] Pause watchdog escalation skipped — no client update ID to reconnect from', false, {lastUpdateIDFromClient});
+        return Promise.resolve();
+    }
+
     if (stalledFetch && Date.now() - stalledFetch.time < CONST.NETWORK.STALLED_UPDATES_FETCH_BACKOFF_TIME_MS) {
         Log.info('[OnyxUpdateManager] Pause watchdog escalation skipped — within the stalled-fetch back-off window', false, {lastUpdateIDFromClient});
         return Promise.resolve();
