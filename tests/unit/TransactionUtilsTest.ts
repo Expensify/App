@@ -1,3 +1,4 @@
+import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 
@@ -16,6 +17,7 @@ import type {TransactionViolation} from '../../src/types/onyx/TransactionViolati
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -280,19 +282,19 @@ describe('TransactionUtils', () => {
 
     describe('getIsFromGlobalCreate', () => {
         it('returns true when isFromFloatingActionButton is true', () => {
-            expect(TransactionUtils.getIsFromGlobalCreate({isFromFloatingActionButton: true} as Transaction)).toBe(true);
+            expect(TransactionUtils.getIsFromGlobalCreate(createMock<Transaction>({isFromFloatingActionButton: true}))).toBe(true);
         });
 
         it('returns false when isFromFloatingActionButton is explicitly false (FAB takes precedence over isFromGlobalCreate via ?? semantics)', () => {
-            expect(TransactionUtils.getIsFromGlobalCreate({isFromFloatingActionButton: false, isFromGlobalCreate: true} as Transaction)).toBe(false);
+            expect(TransactionUtils.getIsFromGlobalCreate(createMock<Transaction>({isFromFloatingActionButton: false, isFromGlobalCreate: true}))).toBe(false);
         });
 
         it('falls back to isFromGlobalCreate when isFromFloatingActionButton is undefined', () => {
-            expect(TransactionUtils.getIsFromGlobalCreate({isFromGlobalCreate: true} as Transaction)).toBe(true);
+            expect(TransactionUtils.getIsFromGlobalCreate(createMock<Transaction>({isFromGlobalCreate: true}))).toBe(true);
         });
 
         it('returns undefined when both flags are absent', () => {
-            expect(TransactionUtils.getIsFromGlobalCreate({} as Transaction)).toBeUndefined();
+            expect(TransactionUtils.getIsFromGlobalCreate(createMock<Transaction>({}))).toBeUndefined();
         });
 
         it('returns undefined when the transaction is undefined', () => {
@@ -312,7 +314,7 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from the associated category
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy, getCurrencyDecimals);
 
             // Then it should return the associated tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_RATE_1');
@@ -332,7 +334,7 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy, getCurrencyDecimals);
 
             // Then it should return the default tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_EXEMPT');
@@ -364,7 +366,7 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy, getCurrencyDecimals);
 
             // Then it should return the default tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_RATE_2');
@@ -387,7 +389,7 @@ describe('TransactionUtils', () => {
                 };
 
                 // When retrieving the tax from the associated category
-                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy);
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy, getCurrencyDecimals);
 
                 // Then it should return undefined for the tax code, amount, and value
                 expect(categoryTaxCode).toBe(undefined);
@@ -406,7 +408,7 @@ describe('TransactionUtils', () => {
                 const transaction = generateTransaction();
 
                 // When retrieving the tax from a category
-                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy);
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy, getCurrencyDecimals);
 
                 // Then it should return undefined for the tax code, amount, and value
                 expect(categoryTaxCode).toBe(undefined);
@@ -435,6 +437,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {category},
                 personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             // Then the updated transaction should contain the tax from the matched rule
@@ -484,6 +488,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {distance: newDistance},
                 personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             // Then: quantity should be updated
@@ -533,6 +539,8 @@ describe('TransactionUtils', () => {
                     policy: undefined,
                     transactionChanges: {distance: 20},
                     personalPolicyOutputCurrency: 'EUR',
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
 
                 // Currency + merchant follow the threaded personal currency (EUR), and amount = 20 mi × 30¢ = 600.
@@ -587,6 +595,8 @@ describe('TransactionUtils', () => {
                         },
                     },
                     personalPolicyOutputCurrency: 'EUR',
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
 
                 // Merchant currency and modifiedCurrency both follow the EUR personal-policy rate, not the USD transaction currency.
@@ -609,6 +619,8 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {amount: newAmount},
                 personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(-newAmount);
@@ -623,6 +635,8 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: false,
                 transactionChanges: {amount: newAmount},
                 personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(newAmount);
@@ -636,6 +650,8 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
                 personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             expect(updatedTransaction.taxValue).toBe('5%');
@@ -651,6 +667,8 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: false,
                 transactionChanges: {taxValue: '5%'},
                 personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             expect(updatedTransaction.taxValue).toBe('10%');
@@ -700,7 +718,8 @@ describe('TransactionUtils', () => {
 
     describe('getTransactionType', () => {
         it('returns card when the transaction is null', () => {
-            expect(TransactionUtils.getTransactionType(null as unknown as Transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
+            // @ts-expect-error -- null intentionally exercises the runtime fallback.
+            expect(TransactionUtils.getTransactionType(null)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
         });
 
         it('returns distance when the transaction iouRequestType is a distance type', () => {
@@ -721,9 +740,9 @@ describe('TransactionUtils', () => {
         });
 
         it('returns cash when the card has a cash card name', () => {
-            const card = {
+            const card = createMock<Card>({
                 cardName: CONST.COMPANY_CARDS.CARD_NAME.CASH,
-            } as Card;
+            });
             const transaction = generateTransaction({
                 cardID: 101,
             });
@@ -848,7 +867,7 @@ describe('TransactionUtils', () => {
         });
 
         it('should return true when a broken connection violation exists for one transaction and the user is the policy member', () => {
-            const policy = {role: CONST.POLICY.ROLE.USER} as Policy;
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
 
@@ -856,11 +875,11 @@ describe('TransactionUtils', () => {
         });
 
         it('should return true when a broken connection violation exists for any of the provided transactions and the user is the policy member', () => {
-            const policy = {
+            const policy = createMock<Policy>({
                 role: CONST.POLICY.ROLE.USER,
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-            } as Policy;
+            });
             const transaction1 = generateTransaction();
             const transaction2 = generateTransaction();
             const transactionViolations = {
@@ -886,7 +905,7 @@ describe('TransactionUtils', () => {
         });
 
         it('should return true when a broken connection violation exists and the user is the policy admin and the expense submitter', () => {
-            const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
             const report = processingReport;
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
@@ -895,7 +914,7 @@ describe('TransactionUtils', () => {
         });
 
         it('should return true when a broken connection violation exists, the user is the policy admin and the expense report is in the open state', () => {
-            const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
             const report = secondUserOpenReport;
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
@@ -904,7 +923,7 @@ describe('TransactionUtils', () => {
         });
 
         it('should return true when a broken connection violation exists, the user is the policy admin, the expense report is in the processing state and instant submit is enabled', () => {
-            const policy = {role: CONST.POLICY.ROLE.ADMIN, autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT} as Policy;
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN, autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT});
             const report = processingReport;
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
@@ -913,7 +932,7 @@ describe('TransactionUtils', () => {
         });
 
         it('should return false when a broken connection violation exists, the user is the policy admin but the expense report is in the approved state', () => {
-            const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
             const report = approvedReport;
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
@@ -1581,7 +1600,8 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
-                    attendees: Object.fromEntries(attendeesArray.entries()) as unknown as Attendee[],
+                    // @ts-expect-error -- plain-object attendees intentionally exercise the legacy serialized shape.
+                    attendees: Object.fromEntries(attendeesArray.entries()),
                 },
             });
 
@@ -1714,7 +1734,8 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
-                    attendees: Object.fromEntries(attendeesArray.entries()) as unknown as Attendee[],
+                    // @ts-expect-error -- plain-object attendees intentionally exercise the legacy serialized shape.
+                    attendees: Object.fromEntries(attendeesArray.entries()),
                 },
             });
 
@@ -1731,7 +1752,8 @@ describe('TransactionUtils', () => {
                 comment: {
                     attendees: [],
                 },
-                modifiedAttendees: Object.fromEntries(modifiedAttendeesArray.entries()) as unknown as Attendee[],
+                // @ts-expect-error -- plain-object attendees intentionally exercise the legacy serialized shape.
+                modifiedAttendees: Object.fromEntries(modifiedAttendeesArray.entries()),
             });
 
             const result = TransactionUtils.getAttendees(transaction);
@@ -1744,7 +1766,8 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
-                    attendees: {} as unknown as Attendee[],
+                    // @ts-expect-error -- an empty object intentionally models legacy serialized attendees.
+                    attendees: {},
                 },
             });
 
@@ -1760,7 +1783,8 @@ describe('TransactionUtils', () => {
                 comment: {
                     attendees: [],
                 },
-                modifiedAttendees: {} as unknown as Attendee[],
+                // @ts-expect-error -- an empty object intentionally models legacy serialized attendees.
+                modifiedAttendees: {},
             });
 
             const result = TransactionUtils.getAttendees(transaction, {email: CURRENT_USER_EMAIL, avatarUrl: '', displayName: ''});
@@ -3891,7 +3915,8 @@ describe('TransactionUtils', () => {
 
         describe('when iouRequestType is null', () => {
             it('returns false', () => {
-                const transaction = {...generateTransaction(), iouRequestType: null} as unknown as Transaction;
+                const transaction = {...generateTransaction(), iouRequestType: null};
+                // @ts-expect-error -- null intentionally models a legacy runtime value.
                 expect(TransactionUtils.isDistanceRequest(transaction)).toBe(false);
             });
         });
@@ -3936,7 +3961,8 @@ describe('TransactionUtils', () => {
 
         describe('when iouRequestType is null', () => {
             it('returns false', () => {
-                const transaction = {...generateTransaction(), iouRequestType: null} as unknown as Transaction;
+                const transaction = {...generateTransaction(), iouRequestType: null};
+                // @ts-expect-error -- null intentionally models a legacy runtime value.
                 expect(TransactionUtils[fn](transaction)).toBe(false);
             });
         });
@@ -3969,7 +3995,8 @@ describe('TransactionUtils', () => {
 
         describe('when iouRequestType is null', () => {
             it('returns manual as the fallback', () => {
-                const transaction = {...generateTransaction(), iouRequestType: null} as unknown as Transaction;
+                const transaction = {...generateTransaction(), iouRequestType: null};
+                // @ts-expect-error -- null intentionally models a legacy runtime value.
                 expect(TransactionUtils.getRequestType(transaction)).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
             });
         });
