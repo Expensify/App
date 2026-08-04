@@ -239,6 +239,7 @@ function TransactionItemRowWide({
                             date={report?.submitted ?? ''}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
+                            shouldUseLocalTimeZone
                         />
                     </View>
                 );
@@ -252,6 +253,7 @@ function TransactionItemRowWide({
                             date={report?.approved ?? ''}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
+                            shouldUseLocalTimeZone
                         />
                     </View>
                 );
@@ -278,6 +280,7 @@ function TransactionItemRowWide({
                             date={transactionItem.exported ?? ''}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
+                            shouldUseLocalTimeZone
                         />
                     </View>
                 );
