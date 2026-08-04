@@ -593,6 +593,41 @@ describe('MoneyRequestReportPreview', () => {
             expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
         });
 
+        it('seeds every transaction when online, so the new filter changes nothing there', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            const setActiveTransactionIDsSpy = jest.spyOn(TransactionThreadNavigation, 'setActiveTransactionIDs');
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            // Online, a delete-pending row is already filtered out of `transactions` upstream, so openableTransactionIDs
+            // must equal the full visible list. This pins the filter as an offline-only refinement — it would fail if
+            // someone widened the predicate (e.g. to one that also matches pendingFields) and started dropping live rows.
+            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith(defaultPreviewTransactions.map((transaction) => transaction.transactionID));
+        });
+
+        it('still renders an offline-deleted expense card in the carousel', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            mockUseNetwork.mockReturnValue({isOffline: true});
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            mockUseReportTransactionsCollection.mockImplementation(() =>
+                toCollectionDataSet(
+                    ONYXKEYS.COLLECTION.TRANSACTION,
+                    [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+                    (transaction) => transaction.transactionID,
+                ),
+            );
+
+            await renderAndPopulateCarousel();
+
+            // Issue #26939: deleting an expense offline must leave the preview VISIBLE (greyed out) rather than
+            // collapsing it. v2 only makes that row non-navigable — it must not disappear, so both cards still render.
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndHeaderText(mockTransaction);
+            expect(screen.getAllByText(transactionDisplayAmount).length).toBeGreaterThanOrEqual(2);
+        });
+
         it('keeps an offline-deleted sibling out of the expense view prev/next carousel', async () => {
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             mockUseNetwork.mockReturnValue({isOffline: true});
