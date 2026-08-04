@@ -15,7 +15,7 @@ readonly APK_PATH="$ANDROID_DIR/build/outputs/apk/release/Expensify-release.apk"
 readonly DEVICE_PROFILE_DIR="/sdcard/Android/data/$PACKAGE_NAME/cache"
 
 function usage() {
-    echo "Usage: $0 {build-instrumented|verify-instrumented|dump|pull|merge|build-optimized}"
+    echo "Usage: $0 {build-instrumented|verify-instrumented|install|dump|pull|merge|build-optimized}"
 }
 
 function ndk_tool() {
@@ -38,6 +38,15 @@ function gradle() {
         cd "$ANDROID_DIR"
         ./gradlew "$@"
     )
+}
+
+function install_apk() {
+    if [[ ! -f "$APK_PATH" ]]; then
+        echo "Missing APK at $APK_PATH. Build the APK first." >&2
+        exit 1
+    fi
+
+    adb install -r "$APK_PATH"
 }
 
 function verify_pgo_instrumentation() (
@@ -103,6 +112,9 @@ case "${1:-}" in
         ;;
     verify-instrumented)
         verify_pgo_instrumentation
+        ;;
+    install)
+        install_apk
         ;;
     dump)
         adb shell am broadcast \
