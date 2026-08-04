@@ -839,7 +839,7 @@ describe('Session', () => {
             await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'secondary@example.com'});
             await waitForBatchedUpdates();
 
-            (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>).mockImplementationOnce(() =>
+            jest.mocked(HttpUtils.xhr).mockImplementationOnce(() =>
                 Promise.resolve({
                     jsonCode: CONST.JSON_CODE.EXP_ERROR,
                 }),

@@ -3641,6 +3641,7 @@ ${amount} για ${merchant} - ${date}`,
         unlink: 'Αποσύνδεση',
         linkSent: 'Ο σύνδεσμος στάλθηκε!',
         successfullyUnlinkedLogin: 'Δευτερεύουσα σύνδεση αποσυνδέθηκε με επιτυχία!',
+        unlinkError: 'Δεν ήταν δυνατή η αποσύνδεση της δευτερεύουσας σύνδεσής σας. Παρακαλούμε δοκιμάστε ξανά.',
     },
     emailDeliveryFailurePage: {
         ourEmailProvider: (login: string) =>

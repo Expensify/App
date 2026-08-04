@@ -1,6 +1,6 @@
 import {act, render, waitFor} from '@testing-library/react-native';
 
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 
@@ -44,7 +44,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     // above are initialized, so capturing them directly would freeze `undefined`.
     navigationRef: {
         current: {
-            canGoBack: (...args: unknown[]) => mockCanGoBack(...args),
+            canGoBack: () => mockCanGoBack(),
         },
         reset: (...args: unknown[]) => {
             mockNavigationReset(...args);
