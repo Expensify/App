@@ -6,16 +6,17 @@ import * as core from '@actions/core';
 import run from '../../.github/actions/javascript/isDeployChecklistLocked/isDeployChecklistLocked';
 import CONST from '../../.github/libs/CONST';
 import * as DeployChecklistUtils from '../../.github/libs/DeployChecklistUtils';
+import createMock from '../utils/createMock';
 
 jest.mock('../../.github/libs/DeployChecklistUtils', () => {
-    const actual = jest.requireActual('../../.github/libs/DeployChecklistUtils') as unknown as typeof DeployChecklistUtils;
+    const actual = jest.requireActual<typeof DeployChecklistUtils>('../../.github/libs/DeployChecklistUtils');
     return {
         ...actual,
         getDeployChecklist: jest.fn(),
     };
 });
 
-const mockGetDeployChecklist = DeployChecklistUtils.getDeployChecklist as jest.MockedFunction<typeof DeployChecklistUtils.getDeployChecklist>;
+const mockGetDeployChecklist = jest.mocked(DeployChecklistUtils.getDeployChecklist);
 
 beforeAll(() => {
     process.env.INPUT_GITHUB_TOKEN = 'fake_token';
@@ -36,10 +37,12 @@ afterAll(() => {
 describe('isDeployChecklistLockedTest', () => {
     describe('GitHub action run function', () => {
         test('Single issue with lock label → locked', () => {
-            mockGetDeployChecklist.mockResolvedValue({
-                number: 42,
-                labels: [{name: CONST.LABELS.LOCK_DEPLOY}],
-            } as unknown as Awaited<ReturnType<typeof DeployChecklistUtils.getDeployChecklist>>);
+            mockGetDeployChecklist.mockResolvedValue(
+                createMock<Awaited<ReturnType<typeof DeployChecklistUtils.getDeployChecklist>>>({
+                    number: 42,
+                    labels: [{name: CONST.LABELS.LOCK_DEPLOY}],
+                }),
+            );
             const setOutputMock = jest.spyOn(core, 'setOutput');
             const setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation(() => {});
             return run().then(() => {
@@ -50,10 +53,12 @@ describe('isDeployChecklistLockedTest', () => {
         });
 
         test('Single issue without lock label → unlocked', () => {
-            mockGetDeployChecklist.mockResolvedValue({
-                number: 99,
-                labels: [{name: CONST.LABELS.STAGING_DEPLOY}],
-            } as unknown as Awaited<ReturnType<typeof DeployChecklistUtils.getDeployChecklist>>);
+            mockGetDeployChecklist.mockResolvedValue(
+                createMock<Awaited<ReturnType<typeof DeployChecklistUtils.getDeployChecklist>>>({
+                    number: 99,
+                    labels: [{name: CONST.LABELS.STAGING_DEPLOY}],
+                }),
+            );
             const setOutputMock = jest.spyOn(core, 'setOutput');
             const setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation(() => {});
             return run().then(() => {
