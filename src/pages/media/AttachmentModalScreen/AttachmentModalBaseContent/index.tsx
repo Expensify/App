@@ -391,8 +391,6 @@ function AttachmentModalBaseContent({
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
-                                // `buttonConfirmText` overrides `Button.Text`'s `ph1`, so the size padding is restored here.
-                                innerStyles={styles.ph5}
                                 onPress={submitAndClose}
                                 isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
                                 sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_MODAL.SEND_BUTTON}
