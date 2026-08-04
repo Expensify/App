@@ -30,7 +30,7 @@ type IconMap = Record<IconName, IconAsset>;
 function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch']);
     const iconMap: IconMap = useMemo(
         () => ({
@@ -48,10 +48,10 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
             return '';
         }
 
-        return buildNextStepMessage(nextStep, translate, currentUserAccountID);
-    }, [nextStep, translate, currentUserAccountID]);
+        return buildNextStepMessage(nextStep, translate, currentUserAccountID, formatPhoneNumber);
+    }, [nextStep, translate, currentUserAccountID, formatPhoneNumber]);
 
-    // iconFill can be set by frontend optimistic updates but backend never sends it
+    // iconFill can be set by frontend optimistic updates (deprecated format) but backend never sends it in new format
     const iconFill = (nextStep && 'iconFill' in nextStep ? (nextStep as {iconFill?: string}).iconFill : undefined) ?? theme.icon;
 
     return (

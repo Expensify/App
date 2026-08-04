@@ -144,7 +144,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const snapshotChatReport = chatReportID ? snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
     const chatReport = parentChatReport ?? snapshotChatReport;
     const [chatReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? chatReportID)}`);
-    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID} =
+    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID, conciergeChat} =
         useReportPaymentContext({
             chatReportPolicyID: chatReport?.policyID,
         });
@@ -236,6 +236,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            conciergeChat,
         });
     };
 

@@ -281,7 +281,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID} =
+    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID, conciergeChat} =
         useReportPaymentContext({
             chatReportPolicyID: chatReport?.policyID,
         });
@@ -330,6 +330,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            conciergeChat,
         });
     };
     return !isLargeScreenWidth ? (

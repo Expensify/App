@@ -186,6 +186,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
+                conciergeChat,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({

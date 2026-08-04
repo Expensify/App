@@ -5,6 +5,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
@@ -91,12 +92,14 @@ function IOURequestStepDistance({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceProps) {
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const iouReportOwnerLoginSelector = useMemo(() => personalDetailsLoginSelector(parentReport?.ownerAccountID), [parentReport?.ownerAccountID]);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: iouReportOwnerLoginSelector});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
@@ -488,6 +491,9 @@ function IOURequestStepDistance({
                     },
                     policy,
                     personalPolicy?.outputCurrency,
+                    undefined,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 );
                 navigateBackAfterSave();
                 return;
@@ -528,6 +534,8 @@ function IOURequestStepDistance({
                     reportPolicyTags,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
             }
             transactionWasSaved.current = true;
@@ -575,6 +583,8 @@ function IOURequestStepDistance({
         reportPolicyTags,
         isTrackIntentUser,
         personalPolicy?.outputCurrency,
+        getCurrencyDecimals,
+        getCurrencySymbol,
     ]);
 
     const submitManualDistance = useCallback(() => {
@@ -604,7 +614,16 @@ function IOURequestStepDistance({
 
         if (isEditingSplit && transaction) {
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
-            setDraftSplitTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, splitDraftTransaction, {distance: distanceAsFloat}, policy, personalPolicy?.outputCurrency);
+            setDraftSplitTransaction(
+                CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                splitDraftTransaction,
+                {distance: distanceAsFloat},
+                policy,
+                personalPolicy?.outputCurrency,
+                undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            );
             navigateBackAfterSave();
             return;
         }
@@ -645,6 +664,8 @@ function IOURequestStepDistance({
             reportPolicyTags,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         });
         transactionWasSaved.current = true;
         // Remove the backup eagerly so the parent report view reads the optimistic transaction
@@ -684,6 +705,8 @@ function IOURequestStepDistance({
         reportPolicyTags,
         isTrackIntentUser,
         personalPolicy?.outputCurrency,
+        getCurrencyDecimals,
+        getCurrencySymbol,
     ]);
 
     const renderItem = useCallback(

@@ -143,6 +143,7 @@ function PayActionButton() {
                     chatReportActions: getChatReportActions(false),
                     delegateAccountID,
                     isTrackIntentUser,
+                    conciergeChat,
                 });
             }
         }

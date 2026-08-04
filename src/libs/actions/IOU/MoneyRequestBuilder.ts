@@ -184,6 +184,7 @@ type RequestMoneyInformation = {
     existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     isSelfTourViewed: boolean;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldDeferAutoSubmit?: boolean;

@@ -38,6 +38,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
 import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
+import Log from '@libs/Log';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -493,7 +494,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'Document',
     ]);
 
-    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
 
     const selectedTransactionReportIDs = useMemo(
         () => [
@@ -1160,6 +1161,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const onBulkPaySelected = useCallback(
         (paymentMethod?: PaymentMethodType, additionalData?: BulkPaySelectionData) => {
             if (!hash) {
+                Log.info('[BulkPay] Dropping bulk pay: no search hash');
                 return;
             }
             if (isOffline) {
@@ -1177,6 +1179,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
             if (restrictedPolicyID) {
+                Log.info('[BulkPay] Blocking bulk pay: billable actions are restricted', false, {policyID: restrictedPolicyID});
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
                 return;
             }
@@ -1189,6 +1192,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const itemPolicyID = item.policyID;
                 const itemReportID = item.reportID;
                 if (!itemReportID) {
+                    Log.info('[BulkPay] Dropping bulk pay: selected item has no reportID');
                     return;
                 }
                 const itemReport = getReportFromSearchSnapshot(itemReportID, searchData, allReports);
@@ -1198,6 +1202,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const lastPolicyPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(itemPolicyID, personalPolicyID, lastPaymentMethods, reportType, isIOUReport);
 
                 if (!lastPolicyPaymentMethod) {
+                    Log.info('[BulkPay] Aborting bulk pay: no last payment method for policy, redirecting to the report', false, {policyID: itemPolicyID, reportID: itemReportID});
                     Navigation.navigate(
                         ROUTES.SEARCH_REPORT.getRoute({
                             reportID: itemReportID,
@@ -1216,6 +1221,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const hasSelectedBusinessBankAccount = expenseReportBankAccountID != null;
 
                 if (isExpenseReport && lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA && !hasSelectedBusinessBankAccount) {
+                    Log.info('[BulkPay] Aborting bulk pay: policy has no VBBA and no bank account was selected, redirecting to the report', false, {
+                        policyID: itemPolicyID,
+                        reportID: itemReportID,
+                    });
                     Navigation.navigate(
                         ROUTES.SEARCH_REPORT.getRoute({
                             reportID: item.reportID,
@@ -1228,6 +1237,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 if (isPolicyPaymentMethod && isIOUReport) {
                     const adminPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${lastPolicyPaymentMethod}`];
                     if (!adminPolicy) {
+                        Log.info('[BulkPay] Aborting bulk pay: last payment method points to an unknown policy, redirecting to the report', false, {reportID: item.reportID});
                         Navigation.navigate(
                             ROUTES.SEARCH_REPORT.getRoute({
                                 reportID: item.reportID,
@@ -1380,6 +1390,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`],
                     delegateAccountID,
                     isTrackIntentUser,
+                    conciergeChat,
                 });
                 paidReportCount += 1;
             }
@@ -2259,9 +2270,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.ArrowSplit,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, firstTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {
-                        isProduction,
-                    });
+                    initSplitExpense(
+                        firstTransaction,
+                        firstTransactionReport,
+                        splitEffectivePolicy,
+                        selfDMReportID,
+                        restrictedActionPolicyID,
+                        personalPolicy?.outputCurrency,
+                        getCurrencyDecimals,
+                        getCurrencySymbol,
+                        {isProduction},
+                    );
                 },
             });
         }
@@ -2395,6 +2414,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchKey,
         isTrackIntentUser,
         getCurrencyDecimals,
+        getCurrencySymbol,
         amountOwed,
         allTransactions,
         transactions,
