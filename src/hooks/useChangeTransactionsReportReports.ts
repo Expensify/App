@@ -10,7 +10,15 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
 
-/** Resolve the REPORT subset that `changeTransactionsReport` looks up — keyed like the full collection so the action can do `reports?.[\`${KEY}${id}\`]`. */
+/**
+ * Resolve the REPORT subset that `changeTransactionsReport` looks up — keyed like the full collection so the action
+ * can do `reports?.[\`${KEY}${id}\`]`. Includes:
+ * - the self-DM report, if one exists
+ * - the destination report (`newReport`)
+ * - each transaction's current report
+ * - for non-deleted transactions, the old IOU action's transaction-thread report (`childReportID`) and its own
+ *   report-action ID (the latter is used as a REPORT key fallback for that thread's `policyID` in `Transaction.ts`)
+ */
 function useChangeTransactionsReportReports(transactionIDs: string[], allTransactions: OnyxCollection<Transaction>, newReport: OnyxEntry<Report>): OnyxCollection<Report> {
     const newReportID = newReport?.reportID;
 
