@@ -409,6 +409,31 @@ describe('SequentialQueue', () => {
             onyxUpdateSpy.mockRestore();
         }
     });
+
+    it('should reset the shared throttle when the queue stops because the app went offline', async () => {
+        const offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
+        mockFetch.mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
+
+        try {
+            await SequentialQueue.push(request);
+            await waitForBatchedUpdates();
+
+            // The request failed once, so the throttle is now carrying a retry count and a wait time.
+            const scheduledWait = SequentialQueue.sequentialQueueRequestThrottle.getLastRequestWaitTime();
+            expect(scheduledWait).toBeGreaterThan(0);
+
+            // Go offline while the retry is still sleeping. When it wakes, process() stops on its offline guard.
+            offlineSpy.mockReturnValue(true);
+            await new Promise((resolve) => {
+                setTimeout(resolve, scheduledWait + 10);
+            });
+
+            // The next command must start from a fresh count and a floor-range wait rather than inherit this one.
+            expect(SequentialQueue.sequentialQueueRequestThrottle.getLastRequestWaitTime()).toBe(0);
+        } finally {
+            offlineSpy.mockRestore();
+        }
+    });
 });
 
 describe('SequentialQueue - reconnect coverage collapse', () => {

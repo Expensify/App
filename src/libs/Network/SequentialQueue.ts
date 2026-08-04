@@ -199,15 +199,21 @@ function deferOfflineReadBehindSameReportComments(persistedRequests: AnyRequest[
  * requests to our backend is evenly distributed and it gradually decreases with time, which helps the servers catch up.
  */
 function process(): Promise<void> {
+    // A sleeping retry always wakes up back into process(), so these two guards are where the throttle
+    // stops. One throttle serves every command, so shed this run's retry count and backoff here rather
+    // than charging them to whichever command runs next.
+
     // When the queue is paused, return early. This prevents any new requests from happening.
     // The queue will be flushed again when the queue is unpaused.
     if (isQueuePaused) {
         Log.info('[SequentialQueue] Unable to process. Queue is paused.');
+        sequentialQueueRequestThrottle.clear();
         return Promise.resolve();
     }
 
     if (isOfflineNetwork()) {
         Log.info('[SequentialQueue] Unable to process. We are offline.');
+        sequentialQueueRequestThrottle.clear();
         return Promise.resolve();
     }
 

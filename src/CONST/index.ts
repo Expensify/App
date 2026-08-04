@@ -353,7 +353,7 @@ const CONST = {
         MIN_SIZE: 240,
 
         // Allowed extensions for receipts
-        ALLOWED_RECEIPT_EXTENSIONS: ['heif', 'heic', 'jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
+        ALLOWED_RECEIPT_EXTENSIONS: ['heif', 'heic', 'jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message', 'webp'],
 
         MAX_FILE_LIMIT: 30,
     },
@@ -495,6 +495,7 @@ const CONST = {
         TYPE: {
             CSV: 'csv',
             PDF: 'pdf',
+            RECEIPTS: 'receipts',
         },
     },
 
@@ -697,7 +698,7 @@ const CONST = {
                 ADDRESS: 'address',
                 TYPE: 'type',
                 INCORPORATION_DATE: 'start-date',
-                INCORPORATION_STATE: 'state',
+                INCORPORATION_STATE: 'incorporation-state',
                 INCORPORATION_CODE: 'code',
                 CONFIRMATION: 'confirmation',
             },
@@ -963,6 +964,14 @@ const CONST = {
     },
     ENTER_SIGNER_INFO: {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
+        SUB_PAGE_NAMES: {
+            NAME: 'name',
+            JOB_TITLE: 'job-title',
+            DATE_OF_BIRTH: 'date-of-birth',
+            ADDRESS: 'address',
+            UPLOAD_DOCUMENTS: 'upload-documents',
+            CONFIRMATION: 'confirmation',
+        },
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
@@ -995,6 +1004,8 @@ const CONST = {
         RILLET: 'rillet',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
+        GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
     },
     BUTTON_STATES: {
@@ -1464,6 +1475,7 @@ const CONST = {
             CANCEL_PAYMENT: 'cancelPayment',
             HOLD: 'hold',
             DOWNLOAD_PDF: 'downloadPDF',
+            DOWNLOAD_RECEIPTS: 'downloadReceipts',
             PRINT: 'print',
             CHANGE_WORKSPACE: 'changeWorkspace',
             CHANGE_APPROVER: 'changeApprover',
@@ -1675,6 +1687,9 @@ const CONST = {
                     ADD_EMPLOYEE: 'POLICYCHANGELOG_ADD_EMPLOYEE',
                     ADD_CARD_FEED: 'POLICYCHANGELOG_ADD_CARD_FEED',
                     ADD_EXPENSIFY_CARD_RULE: 'POLICYCHANGELOG_ADD_EXPENSIFY_CARD_RULE',
+                    ADD_AGENT_RULE: 'POLICYCHANGELOG_ADD_AGENT_RULE',
+                    UPDATE_AGENT_RULE: 'POLICYCHANGELOG_UPDATE_AGENT_RULE',
+                    DELETE_AGENT_RULE: 'POLICYCHANGELOG_DELETE_AGENT_RULE',
                     ADD_INTEGRATION: 'POLICYCHANGELOG_ADD_INTEGRATION',
                     ADD_REPORT_FIELD: 'POLICYCHANGELOG_ADD_REPORT_FIELD',
                     ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
@@ -1932,6 +1947,7 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             REPORT_LEVEL_EXPORT: 'report_level_export',
             EXPENSE_LEVEL_EXPORT: 'detailed_export',
+            MULTIPLE_TAX_EXPORT: 'multiple_tax_export',
         },
         EXPORT_OPTION_LABELS: {
             REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
@@ -2472,6 +2488,7 @@ const CONST = {
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
         INCORRECT_VALIDATE_CODE: 451,
+        ADMIN_REQUIRED: 460,
         POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
@@ -3534,6 +3551,18 @@ const CONST = {
         },
     },
 
+    ADD_PERSONAL_BANK_ACCOUNT: {
+        SUB_PAGE_NAMES: {
+            PLAID_BANK_ACCOUNT: 'plaid',
+            MANUAL_BANK_ACCOUNT_DETAILS: 'manual',
+            LEGAL_NAME: 'legal-name',
+            ADDRESS: 'address',
+            PHONE_NUMBER: 'phone-number',
+            CONFIRMATION: 'confirmation',
+            SUCCESS: 'success',
+        },
+    },
+
     MISSING_PERSONAL_DETAILS: {
         STEP_INDEX_LIST: ['1', '2', '3', '4'],
         STEP_INDEX_LIST_WITH_PIN: ['1', '2', '3', '4', '5'],
@@ -3647,11 +3676,14 @@ const CONST = {
                 MINIMUM_FEE: 0,
             },
         },
+        // Error field used by the validateCode prompt shown when changing the phone number protected for card 3DS verification
+        VALIDATE_CODE_ERROR_FIELD: 'walletPhoneNumber',
         ERROR: {
             // If these get updated, we need to update the codes on the Web side too
             SSN: 'ssnError',
             KBA: 'kbaNeeded',
             KYC: 'kycFailed',
+            INCORRECT_VALIDATE_CODE: 'incorrectValidateCode',
             FULL_SSN_NOT_FOUND: 'Full SSN not found',
             MISSING_FIELD: 'Missing required additional details fields',
             WRONG_ANSWERS: 'Wrong answers',
@@ -4058,6 +4090,10 @@ const CONST = {
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
+        GLOBAL_REIMBURSEMENT_FX_PREFERENCE: {
+            COMPANY: 'company',
+            EMPLOYEE: 'employee',
+        },
         CASH_EXPENSE_REIMBURSEMENT_CHOICES: {
             REIMBURSABLE_DEFAULT: 'reimbursableDefault', // Reimbursable by default
             NON_REIMBURSABLE_DEFAULT: 'nonReimbursableDefault', // Non-reimbursable by default
@@ -4071,6 +4107,7 @@ const CONST = {
             SETTINGS: 'settings',
             EXPORT: 'export',
             SYNC_WITH_HR: 'syncWithHR',
+            ADD_APPROVAL_WORKFLOW: 'addApprovalWorkflow',
         },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -4200,6 +4237,7 @@ const CONST = {
             AUTOREPORTING: 'autoReporting',
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
+            GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
             GENERAL_SETTINGS: 'generalSettings',
         },
         EXPENSE_REPORT_RULES: {
@@ -4505,21 +4543,18 @@ const CONST = {
     },
 
     AVATAR_SIZE: {
-        X_LARGE: 'xlarge',
-        LARGE: 'large',
-        MEDIUM: 'medium',
-        DEFAULT: 'default',
+        XXXX_SMALL: 'xxxx-small',
+        XXX_SMALL: 'xxx-small',
+        XX_SMALL: 'xx-small',
+        X_SMALL: 'x-small',
         SMALL: 'small',
-        SMALLER: 'smaller',
-        SUBSCRIPT: 'subscript',
-        SMALL_SUBSCRIPT: 'small-subscript',
-        MID_SUBSCRIPT: 'mid-subscript',
-        LARGE_BORDERED: 'large-bordered',
-        MEDIUM_LARGE: 'medium-large',
-        HEADER: 'header',
-        MENTION_ICON: 'mention-icon',
-        SMALL_NORMAL: 'small-normal',
-        LARGE_NORMAL: 'large-normal',
+        // The default avatar size, mapping to the medium avatar dimensions (variables.avatarSizeMedium)
+        DEFAULT: 'medium',
+        LARGE: 'large',
+        X_LARGE: 'x-large',
+        XX_LARGE: 'xx-large',
+        XXX_LARGE: 'xxx-large',
+        XXXX_LARGE: 'xxxx-large',
     },
 
     COMPANY_CARD: {
@@ -5135,7 +5170,7 @@ const CONST = {
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|#|\?|\\|\|/g,
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
-        OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
+        OTHER_INVISIBLE_CHARACTERS: /[\u3164\u115f\u1160\uffa0\u2800]/g,
         SHORT_MENTION_HTML: /<mention-short>(.*?)<\/mention-short>/g,
         REPORT_ID_FROM_PATH: /(?<!\/search)\/r\/(\d+)/,
         DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
@@ -6664,12 +6699,11 @@ const CONST = {
             TRIP: 'trip',
             CHAT: 'chat',
         },
-        // Terminal lifecycle state of a search snapshot's most recent request. Written by the search action lifecycle
-        // (loading on request start, loaded/error on resolve) so the snapshot always has an explicit, mutually exclusive state.
+        // Lifecycle state of a search snapshot's most recent request. Written by the search action lifecycle
+        // so the snapshot distinguishes an active request from one that has settled.
         SNAPSHOT_STATE: {
             LOADING: 'loading',
             LOADED: 'loaded',
-            ERROR: 'error',
         },
         ACTION_FILTERS: {
             SUBMIT: 'submit',
@@ -6700,6 +6734,7 @@ const CONST = {
             EDIT: 'edit',
             EXPORT: 'export',
             DOWNLOAD_PDF: 'downloadPDF',
+            DOWNLOAD_STATEMENT_PDF: 'downloadStatementPDF',
             APPROVE: 'approve',
             CHANGE_APPROVER: 'changeApprover',
             PAY: 'pay',
@@ -7310,6 +7345,9 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'reportField',
             EXPORTED_TO: 'exportedTo',
+            SUBMITTER_USER_ID: 'submitterUserID',
+            SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
+            ORDER_DEAL_NUMBERS: 'orderDealNumbers',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field
@@ -7386,6 +7424,9 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'report-field',
             EXPORTED_TO: 'exported-to',
+            SUBMITTER_USER_ID: 'submitter-user-id',
+            SUBMITTER_PAYROLL_ID: 'submitter-payroll-id',
+            ORDER_DEAL_NUMBERS: 'order-deal-numbers',
             COLUMNS: 'columns',
             LIMIT: 'limit',
         },
@@ -7759,6 +7800,15 @@ const CONST = {
                 title: 'workspace.upgrade.rules.title' as const,
                 description: 'workspace.upgrade.rules.description' as const,
                 icon: 'Rules',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
+            publicReceiptVisibility: {
+                id: 'publicReceiptVisibility' as const,
+                alias: 'public-receipt-visibility',
+                name: 'Public receipt visibility',
+                title: 'workspace.upgrade.publicReceiptVisibility.title' as const,
+                description: 'workspace.upgrade.publicReceiptVisibility.description' as const,
+                icon: 'ReportReceipt',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             perDiem: {
@@ -8545,6 +8595,7 @@ const CONST = {
             EXPORT: 'MoreMenu-Export',
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
+            DOWNLOAD_RECEIPTS: 'MoreMenu-DownloadReceipts',
             PRINT: 'MoreMenu-Print',
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
@@ -8656,7 +8707,6 @@ const CONST = {
             COPILOT: 'Account-Copilot',
             SECURITY: 'Account-Security',
             SUBSCRIPTION: 'Account-Subscription',
-            STATUS_PICKER: 'Account-StatusPicker',
         },
         DISCOVER_SECTION: {
             TEST_DRIVE: 'DiscoverSection-TestDrive',
@@ -8868,7 +8918,9 @@ const CONST = {
             },
             WORKFLOWS: {
                 AUTO_REPORTING_FREQUENCY: 'WorkspaceWorkflows-AutoReportingFrequency',
+                CURRENCY_CONVERSION_FEES: 'WorkspaceWorkflows-CurrencyConversionFees',
                 ADD_APPROVAL: 'WorkspaceWorkflows-AddApproval',
+                MORE_DROPDOWN: 'WorkspaceWorkflows-MoreDropdown',
                 LOAD_MORE_APPROVALS: 'WorkspaceWorkflows-LoadMoreApprovals',
                 BANK_ACCOUNT: 'WorkspaceWorkflows-BankAccount',
                 ADD_BANK_ACCOUNT: 'WorkspaceWorkflows-AddBankAccount',
@@ -9225,6 +9277,12 @@ const CONST = {
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
         ANNOUNCEMENTS: [
             {
+                title: 'Scoped admin roles, plus HR & AI updates',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-july-2026-product-update',
+                publishedDate: '2026-07-28',
+            },
+            {
                 title: 'The Expensify Card: Now in the UK & EU',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
@@ -9235,12 +9293,6 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260713695836/en/Expensify-Launches-Consolidated-Travel-Billing-to-Simplify-How-Companies-Pay-for-Business-Travel',
                 publishedDate: '2026-07-13',
-            },
-            {
-                title: 'More Concierge AI upgrades, plus agent beta',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260701645763/en/Expensifys-AI-Expands-to-Expense-Automation-Spend-Insights-and-Agents',
-                publishedDate: '2026-07-01',
             },
         ],
     },
