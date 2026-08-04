@@ -6422,19 +6422,26 @@ function getParentNavigationSubtitle(
 
 /**
  * Navigate to the details page of a given report
+ *
+ * Side Panel reports use a synthetic route that is not part of the navigation state, so navigation must be anchored to the report.
+ * Otherwise, the active route is preserved to keep the details page within its originating context.
+ *
+ * @param isInSidePanel - Whether the report is rendered inside the Side Panel
  */
-function navigateToDetailsPage(report: OnyxEntry<Report>) {
+function navigateToDetailsPage(report: OnyxEntry<Report>, isInSidePanel = false) {
     const isSelfDMReport = isSelfDM(report);
     const isOneOnOneChatReport = isOneOnOneChat(report);
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
+    const basePath = isInSidePanel && report?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(report.reportID) : undefined;
+
     if (isSelfDMReport || isOneOnOneChatReport) {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0))));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0)), basePath));
         return;
     }
 
     if (report?.reportID) {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, basePath));
     }
 }
 
