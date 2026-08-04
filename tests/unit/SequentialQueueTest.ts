@@ -728,6 +728,30 @@ describe('SequentialQueue - pause watchdog', () => {
         expect(SequentialQueue.isPaused()).toBe(true);
     });
 
+    it('a stale escalation must not unpause across a resetQueue that recycles the pause token', async () => {
+        let resolveFirstEscalation: () => void = () => {};
+        SequentialQueue.registerPauseWatchdogEscalation(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveFirstEscalation = resolve;
+                }),
+        );
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+        expect(SequentialQueue.isPaused()).toBe(true); // escalation in flight
+
+        // Mirrors afterEach running while an escalation is still pending, followed by the next test's pause.
+        SequentialQueue.resetQueue();
+        SequentialQueue.pause();
+
+        resolveFirstEscalation();
+        await jest.advanceTimersByTimeAsync(0);
+
+        // A recycled token would let the previous run's escalation unpause this one.
+        expect(SequentialQueue.isPaused()).toBe(true);
+    });
+
     it('should be cleared by a normal unpause and never fire afterwards', async () => {
         const escalation = jest.fn(() => Promise.resolve());
         SequentialQueue.registerPauseWatchdogEscalation(escalation);

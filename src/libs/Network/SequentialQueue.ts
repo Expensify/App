@@ -737,7 +737,6 @@ function resetQueue(): void {
     isSequentialQueueRunning = false;
     currentRequestPromise = null;
     isQueuePaused = false;
-    pauseGeneration = 0;
     lastSeenUpdateID = 0;
     clearPauseWatchdog();
     isReadyPromise = Promise.resolve();
