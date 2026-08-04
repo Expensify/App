@@ -87,7 +87,7 @@ function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrN
     const styles = useThemeStyles();
     const {route} = props;
     // Read (but don't consume) shouldHideHeader so it is still forwarded to the wrapped component below.
-    const shouldHideHeader = (props as {shouldHideHeader?: boolean}).shouldHideHeader;
+    const {shouldHideHeader} = props;
     const transactionID = route.params.transactionID;
     const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
