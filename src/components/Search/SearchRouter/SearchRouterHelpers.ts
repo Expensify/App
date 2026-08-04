@@ -32,28 +32,31 @@ function isNavigationIntentOnlyQuery(query: string) {
     return /^go(?:\s+to)?$/i.test(query.trim());
 }
 
-function normalizeNavigationText(value: string) {
-    return StringUtils.normalizeAccents(value).toLowerCase().replaceAll(/\s+/g, ' ').trim();
+function toMatchKey(value: string | undefined) {
+    return StringUtils.normalizeForMatch(value ?? '')
+        .toLowerCase()
+        .replaceAll(/\s+/g, ' ')
+        .trim();
 }
 
 function matchesNavigationQuery(query: string, ...values: Array<string | undefined>) {
-    const normalizedQuery = normalizeNavigationText(query);
+    const normalizedQuery = toMatchKey(query);
     if (!normalizedQuery) {
         return false;
     }
 
-    return values.some((value) => normalizeNavigationText(value ?? '').includes(normalizedQuery));
+    return values.some((value) => toMatchKey(value).includes(normalizedQuery));
 }
 
 function matchesNavigationQueryExactly(query: string, ...values: Array<string | undefined>) {
-    const normalizedQuery = normalizeNavigationText(query);
-    return values.some((value) => normalizeNavigationText(value ?? '') === normalizedQuery);
+    const normalizedQuery = toMatchKey(query);
+    return values.some((value) => toMatchKey(value) === normalizedQuery);
 }
 
 function sortNavigationSuggestionItems<T extends NavigationSuggestionSourceItem>(items: T[], localeCompare: LocaleContextProps['localeCompare']): T[] {
     return [...items].sort((firstItem, secondItem) => {
-        const firstText = StringUtils.normalizeAccents(firstItem.text ?? '').toLowerCase();
-        const secondText = StringUtils.normalizeAccents(secondItem.text ?? '').toLowerCase();
+        const firstText = toMatchKey(firstItem.text);
+        const secondText = toMatchKey(secondItem.text);
         const textComparison = localeCompare(firstText, secondText);
         if (textComparison !== 0) {
             return textComparison;

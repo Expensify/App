@@ -150,6 +150,23 @@ describe('ExpensifyCardStatementUtils', () => {
         expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
     });
 
+    it('hides the export when one settlement is whole but another is only partially selected', () => {
+        const wholeGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const partialGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456`;
+        // Settlement 123 fully selected, settlement 456 missing one transaction. A partial settlement narrows the
+        // selection, so the action must disappear rather than silently exporting only the whole one.
+        const selectedTransactions: SelectedTransactions = {
+            ...makeSettlementSelection(wholeGroupKey, 2),
+            ...makeSettlementSelection(partialGroupKey, 1),
+        };
+        const searchData = makeSearchData({
+            [wholeGroupKey]: makeSettlementGroup({entryID: 123, count: 2}),
+            [partialGroupKey]: makeSettlementGroup({entryID: 456, count: 2}),
+        });
+
+        expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
     it('includes a settlement when all of its transactions are selected', () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         // Every transaction in the (expanded) settlement is selected, so the whole settlement is selected.
