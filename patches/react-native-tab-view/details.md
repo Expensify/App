@@ -45,3 +45,16 @@
     ```
 - Upstream PR/issue: 🛑 (must merge https://github.com/react-navigation/react-navigation/pull/12627 first)
 - E/App issue: https://github.com/Expensify/App/issues/83010
+
+### [react-native-tab-view+4.3.0+005+fix-pager-scrollleft-91610.patch](react-native-tab-view+4.3.0+005+fix-pager-scrollleft-91610.patch)
+
+- Reason:
+    ```
+    On web, the pager's overflow:hidden clip container could pick up a stray scrollLeft from the auto-focused
+    Search input while the RHP was translated wide. The pager positions its pages with a transform and never
+    with scroll, so this leftover scrollLeft shifted the active per-diem page left and clipped the first column
+    (e.g. the first letters of country names). This patch pins the pager's scrollLeft to 0 on web.
+    ```
+- Upstream PR/issue: 🛑
+- E/App issue: https://github.com/Expensify/App/issues/91610
+- PR Introducing Patch: [#97754](https://github.com/Expensify/App/pull/97754)
