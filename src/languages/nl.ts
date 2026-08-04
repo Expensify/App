@@ -8020,6 +8020,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 thenFlagForReview: 'Vlag dan voor controle wanneer:',
             },
             agentRulesEmptyState: {title: 'Geen agentregels toegevoegd', subtitle: 'Maak een regel om je werkruimtebeleid te automatiseren.', cta: 'AI-regel toevoegen'},
+            categoriesDisabledEmptyState: {title: 'Categorieën zijn niet ingeschakeld', subtitle: 'Schakel categorieën in om meer controle te krijgen over je uitgaven.'},
         },
         planTypePage: {
             planTypes: {

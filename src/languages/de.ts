@@ -8070,6 +8070,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 subtitle: 'Erstellen Sie eine Regel, um Ihre Arbeitsbereichsrichtlinien zu automatisieren.',
                 cta: 'KI-Regel hinzufügen',
             },
+            categoriesDisabledEmptyState: {title: 'Kategorien sind nicht aktiviert', subtitle: 'Aktivieren Sie Kategorien, um Ihre Ausgaben besser zu kontrollieren.'},
         },
         planTypePage: {
             planTypes: {
