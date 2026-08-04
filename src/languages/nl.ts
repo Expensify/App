@@ -10272,6 +10272,15 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             inviteBoss: 'Nodig je baas uit wanneer je er klaar voor bent',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nieuwe roltypen voor beheerders',
+                body: 'Geef je team meer gedetailleerde toegangsrechten met nieuwe kaart-, personen- en betalingsbeheerrollen.',
+                cta: 'Probeer het uit',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Begin <strong>hier!</strong></tooltip>',
         accountSwitcher: '<tooltip>Je kunt nu copilot worden in een ander account!</tooltip>',

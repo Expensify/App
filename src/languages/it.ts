@@ -10302,6 +10302,15 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             inviteBoss: 'Invita il tuo capo quando sei pronto',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nuovi tipi di ruolo per gli amministratori',
+                body: 'Offri al tuo team autorizzazioni più granulari con i nuovi ruoli di amministratore per carte, persone e pagamenti.',
+                cta: 'Provalo',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Inizia <strong>qui!</strong></tooltip>',
         accountSwitcher: '<tooltip>Ora puoi fare da copilota in un altro account!</tooltip>',
