@@ -97,7 +97,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             listEmptyContent={listEmptyContent}
             title="workspace.qbo.advancedConfig.qboBillPaymentAccount"
-            titleAlreadyTranslated={translate('workspace.qbo.advancedConfig.qboBillPaymentAccount', {integrationName})}
+            headerTitleAlreadyTranslated={translate('workspace.qbo.advancedConfig.qboBillPaymentAccount', {integrationName})}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID))}
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID], qboConfig?.pendingFields)}

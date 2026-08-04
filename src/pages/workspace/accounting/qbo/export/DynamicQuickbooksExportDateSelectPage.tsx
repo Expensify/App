@@ -42,7 +42,7 @@ function DynamicQuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsPr
         text: translate(`workspace.qbo.exportDate.values.${dateType}.label`),
         alternateText:
             dateType === CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED
-                ? translate('workspace.qbo.exportDate.values.report_exported.description', {integrationName})
+                ? translate(`workspace.qbo.exportDate.values.${CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED}.description`, {integrationName})
                 : translate(`workspace.qbo.exportDate.values.${dateType}.description`),
         keyForList: dateType,
         isSelected: qboConfig?.exportDate === dateType,

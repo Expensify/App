@@ -98,7 +98,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             listEmptyContent={listEmptyContent}
             title="workspace.qbo.advancedConfig.qboInvoiceCollectionAccount"
-            titleAlreadyTranslated={translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount', {integrationName})}
+            headerTitleAlreadyTranslated={translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount', {integrationName})}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID))}
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID], qboConfig?.pendingFields)}

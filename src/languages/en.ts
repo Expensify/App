@@ -5079,9 +5079,9 @@ const translations = {
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Journal entry',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Check',
 
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}Description`]: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                debitCardDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
                     `We'll automatically match the merchant name on the debit card transaction to any corresponding vendors in ${integrationName}. If no vendors exist, we'll create a 'Debit Card Misc.' vendor for association.`,
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
+                creditCardDescription: ({integrationName = 'QuickBooks Online'}: AccountingIntegrationNameParams = {}) =>
                     `We'll automatically match the merchant name on the credit card transaction to any corresponding vendors in ${integrationName}. If no vendors exist, we'll create a 'Credit Card Misc.' vendor for association.`,
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     "We'll create an itemized vendor bill for each Expensify report with the date of the last expense, and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
