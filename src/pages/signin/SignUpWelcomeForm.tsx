@@ -54,7 +54,7 @@ function SignUpWelcomeForm() {
                     text={translate('welcomeSignUpForm.join')}
                     isLoading={account?.isLoading}
                     onPress={() => {
-                        signUpUser(preferredLocale, isPhoneSignup ? hasSMSMarketingConsent : undefined);
+                        signUpUser(login, preferredLocale, isPhoneSignup ? hasSMSMarketingConsent : undefined);
                         setReadyToShowAuthScreens(true);
                     }}
                     pressOnEnter
