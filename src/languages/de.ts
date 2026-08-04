@@ -10293,8 +10293,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Neue Rollentypen für Administratoren',
-                body: 'Gib deinem Team mit neuen Rollen für Karten-, Personen- und Zahlungsadministratoren detailliertere Berechtigungen.',
+                heading: 'Neue Rollentypen für Admins',
+                body: 'Geben Sie Ihrem Team detailliertere Berechtigungen mit neuen Administratorrollen für Karten, Personen und Zahlungen.',
                 cta: 'Ausprobieren',
             },
         },

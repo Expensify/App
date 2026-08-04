@@ -10240,7 +10240,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         roleTypes: {
             admin: {
                 heading: 'Nieuwe roltypen voor beheerders',
-                body: 'Geef je team gedetailleerdere rechten met de nieuwe beheerdersrollen voor kaarten, personen en betalingen.',
+                body: 'Geef je team meer gedetailleerde toegangsrechten met nieuwe kaart-, personen- en betalingsbeheerrollen.',
                 cta: 'Probeer het uit',
             },
         },

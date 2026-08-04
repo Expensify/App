@@ -10454,8 +10454,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Nuevos tipos de roles para administradores',
-                body: 'Otorga a tu equipo permisos más granulares con los nuevos roles de administrador de tarjetas, personas y pagos.',
+                heading: 'Nuevos tipos de roles para admins',
+                body: 'Ofrece a tu equipo permisos más granulares con los nuevos roles de administrador de tarjetas, personas y pagos.',
                 cta: 'Pruébalo',
             },
         },

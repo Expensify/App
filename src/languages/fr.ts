@@ -10328,7 +10328,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         roleTypes: {
             admin: {
                 heading: 'Nouveaux types de rôles pour les administrateurs',
-                body: 'Accordez à votre équipe des autorisations plus granulaires grâce aux nouveaux rôles d’administrateur des cartes, des personnes et des paiements.',
+                body: 'Offrez à votre équipe des autorisations plus granulaires avec de nouveaux rôles d’administrateur pour les cartes, les personnes et les paiements.',
                 cta: 'Essayer',
             },
         },

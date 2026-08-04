@@ -10208,9 +10208,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Nowe typy ról administratora',
-                body: 'Nadaj zespołowi bardziej szczegółowe uprawnienia dzięki nowym rolom administratora kart, osób i płatności.',
-                cta: 'Wypróbuj',
+                heading: 'Nowe typy ról dla administratorów',
+                body: 'Daj swojemu zespołowi bardziej szczegółowe uprawnienia dzięki nowym rolom administratora kart, osób i płatności.',
+                cta: 'Wypróbuj to',
             },
         },
     },

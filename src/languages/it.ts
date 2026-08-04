@@ -10270,8 +10270,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         roleTypes: {
             admin: {
                 heading: 'Nuovi tipi di ruolo per gli amministratori',
-                body: 'Offri al tuo team autorizzazioni più granulari con i nuovi ruoli di amministratore delle carte, delle persone e dei pagamenti.',
-                cta: 'Prova ora',
+                body: 'Offri al tuo team autorizzazioni più granulari con i nuovi ruoli di amministratore per carte, persone e pagamenti.',
+                cta: 'Provalo',
             },
         },
     },
