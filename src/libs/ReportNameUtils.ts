@@ -1036,6 +1036,7 @@ function computeReportName({
             conciergeReportID,
             reportAttributes,
             isTrackIntentUser,
+            // TODO: pass the true data in the next PR, issue https://github.com/Expensify/App/issues/66421
             pendingDeleteMemberAccountIDs: undefined,
         });
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translate);

@@ -6369,7 +6369,7 @@ function getPendingDeleteMemberAccountIDs(pendingChatMembers: PendingChatMember[
         return [];
     }
 
-    return [...new Set(pendingChatMembers.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID))];
+    return pendingChatMembers.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID);
 }
 
 /**
