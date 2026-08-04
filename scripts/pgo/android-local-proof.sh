@@ -13,7 +13,8 @@ readonly PROFILE_DIR="$ROOT_DIR/.pgo/android/arm64-v8a"
 readonly APK_DIR="$PROFILE_DIR/apk"
 readonly BENCHMARK_DIR="$ROOT_DIR/.pgo/android/benchmarks"
 readonly ANDROID_DIR="$ROOT_DIR/Mobile-Expensify/Android"
-readonly RELEASE_APK_PATH="$ANDROID_DIR/build/outputs/apk/release/Expensify-release.apk"
+readonly GRADLE_RELEASE_APK_PATH="$ANDROID_DIR/build/outputs/apk/release/Expensify-release.apk"
+readonly RELEASE_APK_PATH="$APK_DIR/Expensify-release.apk"
 readonly INSTRUMENTED_APK_PATH="$APK_DIR/Expensify-release-instrumented.apk"
 readonly OPTIMIZED_APK_PATH="$APK_DIR/Expensify-release-optimized.apk"
 readonly RELEASE_BENCHMARK_PATH="$BENCHMARK_DIR/release.csv"
@@ -68,6 +69,7 @@ function build_release() {
         -PpatchedArtifacts.forceBuildFromSource=true \
         -PreactNativeArchitectures=arm64-v8a \
         -PpgoMode=off
+    archive_release_apk "$RELEASE_APK_PATH"
 }
 
 function build_optimized() {
@@ -86,13 +88,13 @@ function build_optimized() {
 
 function archive_release_apk() {
     local archived_apk_path="$1"
-    if [[ ! -f "$RELEASE_APK_PATH" ]]; then
-        echo "Missing built release APK at $RELEASE_APK_PATH." >&2
+    if [[ ! -f "$GRADLE_RELEASE_APK_PATH" ]]; then
+        echo "Missing built release APK at $GRADLE_RELEASE_APK_PATH." >&2
         exit 1
     fi
 
     mkdir -p "$APK_DIR"
-    mv -f "$RELEASE_APK_PATH" "$archived_apk_path"
+    mv -f "$GRADLE_RELEASE_APK_PATH" "$archived_apk_path"
     echo "Archived release APK: $archived_apk_path"
 }
 

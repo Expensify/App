@@ -35,7 +35,7 @@ This is an experimental, local-only LLVM PGO workflow for the standalone Android
    scripts/pgo/android-local-proof.sh build-optimized
    ```
 
-   The script moves the instrumented and optimized release outputs to `.pgo/android/arm64-v8a/apk/Expensify-release-instrumented.apk` and `.pgo/android/arm64-v8a/apk/Expensify-release-optimized.apk`. This keeps them safe when Gradle replaces the contents of its release output directory. The install and benchmark commands use these archived APKs. All builds use the release application ID and are installed consecutively. Install the optimized APK with:
+   The script archives all release outputs under `.pgo/android/arm64-v8a/apk/`: `Expensify-release.apk`, `Expensify-release-instrumented.apk`, and `Expensify-release-optimized.apk`. This keeps them safe when Gradle replaces the contents of its release output directory. The install and benchmark commands use these archived APKs. All builds use the release application ID and are installed consecutively. Install the optimized APK with:
 
    ```bash
    scripts/pgo/android-local-proof.sh install-optimized
@@ -61,7 +61,7 @@ The metrics build calls Android's `reportFullyDrawn()` and emits the machine-rea
 
 ## Benchmark startup
 
-Build the PGO-optimized APK and then the release APK from the same source revision, compiler, NDK, and ABI. Both modes initially use the normal release output path, so the optimized output is moved into `.pgo/android/arm64-v8a/apk/` before the release APK is built:
+Build the PGO-optimized APK and then the release APK from the same source revision, compiler, NDK, and ABI. Every mode initially uses Gradle's normal release output path, then the tool moves it into `.pgo/android/arm64-v8a/apk/`:
 
 ```bash
 scripts/pgo/android-local-proof.sh build-optimized
@@ -88,7 +88,7 @@ Compare previously collected samples:
 scripts/pgo/android-local-proof.sh compare-benchmarks
 ```
 
-Or install and benchmark the release APK first, then install and benchmark the renamed optimized APK, and compare them in one command:
+Or install and benchmark the archived release APK first, then install and benchmark the archived optimized APK, and compare them in one command:
 
 ```bash
 scripts/pgo/android-local-proof.sh benchmark 10 30
