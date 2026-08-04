@@ -1955,7 +1955,15 @@ function createFilteredOptionList(
     // alternate text, last message preview) are built by hydrateLazyPersonalDetailOption, but only for the
     // page of options that survives filtering and the maxElements cap in getValidOptions.
     const personalDetailsOptions = shouldBuildContacts
-        ? buildPersonalDetailsOptions(reportMapForAccountIDs, {personalDetails, policiesCollection, reportAttributesDerived, policyTags, visibleReportActionsData, privateIsArchivedMap})
+        ? buildPersonalDetailsOptions(reportMapForAccountIDs, {
+              personalDetails,
+              policiesCollection,
+              reportAttributesDerived,
+              policyTags,
+              visibleReportActionsData,
+              privateIsArchivedMap,
+              conciergeReportID,
+          })
         : [];
 
     const result: OptionList = {

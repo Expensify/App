@@ -1760,7 +1760,10 @@ describe('OptionsListUtils', () => {
         });
 
         const buildOptionLists = () => {
-            const lazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {isSearching: true});
+            const lazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
             // Fully hydrate every shell so getValidOptions can be compared against a pre-built baseline
             // (createFilteredOptionList always returns lightweight shells).
             const eagerList = hydrateAllPersonalDetails(lazyList);
@@ -1874,6 +1877,7 @@ describe('OptionsListUtils', () => {
         it('should handle empty personal details', () => {
             // Given a lazily built option list with no personal details
             const lazyList = createFilteredOptionList({}, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                conciergeReportID: undefined,
                 isSearching: true,
             });
 
@@ -1938,8 +1942,12 @@ describe('OptionsListUtils', () => {
         it('should hydrate correctly after a filtered option list cache hit', () => {
             // Given lazy contact options built while not searching (the only mode that uses the option-list cache)
             clearFilteredOptionListCache();
-            const firstLazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies);
-            const cachedLazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies);
+            const firstLazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                conciergeReportID: undefined,
+            });
+            const cachedLazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                conciergeReportID: undefined,
+            });
             const eagerList = hydrateAllPersonalDetails(firstLazyList);
 
             // Then the cache hit still returns shells with lazyHydrationData
@@ -1968,7 +1976,10 @@ describe('OptionsListUtils', () => {
                     brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
                 },
             };
-            const lazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, attributesWithError, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {isSearching: true});
+            const lazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, attributesWithError, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
             const shell = lazyList.personalDetails.find((option) => option.reportID === dmReportID);
             expect(shell).toBeDefined();
             if (!shell) {
@@ -9809,7 +9820,7 @@ describe('OptionsListUtils', () => {
             const second = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {conciergeReportID: '1'});
 
             // A cache hit would share nested objects between clones (see the pristine-cache test above).
-            expect(second.personalDetails.at(0)?.icons).not.toBe(first.personalDetails.at(0)?.icons);
+            expect(second.personalDetails.at(0)?.lazyHydrationData?.context).not.toBe(first.personalDetails.at(0)?.lazyHydrationData?.context);
         });
 
         // The cached entry is frozen in dev, so a consumer that mutates a nested object shared with the

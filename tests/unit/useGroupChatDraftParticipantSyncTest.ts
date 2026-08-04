@@ -420,7 +420,7 @@ describe('useGroupDraftRestore', () => {
 
         function buildLazyShells(): LazyPersonalDetailOption[] {
             // isSearching skips the createFilteredOptionList cache, so shells never leak between tests.
-            return OptionsListUtilsModule.createFilteredOptionList(LAZY_PERSONAL_DETAILS, {}, undefined, {}, undefined, {isSearching: true}).personalDetails;
+            return OptionsListUtilsModule.createFilteredOptionList(LAZY_PERSONAL_DETAILS, {}, undefined, {}, undefined, {conciergeReportID: undefined, isSearching: true}).personalDetails;
         }
 
         it('should hydrate a restored participant found among lazy shells', () => {
