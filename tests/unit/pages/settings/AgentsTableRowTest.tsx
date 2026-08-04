@@ -70,6 +70,8 @@ jest.mock('@components/Table/TableContext', () => ({
         selectionEnabled: false,
         isMobileSelectionEnabled: false,
     })),
+    useTableRowSemanticID: jest.fn(() => undefined),
+    useTableRowHasHeader: jest.fn(() => true),
 }));
 
 jest.mock('@components/ReportActionAvatars', () => {
