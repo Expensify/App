@@ -6,8 +6,8 @@ A request-driven loading user interface, such as a skeleton or spinner, answers 
 
 This page describes two patterns:
 
-- WRITE commands use the queue-backed hooks in `src/hooks/useInFlightRequests.ts`.
-- READ commands do not enter the queue. Search records `loading`, `loaded`, or `error` on its snapshot instead.
+- WRITE commands, meaning anything sent through `API.write`, use the queue-backed hooks in `src/hooks/useInFlightRequests.ts`. Every `API.write` call reaches the queue.
+- Everything else stays out of the queue, including `API.read` and `API.makeRequestWithSideEffects`, whose commands can still mutate data. Search records `loading`, `loaded`, or `error` on its snapshot instead.
 
 The queue is the primary signal, but it is not the only input. `OpenApp` and `OpenReport` leave the queue before their deferred Onyx updates, which are Onyx writes held for a later flush, finish. The public hooks bridge that short window with the loading field on the key and an in-memory value called a latch. The latch remembers that the current app process observed the request. Loading fields on the key also serve cold-start recovery, report positioning, navigation guards, and other non-skeleton behavior.
 
@@ -123,6 +123,8 @@ The `appLoad` group contains `OpenApp` only, **not** `ReconnectApp`. It models t
 Only WRITE commands are pushed to the SequentialQueue (see `processRequest` in `src/libs/API/index.ts`). `API.read` and `API.makeRequestWithSideEffects` run straight through the middleware chain and are **never** written to `PERSISTED_REQUESTS` / `PERSISTED_ONGOING_REQUESTS` (see [where a request does not hit disk](SEQUENTIAL_QUEUE.md#where-the-request-actually-hits-disk-and-where-it-doesnt)). A hook that watched the queue for a READ or side-effect command would return `false` while the request runs. The skeleton would never show.
 
 The registry encodes this in the type system rather than relying on a comment: each command list is typed `WriteCommand[]`, so a READ command in a group is a compile error. Keep it that way.
+
+"WRITE" means the API function, not whether the command changes server data. `SIDE_EFFECT_REQUEST_COMMANDS` in `src/libs/API/types.ts` holds mutating commands such as `LockAccount`, `SetVacationDelegate`, and `CompleteGuidedSetup`. They go through `API.makeRequestWithSideEffects` because the caller needs the response, so they never reach the queue and cannot back a queue-derived skeleton. Use the terminal-state pattern for them.
 
 ## The READ-command exception: Search
 
