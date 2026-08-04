@@ -10,7 +10,7 @@ import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LoginList, OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {LoginList, OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Attendee} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -30,7 +30,7 @@ function createOption(
     report: OnyxInputOrEntry<Report>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     config?: PreviewConfig,
-    reportAttributesDerived?: ReportAttributes,
+    reportAttributesDerived?: Pick<ReportAttributes, 'reportErrors' | 'brickRoadStatus'>,
     isReportArchived?: boolean,
     translate?: LocaleContextProps['translate'],
 ): OptionData {
@@ -445,7 +445,7 @@ function createOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     accountIDToReportIDMap: Record<number, string>,
     reports: OnyxCollection<Report>,
-    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+    reportAttributesDerived: Record<string, Pick<ReportAttributes, 'reportErrors' | 'brickRoadStatus'>> | undefined,
     privateIsArchivedMap: PrivateIsArchivedMap,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocaleContextProps['translate'],
