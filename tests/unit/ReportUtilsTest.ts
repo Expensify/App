@@ -18421,6 +18421,28 @@ describe('ReportUtils', () => {
 
             expect(result).toBe(`Invoice Policy ${CONST.DOT_SEPARATOR} `);
         });
+
+        it('should return the policy name if one of the two policies is archived', async () => {
+            const report = createInvoiceRoom(1);
+
+            const policy1 = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Invoice Policy');
+            policy1.role = CONST.POLICY.ROLE.ADMIN;
+            policy1.pendingAction = undefined;
+
+            const policy2 = createRandomPolicy(2, CONST.POLICY.TYPE.TEAM, 'Other Policy');
+            policy2.role = CONST.POLICY.ROLE.ADMIN;
+            policy2.pendingAction = undefined;
+            policy2.archivedDate = '2024-01-01';
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy1.id}`, policy1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy2.id}`, policy2);
+
+            await waitForBatchedUpdates();
+
+            const result = getReportSubtitlePrefix(report);
+
+            expect(result).toBe(`Invoice Policy ${CONST.DOT_SEPARATOR} `);
+        });
     });
 
     describe('hasActionWithErrorsForTransaction', () => {
