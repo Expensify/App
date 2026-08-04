@@ -7,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -24,7 +25,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import {downgradeToTeam} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
@@ -37,16 +38,19 @@ import {View} from 'react-native';
 import DowngradeConfirmation from './DowngradeConfirmation';
 import DowngradeIntro from './DowngradeIntro';
 
-type WorkspaceDowngradePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DOWNGRADE>;
+type DynamicWorkspaceDowngradePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_DOWNGRADE>;
 
-function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
+function DynamicWorkspaceDowngradePage({route}: DynamicWorkspaceDowngradePageProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_DOWNGRADE.path);
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
-    const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
+    const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: ownerPoliciesSelectorWithAccountID,
+    });
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const {showConfirmModal, closeModal} = useConfirmModal();
@@ -108,7 +112,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator
-            testID="workspaceDowngradePage"
+            testID="DynamicWorkspaceDowngradePage"
             offlineIndicatorStyle={styles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -118,7 +122,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                     if (isDowngraded) {
                         Navigation.dismissModal();
                     } else {
-                        Navigation.goBack();
+                        Navigation.goBack(backPath);
                     }
                 }}
             />
@@ -137,7 +141,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                         onDowngrade={onDowngradeToTeam}
                         buttonDisabled={isOffline}
                         loading={policy?.isPendingDowngrade}
-                        backTo={route.params.backTo}
+                        backTo={backPath}
                     />
                 )}
             </ScrollView>
@@ -145,4 +149,4 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     );
 }
 
-export default WorkspaceDowngradePage;
+export default DynamicWorkspaceDowngradePage;
