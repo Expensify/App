@@ -154,8 +154,8 @@ function merge_profiles() {
 }
 
 function record_startups() {
-    local runs="${1:-10}"
-    local ready_timeout_seconds="${2:-30}"
+    local runs="${1:-$DEFAULT_STARTUP_RUNS}"
+    local ready_timeout_seconds="${2:-$DEFAULT_APP_READY_TIMEOUT_SECONDS}"
 
     if [[ ! "$runs" =~ ^[1-9][0-9]*$ ]]; then
         echo "Startup run count must be a positive integer, received: $runs" >&2
@@ -264,10 +264,7 @@ function verify_pgo_instrumentation() (
 
 case "${1:-}" in
     build-instrumented)
-        gradle ":assemble$BUILD_VARIANT" \
-            -PpatchedArtifacts.forceBuildFromSource=true \
-            -PreactNativeArchitectures=arm64-v8a \
-            -PpgoMode=generate
+        build_instrumented
         ;;
     verify-instrumented)
         verify_pgo_instrumentation
@@ -279,7 +276,7 @@ case "${1:-}" in
         install_apk "$OPTIMIZED_APK_PATH"
         ;;
     record-startups)
-        record_startups "${2:-10}" "${3:-30}"
+        record_startups "${2:-}" "${3:-}"
         ;;
     dump)
         dump_profiles
@@ -291,15 +288,7 @@ case "${1:-}" in
         merge_profiles
         ;;
     build-optimized)
-        if [[ ! -f "$PROFILE_DIR/newdot.profdata" ]]; then
-            echo "Missing $PROFILE_DIR/newdot.profdata. Run merge first." >&2
-            exit 1
-        fi
-        gradle ":assemble$BUILD_VARIANT" \
-            -PpatchedArtifacts.forceBuildFromSource=true \
-            -PreactNativeArchitectures=arm64-v8a \
-            -PpgoMode=use \
-            -PpgoProfile="$PROFILE_DIR/newdot.profdata"
+        build_optimized
         ;;
     *)
         usage
