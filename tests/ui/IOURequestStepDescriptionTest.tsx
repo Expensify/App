@@ -1,11 +1,11 @@
 import {act, render} from '@testing-library/react-native';
 
-import React from 'react';
-
 import IOURequestStepDescription from '@pages/iou/request/step/IOURequestStepDescription';
 
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
