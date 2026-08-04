@@ -32,7 +32,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -77,7 +77,7 @@ import {
     isXeroActiveMatchingSource,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -213,14 +213,12 @@ function MoneyRequestView({
     const {isOffline} = useNetwork();
     const {environmentURL, isProduction} = useEnvironment();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
-    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const {showConfirmModal} = useConfirmModal();
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const [loginToAccountIDMap] = useOnyx(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP);
 
     const {currentSearchResults} = useSearchResultsContext();
-    const reportAttributes = useReportAttributes();
 
     // When this component is used when merging from the search page, we might not have the parent report stored in the main collection
     const [parentReportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
@@ -547,7 +545,7 @@ function MoneyRequestView({
 
     // Trip rooms are the grandparent report, so check that first before scanning the collection.
     const grandparentReportID = parentReport?.parentReportID;
-    const tripRoomReportSelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
+    const tripRoomReportSelector = (reports: OnyxCollection<OnyxTypes.Report>): OnyxEntry<OnyxTypes.Report> => {
         if (!transactionTripID || !reports) {
             return undefined;
         }
@@ -557,14 +555,15 @@ function MoneyRequestView({
         if (!match?.reportID) {
             return undefined;
         }
-        return {
-            reportID: match.reportID,
-            name: deprecatedGetReportName(match, reportAttributes) || match.reportName,
-        };
+        return match;
     };
-    const [tripRoomInfo] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector});
-    const tripRoomReportID = tripRoomInfo?.reportID;
-    const tripRoomName = tripRoomInfo?.name;
+    const [tripRoomReport] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector});
+    const tripRoomReportID = tripRoomReport?.reportID;
+
+    const derivedReportNames = useDerivedReportNamesByReportIDs([tripRoomReportID, parentReport?.reportID]);
+
+    const tripRoomDerivedName = tripRoomReportID ? derivedReportNames?.[tripRoomReportID] : undefined;
+    const tripRoomName = tripRoomReport ? getReportName(tripRoomReport, tripRoomDerivedName) : undefined;
     const shouldShowTripRoomLink = !!tripRoomReportID && !!tripRoomName;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
@@ -888,6 +887,7 @@ function MoneyRequestView({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                getCurrencyDecimals,
             });
         });
     };
@@ -1122,13 +1122,8 @@ function MoneyRequestView({
                             return;
                         }
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                CONST.IOU.ACTION.EDIT,
-                                iouType,
-                                orderWeight,
-                                transaction.transactionID,
-                                transactionThreadReport.reportID,
-                                getReportRHPActiveRoute(),
+                            createDynamicRoute(
+                                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, iouType, orderWeight, transaction.transactionID, transactionThreadReport.reportID),
                             ),
                         );
                     }}
@@ -1143,9 +1138,8 @@ function MoneyRequestView({
         );
     });
 
-    const reportNameToDisplay = isFromMergeTransaction
-        ? (updatedTransaction?.reportName ?? translate('common.none'))
-        : deprecatedGetReportName(parentReport, reportAttributes) || parentReport?.reportName;
+    const parentReportDerivedName = parentReport?.reportID ? derivedReportNames?.[parentReport.reportID] : undefined;
+    const reportNameToDisplay = isFromMergeTransaction ? (updatedTransaction?.reportName ?? translate('common.none')) : getReportName(parentReport, parentReportDerivedName);
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
     const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
@@ -1209,9 +1203,17 @@ function MoneyRequestView({
                             }
 
                             if (shouldShowSplitIndicator && isSplitAvailable) {
-                                initSplitExpense(transaction, transactionThreadReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {
-                                    isProduction,
-                                });
+                                initSplitExpense(
+                                    transaction,
+                                    transactionThreadReport,
+                                    splitEffectivePolicy,
+                                    selfDMReportID,
+                                    restrictedActionPolicyID,
+                                    personalPolicy?.outputCurrency,
+                                    getCurrencyDecimals,
+                                    getCurrencySymbol,
+                                    {isProduction},
+                                );
                                 return;
                             }
 
@@ -1600,12 +1602,8 @@ function MoneyRequestView({
                                     return;
                                 }
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        iouType,
-                                        transaction?.transactionID,
-                                        transactionThreadReport?.reportID,
-                                        getReportRHPActiveRoute() || lastVisitedPath,
+                                    createDynamicRoute(
+                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, transactionThreadReport?.reportID),
                                     ),
                                 );
                             }}

@@ -1384,6 +1384,7 @@ describe('actions/Task', () => {
                 hasOutstandingChildTask: false,
                 delegateEmail: DELEGATE_EMAIL,
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
+                formatPhoneNumber,
             });
 
             const calls = mockWrite.mock.calls;
@@ -1414,6 +1415,7 @@ describe('actions/Task', () => {
                 hasOutstandingChildTask: false,
                 delegateEmail: undefined,
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
+                formatPhoneNumber,
             });
 
             const calls = mockWrite.mock.calls;

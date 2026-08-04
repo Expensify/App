@@ -39,7 +39,7 @@ function FullstoryUserContextHandler() {
         const syncUserVars = () => {
             getEnvironment()
                 .then((envName) => {
-                    if (didCancel || !FS.shouldInitialize(userMetadata, envName)) {
+                    if (didCancel || !FS.shouldInitialize(userMetadata, envName, session)) {
                         return;
                     }
 

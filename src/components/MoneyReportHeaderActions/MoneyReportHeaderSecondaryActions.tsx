@@ -241,6 +241,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
+                conciergeChat,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -446,6 +447,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 delegateEmail,
                 isTrackIntentUser,
                 ownerLogin: submitterLogin,
+                delegateAccountID,
             });
 
         if (!isUserValidated && iouPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {

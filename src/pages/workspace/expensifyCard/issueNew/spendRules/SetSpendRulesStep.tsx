@@ -51,9 +51,9 @@ type SetSpendRulesStepProps = {
 };
 
 function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesStepProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
     const domainAccountID = useDefaultFundID(policyID);
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Pencil']);

@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 
 import useAllTransactions from '@hooks/useAllTransactions';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -38,6 +39,7 @@ import {View} from 'react-native';
 type SplitExpenseCreateDateRagePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE>;
 
 function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageProps) {
+    const {getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentSearchResults} = useSearchResultsContext();
@@ -70,6 +72,7 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
             effectivePolicy,
             isSelfDM(currentReport) || isSelfDM(parentReport),
             personalPolicy?.outputCurrency,
+            getCurrencySymbol,
         );
         Navigation.goBack(backTo);
     };

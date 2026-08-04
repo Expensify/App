@@ -45,6 +45,11 @@ function patternToRegex(pattern: string): RegExp {
  * Related issue: https://github.com/Expensify/App/issues/64968
  */
 function getMatchingNewRoute(path: string) {
+    // The trailing wildcard (`(.*)`) must not swallow the query string, otherwise a legacy
+    // URL carrying `?backTo=…` (or any query) gets mangled — the reportID capture absorbs
+    // the query and the redirect's own params land inside it. Match on the path only and
+    // re-append the original query, merging it with any query the redirect template adds.
+    const [pathOnly, query] = path.split('?');
     let bestMatch: string | undefined;
     let bestRegex: RegExp | undefined;
     let maxLength = -1;
@@ -52,7 +57,7 @@ function getMatchingNewRoute(path: string) {
     for (const pattern of Object.keys(oldRoutes)) {
         const regex = patternToRegex(pattern);
 
-        if (regex.test(path) && pattern.length > maxLength) {
+        if (regex.test(pathOnly) && pattern.length > maxLength) {
             bestMatch = pattern;
             bestRegex = regex;
             maxLength = pattern.length;
@@ -63,7 +68,11 @@ function getMatchingNewRoute(path: string) {
         return undefined;
     }
 
-    return path.replace(bestRegex, oldRoutes[bestMatch]);
+    const replaced = pathOnly.replace(bestRegex, oldRoutes[bestMatch]);
+    if (!query) {
+        return replaced;
+    }
+    return replaced.includes('?') ? `${replaced}&${query}` : `${replaced}?${query}`;
 }
 
 export default getMatchingNewRoute;

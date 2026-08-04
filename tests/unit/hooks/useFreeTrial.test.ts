@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useHasTeam2025Pricing', () => ({
@@ -37,14 +38,14 @@ jest.mock('@libs/SubscriptionUtils', () => ({
     calculateRemainingFreeTrialDays: jest.fn(() => 0),
 }));
 
-const mockedUseHasTeam2025Pricing = useHasTeam2025Pricing as jest.Mock;
-const mockedUseSubscriptionPlan = useSubscriptionPlan as jest.Mock;
-const mockedGetOwnedPaidPolicies = getOwnedPaidPolicies as jest.Mock;
-const mockedShouldShowDiscountBanner = shouldShowDiscountBanner as jest.Mock;
-const mockedGetEarlyDiscountInfo = getEarlyDiscountInfo as jest.Mock;
-const mockedIsUserOnFreeTrial = isUserOnFreeTrial as jest.Mock;
-const mockedDoesUserHavePaymentCardAdded = doesUserHavePaymentCardAdded as jest.Mock;
-const mockedCalculateRemainingFreeTrialDays = calculateRemainingFreeTrialDays as jest.Mock;
+const mockedUseHasTeam2025Pricing = jest.mocked(useHasTeam2025Pricing);
+const mockedUseSubscriptionPlan = jest.mocked(useSubscriptionPlan);
+const mockedGetOwnedPaidPolicies = jest.mocked(getOwnedPaidPolicies);
+const mockedShouldShowDiscountBanner = jest.mocked(shouldShowDiscountBanner);
+const mockedGetEarlyDiscountInfo = jest.mocked(getEarlyDiscountInfo);
+const mockedIsUserOnFreeTrial = jest.mocked(isUserOnFreeTrial);
+const mockedDoesUserHavePaymentCardAdded = jest.mocked(doesUserHavePaymentCardAdded);
+const mockedCalculateRemainingFreeTrialDays = jest.mocked(calculateRemainingFreeTrialDays);
 
 describe('useFreeTrial', () => {
     beforeAll(() => {
@@ -55,7 +56,7 @@ describe('useFreeTrial', () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
         jest.clearAllMocks();
-        mockedGetOwnedPaidPolicies.mockReturnValue([{id: 'policyID'}]);
+        mockedGetOwnedPaidPolicies.mockReturnValue([createMock<ReturnType<typeof getOwnedPaidPolicies>[number]>({id: 'policyID'})]);
     });
 
     afterEach(async () => {

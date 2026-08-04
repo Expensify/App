@@ -33,7 +33,7 @@ function getQuickActionRequestType(action: QuickActionName | undefined, lastDist
         requestType = CONST.IOU.REQUEST_TYPE.SCAN;
     } else if ([CONST.QUICK_ACTIONS.REQUEST_DISTANCE, CONST.QUICK_ACTIONS.SPLIT_DISTANCE, CONST.QUICK_ACTIONS.TRACK_DISTANCE].some((a) => a === action)) {
         requestType = lastDistanceExpenseType ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
-    } else if (action === CONST.QUICK_ACTIONS.PER_DIEM) {
+    } else if ([CONST.QUICK_ACTIONS.PER_DIEM, CONST.QUICK_ACTIONS.TRACK_PER_DIEM].some((a) => a === action)) {
         requestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
     } else if (action === CONST.QUICK_ACTIONS.REQUEST_TIME) {
         requestType = CONST.IOU.REQUEST_TYPE.TIME;

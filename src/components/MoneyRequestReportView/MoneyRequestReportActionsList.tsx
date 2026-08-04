@@ -692,7 +692,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         }, 2000);
 
         if (!hasNewestReportAction) {
-            openReport({reportID, introSelected, betas, hasReportActions: true});
+            openReport({reportID, introSelected, betas, hasReportActions: true, currentUserAccountID});
             scrollToBottom();
             return;
         }
@@ -700,7 +700,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         // Defer marking the report as read until the scroll actually reaches the bottom (handled in onTrackScrolling).
         pendingMarkAsReadRef.current = true;
         scrollToBottom();
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, scrollToBottom, reportID, introSelected, betas]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, scrollToBottom, reportID, introSelected, betas, currentUserAccountID]);
 
     useEffect(() => {
         return () => {

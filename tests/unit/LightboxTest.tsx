@@ -6,16 +6,16 @@ import Lightbox from '@components/Lightbox';
 
 import CONST from '@src/CONST';
 
-import type {View as RNView} from 'react-native';
-import type {SharedValue} from 'react-native-reanimated';
+import type ReactNative from 'react-native';
 
 import React from 'react';
 
+import createSharedValueMock from '../utils/createSharedValueMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/Image', () => {
-    const MockReact = require('react') as typeof React;
-    const {View} = require('react-native') as {View: typeof RNView};
+    const MockReact = jest.requireActual<typeof React>('react');
+    const {View} = jest.requireActual<typeof ReactNative>('react-native');
     function MockImage({priority, testID, ...props}: {priority?: string; testID?: string}) {
         return MockReact.createElement(View, {
             testID: testID ?? 'image',
@@ -35,25 +35,14 @@ jest.mock('@components/Lightbox/numberOfConcurrentLightboxes', () => ({
 }));
 
 jest.mock('@components/MultiGestureCanvas', () => {
-    const MockReact = require('react') as typeof React;
-    const {View} = require('react-native') as {View: typeof RNView};
+    const MockReact = jest.requireActual<typeof React>('react');
+    const {View} = jest.requireActual<typeof ReactNative>('react-native');
     return {
         __esModule: true,
         default: ({children}: {children: React.ReactNode}) => MockReact.createElement(View, {testID: 'multi-gesture-canvas'}, children),
         DEFAULT_ZOOM_RANGE: {min: 1, max: 5},
     };
 });
-
-function createSharedValue<T>(value: T): SharedValue<T> {
-    return {
-        value,
-        get: jest.fn(() => value),
-        set: jest.fn(),
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        modify: jest.fn(),
-    } as unknown as SharedValue<T>;
-}
 
 function createPagerItems(count: number) {
     return Array.from({length: count}, (_, i) => ({
@@ -69,8 +58,8 @@ function createStateValue(activePage: number, itemCount: number): AttachmentCaro
     return {
         pagerItems: createPagerItems(itemCount),
         activePage,
-        isPagerScrolling: createSharedValue(false),
-        isScrollEnabled: createSharedValue(true),
+        isPagerScrolling: createSharedValueMock(false),
+        isScrollEnabled: createSharedValueMock(true),
         pagerRef: {current: null},
     };
 }
@@ -119,8 +108,8 @@ describe('Lightbox', () => {
                     {source: 'https://example.com/c.png', index: 2, isActive: true, attachmentID: undefined},
                 ],
                 activePage: 2,
-                isPagerScrolling: createSharedValue(false),
-                isScrollEnabled: createSharedValue(true),
+                isPagerScrolling: createSharedValueMock(false),
+                isScrollEnabled: createSharedValueMock(true),
                 pagerRef: {current: null},
             };
             const actionsValue = createActionsValue();

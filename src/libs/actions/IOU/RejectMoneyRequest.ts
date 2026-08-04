@@ -119,10 +119,9 @@ function prepareRejectMoneyRequestData(
     currentUserAccountIDParam: number,
     currentUserLogin: string,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
+    delegateAccountID: number | undefined,
     options?: RejectMoneyRequestOptions,
     shouldUseBulkAction?: boolean,
-    // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined,
 ): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
@@ -920,9 +919,10 @@ function rejectMoneyRequest(
     currentUserAccountIDParam: number,
     currentUserLogin: string,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
+    delegateAccountID: number | undefined,
     options?: RejectMoneyRequestOptions,
 ): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, options);
+    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, options);
     if (!data) {
         return;
     }

@@ -82,7 +82,7 @@ function TransactionPreviewContent({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const transactionDetails = useMemo<Partial<TransactionDetails>>(
@@ -241,7 +241,14 @@ function TransactionPreviewContent({
             }
         }
 
-        return calculateAmount(isParentPolicyExpenseChat ? 1 : originalParticipantCount - 1, amount ?? 0, requestCurrency ?? '', actorAccountID === sessionAccountID);
+        return calculateAmount(
+            isParentPolicyExpenseChat ? 1 : originalParticipantCount - 1,
+            amount ?? 0,
+            requestCurrency ?? '',
+            actorAccountID === sessionAccountID,
+            false,
+            getCurrencyDecimals,
+        );
     }, [
         shouldShowSplitShare,
         isParentPolicyExpenseChat,
@@ -253,6 +260,7 @@ function TransactionPreviewContent({
         isBillSplit,
         action,
         actorAccountID,
+        getCurrencyDecimals,
     ]);
 
     const shouldWrapDisplayAmount = !(isBillSplit || shouldShowMerchantOrDescription || isTransactionScanning);

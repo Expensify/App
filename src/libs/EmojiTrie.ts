@@ -39,7 +39,7 @@ function addKeywordsToTrie(trie: Trie<EmojiMetaData>, keywords: string[], item: 
             (node.metaData.suggestions ??= []).push(suggestion);
         }
 
-        const normalizedKeyword = StringUtils.normalizeAccents(keyword);
+        const normalizedKeyword = StringUtils.normalizeForMatch(keyword);
         if (normalizedKeyword !== keyword) {
             const {node: normNode} = trie.getOrCreate(normalizedKeyword);
             normNode.metaData = node.metaData;
@@ -78,7 +78,7 @@ function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<Em
 
         const englishName = emoji.name;
         const localeName = langEmojis?.[emoji.code]?.name ?? englishName;
-        const normalizedName = StringUtils.normalizeAccents(localeName);
+        const normalizedName = StringUtils.normalizeForMatch(localeName);
 
         const {node, isNew} = trie.getOrCreate(localeName);
         if (isNew) {

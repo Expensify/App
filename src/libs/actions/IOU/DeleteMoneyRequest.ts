@@ -19,6 +19,7 @@ import {
     hasOutstandingChildRequest,
     isArchivedReport,
     isExpenseReport,
+    isInvoiceReport,
     isReportTotalPending,
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
@@ -174,7 +175,9 @@ function prepareToCleanUpMoneyRequest(
     const transactionPendingDelete = transactionIDsPendingDeletion?.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
     const selectedTransactions = selectedTransactionIDs?.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
     const canEditTotal = !selectedTransactions?.some((trans) => getCurrency(trans) !== iouReport?.currency);
-    const isExpenseReportType = isExpenseReport(iouReport);
+    // Invoice reports store their totals expense-style (see MoneyRequestBuilder/UpdateMoneyRequest), so they must take
+    // the same sign math as expense reports here; otherwise the optimistic invoice total/preview would use IOU-style signs.
+    const isExpenseReportType = isExpenseReport(iouReport) || isInvoiceReport(iouReport);
     const amountDiff = getAmount(transaction, isExpenseReportType) + (transactionPendingDelete?.reduce((prev, curr) => prev + getAmount(curr, isExpenseReportType), 0) ?? 0);
     const unheldAmountDiff =
         getAmount(transaction, isExpenseReportType) + (transactionPendingDelete?.reduce((prev, curr) => prev + (!isOnHold(curr) ? getAmount(curr, isExpenseReportType) : 0), 0) ?? 0);

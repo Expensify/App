@@ -20,6 +20,7 @@ import {StyleSheet, View} from 'react-native';
 
 import type {TableColumn, TableData} from './types';
 
+import getGridTemplateColumns from './getGridTemplateColumns';
 import {getColumnHeaderAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
 
@@ -79,7 +80,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         return null;
     }
 
-    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
+    const gridTemplateColumns = getGridTemplateColumns(columns);
 
     if (isSelectionCheckboxVisible) {
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);

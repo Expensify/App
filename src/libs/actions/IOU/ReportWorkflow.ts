@@ -111,6 +111,7 @@ type ApproveMoneyRequestFunctionParams = {
     onApproved?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    delegateAccountID: number | undefined;
     ownerLogin: string | undefined;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
@@ -457,6 +458,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         onApproved,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        delegateAccountID,
         ownerLogin,
         expenseReportPolicy,
         additionalOnyxData,
@@ -764,6 +766,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             createdTimestamp: originalCreated,
             isApprovalFlow: true,
             betas,
+            delegateAccountID,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);

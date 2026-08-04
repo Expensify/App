@@ -21,6 +21,12 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/category/*/gl-code': '/workspaces/$1/categories/category/$2/gl-code',
     '/workspaces/*/category/*/edit': '/workspaces/$1/categories/category/$2/edit',
     '/workspaces/*/category/*': '/workspaces/$1/categories/category/$2',
+    // Workspace downgrade migrated to a dynamic route. The policy-specific legacy link (previously generated with a
+    // trailing slash) is redirected into the plan-page suffix chain (keeps policyID in the path); the policy-less
+    // legacy link is redirected under Subscription.
+    '/workspaces/*/downgrade/': '/workspaces/$1/overview/plan/downgrade?policyID=$1',
+    '/workspaces/*/downgrade': '/workspaces/$1/overview/plan/downgrade?policyID=$1',
+    '/workspaces/downgrade': '/settings/subscription/downgrade',
     '/settings/workspaces/*': '/workspaces/$1',
     '/settings/workspaces': '/workspaces',
     '/r/*/settings': '/r/$1/details/report-settings',
@@ -137,6 +143,13 @@ const oldRoutes: Record<string, string> = {
     '/settings/wallet/enable-payments/terms*': '/settings/wallet/enable-payments/fees-and-terms/terms$1',
     '/missing-personal-details/*': '/settings/wallet/missing-personal-details/$1',
     '/workspaces/*/workflows/approvals/expenses-from': '/workspaces/$1/workflows/approvals/new/expenses-from',
+    '/*/*/report/*/edit*': '/r/$3/expense-report-edit?action=$1&iouType=$2&reportID=$3',
+    // Optional reportActionID segment must be matched by a more-specific pattern BEFORE the broad one,
+    // otherwise the broad pattern's trailing `*` swallows "<reportID>/<reportActionID>" together.
+    '/*/*/report/*/*/*': '/r/$4/expense-report?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/report/*/*': '/r/$4/expense-report?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/tag/*/*/*/*': '/r/$5/expense-tag?action=$1&iouType=$2&orderWeight=$3&transactionID=$4&reportID=$5&reportActionID=$6',
+    '/*/*/tag/*/*/*': '/r/$5/expense-tag?action=$1&iouType=$2&orderWeight=$3&transactionID=$4&reportID=$5',
     '/*/*/taxRate/*/*': '/r/$4/taxRate?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/taxAmount/*/*': '/r/$4/taxAmount?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/attendees/*/*': '/r/$4/attendees?action=$1&iouType=$2&transactionID=$3&reportID=$4',

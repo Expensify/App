@@ -238,11 +238,23 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     // reflect on the badge (per-row selector, not the screen-level collection merge this slice removed).
     const snapshotTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const [liveViolationsForSnapshotTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(snapshotTransactionIDs)});
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID} =
-        useReportPaymentContext({
-            reportID: reportItem.reportID,
-            chatReportPolicyID: chatReport?.policyID,
-        });
+    const {
+        currentUserAccountID,
+        currentUserLogin,
+        introSelected,
+        betas,
+        isSelfTourViewed,
+        activePolicy,
+        nextStep,
+        chatReportPolicy,
+        amountOwed,
+        delegateEmail,
+        delegateAccountID,
+        conciergeChat,
+    } = useReportPaymentContext({
+        reportID: reportItem.reportID,
+        chatReportPolicyID: chatReport?.policyID,
+    });
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -264,7 +276,12 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                 // collection yet. Fall back to the snapshot so the modal can submit.
                 const moneyRequestReport = parentReport ?? snapshotReport;
                 const transactionsForHoldMenu = liveReportTransactions.length > 0 ? liveReportTransactions : holdItem.transactions;
-                const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, holdItem.canPay ?? false, transactionsForHoldMenu);
+                const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(
+                    moneyRequestReport,
+                    holdItem.canPay ?? false,
+                    transactionsForHoldMenu,
+                    convertToDisplayString,
+                );
                 const hasNonHeldExpenses = transactionsForHoldMenu.some((t) => !isOnHold(t));
                 showHoldMenu({
                     reportID: holdItem.reportID,
@@ -299,6 +316,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            conciergeChat,
         });
     }, [
         currentSearchHash,
@@ -327,6 +345,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         consumeIgnoreNextSearchSubmitPress,
         showConfirmModal,
         translate,
+        convertToDisplayString,
         currentUserAccountID,
         currentUserLogin,
         introSelected,
@@ -339,6 +358,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         isTrackIntentUser,
+        conciergeChat,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {

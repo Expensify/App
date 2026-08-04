@@ -170,7 +170,7 @@ function AuthScreensInitHandler() {
         } else if (SessionUtils.didUserLogInDuringSession()) {
             const reportID = getReportIDFromLink(initialURL ?? null);
             if (reportID && !isAuthenticatedAtStartup) {
-                Report.openReport({reportID, introSelected, betas, hasReportActions: false});
+                Report.openReport({reportID, introSelected, betas, hasReportActions: false, currentUserAccountID: session?.accountID});
                 // Don't want to call `openReport` again when logging out and then logging in
                 setIsAuthenticatedAtStartup(true);
             }
