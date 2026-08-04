@@ -10,11 +10,12 @@ readonly PACKAGE_NAME="org.me.mobiexpensifyg"
 readonly RELEASE_BUILD_VARIANT="Release"
 
 readonly PROFILE_DIR="$ROOT_DIR/.pgo/android/arm64-v8a"
+readonly APK_DIR="$PROFILE_DIR/apk"
 readonly BENCHMARK_DIR="$ROOT_DIR/.pgo/android/benchmarks"
 readonly ANDROID_DIR="$ROOT_DIR/Mobile-Expensify/Android"
 readonly RELEASE_APK_PATH="$ANDROID_DIR/build/outputs/apk/release/Expensify-release.apk"
-readonly INSTRUMENTED_APK_PATH="$ANDROID_DIR/build/outputs/apk/release/Expensify-release-instrumented.apk"
-readonly OPTIMIZED_APK_PATH="$ANDROID_DIR/build/outputs/apk/release/Expensify-release-optimized.apk"
+readonly INSTRUMENTED_APK_PATH="$APK_DIR/Expensify-release-instrumented.apk"
+readonly OPTIMIZED_APK_PATH="$APK_DIR/Expensify-release-optimized.apk"
 readonly RELEASE_BENCHMARK_PATH="$BENCHMARK_DIR/release.csv"
 readonly OPTIMIZED_BENCHMARK_PATH="$BENCHMARK_DIR/pgo-optimized.csv"
 readonly DEVICE_PROFILE_DIR="/sdcard/Android/data/$PACKAGE_NAME/cache"
@@ -59,7 +60,7 @@ function build_instrumented() {
         -PpatchedArtifacts.forceBuildFromSource=true \
         -PreactNativeArchitectures=arm64-v8a \
         -PpgoMode=generate
-    rename_release_apk "$INSTRUMENTED_APK_PATH"
+    archive_release_apk "$INSTRUMENTED_APK_PATH"
 }
 
 function build_release() {
@@ -80,18 +81,19 @@ function build_optimized() {
         -PreactNativeArchitectures=arm64-v8a \
         -PpgoMode=use \
         -PpgoProfile="$PROFILE_DIR/newdot.profdata"
-    rename_release_apk "$OPTIMIZED_APK_PATH"
+    archive_release_apk "$OPTIMIZED_APK_PATH"
 }
 
-function rename_release_apk() {
-    local renamed_apk_path="$1"
+function archive_release_apk() {
+    local archived_apk_path="$1"
     if [[ ! -f "$RELEASE_APK_PATH" ]]; then
         echo "Missing built release APK at $RELEASE_APK_PATH." >&2
         exit 1
     fi
 
-    mv -f "$RELEASE_APK_PATH" "$renamed_apk_path"
-    echo "Renamed release APK: $renamed_apk_path"
+    mkdir -p "$APK_DIR"
+    mv -f "$RELEASE_APK_PATH" "$archived_apk_path"
+    echo "Archived release APK: $archived_apk_path"
 }
 
 function install_apk() {
