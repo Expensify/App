@@ -8,7 +8,7 @@ index 45c0f78..2a3d84c 100644
    api "org.chromium.net:cronet-embedded:${cronetVersion}"
 +  compileOnly "io.sentry:sentry-android:8.33.0"
    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
- 
+
  }
 diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/ExpensifyCertificatePins.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/ExpensifyCertificatePins.kt
 new file mode 100644
@@ -204,7 +204,7 @@ index 49443e8..1d19f04 100644
 @@ -64,6 +64,9 @@ class HybridNitroCronet : HybridNitroCronetSpec() {
            (50 * 1024 * 1024).toLong()
          )
- 
+
 +        // Certificate pinning (Expensify) - Cronet does not honor network_security_config.xml.
 +        ExpensifyCertificatePins.apply(builder, app)
 +
@@ -218,7 +218,7 @@ index 1e5e0ff..55a83a6 100644
 @@ -59,6 +59,9 @@ class HybridNitroFetch : HybridNitroFetchSpec() {
          // Prove DNS issues by mapping a host (TESTING ONLY, remove in prod):
          // builder.setExperimentalOptions("""{"HostResolverRules":{"host_resolver_rules":"MAP httpbin.org 54.167.17.38"}}""")
- 
+
 +        // Certificate pinning (Expensify) - Cronet does not honor network_security_config.xml.
 +        ExpensifyCertificatePins.apply(builder, app)
 +
@@ -239,7 +239,7 @@ index 283bd37..24f7c22 100644
        val traceLabel = if (BuildConfig.NITRO_FETCH_TRACING) {
 @@ -250,6 +251,7 @@ class HybridNitroFetchClient(private val engine: CronetEngine, private val execu
          }
- 
+
          override fun onFailed(request: UrlRequest, info: UrlResponseInfo?, error: CronetException) {
 +          ExpensifyCertificatePins.reportIfPinFailure(url, error)
            if (BuildConfig.NITRO_FETCH_TRACING) {
@@ -259,7 +259,7 @@ index 48f2dc2..07806ba 100644
          }
 @@ -229,6 +230,7 @@ class HybridUrlRequestBuilder(
    }
- 
+
    override fun build(): HybridUrlRequestSpec {
 +    ExpensifyCertificatePins.monitor(url)
      val cronetRequest = builder.build()
