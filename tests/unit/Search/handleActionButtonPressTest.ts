@@ -339,6 +339,7 @@ describe('handleActionButtonPress', () => {
     test('Should not navigate to item when report has one transaction on hold and action is approve', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
+            conciergeChat: undefined,
             hash: searchHash,
             item: mockReportItemWithHold,
             goToItem,
@@ -354,6 +355,7 @@ describe('handleActionButtonPress', () => {
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         expect(goToItem).not.toHaveBeenCalled();
@@ -362,6 +364,7 @@ describe('handleActionButtonPress', () => {
     test('Should open the hold menu when the report has one transaction on hold and action is approve', () => {
         const onHoldMenuOpen = jest.fn();
         handleActionButtonPress({
+            conciergeChat: undefined,
             hash: searchHash,
             item: mockReportItemWithHold,
             goToItem: jest.fn(),
@@ -377,6 +380,7 @@ describe('handleActionButtonPress', () => {
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -386,6 +390,7 @@ describe('handleActionButtonPress', () => {
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
+            conciergeChat: undefined,
             hash: searchHash,
             item: updatedMockReportItem,
             goToItem,
@@ -400,6 +405,7 @@ describe('handleActionButtonPress', () => {
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
@@ -423,6 +429,7 @@ describe('handleBulkPayItemSelected', () => {
         confirmPayment: jest.fn(),
         userBillingGracePeriodEnds: undefined,
         businessBankAccountOptions: undefined,
+        bankAccountList: undefined,
         ownerBillingGracePeriodEnd: undefined,
         currentUserAccountID: ownerAccountID,
     };
@@ -572,6 +579,72 @@ describe('handleBulkPayItemSelected', () => {
         });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+    });
+
+    it('should call confirmPayment directly when an open business bank account is selected, even if it is not linked to the policy', async () => {
+        const bankAccountID = 2409153;
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+        } as Policy;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+            bankAccountList: {
+                [bankAccountID]: {
+                    bankCurrency: CONST.CURRENCY.USD,
+                    bankCountry: CONST.COUNTRY.US,
+                    accountData: {bankAccountID, type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                },
+            },
+            item: {
+                key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                text: 'Business account',
+                icon: () => null,
+                additionalData: {bankAccountID, paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT},
+            },
+        });
+
+        expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
+        expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID, paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT});
+    });
+
+    it('should trigger the KYC flow when the selected business bank account is not open', async () => {
+        const bankAccountID = 2409153;
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+        } as Policy;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+            bankAccountList: {
+                [bankAccountID]: {
+                    bankCurrency: CONST.CURRENCY.USD,
+                    bankCountry: CONST.COUNTRY.US,
+                    accountData: {bankAccountID, type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.LOCKED},
+                },
+            },
+            item: {
+                key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                text: 'Business account',
+                icon: () => null,
+                additionalData: {bankAccountID, paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT},
+            },
+        });
+
+        expect(baseParams.triggerKYCFlow).toHaveBeenCalled();
         expect(baseParams.confirmPayment).not.toHaveBeenCalled();
     });
 });

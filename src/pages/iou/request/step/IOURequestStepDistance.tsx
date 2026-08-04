@@ -5,6 +5,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
@@ -17,12 +18,12 @@ import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePreMountDestination from '@hooks/usePreMountDestination';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
-import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
 import useWaypointItems from '@hooks/useWaypointItems';
 
 import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
@@ -48,6 +49,7 @@ import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -65,6 +67,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
+import getSkipConfirmationPreMountDestinationRoute from './confirmation/getSkipConfirmationPreMountDestinationRoute';
 import DistanceManualTabContent from './DistanceManualTabContent';
 import DistanceMapTabContent from './DistanceMapTabContent';
 import useDistanceNavigation from './IOURequestStepDistance/hooks/useDistanceNavigation';
@@ -89,12 +92,15 @@ function IOURequestStepDistance({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceProps) {
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const iouReportOwnerLoginSelector = useMemo(() => personalDetailsLoginSelector(parentReport?.ownerAccountID), [parentReport?.ownerAccountID]);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: iouReportOwnerLoginSelector});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
@@ -274,7 +280,8 @@ function IOURequestStepDistance({
         return iouType !== CONST.IOU.TYPE.SPLIT && !isArchived && !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, isArchived, iouType]);
 
-    useSkipConfirmationPreInsert(shouldSkipConfirmation, report?.reportID);
+    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(shouldSkipConfirmation, report?.reportID);
+    usePreMountDestination(skipConfirmationPreMountRoute);
 
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
@@ -485,6 +492,9 @@ function IOURequestStepDistance({
                     },
                     policy,
                     personalPolicy?.outputCurrency,
+                    undefined,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 );
                 navigateBackAfterSave();
                 return;
@@ -508,6 +518,7 @@ function IOURequestStepDistance({
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
+                    iouReportOwnerLogin,
                     waypoints,
                     recentWaypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
@@ -525,6 +536,8 @@ function IOURequestStepDistance({
                     reportPolicyTags,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
             }
             transactionWasSaved.current = true;
@@ -560,6 +573,7 @@ function IOURequestStepDistance({
         distanceUnit,
         policy,
         parentReport,
+        iouReportOwnerLogin,
         recentWaypoints,
         policyTags,
         policyCategories,
@@ -572,6 +586,8 @@ function IOURequestStepDistance({
         reportPolicyTags,
         isTrackIntentUser,
         personalPolicy?.outputCurrency,
+        getCurrencyDecimals,
+        getCurrencySymbol,
     ]);
 
     const submitManualDistance = useCallback(() => {
@@ -601,7 +617,16 @@ function IOURequestStepDistance({
 
         if (isEditingSplit && transaction) {
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
-            setDraftSplitTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, splitDraftTransaction, {distance: distanceAsFloat}, policy, personalPolicy?.outputCurrency);
+            setDraftSplitTransaction(
+                CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                splitDraftTransaction,
+                {distance: distanceAsFloat},
+                policy,
+                personalPolicy?.outputCurrency,
+                undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            );
             navigateBackAfterSave();
             return;
         }
@@ -625,6 +650,7 @@ function IOURequestStepDistance({
             transaction,
             transactionThreadReport: report,
             parentReport,
+            iouReportOwnerLogin,
             waypoints,
             distance: distanceAsFloat,
             ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
@@ -642,6 +668,8 @@ function IOURequestStepDistance({
             reportPolicyTags,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         });
         transactionWasSaved.current = true;
         // Remove the backup eagerly so the parent report view reads the optimistic transaction
@@ -666,6 +694,7 @@ function IOURequestStepDistance({
         transactionBackup,
         report,
         parentReport,
+        iouReportOwnerLogin,
         policyTags,
         policyCategories,
         currentUserAccountIDParam,
@@ -681,6 +710,8 @@ function IOURequestStepDistance({
         reportPolicyTags,
         isTrackIntentUser,
         personalPolicy?.outputCurrency,
+        getCurrencyDecimals,
+        getCurrencySymbol,
     ]);
 
     const renderItem = useCallback(

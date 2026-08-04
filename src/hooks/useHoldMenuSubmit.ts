@@ -19,6 +19,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePayChatReportActions from './usePayChatReportActions';
 import usePermissions from './usePermissions';
@@ -49,6 +50,8 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const {isBetaEnabled} = usePermissions();
@@ -56,6 +59,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -95,6 +99,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 onApproved: animationCallback,
                 expenseReportPolicy: policy,
                 delegateEmail,
+                delegateAccountID,
                 isTrackIntentUser,
             });
         } else if (currentChatReport && paymentType) {
@@ -118,7 +123,9 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 methodID,
                 onPaid: animationCallback,
                 chatReportActions: getChatReportActions(false),
+                delegateAccountID,
                 isTrackIntentUser,
+                conciergeChat,
             });
         }
         onClose();

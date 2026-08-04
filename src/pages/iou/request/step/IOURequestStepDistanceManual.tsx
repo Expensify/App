@@ -5,6 +5,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
@@ -43,6 +44,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 
@@ -72,7 +74,8 @@ function IOURequestStepDistanceManual({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceManualProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
@@ -106,6 +109,7 @@ function IOURequestStepDistanceManual({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -211,7 +215,16 @@ function IOURequestStepDistanceManual({
         if (action === CONST.IOU.ACTION.EDIT) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
-                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {distance: distanceAsFloat}, policy, personalPolicy?.outputCurrency);
+                setDraftSplitTransaction(
+                    transaction.transactionID,
+                    splitDraftTransaction,
+                    {distance: distanceAsFloat},
+                    policy,
+                    personalPolicy?.outputCurrency,
+                    undefined,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
+                );
                 Navigation.goBack(backTo);
                 return;
             }
@@ -226,6 +239,7 @@ function IOURequestStepDistanceManual({
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
+                    iouReportOwnerLogin,
                     distance: distanceAsFloat,
                     // Not required for manual distance request
                     transactionBackup: undefined,
@@ -242,6 +256,8 @@ function IOURequestStepDistanceManual({
                     reportPolicyTags,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
             }
             Navigation.goBack(backTo);
@@ -298,6 +314,8 @@ function IOURequestStepDistanceManual({
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
+            formatPhoneNumber,
+            getCurrencySymbol,
         });
     };
 

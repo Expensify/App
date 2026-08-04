@@ -5,6 +5,7 @@ import {createSplitsAndOnyxData} from '@libs/actions/IOU/Split';
 import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 
@@ -23,7 +24,8 @@ import type {OnyxEntry, OnyxMergeCollectionInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import createMock from '../../utils/createMock';
+import {getGlobalFetchMock, formatPhoneNumber} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -244,14 +246,14 @@ describe('actions/IOU', () => {
             } as Report;
 
             const splitExpenses: SplitExpense[] = [
-                {
+                createMock<SplitExpense>({
                     reportID: 'splitReport1',
                     amount: 2000,
-                } as SplitExpense,
-                {
+                }),
+                createMock<SplitExpense>({
                     reportID: 'splitReport2',
                     amount: 3000,
-                } as SplitExpense,
+                }),
             ];
 
             const allReportsList = {
@@ -285,14 +287,14 @@ describe('actions/IOU', () => {
             } as Report;
 
             const splitExpenses: SplitExpense[] = [
-                {
+                createMock<SplitExpense>({
                     reportID: undefined,
                     amount: 2000,
-                } as SplitExpense,
-                {
+                }),
+                createMock<SplitExpense>({
                     reportID: 'splitReport1',
                     amount: 3000,
-                } as SplitExpense,
+                }),
             ];
 
             const allReportsList = {
@@ -322,18 +324,18 @@ describe('actions/IOU', () => {
 
             // Two split expenses with the same reportID
             const splitExpenses: SplitExpense[] = [
-                {
+                createMock<SplitExpense>({
                     reportID: 'splitReport1',
                     amount: 2000,
-                } as SplitExpense,
-                {
+                }),
+                createMock<SplitExpense>({
                     reportID: 'splitReport1', // Duplicate reportID
                     amount: 3000,
-                } as SplitExpense,
-                {
+                }),
+                createMock<SplitExpense>({
                     reportID: 'splitReport2',
                     amount: 1500,
-                } as SplitExpense,
+                }),
             ];
 
             const allReportsList = {
@@ -367,10 +369,10 @@ describe('actions/IOU', () => {
             } as Report;
 
             const splitExpenses: SplitExpense[] = [
-                {
+                createMock<SplitExpense>({
                     reportID: 'splitReport1',
                     amount: 2000,
-                } as SplitExpense,
+                }),
             ];
 
             const allReportsList = {
@@ -433,7 +435,7 @@ describe('actions/IOU', () => {
     });
 
     it('handleNavigateAfterExpenseCreate', async () => {
-        const mockedIsReportTopmostSplitNavigator = isReportTopmostSplitNavigator as jest.MockedFunction<typeof isReportTopmostSplitNavigator>;
+        const mockedIsReportTopmostSplitNavigator = jest.mocked(isReportTopmostSplitNavigator);
         const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
         const activeReportID = '1';
         const transactionID = '1';
@@ -507,6 +509,7 @@ describe('actions/IOU', () => {
             participantsPolicyTags: overrides.participantsPolicyTags ?? {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         it('returns valid splitData with chatReportID, transactionID, and reportActionID', () => {
@@ -726,7 +729,7 @@ describe('actions/IOU', () => {
                         },
                     ],
                     transactionParamOverrides: {tag: tagName},
-                    participantsPolicyTags: {[policyID]: policyTagsList} as unknown as Record<string, PolicyTagLists>,
+                    participantsPolicyTags: {[policyID]: createMock<PolicyTagLists>(policyTagsList)},
                 }),
             );
 
@@ -881,6 +884,72 @@ describe('actions/IOU', () => {
 
             // Then nothing is registered — the list navigates away before any highlight could render
             expect(addPendingNewTransactionIDs).not.toHaveBeenCalled();
+        });
+
+        it('registers the search-route highlight (not report metadata) when splitting from the Search/Spend page', async () => {
+            // Given the user is on the Search (Spend > Expenses) page, where the expense report is never opened
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
+            const params = buildBaseParams({
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [
+                        {transactionID: 'new-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                    ],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the split from the Search page
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then the report-metadata highlight is skipped — the report is never mounted, so those flags would
+            // never be cleared and would incorrectly highlight rows when the report is later opened from the Inbox.
+            expect(addPendingNewTransactionIDs).not.toHaveBeenCalled();
+
+            // And instead the new IDs are registered on the search-route highlight, keyed by the current search type.
+            // This mechanism highlights optimistically without a server re-search, so it works offline too.
+            expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(
+                'expense',
+                Object.fromEntries([
+                    ['new-tx-1', true],
+                    ['new-tx-2', true],
+                ]),
+            );
+
+            spyOnMergeTransactionIdsHighlightOnSearchRoute.mockRestore();
+        });
+
+        it('skips the search-route highlight during a reverse split from the Search/Spend page', async () => {
+            // Given the user is on the Search page and this is a reverse split (1 expense, existing child present)
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
+            const existingChildTx = {
+                transactionID: 'child-tx-1',
+                reportID: EXPENSE_REPORT_ID,
+                comment: {originalTransactionID: ORIGINAL_TX_ID, source: CONST.IOU.TYPE.SPLIT},
+            };
+            const params = buildBaseParams({
+                allTransactionsList: {[`${ONYXKEYS.COLLECTION.TRANSACTION}child-tx-1`]: existingChildTx},
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [{transactionID: 'new-merged-tx', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 1000, created: '2024-01-01'}],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the reverse split
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then nothing is highlighted — reverse splits create no new transactions
+            expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).not.toHaveBeenCalled();
+
+            spyOnMergeTransactionIdsHighlightOnSearchRoute.mockRestore();
         });
     });
 });

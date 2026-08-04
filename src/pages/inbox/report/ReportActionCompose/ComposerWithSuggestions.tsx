@@ -48,7 +48,6 @@ import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} fr
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 // eslint-disable-next-line no-restricted-imports
@@ -269,7 +268,7 @@ function ComposerWithSuggestions({
 
     const composerRef = useRef<ComposerRef | null>(null);
 
-    const {editingState, editingReportActionID, editingReportAction, effectiveDraft, currentEditMessageSelection} = useComposerEditState();
+    const {editingState, editingReportID, editingReportAction, effectiveDraft, currentEditMessageSelection} = useComposerEditState();
     const {setEditingMessage, setCurrentEditMessageSelection} = useReportActionActiveEditActions();
 
     const isEditing = editingState !== CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF;
@@ -289,9 +288,9 @@ function ComposerWithSuggestions({
     const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending} = useDebouncedSaveDraft(
         useCallback(
             (comment: string) => {
-                saveReportActionDraft(reportID, editingReportAction, comment);
+                saveReportActionDraft(editingReportID ?? reportID, editingReportAction, comment);
             },
-            [reportID, editingReportAction],
+            [reportID, editingReportID, editingReportAction],
         ),
     );
 
@@ -304,6 +303,8 @@ function ComposerWithSuggestions({
             },
             [reportID],
         ),
+        undefined,
+        true,
     );
 
     useDraftMessageVideoAttributeCache({
@@ -562,7 +563,7 @@ function ComposerWithSuggestions({
                     return;
                 }
 
-                saveReportActionDraft(reportID, {reportActionID: editingReportActionID} as OnyxTypes.ReportAction, newCommentConverted);
+                saveReportActionDraft(editingReportID ?? reportID, editingReportAction, newCommentConverted);
                 return;
             }
 
@@ -591,7 +592,8 @@ function ComposerWithSuggestions({
             setCurrentEditMessageSelection,
             setEditingMessage,
             reportID,
-            editingReportActionID,
+            editingReportID,
+            editingReportAction,
             debouncedSaveReportActionDraft,
             debouncedSaveComment,
             currentUserAccountID,

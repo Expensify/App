@@ -320,6 +320,7 @@ type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTI
 /** A union type of all report action names related to policy copy log */
 type PolicyChangeLogCopyReportActionNames =
     | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CURRENCY
     | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES
     | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS
     | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING
