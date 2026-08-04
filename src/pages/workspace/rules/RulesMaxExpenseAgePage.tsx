@@ -9,6 +9,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,6 +40,7 @@ function RulesMaxExpenseAgePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {isBetaEnabled} = usePermissions();
     const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
@@ -72,7 +74,7 @@ function RulesMaxExpenseAgePage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM}
                     onSubmit={({maxExpenseAge}) => {
-                        setPolicyMaxExpenseAge(policyID, maxExpenseAge, policy?.maxExpenseAge);
+                        setPolicyMaxExpenseAge(policyID, maxExpenseAge, policy?.maxExpenseAge, getReviewWorkspaceSettingsTaskCompletion());
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}
