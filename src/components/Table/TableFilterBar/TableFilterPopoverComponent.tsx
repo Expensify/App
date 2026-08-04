@@ -1,3 +1,4 @@
+import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
 import MultiSelect from '@components/Search/FilterComponents/MultiSelect';
 import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
@@ -29,16 +30,18 @@ export default function TableFilterPopoverComponent({closeOverlay}: PopoverCompo
         const value: Array<MultiSelectItem<string>> = items.filter((item) => selectedValues.includes(item.value));
 
         return (
-            <MultiSelect
-                items={items}
-                value={value}
-                onChange={(selectedItems) => {
-                    tableMethods.updateFilter({
-                        key: filterKey,
-                        value: selectedItems.map((item) => item.value),
-                    });
-                }}
-            />
+            <ListFilterHeightContextProvider>
+                <MultiSelect
+                    items={items}
+                    value={value}
+                    onChange={(selectedItems) => {
+                        tableMethods.updateFilter({
+                            key: filterKey,
+                            value: selectedItems.map((item) => item.value),
+                        });
+                    }}
+                />
+            </ListFilterHeightContextProvider>
         );
     }
 
