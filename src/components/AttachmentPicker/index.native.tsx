@@ -91,6 +91,78 @@ const processAssetWithFallbacks = (asset: Asset): Asset => {
     };
 };
 
+const getErrorMessage = (error: unknown): string => (error instanceof Error && error.message ? error.message : 'An unknown error occurred');
+
+/**
+ * Convert the picked assets one at a time, transcoding any HEIC images to JPEG.
+ *
+ * The conversion is deliberately sequential: `ImageManipulator` decodes each image into a full-size
+ * bitmap in native memory, so converting a whole selection at once (the picker allows up to
+ * `CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT` files) holds every bitmap simultaneously and the
+ * OS terminates the app for exceeding its memory limit. Processing one image at a time keeps the peak
+ * at a single bitmap regardless of how many files were picked.
+ */
+const processPickedAssetsSequentially = async (assets: Asset[], showGeneralAlert: (message?: string) => void): Promise<Asset[] | undefined> => {
+    const processedAssets: Asset[] = [];
+
+    for (const asset of assets) {
+        if (!asset.uri) {
+            continue;
+        }
+
+        if (!asset.type?.startsWith('image')) {
+            // Ensure the asset has proper fileName and type
+            processedAssets.push(processAssetWithFallbacks(asset));
+            continue;
+        }
+
+        try {
+            // eslint-disable-next-line no-await-in-loop -- converting one image at a time is the point, see the doc comment above
+            const isHEIC = await verifyFileFormat({fileUri: asset.uri, formatSignatures: CONST.HEIC_SIGNATURES});
+
+            if (!isHEIC) {
+                // Ensure the asset has proper fileName and type for non-HEIC images
+                processedAssets.push(processAssetWithFallbacks(asset));
+                continue;
+            }
+
+            // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
+            const imageManipulatorContext = ImageManipulator.manipulate(asset.uri);
+            try {
+                // eslint-disable-next-line no-await-in-loop -- converting one image at a time is the point, see the doc comment above
+                const manipulatedImage = await imageManipulatorContext.renderAsync();
+                try {
+                    // eslint-disable-next-line no-await-in-loop -- converting one image at a time is the point, see the doc comment above
+                    const manipulationResult = await manipulatedImage.saveAsync({format: SaveFormat.JPEG});
+                    const uri = manipulationResult.uri;
+                    const convertedAsset: Asset = {
+                        uri,
+                        fileName: uri
+                            .substring(uri.lastIndexOf('/') + 1)
+                            .split('?')
+                            .at(0),
+                        type: 'image/jpeg',
+                        width: manipulationResult.width,
+                        height: manipulationResult.height,
+                    };
+                    processedAssets.push(convertedAsset);
+                } finally {
+                    manipulatedImage.release();
+                }
+            } catch (error) {
+                Log.warn('Failed to convert HEIC image, falling back to original', {error: getErrorMessage(error)});
+                processedAssets.push(processAssetWithFallbacks(asset));
+            } finally {
+                imageManipulatorContext.release();
+            }
+        } catch (error) {
+            showGeneralAlert(getErrorMessage(error));
+        }
+    }
+
+    return processedAssets.length > 0 ? processedAssets : undefined;
+};
+
 /**
  * Return imagePickerOptions based on the type
  */
@@ -221,69 +293,7 @@ function AttachmentPicker({
                         return resolve();
                     }
 
-                    const processedAssets: Asset[] = [];
-                    let processedCount = 0;
-
-                    const checkAllProcessed = () => {
-                        processedCount++;
-                        if (processedCount === assets.length) {
-                            resolve(processedAssets.length > 0 ? processedAssets : undefined);
-                        }
-                    };
-
-                    for (const asset of assets) {
-                        if (!asset.uri) {
-                            checkAllProcessed();
-                            continue;
-                        }
-
-                        if (asset.type?.startsWith('image')) {
-                            verifyFileFormat({fileUri: asset.uri, formatSignatures: CONST.HEIC_SIGNATURES})
-                                .then((isHEIC) => {
-                                    // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
-                                    if (isHEIC && asset.uri) {
-                                        ImageManipulator.manipulate(asset.uri)
-                                            .renderAsync()
-                                            .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
-                                            .then((manipulationResult) => {
-                                                const uri = manipulationResult.uri;
-                                                const convertedAsset = {
-                                                    uri,
-                                                    name: uri
-                                                        .substring(uri.lastIndexOf('/') + 1)
-                                                        .split('?')
-                                                        .at(0),
-                                                    type: 'image/jpeg',
-                                                    width: manipulationResult.width,
-                                                    height: manipulationResult.height,
-                                                };
-                                                processedAssets.push(convertedAsset);
-                                                checkAllProcessed();
-                                            })
-                                            .catch((error: Error) => {
-                                                Log.warn('Failed to convert HEIC image, falling back to original', {error: error.message});
-                                                const fallbackAsset = processAssetWithFallbacks(asset);
-                                                processedAssets.push(fallbackAsset);
-                                                checkAllProcessed();
-                                            });
-                                    } else {
-                                        // Ensure the asset has proper fileName and type for non-HEIC images
-                                        const processedAsset = processAssetWithFallbacks(asset);
-                                        processedAssets.push(processedAsset);
-                                        checkAllProcessed();
-                                    }
-                                })
-                                .catch((error: Error) => {
-                                    showGeneralAlert(error.message ?? 'An unknown error occurred');
-                                    checkAllProcessed();
-                                });
-                        } else {
-                            // Ensure the asset has proper fileName and type
-                            const processedAsset = processAssetWithFallbacks(asset);
-                            processedAssets.push(processedAsset);
-                            checkAllProcessed();
-                        }
-                    }
+                    processPickedAssetsSequentially(assets, showGeneralAlert).then(resolve).catch(reject);
                 });
             }),
         [fileLimit, showGeneralAlert, translate, type],
