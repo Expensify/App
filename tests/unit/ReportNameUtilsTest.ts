@@ -1508,7 +1508,7 @@ describe('ReportNameUtils', () => {
             expect(reportName).toContain('HiddenMarker');
         });
 
-        it('resolves the invoice payer name from the provided personal details list (threaded chain, no module-level global)', async () => {
+        it('resolves the invoice payer name from the provided personal details list', async () => {
             const chatReportID = '990001';
             // The chat report's invoice receiver is an individual (accountID 1 = "Ragnar Lothbrok" in the list).
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
@@ -1527,7 +1527,6 @@ describe('ReportNameUtils', () => {
                 currency: 'USD',
             };
 
-            // getMoneyRequestReportName -> getInvoicePayerName must resolve the payer from the passed list, not a global.
             const reportName = getMoneyRequestReportName({report: invoiceReport, personalDetailsList: participantsPersonalDetails, translate: translateLocal});
             expect(reportName?.replaceAll(/\s+/g, ' ')).toContain('Ragnar Lothbrok');
         });
