@@ -95,7 +95,6 @@ function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, o
                     onSelected: () => selectConnection(true),
                 },
             ]}
-            onItemSelected={(item) => item?.onSelected?.()}
             anchorPosition={connectionOptionsPopoverPosition}
             anchorAlignment={anchorAlignment}
             anchorRef={connectionButtonRef}
