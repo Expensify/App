@@ -6370,6 +6370,19 @@ function joinReportViaSecureLink(reportID: string, secureKey: string) {
     // On failure (expired/invalid/single-use-consumed link) mark the report not-found. ReportFetchHandler defers the
     // normal openReport while the secureKey is on the route, so this failure signal is what releases that gate and
     // lets the report fall through to the standard "Hmm… not there" 404 instead of loading forever.
+    // Clear the flag on start and on success so a retry, or the report later becoming accessible via a normal path,
+    // is never latched to a stale 404 from a previous failed attempt.
+    const clearNotFoundData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                errorFields: {
+                    notFound: null,
+                },
+            },
+        },
+    ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6381,7 +6394,7 @@ function joinReportViaSecureLink(reportID: string, secureKey: string) {
             },
         },
     ];
-    API.write(WRITE_COMMANDS.JOIN_REPORT_VIA_SECURE_LINK, {reportID, secureKey}, {failureData});
+    API.write(WRITE_COMMANDS.JOIN_REPORT_VIA_SECURE_LINK, {reportID, secureKey}, {optimisticData: clearNotFoundData, successData: clearNotFoundData, failureData});
 }
 
 async function exportReportToPDF({reportID}: ExportReportPDFParams) {

@@ -14,6 +14,7 @@ import {hasAuthToken, isAnonymousUser} from './libs/actions/Session';
 import Log from './libs/Log';
 import {getReportIDFromLink} from './libs/ReportUtils';
 import {endSpan} from './libs/telemetry/activeSpans';
+import {hasSecureLinkKey} from './libs/Url';
 import ONYXKEYS from './ONYXKEYS';
 import {hasSeenTourSelector} from './selectors/Onboarding';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
@@ -134,7 +135,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             // A Submit-via-PDF secure access link can arrive while the app is already running (warm), where
             // getInitialURL() is empty. Record it so onboarding suppression has a session-sticky signal, the same
             // way the cold path does via onInitialUrl above. Scoped to secure links so other deep links are unaffected.
-            if (state.url?.includes('secureKey=')) {
+            if (hasSecureLinkKey(state.url)) {
                 onInitialUrl(state.url as Route);
             }
             openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);

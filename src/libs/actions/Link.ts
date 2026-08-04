@@ -516,7 +516,7 @@ function openReportFromDeepLink(
         // A Submit-via-PDF secure access link must reach the report regardless of onboarding status: the report screen
         // is where JoinReportViaSecureLink runs, and onboarding is suppressed for secure-link visitors. The generic
         // handling below intentionally drops deep links for users who still need to onboard, so branch out first.
-        if (route?.includes('secureKey=')) {
+        if (Url.hasSecureLinkKey(route)) {
             Navigation.waitForProtectedRoutes().then(() => {
                 // Secure links grant workspace + report access to a real account via JoinReportViaSecureLink, so an
                 // anonymous session can never fulfill them even though report routes are otherwise anonymous-accessible

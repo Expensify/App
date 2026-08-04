@@ -272,7 +272,7 @@ function ReportFetchHandler() {
         }
         joinedSecureLinkReportIDRef.current = reportIDFromRoute;
         joinReportViaSecureLink(reportIDFromRoute, secureKeyFromRoute);
-    }, [secureKeyFromRoute, reportIDFromRoute, isAnonymousUser, route.name]);
+    }, [secureKeyFromRoute, reportIDFromRoute, isAnonymousUser]);
 
     // Keep secureKey in the URL until the join has actually granted access to the report. Clearing it earlier would drop
     // the "secure-link visit" signal that suppresses onboarding, so a slow join could bounce a new user into onboarding

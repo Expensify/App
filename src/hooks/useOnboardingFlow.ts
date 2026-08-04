@@ -4,6 +4,7 @@ import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
+import {hasSecureLinkKey} from '@libs/Url';
 
 import {completeHybridAppOnboarding} from '@userActions/Welcome';
 import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
@@ -39,10 +40,7 @@ function useOnboardingFlowRouter() {
     // (set on cold launch and on warm url events for secure links) alongside the web URL and the active route. getCurrentUrl()
     // is empty on native, and getActiveRoute() serializes the secureKey query param on every platform via getPathFromState.
     const {initialURL} = useInitialURLState();
-    const getIsVisitingSecureLink = useCallback(
-        () => !!getCurrentUrl()?.includes('secureKey=') || Navigation.getActiveRoute().includes('secureKey=') || !!initialURL?.includes('secureKey='),
-        [initialURL],
-    );
+    const getIsVisitingSecureLink = useCallback(() => hasSecureLinkKey(getCurrentUrl()) || hasSecureLinkKey(Navigation.getActiveRoute()) || hasSecureLinkKey(initialURL), [initialURL]);
     const isVisitingSecureLink = getIsVisitingSecureLink();
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
