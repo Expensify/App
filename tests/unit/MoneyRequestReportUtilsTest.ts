@@ -5,6 +5,8 @@ import {getReportIDForTransaction, isBillableEnabledOnPolicy, shouldWaitForTrans
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, ReportLoadingState} from '@src/types/onyx';
 
+import createMock from '../utils/createMock';
+
 const policyBaseMock: Policy = {
     id: '123456789A',
     name: 'Policy',
@@ -155,22 +157,22 @@ describe('MoneyRequestReportUtils', () => {
         });
 
         test('returns true when policy is paid group and defaultBillable is enabled', () => {
-            const policy = {type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: false}} as unknown as Policy;
+            const policy = createMock<Policy>({type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: false}});
             expect(isBillableEnabledOnPolicy(policy)).toBe(true);
         });
 
         test('returns true when policy is paid group and defaultBillable is missing', () => {
-            const policy = {type: CONST.POLICY.TYPE.CORPORATE, disabledFields: {}} as unknown as Policy;
+            const policy = createMock<Policy>({type: CONST.POLICY.TYPE.CORPORATE, disabledFields: {}});
             expect(isBillableEnabledOnPolicy(policy)).toBe(true);
         });
 
         test('returns false when policy is paid group and defaultBillable is disabled', () => {
-            const policy = {type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: true}} as unknown as Policy;
+            const policy = createMock<Policy>({type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: true}});
             expect(isBillableEnabledOnPolicy(policy)).toBe(false);
         });
 
         test('returns false when policy is non-paid group', () => {
-            const policy = {type: CONST.POLICY.TYPE.PERSONAL, disabledFields: {defaultBillable: false}} as unknown as Policy;
+            const policy = createMock<Policy>({type: CONST.POLICY.TYPE.PERSONAL, disabledFields: {defaultBillable: false}});
             expect(isBillableEnabledOnPolicy(policy)).toBe(false);
         });
     });
