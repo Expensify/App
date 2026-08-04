@@ -2,6 +2,7 @@ import DatePicker from '@components/DatePicker';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -33,6 +34,7 @@ type DateFieldProps = {
     shouldDisplayFieldError: boolean;
     didConfirm: boolean;
     isReadOnly: boolean;
+    isNewManualExpenseFlowEnabled: boolean;
     formError: string;
     clearFormErrors: (errors: string[]) => void;
     transactionID: string | undefined;
@@ -42,7 +44,20 @@ type DateFieldProps = {
     reportActionID: string | undefined;
 };
 
-function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, clearFormErrors, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
+function DateField({
+    shouldDisplayFieldError,
+    didConfirm,
+    isReadOnly,
+    isNewManualExpenseFlowEnabled,
+    formError,
+    clearFormErrors,
+    transactionID,
+    action,
+    iouType,
+    reportID,
+    reportActionID,
+}: DateFieldProps) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -100,11 +115,12 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
                 lastSelectedDistanceRates,
                 isDraft: shouldUseTransactionDraft(action),
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                getCurrencyDecimals,
             });
         }
     };
 
-    if (!isReadOnly) {
+    if (isNewManualExpenseFlowEnabled && !isReadOnly) {
         return (
             <View style={[styles.mh4, styles.mb2]}>
                 <DatePicker
