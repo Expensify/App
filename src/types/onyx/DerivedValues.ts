@@ -7,7 +7,6 @@ import type {Card, ReportAction} from '.';
 import type {CardList} from './Card';
 import type {CardFeedWithDomainID} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
-import type PersonalDetails from './PersonalDetails';
 import type Report from './Report';
 import type Transaction from './Transaction';
 import type TransactionViolations from './TransactionViolation';
@@ -257,11 +256,6 @@ type PersonalAndWorkspaceCardListDerivedValue = CardList;
  */
 type LoginToAccountIDMapDerivedValue = Record<string, number>;
 
-/**
- * The derived value mapping each user's login to their personal details.
- */
-type PersonalDetailsListByLoginDerivedValue = Record<string, PersonalDetails>;
-
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -274,7 +268,6 @@ export type {
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
-    PersonalDetailsListByLoginDerivedValue,
     CardFeedErrorsObject,
     CardFeedErrorState,
     CardFeedErrors,

@@ -11,15 +11,12 @@ import {
 } from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
-import type {InvitedEmailsToAccountIDs, PersonalDetails, PersonalDetailsList, PersonalDetailsListByLoginDerivedValue, Report} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsByID(accountID, personalDetailsList);
-
-const personalDetailsByLoginSelector = (login: string | undefined) => (personalDetailsListByLogin: OnyxEntry<PersonalDetailsListByLoginDerivedValue>) =>
-    personalDetailsListByLogin?.[login ?? ''];
 
 const multiPersonalDetailsSelector = (accountIDs: number[] | undefined) => (personalDetails: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsByIDs(accountIDs, personalDetails);
 
@@ -66,30 +63,6 @@ const createDisplayDetailsByAccountIDsSelector =
         return result;
     };
 
-/**
- * Creates a selector returning only the display details (name, login, avatar) of the given logins from the
- * login-keyed `personalDetailsListByLogin` derived value, so subscribers don't re-render when anything else
- * in the personal details list changes.
- */
-const createDisplayDetailsByLoginsSelector =
-    (logins: string[]) =>
-    (personalDetailsListByLogin: OnyxEntry<PersonalDetailsListByLoginDerivedValue>): Record<string, DisplayDetails> => {
-        const result: Record<string, DisplayDetails> = {};
-        for (const login of logins) {
-            const detail = personalDetailsListByLogin?.[login];
-            if (!detail) {
-                continue;
-            }
-            result[login] = {
-                accountID: detail.accountID,
-                displayName: detail.displayName,
-                login: detail.login,
-                avatar: detail.avatar,
-            };
-        }
-        return result;
-    };
-
 const doesPersonalDetailExistSelector =
     (accountID: number | undefined) =>
     (personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean =>
@@ -125,7 +98,6 @@ const newAccountIDsAndLoginsSelector = (invitedEmailsToAccountIDs: InvitedEmails
 export {
     avatarStyleColorSelector,
     personalDetailsSelector,
-    personalDetailsByLoginSelector,
     multiPersonalDetailsSelector,
     personalDetailsListSelector,
     personalDetailsDisplayNameSelector,
@@ -136,6 +108,5 @@ export {
     accountIDToLoginSelector,
     isOptimisticPersonalDetailSelector,
     createDisplayDetailsByAccountIDsSelector,
-    createDisplayDetailsByLoginsSelector,
     newAccountIDsAndLoginsSelector,
 };
