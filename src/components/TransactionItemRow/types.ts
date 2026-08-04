@@ -70,7 +70,7 @@ type TransactionItemRowProps = {
     exportedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
-    onCheckboxPress?: (transactionID: string) => void;
+    onCheckboxPress?: (transactionID: string, shiftKey?: boolean) => void;
     shouldShowCheckbox?: boolean;
     columns?: SearchColumnType[];
     onButtonPress?: (event?: ModifiedMouseEvent) => void;
@@ -104,6 +104,8 @@ type TransactionItemRowProps = {
     nonPersonalAndWorkspaceCards?: CardList;
     isActionColumnWide?: boolean;
     shouldRemoveTotalColumnFlex?: boolean;
+    /** Enables the full-height hover target layout for the main table row content. */
+    shouldUseFullHeightEditableCellHoverTarget?: boolean;
     /** Callbacks for inline cell editing */
     onEditDate?: (newDate: string) => void;
     onEditMerchant?: (newMerchant: string) => void;

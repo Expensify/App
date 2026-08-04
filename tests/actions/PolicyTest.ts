@@ -98,6 +98,7 @@ describe('actions/Policy', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -130,6 +131,7 @@ describe('actions/Policy', () => {
 
         it('omits the user-reported integration name from CreateWorkspace when it is undefined', async () => {
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -169,6 +171,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
 
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -971,6 +974,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1004,6 +1008,7 @@ describe('actions/Policy', () => {
         it('creates a new workspace when betas are explicitly passed', async () => {
             const policyID = Policy.generatePolicyID();
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1039,6 +1044,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to TRACK_WORKSPACE
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1079,6 +1085,7 @@ describe('actions/Policy', () => {
 
             const policyID = Policy.generatePolicyID();
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1107,6 +1114,7 @@ describe('actions/Policy', () => {
 
             mockFetch?.fail?.();
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1140,6 +1148,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1170,6 +1179,7 @@ describe('actions/Policy', () => {
         it('create a new workspace with delayed submission set to manually if the onboarding choice is not selected', async () => {
             const policyID = Policy.generatePolicyID();
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1201,6 +1211,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1230,6 +1241,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to LOOKING_AROUND
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1259,6 +1271,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to TRACK_WORKSPACE
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1288,6 +1301,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to EMPLOYER
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1317,6 +1331,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to CHAT_SPLIT
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1345,6 +1360,7 @@ describe('actions/Policy', () => {
         it('creates a Submit workspace with ADVANCED approval mode and correct feature flags', async () => {
             const policyID = Policy.generatePolicyID();
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1388,6 +1404,7 @@ describe('actions/Policy', () => {
 
             // When creating a workspace with distance rates feature enabled
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: false,
                 policyName: WORKSPACE_NAME,
@@ -1431,6 +1448,7 @@ describe('actions/Policy', () => {
 
             // When creating a workspace with isSelfTourViewed set to true
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1468,6 +1486,7 @@ describe('actions/Policy', () => {
 
             // When creating a workspace with isSelfTourViewed set to false
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1512,6 +1531,7 @@ describe('actions/Policy', () => {
             // EMPLOYER is used because it has a VIEW_TOUR task (testDriveEmployeeTask); MANAGE_TEAM now uses
             // the bespoke followups path (no tasks) so it no longer exercises this code path.
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1561,6 +1581,7 @@ describe('actions/Policy', () => {
             // EMPLOYER is used because it has a VIEW_TOUR task (testDriveEmployeeTask); MANAGE_TEAM now uses
             // the bespoke followups path (no tasks) so it no longer exercises this code path.
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1597,8 +1618,6 @@ describe('actions/Policy', () => {
         it('should post onboarding tasks to the threaded conciergeChat instead of the deprecated CONCIERGE_REPORT_ID fallback', async () => {
             mockFetch?.pause?.();
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            // Given the deprecated Onyx.connect fallback points at a DIFFERENT report than the threaded param,
-            // so the assertions below fail if buildPolicyData stops forwarding conciergeChat (#66411).
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'deprecated-fallback-report');
             await waitForBatchedUpdates();
 
@@ -1646,6 +1665,7 @@ describe('actions/Policy', () => {
 
             // When creating a workspace with an adminParticipant
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1687,6 +1707,7 @@ describe('actions/Policy', () => {
 
             // When creating a workspace with TEST_DRIVE_RECEIVER choice and createWorkspace task
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1742,6 +1763,7 @@ describe('actions/Policy', () => {
             // introSelected.choice is populated but introSelected.createWorkspace is not (Concierge-based flows
             // never set it; MANAGE_TEAM only sets it for the *first* workspace, not subsequent ones).
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1777,6 +1799,7 @@ describe('actions/Policy', () => {
             // When creating a workspace before the user has gone through guided onboarding (introSelected.choice is undefined),
             // the block should run so that onboarding tasks are attached to the new workspace.
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1812,6 +1835,7 @@ describe('actions/Policy', () => {
             // Even when introSelected.choice is populated, TEST_DRIVE_RECEIVER must still enter the block via
             // the first disjunct so that the downstream Concierge createWorkspace task gets completed.
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1850,6 +1874,7 @@ describe('actions/Policy', () => {
             // so prepareOnboardingOnyxData would normally route to Concierge — and since the mock returns undefined,
             // buildPolicyData should return early without setting guidedSetupData.
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1880,6 +1905,7 @@ describe('actions/Policy', () => {
 
         it('should publish a workspace created event if this is their first policy', () => {
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1901,6 +1927,7 @@ describe('actions/Policy', () => {
 
         it('should not publish a workspace created event if this is not their first policy', () => {
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1927,6 +1954,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
 
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1960,6 +1988,7 @@ describe('actions/Policy', () => {
             const adminAccountID = 555;
 
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -2003,6 +2032,7 @@ describe('actions/Policy', () => {
 
             // Create two workspaces with the same adminParticipant — each should get a unique expense chat
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: 'Workspace 1',
@@ -2019,6 +2049,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: 'Workspace 2',
@@ -2058,6 +2089,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             // Pass explicit GBP currency — this should win over the session user's EUR localCurrencyCode
             Policy.createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -3077,6 +3109,40 @@ describe('actions/Policy', () => {
 
             expect(policy?.eReceipts).toBe(fakePolicy.eReceipts);
         });
+
+        it('upgradeToCorporate should optimistically set receipt defaults but not max expense age/amount', async () => {
+            // Given a Collect policy with expense limits disabled (empty in Rules UI)
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When upgrading to corporate
+            Policy.upgradeToCorporate(fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then age/amount stay disabled (API leaves them empty — avoids #74401 flash),
+            // while receipt thresholds get Control defaults (matches post-upgrade Rules UI).
+            expect(policy?.maxExpenseAge).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
+            expect(policy?.maxExpenseAmount).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
+            expect(policy?.maxExpenseAmountNoReceipt).toBe(CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT);
+            expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT);
+            expect(policy?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+        });
     });
 
     describe('upgradeSubmit', () => {
@@ -3240,7 +3306,7 @@ describe('actions/Policy', () => {
     });
 
     describe('enablePolicyRules', () => {
-        it('should enable billable tracking when policy rules are enabled', async () => {
+        it('should not auto-enable billable tracking when policy rules are enabled', async () => {
             mockFetch.pause();
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy: PolicyType = {
@@ -3259,9 +3325,8 @@ describe('actions/Policy', () => {
 
             const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
             expect(policy?.areRulesEnabled).toBe(true);
-            expect(policy?.disabledFields?.defaultBillable).toBe(false);
+            expect(policy?.disabledFields?.defaultBillable).toBe(true);
             expect(policy?.disabledFields?.reimbursable).toBe(false);
-            expect(policy?.pendingFields?.disabledFields).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
             await mockFetch.resume();
         });

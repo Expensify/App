@@ -2525,6 +2525,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the auto reporting is enabled */
         autoReporting?: boolean;
 
+        /** Whether the company (true) or the employee (false) absorbs FX conversion costs on cross-border global reimbursements */
+        globalReimbursementFXPreferCompany?: boolean;
+
         /**
          * The scheduled submit frequency set up on this policy.
          * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
@@ -2625,6 +2628,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether new transactions need to be tagged */
         requiresTag?: boolean;
+
+        /** Client-only marker used to restore required tags after switching tag levels clears all tags */
+        pendingRequiresTagRestore?: boolean | null;
 
         /** Whether new transactions need to be categorized */
         requiresCategory?: boolean;
@@ -2823,6 +2829,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether Attendee Tracking is enabled */
         isAttendeeTrackingEnabled?: boolean;
+
+        /** Whether receipts are publicly viewable via URL without report access */
+        isReceiptVisibilityPublic?: boolean;
 
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;

@@ -122,7 +122,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path));
                 return;
             }
-            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(policyID));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_DOWNGRADE.path));
             return;
         }
 
