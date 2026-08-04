@@ -44,7 +44,7 @@ const SCREENS = {
     SEARCH: {
         ROOT: 'Search_Root',
         MONEY_REQUEST_REPORT: 'Search_Money_Request_Report',
-        MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
+        DYNAMIC_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Dynamic_Search_Money_Request_Report_Hold_Transactions',
         MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS: 'Search_Money_Request_Report_Reject_Transactions',
         COLUMNS_RHP: 'Search_Columns_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
@@ -1006,7 +1006,7 @@ const SCREENS = {
     ENABLE_PAYMENTS_ROOT: 'EnablePayments_Root',
     ADD_PERSONAL_BANK_ACCOUNT_ROOT: 'AddPersonalBankAccount_Root',
     REIMBURSEMENT_ACCOUNT_ROOT: 'Reimbursement_Account_Root',
-    REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT: 'Reimbursement_Account_Verify_Account',
+    DYNAMIC_REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT: 'Dynamic_Reimbursement_Account_Verify_Account',
     CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT: 'Connect_Existing_Business_Bank_Account_Root',
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
