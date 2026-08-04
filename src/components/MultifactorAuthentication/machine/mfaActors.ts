@@ -5,9 +5,8 @@ import addMFABreadcrumb from '@components/MultifactorAuthentication/observabilit
 import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
-import readOnyxValueOnce from '@libs/MultifactorAuthentication/shared/readOnyxValueOnce';
 
-import {getDeviceBiometricsOnyxKey, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
+import {requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration} from '@userActions/MultifactorAuthentication/processing';
 
 import CONST from '@src/CONST';
@@ -18,7 +17,6 @@ import type {
     CheckLocalCredentialsInput,
     CreateCredentialInput,
     CreateCredentialOutput,
-    ReadHasAcceptedSoftPromptInput,
     RequestRegistrationChallengeInput,
     RequestRegistrationChallengeOutput,
     ValidateDeviceInput,
@@ -29,15 +27,6 @@ import type {
  * actor fires only when the platform check throws unexpectedly.
  */
 const validateDevice = fromPromise<MFAResult, ValidateDeviceInput>(({input}) => checkDeviceEligibility(input.allowedAuthenticationMethods));
-
-/**
- * Reads the account's device-local soft-prompt flag once. The temporary Onyx connection is
- * disconnected after the first value or when XState stops the actor.
- */
-const readHasAcceptedSoftPrompt = fromPromise<boolean, ReadHasAcceptedSoftPromptInput>(async ({input, signal}) => {
-    const deviceBiometrics = await readOnyxValueOnce(getDeviceBiometricsOnyxKey(input.accountID), signal);
-    return deviceBiometrics?.hasAcceptedSoftPrompt ?? false;
-});
 
 /**
  * Resolves to whether the account's local credentials are known to the server. A returning user
@@ -87,7 +76,6 @@ const createCredentialActor = fromPromise<CreateCredentialOutput, CreateCredenti
 function createActors() {
     return {
         validateDevice,
-        readHasAcceptedSoftPrompt,
         checkLocalCredentials,
         requestRegistrationChallenge: requestRegistrationChallengeActor,
         createCredential: createCredentialActor,

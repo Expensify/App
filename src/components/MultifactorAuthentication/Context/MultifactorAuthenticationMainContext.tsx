@@ -12,6 +12,9 @@ import useInspectedMachine from '@hooks/useInspectedMachine';
 import useNetwork from '@hooks/useNetwork';
 
 import getPlatform from '@libs/getPlatform';
+import readOnyxValueOnce from '@libs/MultifactorAuthentication/shared/readOnyxValueOnce';
+
+import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
 
 import CONST from '@src/CONST';
 
@@ -41,10 +44,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const state = snapshotToState(snapshot);
 
     const captureCredentialsState = async (): Promise<CredentialsState> => {
-        const hasLocalCredentials = await biometrics.areLocalCredentialsKnownToServer();
+        const [hasLocalCredentials, deviceBiometrics] = await Promise.all([biometrics.areLocalCredentialsKnownToServer(), readOnyxValueOnce(getDeviceBiometricsOnyxKey(accountID))]);
         return {
             hasServerCredentials: biometrics.serverKnownCredentialIDs.length > 0,
             hasLocalCredentials,
+            hasEverAcceptedSoftPrompt: deviceBiometrics?.hasAcceptedSoftPrompt ?? false,
         };
     };
 
@@ -76,12 +80,20 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             platform,
             isOffline,
             serverHasAnyCredentials: startCredentialsState.hasServerCredentials,
+            hasEverAcceptedSoftPrompt: startCredentialsState.hasEverAcceptedSoftPrompt,
         });
         trackMFAFlowStart({scenario: scenarioName, isOffline, credentialsState: startCredentialsState});
 
         const scenario = getScenarioConfig(scenarioName);
 
-        send({type: 'INIT', accountID, scenarioName, scenario, payload: params && Object.keys(params).length > 0 ? params : undefined});
+        send({
+            type: 'INIT',
+            accountID,
+            scenarioName,
+            scenario,
+            payload: params && Object.keys(params).length > 0 ? params : undefined,
+            hasEverAcceptedSoftPrompt: startCredentialsState.hasEverAcceptedSoftPrompt,
+        });
     };
 
     const closeModal = () => send({type: 'CLOSE_MODAL'});

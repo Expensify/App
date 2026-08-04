@@ -98,7 +98,7 @@ describe('MFA validate code and registration decision', () => {
         actor.start();
         sendCheckLocalCredentialsDone(actor, true);
 
-        expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}})).toBe(true);
+        expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}})).toBe(true);
         expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
 
         actor.stop();

@@ -4,7 +4,6 @@ import type {
     CheckLocalCredentialsInput,
     CreateCredentialInput,
     CreateCredentialOutput,
-    ReadHasAcceptedSoftPromptInput,
     RequestRegistrationChallengeInput,
     RequestRegistrationChallengeOutput,
     ValidateDeviceInput,
@@ -92,7 +91,6 @@ function createControlledActor<TOutput, TInput>(actorID: string) {
 }
 
 const validateDeviceControl = createControlledActor<MFAResult, ValidateDeviceInput>('validateDevice');
-const readHasAcceptedSoftPromptControl = createControlledActor<boolean, ReadHasAcceptedSoftPromptInput>('readHasAcceptedSoftPrompt');
 const checkLocalCredentialsControl = createControlledActor<boolean, CheckLocalCredentialsInput>('checkLocalCredentials');
 const requestRegistrationChallengeControl = createControlledActor<RequestRegistrationChallengeOutput, RequestRegistrationChallengeInput>('requestRegistrationChallenge');
 const createCredentialControl = createControlledActor<CreateCredentialOutput, CreateCredentialInput>('createCredential');
@@ -100,7 +98,6 @@ const createCredentialControl = createControlledActor<CreateCredentialOutput, Cr
 function resetMfaUiMocks() {
     pendingModalClose.clear();
     validateDeviceControl.reset();
-    readHasAcceptedSoftPromptControl.reset();
     checkLocalCredentialsControl.reset();
     requestRegistrationChallengeControl.reset();
     createCredentialControl.reset();
@@ -110,7 +107,6 @@ function resetMfaUiMocks() {
 function mfaActorsMock() {
     const actors = {
         validateDevice: validateDeviceControl.actor,
-        readHasAcceptedSoftPrompt: readHasAcceptedSoftPromptControl.actor,
         checkLocalCredentials: checkLocalCredentialsControl.actor,
         requestRegistrationChallenge: requestRegistrationChallengeControl.actor,
         createCredential: createCredentialControl.actor,
@@ -205,7 +201,6 @@ function navigationMock() {
 export {
     pendingModalClose,
     validateDeviceControl,
-    readHasAcceptedSoftPromptControl,
     checkLocalCredentialsControl,
     requestRegistrationChallengeControl,
     createCredentialControl,

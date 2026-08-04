@@ -25,16 +25,15 @@ const MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR = createMFAErrorFromApiRespons
 // A reason outside the two device-check reasons, so the walk lands on the generic failure copy.
 const MFA_TEST_CREDENTIAL_CREATION_ERROR = createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.KEY_CREATION_FAILED, 'Graph-traversal credential creation failure');
 
-/**
- * Builds the INIT event fixture for the test scenario.
- */
-function createInitEvent(): MultifactorAuthenticationInitEvent<typeof MFA_TEST_SCENARIO_NAME> {
+/** Builds the INIT event fixture. `hasEverAcceptedSoftPrompt` defaults to `false`; pass `true` for a returning-user flow that already accepted the soft prompt. */
+function createInitEvent(hasEverAcceptedSoftPrompt = false): MultifactorAuthenticationInitEvent<typeof MFA_TEST_SCENARIO_NAME> {
     return {
         type: 'INIT',
         accountID: MFA_TEST_ACCOUNT_ID,
         scenarioName: MFA_TEST_SCENARIO_NAME,
         scenario: getScenarioConfig(MFA_TEST_SCENARIO_NAME),
         payload: undefined,
+        hasEverAcceptedSoftPrompt,
     };
 }
 
