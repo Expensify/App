@@ -35,6 +35,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
+import {clearPromotedDraftReportForPreMount, promoteDraftReportForPreMount} from '@libs/actions/Report';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -92,7 +93,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {policyDistanceDefaultCategoriesSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {startTransition, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -572,6 +573,47 @@ function IOURequestStepConfirmation({
     const routeDestinationReportID = shouldUsePerDiemChatReport ? report?.chatReportID : report?.reportID;
     const destinationReportID = (isSelfDMDestination ? selfDMReportID : (backToReport ?? routeDestinationReportID)) ?? selfDMReportID;
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
+    const destinationReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${destinationReportID}`];
+    const promotedDraftReportIDRef = useRef<string | undefined>(undefined);
+
+    // The zero-workspace "Submit to my employer" flow creates the draft policy expense chat report (with the
+    // reportID the real backend commit will eventually use) before this screen mounts - see DraftWorkspaceOpener /
+    // createDraftWorkspace. Copying that draft into COLLECTION.REPORT here is a client-only render aid, not a new
+    // entity: it lets isDestinationReportLoaded pass so pre-mount can render immediately, and the backend success
+    // handler overwrites this same key with confirmed data once submit completes.
+    useEffect(() => {
+        if (!destinationReportID || destinationReport || !destinationReportDraft) {
+            return;
+        }
+
+        promoteDraftReportForPreMount(destinationReportID, destinationReportDraft);
+        promotedDraftReportIDRef.current = destinationReportID;
+    }, [destinationReportID, destinationReport, destinationReportDraft]);
+
+    // Only remove our own speculative promotion, and only if the user backed out without submitting - a
+    // completed submit means the backend write already owns this key going forward. Re-runs on destinationReportID
+    // change so switching destinations mid-flow also cleans up the stale promotion for the previous one.
+    //
+    // Also requires the fullscreen pre-insert flag to already be clear: usePreMountDestination's own unmount
+    // cleanup removes the pre-inserted screen when the user backs out, and this effect's cleanup order relative to
+    // that one isn't guaranteed. If the flag is still set, the pre-mounted Report screen may still be reading this
+    // row, so skip the clear - a leftover row here is a self-recoverable phantom entry in this user's own LHN, not
+    // a correctness risk, whereas nulling data under a still-mounted screen reproduces the infinite-skeleton bug
+    // isDestinationReportLoaded exists to prevent.
+    useEffect(() => {
+        return () => {
+            const promotedReportID = promotedDraftReportIDRef.current;
+            // Deliberately read the latest ref values at unmount time, not values captured at effect-setup time -
+            // submission (or a pre-insert) can complete well after this effect last (re)ran, and this cleanup must see that.
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            if (!promotedReportID || formHasBeenSubmitted.current || Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+                return;
+            }
+
+            clearPromotedDraftReportForPreMount(promotedReportID);
+            promotedDraftReportIDRef.current = undefined;
+        };
+    }, [destinationReportID, formHasBeenSubmitted]);
 
     // All reactive inputs are in the deps; the builder's own live Navigation reads aren't reactive values so they don't belong
     // here. A recompute driven by a non-route-determining dep yields the same string route - a no-op for usePreMountDestination's
