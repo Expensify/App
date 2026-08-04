@@ -1,4 +1,4 @@
-import UserAvatar from '@components/Avatars/UserAvatar';
+import UserAvatar from '@components/Avatar/connected/UserAvatar';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';

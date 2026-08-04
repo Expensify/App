@@ -13,7 +13,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // Capture props passed to UserAvatar (only rendered for non-Concierge agents).
 let mockCapturedAvatarProps: Record<string, unknown> = {};
 
-jest.mock('@components/Avatars/UserAvatar', () => {
+jest.mock('@components/Avatar/connected/UserAvatar', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
     return (props: Record<string, unknown>) => {

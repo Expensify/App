@@ -1,4 +1,4 @@
-import UserAvatar from '@components/Avatars/UserAvatar';
+import UserAvatar from '@components/Avatar/connected/UserAvatar';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';

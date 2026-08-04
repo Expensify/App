@@ -1,4 +1,4 @@
-import UserAvatar from '@components/Avatars/UserAvatar';
+import UserAvatar from '@components/Avatar/connected/UserAvatar';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';

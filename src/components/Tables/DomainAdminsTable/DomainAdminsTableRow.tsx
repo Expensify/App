@@ -1,4 +1,4 @@
-import UserAvatar from '@components/Avatars/UserAvatar';
+import UserAvatar from '@components/Avatar/connected/UserAvatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
