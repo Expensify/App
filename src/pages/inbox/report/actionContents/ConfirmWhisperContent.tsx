@@ -41,7 +41,7 @@ function ConfirmWhisperContent({action, reportID, originalReportID, actionOwnerR
 
     const buttons: ActionableItem[] = [
         {
-            text: 'common.buttonConfirm',
+            translationKey: 'common.buttonConfirm',
             key: `${action.reportActionID}-actionableReportMentionConfirmWhisper-${CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE}`,
             onPress: () =>
                 resolveActionableMentionConfirmWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE, isOriginalReportArchived),
@@ -59,7 +59,6 @@ function ConfirmWhisperContent({action, reportID, originalReportID, actionOwnerR
                 />
                 <ActionableItemButtons
                     items={buttons}
-                    shouldUseLocalization
                     layout="horizontal"
                 />
             </View>

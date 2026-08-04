@@ -14,10 +14,10 @@ import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 
 import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {ValueOf} from 'type-fest';
 
 type TextInputFilterContentProps = {
     baseFilterKey: Exclude<SearchTextFilterKeys, typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT | ReportFieldTextKey>;

@@ -22,7 +22,6 @@ type ActionableItem = {
 type ActionableItemButtonsProps = {
     items: ActionableItem[];
     layout?: 'horizontal' | 'vertical';
-    shouldUseLocalization?: boolean;
 
     /** Props forwarded to the `Button` rendered for each item */
     buttonProps?: Pick<ButtonStyleProps, 'innerStyles'>;

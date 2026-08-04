@@ -58,7 +58,7 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
     const buttons: ActionableItem[] = [];
     if ((isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID)) && isReportInPolicy && !isSystemUserMentioned(action) && !hasMentionedPolicyMembers) {
         buttons.push({
-            text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
+            translationKey: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
             onPress: () =>
                 resolveActionableMentionWhisper(
@@ -72,12 +72,12 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
     }
     buttons.push(
         {
-            text: 'actionableMentionWhisperOptions.inviteToChat',
+            translationKey: 'actionableMentionWhisperOptions.inviteToChat',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
             onPress: () => resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived, parentReport),
         },
         {
-            text: 'actionableMentionWhisperOptions.nothing',
+            translationKey: 'actionableMentionWhisperOptions.nothing',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
             onPress: () => resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, isOriginalReportArchived, parentReport),
         },
@@ -89,7 +89,6 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
             {buttons.length > 0 && (
                 <ActionableItemButtons
                     items={buttons}
-                    shouldUseLocalization
                     layout="vertical"
                 />
             )}

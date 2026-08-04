@@ -38,7 +38,7 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
         ? []
         : [
               {
-                  text: 'cardPage.cardFraudAlert.confirmButtonText',
+                  translationKey: 'cardPage.cardFraudAlert.confirmButtonText',
                   key: `${action.reportActionID}-cardFraudAlert-confirm`,
                   onPress: () => {
                       resolveFraudAlert(cardID, false, reportID, reportActionID, possibleFraud);
@@ -46,7 +46,7 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
                   isPrimary: true,
               },
               {
-                  text: 'cardPage.cardFraudAlert.reportFraudButtonText',
+                  translationKey: 'cardPage.cardFraudAlert.reportFraudButtonText',
                   key: `${action.reportActionID}-cardFraudAlert-reportFraud`,
                   onPress: () => {
                       resolveFraudAlert(cardID, true, reportID, reportActionID, possibleFraud);
@@ -65,7 +65,6 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
             {buttons.length > 0 && (
                 <ActionableItemButtons
                     items={buttons}
-                    shouldUseLocalization
                     layout="horizontal"
                 />
             )}

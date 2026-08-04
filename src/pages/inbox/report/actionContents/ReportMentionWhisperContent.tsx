@@ -44,13 +44,13 @@ function ReportMentionWhisperContent({action, reportID, actionOwnerReportStable}
         ? []
         : [
               {
-                  text: 'common.yes',
+                  translationKey: 'common.yes',
                   key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE}`,
                   onPress: () => resolveActionableReportMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE, isReportArchived),
                   isPrimary: true,
               },
               {
-                  text: 'common.no',
+                  translationKey: 'common.no',
                   key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING}`,
                   onPress: () => resolveActionableReportMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING, isReportArchived),
               },
@@ -67,7 +67,6 @@ function ReportMentionWhisperContent({action, reportID, actionOwnerReportStable}
                 {buttons.length > 0 && (
                     <ActionableItemButtons
                         items={buttons}
-                        shouldUseLocalization
                         layout="horizontal"
                     />
                 )}

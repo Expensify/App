@@ -15,9 +15,9 @@ import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React, {useRef} from 'react';
-import {ValueOf} from 'type-fest';
 
 type DateFilterContentProps = {
     baseFilterKey: SearchDateFilterKeys;
