@@ -22,7 +22,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
-import {isAgentEmail} from '@libs/SessionUtils';
+import {isAgentEmail, isUnlinkLoginSuccessMessage} from '@libs/SessionUtils';
 import StringUtils from '@libs/StringUtils';
 import {isNumericWithSpecialChars, isValidEmailWithTLD} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
@@ -63,7 +63,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
     const isFocused = useIsFocused();
     const isLoading = useRef(false);
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
-    const accountMessage = account?.message === 'unlinkLoginForm.successfullyUnlinkedLogin' ? translate(account.message) : (account?.message ?? '');
+    const accountMessage = isUnlinkLoginSuccessMessage(account?.message) ? translate('unlinkLoginForm.successfullyUnlinkedLogin') : (account?.message ?? '');
 
     /**
      * Validate the input value and set the error for formError
@@ -168,9 +168,16 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
         // UnlinkLoginPage resets the stack to the sign-in page as soon as the unlink settles, so this mount is
         // the one that has to render the result. unlinkLogin has just written the whole account object, so there
         // is no stale state here for clearAccountMessages to clean up.
-        const hasJustUnlinkedLogin = account?.message === 'unlinkLoginForm.successfullyUnlinkedLogin';
+        const hasJustUnlinkedLogin = isUnlinkLoginSuccessMessage(account?.message);
 
-        if (isFocused && isVisible && !hasJustUnlinkedLogin) {
+        // A failed/expired unlink can also land here: when credentials.login isn't already cached in this
+        // browser (e.g. the link was opened somewhere other than the tab that requested the unlink),
+        // shouldShowLoginForm selects this form instead of UnlinkLoginForm. Preserve that specific error by
+        // value, not by testing account.errors generally — a broader check would also strand a stale error
+        // from an earlier failed sign-in attempt on the page.
+        const hasUnlinkLoginError = Object.values(account?.errors ?? {}).includes(translate('unlinkLoginForm.unlinkError'));
+
+        if (isFocused && isVisible && !hasJustUnlinkedLogin && !hasUnlinkLoginError) {
             clearAccountMessages();
         }
         if (!canFocusInputOnScreenFocus() || !input.current || !isVisible || !isFocused) {
