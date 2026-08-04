@@ -275,6 +275,11 @@ function MoneyRequestReportPreview({
                 return;
             }
 
+            // Any new press supersedes one still waiting on a fetch. Without this an earlier deferred press stays
+            // armed and hijacks the navigation the moment its fetch lands — sending the user to the expense they
+            // pressed first rather than the one they pressed last.
+            pendingExpenseTransactionRef.current = null;
+
             // A report with a single expense opens the report itself, not the lone expense — opening the
             // expense directly would skip the report the user expects to land on.
             if (transactions.length <= 1) {

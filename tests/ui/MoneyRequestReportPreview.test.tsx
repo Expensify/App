@@ -593,6 +593,44 @@ describe('MoneyRequestReportPreview', () => {
             expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
         });
 
+        it('does not let a deferred press hijack a later press once its fetch lands', async () => {
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+            // First card has no resolvable thread (its press defers); second card resolves immediately.
+            const getIOUActionSpy = jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
+            mockUseReportTransactionsCollection.mockImplementation(() =>
+                toCollectionDataSet(
+                    ONYXKEYS.COLLECTION.TRANSACTION,
+                    [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID, transactionThreadReportID: `thread_${mockSecondTransactionID}`}],
+                    (transaction) => transaction.transactionID,
+                ),
+            );
+
+            await renderAndPopulateCarousel();
+
+            // Press the first card — it defers, waiting on the report's actions.
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndHeaderText(mockTransaction);
+            const [firstCard] = screen.getAllByText(transactionDisplayAmount);
+            fireEvent.press(firstCard);
+            await waitForBatchedUpdatesWithAct();
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            // Now press the second card, which opens straight away. That is the expense the user is waiting on.
+            navigateSpy.mockClear();
+            await pressSecondTransaction();
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
+
+            // The first press's fetch finally lands. It must NOT navigate — the user has moved on.
+            navigateSpy.mockClear();
+            getIOUActionSpy.mockImplementation(buildActionWithThread);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[`${mockAction.reportActionID}_late`]: mockAction});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(navigateSpy).not.toHaveBeenCalled();
+        });
+
         it('seeds every transaction when online, so the new filter changes nothing there', async () => {
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             mockUseNetwork.mockReturnValue({isOffline: false});
