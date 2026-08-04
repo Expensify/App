@@ -47,6 +47,8 @@ type WorkspaceOption = MultiSelectItem<string> & {isArchived: boolean};
 
 type WorkspaceSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
+const SECTION_HEADER_HEIGHT = 60;
+
 function SectionHeader({
     title,
     selectAllLabel,
@@ -65,7 +67,7 @@ function SectionHeader({
     const isAllSelected = items.length > 0 && selectedCount === items.length;
     const isIndeterminate = selectedCount > 0 && selectedCount < items.length;
 
-    const handlePress = () => {
+    const toggleSection = () => {
         if (isAllSelected) {
             const sectionValues = new Set(items.map((item) => item.value));
             onToggle(selectedValues.filter((v) => !sectionValues.has(v)));
@@ -86,7 +88,7 @@ function SectionHeader({
                 <Checkbox
                     isChecked={isAllSelected}
                     isIndeterminate={isIndeterminate}
-                    onPress={handlePress}
+                    onPress={toggleSection}
                     accessibilityLabel={`${selectAllLabel} ${title}`}
                 />
             </View>
@@ -151,15 +153,16 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
         {
             data: activeItems,
             sectionIndex: 0,
-            customHeader: hasArchived ? (
-                <SectionHeader
-                    title={translate('search.filters.workspace.active')}
-                    selectAllLabel={selectAllLabel}
-                    items={activeItems}
-                    selectedValues={value}
-                    onToggle={onChange}
-                />
-            ) : undefined,
+            customHeader:
+                activeItems.length > 0 ? (
+                    <SectionHeader
+                        title={translate('search.filters.workspace.active')}
+                        selectAllLabel={selectAllLabel}
+                        items={activeItems}
+                        selectedValues={value}
+                        onToggle={onChange}
+                    />
+                ) : undefined,
         },
     ];
 
@@ -180,7 +183,8 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
     }
 
     const itemCount = activeItems.length + archivedItems.length;
-    const headerExtraHeight = hasArchived ? 2 * 60 : 0;
+    const SECTION_HEADER_HEIGHT = 60;
+    const headerExtraHeight = (activeItems.length > 0 ? SECTION_HEADER_HEIGHT : 0) + (hasArchived ? SECTION_HEADER_HEIGHT : 0);
 
     const textInputOptions: TextInputOptions = {
         value: searchTerm,
