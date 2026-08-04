@@ -43,7 +43,7 @@ Workspace Admins can reconcile reimbursements when Payments is enabled on the Wo
    - If the amounts match, the reimbursement is reconciled. 
    - If an amount does not match, expand the reimbursement to review the underlying expenses and identify discrepancies.
 
-**Note:** Match the bank charge against the **Amount debited**, not the report total. When your workspace is set to **Company pays** for currency conversion fees, the amount debited from your business bank account for a cross-border reimbursement can exceed the report total.
+**Note:** If you process any cross-border reimbursements, you should match the bank charge against the **Amount debited**, not the report total. When your workspace is set to **Company pays** for currency conversion fees, the amount debited from your business bank account for a cross-border reimbursement can exceed the report total.
 
 ---
 
