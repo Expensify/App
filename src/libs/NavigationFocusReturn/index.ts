@@ -428,8 +428,8 @@ function setupNavigationFocusReturn(): void {
             }
             lastMouseTriggerAt = performance.now();
             // Preserve synthetic Enter/Space activation click on the latched element. Uses `.contains` (not FOCUSABLE_SELECTOR closest) so roving-tabindex ARIA widgets don't wrongly clear their own latch.
-            const clickOnLatch = e.type === 'click' && lastKeyboardTriggerElement !== null && (e.target === lastKeyboardTriggerElement || lastKeyboardTriggerElement.contains(e.target));
-            if (!clickOnLatch) {
+            const didClickOnLatch = e.type === 'click' && lastKeyboardTriggerElement !== null && (e.target === lastKeyboardTriggerElement || lastKeyboardTriggerElement.contains(e.target));
+            if (!didClickOnLatch) {
                 clearKeyboardLatch();
             }
         };
