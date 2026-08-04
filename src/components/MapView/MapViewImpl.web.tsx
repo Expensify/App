@@ -77,6 +77,7 @@ function MapViewImpl({
     const currentPosition = userLocation ?? initialLocation;
     const prevUserPosition = usePrevious(currentPosition);
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
+    const [isHoveringDirection, setIsHoveringDirection] = useState(false);
     const [shouldResetBoundaries, setShouldResetBoundaries] = useState<boolean>(false);
     const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
     const shouldInitializeCurrentPosition = useRef(true);
@@ -256,6 +257,12 @@ function MapViewImpl({
     // The route layers only need to be interactive when there is an alternate route to pick, so that clicking a route selects it.
     const interactiveLayerIds = useMemo(() => (interactive && hasAlternateDirection ? ALTERNATE_DIRECTIONS_LAYER_IDS : undefined), [interactive, hasAlternateDirection]);
 
+    const onDrag = useCallback(() => {
+        setUserInteractedWithMap(true);
+        // Dragging must keep the grabbing cursor even when it starts on top of a route.
+        setIsHoveringDirection(false);
+    }, []);
+
     const selectClickedDirection = useCallback(
         (event: MapMouseEvent) => {
             const isAlternate: unknown = event.features?.at(0)?.properties?.isAlternate;
@@ -273,7 +280,7 @@ function MapViewImpl({
             {...responder.panHandlers}
         >
             <Map
-                onDrag={() => setUserInteractedWithMap(true)}
+                onDrag={onDrag}
                 ref={setRef}
                 mapboxAccessToken={accessToken}
                 initialViewState={initialViewState}
@@ -282,6 +289,10 @@ function MapViewImpl({
                 interactive={interactive}
                 interactiveLayerIds={interactiveLayerIds}
                 onClick={selectClickedDirection}
+                // Only the interactive route layers report hover, so the pointer cursor shows up exclusively when there is an alternate route to pick.
+                onMouseEnter={() => setIsHoveringDirection(true)}
+                onMouseLeave={() => setIsHoveringDirection(false)}
+                cursor={isHoveringDirection ? 'pointer' : undefined}
             >
                 {interactive && shouldDisplayCurrentLocation && (
                     <Marker
