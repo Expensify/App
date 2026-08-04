@@ -2107,7 +2107,7 @@ function getDisplayableThirdPartyCards(cardList: CardList | undefined, cardFeedE
  * 4. Finally, if all else fails, fallback to USD
  */
 function getFeedCurrency(cardSettings?: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): string {
-    const settings = getCardSettings(cardSettings, programKey);
+    const settings = getCardSettingsForSelectedProgram(cardSettings, programKey);
     return getExpensifyCardProgramCurrency(programKey, settings?.country, settings?.currency);
 }
 
@@ -2127,7 +2127,7 @@ function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<Expens
 
     // If not, attempt to get currency from the card settings. A card's `feedCountry` is its own program key.
     const programKey = card?.nameValuePairs?.feedCountry as CardProgramKey | undefined;
-    const settings = getCardSettings(cardSettings, programKey);
+    const settings = getCardSettingsForSelectedProgram(cardSettings, programKey);
     return getExpensifyCardProgramCurrency(programKey, card?.nameValuePairs?.country, settings?.currency);
 }
 

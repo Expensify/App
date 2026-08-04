@@ -32,6 +32,7 @@ import {
     getCardProgramKeyFromValue,
     getCardsByCardholderName,
     getCardSettings,
+    getCardSettingsForSelectedProgram,
     getCompanyCardCustomName,
     getCompanyCardDescription,
     getCompanyCardFeed,
@@ -4147,7 +4148,7 @@ describe('CardUtils', () => {
         });
 
         it('should return undefined when cardSettings is undefined', () => {
-            expect(getCardSettings(undefined)).toBeUndefined();
+            expect(getCardSettings(undefined, 'US')).toBeUndefined();
         });
 
         it('should return undefined when cardSettings is null', () => {
@@ -4155,23 +4156,11 @@ describe('CardUtils', () => {
             // but exercise the runtime guard for null as well.
             const cardSettings = null;
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This test deliberately exercises the runtime guard for a null Onyx value.
-            const result = getCardSettings(cardSettings as unknown as Parameters<typeof getCardSettings>[0]);
+            const result = getCardSettings(cardSettings as unknown as Parameters<typeof getCardSettings>[0], 'US');
             expect(result).toBeUndefined();
         });
 
-        it('should fall back to flat root when no nested keys exist and feedCountry is not provided', () => {
-            const result = getCardSettings(flatSettings);
-            expect(result?.paymentBankAccountID).toBe(12345);
-            expect(result?.limit).toBe(50000);
-        });
-
-        it('should fall back to flat root when no nested keys exist and feedCountry is undefined', () => {
-            const result = getCardSettings(flatSettings, undefined);
-            expect(result?.paymentBankAccountID).toBe(12345);
-            expect(result?.limit).toBe(50000);
-        });
-
-        it('should return merged root + nested when feedCountry matches a nested key', () => {
+        it('should return merged root + nested when programKey matches a nested key', () => {
             const result = getCardSettings(nestedSettings, 'US');
             expect(result?.paymentBankAccountID).toBe(67890);
             expect(result?.limit).toBe(30000);
@@ -4179,57 +4168,94 @@ describe('CardUtils', () => {
             expect(result?.domainName).toBe('example.com');
         });
 
-        it('should return undefined when feedCountry key does not exist', () => {
+        it('should return the GB block when programKey is GB', () => {
+            const gbSettings = createMock<ExpensifyCardSettings>({
+                domainName: 'uk-example.com',
+                US: {paymentBankAccountID: 67890},
+                GB: {
+                    paymentBankAccountID: 99999,
+                    limit: 20000,
+                },
+            });
+            const result = getCardSettings(gbSettings, 'GB');
+            expect(result?.paymentBankAccountID).toBe(99999);
+            expect(result?.limit).toBe(20000);
+            expect(result?.domainName).toBe('uk-example.com');
+        });
+
+        it('should return undefined when the requested programKey is not nested (no auto-detect fallback)', () => {
+            const result = getCardSettings(nestedSettings, 'GB');
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when the flat root has no nested program block for the requested key', () => {
+            const result = getCardSettings(flatSettings, 'US');
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when programKey key does not exist', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This invalid program key deliberately exercises the runtime missing-key fallback.
             const result = getCardSettings(nestedSettings, 'CA' as Parameters<typeof getCardSettings>[1]);
             expect(result).toBeUndefined();
         });
 
-        it('should return merged root + TRAVEL_US when feedCountry is TRAVEL_US', () => {
+        it('should return merged root + TRAVEL_US when programKey is TRAVEL_US', () => {
             const result = getCardSettings(nestedSettings, 'TRAVEL_US');
             expect(result?.paymentBankAccountID).toBe(11111);
             expect(result?.isEnabled).toBe(true);
             expect(result?.domainName).toBe('example.com');
         });
 
-        it('should return undefined for primitive values as feedCountry', () => {
+        it('should return undefined for primitive values as programKey', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This settings property is deliberately supplied as an invalid program key.
             const result = getCardSettings(nestedSettings, 'limit' as Parameters<typeof getCardSettings>[1]);
             expect(result).toBeUndefined();
         });
+    });
 
-        it('should auto-detect US program when no feedCountry is provided', () => {
-            const result = getCardSettings(nestedSettings);
-            expect(result?.paymentBankAccountID).toBe(67890);
-            expect(result?.limit).toBe(30000);
-            expect(result?.currentBalance).toBe(500);
+    describe('getCardSettingsForSelectedProgram', () => {
+        const flatSettings = createMock<ExpensifyCardSettings>({
+            paymentBankAccountID: 12345,
+            limit: 50000,
+            currentBalance: 1000,
+            remainingLimit: 49000,
+        });
+
+        const nestedSettings = createMock<ExpensifyCardSettings>({
+            domainName: 'example.com',
+            paymentBankAccountID: 12345,
+            limit: 50000,
+            US: {
+                paymentBankAccountID: 67890,
+                limit: 30000,
+            },
+            GB: {
+                paymentBankAccountID: 99999,
+                limit: 20000,
+            },
+        });
+
+        it('should return undefined when cardSettings is undefined', () => {
+            expect(getCardSettingsForSelectedProgram(undefined, 'US')).toBeUndefined();
+        });
+
+        it('should honor the selected program when it is nested', () => {
+            const result = getCardSettingsForSelectedProgram(nestedSettings, 'GB');
+            expect(result?.paymentBankAccountID).toBe(99999);
+            expect(result?.limit).toBe(20000);
             expect(result?.domainName).toBe('example.com');
         });
 
-        it('should auto-detect GB program when only GB nested key exists', () => {
-            const gbOnlySettings = createMock<ExpensifyCardSettings>({
-                domainName: 'uk-example.com',
-                GB: {
-                    paymentBankAccountID: 99999,
-                    limit: 20000,
-                },
-            });
-            const result = getCardSettings(gbOnlySettings);
-            expect(result?.paymentBankAccountID).toBe(99999);
-            expect(result?.domainName).toBe('uk-example.com');
+        it('should fall back to the flat root when the selected program is not nested', () => {
+            const result = getCardSettingsForSelectedProgram(flatSettings, 'US');
+            expect(result?.paymentBankAccountID).toBe(12345);
+            expect(result?.limit).toBe(50000);
         });
 
-        it('should auto-detect CURRENT program for legacy pre-2024 nested format', () => {
-            const currentSettings = createMock<ExpensifyCardSettings>({
-                domainName: 'legacy.com',
-                CURRENT: {
-                    paymentBankAccountID: 55555,
-                    limit: 10000,
-                },
-            });
-            const result = getCardSettings(currentSettings);
-            expect(result?.paymentBankAccountID).toBe(55555);
-            expect(result?.domainName).toBe('legacy.com');
+        it('should fall back to the flat root when no program is selected', () => {
+            const result = getCardSettingsForSelectedProgram(flatSettings, undefined);
+            expect(result?.paymentBankAccountID).toBe(12345);
+            expect(result?.limit).toBe(50000);
         });
     });
 
