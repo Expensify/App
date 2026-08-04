@@ -202,12 +202,7 @@ function BaseListItem<TItem extends ListItem>({
                     onLongPressRow?.(item);
                 }}
                 onPress={(e) => {
-                    if (shouldSuppressCopyableTextRowPress()) {
-                        e?.stopPropagation();
-                        return;
-                    }
-
-                    if (isMouseDownOnInput) {
+                    if (shouldSuppressCopyableTextRowPress() || isMouseDownOnInput) {
                         e?.stopPropagation(); // Preventing the click action
                         return;
                     }
