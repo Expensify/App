@@ -86,7 +86,7 @@ function DropdownButton({label, value, medium = false, labelStyle, innerStyles, 
                         size={medium ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
                     >
                         <CaretWrapper
-                            // flexShrink1 replaces old flex1 is necessary so a long label truncates instead of widening the pill.
+                            // Replaces flex1 with flexShrink1 so a long label truncates instead of widening the pill.
                             style={[styles.flexShrink1, styles.mw100, caretWrapperStyle]}
                             caretWidth={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
                             caretHeight={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
