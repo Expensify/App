@@ -19,8 +19,8 @@ import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
-import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 import Navigation from '@libs/Navigation/Navigation';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
@@ -298,7 +298,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             if (!transaction?.transactionID) {
                 return Promise.resolve();
             }
-            return moveReceiptToDurableStorage(imageUri, filename).then((durableUri) => {
+            return ReceiptStorage.adopt(imageUri, filename).then((durableName) => {
+                const durableUri = ReceiptStorage.toLocalUri(durableName);
                 const durableFile = Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri});
                 if (isOdometerImage) {
                     setMoneyRequestOdometerImage(transaction, imageType, durableFile, isDraftTransaction, !isEditingConfirmation);

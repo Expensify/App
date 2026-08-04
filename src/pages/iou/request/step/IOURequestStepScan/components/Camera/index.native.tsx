@@ -7,10 +7,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import captureReceipt from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
@@ -164,7 +164,10 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         const path = getReceiptsUploadFolderPath();
 
         captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode})
-            .then((photo: PhotoFile) => {
+            // vision-camera writes into the receipts folder, so `adopt` only verifies the write landed.
+            // The check runs before the app builds an expense around the file.
+            .then((photo: PhotoFile) => ReceiptStorage.adopt(photo.path))
+            .then((durableName) => {
                 endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
 
                 if (isMultiScanEnabled) {
@@ -173,10 +176,10 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     setDidCapturePhoto(true);
                 }
 
-                const source = getPhotoSource(photo.path);
+                const source = ReceiptStorage.toLocalUri(durableName);
                 const cameraFile: FileObject = {
                     uri: source,
-                    name: photo.path,
+                    name: durableName,
                     type: 'image/jpeg',
                 };
 

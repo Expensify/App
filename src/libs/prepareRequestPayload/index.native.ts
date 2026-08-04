@@ -1,5 +1,6 @@
 import checkFileExists from '@libs/fileDownload/checkFileExists';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {logReceiptDropped} from '@libs/telemetry/ReceiptObservability';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 
@@ -24,16 +25,28 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
             }
 
             if (key === 'receipt') {
-                const {source, name, type, uri, receiptTraceId} = value as File & Pick<Receipt, 'receiptTraceId'>;
+                const {source, name, type, receiptTraceId} = value as File & Pick<Receipt, 'receiptTraceId'>;
+
                 if (source) {
-                    return checkFileExists(source).then((exists) => {
+                    // Distance and per diem expenses carry a bundled placeholder image. The source holds a
+                    // require() asset id. No file exists on disk and the server receives nothing, so a
+                    // filesystem check here only logs a false drop.
+                    if (/^\d+$/.test(String(source))) {
+                        return Promise.resolve();
+                    }
+
+                    // Re-root onto the receipts folder for this launch. The container in the stored path
+                    // can move while the request waits in the queue.
+                    const localUri = ReceiptStorage.resolve(source) ?? String(source);
+
+                    return checkFileExists(localUri).then((exists) => {
                         if (!exists) {
                             const transactionID = typeof data.transactionID === 'string' ? data.transactionID : undefined;
                             logReceiptDropped({receiptTraceId, transactionID, command, source, fileName: name});
                             return;
                         }
                         const receiptFormData = {
-                            uri,
+                            uri: localUri,
                             name,
                             type,
                         };

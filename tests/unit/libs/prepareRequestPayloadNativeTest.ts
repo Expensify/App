@@ -20,6 +20,17 @@ jest.mock('@libs/telemetry/ReceiptObservability', () => ({
     logReceiptDropped: mockLogReceiptDropped,
 }));
 
+const RECEIPTS_FOLDER = '/Containers/Data/Application/CURRENT/Documents/Receipts-Upload';
+jest.mock('@libs/ReceiptStorage', () => ({
+    __esModule: true,
+    default: {
+        resolve: (source?: string) => {
+            const name = source?.includes('/Receipts-Upload/') ? source.split('/').pop() : undefined;
+            return name ? `file://${RECEIPTS_FOLDER}/${name}` : source;
+        },
+    },
+}));
+
 // Bypass the global jest/setup.ts mock to test the real native implementation.
 // Dependencies above are still resolved through their respective mocks.
 
@@ -69,6 +80,52 @@ describe('prepareRequestPayload (native)', () => {
             source: 'file:///var/mobile/Library/Caches/ImageManipulator/receipt.jpg',
             fileName: 'receipt.jpg',
         });
+    });
+
+    it('should recover a queued receipt whose stored path names a stale container, by re-rooting the filename', async () => {
+        mockCheckFileExists.mockResolvedValue(true);
+
+        const receipt = {
+            // Written before an app upgrade. The device no longer has this container.
+            source: 'file:///Containers/Data/Application/STALE/Documents/Receipts-Upload/receipt_9.jpg',
+            uri: 'file:///Containers/Data/Application/STALE/Documents/Receipts-Upload/receipt_9.jpg',
+            name: 'receipt.jpg',
+            type: 'image/jpeg',
+        };
+
+        const formData = await prepareRequestPayload('RequestMoney', {receipt, amount: '100'}, false);
+
+        expect(mockCheckFileExists).toHaveBeenCalledWith(`file://${RECEIPTS_FOLDER}/receipt_9.jpg`);
+        expect(formData.has('receipt')).toBe(true);
+        expect(mockLogReceiptDropped).not.toHaveBeenCalled();
+    });
+
+    it('should still report a genuinely missing file as dropped', async () => {
+        mockCheckFileExists.mockResolvedValue(false);
+
+        const receipt = {
+            source: 'file:///Containers/Data/Application/CURRENT/Documents/Receipts-Upload/gone.jpg',
+            uri: 'file:///Containers/Data/Application/CURRENT/Documents/Receipts-Upload/gone.jpg',
+            name: 'receipt.jpg',
+            type: 'image/jpeg',
+        };
+
+        const formData = await prepareRequestPayload('RequestMoney', {receipt, amount: '100'}, false);
+
+        expect(formData.has('receipt')).toBe(false);
+        expect(mockLogReceiptDropped).toHaveBeenCalledWith(expect.objectContaining({source: `file://${RECEIPTS_FOLDER}/gone.jpg`}));
+    });
+
+    it('should not check the filesystem for a bundled placeholder receipt', async () => {
+        // Distance and per diem expenses carry a require() asset id. No file exists on disk.
+        const receipt = {source: '686', name: 'receipt-generic.png', type: 'image/png'};
+
+        const formData = await prepareRequestPayload('AddTrackedExpenseToPolicy', {receipt, amount: '100'}, false);
+
+        expect(mockCheckFileExists).not.toHaveBeenCalled();
+        expect(mockLogReceiptDropped).not.toHaveBeenCalled();
+        expect(formData.has('receipt')).toBe(false);
+        expect(formData.get('amount')).toBe('100');
     });
 
     it('should handle non-receipt data normally', async () => {
