@@ -1,6 +1,6 @@
 # Local Android PGO proof
 
-This is an experimental, local-only LLVM PGO workflow for the standalone Android arm64 build. It uses the release-derived `pgoInstrumented` and `pgoOptimized` variants: optimized native code and a bundled production JavaScript bundle, signed with the local debug key so it can be installed without release credentials. It does not publish artifacts and it does not add application metrics.
+This is an experimental, local-only LLVM PGO workflow for the standalone Android arm64 release build: optimized native code and a bundled production JavaScript bundle, signed with the local debug key so it can be installed without release credentials. It does not publish artifacts and it does not add application metrics.
 
 ## Preconditions
 
@@ -35,7 +35,7 @@ This is an experimental, local-only LLVM PGO workflow for the standalone Android
    scripts/pgo/android-local-proof.sh build-optimized
    ```
 
-   The instrumented and optimized APKs remain available separately at `Mobile-Expensify/Android/build/outputs/apk/pgoInstrumented/Expensify-pgoInstrumented.apk` and `Mobile-Expensify/Android/build/outputs/apk/pgoOptimized/Expensify-pgoOptimized.apk`. They use the application IDs `org.me.mobiexpensifyg.pgo.instrumented` and `org.me.mobiexpensifyg.pgo.optimized`, with the launcher names “Expensify PGO Instrumented” and “Expensify PGO Optimized”, so both can remain installed simultaneously. Install the optimized APK with:
+   The script renames the instrumented and optimized release outputs to `Mobile-Expensify/Android/build/outputs/apk/release/Expensify-release-instrumented.apk` and `Mobile-Expensify/Android/build/outputs/apk/release/Expensify-release-optimized.apk`. All builds use the release application ID and are installed consecutively. Install the optimized APK with:
 
    ```bash
    scripts/pgo/android-local-proof.sh install-optimized
@@ -61,11 +61,11 @@ The metrics build calls Android's `reportFullyDrawn()` and emits the machine-rea
 
 ## Benchmark startup
 
-Build the release and PGO-optimized APK from the same source revision, compiler, NDK, and ABI:
+Build the PGO-optimized APK and then the release APK from the same source revision, compiler, NDK, and ABI. Both modes initially use the normal release output path, so the optimized output is renamed before the release APK is built:
 
 ```bash
-scripts/pgo/android-local-proof.sh build-release
 scripts/pgo/android-local-proof.sh build-optimized
+scripts/pgo/android-local-proof.sh build-release
 ```
 
 Collect each benchmark independently. Each command installs its APK without clearing application data, performs one unmeasured warm-up, then records ten cold-process startup samples by default:
@@ -88,7 +88,7 @@ Compare previously collected samples:
 scripts/pgo/android-local-proof.sh compare-benchmarks
 ```
 
-Or run the release benchmark first, then the optimized benchmark, and compare them in one command:
+Or install and benchmark the release APK first, then install and benchmark the renamed optimized APK, and compare them in one command:
 
 ```bash
 scripts/pgo/android-local-proof.sh benchmark 10 30
@@ -100,4 +100,4 @@ The `.pgo/` directory is intentionally local-only. Never apply this profile to a
 
 ## Compare
 
-Install the instrumented and optimized APKs side by side. For each build, sign in once, exclude the first post-install run, force-stop before every subsequent run, and record ten repetitions of the same journey with `am start -W` and Perfetto. Keep attachment-upload latency diagnostic only; use cold start and local interaction/frame timing as the primary decision metrics.
+Install the release and optimized APKs consecutively. For each build, exclude the first post-install run, force-stop before every subsequent run, and record ten repetitions of the same journey with `am start -W` and Perfetto. Keep attachment-upload latency diagnostic only; use cold start and local interaction/frame timing as the primary decision metrics.

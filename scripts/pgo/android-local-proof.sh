@@ -6,23 +6,19 @@ readonly NDK_VERSION="27.1.12297006"
 readonly ANDROID_NDK_HOME="/Users/chris/Library/Android/sdk/ndk/$NDK_VERSION"
 
 readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
-readonly BASE_PACKAGE_NAME="org.me.mobiexpensifyg"
-readonly INSTRUMENTED_PACKAGE_NAME="$BASE_PACKAGE_NAME.pgo.instrumented"
-readonly OPTIMIZED_PACKAGE_NAME="$BASE_PACKAGE_NAME.pgo.optimized"
+readonly PACKAGE_NAME="org.me.mobiexpensifyg"
 readonly RELEASE_BUILD_VARIANT="Release"
-readonly INSTRUMENTED_BUILD_VARIANT="PgoInstrumented"
-readonly OPTIMIZED_BUILD_VARIANT="PgoOptimized"
 
 readonly PROFILE_DIR="$ROOT_DIR/.pgo/android/arm64-v8a"
 readonly BENCHMARK_DIR="$ROOT_DIR/.pgo/android/benchmarks"
 readonly ANDROID_DIR="$ROOT_DIR/Mobile-Expensify/Android"
 readonly RELEASE_APK_PATH="$ANDROID_DIR/build/outputs/apk/release/Expensify-release.apk"
-readonly INSTRUMENTED_APK_PATH="$ANDROID_DIR/build/outputs/apk/pgoInstrumented/Expensify-pgoInstrumented.apk"
-readonly OPTIMIZED_APK_PATH="$ANDROID_DIR/build/outputs/apk/pgoOptimized/Expensify-pgoOptimized.apk"
+readonly INSTRUMENTED_APK_PATH="$ANDROID_DIR/build/outputs/apk/release/Expensify-release-instrumented.apk"
+readonly OPTIMIZED_APK_PATH="$ANDROID_DIR/build/outputs/apk/release/Expensify-release-optimized.apk"
 readonly RELEASE_BENCHMARK_PATH="$BENCHMARK_DIR/release.csv"
 readonly OPTIMIZED_BENCHMARK_PATH="$BENCHMARK_DIR/pgo-optimized.csv"
-readonly DEVICE_PROFILE_DIR="/sdcard/Android/data/$INSTRUMENTED_PACKAGE_NAME/cache"
-readonly START_ACTIVITY="$INSTRUMENTED_PACKAGE_NAME/$BASE_PACKAGE_NAME.ExpensifyActivityBase"
+readonly DEVICE_PROFILE_DIR="/sdcard/Android/data/$PACKAGE_NAME/cache"
+readonly START_ACTIVITY="$PACKAGE_NAME/.ExpensifyActivityBase"
 readonly APP_READY_LOG_TAG="NewDotStartup"
 readonly APP_READY_LOG_MESSAGE="APP_READY"
 readonly DEFAULT_STARTUP_RUNS=10
@@ -59,10 +55,11 @@ function gradle() {
 }
 
 function build_instrumented() {
-    gradle ":assemble$INSTRUMENTED_BUILD_VARIANT" \
+    gradle ":assemble$RELEASE_BUILD_VARIANT" \
         -PpatchedArtifacts.forceBuildFromSource=true \
         -PreactNativeArchitectures=arm64-v8a \
         -PpgoMode=generate
+    rename_release_apk "$INSTRUMENTED_APK_PATH"
 }
 
 function build_release() {
@@ -78,30 +75,41 @@ function build_optimized() {
         exit 1
     fi
 
-    gradle ":assemble$OPTIMIZED_BUILD_VARIANT" \
+    gradle ":assemble$RELEASE_BUILD_VARIANT" \
         -PpatchedArtifacts.forceBuildFromSource=true \
         -PreactNativeArchitectures=arm64-v8a \
         -PpgoMode=use \
         -PpgoProfile="$PROFILE_DIR/newdot.profdata"
+    rename_release_apk "$OPTIMIZED_APK_PATH"
+}
+
+function rename_release_apk() {
+    local renamed_apk_path="$1"
+    if [[ ! -f "$RELEASE_APK_PATH" ]]; then
+        echo "Missing built release APK at $RELEASE_APK_PATH." >&2
+        exit 1
+    fi
+
+    mv -f "$RELEASE_APK_PATH" "$renamed_apk_path"
+    echo "Renamed release APK: $renamed_apk_path"
 }
 
 function install_apk() {
     local apk_path="$1"
-    local package_name="$2"
     if [[ ! -f "$apk_path" ]]; then
         echo "Missing APK at $apk_path. Build the APK first." >&2
         exit 1
     fi
 
     adb install -r "$apk_path"
-    echo "Installed $package_name."
+    echo "Installed APK: $apk_path"
 }
 
 function dump_profiles() {
     adb logcat -c
     adb shell am broadcast \
-        -a "$INSTRUMENTED_PACKAGE_NAME.action.WRITE_PGO_PROFILES" \
-        -n "$INSTRUMENTED_PACKAGE_NAME/$BASE_PACKAGE_NAME.PgoProfileReceiver"
+        -a "$PACKAGE_NAME.action.WRITE_PGO_PROFILES" \
+        -n "$PACKAGE_NAME/.PgoProfileReceiver"
 
     wait_for_profile_dump
 }
@@ -183,7 +191,7 @@ function record_startups() {
     local run
     for ((run = 1; run <= runs; run++)); do
         echo "Recording cold-process startup $run/$runs."
-        adb shell am force-stop "$INSTRUMENTED_PACKAGE_NAME"
+        adb shell am force-stop "$PACKAGE_NAME"
         sleep "$STARTUP_RELAUNCH_DELAY_SECONDS"
         adb logcat -c
         adb shell am start -W -n "$START_ACTIVITY"
@@ -226,13 +234,11 @@ function measure_startup() {
 
 function benchmark_startups() {
     local label="$1"
-    local apk_path="$2"
-    local benchmark_path="$3"
-    local runs="$4"
-    local ready_timeout_seconds="$5"
+    local benchmark_path="$2"
+    local runs="$3"
+    local ready_timeout_seconds="$4"
 
     validate_startup_arguments "$runs" "$ready_timeout_seconds"
-    install_apk "$apk_path"
     mkdir -p "$BENCHMARK_DIR"
 
     echo "Running one unmeasured warm-up startup for $label."
@@ -304,19 +310,23 @@ function compare_benchmarks() {
 }
 
 function benchmark_release() {
-    benchmark_startups "release" "$RELEASE_APK_PATH" "$RELEASE_BENCHMARK_PATH" "${1:-$DEFAULT_STARTUP_RUNS}" "${2:-$DEFAULT_APP_READY_TIMEOUT_SECONDS}"
+    install_apk "$RELEASE_APK_PATH"
+    benchmark_startups "release" "$RELEASE_BENCHMARK_PATH" "${1:-$DEFAULT_STARTUP_RUNS}" "${2:-$DEFAULT_APP_READY_TIMEOUT_SECONDS}"
 }
 
 function benchmark_optimized() {
-    benchmark_startups "PGO optimized" "$OPTIMIZED_APK_PATH" "$OPTIMIZED_BENCHMARK_PATH" "${1:-$DEFAULT_STARTUP_RUNS}" "${2:-$DEFAULT_APP_READY_TIMEOUT_SECONDS}"
+    install_apk "$OPTIMIZED_APK_PATH"
+    benchmark_startups "PGO optimized" "$OPTIMIZED_BENCHMARK_PATH" "${1:-$DEFAULT_STARTUP_RUNS}" "${2:-$DEFAULT_APP_READY_TIMEOUT_SECONDS}"
 }
 
 function benchmark_all() {
     local runs="${1:-$DEFAULT_STARTUP_RUNS}"
     local ready_timeout_seconds="${2:-$DEFAULT_APP_READY_TIMEOUT_SECONDS}"
 
-    benchmark_release "$runs" "$ready_timeout_seconds"
-    benchmark_optimized "$runs" "$ready_timeout_seconds"
+    install_apk "$RELEASE_APK_PATH"
+    benchmark_startups "release" "$RELEASE_BENCHMARK_PATH" "$runs" "$ready_timeout_seconds"
+    install_apk "$OPTIMIZED_APK_PATH"
+    benchmark_startups "PGO optimized" "$OPTIMIZED_BENCHMARK_PATH" "$runs" "$ready_timeout_seconds"
     compare_benchmarks
 }
 
@@ -415,13 +425,13 @@ case "${1:-}" in
         verify_pgo_instrumentation
         ;;
     install | install-instrumented)
-        install_apk "$INSTRUMENTED_APK_PATH" "$INSTRUMENTED_PACKAGE_NAME"
+        install_apk "$INSTRUMENTED_APK_PATH"
         ;;
     install-release)
         install_apk "$RELEASE_APK_PATH"
         ;;
     install-optimized)
-        install_apk "$OPTIMIZED_APK_PATH" "$OPTIMIZED_PACKAGE_NAME"
+        install_apk "$OPTIMIZED_APK_PATH"
         ;;
     record-startups)
         record_startups "${2:-}" "${3:-}"
