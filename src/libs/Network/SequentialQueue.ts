@@ -113,10 +113,14 @@ function armPauseWatchdog() {
 
         // Close the update gap first, then unpause — capped and failure-swallowed so a hung escalation can't re-deadlock the queue.
         const escalation = pauseWatchdogEscalation?.().catch(() => undefined) ?? Promise.resolve();
+        let escalationCapTimeoutID: ReturnType<typeof setTimeout>;
         const escalationCap = new Promise<void>((resolve) => {
-            setTimeout(resolve, CONST.NETWORK.MAX_PAUSE_WATCHDOG_ESCALATION_TIME_MS);
+            escalationCapTimeoutID = setTimeout(resolve, CONST.NETWORK.MAX_PAUSE_WATCHDOG_ESCALATION_TIME_MS);
         });
         Promise.race([escalation, escalationCap]).then(() => {
+            // Whoever won, the cap has no work left — leaving it armed leaks a pending timer.
+            clearTimeout(escalationCapTimeoutID);
+
             // The normal chain may have unpaused meanwhile, or a fresh pause may have started since.
             if (!isQueuePaused || pauseGeneration !== generation) {
                 return;

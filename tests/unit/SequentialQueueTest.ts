@@ -786,6 +786,27 @@ describe('SequentialQueue - pause watchdog', () => {
         expect(SequentialQueue.isPaused()).toBe(false);
     });
 
+    it('should not leave the escalation cap timer armed once the escalation wins the race', async () => {
+        let resolveEscalation: () => void = () => {};
+        SequentialQueue.registerPauseWatchdogEscalation(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveEscalation = resolve;
+                }),
+        );
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+        const timersWithCapArmed = jest.getTimerCount();
+
+        resolveEscalation();
+        await jest.advanceTimersByTimeAsync(0);
+        expect(SequentialQueue.isPaused()).toBe(false);
+
+        // The cap lost the race, so its timer must be gone rather than left pending to leak into the next test.
+        expect(jest.getTimerCount()).toBe(timersWithCapArmed - 1);
+    });
+
     it('should unpause anyway when the escalation hangs past its cap', async () => {
         SequentialQueue.registerPauseWatchdogEscalation(() => new Promise(() => {}));
 
