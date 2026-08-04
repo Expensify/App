@@ -10,6 +10,13 @@ type UseBackfillWhenNoVisibleActionsParams = {
     /** If the report has older actions to load */
     hasOlderActions: boolean;
 
+    /**
+     * If the report has newer actions to load. Only the newest chain is backfilled: a chain anchored on a
+     * linked or unread action sits in the middle of the history, so walking backwards from it could page
+     * through everything older while the visible actions sit on the newer side.
+     */
+    hasNewerActions: boolean;
+
     /** Whether the device is offline */
     isOffline: boolean;
 
@@ -47,6 +54,7 @@ function useBackfillWhenNoVisibleActions({
     reportID,
     isMissingReportActions,
     hasOlderActions,
+    hasNewerActions,
     isOffline,
     isReportLoadPending,
     isLoadingOlderReportActions,
@@ -66,7 +74,7 @@ function useBackfillWhenNoVisibleActions({
             retriedCursorRef.current = undefined;
         }
 
-        if (!isMissingReportActions || !hasOlderActions || isOffline || isReportLoadPending) {
+        if (!isMissingReportActions || !hasOlderActions || hasNewerActions || isOffline || isReportLoadPending) {
             return;
         }
 
@@ -94,6 +102,7 @@ function useBackfillWhenNoVisibleActions({
         reportID,
         isMissingReportActions,
         hasOlderActions,
+        hasNewerActions,
         isOffline,
         isReportLoadPending,
         isLoadingOlderReportActions,

@@ -130,6 +130,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         reportActionsLength: reportActions.length,
         oldestReportActionID: currentReportOldestActionID,
         hasOlderActions,
+        hasNewerActions,
         oldestUnreadReportAction,
         isSingleExpenseReport,
         isMissingReportActions,

@@ -10,6 +10,7 @@ function getStuckParams(overrides: Partial<Params> = {}): Params {
         reportID: 'report1',
         isMissingReportActions: true,
         hasOlderActions: true,
+        hasNewerActions: false,
         isOffline: false,
         isReportLoadPending: false,
         isLoadingOlderReportActions: false,
@@ -100,6 +101,7 @@ describe('useBackfillWhenNoVisibleActions', () => {
     it.each([
         ['visible actions are present', {isMissingReportActions: false}],
         ['there are no older actions to fetch', {hasOlderActions: false}],
+        ['the chain sits in the middle of the history, so the visible actions may be on the newer side', {hasNewerActions: true}],
         ['offline', {isOffline: true}],
         ['an OpenReport request is still pending', {isReportLoadPending: true}],
         ['an older-actions request is already in flight', {isLoadingOlderReportActions: true}],

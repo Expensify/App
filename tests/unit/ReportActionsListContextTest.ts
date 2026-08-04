@@ -45,6 +45,7 @@ function createReadinessSignals(overrides: Partial<ReportActionsReadinessSignals
         reportActionsLength: 0,
         oldestReportActionID: undefined,
         hasOlderActions: false,
+        hasNewerActions: false,
         oldestUnreadReportAction: undefined,
         isSingleExpenseReport: false,
         isMissingReportActions: true,
