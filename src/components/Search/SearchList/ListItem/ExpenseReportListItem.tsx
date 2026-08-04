@@ -276,7 +276,12 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                 // collection yet. Fall back to the snapshot so the modal can submit.
                 const moneyRequestReport = parentReport ?? snapshotReport;
                 const transactionsForHoldMenu = liveReportTransactions.length > 0 ? liveReportTransactions : holdItem.transactions;
-                const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, holdItem.canPay ?? false, transactionsForHoldMenu);
+                const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(
+                    moneyRequestReport,
+                    holdItem.canPay ?? false,
+                    transactionsForHoldMenu,
+                    convertToDisplayString,
+                );
                 const hasNonHeldExpenses = transactionsForHoldMenu.some((t) => !isOnHold(t));
                 showHoldMenu({
                     reportID: holdItem.reportID,
@@ -340,6 +345,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         consumeIgnoreNextSearchSubmitPress,
         showConfirmModal,
         translate,
+        convertToDisplayString,
         currentUserAccountID,
         currentUserLogin,
         introSelected,

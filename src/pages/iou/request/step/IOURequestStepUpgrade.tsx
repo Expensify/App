@@ -25,6 +25,7 @@ import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Tran
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {navigateToCreatedReportInReports} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -42,7 +43,7 @@ import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
@@ -221,7 +222,13 @@ function IOURequestStepUpgrade({
                     });
                 } else {
                     Navigation.goBack();
-                    navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                    // `getActiveRoute()` still resolves to the upgrade screen here, so anchor the suffix to the expense's report instead.
+                    navigateWithMicrotask(
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID),
+                            ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                        ),
+                    );
                 }
 
                 break;
