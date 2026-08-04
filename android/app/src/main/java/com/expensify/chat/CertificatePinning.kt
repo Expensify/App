@@ -1,13 +1,19 @@
 package com.expensify.chat
 
+import android.net.http.X509TrustManagerExtensions
 import com.facebook.react.modules.network.OkHttpClientProvider
 import io.sentry.Sentry
 import io.sentry.SentryLevel
 import okhttp3.CertificatePinner
 import okhttp3.Interceptor
 import okhttp3.Response
+import java.security.KeyStore
+import java.security.cert.Certificate
+import java.security.cert.X509Certificate
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLPeerUnverifiedException
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 
 /**
  * Certificate pinning for React Native's shared OkHttp client (Iteration 1 - NewDot).
@@ -99,6 +105,62 @@ object CertificatePinning {
     }
 
     /**
+     * System trust manager used to rebuild the validated chain up to its trust anchor. Lazily
+     * initialized; null if the platform trust manager is unavailable.
+     */
+    private val trustManagerExtensions: X509TrustManagerExtensions? by lazy {
+        try {
+            val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+            tmf.init(null as KeyStore?)
+            val tm = tmf.trustManagers
+                .filterIsInstance<X509TrustManager>()
+                .firstOrNull() ?: return@lazy null
+            X509TrustManagerExtensions(tm)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /**
+     * Returns the fully validated chain (leaf → intermediates → trust-anchor ROOT) for the raw
+     * certificates a server presented during the handshake.
+     *
+     * A TLS server sends only its leaf and intermediates — never the root — so calling
+     * [CertificatePinner.check] directly on the raw peer list can only ever match a pinned leaf or
+     * intermediate, never a pinned ROOT. Because our durable, rotation-proof pins are the CA ROOTs
+     * (a leaf/intermediate rotation must not require an app update), those pins would silently fail
+     * to match on the raw peer chain and produce false pin-mismatch reports whenever a CA issues from
+     * an intermediate we don't happen to pin. Rebuilding the chain via the system trust manager
+     * appends the anchor, so the root pins are actually evaluated — matching how the platform
+     * `<pin-set>` and OkHttp's own enforce-mode check behave. Mirrors
+     * [WebViewCertificateMonitor]'s chain reconstruction. Falls back to the raw peer certificates if
+     * reconstruction is unavailable or fails, so behaviour is never worse than before.
+     */
+    private fun anchoredChain(peerCertificates: List<Certificate>, host: String): List<Certificate> {
+        val extensions = trustManagerExtensions ?: return peerCertificates
+        val x509Chain = peerCertificates.filterIsInstance<X509Certificate>()
+        val leaf = x509Chain.firstOrNull() ?: return peerCertificates
+
+        val authTypes = if (leaf.publicKey.algorithm == "EC") {
+            arrayOf("ECDHE_ECDSA", "ECDSA")
+        } else {
+            arrayOf("RSA", "ECDHE_RSA")
+        }
+
+        for (authType in authTypes) {
+            try {
+                val fullChain = extensions.checkServerTrusted(x509Chain.toTypedArray(), authType, host)
+                if (fullChain.isNotEmpty()) {
+                    return fullChain
+                }
+            } catch (_: Exception) {
+                // Try the next authType; fall back to the raw peer chain if all fail.
+            }
+        }
+        return peerCertificates
+    }
+
+    /**
      * Install the pinned OkHttp client factory. Must be called before any networking (i.e. early in
      * [MainApplication.onCreate]). Pinning is disabled in debug builds so local dev keeps working.
      */
@@ -128,7 +190,9 @@ object CertificatePinning {
      * Installs a wrapping [javax.net.ssl.HostnameVerifier] on [HttpsURLConnection] that validates
      * certificate pins after the platform hostname verifier succeeds. This covers native code and
      * third-party libraries that use [java.net.URL] / [HttpsURLConnection] instead of OkHttp.
-     * Mismatches are reported to Sentry without failing the connection (monitor mode only).
+     * The served chain is passed through [anchoredChain] first so root pins are evaluated, not just
+     * the leaf/intermediate the server sent. Mismatches are reported to Sentry without failing the
+     * connection (monitor mode only).
      */
     private fun installHttpsURLConnectionMonitor(certificatePinner: CertificatePinner) {
         val originalVerifier = HttpsURLConnection.getDefaultHostnameVerifier()
@@ -136,7 +200,7 @@ object CertificatePinning {
             val result = originalVerifier.verify(hostname, session)
             if (result && PINNED_DOMAINS.containsKey(hostname)) {
                 try {
-                    certificatePinner.check(hostname, session.peerCertificates.toList())
+                    certificatePinner.check(hostname, anchoredChain(session.peerCertificates.toList(), hostname))
                 } catch (error: SSLPeerUnverifiedException) {
                     reportPinningFailure(
                         hostname = hostname,
@@ -206,7 +270,9 @@ object CertificatePinning {
 
     /**
      * Validates certificate pins after the TLS handshake completes without blocking the request.
-     * Used during the monitor-only rollout phase.
+     * Used during the monitor-only rollout phase. The served chain is passed through [anchoredChain]
+     * first so the trust-anchor ROOT is included and our root pins are actually evaluated (see
+     * [anchoredChain]); otherwise only a pinned leaf/intermediate could ever match here.
      */
     private class CertificatePinningMonitorInterceptor(
         private val certificatePinner: CertificatePinner,
@@ -214,14 +280,17 @@ object CertificatePinning {
         override fun intercept(chain: Interceptor.Chain): Response {
             val request = chain.request()
             val response = chain.proceed(request)
+            val host = request.url.host
             val handshake = chain.connection()?.handshake()
 
-            if (handshake != null) {
+            // Only the pinned expensify hosts are validated (and only they pay the chain-rebuild
+            // cost in anchoredChain); all other traffic passes through untouched.
+            if (handshake != null && PINNED_DOMAINS.containsKey(host)) {
                 try {
-                    certificatePinner.check(request.url.host, handshake.peerCertificates)
+                    certificatePinner.check(host, anchoredChain(handshake.peerCertificates, host))
                 } catch (error: SSLPeerUnverifiedException) {
                     reportPinningFailure(
-                        hostname = request.url.host,
+                        hostname = host,
                         url = request.url,
                         channel = "OkHttp",
                         message = error.message ?: "Certificate pinning validation failed",
