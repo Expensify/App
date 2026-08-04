@@ -16,9 +16,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getCurrentConnectionName} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -45,7 +45,7 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
     const {translate} = useLocalize();
     const policyData = usePolicyData(policyID);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const currentConnectionName = getCurrentConnectionName(policy);
+    const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORIES_SETTINGS.path);
     const toggleSubtitle = isConnectedToAccounting && currentConnectionName ? translate('workspace.categories.needCategoryForExportToIntegration', currentConnectionName) : undefined;
@@ -62,15 +62,13 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
             return [];
         }
 
-        return Object.entries(policyData.policy?.mccGroup).map(
-            ([mccKey, mccGroup]): ListItem => ({
-                categoryID: mccGroup.category,
-                keyForList: mccKey,
-                groupID: mccKey,
-                tabIndex: -1,
-                pendingAction: mccGroup?.pendingAction,
-            }),
-        );
+        return Object.entries(policyData.policy?.mccGroup).map(([mccKey, mccGroup]): ListItem => ({
+            categoryID: mccGroup.category,
+            keyForList: mccKey,
+            groupID: mccKey,
+            tabIndex: -1,
+            pendingAction: mccGroup?.pendingAction,
+        }));
     }, [policyData.policy]);
 
     const hasEnabledCategories = hasEnabledOptions(policyData.categories);

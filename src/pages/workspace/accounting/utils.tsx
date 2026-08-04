@@ -12,7 +12,7 @@ import TextLink from '@components/TextLink';
 import {isAuthenticationError} from '@libs/actions/connections';
 import {getCardsCustomExportPendingAction, areCardsCustomExportInErrorFields} from '@libs/CardFeedUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {canUseTaxNetSuite} from '@libs/PolicyUtils';
+import {canUseTaxNetSuite, getCurrentConnectionName} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -60,6 +60,11 @@ function isIntuitEnterpriseSuiteConnection(policy: OnyxEntry<Policy>): boolean {
 
 function getQuickbooksOnlineIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
     return translate(isIntuitEnterpriseSuiteConnection(policy) ? 'workspace.accounting.intuitEnterpriseSuite' : 'workspace.accounting.qbo');
+}
+
+function getCurrentAccountingIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string | undefined {
+    const currentConnectionName = getCurrentConnectionName(policy);
+    return currentConnectionName === CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline ? getQuickbooksOnlineIntegrationName(policy, translate) : currentConnectionName;
 }
 
 // eslint-disable-next-line @typescript-eslint/max-params
@@ -557,4 +562,11 @@ function getQBDReimbursableAccounts(
     return accounts;
 }
 
-export {getAccountingIntegrationData, getSynchronizationErrorMessage, getQBDReimbursableAccounts, getQuickbooksOnlineIntegrationName, isIntuitEnterpriseSuiteConnection};
+export {
+    getAccountingIntegrationData,
+    getCurrentAccountingIntegrationName,
+    getSynchronizationErrorMessage,
+    getQBDReimbursableAccounts,
+    getQuickbooksOnlineIntegrationName,
+    isIntuitEnterpriseSuiteConnection,
+};
