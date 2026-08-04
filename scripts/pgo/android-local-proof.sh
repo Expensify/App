@@ -155,14 +155,14 @@ function merge_profiles() {
 
 function record_startups() {
     local runs="${1:-10}"
-    local settle_seconds="${2:-10}"
+    local ready_timeout_seconds="${2:-30}"
 
     if [[ ! "$runs" =~ ^[1-9][0-9]*$ ]]; then
         echo "Startup run count must be a positive integer, received: $runs" >&2
         exit 1
     fi
-    if [[ ! "$settle_seconds" =~ ^[0-9]+$ ]]; then
-        echo "Startup settle time must be a non-negative integer, received: $settle_seconds" >&2
+    if [[ ! "$ready_timeout_seconds" =~ ^[1-9][0-9]*$ ]]; then
+        echo "App-ready timeout must be a positive integer, received: $ready_timeout_seconds" >&2
         exit 1
     fi
 
@@ -176,13 +176,32 @@ function record_startups() {
         sleep "$STARTUP_RELAUNCH_DELAY_SECONDS"
         adb logcat -c
         adb shell am start -W -n "$START_ACTIVITY"
-        echo "Waiting ${settle_seconds}s for NewDot to become ready before dumping."
-        sleep "$settle_seconds"
+        wait_for_app_ready "$ready_timeout_seconds"
         dump_profiles
     done
 
     pull_profiles
     merge_profiles
+}
+
+function wait_for_app_ready() {
+    local timeout_seconds="$1"
+    local started_at="$SECONDS"
+
+    echo "Waiting up to ${timeout_seconds}s for $APP_READY_LOG_TAG: $APP_READY_LOG_MESSAGE."
+    while ((SECONDS - started_at < timeout_seconds)); do
+        local startup_logs
+        startup_logs="$(adb logcat -d -s "$APP_READY_LOG_TAG:I" '*:S')"
+        if [[ "$startup_logs" == *"$APP_READY_LOG_MESSAGE"* ]]; then
+            echo "NewDot reported APP_READY."
+            return 0
+        fi
+        sleep 0.25
+    done
+
+    echo "NewDot did not report APP_READY within ${timeout_seconds}s." >&2
+    adb logcat -d -s "$APP_READY_LOG_TAG:I" '*:S' >&2
+    return 1
 }
 
 function verify_pgo_instrumentation() (
@@ -260,7 +279,7 @@ case "${1:-}" in
         install_apk "$OPTIMIZED_APK_PATH"
         ;;
     record-startups)
-        record_startups "${2:-10}" "${3:-10}"
+        record_startups "${2:-10}" "${3:-30}"
         ;;
     dump)
         dump_profiles
