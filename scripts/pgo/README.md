@@ -15,7 +15,7 @@ This is an experimental, local-only LLVM PGO workflow for the standalone Android
 
    ```bash
    scripts/pgo/android-local-proof.sh build-instrumented
-   adb install -r Mobile-Expensify/Android/build/outputs/apk/release/Expensify-release.apk
+   scripts/pgo/android-local-proof.sh install
    ```
 
 2. Run the manual authenticated journey once: open and scroll chats, send a message, visit and modify reversible workspace settings, attach an image and document, view attachments, then use search.
@@ -26,6 +26,8 @@ This is an experimental, local-only LLVM PGO workflow for the standalone Android
    scripts/pgo/android-local-proof.sh pull
    scripts/pgo/android-local-proof.sh merge
    ```
+
+   Profiles are written to the app's external cache so they can be retrieved from a non-debuggable release APK with `adb pull`.
 
 4. Build the matched optimized application:
 
