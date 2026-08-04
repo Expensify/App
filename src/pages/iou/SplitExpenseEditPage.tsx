@@ -410,13 +410,14 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                         rightLabel={isTagRequired ? translate('common.required') : ''}
                                         onPress={() => {
                                             Navigation.navigate(
-                                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                                    CONST.IOU.ACTION.EDIT,
-                                                    CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                                    index,
-                                                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                                    reportID,
-                                                    Navigation.getActiveRoute(),
+                                                createDynamicRoute(
+                                                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                                        CONST.IOU.ACTION.EDIT,
+                                                        CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                                        index,
+                                                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                                        reportID,
+                                                    ),
                                                 ),
                                             );
                                         }}
