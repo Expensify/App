@@ -100,6 +100,8 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
     const isAppLoadPending = useIsAppLoadPending();
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>(), policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    // Fetch the full (unfiltered) workspace list and apply the search filter locally, so pinning is decided from the
+    // full list length rather than the filtered result count (see reordering below).
     const {workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFiltersWorkspaces(policies);
     const workspaceOptions: Array<MultiSelectItem<string> & {isArchived: boolean}> = workspaces
         .flatMap((section) => section.data)
@@ -111,6 +113,10 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
             isArchived: !!workspace.isArchived,
         }));
 
+    // Snapshot the workspaces selected when the filter first opened so they can be floated to the top of a long list on
+    // first render without repinning rows that are toggled afterwards. moveInitialSelectionToTop gates on the *unfiltered*
+    // list length so the decision doesn't flip as the user types, and reordering before filtering keeps the pinned items
+    // on top among the results that still match.
     const initialSelectedValues = useInitialValue(() => value);
     const orderedOptions = moveInitialSelectionToTop(workspaceOptions, initialSelectedValues);
     const filteredOptions = tokenizedSearch(orderedOptions, debouncedSearchTerm, (option) => [option.text]);
