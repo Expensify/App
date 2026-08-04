@@ -1535,7 +1535,7 @@ const translations = {
         automaticallyForwarded: `approved via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
         forwarded: (memo?: string) => `approved${memo ? `, saying ${memo}` : ''}`,
         rejectedThisReport: 'rejected',
-        waitingOnBankAccount: (submitterDisplayName: string) => `started payment, but is waiting for ${submitterDisplayName} to add a bank account.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`,
         adminCanceledRequest: 'canceled the payment',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
@@ -7987,6 +7987,10 @@ const translations = {
                 subtitle: 'Require or waive expense fields for specific categories.',
                 cta: 'Create field requirement rule',
             },
+            categoriesDisabledEmptyState: {
+                title: 'Categories are not enabled',
+                subtitle: 'Enable categories to gain more control of your spend.',
+            },
             requireFieldsRule: {
                 title: 'Field requirements',
                 subtitle: 'Require specific expense fields or waive requiring them.',
@@ -10477,6 +10481,15 @@ const translations = {
             description: `<muted-text>Create custom agents to review, approve, and route expenses based on rules you set. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Learn more</a>.</muted-text>`,
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'New role types for admins',
+                body: 'Give your team more granular permissions with new card, people, and payments admin roles.',
+                cta: 'Try it out',
+            },
+        },
+    },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
@@ -10535,6 +10548,7 @@ const translations = {
         currentView: 'Current view',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
+        multipleTaxExport: 'Canadian Multiple Tax Export',
         exportInProgress: 'Export in progress',
         conciergeWillSend: 'Concierge will send you the file shortly.',
     },
