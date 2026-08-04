@@ -1,5 +1,3 @@
-import React, {useCallback, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -8,25 +6,36 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useLocalize from '@hooks/useLocalize';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateWorkspaceDescription} from '@libs/actions/Policy/Policy';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useCallback, useRef, useState} from 'react';
+import {Keyboard, View} from 'react-native';
+
+import type {WithPolicyProps} from './withPolicy';
+
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicy from './withPolicy';
-import type {WithPolicyProps} from './withPolicy';
 
 type Props = WithPolicyProps;
 
 function WorkspaceOverviewDescriptionPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const isInputInitializedRef = useRef(false);
     const [description, setDescription] = useState(() => Parser.htmlToMarkdown(policy?.description ?? translate('workspace.common.defaultDescription')));
 
@@ -53,11 +62,11 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
                 return;
             }
 
-            updateWorkspaceDescription(policy.id, values.description.trim(), policy.description);
+            updateWorkspaceDescription(policy.id, values.description.trim(), policy.description, getReviewWorkspaceSettingsTaskCompletion());
             Keyboard.dismiss();
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
         },
-        [policy],
+        [policy, getReviewWorkspaceSettingsTaskCompletion],
     );
 
     return (

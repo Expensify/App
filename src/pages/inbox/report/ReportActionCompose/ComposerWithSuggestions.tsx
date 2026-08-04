@@ -1,24 +1,10 @@
-import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
-import lodashDebounce from 'lodash/debounce';
-import type {Ref, RefObject} from 'react';
-import React, {memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {
-    BlurEvent,
-    LayoutChangeEvent,
-    MeasureInWindowOnSuccessCallback,
-    NativeMethods,
-    TextInputContentSizeChangeEvent,
-    TextInputKeyPressEvent,
-    TextInputScrollEvent,
-} from 'react-native';
-import {DeviceEventEmitter, NativeModules, StyleSheet, View} from 'react-native';
-import {useFocusedInputHandler} from 'react-native-keyboard-controller';
-import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
+
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
 import type {ComposerRef, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -30,6 +16,7 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
@@ -47,27 +34,49 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+
 import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
 import useDebouncedSaveDraft from '@pages/inbox/report/useDebouncedSaveDraft';
 import useDraftMessageVideoAttributeCache from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
+
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import {inputFocusChange} from '@userActions/InputFocus';
 import {areAllModalsHidden} from '@userActions/Modal';
 import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 // eslint-disable-next-line no-restricted-imports
 import findNodeHandle from '@src/utils/findNodeHandle';
+
+import type {Ref, RefObject} from 'react';
+import type {
+    BlurEvent,
+    LayoutChangeEvent,
+    MeasureInWindowOnSuccessCallback,
+    NativeMethods,
+    TextInputContentSizeChangeEvent,
+    TextInputKeyPressEvent,
+    TextInputScrollEvent,
+} from 'react-native';
+
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
+import lodashDebounce from 'lodash/debounce';
+import React, {memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {DeviceEventEmitter, NativeModules, StyleSheet, View} from 'react-native';
+import {useFocusedInputHandler} from 'react-native-keyboard-controller';
+import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
+
+import type {SuggestionsRef} from './ReportActionCompose';
+
 import {useComposerActions, useComposerEditState, useComposerText} from './ComposerContext';
 import getCursorPosition from './getCursorPosition';
 import getScrollPosition from './getScrollPosition';
 import getUpdatedSyncSelection from './getUpdatedSyncSelection';
-import type {SuggestionsRef} from './ReportActionCompose';
 import ReportActionComposeUtils from './ReportActionComposeUtils';
 import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
@@ -259,7 +268,7 @@ function ComposerWithSuggestions({
 
     const composerRef = useRef<ComposerRef | null>(null);
 
-    const {editingState, editingReportActionID, editingReportAction, effectiveDraft, currentEditMessageSelection} = useComposerEditState();
+    const {editingState, editingReportID, editingReportAction, effectiveDraft, currentEditMessageSelection} = useComposerEditState();
     const {setEditingMessage, setCurrentEditMessageSelection} = useReportActionActiveEditActions();
 
     const isEditing = editingState !== CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF;
@@ -279,9 +288,9 @@ function ComposerWithSuggestions({
     const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending} = useDebouncedSaveDraft(
         useCallback(
             (comment: string) => {
-                saveReportActionDraft(reportID, editingReportAction, comment);
+                saveReportActionDraft(editingReportID ?? reportID, editingReportAction, comment);
             },
-            [reportID, editingReportAction],
+            [reportID, editingReportID, editingReportAction],
         ),
     );
 
@@ -294,6 +303,8 @@ function ComposerWithSuggestions({
             },
             [reportID],
         ),
+        undefined,
+        true,
     );
 
     useDraftMessageVideoAttributeCache({
@@ -552,7 +563,7 @@ function ComposerWithSuggestions({
                     return;
                 }
 
-                saveReportActionDraft(reportID, {reportActionID: editingReportActionID} as OnyxTypes.ReportAction, newCommentConverted);
+                saveReportActionDraft(editingReportID ?? reportID, editingReportAction, newCommentConverted);
                 return;
             }
 
@@ -581,7 +592,8 @@ function ComposerWithSuggestions({
             setCurrentEditMessageSelection,
             setEditingMessage,
             reportID,
-            editingReportActionID,
+            editingReportID,
+            editingReportAction,
             debouncedSaveReportActionDraft,
             debouncedSaveComment,
             currentUserAccountID,

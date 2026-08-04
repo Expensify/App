@@ -1,17 +1,14 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import type {ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import type {IconSize} from '@components/EReceiptThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {ReceiptImageProps} from '@components/ReceiptImage';
 import ReceiptImage from '@components/ReceiptImage';
 import {useShowContextMenuState} from '@components/ShowContextMenuContext';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,11 +23,22 @@ import {
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+
+import deferReceiptNavigation from './deferReceiptNavigation';
 import ReceiptPDFOverlay from './ReceiptPDFOverlay';
 
 type ReportActionItemImageProps = {
@@ -134,6 +142,18 @@ function ReportActionItemImage({
     // While the receipt is regenerating its stored URL is stale, so draw the live route from `routes.coordinates`
     // (via `ConfirmedRoute`) instead of loading the now-404'd image.
     const showMapAsImage = isMapDistanceRequest && (hasErrors || hasPendingDistanceReceiptRegeneration(transaction));
+    const navigateToReceipt = () => {
+        deferReceiptNavigation(() => {
+            Navigation.navigate(
+                ROUTES.TRANSACTION_RECEIPT.getRoute(
+                    transactionThreadReport?.reportID ?? contextReport?.reportID ?? reportProp?.reportID ?? getReportIDForExpense(transaction),
+                    transaction?.transactionID,
+                    readonly,
+                    mergeTransactionID,
+                ),
+            );
+        });
+    };
 
     if (showMapAsImage) {
         return (
@@ -229,16 +249,7 @@ function ReportActionItemImage({
         return (
             <PressableWithoutFocus
                 style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
-                onPress={() =>
-                    Navigation.navigate(
-                        ROUTES.TRANSACTION_RECEIPT.getRoute(
-                            transactionThreadReport?.reportID ?? contextReport?.reportID ?? reportProp?.reportID ?? getReportIDForExpense(transaction),
-                            transaction?.transactionID,
-                            readonly,
-                            mergeTransactionID,
-                        ),
-                    )
-                }
+                onPress={navigateToReceipt}
                 accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.RECEIPT.IMAGE}

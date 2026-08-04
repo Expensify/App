@@ -1,12 +1,11 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,15 +14,29 @@ import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConcie
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
 import type {ReasoningEntry} from '@pages/inbox/AgentZeroStatusContext';
 import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import ReportActionItemMessageHeaderSender from '@pages/inbox/report/ReportActionItemMessageHeaderSender';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+
+import ConciergeAnimatedAvatar from './ConciergeAnimatedAvatar';
 
 type ConciergeThinkingMessageProps = {
     /** The report for this thinking message */
@@ -129,6 +142,10 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], translate}) ?? CONST.CONCIERGE_DISPLAY_NAME;
     const actorIcon = personalDetails?.[accountID]?.avatar ? {source: personalDetails[accountID].avatar, name: displayName, type: CONST.ICON_TYPE_AVATAR} : undefined;
 
+    const showConciergeDetails = () => {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
+    };
+
     const handleToggle = () => {
         if (!hasReasoningHistory) {
             return;
@@ -152,18 +169,34 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
                 onMouseLeave={() => setIsHovered(false)}
             >
                 <OfflineWithFeedback pendingAction={personalDetails?.[accountID]?.pendingFields?.avatar ?? undefined}>
-                    <ReportActionAvatars
-                        singleAvatarContainerStyle={[styles.actionAvatar]}
-                        subscriptAvatarBorderColor={theme.appBG}
-                        noRightMarginOnSubscriptContainer
-                        isInReportAction
-                        shouldShowTooltip
-                        secondaryAvatarContainerStyle={[
-                            StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
-                            isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
-                        ]}
-                        accountIDs={[accountID]}
-                    />
+                    {accountID === CONST.ACCOUNT_ID.CONCIERGE ? (
+                        <UserDetailsTooltip accountID={accountID}>
+                            <PressableWithoutFeedback
+                                style={[styles.actionAvatar]}
+                                onPressIn={ControlSelection.block}
+                                onPressOut={ControlSelection.unblock}
+                                onPress={showConciergeDetails}
+                                accessibilityLabel={displayName}
+                                role={CONST.ROLE.BUTTON}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.CONCIERGE_THINKING_AVATAR_BUTTON}
+                            >
+                                <ConciergeAnimatedAvatar />
+                            </PressableWithoutFeedback>
+                        </UserDetailsTooltip>
+                    ) : (
+                        <ReportActionAvatars
+                            singleAvatarContainerStyle={[styles.actionAvatar]}
+                            subscriptAvatarBorderColor={theme.appBG}
+                            noRightMarginOnSubscriptContainer
+                            isInReportAction
+                            shouldShowTooltip
+                            secondaryAvatarContainerStyle={[
+                                StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
+                                isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
+                            ]}
+                            accountIDs={[accountID]}
+                        />
+                    )}
                 </OfflineWithFeedback>
             </View>
 

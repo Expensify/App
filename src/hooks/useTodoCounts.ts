@@ -1,10 +1,12 @@
+import createTodosReportsAndTransactions from '@libs/TodosUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid reading search snapshots instead of live to-do data
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
-import createTodosReportsAndTransactions from '@libs/TodosUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type TodoCounts = {
     [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: number;
@@ -86,9 +88,12 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
     const hasChanged = !frozen || TODO_KEYS.some((key) => frozen.counts[key] !== counts[key] || frozen.singleReportIDs[key] !== singleReportIDs[key]);
     if (hasChanged) {
         setFrozen(value);
+        return value;
     }
 
-    return value;
+    // Nothing changed — return the previously stored object so consumers keep a stable reference and
+    // memoized children don't re-render on unrelated Onyx writes to the subscribed collections.
+    return frozen;
 }
 
 export default useTodoCounts;

@@ -1,8 +1,11 @@
-import {useId, useLayoutEffect, useRef} from 'react';
+import {useContentFocus, useContentItemActions} from '@components/PopoverMenu/v2/content/ContentContext';
+
+import useSyncFocus from '@hooks/useSyncFocus';
+
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
-import {useContentFocus, useContentItemActions} from '@components/PopoverMenu/v2/content/ContentContext';
-import useSyncFocus from '@hooks/useSyncFocus';
+
+import {useId, useLayoutEffect, useRef} from 'react';
 
 type FocusableRow = {
     ref: RefObject<View | null>;

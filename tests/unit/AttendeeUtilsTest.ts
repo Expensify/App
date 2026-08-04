@@ -1,4 +1,5 @@
 import {convertAttendeesToArray, enrichAndSortAttendees, normalizeAttendee, normalizeAttendees} from '@libs/AttendeeUtils';
+
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 

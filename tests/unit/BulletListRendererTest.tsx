@@ -1,12 +1,16 @@
 import {render, screen} from '@testing-library/react-native';
-import React from 'react';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+
 import BulletItemRenderer from '@components/HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
 import NumberedItemRenderer from '@components/HTMLEngineProvider/HTMLRenderers/NumberedItemRenderer';
 import OLRenderer from '@components/HTMLEngineProvider/HTMLRenderers/OLRenderer';
 import ULRenderer from '@components/HTMLEngineProvider/HTMLRenderers/ULRenderer';
 import RenderHTML from '@components/RenderHTML';
+
 import CONST from '@src/CONST';
+
+import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+
+import React from 'react';
 
 jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: 400}));
 jest.mock('@hooks/useHasTextAncestor', () => () => false);

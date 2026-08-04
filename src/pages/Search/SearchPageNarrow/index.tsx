@@ -1,8 +1,3 @@
-import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
-import {StyleSheet, View} from 'react-native';
-import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -18,9 +13,10 @@ import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPa
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
 import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavigationDeferredMount';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
-import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
+import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
@@ -28,18 +24,28 @@ import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+
 import variables from '@styles/variables';
+
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
+
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
+import {StyleSheet, View} from 'react-native';
+import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
 import {SearchActionsBarSwitch, SearchFiltersBarSwitch, SearchPageInputSwitch, SearchTypeMenuSwitch} from './Switches';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
@@ -48,9 +54,10 @@ const ANIMATION_DURATION_IN_MS = 300;
 
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
-    metadata?: SearchResultsInfo;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
+    searchRequestResponseStatusCode: number | null;
+    setSearchRequestResponseStatusCode: (statusCode: number | null) => void;
     onSortPressedCallback: () => void;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
     searchOverlayContent: React.ReactNode;
@@ -68,7 +75,8 @@ function SearchPageNarrow({
     queryJSON,
     searchResults,
     isMobileSelectionModeEnabled,
-    metadata,
+    searchRequestResponseStatusCode,
+    setSearchRequestResponseStatusCode,
     onSortPressedCallback,
     searchOverlayContent,
     onSearchContentReady,
@@ -91,8 +99,6 @@ function SearchPageNarrow({
     const route = useRoute();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<View>(null);
-
-    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
@@ -147,13 +153,17 @@ function SearchPageNarrow({
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
-    const handleSearchAction = useCallback((value: SearchParams | string) => {
-        if (typeof value === 'string') {
-            searchInServer(value);
-        } else {
-            search(value)?.then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
-        }
-    }, []);
+    const handleSearchAction = useCallback(
+        (value: SearchParams | string) => {
+            if (typeof value === 'string') {
+                searchInServer(value);
+            } else {
+                setSearchRequestResponseStatusCode(null);
+                search(value)?.then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
+            }
+        },
+        [setSearchRequestResponseStatusCode],
+    );
 
     const navigation = useNavigation();
     // When pre-inserted behind the RHP (not focused), always start in static rendering
@@ -224,8 +234,11 @@ function SearchPageNarrow({
     }
 
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
-    const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!metadata?.isLoading);
+    // Use the request state because `isLoading` also covers temporary UI loading that should not keep this bar visible.
+    const shouldShowLoadingState = !isOffline && (!isDataLoaded || isSearchPending(searchResults));
     const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;
+
+    const shouldRenderLayoutProbe = (isOverlayActive || !isHeaderInteractive) && !searchOverlayContent;
 
     return (
         <View
@@ -317,7 +330,7 @@ function SearchPageNarrow({
                                         hasFilterBars={hasFilterBars}
                                     />
                                 )}
-                                {isOverlayActive && !searchOverlayContent && <View onLayout={onSearchLayout} />}
+                                {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
                                 {!!searchOverlayContent && (
                                     <View
                                         style={[StyleSheet.absoluteFill, styles.appBG]}
@@ -359,7 +372,7 @@ function SearchPageNarrow({
                                         hasFilterBars={hasFilterBars}
                                     />
                                 )}
-                                {isOverlayActive && !searchOverlayContent && <View onLayout={onSearchLayout} />}
+                                {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
                                 {!!searchOverlayContent && (
                                     <View
                                         style={[StyleSheet.absoluteFill, styles.appBG]}

@@ -1,17 +1,22 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import {View} from 'react-native';
+
 import type ConnectToXeroFlowType from '@components/ConnectToXeroFlow';
+
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
+
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {openLink} from '@userActions/Link';
+
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 // Jest (jest-expo) resolves the `.native` variant by default, so we require the web entry point
 // explicitly (with its `.tsx` extension) to exercise the web implementation.
-// eslint-disable-next-line import/extensions
 const connectToXeroFlowModule: unknown = require('@components/ConnectToXeroFlow/index.tsx');
 
 // The `require` above yields `any`, and narrowing it to the module shape needs a type assertion that

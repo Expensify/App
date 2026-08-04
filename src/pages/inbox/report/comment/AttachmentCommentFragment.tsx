@@ -1,8 +1,12 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getHtmlWithAttachmentID} from '@libs/ReportActionsUtils';
+
+import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {getHtmlWithAttachmentID} from '@libs/ReportActionsUtils';
-import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
+
 import RenderCommentHTML from './RenderCommentHTML';
 
 type AttachmentCommentFragmentProps = {

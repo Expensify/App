@@ -1,11 +1,15 @@
-import React, {useMemo} from 'react';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
+
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
+
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React, {useMemo} from 'react';
 
 function DynamicAddBankAccountVerifyAccountPage() {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path);

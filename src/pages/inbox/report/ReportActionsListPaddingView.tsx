@@ -1,11 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import FS from '@libs/Fullstory';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
+
 import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
 
 type ReportActionsListPaddingViewProps = ChildrenProps & {

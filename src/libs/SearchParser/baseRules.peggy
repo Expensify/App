@@ -55,6 +55,9 @@ withdrawalType
 withdrawalStatus
   = "withdrawalStatus"
   / "withdrawal-status"i { return "withdrawalStatus"; }
+paidStatus
+  = "paidStatus"
+  / "paid-status"i { return "paidStatus"; }
 withdrawalID
   = "withdrawalID"i
   / "withdrawal-id"i { return "withdrawalID"; }
@@ -81,6 +84,9 @@ groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
 limit = "limit"i { return "limit"; }
 feed = "feed"i { return "feed"; }
 title = "title"i { return "title"; }
+submitterUserID = "submitterUserID"i / "submitter-user-id"i { return "submitterUserID"; }
+submitterPayrollID = "submitterPayrollID"i / "submitter-payroll-id"i { return "submitterPayrollID"; }
+orderDealNumbers = "orderDealNumbers"i / "order-deal-numbers"i { return "orderDealNumbers"; }
 assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 action = "action"i { return "action"; }
@@ -132,7 +138,7 @@ columnsValues
 
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
-originalAmount          = "original-amount"i &wordBoundary          { return "originalamount"; }
+originalAmount          = "purchase-amount"i &wordBoundary          { return "originalamount"; }
 taxAmount               = "tax"i &wordBoundary                      { return "taxAmount"; }
 taxRateValue            = "tax-rate"i &wordBoundary                 { return "taxrate"; }
 policyName              = "policy-name"i &wordBoundary              { return "policyname"; }

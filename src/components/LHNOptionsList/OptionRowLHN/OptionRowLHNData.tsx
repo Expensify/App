@@ -1,26 +1,33 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useCallback, useMemo} from 'react';
-import type {ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {OptionRowLHNDataProps} from '@components/LHNOptionsList/types';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions as ReportActionsType} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+
+import type {ViewStyle} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useCallback, useMemo} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import OptionRowLHN from './OptionRowLHN';
 
 /*
@@ -46,6 +53,7 @@ function OptionRowLHNData({
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const {translate, localeCompare} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const oneTransactionThreadReportID = oneTransactionThreadReport?.reportID;
@@ -152,6 +160,7 @@ function OptionRowLHNData({
         card,
         lastAction,
         translate,
+        convertToDisplayString,
         localeCompare,
         isReportArchived,
         lastActionReport,

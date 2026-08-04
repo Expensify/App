@@ -1,8 +1,11 @@
 import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';
+
 import CONST from '@src/CONST';
+
+import type IllustrationsType from './types';
+
 import darkIllustrations from './themes/dark';
 import lightIllustrations from './themes/light';
-import type IllustrationsType from './types';
 
 const illustrations = {
     [CONST.THEME.LIGHT]: lightIllustrations,

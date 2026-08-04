@@ -1,5 +1,6 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import * as Emojis from '@assets/emojis';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 /**
  * Fetch the emoji code of selected skinTone

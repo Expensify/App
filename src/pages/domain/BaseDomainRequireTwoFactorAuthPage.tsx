@@ -1,21 +1,28 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import TwoFactorAuthForm from '@components/TwoFactorAuthForm';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import {clearValidateDomainTwoFactorCodeError} from '@userActions/Domain';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type BaseDomainRequireTwoFactorAuthPageProps = {
@@ -86,12 +93,13 @@ function BaseDomainRequireTwoFactorAuthPage({domainAccountID, onSubmit, onBackBu
                     </ScrollView>
                     <FixedFooter style={[styles.mt2, styles.pt2]}>
                         <Button
-                            success
-                            large
-                            text={translate('common.disable')}
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             isLoading={!!pendingAction}
                             onPress={() => baseTwoFactorAuthRef.current?.validateAndSubmitForm()}
-                        />
+                        >
+                            <Button.Text>{translate('common.disable')}</Button.Text>
+                        </Button>
                     </FixedFooter>
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>

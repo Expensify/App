@@ -1,6 +1,7 @@
-import type {SkTypeface} from '@shopify/react-native-skia';
 import type {ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
 import {getChartFontsSnapshot, loadChartFontsOnce, resetChartFontsCacheForTests} from '@components/Charts/utils/chartFontsCache';
+
+import type {SkTypeface} from '@shopify/react-native-skia';
 
 const mockFromURI = jest.fn<Promise<{uri: string}>, [string]>();
 const mockMakeFreeTypeFaceFromData = jest.fn<SkTypeface | null, [{uri: string}]>();

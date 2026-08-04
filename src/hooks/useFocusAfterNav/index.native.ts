@@ -1,6 +1,9 @@
-import {useFocusEffect} from '@react-navigation/native';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+
 import CONST from '@src/CONST';
+
+import {useFocusEffect} from '@react-navigation/native';
+
 import type UseFocusAfterNav from './type';
 
 /** We added a delay to focus on text input to allow navigation/modal animations to get completed,

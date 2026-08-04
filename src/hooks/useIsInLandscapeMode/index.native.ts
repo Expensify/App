@@ -1,4 +1,5 @@
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import isInLandscapeMode from '@libs/isInLandscapeMode';
 
 /**

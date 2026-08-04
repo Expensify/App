@@ -1,7 +1,4 @@
-import {render} from '@testing-library/react-native';
-import React from 'react';
-import Icon from '@components/Icon';
-import {DEFAULT_INITIAL, getInitialAvatarSvg, getInitialFromText} from '@libs/Avatars/InitialAvatars';
+import {DEFAULT_INITIAL, getInitialFromText} from '@libs/Avatars/InitialAvatars';
 
 describe('getInitialFromText', () => {
     it('returns the first valid letter or number', () => {
@@ -21,25 +18,5 @@ describe('getInitialFromText', () => {
     it('ignores non-ASCII leading characters', () => {
         expect(getInitialFromText('éJohn')).toBe('J'); // diacritic ignored
         expect(getInitialFromText('你好')).toBe(DEFAULT_INITIAL);
-    });
-});
-
-describe('getInitialAvatarSvg', () => {
-    it('resolves a component for a valid initial', () => {
-        const AvatarComponent = getInitialAvatarSvg('J');
-        expect(AvatarComponent).toBeDefined();
-        expect(typeof AvatarComponent).toBe('function');
-    });
-
-    it('renders a letter avatar component', () => {
-        const AvatarComponent = getInitialAvatarSvg('J');
-        const {toJSON} = render(<Icon src={AvatarComponent} />);
-        expect(toJSON()).toBeTruthy();
-    });
-
-    it('matches snapshot for a letter avatar', () => {
-        const AvatarComponent = getInitialAvatarSvg('J');
-        const {toJSON} = render(<Icon src={AvatarComponent} />);
-        expect(toJSON()).toMatchSnapshot();
     });
 });

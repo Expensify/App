@@ -1,7 +1,9 @@
-import type {OnyxValue} from 'react-native-onyx';
-import isTrackOnboardingChoice from '@libs/OnboardingUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+
 import type ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxValue} from 'react-native-onyx';
 
 /**
  * Selector to get the value of hasCompletedGuidedSetupFlow from the Onyx store

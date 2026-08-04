@@ -1,10 +1,15 @@
-import React from 'react';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FeatureList from '@components/FeatureList';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import colors from '@styles/theme/colors';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
 
 function ReviewingRequest() {
     const {translate} = useLocalize();
@@ -18,11 +23,12 @@ function ReviewingRequest() {
             subtitle={translate('workspace.moreFeatures.travel.reviewingRequest.subtitle')}
             footer={
                 <Button
-                    text={translate('workspace.moreFeatures.travel.reviewingRequest.ctaText')}
                     style={[styles.w100]}
                     isDisabled
-                    large
-                />
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('workspace.moreFeatures.travel.reviewingRequest.ctaText')}</Button.Text>
+                </Button>
             }
             illustrationBackgroundColor={colors.tangerine700}
             illustration={illustrations.PendingTravel}
