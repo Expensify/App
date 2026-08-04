@@ -129,12 +129,13 @@ describe('maskOnyxState', () => {
             expect(processedReport.customField).toHaveLength('should-be-redacted'.length);
         });
 
-        it('should remove sensitive keys from export', () => {
+        it('should remove sensitive and transient keys from export', () => {
             const input = {
                 session: mockSession,
                 [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'sensitive-id',
                 [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: 'stripe-id',
                 [ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN]: 'plaid-token',
+                [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: true,
                 [ONYXKEYS.ONFIDO_TOKEN]: 'onfido-token',
             };
             const result = maskOnyxState(input);
@@ -143,6 +144,7 @@ describe('maskOnyxState', () => {
             expect(result[ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]).toBeUndefined();
             expect(result[ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]).toBeUndefined();
             expect(result[ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN]).toBeUndefined();
+            expect(result[ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]).toBeUndefined();
             expect(result[ONYXKEYS.ONFIDO_TOKEN]).toBeUndefined();
 
             // Session should still be present

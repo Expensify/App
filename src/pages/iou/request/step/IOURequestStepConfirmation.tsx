@@ -11,6 +11,7 @@ import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultParticipants from '@hooks/useDefaultParticipants';
 import useFetchRoute from '@hooks/useFetchRoute';
@@ -143,6 +144,7 @@ function IOURequestStepConfirmation({
     shouldHideHeader = false,
     navigation,
 }: IOURequestStepConfirmationProps) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const params = route.params;
     const {iouType, reportID, transactionID: initialTransactionID, action, backToReport, backTo} = params;
     const participantsAutoAssignedFromRoute = route.name === SCREENS.MONEY_REQUEST.STEP_CONFIRMATION ? (params as StepConfirmationParams).participantsAutoAssigned : undefined;
@@ -434,7 +436,7 @@ function IOURequestStepConfirmation({
                             });
                             setCustomUnitRateID(activeTransactionID, p2pRateID, transaction, undefined, false, personalPolicy?.outputCurrency);
                         }
-                        setMoneyRequestCategory(activeTransactionID, '', undefined);
+                        setMoneyRequestCategory(activeTransactionID, '', undefined, getCurrencyDecimals);
                         setMoneyRequestTag(activeTransactionID, '');
                     } else {
                         if (isDistanceRequest) {
@@ -449,9 +451,13 @@ function IOURequestStepConfirmation({
                             setCustomUnitRateID(activeTransactionID, workspaceRateID, transaction, workspacePolicy, false, workspacePolicy?.outputCurrency);
                         }
 
+                        // Switching to a different workspace: the previous workspace's category and tag no longer apply,
+                        // so reset them to the destination workspace's defaults. This mirrors the legacy participants-step
+                        // flow (useParticipantSubmission.goToNextStep), which resets both on every selection and passes no
+                        // policy so the previous workspace's category-derived tax is cleared along with the category.
                         if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
                             const defaultCategory = isDistanceRequest ? (policyDistanceDefaultCategories?.[firstParticipant.policyID] ?? '') : '';
-                            setMoneyRequestCategory(activeTransactionID, defaultCategory, undefined);
+                            setMoneyRequestCategory(activeTransactionID, defaultCategory, undefined, getCurrencyDecimals);
                             setMoneyRequestTag(activeTransactionID, '');
                         }
                     }
@@ -474,6 +480,7 @@ function IOURequestStepConfirmation({
             transaction,
             personalPolicy?.outputCurrency,
             mappedPolicies,
+            getCurrencyDecimals,
             policyID,
             policyDistanceDefaultCategories,
         ],
