@@ -637,6 +637,7 @@ describe('SequentialQueue - pause watchdog', () => {
         SequentialQueue.resetQueue();
         SequentialQueue.registerPauseWatchdogEscalation(() => Promise.resolve());
         mockedIsClientTheLeader.mockReturnValue(true);
+        NetworkState.setForceOffline(false);
         jest.useRealTimers();
     });
 
@@ -683,6 +684,47 @@ describe('SequentialQueue - pause watchdog', () => {
 
         await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
 
+        expect(escalation).toHaveBeenCalledTimes(1);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('should not fire while offline, where a paused queue has no way to advance', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+
+        NetworkState.setForceOffline(true);
+        SequentialQueue.pause();
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS * 2);
+
+        // The pause isn't orphaned, the client is just offline. Alerting would poison the telemetry this watchdog
+        // exists to produce, the reconnect could not succeed, and force-unpausing would drain WRITEs against a client
+        // known to be behind.
+        expect(escalation).not.toHaveBeenCalled();
+        expect(SequentialQueue.isPaused()).toBe(true);
+    });
+
+    it('should stop the clock when going offline mid-window and restart it when connectivity returns', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+
+        // Long enough offline to blow both the window and the absolute ceiling.
+        NetworkState.setForceOffline(true);
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_ABSOLUTE_TIME_MS * 2);
+        expect(escalation).not.toHaveBeenCalled();
+
+        NetworkState.setForceOffline(false);
+
+        // Time spent offline must not count toward the window...
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+        expect(escalation).not.toHaveBeenCalled();
+        expect(SequentialQueue.isPaused()).toBe(true);
+
+        // ...but a full window of online silence still trips it.
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
         expect(escalation).toHaveBeenCalledTimes(1);
         expect(SequentialQueue.isPaused()).toBe(false);
     });

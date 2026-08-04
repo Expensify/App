@@ -16,7 +16,7 @@ import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import {getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
+import {getIsOffline as isOfflineNetwork, subscribe as subscribeToNetworkState} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import {logReceiptEnqueued, RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
@@ -108,6 +108,11 @@ function registerPauseWatchdogEscalation(escalation: PauseWatchdogEscalation) {
  */
 function armPauseWatchdog() {
     clearPauseWatchdog();
+
+    if (isOfflineNetwork()) {
+        return;
+    }
+
     const generation = pauseGeneration;
     const remainingUntilCeiling = CONST.NETWORK.MAX_PAUSE_WATCHDOG_ABSOLUTE_TIME_MS - (Date.now() - pauseStartTime);
     const delay = Math.max(0, Math.min(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS, remainingUntilCeiling));
@@ -135,6 +140,35 @@ function armPauseWatchdog() {
             unpause();
         });
     }, delay);
+}
+
+let wasOfflineForPauseWatchdog = false;
+let hasSubscribedToNetworkStateForPauseWatchdog = false;
+
+/** Subscribed on the first pause rather than at import: NetworkState imports Log, which reaches back here, so its listener set doesn't exist yet at module-init time. */
+function subscribeToNetworkStateForPauseWatchdog() {
+    if (hasSubscribedToNetworkStateForPauseWatchdog) {
+        return;
+    }
+    hasSubscribedToNetworkStateForPauseWatchdog = true;
+    wasOfflineForPauseWatchdog = isOfflineNetwork();
+
+    subscribeToNetworkState(() => {
+        const isOffline = isOfflineNetwork();
+        if (isOffline === wasOfflineForPauseWatchdog) {
+            return;
+        }
+        wasOfflineForPauseWatchdog = isOffline;
+        if (!isQueuePaused) {
+            return;
+        }
+        if (isOffline) {
+            clearPauseWatchdog();
+            return;
+        }
+        pauseStartTime = Date.now();
+        armPauseWatchdog();
+    });
 }
 
 // Progress while paused re-arms the watchdog. Gated on leadership + an actual advance — this key syncs
@@ -168,6 +202,7 @@ function pause() {
     isQueuePaused = true;
     pauseGeneration++;
     pauseStartTime = Date.now();
+    subscribeToNetworkStateForPauseWatchdog();
     armPauseWatchdog();
 }
 
