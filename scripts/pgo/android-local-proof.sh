@@ -312,24 +312,21 @@ function compare_benchmarks() {
     local optimized_count optimized_average optimized_p50 optimized_p75 optimized_p90 optimized_p95 optimized_p99 optimized_min optimized_max
     read -r optimized_count optimized_average optimized_p50 optimized_p75 optimized_p90 optimized_p95 optimized_p99 optimized_min optimized_max < <(benchmark_stats "$OPTIMIZED_BENCHMARK_PATH")
 
-    local average_improvement p50_improvement p75_improvement p90_improvement p95_improvement p99_improvement
+    local average_improvement p50_improvement p75_improvement p90_improvement p95_improvement p99_improvement min_improvement max_improvement
     average_improvement="$(percentage_improvement "$release_average" "$optimized_average")"
     p50_improvement="$(percentage_improvement "$release_p50" "$optimized_p50")"
     p75_improvement="$(percentage_improvement "$release_p75" "$optimized_p75")"
     p90_improvement="$(percentage_improvement "$release_p90" "$optimized_p90")"
     p95_improvement="$(percentage_improvement "$release_p95" "$optimized_p95")"
     p99_improvement="$(percentage_improvement "$release_p99" "$optimized_p99")"
+    min_improvement="$(percentage_improvement "$release_min" "$optimized_min")"
+    max_improvement="$(percentage_improvement "$release_max" "$optimized_max")"
 
+    echo "Positive percentages are faster; negative percentages are regressions."
     printf '%-18s %5s %10s %9s %9s %9s %9s %9s %8s %8s\n' 'Build' 'Runs' 'Average' 'P50' 'P75' 'P90' 'P95' 'P99' 'Min' 'Max'
     printf '%-18s %5d %10.2f %9.2f %9.2f %9.2f %9.2f %9.2f %8d %8d\n' 'Release' "$release_count" "$release_average" "$release_p50" "$release_p75" "$release_p90" "$release_p95" "$release_p99" "$release_min" "$release_max"
     printf '%-18s %5d %10.2f %9.2f %9.2f %9.2f %9.2f %9.2f %8d %8d\n' 'PGO optimized' "$optimized_count" "$optimized_average" "$optimized_p50" "$optimized_p75" "$optimized_p90" "$optimized_p95" "$optimized_p99" "$optimized_min" "$optimized_max"
-    echo "PGO average startup improvement: ${average_improvement}%"
-    echo "PGO P50 startup improvement: ${p50_improvement}%"
-    echo "PGO P75 startup improvement: ${p75_improvement}%"
-    echo "PGO P90 startup improvement: ${p90_improvement}%"
-    echo "PGO P95 startup improvement: ${p95_improvement}%"
-    echo "PGO P99 startup improvement: ${p99_improvement}%"
-    echo "Positive percentages are faster; negative percentages are regressions."
+    printf '%-18s %5s %10s %9s %9s %9s %9s %9s %8s %8s\n' 'PGO improvement' '-' "${average_improvement}%" "${p50_improvement}%" "${p75_improvement}%" "${p90_improvement}%" "${p95_improvement}%" "${p99_improvement}%" "${min_improvement}%" "${max_improvement}%"
 }
 
 function benchmark_release() {
