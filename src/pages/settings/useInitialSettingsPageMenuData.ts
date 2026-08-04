@@ -331,7 +331,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
         };
     }
 
-    const signOutTranslationKey = isSupportAuthToken() && hasStashedSession(stashedSession, stashedCredentials) ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
+    const signOutTranslationKey = isSupportAuthToken(session) && hasStashedSession(stashedSession, stashedCredentials) ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
     const generalMenuItemsData: MenuSection = {
         sectionTranslationKey: 'initialSettingsPage.general',
         items: [

@@ -2,6 +2,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -35,6 +36,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const delegateAccountID = useDelegateAccountID();
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -71,6 +73,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
                 full: true,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
+                delegateAccountID,
                 isTrackIntentUser,
             });
         }
