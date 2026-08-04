@@ -154,6 +154,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
                         <Button.Icon
                             src={icons.ArrowRight}
                             fill={theme.white}
+                            hoverFill={theme.white}
                         />
                     </Button>
                 </SubmitButtonShadow>

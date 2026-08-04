@@ -61,6 +61,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                             <Button.Icon
                                 src={icons.BackArrow}
                                 fill={theme.text}
+                                hoverFill={theme.text}
                             />
                         </Button>
                     </View>
@@ -80,6 +81,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                             <Button.Icon
                                 src={icons.ArrowRight}
                                 fill={theme.text}
+                                hoverFill={theme.text}
                             />
                         </Button>
                     </View>

@@ -379,6 +379,7 @@ function MapView({
                         <Button.Icon
                             src={expensifyIcons.Crosshair}
                             fill={theme.icon}
+                            hoverFill={theme.icon}
                         />
                     </Button>
                 </View>
