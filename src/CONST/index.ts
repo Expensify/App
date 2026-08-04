@@ -495,6 +495,7 @@ const CONST = {
         TYPE: {
             CSV: 'csv',
             PDF: 'pdf',
+            RECEIPTS: 'receipts',
         },
     },
 
@@ -697,7 +698,7 @@ const CONST = {
                 ADDRESS: 'address',
                 TYPE: 'type',
                 INCORPORATION_DATE: 'start-date',
-                INCORPORATION_STATE: 'state',
+                INCORPORATION_STATE: 'incorporation-state',
                 INCORPORATION_CODE: 'code',
                 CONFIRMATION: 'confirmation',
             },
@@ -1474,6 +1475,7 @@ const CONST = {
             CANCEL_PAYMENT: 'cancelPayment',
             HOLD: 'hold',
             DOWNLOAD_PDF: 'downloadPDF',
+            DOWNLOAD_RECEIPTS: 'downloadReceipts',
             PRINT: 'print',
             CHANGE_WORKSPACE: 'changeWorkspace',
             CHANGE_APPROVER: 'changeApprover',
@@ -1945,6 +1947,7 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             REPORT_LEVEL_EXPORT: 'report_level_export',
             EXPENSE_LEVEL_EXPORT: 'detailed_export',
+            MULTIPLE_TAX_EXPORT: 'multiple_tax_export',
         },
         EXPORT_OPTION_LABELS: {
             REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
@@ -5167,7 +5170,7 @@ const CONST = {
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|#|\?|\\|\|/g,
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
-        OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
+        OTHER_INVISIBLE_CHARACTERS: /[\u3164\u115f\u1160\uffa0\u2800]/g,
         SHORT_MENTION_HTML: /<mention-short>(.*?)<\/mention-short>/g,
         REPORT_ID_FROM_PATH: /(?<!\/search)\/r\/(\d+)/,
         DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
@@ -7342,6 +7345,9 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'reportField',
             EXPORTED_TO: 'exportedTo',
+            SUBMITTER_USER_ID: 'submitterUserID',
+            SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
+            ORDER_DEAL_NUMBERS: 'orderDealNumbers',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field
@@ -7418,6 +7424,9 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'report-field',
             EXPORTED_TO: 'exported-to',
+            SUBMITTER_USER_ID: 'submitter-user-id',
+            SUBMITTER_PAYROLL_ID: 'submitter-payroll-id',
+            ORDER_DEAL_NUMBERS: 'order-deal-numbers',
             COLUMNS: 'columns',
             LIMIT: 'limit',
         },
@@ -7791,6 +7800,15 @@ const CONST = {
                 title: 'workspace.upgrade.rules.title' as const,
                 description: 'workspace.upgrade.rules.description' as const,
                 icon: 'Rules',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
+            publicReceiptVisibility: {
+                id: 'publicReceiptVisibility' as const,
+                alias: 'public-receipt-visibility',
+                name: 'Public receipt visibility',
+                title: 'workspace.upgrade.publicReceiptVisibility.title' as const,
+                description: 'workspace.upgrade.publicReceiptVisibility.description' as const,
+                icon: 'ReportReceipt',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             perDiem: {
@@ -8344,6 +8362,10 @@ const CONST = {
             CTA: 'AgentsRulesBanner-CTA',
             DISMISS: 'AgentsRulesBanner-Dismiss',
         },
+        PRODUCT_MARKETING_WINDOW: {
+            CTA: 'ProductMarketingWindow-CTA',
+            DISMISS: 'ProductMarketingWindow-Dismiss',
+        },
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
             INBOX: 'NavigationTabBar-Inbox',
@@ -8577,6 +8599,7 @@ const CONST = {
             EXPORT: 'MoreMenu-Export',
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
+            DOWNLOAD_RECEIPTS: 'MoreMenu-DownloadReceipts',
             PRINT: 'MoreMenu-Print',
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
@@ -9258,6 +9281,12 @@ const CONST = {
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
         ANNOUNCEMENTS: [
             {
+                title: 'Scoped admin roles, plus HR & AI updates',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-july-2026-product-update',
+                publishedDate: '2026-07-28',
+            },
+            {
                 title: 'The Expensify Card: Now in the UK & EU',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
@@ -9268,12 +9297,6 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260713695836/en/Expensify-Launches-Consolidated-Travel-Billing-to-Simplify-How-Companies-Pay-for-Business-Travel',
                 publishedDate: '2026-07-13',
-            },
-            {
-                title: 'More Concierge AI upgrades, plus agent beta',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260701645763/en/Expensifys-AI-Expands-to-Expense-Automation-Spend-Insights-and-Agents',
-                publishedDate: '2026-07-01',
             },
         ],
     },
