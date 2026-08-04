@@ -94,7 +94,7 @@ Or install and benchmark the archived release APK first, then install and benchm
 scripts/pgo/android-local-proof.sh benchmark 10 30
 ```
 
-Raw samples are stored in `.pgo/android/benchmarks/release.csv` and `.pgo/android/benchmarks/pgo-optimized.csv`. The comparison reports the mean, median, minimum, maximum, and percentage improvement. Positive improvement percentages mean the optimized build was faster.
+Raw samples are stored in `.pgo/android/benchmarks/release.csv` and `.pgo/android/benchmarks/pgo-optimized.csv`. The comparison reports the average, P50, P75, P90, P95, P99, minimum, maximum, and percentage improvements. Percentiles use linear interpolation, and positive improvement percentages mean the optimized build was faster.
 
 The `.pgo/` directory is intentionally local-only. Never apply this profile to another ABI, build mode, NDK version, or substantially different source revision. A production-release comparison additionally needs the repository's R8/SafetyNet dependency issue fixed; this local proof deliberately does not change that unrelated configuration.
 

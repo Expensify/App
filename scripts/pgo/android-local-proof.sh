@@ -263,6 +263,15 @@ function benchmark_stats() {
     local benchmark_path="$1"
 
     awk -F, '
+        function percentile(fraction, position, lower_index, remainder) {
+            position = 1 + (count - 1) * fraction
+            lower_index = int(position)
+            remainder = position - lower_index
+            if (lower_index >= count) {
+                return values[count]
+            }
+            return values[lower_index] + remainder * (values[lower_index + 1] - values[lower_index])
+        }
         NR > 1 && $2 ~ /^[0-9]+$/ {
             values[++count] = $2
             sum += $2
@@ -280,14 +289,16 @@ function benchmark_stats() {
                     }
                 }
             }
-            if (count % 2 == 1) {
-                median = values[(count + 1) / 2]
-            } else {
-                median = (values[count / 2] + values[count / 2 + 1]) / 2
-            }
-            printf "%d %.2f %.2f %d %d\n", count, sum / count, median, values[1], values[count]
+            printf "%d %.2f %.2f %.2f %.2f %.2f %.2f %d %d\n", count, sum / count, percentile(0.50), percentile(0.75), percentile(0.90), percentile(0.95), percentile(0.99), values[1], values[count]
         }
     ' "$benchmark_path"
+}
+
+function percentage_improvement() {
+    local release_value="$1"
+    local optimized_value="$2"
+
+    awk -v release="$release_value" -v optimized="$optimized_value" 'BEGIN { printf "%.2f", ((release - optimized) / release) * 100 }'
 }
 
 function compare_benchmarks() {
@@ -296,20 +307,28 @@ function compare_benchmarks() {
         exit 1
     fi
 
-    local release_count release_mean release_median release_min release_max
-    read -r release_count release_mean release_median release_min release_max < <(benchmark_stats "$RELEASE_BENCHMARK_PATH")
-    local optimized_count optimized_mean optimized_median optimized_min optimized_max
-    read -r optimized_count optimized_mean optimized_median optimized_min optimized_max < <(benchmark_stats "$OPTIMIZED_BENCHMARK_PATH")
+    local release_count release_average release_p50 release_p75 release_p90 release_p95 release_p99 release_min release_max
+    read -r release_count release_average release_p50 release_p75 release_p90 release_p95 release_p99 release_min release_max < <(benchmark_stats "$RELEASE_BENCHMARK_PATH")
+    local optimized_count optimized_average optimized_p50 optimized_p75 optimized_p90 optimized_p95 optimized_p99 optimized_min optimized_max
+    read -r optimized_count optimized_average optimized_p50 optimized_p75 optimized_p90 optimized_p95 optimized_p99 optimized_min optimized_max < <(benchmark_stats "$OPTIMIZED_BENCHMARK_PATH")
 
-    local mean_improvement median_improvement
-    mean_improvement="$(awk -v release="$release_mean" -v optimized="$optimized_mean" 'BEGIN { printf "%.2f", ((release - optimized) / release) * 100 }')"
-    median_improvement="$(awk -v release="$release_median" -v optimized="$optimized_median" 'BEGIN { printf "%.2f", ((release - optimized) / release) * 100 }')"
+    local average_improvement p50_improvement p75_improvement p90_improvement p95_improvement p99_improvement
+    average_improvement="$(percentage_improvement "$release_average" "$optimized_average")"
+    p50_improvement="$(percentage_improvement "$release_p50" "$optimized_p50")"
+    p75_improvement="$(percentage_improvement "$release_p75" "$optimized_p75")"
+    p90_improvement="$(percentage_improvement "$release_p90" "$optimized_p90")"
+    p95_improvement="$(percentage_improvement "$release_p95" "$optimized_p95")"
+    p99_improvement="$(percentage_improvement "$release_p99" "$optimized_p99")"
 
-    printf '%-18s %6s %10s %10s %8s %8s\n' 'Build' 'Runs' 'Mean ms' 'Median ms' 'Min ms' 'Max ms'
-    printf '%-18s %6d %10.2f %10.2f %8d %8d\n' 'Release' "$release_count" "$release_mean" "$release_median" "$release_min" "$release_max"
-    printf '%-18s %6d %10.2f %10.2f %8d %8d\n' 'PGO optimized' "$optimized_count" "$optimized_mean" "$optimized_median" "$optimized_min" "$optimized_max"
-    echo "PGO mean startup improvement: ${mean_improvement}%"
-    echo "PGO median startup improvement: ${median_improvement}%"
+    printf '%-18s %5s %10s %9s %9s %9s %9s %9s %8s %8s\n' 'Build' 'Runs' 'Average' 'P50' 'P75' 'P90' 'P95' 'P99' 'Min' 'Max'
+    printf '%-18s %5d %10.2f %9.2f %9.2f %9.2f %9.2f %9.2f %8d %8d\n' 'Release' "$release_count" "$release_average" "$release_p50" "$release_p75" "$release_p90" "$release_p95" "$release_p99" "$release_min" "$release_max"
+    printf '%-18s %5d %10.2f %9.2f %9.2f %9.2f %9.2f %9.2f %8d %8d\n' 'PGO optimized' "$optimized_count" "$optimized_average" "$optimized_p50" "$optimized_p75" "$optimized_p90" "$optimized_p95" "$optimized_p99" "$optimized_min" "$optimized_max"
+    echo "PGO average startup improvement: ${average_improvement}%"
+    echo "PGO P50 startup improvement: ${p50_improvement}%"
+    echo "PGO P75 startup improvement: ${p75_improvement}%"
+    echo "PGO P90 startup improvement: ${p90_improvement}%"
+    echo "PGO P95 startup improvement: ${p95_improvement}%"
+    echo "PGO P99 startup improvement: ${p99_improvement}%"
     echo "Positive percentages are faster; negative percentages are regressions."
 }
 
