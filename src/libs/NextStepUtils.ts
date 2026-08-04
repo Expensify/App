@@ -10,7 +10,6 @@ import type {ValueOf} from 'type-fest';
 import {addMonths, format, isPast, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
-import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {getOriginalMessage, isDynamicExternalWorkflowApproveFailedAction} from './ReportActionsUtils';
 import {
