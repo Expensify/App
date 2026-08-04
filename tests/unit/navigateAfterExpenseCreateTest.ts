@@ -37,7 +37,7 @@ jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
 }));
 jest.mock('@libs/SearchQueryUtils', () => ({
     buildCannedSearchQuery: jest.fn(({type}: {type: string}) => `type:${type}`),
-    getCurrentSearchQueryJSON: () => mockGetCurrentSearchQueryJSON() as undefined,
+    getCurrentSearchQueryJSON: mockGetCurrentSearchQueryJSON,
 }));
 jest.mock('@libs/ReportUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- partial mock of the real module
