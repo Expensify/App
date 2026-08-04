@@ -115,6 +115,7 @@ describe('Middleware', () => {
 
             expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN)).toBe(false);
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_FROM_SERVER)).toBeUndefined();
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(clientLastUpdateID);
         });
     });
 

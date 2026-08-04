@@ -19,10 +19,6 @@ const requestsToIgnoreLastUpdateID = new Set<string>([
     WRITE_COMMANDS.CLOSE_ACCOUNT,
     WRITE_COMMANDS.DELETE_MONEY_REQUEST,
     SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES,
-    // A sign-in response carries the finallyData that clears `isAuthenticatingWithShortLivedToken` and `account.isLoading`.
-    // A parked response applies only after the gap fill ends. A gap fill that fails or aborts blocks reauthentication for the life of the tab.
-    READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN,
-    READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN,
 ]);
 
 const SaveResponseInOnyx: Middleware = <TKey extends OnyxKey>(requestResponse: Promise<Response<TKey> | void>, request: OnyxRequest<TKey>) =>
@@ -43,8 +39,17 @@ const SaveResponseInOnyx: Middleware = <TKey extends OnyxKey>(requestResponse: P
             response: response ?? {},
         };
 
-        if (requestsToIgnoreLastUpdateID.has(request.command) || !OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: Number(response?.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID)})) {
-            return OnyxUpdates.apply(responseToApply);
+        // Apply a sign-in response on arrival, without advancing the watermark. A zero lastUpdateID does both: the payload applies now,
+        // so the new session and the finallyData that clears `isAuthenticatingWithShortLivedToken` land immediately and later commands
+        // do not 407, and the watermark stays put, so the gap is still fetched by the next response that carries a previousUpdateID.
+        const isSignInCommand = request.command === READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN || request.command === READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN;
+
+        if (
+            isSignInCommand ||
+            requestsToIgnoreLastUpdateID.has(request.command) ||
+            !OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: Number(response?.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID)})
+        ) {
+            return OnyxUpdates.apply(isSignInCommand ? {...responseToApply, lastUpdateID: CONST.DEFAULT_NUMBER_ID} : responseToApply);
         }
 
         // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server
