@@ -197,6 +197,41 @@ describe('search snapshot terminal state', () => {
         expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
     });
 
+    it('persists 0 when the response carries no usable jsonCode', async () => {
+        const queryJSON = getQueryJSON();
+        // Reauthentication resolves an expired session through `request.resolve` and hands the middleware chain
+        // `undefined`, so the caller sees an empty response. failureData still runs and writes errors.
+        jest.mocked(makeRequestWithSideEffects).mockImplementationOnce(async (_command, _parameters, onyxData) => {
+            await Onyx.update(onyxData?.optimisticData ?? []);
+            await Onyx.update(onyxData?.failureData ?? []);
+            await Onyx.update(onyxData?.finallyData ?? []);
+            return undefined;
+        });
+
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        await waitForBatchedUpdates();
+
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.errors).toBeDefined();
+        expect(snapshot?.search?.responseJsonCode).toBe(0);
+    });
+
+    it('leaves the jsonCode unset until the response lands', async () => {
+        const queryJSON = getQueryJSON();
+
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        const {optimisticData, failureData} = getCapturedSearchOnyxData();
+        await Onyx.update(optimisticData ?? []);
+        await Onyx.update(failureData ?? []);
+        await waitForBatchedUpdates();
+
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        // The errors are already stored, but the code is not. The error view relies on that gap to keep Retry
+        // hidden for the render between the two writes instead of flashing it.
+        expect(snapshot?.errors).toBeDefined();
+        expect(snapshot?.search?.responseJsonCode).toBeUndefined();
+    });
+
     it('does not persist a jsonCode for a successful response', async () => {
         const queryJSON = getQueryJSON();
         jest.mocked(makeRequestWithSideEffects).mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});

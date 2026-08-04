@@ -259,6 +259,32 @@ describe('SearchPageNarrow', () => {
         expect(screen.getByText('Try again')).toBeTruthy();
     });
 
+    it('hides the retry button while the failure has errors but no response code yet', async () => {
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
+                errors: {error: 'Something went wrong'},
+                search: {
+                    type: CONST.SEARCH.DATA_TYPES.CHAT,
+                    offset: 0,
+                    hash: failedQueryJSON?.hash,
+                    isLoading: false,
+                    hasMoreResults: false,
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
+                },
+            });
+        });
+
+        renderPage();
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // This is the render between failureData writing the errors and the response code arriving. Showing Retry
+        // here and removing it a moment later on an invalid query is the flash this guards against.
+        expect(screen.queryByText('Try again')).toBeNull();
+    });
+
     it('renders the empty state when a response without data reached the terminal loaded state', async () => {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {

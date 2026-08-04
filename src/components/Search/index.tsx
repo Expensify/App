@@ -937,6 +937,9 @@ function Search({
 
     if (hasErrors) {
         const isInvalidQuery = responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
+        // The code lands one render after the errors do, so treat "not known yet" as not retryable. Offering Retry by
+        // default would show the button for that one render and then take it away again on an invalid query.
+        const canRetry = responseStatusCode !== null && !isInvalidQuery;
         cancelNavigationSpans();
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.flex1]}>
@@ -949,7 +952,7 @@ function Search({
                     })}
                     subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
                     // Retrying an invalid query won't help, so the retry button is only offered for other errors.
-                    {...(!isInvalidQuery && {
+                    {...(canRetry && {
                         buttonTranslationKey: 'common.tryAgain',
                         onButtonPress: () => {
                             // A failed load-more clears the whole snapshot (data: null), so retrying with the
