@@ -50,6 +50,49 @@ function install_apk() {
     adb install -r "$APK_PATH"
 }
 
+function dump_profiles() {
+    adb shell am broadcast \
+        -a "$PACKAGE_NAME.action.WRITE_PGO_PROFILES" \
+        -n "$PACKAGE_NAME/.PgoProfileReceiver"
+}
+
+function pull_profiles() {
+    rm -rf "$PROFILE_DIR/raw"
+    mkdir -p "$PROFILE_DIR/raw"
+    adb pull "$DEVICE_PROFILE_DIR/." "$PROFILE_DIR/raw"
+
+    local -a profiles=()
+    local profile
+    while IFS= read -r profile; do
+        profiles+=("$profile")
+    done < <(find "$PROFILE_DIR/raw" -name '*.profraw' -type f)
+
+    if [[ "${#profiles[@]}" -eq 0 ]]; then
+        echo "No .profraw files found in $DEVICE_PROFILE_DIR. Run dump first." >&2
+        exit 1
+    fi
+    printf '%s\n' "${profiles[@]}"
+}
+
+function merge_profiles() {
+    mkdir -p "$PROFILE_DIR"
+
+    local -a profiles=()
+    local profile
+    while IFS= read -r profile; do
+        profiles+=("$profile")
+    done < <(find "$PROFILE_DIR/raw" -name '*.profraw' -type f)
+
+    if [[ "${#profiles[@]}" -eq 0 ]]; then
+        echo "No .profraw files found. Run dump and pull first." >&2
+        exit 1
+    fi
+
+    "$(ndk_tool llvm-profdata)" merge --output="$PROFILE_DIR/newdot.profdata" "${profiles[@]}"
+    "$(ndk_tool llvm-profdata)" show --all-functions "$PROFILE_DIR/newdot.profdata" > "$PROFILE_DIR/newdot.profdata.txt"
+    echo "Merged PGO profile: $PROFILE_DIR/newdot.profdata"
+}
+
 function record_startups() {
     local runs="${1:-10}"
     local settle_seconds="${2:-10}"
@@ -73,11 +116,11 @@ function record_startups() {
         adb shell am start -W -n "$START_ACTIVITY"
         echo "Waiting ${settle_seconds}s for NewDot to become ready before dumping."
         sleep "$settle_seconds"
-        "$0" dump
+        dump_profiles
     done
 
-    "$0" pull
-    "$0" merge
+    pull_profiles
+    merge_profiles
 }
 
 function verify_pgo_instrumentation() (
@@ -155,37 +198,13 @@ case "${1:-}" in
         record_startups "${2:-10}" "${3:-10}"
         ;;
     dump)
-        adb shell am broadcast \
-            -a "$PACKAGE_NAME.action.WRITE_PGO_PROFILES" \
-            -n "$PACKAGE_NAME/.PgoProfileReceiver"
+        dump_profiles
         ;;
     pull)
-        rm -rf "$PROFILE_DIR/raw"
-        mkdir -p "$PROFILE_DIR/raw"
-        adb pull "$DEVICE_PROFILE_DIR/." "$PROFILE_DIR/raw"
-        profiles=()
-        while IFS= read -r profile; do
-            profiles+=("$profile")
-        done < <(find "$PROFILE_DIR/raw" -name '*.profraw' -type f)
-        if [[ "${#profiles[@]}" -eq 0 ]]; then
-            echo "No .profraw files found in $DEVICE_PROFILE_DIR. Run dump first." >&2
-            exit 1
-        fi
-        printf '%s\n' "${profiles[@]}"
+        pull_profiles
         ;;
     merge)
-        mkdir -p "$PROFILE_DIR"
-        profiles=()
-        while IFS= read -r profile; do
-            profiles+=("$profile")
-        done < <(find "$PROFILE_DIR/raw" -name '*.profraw' -type f)
-        if [[ "${#profiles[@]}" -eq 0 ]]; then
-            echo "No .profraw files found. Run dump and pull first." >&2
-            exit 1
-        fi
-        "$(ndk_tool llvm-profdata)" merge --output="$PROFILE_DIR/newdot.profdata" "${profiles[@]}"
-        "$(ndk_tool llvm-profdata)" show --all-functions "$PROFILE_DIR/newdot.profdata" > "$PROFILE_DIR/newdot.profdata.txt"
-        echo "Merged PGO profile: $PROFILE_DIR/newdot.profdata"
+        merge_profiles
         ;;
     build-optimized)
         if [[ ! -f "$PROFILE_DIR/newdot.profdata" ]]; then
