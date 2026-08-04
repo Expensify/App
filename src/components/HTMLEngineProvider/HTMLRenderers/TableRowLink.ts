@@ -26,7 +26,8 @@ function getCellLinkURL(cell: TNode): string | undefined {
         return undefined;
     }
 
-    return anchors.at(0)?.attributes?.href || undefined;
+    const href = anchors.at(0)?.attributes?.href ?? '';
+    return href.length > 0 ? href : undefined;
 }
 
 /**

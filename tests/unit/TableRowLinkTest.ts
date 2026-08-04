@@ -10,12 +10,17 @@ type FakeNode = {
     attributes?: Record<string, string>;
 };
 
+/** Hands a fake to the code under test, which reads only tagName, data, children, parent and attributes. */
+function asTNode(fakeNode: FakeNode | undefined): TNode {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal mock that only exposes the fields the helpers read
+    return fakeNode as unknown as TNode;
+}
+
 function node(tagName: string, children: FakeNode[] = [], attributes: Record<string, string> = {}): FakeNode {
     const created: FakeNode = {tagName, children, attributes};
-    children.forEach((child) => {
-        // eslint-disable-next-line no-param-reassign
+    for (const child of children) {
         child.parent = created;
-    });
+    }
     return created;
 }
 
@@ -27,7 +32,7 @@ function link(label: string, href: string): FakeNode {
     return node('a', [text(label)], {href});
 }
 
-/** A table whose rows hold the given cells, e.g. `table([[link('Airbnb', url), text('£10')]])`. */
+/** A table whose body rows hold the given cells, e.g. `table([[link('Airbnb', url), text('£10')]])`. */
 function table(rows: FakeNode[][]): FakeNode {
     const bodyRows = rows.map((cells) =>
         node(
@@ -38,9 +43,12 @@ function table(rows: FakeNode[][]): FakeNode {
     return node('table', [node('thead', [node('tr', [node('th', [text('Merchant')]), node('th', [text('Amount')])])]), node('tbody', bodyRows)]);
 }
 
-function bodyRowAt(tableNode: FakeNode, index: number): TNode {
-    const body = tableNode.children.find((child) => child.tagName === 'tbody');
-    return body?.children.at(index) as unknown as TNode;
+function sectionOf(tableNode: FakeNode, tagName: string): FakeNode | undefined {
+    return tableNode.children.find((child) => child.tagName === tagName);
+}
+
+function bodyRowAt(tableNode: FakeNode, index: number): FakeNode | undefined {
+    return sectionOf(tableNode, 'tbody')?.children.at(index);
 }
 
 const AIRBNB_URL = 'https://new.expensify.com/r/8412';
@@ -53,7 +61,7 @@ describe('getLinkColumnIndex', () => {
             [link('Uber', UBER_URL), text('£15.93')],
         ]);
 
-        expect(getLinkColumnIndex(expenseTable as unknown as TNode)).toBe(0);
+        expect(getLinkColumnIndex(asTNode(expenseTable))).toBe(0);
     });
 
     it('returns the column even when only some rows carry a link', () => {
@@ -62,31 +70,31 @@ describe('getLinkColumnIndex', () => {
             [text('Uber'), text('£15.93')],
         ]);
 
-        expect(getLinkColumnIndex(expenseTable as unknown as TNode)).toBe(0);
+        expect(getLinkColumnIndex(asTNode(expenseTable))).toBe(0);
     });
 
     it('returns undefined for a table with no links', () => {
         const plainTable = table([[text('Airbnb'), text('£404.60')]]);
 
-        expect(getLinkColumnIndex(plainTable as unknown as TNode)).toBeUndefined();
+        expect(getLinkColumnIndex(asTNode(plainTable))).toBeUndefined();
     });
 
     it('returns undefined when links are spread across columns', () => {
         const mixedTable = table([[link('Airbnb', AIRBNB_URL), link('£404.60', UBER_URL)]]);
 
-        expect(getLinkColumnIndex(mixedTable as unknown as TNode)).toBeUndefined();
+        expect(getLinkColumnIndex(asTNode(mixedTable))).toBeUndefined();
     });
 
     it('returns undefined when a cell holds more than one link, since one row destination cannot stand in for both', () => {
         const twoLinkCellTable = table([[node('span', [link('Airbnb', AIRBNB_URL), link('Uber', UBER_URL)]), text('£404.60')]]);
 
-        expect(getLinkColumnIndex(twoLinkCellTable as unknown as TNode)).toBeUndefined();
+        expect(getLinkColumnIndex(asTNode(twoLinkCellTable))).toBeUndefined();
     });
 
-    it('returns undefined when the linked cell has an anchor without an href', () => {
-        const hreflessTable = table([[node('a', [text('Airbnb')]), text('£404.60')]]);
+    it('returns undefined when the linked cell holds an anchor with no href', () => {
+        const anchorWithoutURLTable = table([[node('a', [text('Airbnb')]), text('£404.60')]]);
 
-        expect(getLinkColumnIndex(hreflessTable as unknown as TNode)).toBeUndefined();
+        expect(getLinkColumnIndex(asTNode(anchorWithoutURLTable))).toBeUndefined();
     });
 });
 
@@ -97,8 +105,8 @@ describe('getRowLinkURL', () => {
             [link('Uber', UBER_URL), text('£15.93')],
         ]);
 
-        expect(getRowLinkURL(bodyRowAt(expenseTable, 0), 0)).toBe(AIRBNB_URL);
-        expect(getRowLinkURL(bodyRowAt(expenseTable, 1), 0)).toBe(UBER_URL);
+        expect(getRowLinkURL(asTNode(bodyRowAt(expenseTable, 0)), 0)).toBe(AIRBNB_URL);
+        expect(getRowLinkURL(asTNode(bodyRowAt(expenseTable, 1)), 0)).toBe(UBER_URL);
     });
 
     it('returns undefined for a row with no link in that column', () => {
@@ -107,31 +115,30 @@ describe('getRowLinkURL', () => {
             [text('Uber'), text('£15.93')],
         ]);
 
-        expect(getRowLinkURL(bodyRowAt(expenseTable, 1), 0)).toBeUndefined();
+        expect(getRowLinkURL(asTNode(bodyRowAt(expenseTable, 1)), 0)).toBeUndefined();
     });
 
     it('returns undefined when the table has no link column', () => {
         const expenseTable = table([[link('Airbnb', AIRBNB_URL), text('£404.60')]]);
 
-        expect(getRowLinkURL(bodyRowAt(expenseTable, 0), undefined)).toBeUndefined();
+        expect(getRowLinkURL(asTNode(bodyRowAt(expenseTable, 0)), undefined)).toBeUndefined();
     });
 
     it('returns undefined for a header row', () => {
         const expenseTable = table([[link('Airbnb', AIRBNB_URL), text('£404.60')]]);
-        const headerRow = expenseTable.children.find((child) => child.tagName === 'thead')?.children.at(0);
+        const headerRow = sectionOf(expenseTable, 'thead')?.children.at(0);
 
-        expect(getRowLinkURL(headerRow as unknown as TNode, 0)).toBeUndefined();
+        expect(getRowLinkURL(asTNode(headerRow), 0)).toBeUndefined();
     });
 });
 
 describe('isLinkColumnAnchor', () => {
     it('recognizes an anchor nested below its cell, as the render tree wraps inline content', () => {
         const anchor = link('Airbnb', AIRBNB_URL);
-        const wrapped = node('td', [node('span', [anchor])]);
-        const row = node('tr', [wrapped, node('td', [text('£404.60')])]);
+        const row = node('tr', [node('td', [node('span', [anchor])]), node('td', [text('£404.60')])]);
         node('table', [node('tbody', [row])]);
 
-        expect(isLinkColumnAnchor(anchor as unknown as TNode, 0)).toBe(true);
+        expect(isLinkColumnAnchor(asTNode(anchor), 0)).toBe(true);
     });
 
     it('leaves an anchor in another column alone', () => {
@@ -139,14 +146,14 @@ describe('isLinkColumnAnchor', () => {
         const row = node('tr', [node('td', [text('Airbnb')]), node('td', [anchor])]);
         node('table', [node('tbody', [row])]);
 
-        expect(isLinkColumnAnchor(anchor as unknown as TNode, 0)).toBe(false);
+        expect(isLinkColumnAnchor(asTNode(anchor), 0)).toBe(false);
     });
 
     it('leaves an anchor outside a table alone', () => {
         const anchor = link('Insight', 'https://new.expensify.com/search?q=');
         node('div', [anchor]);
 
-        expect(isLinkColumnAnchor(anchor as unknown as TNode, 0)).toBe(false);
+        expect(isLinkColumnAnchor(asTNode(anchor), 0)).toBe(false);
     });
 
     it('leaves a header anchor alone', () => {
@@ -154,12 +161,12 @@ describe('isLinkColumnAnchor', () => {
         const headerRow = node('tr', [node('th', [anchor]), node('th', [text('Amount')])]);
         node('table', [node('thead', [headerRow])]);
 
-        expect(isLinkColumnAnchor(anchor as unknown as TNode, 0)).toBe(false);
+        expect(isLinkColumnAnchor(asTNode(anchor), 0)).toBe(false);
     });
 });
 
 describe('getTextContent', () => {
     it('joins the text of every descendant', () => {
-        expect(getTextContent(node('td', [node('strong', [text('Amazon ')]), text('web services')]) as unknown as TNode)).toBe('Amazon web services');
+        expect(getTextContent(asTNode(node('td', [node('strong', [text('Amazon ')]), text('web services')])))).toBe('Amazon web services');
     });
 });
