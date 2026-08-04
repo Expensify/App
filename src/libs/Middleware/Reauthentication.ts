@@ -1,5 +1,5 @@
 import {reconnect} from '@libs/actions/Reconnect';
-import redirectToSignIn from '@libs/actions/SignInRedirect';
+import redirectToSignIn, {getLastRedirectToSignInTime} from '@libs/actions/SignInRedirect';
 import HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
 import {replay as replayMainQueue} from '@libs/Network/MainQueue';
@@ -21,27 +21,63 @@ import type Middleware from './types';
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
 let isAuthenticating: Promise<boolean> | null = null;
+let authenticationStartTime = 0;
+
+// Bumped whenever a stuck authentication chain is discarded so the discarded chain can notice it no longer owns the
+// shared state (throttle, flags) and stop retrying.
+let authenticationGeneration = 0;
 
 const reauthThrottle = new RequestThrottle('Re-authentication');
 
 function reauthenticate(commandName?: string): Promise<boolean> {
     if (isAuthenticating) {
-        return isAuthenticating;
+        if (Date.now() - authenticationStartTime <= CONST.NETWORK.MAX_AUTHENTICATION_PENDING_TIME_MS) {
+            return isAuthenticating;
+        }
+
+        // The in-flight authentication attempt never settled (e.g. a SAML/short-lived-token login that hung mid-flow).
+        // If we kept returning the stuck promise, every subsequent 407 would chain onto it and token renewal would be
+        // blocked forever. Discard it and start fresh so the session can recover without a page refresh.
+        Log.hmmm('[Reauthenticate] Discarding an authentication attempt that has been pending for too long and starting a fresh one', {
+            commandName,
+            elapsedTime: Date.now() - authenticationStartTime,
+        });
+        isAuthenticating = null;
+        // The stuck attempt may have left the network paused (see NetworkStore.isAuthenticating)
+        setIsAuthenticating(false);
+        // The stuck chain and the fresh one share this throttle: reclaim the full retry budget for the fresh chain and
+        // cancel the stuck chain's pending backoff timer (parking that chain for good).
+        reauthThrottle.clear();
     }
 
-    isAuthenticating = retryReauthenticate(commandName).finally(() => {
-        // Reset the isAuthenticating state to allow new reauthentication flows to start fresh
+    authenticationGeneration += 1;
+    const authenticationPromise = retryReauthenticate(commandName, authenticationGeneration).finally(() => {
+        // Reset the isAuthenticating state to allow new reauthentication flows to start fresh. The identity check keeps a
+        // discarded (stuck) attempt that settles late from clobbering a newer in-flight one.
+        if (isAuthenticating !== authenticationPromise) {
+            return;
+        }
         isAuthenticating = null;
     });
+    isAuthenticating = authenticationPromise;
 
-    return isAuthenticating;
+    return authenticationPromise;
 }
 
-function retryReauthenticate(commandName?: string): Promise<boolean> {
+function retryReauthenticate(commandName?: string, generation: number = authenticationGeneration): Promise<boolean> {
+    // Stamp each attempt rather than only the chain start: an actively retrying chain keeps refreshing this and is
+    // never misclassified as stuck, while a chain whose current attempt itself hangs goes stale and gets discarded
+    // by the next reauthenticate() call.
+    authenticationStartTime = Date.now();
     return reauthenticateLibs(commandName).catch((error: RequestError) => {
+        // A discarded (stuck) chain must not keep retrying: a newer chain owns the shared throttle and flags now.
+        if (generation !== authenticationGeneration) {
+            Log.hmmm('[Reauthenticate] Abandoning a discarded authentication attempt because a newer one is in flight', {commandName});
+            return false;
+        }
         return reauthThrottle
             .sleep(error, 'Authenticate')
-            .then(() => retryReauthenticate(commandName))
+            .then(() => retryReauthenticate(commandName, generation))
             .catch(() => {
                 setIsAuthenticating(false);
                 Log.hmmm('[Reauthenticate] Redirecting to Sign In because we failed to reauthenticate after multiple attempts', {error});
@@ -55,6 +91,8 @@ function retryReauthenticate(commandName?: string): Promise<boolean> {
 function resetReauthentication(): void {
     // Resets the authentication state flag to allow new reauthentication flows to start fresh
     isAuthenticating = null;
+    authenticationStartTime = 0;
+    authenticationGeneration += 1;
 
     // Clears any pending reauth timeouts set by reauthThrottle.sleep()
     reauthThrottle.clear();
@@ -103,8 +141,11 @@ function handleExpiredSession<TKey extends OnyxKey>(
         return Promise.resolve(data);
     }
 
-    // We are already authenticating and using the DeprecatedAPI so we will replay the request
-    if (!apiRequestType && isAuthenticatingNetworkStore()) {
+    // We are already authenticating and using the DeprecatedAPI so we will replay the request to the main queue.
+    // Sequential queue requests must never take this path: resolving with the 407 data would read as success to the
+    // SequentialQueue, which would delete the persisted request and silently lose the user's write. They fall through
+    // to reauthenticate() below, which chains them onto the in-flight authentication and retries them once it settles.
+    if (!apiRequestType && !isFromSequentialQueue && isAuthenticatingNetworkStore()) {
         replayMainQueue(request);
         return Promise.resolve(data);
     }
@@ -112,6 +153,16 @@ function handleExpiredSession<TKey extends OnyxKey>(
     return reauthenticate(request?.commandName)
         .then((wasSuccessful) => {
             if (!wasSuccessful) {
+                // When the failed reauthentication triggered a sign-out redirect, the whole store (including the
+                // persisted request queue) is about to be cleared — resolve with the original response like before so
+                // the queue deletes the request instead of rolling it back into storage mid-clear, which would orphan
+                // it on disk for a future session. Without a redirect the session can still recover (e.g. a stuck SAML
+                // login), so throw to keep the write queued for retry instead of silently dropping it.
+                const didRedirectToSignIn = Date.now() - getLastRedirectToSignInTime() < CONST.NETWORK.MAX_AUTHENTICATION_PENDING_TIME_MS;
+                if (isFromSequentialQueue && !didRedirectToSignIn) {
+                    throw new Error('Failed to reauthenticate');
+                }
+
                 // Reauth already handled the sign-in redirect, so do not briefly show the failed request UI before sign-in.
                 request.failureData = undefined;
                 request.finallyData = undefined;

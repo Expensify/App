@@ -12,6 +12,7 @@ import Onyx from 'react-native-onyx';
 
 import {resetSignInFlow} from './HybridApp';
 
+let lastRedirectToSignInTime = 0;
 let currentShouldForceOffline: boolean | undefined;
 let currentIsUsingImportedState: boolean | undefined;
 let currentSessionAuthToken: string | undefined;
@@ -128,9 +129,19 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
  * @param isSAMLReauthentication Whether the redirection was triggered by reauthentication for SAML required account
  */
 function redirectToSignIn(errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
+    lastRedirectToSignInTime = Date.now();
     return clearStorageAndRedirect(errorMessage, isSAMLReauthentication).then(() => {
         clearSessionStorage();
     });
 }
 
+/**
+ * When the last sign-out redirect started. The reauthentication middleware uses this to tell a session that is being
+ * torn down (redirected to sign-in, storage clearing) apart from one that can still recover.
+ */
+function getLastRedirectToSignInTime(): number {
+    return lastRedirectToSignInTime;
+}
+
 export default redirectToSignIn;
+export {getLastRedirectToSignInTime};

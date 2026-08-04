@@ -1,4 +1,5 @@
-import Reauthentication from '@libs/Middleware/Reauthentication';
+import {getLastRedirectToSignInTime} from '@libs/actions/SignInRedirect';
+import Reauthentication, {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
 import reauthenticate from '@libs/Reauthentication';
 
@@ -22,6 +23,11 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/Reauthentication');
+jest.mock('@libs/actions/SignInRedirect', () => ({
+    __esModule: true,
+    default: jest.fn(),
+    getLastRedirectToSignInTime: jest.fn(() => 0),
+}));
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -34,6 +40,8 @@ beforeEach(() => {
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     NetworkStore.checkRequiredData();
+    NetworkStore.setIsAuthenticating(false);
+    resetReauthentication();
     global.fetch = TestHelper.getGlobalFetchMock();
     setHasRadio(true);
     jest.clearAllMocks();
@@ -152,6 +160,179 @@ describe('Reauthentication middleware', () => {
                 title: '',
             });
         });
+    });
+
+    test('rejects for a sequential queue write when reauthentication is unsuccessful so the request is not dropped', () => {
+        jest.mocked(reauthenticate).mockResolvedValueOnce(false);
+
+        const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+            command: 'RenameReport',
+            data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE, shouldRetry: true},
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.NETWORK,
+                    value: {shouldFailAllRequests: true},
+                },
+            ],
+            finallyData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.NETWORK,
+                    value: {shouldForceOffline: true},
+                },
+            ],
+        };
+
+        return Reauthentication(
+            Promise.resolve({
+                jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+            }),
+            request,
+            true,
+        )
+            .then(() => {
+                throw new Error('Expected the middleware to reject so the SequentialQueue keeps the request');
+            })
+            .catch((error: Error) => {
+                expect(error.message).toBe('Failed to reauthenticate');
+
+                // The SequentialQueue applies failureData when it finally gives up retrying, so it must stay intact here
+                expect(request.failureData).not.toBeUndefined();
+                expect(request.finallyData).not.toBeUndefined();
+            });
+    });
+
+    test('resolves with the original response for a sequential queue write when reauthentication failed with a sign-out redirect', () => {
+        jest.mocked(reauthenticate).mockResolvedValueOnce(false);
+        // The failed reauthentication redirected to sign-in, so the store (incl. the persisted queue) is being cleared
+        jest.mocked(getLastRedirectToSignInTime).mockReturnValueOnce(Date.now());
+
+        const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+            command: 'RenameReport',
+            data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE, shouldRetry: true},
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.NETWORK,
+                    value: {shouldFailAllRequests: true},
+                },
+            ],
+        };
+
+        return Reauthentication(
+            Promise.resolve({
+                jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+            }),
+            request,
+            true,
+        ).then((response) => {
+            // Resolving (not throwing) lets the queue delete the request instead of rolling it back into a store that
+            // is being wiped, which would orphan it on disk for a future session.
+            expect(response?.jsonCode).toBe(CONST.JSON_CODE.NOT_AUTHENTICATED);
+            expect(request.failureData).toBeUndefined();
+        });
+    });
+
+    test('reauthenticates a sequential queue request without apiRequestType instead of resolving it with the 407 while the authenticating flag is set', () => {
+        jest.mocked(reauthenticate).mockResolvedValueOnce(false);
+        NetworkStore.setIsAuthenticating(true);
+
+        const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+            command: 'TestCommand',
+            data: {shouldRetry: true},
+        };
+
+        return Reauthentication(
+            Promise.resolve({
+                jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+            }),
+            request,
+            true,
+        )
+            .then(() => {
+                throw new Error('Expected the middleware to reject so the SequentialQueue keeps the request');
+            })
+            .catch((error: Error) => {
+                expect(error.message).toBe('Failed to reauthenticate');
+                expect(reauthenticate).toHaveBeenCalled();
+            })
+            .finally(() => NetworkStore.setIsAuthenticating(false));
+    });
+
+    test('still replays a main queue request and resolves with the original response while the authenticating flag is set', () => {
+        NetworkStore.setIsAuthenticating(true);
+
+        const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+            command: 'TestCommand',
+            data: {shouldRetry: true},
+        };
+
+        return Reauthentication(
+            Promise.resolve({
+                jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+            }),
+            request,
+            false,
+        )
+            .then((response) => {
+                expect(response?.jsonCode).toBe(CONST.JSON_CODE.NOT_AUTHENTICATED);
+                expect(reauthenticate).not.toHaveBeenCalled();
+            })
+            .finally(() => NetworkStore.setIsAuthenticating(false));
+    });
+
+    test('starts a fresh authentication when the in-flight one has been pending for too long', () => {
+        const dateNowSpy = jest.spyOn(Date, 'now');
+        const startTime = 1000000000000;
+        dateNowSpy.mockReturnValue(startTime);
+
+        // The first 407 starts an authentication that never settles (e.g. an interrupted SAML sign-in)
+        jest.mocked(reauthenticate).mockReturnValueOnce(new Promise<boolean>(() => {}));
+
+        const stuckRequest: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+            command: 'TestCommand',
+            data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE, shouldRetry: true},
+        };
+
+        // Intentionally not returned/awaited — this promise stays pending while the authentication hangs
+        Reauthentication(
+            Promise.resolve({
+                jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+            }),
+            stuckRequest,
+            true,
+        );
+
+        return waitForBatchedUpdates()
+            .then(() => {
+                expect(reauthenticate).toHaveBeenCalledTimes(1);
+
+                // Advance past the stuck-authentication window and let the next attempt succeed
+                dateNowSpy.mockReturnValue(startTime + CONST.NETWORK.MAX_AUTHENTICATION_PENDING_TIME_MS + 1);
+                jest.mocked(reauthenticate).mockResolvedValueOnce(true);
+
+                const retriedRequest: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+                    command: 'TestCommand',
+                    data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE, shouldRetry: true},
+                };
+
+                return Reauthentication(
+                    Promise.resolve({
+                        jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                    }),
+                    retriedRequest,
+                    true,
+                );
+            })
+            .then(() => {
+                // The stale attempt was discarded and a fresh authentication ran instead of chaining onto the stuck one
+                expect(reauthenticate).toHaveBeenCalledTimes(2);
+            })
+            .finally(() => {
+                dateNowSpy.mockRestore();
+                resetReauthentication();
+            });
     });
 
     test('does not reauthenticate HTTP 407 while offline', () => {

@@ -15,6 +15,7 @@ let authToken: string | null | undefined;
 let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
 let accountID: number | null | undefined;
 let authenticating = false;
+let authenticatingStartTime = 0;
 
 let resolveIsReadyPromise: (args?: unknown[]) => void;
 let isReadyPromise = new Promise((resolve) => {
@@ -94,10 +95,23 @@ function hasReadRequiredDataFromStorage(): Promise<unknown> {
 }
 
 function isAuthenticating(): boolean {
+    // Self-heal a stuck flag: an authentication that never settles (e.g. an interrupted SAML sign-in) would otherwise
+    // leave this true forever, freezing the main queue (see MainQueue.canMakeRequest) and short-circuiting the 407
+    // reauthentication path so the session never recovers without a page refresh.
+    if (authenticating && Date.now() - authenticatingStartTime > CONST.NETWORK.MAX_AUTHENTICATION_PENDING_TIME_MS) {
+        Log.hmmm('[NetworkStore] Authentication has been pending for too long. Clearing the isAuthenticating flag so requests can flow and reauthentication can restart.', {
+            elapsedTime: Date.now() - authenticatingStartTime,
+        });
+        authenticating = false;
+    }
     return authenticating;
 }
 
 function setIsAuthenticating(val: boolean) {
+    if (val) {
+        // Stamp each new authentication attempt so a hung one can be detected as stale in isAuthenticating().
+        authenticatingStartTime = Date.now();
+    }
     authenticating = val;
 }
 
