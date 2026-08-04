@@ -750,10 +750,10 @@ function getOnyxLoadingData(
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
-                    // No responseJsonCode on purpose. It stays absent until the response lands, which is what lets the
-                    // error view tell "still waiting on a code" apart from "code known", and hold the Retry button back
-                    // instead of showing it for the one render between this write and the code arriving.
-                    ...(isSearchRequest && {hash}),
+                    // 0 stands for "failed with no usable response code", which covers a network-level rejection that
+                    // never reaches the server. A real HTTP failure overwrites it below once the response lands. Every
+                    // write of `errors` carries a code this way, so the error view never has to guess.
+                    ...(isSearchRequest && {hash, responseJsonCode: 0}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
@@ -1090,12 +1090,10 @@ function search({
 
                 // Store the failing code alongside the errors it produced. The snapshot is the only place this
                 // survives a reload, and the error view needs it to tell an invalid query apart from a retryable one.
-                // Reauthentication resolves an expired session with no usable code, so fall back to 0 rather than
-                // leaving errors behind with no code at all, which would hide Retry for good.
-                if (result?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {
-                        search: {responseJsonCode: typeof result?.jsonCode === 'number' ? result.jsonCode : 0},
-                    }).catch((error: unknown) => Log.hmmm('[Search] failed to store the search response code', {error: String(error)}));
+                if (typeof result?.jsonCode === 'number' && result.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode: result.jsonCode}}).catch((error: unknown) =>
+                        Log.hmmm('[Search] failed to store the search response code', {error: String(error)}),
+                    );
                 }
 
                 if (shouldUpdateLastSearchParams) {
@@ -1134,9 +1132,6 @@ function search({
                 // the snapshot records the error and still reaches the terminal `loaded` state.
                 await Onyx.update(failureData ?? []);
                 await Onyx.update(finallyData ?? []);
-                // No response means no code lands from the handler above, so record 0 ("failed with no usable code").
-                // Without it the errors written here would never resolve and the error view would hide Retry for good.
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode: 0}});
                 throw error;
             })
             .finally(() => {
