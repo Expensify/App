@@ -501,7 +501,12 @@ describe('ReportNameUtils', () => {
                     ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
                     id: policyID,
                     achAccount: {
+                        bankAccountID: 1,
                         accountNumber: 'XXXX2222',
+                        routingNumber: '',
+                        addressName: '',
+                        bankName: '',
+                        reimburser: '',
                     },
                 },
             };
