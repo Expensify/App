@@ -27,6 +27,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,7 +46,7 @@ import {
     updatePolicyRulesDocument,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
-import {getCardSettings} from '@libs/CardUtils';
+import {getCardSettingsForSelectedProgram} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -119,8 +120,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const policyID = policy?.id;
     const policyDraftID = policyDraft?.id;
     const defaultFundID = useDefaultFundID(policyID);
+    const selectedProgramKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const settings = getCardSettings(cardSettings);
+    const settings = getCardSettingsForSelectedProgram(cardSettings, selectedProgramKey);
     const isBankAccountVerified = !!settings?.paymentBankAccountID;
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policyID);
 
