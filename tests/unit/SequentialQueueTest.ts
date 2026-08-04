@@ -687,6 +687,30 @@ describe('SequentialQueue - pause watchdog', () => {
         expect(SequentialQueue.isPaused()).toBe(false);
     });
 
+    it('bounds total pause time by an absolute ceiling that re-arming cannot extend', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+
+        SequentialQueue.pause();
+
+        // Commands in requestsToIgnoreLastUpdateID advance this key even with the gap still open, so a leader whose
+        // unpause is orphaned keeps pushing its own deadline out. Half a window at a time, forever.
+        const halfWindow = CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2;
+        let updateID = 0;
+        for (let elapsed = 0; elapsed < CONST.NETWORK.MAX_PAUSE_WATCHDOG_ABSOLUTE_TIME_MS; elapsed += halfWindow) {
+            // eslint-disable-next-line no-await-in-loop
+            await jest.advanceTimersByTimeAsync(halfWindow);
+            updateID += 1;
+            // eslint-disable-next-line no-await-in-loop
+            await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, updateID);
+        }
+
+        await jest.advanceTimersByTimeAsync(halfWindow);
+
+        expect(escalation).toHaveBeenCalledTimes(1);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
     it('does not let a clear of the applied-update key reset the watermark and re-arm on the next value', async () => {
         const escalation = jest.fn(() => Promise.resolve());
         SequentialQueue.registerPauseWatchdogEscalation(escalation);

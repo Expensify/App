@@ -78,6 +78,7 @@ let pauseWatchdogTimeoutID: ReturnType<typeof setTimeout> | null = null;
 // Identifies which pause() call the watchdog is armed for, so a stale race handler can't touch a later pause.
 let pauseGeneration = 0;
 let lastSeenUpdateID = 0;
+let pauseStartTime = 0;
 const sequentialQueueRequestThrottle = new RequestThrottle('SequentialQueue');
 
 function clearPauseWatchdog() {
@@ -100,10 +101,16 @@ function registerPauseWatchdogEscalation(escalation: PauseWatchdogEscalation) {
  * unpause() is not guaranteed to follow pause() — the async gap-resolution chain can die mid-way, stranding
  * the app on a skeleton until refresh. Recover when a paused queue applies no newer update for the full
  * window; progress re-arms the timer, so a slow catch-up never trips it.
+ *
+ * Re-arming is capped by an absolute ceiling measured from pause(). The re-arm signal only means "some update was
+ * applied", not "the gap that paused us is closing" — commands in requestsToIgnoreLastUpdateID advance that key
+ * with the gap still open — so without the ceiling a stuck pause could renew itself indefinitely.
  */
 function armPauseWatchdog() {
     clearPauseWatchdog();
     const generation = pauseGeneration;
+    const remainingUntilCeiling = CONST.NETWORK.MAX_PAUSE_WATCHDOG_ABSOLUTE_TIME_MS - (Date.now() - pauseStartTime);
+    const delay = Math.max(0, Math.min(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS, remainingUntilCeiling));
     pauseWatchdogTimeoutID = setTimeout(() => {
         pauseWatchdogTimeoutID = null;
         if (!isQueuePaused) {
@@ -127,7 +134,7 @@ function armPauseWatchdog() {
             }
             unpause();
         });
-    }, CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+    }, delay);
 }
 
 // Progress while paused re-arms the watchdog. Gated on leadership + an actual advance — this key syncs
@@ -160,6 +167,7 @@ function pause() {
     Log.info('[SequentialQueue] Pausing the queue');
     isQueuePaused = true;
     pauseGeneration++;
+    pauseStartTime = Date.now();
     armPauseWatchdog();
 }
 
