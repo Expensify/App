@@ -196,13 +196,13 @@ const ACCOUNT_LOGIN = 'test@user.com';
 const REPORT_ID = 'report-1';
 const TRANSACTION_ID = 'txn-1';
 const PARTICIPANT_ACCOUNT_ID = 2;
-type IOURequestStepDistanceProps = React.ComponentProps<typeof IOURequestStepDistance>;
+type IOURequestStepDistanceProps = React.ComponentProps<typeof DynamicIOURequestStepDistance>;
 
 const mockNavigation = createMock<IOURequestStepDistanceProps['navigation']>({});
 const createRoute = (action: IOURequestStepDistanceProps['route']['params']['action']): IOURequestStepDistanceProps['route'] =>
     createMock<IOURequestStepDistanceProps['route']>({
         key: 'Money_Request_Step_Distance-test',
-        name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
+        name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE,
         params: {
             action,
             iouType: CONST.IOU.TYPE.SUBMIT,
