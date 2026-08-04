@@ -84,18 +84,16 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
         const report = {
             ...getSelectedOptionData(
-                createOptionFromReport(
-                    {...reportData, reportID: id},
+                createOptionFromReport({
+                    report: {...reportData, reportID: id},
                     personalDetails,
                     privateIsArchived,
-                    reportPolicy,
+                    policy: reportPolicy,
                     sortedActions,
+                    conciergeReportID,
                     reportAttributesDerived,
-                    undefined,
-                    undefined,
-                    undefined,
                     isTrackIntentUser,
-                ),
+                }),
             ),
             isSelected,
         };

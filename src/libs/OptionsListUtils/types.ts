@@ -112,6 +112,7 @@ type LazyHydrationContext = {
     policyTags: OnyxCollection<PolicyTagLists>;
     visibleReportActionsData: VisibleReportActionsDerivedValue;
     privateIsArchivedMap: PrivateIsArchivedMap;
+    conciergeReportID: string | undefined;
 };
 
 type PersonalDetailLazyHydrationData = {
