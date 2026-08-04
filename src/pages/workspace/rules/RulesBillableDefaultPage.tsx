@@ -1,13 +1,16 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,8 +40,10 @@ function RulesBillableDefaultPage({
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {environmentURL} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
+    const {showConfirmModal} = useConfirmModal();
     const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const [draftBillable, setDraftBillable] = useState<boolean>();
@@ -66,7 +71,7 @@ function RulesBillableDefaultPage({
     const initiallyFocusedOptionKey = selectedBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
 
     const saveAndGoBack = () => {
-        setPolicyBillableMode(policyID, selectedBillable, policy?.defaultBillable, policy?.disabledFields?.defaultBillable);
+        setPolicyBillableMode(policyID, selectedBillable, policy?.defaultBillable, policy?.disabledFields?.defaultBillable, getReviewWorkspaceSettingsTaskCompletion());
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
@@ -88,6 +93,19 @@ function RulesBillableDefaultPage({
 
         return `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
     }, [environmentURL, policy?.areTagsEnabled, policyID]);
+
+    const promptEnableTagsToUnlockTrackBillable = async () => {
+        const {action} = await showConfirmModal({
+            title: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockTitle'),
+            prompt: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt'),
+            confirmText: translate('common.ok'),
+            cancelText: translate('common.cancel'),
+        });
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -116,8 +134,10 @@ function RulesBillableDefaultPage({
                         isActive={isBillableTrackingEnabled}
                         disabled={isTrackBillableToggleDisabled}
                         showLockIcon={isTrackBillableToggleDisabled}
+                        disabledText={isTrackBillableToggleDisabled ? translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt') : undefined}
+                        disabledAction={isTrackBillableToggleDisabled ? promptEnableTagsToUnlockTrackBillable : undefined}
                         pendingAction={getBillableExpensesPendingAction(policy)}
-                        onToggle={() => toggleBillableExpenses(policy)}
+                        onToggle={() => toggleBillableExpenses(policy, getReviewWorkspaceSettingsTaskCompletion())}
                     />
                 )}
                 {shouldShowBillableModeList && (
