@@ -8524,11 +8524,11 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費に「${prohibitedExpense}」を追加しました`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
         commuterExclusions: {
-            changedToFixedDistance: '通勤分の除外方法を、申請ごとの固定距離に変更しました',
-            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `1件の経費申請につき固定除外距離を${formattedDistance}に設定します`,
+            changedToFixedDistance: '通勤分を除外する設定を、申請ごとの固定距離に変更しました',
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `請求ごとに固定距離の除外を ${formattedDistance} に設定します`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
-                `1件あたりの固定距離除外を${formattedOldDistance}から${formattedNewDistance}に変更しました`,
-            disabled: '距離レートで通勤を除外する設定を無効にしました',
+                `1件あたりの固定距離控除を${formattedNewDistance}に変更しました（以前は${formattedOldDistance}）`,
+            disabled: '距離レートの通勤除外を無効にしました',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `精算方法を「${newReimbursementChoice}」（以前は「${oldReimbursementChoice}」）に変更しました`,

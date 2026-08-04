@@ -538,6 +538,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expand: 'Ανάπτυξη',
         dialogOpened: 'διάλογος',
         downloadReceipts: 'Λήψη αποδείξεων',
+        commuter: 'επιβάτης καθημερινών μετακινήσεων',
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',
@@ -8766,20 +8767,11 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `προστέθηκε το "${prohibitedExpense}" στις απαγορευμένες δαπάνες`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `αφαιρέσατε το «${prohibitedExpense}» από τις απαγορευμένες δαπάνες`,
         commuterExclusions: {
-            changedToFixedDistance: 'άλλαξε τον αποκλεισμό μετακινήσεων από/προς εργασία σε σταθερή απόσταση ανά απαίτηση',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'μίλι' : 'μίλια';
-                } else {
-                    unitLabel = isSingular ? 'χιλιόμετρο' : 'χιλιόμετρα';
-                }
-                return `ορίστε σταθερό αποκλεισμό απόστασης σε ${distance} ${unitLabel} ανά αίτημα`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `άλλαξε τον αποκλεισμό σταθερής απόστασης σε ${newDistance} ${unit} ανά απαίτηση (προηγουμένως ${oldDistance} ${unit})`,
-            disabled: 'απενεργοποιήθηκε ο αποκλεισμός μετακινήσεων από/προς εργασία για χιλιομετρικές αποζημιώσεις',
+            changedToFixedDistance: 'άλλαξε την εξαίρεση μετακινήσεων σε σταθερή απόσταση ανά αίτημα',
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `ορίστε σταθερό αποκλεισμό απόστασης σε ${formattedDistance} ανά αίτημα`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `άλλαξε τον αποκλεισμό σταθερής απόστασης σε ${formattedNewDistance} ανά αίτημα (προηγουμένως ${formattedOldDistance})`,
+            disabled: 'απενεργοποιήθηκε ο αποκλεισμός μετακινήσεων από και προς την εργασία για χιλιομετρικές αποζημιώσεις',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `άλλαξε τη μέθοδο αποζημίωσης σε «${newReimbursementChoice}» (προηγουμένως «${oldReimbursementChoice}»)`,
