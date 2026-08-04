@@ -547,22 +547,26 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
  */
 function reconnectAppWithSideEffects(updateIDFrom = 0): Promise<void | OnyxTypes.Response<OnyxDataForOpenOrReconnectKeys>> {
     // Mirror reconnectApp's guards — an incremental reconnect assumes base app state that isn't there yet.
-    if (!hasLoadedApp) {
-        openApp();
-        return Promise.resolve();
-    }
-    if (isUsingImportedState) {
-        return Promise.resolve();
-    }
+    // hasLoadedApp is undefined until Onyx hydrates, so reading it before hasLoadedAppPromise settles would treat a
+    // loaded app as unloaded and fire a full openApp instead.
+    return hasLoadedAppPromise.then(() => {
+        if (!hasLoadedApp) {
+            openApp();
+            return Promise.resolve();
+        }
+        if (isUsingImportedState) {
+            return Promise.resolve();
+        }
 
-    const params: ReconnectAppParams = getPolicyParamsForOpenOrReconnect();
-    if (updateIDFrom) {
-        params.updateIDFrom = updateIDFrom;
-    }
+        const params: ReconnectAppParams = getPolicyParamsForOpenOrReconnect();
+        if (updateIDFrom) {
+            params.updateIDFrom = updateIDFrom;
+        }
 
-    // The watchdog must await the gap closing; same justified exception as the sibling functions above.
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, !updateIDFrom));
+        // The watchdog must await the gap closing; same justified exception as the sibling functions above.
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, !updateIDFrom));
+    });
 }
 
 /**
