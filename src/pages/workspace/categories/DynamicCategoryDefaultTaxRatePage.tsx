@@ -114,7 +114,9 @@ function DynamicCategoryDefaultTaxRatePage({
                     confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
                     addBottomSafeAreaPadding
+                    initiallyFocusedItemKey={initialSelectedTaxRate}
                     shouldScrollToFocusedIndexOnMount={false}
+                    shouldUpdateFocusedIndex
                     style={{containerStyle: styles.pt3}}
                 />
             </ScreenWrapper>
