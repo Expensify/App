@@ -1905,6 +1905,24 @@ function openReport(params: OpenReportActionParams) {
             value: settledPersonalDetails,
         });
 
+        if (!isNewThread) {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    errorFields: {
+                        createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+                    },
+                },
+            });
+        }
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+        });
+
         // Add the createdReportActionID parameter to the API call
         parameters.createdReportActionID = optimisticCreatedAction.reportActionID;
 
@@ -1976,8 +1994,8 @@ function createGroupChat(
     newReportObject: OptimisticChatReport,
     currentUserLogin: string,
     introSelected: OnyxEntry<IntroSelected>,
-    isSelfTourViewed: boolean | undefined,
-    hasCompletedGuidedSetupFlow: boolean | undefined,
+    isSelfTourViewed: boolean,
+    hasCompletedGuidedSetupFlow: boolean,
     betas: OnyxEntry<Beta[]>,
     currentUserAccountID: number,
     avatar?: File | CustomRNImageManipulatorResult,
@@ -2131,6 +2149,20 @@ function createGroupChat(
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         value: settledPersonalDetails,
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            errorFields: {
+                createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+            },
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
     });
 
     // Build API parameters
@@ -2451,8 +2483,8 @@ type NavigateToAndCreateGroupChatParams = {
     currentUserLogin: string;
     optimisticReportID: string;
     introSelected: OnyxEntry<IntroSelected>;
-    isSelfTourViewed: boolean | undefined;
-    hasCompletedGuidedSetupFlow: boolean | undefined;
+    isSelfTourViewed: boolean;
+    hasCompletedGuidedSetupFlow: boolean;
     betas: OnyxEntry<Beta[]>;
     currentUserAccountID: number;
     avatarUri?: string;
@@ -4694,7 +4726,7 @@ function shouldShowReportActionNotification(
     isRemote = false,
 ): boolean {
     const tag = isRemote ? '[PushNotification]' : '[LocalNotification]';
-    const topmostReportID = Navigation.getTopmostReportId();
+    const topmostReportID = Navigation.getFocusedReportId();
 
     // Due to payload size constraints, some push notifications may have their report action stripped
     // so we must double check that we were provided an action before using it in these checks.
@@ -4802,6 +4834,7 @@ function navigateToMostRecentReport(
     conciergeReportID: string | undefined,
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
+    isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
 ) {
     const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
@@ -4824,8 +4857,7 @@ function navigateToMostRecentReport(
             Navigation.goBack();
         }
 
-        // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, undefined, betas, false, () => true, {forceReplace: true});
+        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true, {forceReplace: true});
     }
 }
 
@@ -4869,6 +4901,7 @@ function leaveGroupChat(
     currentUserAccountID: number,
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
+    isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
 ) {
     const reportID = report.reportID;
@@ -4920,7 +4953,7 @@ function leaveGroupChat(
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.revealRouteBeforeDismissingModal(getReportRouteForCurrentContext({reportID}));
     } else {
-        navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, betas);
+        navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas);
     }
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
@@ -4931,6 +4964,7 @@ function leaveRoom(
     currentUserAccountID: number,
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
+    isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     isWorkspaceMemberLeavingWorkspaceRoom = false,
 ) {
@@ -5044,7 +5078,7 @@ function leaveRoom(
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, betas);
+    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas);
 }
 
 function buildInviteToRoomOnyxData(
@@ -5800,6 +5834,18 @@ function updateLoadingInitialReportAction(reportID: string | undefined, isLoadin
         return;
     }
     Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {isLoadingInitialReportActions});
+}
+
+/**
+ * Marks a report's initial actions as loaded without a server round-trip. Used for optimistic reports whose local
+ * actions are the complete truth (openReport is intentionally never called for them), so the RAM-only loading state
+ * can be reconstructed after an app restart drops the stamp written at creation.
+ */
+function markLocalReportActionsAsLoaded(reportID: string | undefined) {
+    if (!isValidReportIDFromPath(reportID)) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true});
 }
 
 function setNewRoomFormLoading(isLoading = true) {
@@ -8440,6 +8486,7 @@ export {
     updateChatName,
     updateLastVisitTime,
     updateLoadingInitialReportAction,
+    markLocalReportActionsAsLoaded,
     updateNotificationPreference,
     updatePolicyRoomName,
     updatePrivateNotes,

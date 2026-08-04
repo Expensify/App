@@ -7,6 +7,7 @@ import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopo
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
+import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
@@ -35,6 +36,8 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
+import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
+import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -135,6 +138,15 @@ type UseSearchBulkActionsParams = {
     queryJSON: SearchQueryJSON | undefined;
 };
 
+function getReportsFromSearchData(searchData: SearchResults['data'] | undefined): Report[] {
+    return searchData
+        ? Object.keys(searchData)
+              .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+              .map((key) => searchData[key as keyof typeof searchData] as Report)
+              .filter((report): report is Report => report != null && 'reportID' in report)
+        : [];
+}
+
 function getRestrictedPolicyID(
     items: Array<{policyID?: string}>,
     billingGracePeriods: OnyxCollection<BillingGraceEndPeriod>,
@@ -158,6 +170,10 @@ function getRestrictedPolicyID(
         );
 }
 
+function isGroupSelection(key: string, transaction: SelectedTransactions[string]): boolean {
+    return key.startsWith(CONST.SEARCH.GROUP_PREFIX) || (!!transaction.isSelectedViaGroup && !!transaction.groupKey);
+}
+
 function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON {
     const {groupBy} = queryJSON;
     if (!groupBy || !searchData) {
@@ -165,11 +181,14 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
     }
 
     const groupKeys = new Set<string>();
-    for (const [key, value] of Object.entries(selectedTransactions)) {
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (!isGroupSelection(key, transaction)) {
+            continue;
+        }
         if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
             groupKeys.add(key);
-        } else if (value.groupKey) {
-            groupKeys.add(value.groupKey);
+        } else if (transaction.groupKey) {
+            groupKeys.add(transaction.groupKey);
         }
     }
 
@@ -371,8 +390,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
     const delegateAccountID = useDelegateAccountID();
-    const {introSelected, betas, isSelfTourViewed, activePolicyID, activePolicy, defaultWorkspaceName, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail} =
-        usePaymentContext();
+    const {
+        introSelected,
+        betas,
+        isSelfTourViewed,
+        activePolicyID,
+        activePolicy,
+        conciergeChat,
+        defaultWorkspaceName,
+        userBillingGracePeriodEnds,
+        amountOwed,
+        ownerBillingGracePeriodEnd,
+        delegateEmail,
+    } = usePaymentContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
@@ -411,6 +441,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isPdfModalVisible, setIsPdfModalVisible] = useState(false);
     const [pdfReportID, setPdfReportID] = useState<string | undefined>(undefined);
+    const [isExpensifyCardStatementPDFModalVisible, setIsExpensifyCardStatementPDFModalVisible] = useState(false);
+    const [expensifyCardStatementPDFParams, setExpensifyCardStatementPDFParams] = useState<ExpensifyCardStatementParams | undefined>(undefined);
+    const [isExpensifyCardStatementMultiFeedAlertVisible, setIsExpensifyCardStatementMultiFeedAlertVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const openSearchReportSubmitToPopover = useOpenSearchReportSubmitToPopover();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
@@ -458,6 +491,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'GustoSquare',
         'Pencil',
         'Workflows',
+        'Document',
     ]);
 
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
@@ -567,6 +601,80 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const {hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+    // Use currentSearchResults, not the lastNonEmpty fallback: the export scope must reflect the query on screen now,
+    // so an empty current result yields no selection rather than one derived from the previous query's settlements.
+    const expensifyCardStatementSelection = useMemo(
+        () => getExpensifyCardStatementSelection(queryJSON, selectedTransactions, currentSearchResults?.data),
+        [queryJSON, currentSearchResults?.data, selectedTransactions],
+    );
+
+    // PopoverMenu snapshots its items, so onSelected can run detached from the current render. Read the
+    // latest selection from a ref so the request reflects what is selected now, not what was when the menu
+    // was built.
+    const expensifyCardStatementSelectionRef = useRef(expensifyCardStatementSelection);
+    expensifyCardStatementSelectionRef.current = expensifyCardStatementSelection;
+
+    // Identifies the most recent statement export. A request's failure handler only acts while it is still
+    // the latest, so an older export that the user has since replaced cannot close the newer one's modal.
+    const expensifyCardStatementRequestIDRef = useRef(0);
+
+    const exportExpensifyCardStatementPDF = useCallback(() => {
+        if (isOffline) {
+            setIsOfflineModalVisible(true);
+            return;
+        }
+
+        const selection = expensifyCardStatementSelectionRef.current;
+        if (!selection) {
+            return;
+        }
+
+        if (selection.hasMultipleFeeds) {
+            setIsExpensifyCardStatementMultiFeedAlertVisible(true);
+            return;
+        }
+
+        const feed = selection.feeds.at(0);
+        if (!feed) {
+            return;
+        }
+
+        const statementParams = getExpensifyCardStatementParamsFromFeed(feed);
+        const {entryIDs} = statementParams;
+        const requestID = ++expensifyCardStatementRequestIDRef.current;
+
+        // Only surface the failure while this is still the latest export, so a superseded request can't close a newer modal.
+        const showStatementError = () => {
+            if (requestID !== expensifyCardStatementRequestIDRef.current) {
+                return;
+            }
+            setIsExpensifyCardStatementPDFModalVisible(false);
+            setExpensifyCardStatementPDFParams(undefined);
+            setIsDownloadErrorModalVisible(true);
+        };
+
+        setExpensifyCardStatementPDFParams(statementParams);
+        setIsExpensifyCardStatementPDFModalVisible(true);
+        getExpensifyCardStatementPDF(statementParams.policyID, statementParams.feedCountry, entryIDs)
+            ?.then((response) => {
+                const statementKey = response?.statementKey;
+                if (typeof statementKey !== 'string' || statementKey.length === 0) {
+                    // Without a statementKey the modal can never resolve to a downloadable file, so surface the error
+                    // instead of leaving it stuck on the loading state.
+                    showStatementError();
+                    return;
+                }
+
+                // Sync the modal to the server's cache key, but only while this is still the latest export. The
+                // entryIDs alone are not enough: a cancel + re-scope + re-export of the same settlement can produce
+                // a stale earlier response with matching entryIDs but a different scope, so gate on the request id.
+                if (requestID !== expensifyCardStatementRequestIDRef.current) {
+                    return;
+                }
+                setExpensifyCardStatementPDFParams((currentParams) => (currentParams ? {...currentParams, statementKey} : currentParams));
+            })
+            .catch(showStatementError);
+    }, [isOffline]);
     const firstTransactionID = selectedTransactionsKeys.at(0);
     const firstTransaction =
         (firstTransactionID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`] : undefined) ??
@@ -756,7 +864,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
+            const isGroupExport = !!queryJSON?.groupBy && Object.entries(selectedTransactions).some(([key, transaction]) => isGroupSelection(key, transaction));
+            const transactionIDList = isGroupExport ? selectedTransactionsKeys.filter((key) => !isGroupSelection(key, selectedTransactions[key])) : selectedTransactionsKeys;
             let didFail = false;
             const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
             const queryJSONToExport = isGroupExport && queryJSON ? addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data) : queryJSON;
@@ -766,10 +875,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 {
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList: isGroupExport ? [] : reportIDList,
-                    transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
+                    transactionIDList,
                     isBasicExport: exportParameters.isBasicExport,
                     exportColumnLabels: exportParameters.exportColumnLabels,
                     exportName,
+                    isGroupExport,
                 },
                 () => {
                     didFail = true;
@@ -862,6 +972,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 ownerBillingGracePeriodEnd,
                 ownerLogin: getLoginByAccountID(expenseReport.ownerAccountID, personalDetails),
                 delegateEmail,
+                delegateAccountID,
                 full: true,
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
                 shouldPlaySuccessSound: false,
@@ -905,6 +1016,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchKey,
         isTrackIntentUser,
         personalDetails,
+        delegateAccountID,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -1237,6 +1349,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         methodID: paymentItem.bankAccountID ?? paymentItem.fundID,
                         paymentMethod: paymentItem.fundID ? CONST.PAYMENT_METHODS.DEBIT_CARD : CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                         activePolicy,
+                        conciergeChat,
                         betas,
                         isSelfTourViewed,
                         defaultWorkspaceName,
@@ -1318,6 +1431,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             searchResults?.data,
             delegateAccountID,
             isTrackIntentUser,
+            conciergeChat,
         ],
     );
 
@@ -1334,13 +1448,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return false;
         }
 
-        const searchData = currentSearchResults?.data;
-        const reports: Report[] = searchData
-            ? Object.keys(searchData)
-                  .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
-                  .map((key) => searchData[key as keyof typeof searchData] as Report)
-                  .filter((report): report is Report => report != null && 'reportID' in report)
-            : [];
+        const reports = getReportsFromSearchData(currentSearchResults?.data);
 
         return (
             selectedTransactionReportIDs.length > 0 &&
@@ -1349,6 +1457,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             })
         );
     }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID, currentSearchResults?.data, allReports]);
+
+    const areAllTransactionsFromDMReports = useMemo(() => {
+        const reports = getReportsFromSearchData(currentSearchResults?.data);
+
+        return (
+            selectedTransactionReportIDs.length > 0 &&
+            selectedTransactionReportIDs.every((id) => {
+                const iouReport = getReportOrDraftReport(id, reports, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]);
+                if (!iouReport?.chatReportID) {
+                    return false;
+                }
+                const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
+                return isDM(chatReport);
+            })
+        );
+    }, [selectedTransactionReportIDs, currentSearchResults?.data, allReports]);
 
     const duplicateHandlerRef = useRef<() => void>(() => {});
     const setDuplicateHandler = useCallback((handler: () => void) => {
@@ -1509,9 +1633,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const connectedIntegration = getConnectedIntegration(policy);
             const isReportsTab = isExpenseReportType;
-            const includesGroupExport = Object.entries(selectedTransactions).some(
-                ([key, selectedTransaction]) => key.startsWith(CONST.SEARCH.GROUP_PREFIX) && !selectedTransaction?.transaction,
-            );
+            const includesGroupExport = isGroupedSearch && Object.entries(selectedTransactions).some(([key, selectedTransaction]) => isGroupSelection(key, selectedTransaction));
 
             const canReportBeExported = (report: (typeof selectedReports)[0], exportOption: ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>) => {
                 if (!report.reportID) {
@@ -1988,6 +2110,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
+        // A standalone bulk action (not nested under Export). "Select all matching" only loads the visible
+        // rows, so we would export an incomplete set of settlements while the UI claims everything is selected;
+        // the statement has no whole-query export path (unlike CSV/templates), so require an explicit selection.
+        if (expensifyCardStatementSelection && !areAllMatchingItemsSelected) {
+            options.push({
+                icon: expensifyIcons.Document,
+                text: translate('export.downloadStatementPDF'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_STATEMENT_PDF,
+                onSelected: exportExpensifyCardStatementPDF,
+                shouldCloseModalOnSelect: true,
+            });
+        }
+
         const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
 
         if (shouldShowHoldOption) {
@@ -2007,11 +2142,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
 
-                    const isDismissed = areAllTransactionsFromSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+                    const shouldShowHoldEducationalModal = areAllTransactionsFromSubmitter || areAllTransactionsFromDMReports;
+                    const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                     if (isDismissed) {
                         navigateToSearchRHP(ROUTES.TRANSACTION_HOLD_REASON_SEARCH, ROUTES.TRANSACTION_HOLD_REASON_RHP);
-                    } else if (areAllTransactionsFromSubmitter) {
+                    } else if (shouldShowHoldEducationalModal) {
                         setIsHoldEducationalModalVisible(true);
                     } else {
                         setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
@@ -2248,6 +2384,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         bulkPayButtonOptions,
         onBulkPaySelected,
         areAllTransactionsFromSubmitter,
+        areAllTransactionsFromDMReports,
         dismissedHoldUseExplanation,
         localeCompare,
         firstTransaction,
@@ -2271,6 +2408,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         transactions,
         isBetaEnabled,
         defaultExpensePolicy,
+        expensifyCardStatementSelection,
+        exportExpensifyCardStatementPDF,
         personalDetails,
         selfDMReportID,
         splitEffectivePolicy,
@@ -2304,6 +2443,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         clearSelectedTransactions();
     }, [clearSelectedTransactions]);
 
+    const handleExpensifyCardStatementPDFModalHide = useCallback(() => {
+        setExpensifyCardStatementPDFParams(undefined);
+        // Clear the selection when the statement modal closes (after download or failure), like the other bulk
+        // actions clear once their flow is done. Done on hide, not on trigger, because the modal renders inside
+        // the selection-gated bulk-action bar and would unmount if the selection cleared while it was open.
+        clearSelectedTransactions();
+    }, [clearSelectedTransactions]);
+
+    const handleExpensifyCardStatementMultiFeedAlertClose = useCallback(() => {
+        setIsExpensifyCardStatementMultiFeedAlertVisible(false);
+    }, []);
+
     const dismissModalAndUpdateUseHold = useCallback(() => {
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
@@ -2335,6 +2486,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
         isHoldEducationalModalVisible,
+        areAllTransactionsFromDMReports,
         rejectModalAction,
         emptyReportsCount,
         handleOfflineModalClose,
@@ -2343,6 +2495,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setIsPdfModalVisible,
         pdfReportID,
         handlePdfModalHide,
+        isExpensifyCardStatementPDFModalVisible,
+        setIsExpensifyCardStatementPDFModalVisible,
+        expensifyCardStatementPDFParams,
+        handleExpensifyCardStatementPDFModalHide,
+        isExpensifyCardStatementMultiFeedAlertVisible,
+        handleExpensifyCardStatementMultiFeedAlertClose,
         exportDownloadStatusModal,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
