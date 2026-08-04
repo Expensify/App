@@ -657,7 +657,7 @@ describe('ReportUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, createdAction, undefined, iouReport, undefined, policyWithBank)).toBe('');
+            expect(getIOUReportActionDisplayMessage(translateLocal, createdAction, convertToDisplayString, undefined, iouReport, undefined, policyWithBank)).toBe('');
         });
 
         it('should use the passed policy for the last 4 digits of an automatic VBBA payment', () => {
@@ -670,7 +670,7 @@ describe('ReportUtils', () => {
             const expected = translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
 
             // Then the workspace-rules message resolves the last 4 digits from the passed policy
-            expect(getIOUReportActionDisplayMessage(translateLocal, automaticVBBAAction, undefined, iouReport, undefined, policyWithBank)).toBe(expected);
+            expect(getIOUReportActionDisplayMessage(translateLocal, automaticVBBAAction, convertToDisplayString, undefined, iouReport, undefined, policyWithBank)).toBe(expected);
         });
 
         it('should return the workspace-rules message for an automatic Expensify payment', () => {
@@ -679,7 +679,7 @@ describe('ReportUtils', () => {
                 originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, automaticAction: true},
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, automaticExpensifyAction, undefined, iouReport, undefined, policyWithBank)).toBe(
+            expect(getIOUReportActionDisplayMessage(translateLocal, automaticExpensifyAction, convertToDisplayString, undefined, iouReport, undefined, policyWithBank)).toBe(
                 translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithExpensify', ''),
             );
         });
@@ -702,7 +702,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${approvedReportID}`, approvedReport);
 
             // Then the display message uses the "approved" copy
-            expect(getIOUReportActionDisplayMessage(translateLocal, approveIOUAction, transaction, approvedReport)).toContain('approved');
+            expect(getIOUReportActionDisplayMessage(translateLocal, approveIOUAction, convertToDisplayString, transaction, approvedReport)).toContain('approved');
         });
     });
 
@@ -16481,7 +16481,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage passing the policy explicitly
-            const result = getReportPreviewMessage(translateLocal, {reportOrID: expenseReport, policy: groupPolicy});
+            const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: expenseReport, policy: groupPolicy});
 
             // Then the group-policy "approved" branch is taken based on the passed policy alone
             expect(result).toContain('approved');
