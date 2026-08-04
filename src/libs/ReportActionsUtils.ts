@@ -1,5 +1,6 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import usePrevious from '@hooks/usePrevious';
 
 // eslint-disable-next-line @dword-design/import-alias/prefer-alias
@@ -54,7 +55,13 @@ import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils
 
 import {getBankName, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithExplicitCurrency, convertToShortDisplayString} from './CurrencyUtils';
+import {
+    convertAmountToDisplayString,
+    convertToBackendAmount,
+    convertToDisplayString as convertToDisplayStringUtil,
+    convertToDisplayStringWithExplicitCurrency,
+    convertToShortDisplayString,
+} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
@@ -185,6 +192,11 @@ const deprecatedOldDotReportActions = new Set<ReportActionName>([
 
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+}
+
+/** The current user's optimistic, not-yet-synced comment — a message just sent in the current session. */
+function isCurrentUserPendingAddAction(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
+    return !!currentUserAccountID && reportAction?.actorAccountID === currentUserAccountID && reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 }
 
 function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): boolean {
@@ -467,6 +479,30 @@ function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, o
     return translate('iou.paidElsewhere', {payer, comment: originalMessage?.comment?.trim()});
 }
 
+/**
+ * Builds the payment message for a cross-border FX reimbursement, which reports the amount credited to the employee
+ * in their deposit currency plus both account last-4s, since the company and employee move different currencies.
+ *
+ * Returns undefined for any payment that did not record both a credited amount and the currency it is in, so callers
+ * can fall through to the wording that names the report total instead.
+ */
+function getCrossBorderReimbursedMessage(
+    translate: LocalizedTranslate,
+    originalMessage: Pick<OriginalMessageIOU | OriginalMessageReimbursed, 'creditedAmount' | 'creditedCurrency' | 'debitBankAccountLast4' | 'creditBankAccountLast4'>,
+    fallbackDebitBankAccountLast4?: string,
+): string | undefined {
+    const {creditedAmount, creditedCurrency} = originalMessage;
+    if (!creditedAmount || !creditedCurrency) {
+        return undefined;
+    }
+
+    return translate('iou.reimbursedCrossBorder', {
+        amount: convertToDisplayStringUtil(creditedAmount, creditedCurrency),
+        debitBankAccount: originalMessage.debitBankAccountLast4 ?? fallbackDebitBankAccountLast4 ?? '',
+        creditBankAccount: originalMessage.creditBankAccountLast4 ?? '',
+    });
+}
+
 function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageMarkedReimbursed | undefined;
     return translate('iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
@@ -536,6 +572,12 @@ function getReimbursedMessage(
 
     if (isSubmitterAddingBankAccount) {
         return `${translate('iou.reimbursedSubmitterAddedBankAccount', submitterLogin)}${paymentSuffix}`;
+    }
+
+    // The employee is credited in their own currency, so name that amount and both accounts, not the report total.
+    const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, effectiveDebitBankAccountLast4);
+    if (crossBorderMessage) {
+        return isAutomation ? `${crossBorderMessage} ${translate('iou.reimbursedOnBehalfOf', actorLogin.toLowerCase())}` : crossBorderMessage;
     }
 
     const actionText = isInvoiceOrBill ? translate('iou.paidThisBill') : translate('iou.reimbursedThisReport');
@@ -2174,6 +2216,11 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
         case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE: {
             const {result, label} = originalMessage;
             const errorMessage = result?.messages?.join(', ') ?? '';
+
+            // Reconciled results are informational (the payment already exists in the integration), so show the message without the "failed to export" framing
+            if (result?.reconciled) {
+                return errorMessage;
+            }
             const linkText = result?.link?.text ?? '';
             const linkURL = result?.link?.url ?? '';
             if (errorMessage.includes(CONST.ERROR.INTEGRATION_MESSAGE_INVALID_CREDENTIALS)) {
@@ -3555,7 +3602,7 @@ function getCategoryTaxRateMessage(translate: LocalizedTranslate, action: Report
     });
 }
 
-function getAutoReimbursementMessage(translate: LocalizedTranslate, action: ReportAction): string {
+function getAutoReimbursementMessage(translate: LocalizedTranslate, action: ReportAction, convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']): string {
     const {oldLimit, newLimit, currency} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT>) ?? {};
 
     if ((oldLimit === undefined || oldLimit === null || oldLimit === 0) && typeof newLimit === 'number' && newLimit !== 0) {
@@ -3754,7 +3801,11 @@ function getUpdateACHAccountMessage(translate: LocalizedTranslate, action: Repor
     return getReportActionText(action);
 }
 
-function getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate: LocalizedTranslate, action: ReportAction): string {
+function getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(
+    translate: LocalizedTranslate,
+    action: ReportAction,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+): string {
     const {oldMaxExpenseAmountNoReceipt, newMaxExpenseAmountNoReceipt, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT>) ?? {};
 
@@ -3778,7 +3829,11 @@ function getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate: Localized
     return getReportActionText(action);
 }
 
-function getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translate: LocalizedTranslate, action: ReportAction): string {
+function getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(
+    translate: LocalizedTranslate,
+    action: ReportAction,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+): string {
     const {oldMaxExpenseAmountNoItemizedReceipt, newMaxExpenseAmountNoItemizedReceipt, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT>) ?? {};
 
@@ -3802,7 +3857,11 @@ function getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translate: L
     return getReportActionText(action);
 }
 
-function getPolicyChangeLogMaxExpenseAmountMessage(translate: LocalizedTranslate, action: ReportAction): string {
+function getPolicyChangeLogMaxExpenseAmountMessage(
+    translate: LocalizedTranslate,
+    action: ReportAction,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+): string {
     const {oldMaxExpenseAmount, newMaxExpenseAmount, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT>) ?? {};
 
@@ -4059,6 +4118,7 @@ function getActionableCardFraudAlertMessage(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT>>,
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ) {
     const fraudMessage = getOriginalMessage(reportAction);
     const cardLastFour = fraudMessage?.maskedCardNumber?.slice(-4) ?? '';
@@ -4098,7 +4158,11 @@ function getUpdatedAuditRateMessage(translate: LocalizedTranslate, reportAction:
     return translate('workspaceActions.updatedAuditRate', oldAuditRate, newAuditRate);
 }
 
-function getUpdatedManualApprovalThresholdMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
+function getUpdatedManualApprovalThresholdMessage(
+    translate: LocalizedTranslate,
+    reportAction: OnyxEntry<ReportAction>,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+) {
     const {
         oldLimit,
         newLimit,
@@ -4205,7 +4269,7 @@ function getUpdatedTimeEnabledMessage(translate: LocalizedTranslate, reportActio
     return getReportActionText(reportAction);
 }
 
-function getUpdatedTimeRateMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
+function getUpdatedTimeRateMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']) {
     const {newRate, oldRate, currency} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE>) ?? {};
 
     const newRateText = newRate !== undefined ? convertToDisplayString(convertToBackendAmount(newRate), currency) : undefined;
@@ -4793,6 +4857,7 @@ export {
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
+    getCrossBorderReimbursedMessage,
     getElsewherePaymentReportActionMessage,
     getMarkedReimbursedMessage,
     getReimbursedMessage,
@@ -4846,6 +4911,7 @@ export {
     isExportedToIntegrationAction,
     hasNextActionMadeBySameActor,
     isCreatedAction,
+    isCurrentUserPendingAddAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
@@ -5032,4 +5098,4 @@ export {
     isPolicyCopyReportAction,
 };
 
-export type {LastVisibleMessage};
+export type {CompanyAddressOriginalMessage, LastVisibleMessage, UpdateACHAccountOriginalMessage};
