@@ -30,8 +30,12 @@ const processedResult = {
 
 /** Serializes the parts of the context under test so assertions can read them from the rendered output. */
 function ContextProbe() {
-    const {padding, domainPadding, labelItems, chartContentStyles} = useVictoryChartContext();
-    return <Text testID="contextProbe">{JSON.stringify({padding, domainPadding, firstLabel: labelItems.at(0), width: chartContentStyles.width, height: chartContentStyles.height})}</Text>;
+    const {padding, domainPadding, labelItems, chartContentStyles, pixelScale} = useVictoryChartContext();
+    return (
+        <Text testID="contextProbe">
+            {JSON.stringify({padding, domainPadding, firstLabel: labelItems.at(0), width: chartContentStyles.width, height: chartContentStyles.height, pixelScale})}
+        </Text>
+    );
 }
 
 function getProbedContext(): Record<string, unknown> {
@@ -58,6 +62,7 @@ describe('VictoryChartScaledProvider', () => {
             firstLabel: {x: 680, y: 48, fontSize: {0: 28}},
             width: 1360,
             height: 680,
+            pixelScale: 2,
         });
     });
 
@@ -78,6 +83,7 @@ describe('VictoryChartScaledProvider', () => {
             padding: 16,
             domainPadding: 20,
             firstLabel: {x: 340, y: 24},
+            pixelScale: 1,
         });
     });
 });

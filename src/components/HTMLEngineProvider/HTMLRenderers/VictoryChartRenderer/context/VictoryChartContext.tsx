@@ -26,6 +26,13 @@ type VictoryChartContextValue = {
     chartContentStyles: ReturnType<typeof parseStyles>['nodeStyles'];
     chartContainerStyles: ReturnType<typeof parseStyles>['parentNodeStyles'];
     type: ChartType;
+
+    /**
+     * Uniform factor already applied to the pixel-space values in this context (1 for inline charts).
+     * Series components that parse raw pixel attributes from the tnode (bar width, corner radius,
+     * stroke width) must multiply them by this factor so they scale with the rest of the chart.
+     */
+    pixelScale: number;
 };
 
 const VictoryChartContext = createContext<VictoryChartContextValue | null>(null);
@@ -74,6 +81,7 @@ function VictoryChartProvider({tnode, processedResult, type, children}: VictoryC
         chartContentStyles: effectiveChartContentStyles,
         chartContainerStyles,
         type,
+        pixelScale: 1,
     };
 
     return <VictoryChartContext.Provider value={contextValue}>{children}</VictoryChartContext.Provider>;
@@ -83,6 +91,7 @@ type VictoryChartScaledProviderProps = {
     /** Uniform factor to scale all pixel-space chart config by (may be > 1) */
     scale: number;
 
+    /** Chart sub-tree to re-provide the scaled context to */
     children: React.ReactNode;
 };
 

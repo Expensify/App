@@ -118,6 +118,7 @@ function scaleVictoryChartContextValue(value: VictoryChartContextValue, scale: n
         labelItems: value.labelItems.map((labelItem) => scaleLabelItem(labelItem, scale)),
         legendItems: value.legendItems.map((legendItem) => scaleLegendItem(legendItem, scale)),
         chartContentStyles: {...value.chartContentStyles, width: designWidth, height: designHeight},
+        pixelScale: value.pixelScale * scale,
     };
 }
 

@@ -1,5 +1,6 @@
 import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
 import VictoryTheme from '@components/Charts/VictoryTheme';
+import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {useVictoryChartRenderArgs} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
@@ -15,16 +16,18 @@ type VictoryChartBarProps = {tnode: TNode};
 
 function VictoryChartBar({tnode}: VictoryChartBarProps) {
     const {points, chartBounds} = useVictoryChartRenderArgs();
+    const {pixelScale} = useVictoryChartContext();
     const yKey = getYKey(tnode);
     const {nodeStyles} = parseStyles(tnode);
+    const barWidth = parseAttributeAsNumber(tnode.attributes.barwidth);
     return (
         <Bar
             points={points[yKey]}
             chartBounds={chartBounds}
             color={nodeStyles.fill ?? VictoryTheme.colors.default}
             innerPadding={BAR_INNER_PADDING}
-            roundedCorners={parseCornerRadius(tnode.attributes.cornerradius)}
-            barWidth={parseAttributeAsNumber(tnode.attributes.barwidth)}
+            roundedCorners={parseCornerRadius(tnode.attributes.cornerradius, pixelScale)}
+            barWidth={barWidth === undefined ? undefined : barWidth * pixelScale}
         />
     );
 }

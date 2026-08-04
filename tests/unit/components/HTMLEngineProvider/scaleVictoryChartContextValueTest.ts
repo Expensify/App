@@ -21,6 +21,7 @@ const baseValue = {
     chartContentStyles: {width: 680, height: 340},
     chartContainerStyles: {},
     type: 'cartesian',
+    pixelScale: 1,
 } as unknown as VictoryChartContextValue;
 
 describe('scaleVictoryChartContextValue', () => {
@@ -38,6 +39,7 @@ describe('scaleVictoryChartContextValue', () => {
         expect(scaled.domainPadding).toEqual({left: 40, right: 40});
         expect(scaled.chartContentStyles).toMatchObject({width: 1360, height: 680});
         expect(scaled.xAxis).toMatchObject({lineWidth: 2, labelOffset: 16});
+        expect(scaled.pixelScale).toBe(2);
         expect(scaled.yAxis?.at(0)).toMatchObject({lineWidth: 4, labelOffset: 8});
     });
 

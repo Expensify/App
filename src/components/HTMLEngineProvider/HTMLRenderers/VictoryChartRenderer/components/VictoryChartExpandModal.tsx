@@ -83,7 +83,10 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
     // displayed scaled down, so pinch-zooming stays sharp up to the headroom factor instead of
     // magnifying raster pixels immediately. Capped so the canvas never exceeds a safe texture size.
     const MAX_CANVAS_DIMENSION = 2048;
-    const zoomHeadroom = Math.max(1, Math.min(2, MAX_CANVAS_DIMENSION / Math.max(targetWidth, targetHeight, 1)));
+    // Cap the headroom so the canvas is never drawn more than 2x larger than the fitted size — enough
+    // for typical pinch-zoom depth without paying for a larger render surface.
+    const MAX_ZOOM_HEADROOM = 2;
+    const zoomHeadroom = Math.max(1, Math.min(MAX_ZOOM_HEADROOM, MAX_CANVAS_DIMENSION / Math.max(targetWidth, targetHeight, 1)));
     const renderWidth = targetWidth * zoomHeadroom;
     const renderHeight = targetHeight * zoomHeadroom;
 
