@@ -169,6 +169,7 @@ function SearchTransactionsChangeReport() {
         );
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         const policyTagList = policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : {};
+        const reportsForCall = {[`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: optimisticReport, ...reports};
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
                 transactionIDs: selectedTransactionsKeys,
@@ -182,7 +183,7 @@ function SearchTransactionsChangeReport() {
                 policyTagList,
                 transactions,
                 allTransactionViolation: transactionViolations,
-                reports,
+                reports: reportsForCall,
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,

@@ -148,6 +148,7 @@ function DynamicIOURequestStepUpgrade({
 
             const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
+            const reportsForCall = {[`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: optimisticReport, ...reports};
 
             // Move ALL selected transactions to the new report
             changeTransactionsReport({
@@ -162,7 +163,7 @@ function DynamicIOURequestStepUpgrade({
                 policyTagList,
                 transactions,
                 allTransactionViolation: transactionViolations,
-                reports,
+                reports: reportsForCall,
                 selfDMReportActions,
                 isTrackIntentUser,
                 // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance calculation, so the personal-policy currency is never read here.

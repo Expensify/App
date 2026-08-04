@@ -1,6 +1,8 @@
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {findSelfDMReportID} from '@libs/ReportUtils';
+import {isDeletedTransaction} from '@libs/TransactionUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 
@@ -28,15 +30,20 @@ function useChangeTransactionsReportReports(transactionIDs: string[], allTransac
         if (transaction.reportID) {
             ids.add(transaction.reportID);
         }
-        const sources = [transaction.reportID, selfDMReportID].filter((id): id is string => !!id);
-        for (const source of sources) {
-            const iouAction = getIOUActionForReportID(source, transaction.transactionID);
-            if (iouAction?.childReportID) {
-                ids.add(iouAction.childReportID);
-            }
-            if (iouAction?.reportActionID) {
-                ids.add(iouAction.reportActionID);
-            }
+        if (isDeletedTransaction(transaction)) {
+            continue;
+        }
+        const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const source = isUnreportedExpense ? selfDMReportID : transaction.reportID;
+        if (!source) {
+            continue;
+        }
+        const iouAction = getIOUActionForReportID(source, transaction.transactionID);
+        if (iouAction?.childReportID) {
+            ids.add(iouAction.childReportID);
+        }
+        if (iouAction?.reportActionID) {
+            ids.add(iouAction.reportActionID);
         }
     }
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
