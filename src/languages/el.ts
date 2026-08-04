@@ -412,7 +412,7 @@ const translations: TranslationDeepObject<typeof en> = {
         withdrawalID: 'Αναγνωριστικό ανάληψης',
         internationalReimbursementIDs: 'Διεθνή αναγνωριστικά αποζημιώσεων',
         amountDebited: 'Ποσό χρέωσης',
-        amountReimbursed: 'Ποσό αποζημίωσης',
+        amountReimbursed: 'Ποσό που αποζημιώθηκε',
         withdrawalStatus: 'Κατάσταση ανάληψης',
         paidStatus: 'Κατάσταση πληρωμής',
         bankAccounts: 'Τραπεζικοί λογαριασμοί',
