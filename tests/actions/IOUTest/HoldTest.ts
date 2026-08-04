@@ -670,6 +670,7 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
+                        delegateAccountID: undefined,
                         betas: [],
                     });
                     const totalsUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
@@ -695,6 +696,7 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
+                        delegateAccountID: undefined,
                         betas: [],
                     });
                     const restorationEntries = result.failureData.filter(
@@ -725,6 +727,7 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
+                        delegateAccountID: undefined,
                         betas: [],
                     });
                     const totalsUpdates = result.optimisticData.filter((entry) => {
@@ -752,6 +755,7 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
+                        delegateAccountID: undefined,
                         betas: [],
                     });
                     const totalsUpdates = result.optimisticData.filter((entry) => {
@@ -849,6 +853,7 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         betas: [],
+                        delegateAccountID: undefined,
                         shouldMoveHeldTransactions: false,
                         shouldMoveScanFailedTransactions: true,
                     });
@@ -894,6 +899,7 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         betas: [],
+                        delegateAccountID: undefined,
                         shouldMoveHeldTransactions: false,
                         shouldMoveScanFailedTransactions: true,
                     });
@@ -919,6 +925,7 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         betas: [],
+                        delegateAccountID: undefined,
                     });
 
                     expect(result.successData).not.toEqual(
@@ -939,6 +946,7 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         betas: [],
+                        delegateAccountID: undefined,
                     });
 
                     const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
