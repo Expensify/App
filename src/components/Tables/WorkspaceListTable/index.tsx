@@ -135,9 +135,14 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
         ARCHIVED: 'archived',
     } as const;
 
-    const canSeeFilter = workspaces.some((w) => w.role === CONST.POLICY.ROLE.ADMIN || w.role === CONST.POLICY.ROLE.OWNER || w.role === CONST.POLICY.ROLE.AUDITOR);
+    const canAccessArchived = (role: ValueOf<typeof CONST.POLICY.ROLE>) => role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.OWNER || role === CONST.POLICY.ROLE.AUDITOR;
+    const canSeeFilter = workspaces.some((w) => canAccessArchived(w.role));
 
     const isItemInFilter: IsItemInFilterCallback<WorkspaceRowData> = (item, filterValues) => {
+        if (item.isArchived && !canAccessArchived(item.role)) {
+            return false;
+        }
+
         if (!filterValues || filterValues.length === 0) {
             return !item.isArchived;
         }
