@@ -4,6 +4,8 @@ import type {MfaActorDoneEvent, MfaInternalEvent, MfaMachineEvent} from '@compon
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import {mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
 
+import {getDeviceBiometricsOnyxKey} from '@libs/actions/MultifactorAuthentication';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -20,7 +22,6 @@ import {
     checkLocalCredentialsControl,
     createCredentialControl,
     pendingModalClose,
-    readHasAcceptedSoftPromptControl,
     requestRegistrationChallengeControl,
     resetMfaUiMocks,
     validateDeviceControl,
@@ -120,6 +121,10 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
     return {
         INIT: async (step) => {
             const event = getInitEvent(step);
+            // The real Provider reads this flag from Onyx, so it must land there before `executeScenario` runs.
+            await act(async () => {
+                await Onyx.merge(getDeviceBiometricsOnyxKey(MFA_TEST_ACCOUNT_ID), {hasAcceptedSoftPrompt: event.hasEverAcceptedSoftPrompt});
+            });
             await act(async () => {
                 await executeScenario(event.scenarioName, event.payload);
             });
@@ -162,8 +167,6 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
         },
         [actorDoneEventType('validateDevice')]: (step) => settleActor(() => validateDeviceControl.resolve(getActorDoneOutput(step))),
         [actorErrorEventType('validateDevice')]: () => settleActor(validateDeviceControl.reject),
-        [actorDoneEventType('readHasAcceptedSoftPrompt')]: (step) => settleActor(() => readHasAcceptedSoftPromptControl.resolve(getActorDoneOutput(step))),
-        [actorErrorEventType('readHasAcceptedSoftPrompt')]: () => settleActor(readHasAcceptedSoftPromptControl.reject),
         [actorDoneEventType('checkLocalCredentials')]: (step) => settleActor(() => checkLocalCredentialsControl.resolve(getActorDoneOutput(step))),
         [actorErrorEventType('checkLocalCredentials')]: () => settleActor(checkLocalCredentialsControl.reject),
         [actorDoneEventType('requestRegistrationChallenge')]: (step) => settleActor(() => requestRegistrationChallengeControl.resolve(getActorDoneOutput(step))),
@@ -190,24 +193,6 @@ const testConfig = {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
-            expect(state.context.error).toBeUndefined();
-        },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
-            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
-            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
-            expect(state.context.validateCode).toBeUndefined();
-            // A registration challenge means the flow re-entered this check from the validate-code
-            // screen, which stays visible while the read runs; a first pass has no challenge and
-            // runs behind the transparent initial screen.
-            if (state.context.registrationChallenge === undefined) {
-                expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
-            } else {
-                expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE);
-                // The validate-code screen stays visible during this read, but the machine no longer
-                // accepts resend requests after a valid code has advanced the flow.
-                expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON)).toBeDisabled();
-            }
-            expect(state.context.accountID).toBeDefined();
             expect(state.context.error).toBeUndefined();
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
@@ -250,19 +235,16 @@ const testConfig = {
             expect(state.context.error).toBeUndefined();
             expect(state.context.softPromptApproved).toBe(false);
         },
-        // No entry navigation action fires for this state, so whatever screen was already on the
-        // stack stays up during the ceremony: the prompt when the user just approved it in this
-        // flow, or the magic-code screen (last navigated) when the persisted acceptance skipped it.
+        // No entry navigation action fires for this state, so the prompt screen the user just approved stays up during the ceremony.
         [`${MFA_STATE.OPEN}.${MFA_STATE.CREATING_CREDENTIAL}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(state.context.registrationChallenge).toBeDefined();
             expect(state.context.error).toBeUndefined();
-            if (state.context.softPromptApproved) {
-                expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT);
-            } else {
-                expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);
-            }
+            expect(state.context.softPromptApproved).toBe(true);
+            expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT);
+            // The machine can no longer accept SOFT_PROMPT_APPROVED here, so the button must be disabled rather than pressable.
+            expect(screen.getByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).toBeDisabled();
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);

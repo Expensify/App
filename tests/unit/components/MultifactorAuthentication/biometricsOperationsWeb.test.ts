@@ -11,6 +11,7 @@ import type * as WebAuthnModule from '@libs/MultifactorAuthentication/Passkeys/W
 import {arrayBufferToBase64URL, extractAAGUID} from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
 import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 
+import type * as PasskeyActionsModule from '@userActions/Passkey';
 import {getPasskeyOnyxKey} from '@userActions/Passkey';
 
 import CONST from '@src/CONST';
@@ -27,6 +28,15 @@ const mockCreatePasskeyCredential = jest.fn<Promise<PublicKeyCredential>, [Publi
 jest.mock('@libs/MultifactorAuthentication/Passkeys/WebAuthn', () => ({
     ...jest.requireActual<typeof WebAuthnModule>('@libs/MultifactorAuthentication/Passkeys/WebAuthn'),
     createPasskeyCredential: (options: PublicKeyCredentialCreationOptions, signal?: AbortSignal) => mockCreatePasskeyCredential(options, signal),
+}));
+
+const mockAddLocalPasskeyCredential = jest.fn<ReturnType<typeof PasskeyActionsModule.addLocalPasskeyCredential>, Parameters<typeof PasskeyActionsModule.addLocalPasskeyCredential>>();
+
+// Only the local-persistence write is mocked here, and only to simulate it rejecting — every other
+// test relies on this delegating straight through to the real Onyx-backed implementation.
+jest.mock('@userActions/Passkey', () => ({
+    ...jest.requireActual<typeof PasskeyActionsModule>('@userActions/Passkey'),
+    addLocalPasskeyCredential: (params: Parameters<typeof PasskeyActionsModule.addLocalPasskeyCredential>[0]) => mockAddLocalPasskeyCredential(params),
 }));
 
 // jest-expo resolves the native variant by default, so load the web entry point explicitly.
@@ -168,6 +178,9 @@ describe('biometrics operations (web)', () => {
 
         beforeEach(() => {
             mockCreatePasskeyCredential.mockReset();
+            mockAddLocalPasskeyCredential
+                .mockReset()
+                .mockImplementation((params) => jest.requireActual<typeof PasskeyActionsModule>('@userActions/Passkey').addLocalPasskeyCredential(params));
             Object.defineProperty(window, 'AuthenticatorAttestationResponse', {configurable: true, value: FakeAuthenticatorAttestationResponse});
         });
 
@@ -266,6 +279,26 @@ describe('biometrics operations (web)', () => {
             await waitForBatchedUpdates();
             const storedCredentials = await getOnyxValue(getPasskeyOnyxKey(String(ACCOUNT_ID)));
             expect(storedCredentials?.map((credential) => credential.id)).toEqual([duplicateCredentialId]);
+        });
+
+        it('fails instead of reporting success when the local Onyx write rejects', async () => {
+            // If this were swallowed, the caller would register the credential with the backend
+            // anyway, leaving the server aware of a credential this device can't find in Onyx again --
+            // `areLocalCredentialsKnownToServer` would force the user back into registration.
+            mockAddLocalPasskeyCredential.mockRejectedValueOnce(new Error('Onyx write failed'));
+            mockCreatePasskeyCredential.mockResolvedValue(buildFakeAttestationCredential(bytesToArrayBuffer([11, 22, 33]), buildFakeAttestationResponse()));
+
+            const result = await createCredential({accountID: ACCOUNT_ID, registrationChallenge: REGISTRATION_CHALLENGE});
+
+            expect(result.success).toBe(false);
+            if (result.success) {
+                throw new Error('Expected credential creation to fail');
+            }
+            expect(result.error.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.LOCAL_PERSISTENCE_FAILED);
+
+            await waitForBatchedUpdates();
+            const storedCredentials = await getOnyxValue(getPasskeyOnyxKey(String(ACCOUNT_ID)));
+            expect(storedCredentials ?? []).toEqual([]);
         });
 
         it('passes the abort signal through to the ceremony, so cancelling the flow can close the passkey dialog', async () => {

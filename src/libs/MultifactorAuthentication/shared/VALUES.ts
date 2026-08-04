@@ -48,6 +48,8 @@ const REASON = {
         CANCELED: 'Local: Flow canceled by user',
         /** No HTTP status code present — typically a network failure, JSON parse error, or unhandled exception in an action function. */
         UNHANDLED_API_RESPONSE: 'Local: Missing HTTP status in API response',
+        /** Onyx write for a newly created passkey credential failed — registering with the backend anyway would desync it from `areLocalCredentialsKnownToServer`/`authorize()`. */
+        LOCAL_PERSISTENCE_FAILED: 'Local: Failed to persist passkey credential locally',
         WEBAUTHN: {
             NOT_ALLOWED: 'Local WebAuthn: Operation not allowed',
             INVALID_STATE: 'Local WebAuthn: Invalid state',
@@ -196,6 +198,7 @@ const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION,
     REASON.LOCAL_ERRORS.UNRECOGNIZED,
     REASON.LOCAL_ERRORS.SIGNATURE_MISSING,
+    REASON.LOCAL_ERRORS.LOCAL_PERSISTENCE_FAILED,
     REASON.LOCAL_ERRORS.WEBAUTHN.INVALID_STATE,
     REASON.LOCAL_ERRORS.WEBAUTHN.SECURITY_ERROR,
     REASON.LOCAL_ERRORS.WEBAUTHN.CONSTRAINT_ERROR,
@@ -222,7 +225,6 @@ const MFA_STATE = {
     PREPARING: 'preparing',
     VALIDATING_DEVICE: 'validatingDevice',
     DECIDING_REGISTRATION: 'decidingRegistration',
-    CHECKING_SOFT_PROMPT_ACCEPTANCE: 'checkingSoftPromptAcceptance',
     VALIDATE_CODE: 'validateCode',
     AWAITING_VALIDATE_CODE: 'awaitingValidateCode',
     AWAITING_INPUT: 'awaitingInput',

@@ -23,11 +23,9 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 // sibling branch needs an id target rather than a relative one.
 const OUTCOME_TARGET = `#${MFA_STATE.OUTCOME}` as const;
 const PROMPT_TARGET = `#${MFA_STATE.PROMPT}` as const;
-const SOFT_PROMPT_CHECK_TARGET = `#${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}` as const;
 const VALIDATE_CODE_TARGET = `#${MFA_STATE.VALIDATE_CODE}` as const;
-const CREATING_CREDENTIAL_TARGET = `#${MFA_STATE.CREATING_CREDENTIAL}` as const;
 
-// One literal shared by both soft-prompt exits (approval and the persisted-acceptance skip), so they can't drift apart.
+// One literal shared by both branches of an explicit soft-prompt approval, so they can't drift apart.
 const SOFT_PROMPT_ACCEPTED_ACTIONS = ['approveSoftPrompt', 'persistSoftPromptAcceptance'] as const;
 
 // Which prompt variant the screen renders is a device property, resolved once per platform.
@@ -42,6 +40,7 @@ const DEFAULT_CONTEXT: MfaContext = {
     validateCode: undefined,
     registrationChallenge: undefined,
     softPromptApproved: false,
+    hasEverAcceptedSoftPrompt: false,
     isCancelConfirmVisible: false,
 };
 
@@ -80,6 +79,7 @@ const MFAMachine = setup({
                 scenarioName: event.scenarioName,
                 scenario: event.scenario,
                 payload: event.payload,
+                hasEverAcceptedSoftPrompt: event.hasEverAcceptedSoftPrompt,
             };
         }),
         // Deferring the outcome push until the modal-open transition settles lets the screen slide in
@@ -190,38 +190,20 @@ const MFAMachine = setup({
                                     }
                                     return {accountID: context.accountID};
                                 },
-                                // A returning user's credentials are already registered, so only a fresh registration asks for a code.
+                                // A fresh (re-)registration always requires soft-prompt approval, regardless of
+                                // `hasEverAcceptedSoftPrompt`. A returning user who already accepted it skips
+                                // straight to the outcome instead of re-confirming.
+                                //
+                                // Scoped shortcut: production re-authenticates behind a loader before the outcome.
+                                // This slice has no authorization actor yet - revisit this guard once one exists.
                                 onDone: [
-                                    {guard: ({event}) => event.output, target: SOFT_PROMPT_CHECK_TARGET},
+                                    {guard: ({context, event}) => event.output && context.hasEverAcceptedSoftPrompt, target: OUTCOME_TARGET},
+                                    {guard: ({event}) => event.output, target: PROMPT_TARGET},
                                     {target: VALIDATE_CODE_TARGET, actions: 'requestValidateCode'},
                                 ],
                                 onError: {
                                     target: OUTCOME_TARGET,
                                     actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Local credentials check', event.error)}),
-                                },
-                            },
-                        },
-                        [MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE]: {
-                            id: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE,
-                            invoke: {
-                                id: 'readHasAcceptedSoftPrompt',
-                                src: 'readHasAcceptedSoftPrompt',
-                                input: ({context}) => {
-                                    if (context.accountID === undefined) {
-                                        throw new Error('MFA account must be initialized before reading soft-prompt acceptance');
-                                    }
-                                    return {accountID: context.accountID};
-                                },
-                                // Not accepted yet -> show the prompt. Accepted with a challenge pending -> create the
-                                // credential. Accepted, nothing pending -> a returning user, straight to the outcome.
-                                onDone: [
-                                    {guard: ({event}) => !event.output, target: PROMPT_TARGET},
-                                    {guard: 'hasRegistrationChallenge', target: CREATING_CREDENTIAL_TARGET},
-                                    {target: OUTCOME_TARGET},
-                                ],
-                                onError: {
-                                    target: OUTCOME_TARGET,
-                                    actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Soft-prompt acceptance read', event.error)}),
                                 },
                             },
                         },
@@ -270,7 +252,7 @@ const MFAMachine = setup({
                                 onDone: [
                                     {
                                         guard: ({event}) => event.output.success,
-                                        target: SOFT_PROMPT_CHECK_TARGET,
+                                        target: PROMPT_TARGET,
                                         actions: assign({registrationChallenge: ({event}) => (event.output.success ? event.output.challenge : undefined)}),
                                     },
                                     {
@@ -288,7 +270,8 @@ const MFAMachine = setup({
                         },
                     },
                 },
-                // This branch shows the soft prompt when the current account has not accepted it on this device.
+                // Reached for a fresh/re-registration, or a returning user who hasn't accepted the soft
+                // prompt yet - see the routing comment on `decidingRegistration`.
                 [MFA_STATE.PROMPT]: {
                     id: MFA_STATE.PROMPT,
                     entry: ['navigateToPrompt'],

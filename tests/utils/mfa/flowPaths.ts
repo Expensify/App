@@ -105,7 +105,7 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
             createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
         ],
-        endState: `${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`,
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AWAITING_SOFT_PROMPT}`,
     },
     {
         description: 'the invalid-code journey clears the inline error and accepts a corrected code',
@@ -119,35 +119,38 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
             createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
         ],
-        endState: `${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`,
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AWAITING_SOFT_PROMPT}`,
     },
-    // creatingCredential has two entries (a persisted-acceptance skip and a live prompt approval), and
-    // the state's UI assertion differs between them, so both routes need a driving journey: the
-    // generated shortest paths would otherwise only ever walk one of the two.
     {
-        description: 'the credential-creation journey via the persisted soft-prompt acceptance skips the prompt',
+        description: 'the credential-creation journey reaches creatingCredential after the user accepts the soft prompt',
         events: [
             createInitEvent(),
             createActorDoneEvent('validateDevice', {success: true}),
             createActorDoneEvent('checkLocalCredentials', false),
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
             createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
-            createActorDoneEvent('readHasAcceptedSoftPrompt', true),
-        ],
-        endState: `${MFA_STATE.OPEN}.${MFA_STATE.CREATING_CREDENTIAL}`,
-    },
-    {
-        description: 'the credential-creation journey via soft-prompt approval reaches creatingCredential after the user accepts',
-        events: [
-            createInitEvent(),
-            createActorDoneEvent('validateDevice', {success: true}),
-            createActorDoneEvent('checkLocalCredentials', false),
-            {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
-            createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
-            createActorDoneEvent('readHasAcceptedSoftPrompt', false),
             {type: 'SOFT_PROMPT_APPROVED'},
         ],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.CREATING_CREDENTIAL}`,
+    },
+    // A (re-)registration always requires approval, even if the account accepted the soft prompt
+    // before - `hasEverAcceptedSoftPrompt` only matters on the returning-user branch below.
+    {
+        description: 'the registration journey still requires soft-prompt approval even though the account already accepted it before',
+        events: [
+            createInitEvent(true),
+            createActorDoneEvent('validateDevice', {success: true}),
+            createActorDoneEvent('checkLocalCredentials', false),
+            {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
+            createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
+        ],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AWAITING_SOFT_PROMPT}`,
+    },
+    // A returning user who already accepted the soft prompt skips straight to the outcome instead of re-confirming.
+    {
+        description: 'the returning-user journey skips the soft prompt when the account already accepted it on this device',
+        events: [createInitEvent(true), createActorDoneEvent('validateDevice', {success: true}), createActorDoneEvent('checkLocalCredentials', true)],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`,
     },
 ];
 
@@ -166,7 +169,9 @@ type MfaActorEventFixtures = {
  * `{type}` and potentially bypass event-dependent behavior.
  */
 const MFA_GRAPH_EVENT_FIXTURES = {
-    INIT: [createInitEvent()],
+    // Both acceptance-flag variants are offered so the traversal covers the guard on
+    // `decidingRegistration` that skips the soft prompt for a returning user who already accepted it.
+    INIT: [createInitEvent(), createInitEvent(true)],
     CLOSE_MODAL: [{type: 'CLOSE_MODAL'}],
     MODAL_CLOSED: [{type: 'MODAL_CLOSED'}],
     SOFT_PROMPT_APPROVED: [{type: 'SOFT_PROMPT_APPROVED'}],
@@ -193,7 +198,6 @@ const MFA_ACTOR_EVENT_FIXTURES = {
             error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED, 'Graph-traversal device-check enrollment refusal'),
         },
     ),
-    readHasAcceptedSoftPrompt: createActorEvents('readHasAcceptedSoftPrompt', false, true),
     checkLocalCredentials: createActorEvents('checkLocalCredentials', false, true),
     requestRegistrationChallenge: createActorEvents(
         'requestRegistrationChallenge',

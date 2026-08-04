@@ -22,14 +22,14 @@ import React from 'react';
 type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultifactorAuthenticationModalNavigatorParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT>;
 
 /**
- * The machine routes here only when the account has not accepted the soft prompt on this device,
- * so the copy is static and the confirm button is always available.
+ * Once confirmed, the machine moves into credential creation and can no longer accept
+ * `SOFT_PROMPT_APPROVED`, so the button swaps to loading instead of staying pressable.
  */
 function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {requestCancel, approveSoftPrompt, state} = useMultifactorAuthenticationInternal();
-    const {isCancelConfirmVisible} = state;
+    const {isCancelConfirmVisible, canApproveSoftPrompt} = state;
 
     const {illustration, title, subtitle} = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[route.params.promptType];
     const interceptFocusTrapEscape = useMFACancelOnEscape();
@@ -62,6 +62,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={approveSoftPrompt}
+                        isLoading={!canApproveSoftPrompt}
                         testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.PROMPT_CONFIRM_BUTTON}
                     >
                         <Button.Text>{translate('common.buttonConfirm')}</Button.Text>

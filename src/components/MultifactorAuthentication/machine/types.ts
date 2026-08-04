@@ -43,6 +43,9 @@ type MfaContext = {
     /** Whether the user approved the soft prompt during this flow. The durable acceptance lives in Onyx under the device-biometrics key. */
     softPromptApproved: boolean;
 
+    /** Whether the account had already accepted the soft prompt before this flow started. Captured once from Onyx and immutable for the flow's lifetime. */
+    hasEverAcceptedSoftPrompt: boolean;
+
     /** Whether the cancel-confirmation modal triggered by a back press is currently visible */
     isCancelConfirmVisible: boolean;
 };
@@ -63,6 +66,8 @@ type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScena
     scenarioName: T;
     scenario: MultifactorAuthenticationScenarioConfigFor<T>;
     payload: MultifactorAuthenticationScenarioParams<T> | undefined;
+    /** Snapshot of the account's persisted soft-prompt acceptance, captured just before this event was sent. */
+    hasEverAcceptedSoftPrompt: boolean;
 };
 
 /** Events handled by the MFA state machine. */
@@ -77,9 +82,6 @@ type MfaEvent =
 
 /** Describes the input the machine passes to the device-check actor. */
 type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationMethods};
-
-/** Identifies the per-account Onyx member read by the soft-prompt actor. */
-type ReadHasAcceptedSoftPromptInput = {accountID: number};
 
 /** Identifies the account whose local credentials the registration-decision actor checks. */
 type CheckLocalCredentialsInput = {accountID: number};
@@ -104,7 +106,6 @@ export type {
     MfaEvent,
     MfaModalState,
     MultifactorAuthenticationInitEvent,
-    ReadHasAcceptedSoftPromptInput,
     RequestRegistrationChallengeInput,
     RequestRegistrationChallengeOutput,
     ValidateDeviceInput,

@@ -5,7 +5,7 @@ import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFARes
 
 import CONST from '@src/CONST';
 
-import {createActorAtState, sendCreateCredentialDone, sendReadHasAcceptedSoftPromptDone} from 'tests/utils/mfa/flowActors';
+import {createActorAtState, sendCreateCredentialDone} from 'tests/utils/mfa/flowActors';
 import createInitEvent, {MFA_TEST_REGISTRATION_CHALLENGE} from 'tests/utils/mfa/flowFixtures';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 import {createActor, fromPromise} from 'xstate';
@@ -14,7 +14,7 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 const REASON = CONST.MULTIFACTOR_AUTHENTICATION.REASON;
 
 // The graph-traversal suites generate their expectations from the machine, so a transition pointed at
-// a wrong target adjusts those expectations and still passes. This suite pins the two entries into
+// a wrong target adjusts those expectations and still passes. This suite pins the single entry into
 // credential creation and the actor-outcome routing by hand. `softPromptTransition.test.ts` keeps
 // passing untouched because `createFlowContext` leaves `registrationChallenge` undefined.
 
@@ -41,47 +41,6 @@ describe('MFA credential creation', () => {
 
             const result = actor.getSnapshot();
             expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.SUCCESS}})).toBe(true);
-
-            actor.stop();
-        });
-    });
-
-    describe('soft-prompt acceptance read', () => {
-        it('moves to credential creation when acceptance was already stored and a challenge is pending', () => {
-            const actor = createActorAtState(
-                {[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}},
-                {registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE},
-            );
-
-            actor.start();
-            sendReadHasAcceptedSoftPromptDone(actor, true);
-
-            expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: MFA_STATE.CREATING_CREDENTIAL})).toBe(true);
-
-            actor.stop();
-        });
-
-        it('reaches the success outcome when acceptance was stored without a pending challenge', () => {
-            const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}});
-
-            actor.start();
-            sendReadHasAcceptedSoftPromptDone(actor, true);
-
-            expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.SUCCESS}})).toBe(true);
-
-            actor.stop();
-        });
-
-        it('shows the prompt when acceptance was not stored, regardless of a pending challenge', () => {
-            const actor = createActorAtState(
-                {[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}},
-                {registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE},
-            );
-
-            actor.start();
-            sendReadHasAcceptedSoftPromptDone(actor, false);
-
-            expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}})).toBe(true);
 
             actor.stop();
         });
@@ -134,6 +93,7 @@ describe('MFA credential creation', () => {
                     validateCode: undefined,
                     registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE,
                     softPromptApproved: false,
+                    hasEverAcceptedSoftPrompt: false,
                     isCancelConfirmVisible: false,
                 },
             });
