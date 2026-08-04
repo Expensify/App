@@ -634,6 +634,7 @@ describe('SequentialQueue - pause watchdog', () => {
     });
 
     afterEach(() => {
+        jest.restoreAllMocks();
         SequentialQueue.resetQueue();
         SequentialQueue.registerPauseWatchdogEscalation(() => Promise.resolve());
         mockedIsClientTheLeader.mockReturnValue(true);
@@ -740,10 +741,9 @@ describe('SequentialQueue - pause watchdog', () => {
         const halfWindow = CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2;
         let updateID = 0;
         for (let elapsed = 0; elapsed < CONST.NETWORK.MAX_PAUSE_WATCHDOG_ABSOLUTE_TIME_MS; elapsed += halfWindow) {
-            // eslint-disable-next-line no-await-in-loop
             await jest.advanceTimersByTimeAsync(halfWindow);
             updateID += 1;
-            // eslint-disable-next-line no-await-in-loop
+
             await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, updateID);
         }
 
@@ -910,5 +910,29 @@ describe('SequentialQueue - pause watchdog', () => {
         await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
 
         expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('should drain the stuck request and clear IS_LOADING_APP after a force-unpause', async () => {
+        // This is the bug the watchdog exists for: the stranded OpenApp has to reach the wire and the skeleton has to
+        // go away. Asserting only isPaused() would stay green even if the queue never drained.
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+        const processWithMiddleware = jest.spyOn(RequestModule, 'processWithMiddleware').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+        SequentialQueue.pause();
+        SequentialQueue.push({
+            command: 'OpenApp',
+            queueFlushedData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.IS_LOADING_APP, value: false}],
+        });
+
+        expect(getLength()).toBe(1);
+        expect(processWithMiddleware).not.toHaveBeenCalled();
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+        await SequentialQueue.waitForIdle();
+        await waitForBatchedUpdates();
+
+        expect(processWithMiddleware).toHaveBeenCalledTimes(1);
+        expect(getLength()).toBe(0);
+        expect(await getOnyxValue(ONYXKEYS.IS_LOADING_APP)).toBe(false);
     });
 });
