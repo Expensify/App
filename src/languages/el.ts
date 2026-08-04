@@ -1018,6 +1018,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Λογαριασμός > Συνδρομή',
                 cta: 'Προσθήκη',
             },
+            addBankAccount: {
+                title: 'Προσθέστε έναν τραπεζικό λογαριασμό για να λάβετε αποζημίωση',
+            },
             activateCard: {
                 title: 'Ενεργοποιήστε την Κάρτα Expensify',
                 subtitle: 'Επικυρώστε την κάρτα σας και ξεκινήστε να ξοδεύετε.',
