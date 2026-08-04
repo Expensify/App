@@ -1,5 +1,5 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LoadingIndicator from '@components/LoadingIndicator';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -98,7 +98,6 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                     onBackButtonPress={onModalClose}
                     shouldDisplayHelpButton={false}
                 />
-                {isLoading && <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />}
                 <View style={[styles.flex1]}>
                     <iframe
                         src={authenticationLink}
@@ -111,6 +110,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                             setIsLoading(false);
                         }}
                     />
+                    {isLoading && <LoadingIndicator reasonAttributes={reasonAttributes} />}
                 </View>
             </ScreenWrapper>
         </Modal>

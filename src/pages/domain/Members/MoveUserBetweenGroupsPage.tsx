@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -24,9 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
-import type {Domain} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {domainNameSelector, groupsSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
 import React, {useState} from 'react';
@@ -48,11 +45,8 @@ function MoveUserBetweenGroupsPage({route}: MoveUserBetweenGroupsPageProps) {
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     const [securityGroups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
 
-    const securityGroupSelector = (domain: OnyxEntry<Domain>) => selectSecurityGroupForAccount(accountID)(domain);
-    const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        selector: securityGroupSelector,
-    });
-    const [memberLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(accountID)}, [accountID]);
+    const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: selectSecurityGroupForAccount(accountID)});
+    const [memberLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(accountID)});
 
     const currentGroupId = userSecurityGroup?.key.replace(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '');
 
@@ -67,7 +61,7 @@ function MoveUserBetweenGroupsPage({route}: MoveUserBetweenGroupsPageProps) {
         setSelectedGroupId(item.value);
     };
 
-    const handleSave = () => {
+    const moveToSelectedGroup = () => {
         if (!selectedGroupId || !domainName || !userSecurityGroup || !memberLogin) {
             return;
         }
@@ -86,6 +80,8 @@ function MoveUserBetweenGroupsPage({route}: MoveUserBetweenGroupsPageProps) {
         changeDomainSecurityGroup(domainAccountID, domainName, memberLogin, accountID, userSecurityGroup.key, userSecurityGroup.securityGroup, newSecurityGroupKey);
         Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));
     };
+
+    const isSaveDisabled = !selectedGroupId || selectedGroupId === currentGroupId || !memberLogin;
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -110,13 +106,14 @@ function MoveUserBetweenGroupsPage({route}: MoveUserBetweenGroupsPageProps) {
                 />
                 <FixedFooter>
                     <Button
-                        success
-                        large
-                        pressOnEnter
-                        text={translate('common.save')}
-                        onPress={handleSave}
-                        isDisabled={!selectedGroupId || selectedGroupId === currentGroupId || !memberLogin}
-                    />
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        onPress={moveToSelectedGroup}
+                        isDisabled={isSaveDisabled}
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.save')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

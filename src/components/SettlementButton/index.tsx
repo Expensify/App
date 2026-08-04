@@ -212,6 +212,7 @@ function SettlementButton({
                 ),
                 confirmText: translate('bankAccount.unlockBankAccount'),
                 cancelText: translate('common.cancel'),
+                shouldDisableConfirmButtonWhenOffline: true,
             }).then(({action}) => {
                 if (action !== ModalActions.CONFIRM) {
                     return;
@@ -418,7 +419,9 @@ function SettlementButton({
                     return chatReport?.invoiceReceiver?.policyID;
                 }
 
-                if (canUseActivePolicy) {
+                // Currency only decides whether direct reimbursement is offered, so it must not gate reuse here:
+                // the setup flow we navigate to next is what brings the workspace to a supported currency.
+                if (hasActivePolicyAsAdmin) {
                     return activePolicy.id;
                 }
 
@@ -518,6 +521,7 @@ function SettlementButton({
                     ownerLogin,
                     full: false,
                     delegateEmail,
+                    delegateAccountID,
                     isTrackIntentUser,
                 });
             }
@@ -660,7 +664,7 @@ function SettlementButton({
             isDisabled={isOffline}
             source={CONST.KYC_WALL_SOURCE.REPORT}
             chatReportID={chatReportID}
-            addBankAccountRoute={isExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: iouReport?.policyID, backTo: Navigation.getActiveRoute()}) : undefined}
+            addBankAccountRoute={isExpenseReport ? () => ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: iouReport?.policyID, backTo: Navigation.getActiveRoute()}) : undefined}
             iouReport={iouReport}
             policy={lastPaymentPolicy}
             anchorAlignment={kycWallAnchorAlignment}

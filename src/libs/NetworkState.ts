@@ -3,11 +3,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import NetInfo from '@react-native-community/netinfo';
+import {toDate} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 
 import {getCommandURL} from './ApiUtils';
 import getEnvironment from './Environment/getEnvironment';
-import {onSustainedFailureChange, reset as resetFailureCounters} from './FailureTracker';
+import {onSuccess as onRequestSuccess, onSustainedFailureChange, reset as resetFailureCounters} from './FailureTracker';
 import Log from './Log';
 
 let hasRadio = true;
@@ -31,11 +32,30 @@ let configuredReachabilityUrl: string | undefined;
 const listeners = new Set<() => void>();
 const reconnectListeners = new Set<() => void>();
 
-// Wire FailureTracker → NetworkState so sustained failures trigger offline state.
+// Wire FailureTracker → NetworkState so sustained failures trigger offline state and a
+// successful request clears the INTERNET_UNREACHABLE hard stop. Without the latter only
+// the Ping could clear it. Reads and side-effect commands bypass the paused queue, so the
+// app could keep succeeding at real requests while staying stuck offline.
 onSustainedFailureChange((active) => setSustainedFailures(active));
+// A server response proves the network works, same as a passing Ping.
+// prevIsInternetReachable stays false on purpose: the Ping may keep failing, and a repeated
+// false does not re-set the hard stop. When the Ping finally passes, the NetInfo listener
+// sees the app is already online and does nothing.
+onRequestSuccess(() => {
+    if (!internetUnreachable) {
+        return;
+    }
+    Log.info('[NetworkState] INTERNET_UNREACHABLE cleared — a successful request proved connectivity');
+    clearHardStops();
+    scheduleJitteredReconnect();
+});
 
 function getIsOffline(): boolean {
     return !hasRadio || internetUnreachable || sustainedFailuresActive || shouldForceOffline || simulatedOffline;
+}
+
+function getShouldFailAllRequests(): boolean {
+    return failAllRequests;
 }
 
 function getLastOfflineAt(): string | undefined {
@@ -143,12 +163,24 @@ function setSustainedFailures(active: boolean) {
         // A reconnect that coincides with one already in flight is collapsed at push time by the
         // reconnect coverage resolver (resolveReconnectDuplicationConflictAction): a redundant one is
         // dropped, a wider one runs after. It consults the ongoing request and the waiting queue.
-
-        // Jitter (0–5s) staggers reconnection across clients after a server-wide outage
-        // to avoid a stampede of ReconnectApp calls hitting the backend simultaneously.
-        const jitter = Math.floor(Math.random() * CONST.NETWORK.RECONNECT_STAMPEDE_JITTER_MS);
-        setTimeout(() => notifyReconnectListeners(), jitter);
+        scheduleJitteredReconnect();
     }
+}
+
+/**
+ * Jitter (0–5s) staggers reconnection across clients after a server-wide outage
+ * to avoid a stampede of ReconnectApp calls hitting the backend simultaneously.
+ */
+function scheduleJitteredReconnect() {
+    const jitter = Math.floor(Math.random() * CONST.NETWORK.RECONNECT_STAMPEDE_JITTER_MS);
+    setTimeout(() => notifyReconnectListeners(), jitter);
+}
+
+function clearHardStops() {
+    internetUnreachable = false;
+    sustainedFailuresActive = false;
+    resetFailureCounters();
+    updateState();
 }
 
 /**
@@ -204,10 +236,7 @@ function setFailAllRequests(failAll: boolean) {
 function onReachabilityRestored() {
     Log.info('[NetworkState] Internet reachability restored — clearing hard stops');
     hasRadio = true;
-    internetUnreachable = false;
-    sustainedFailuresActive = false;
-    resetFailureCounters();
-    updateState();
+    clearHardStops();
 
     // Notify reconnect listeners (Reconnect.ts will handle app data sync)
     notifyReconnectListeners();
@@ -231,6 +260,27 @@ function getDBTimeWithSkew(timestamp: string | number = ''): string {
         return formatDBTime(new Date(datetime.valueOf() + networkTimeSkew));
     }
     return formatDBTime(datetime);
+}
+
+/**
+ * Like getDBTimeWithSkew, but applies networkTimeSkew in both directions so the result tracks the server
+ * clock even when the client runs ahead. getDBTimeWithSkew only pushes forward (to avoid reordering), so it
+ * can't be reused. Keeps the Concierge session boundary and question comparable to server-stamped replies.
+ * Relies on networkTimeSkew being set; before it is known the value falls back to the raw client clock.
+ *
+ * notBeforeDBTime clamps the result forward so it never predates that time — used to keep successive optimistic
+ * sends monotonic when skew shifts negative between them (otherwise a later send could sort above an earlier one).
+ */
+function getServerAnchoredDBTime(timestamp: string | number = '', notBeforeDBTime?: string): string {
+    const datetime = timestamp ? new Date(timestamp) : new Date();
+    let anchoredMs = datetime.valueOf() + networkTimeSkew;
+    if (notBeforeDBTime) {
+        const floorMs = toDate(notBeforeDBTime, {timeZone: 'UTC'}).valueOf();
+        if (Number.isFinite(floorMs) && anchoredMs <= floorMs) {
+            anchoredMs = floorMs + 1;
+        }
+    }
+    return formatDBTime(new Date(anchoredMs));
 }
 
 // --- Poor connection simulation ---
@@ -424,6 +474,7 @@ function refresh() {
 
 export {
     getIsOffline,
+    getShouldFailAllRequests,
     getLastOfflineAt,
     subscribe,
     onReachabilityConfirmed,
@@ -433,6 +484,7 @@ export {
     setForceOffline,
     setFailAllRequests,
     getDBTimeWithSkew,
+    getServerAnchoredDBTime,
     refresh,
     simulatePoorConnection,
 };
