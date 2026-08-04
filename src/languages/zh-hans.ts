@@ -4108,7 +4108,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         proofOf: '个人住址证明',
         enterOneEmail: (companyName: string) => `输入 ${companyName} 一位主管的邮箱地址`,
         regulationRequiresOneMoreDirector: '根据规定，至少还需要一名董事作为签署人。',
-        bothSignersMustBeOnIllionReport: '两位签署人都必须在公司提供的 illion 报告中被列为董事，不能只是公司中的任意两个人。',
+        bothSignersMustBeOnIllionReport: '两位签署人都必须在公司提供给 illion 的报告中被列为董事，不能只是公司里的任意两个人。',
         signerMustBeOnIllionReport: '您添加为签署人的董事，必须列在公司的 illion 报告中。',
         hangTight: '请稍候…',
         enterTwoEmails: (companyName: string) => `输入 ${companyName} 的两位董事的邮箱地址`,
@@ -4120,11 +4120,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         proofOfDirectorsDescription: '示例：Oncorp 公司概况或商业注册。',
         codiceFiscale: '税号',
         codiceFiscaleDescription: '签署人、授权用户和实益所有人的税号（Codice Fiscale）。',
-        PDSandFSG: 'PDS、FSG 及 TMD 披露文件',
+        PDSandFSG: 'PDS、FSG 和 TMD 披露文件',
         PDSandFSGDescription: Str.dedent(`
-            我们与 Corpay 建立的合作伙伴关系通过 API 连接，利用其庞大的国际银行合作伙伴网络，为 Expensify 的全球报销功能提供支持。根据澳大利亚相关法规，我们向您提供 Corpay 的《金融服务指南（FSG）》《产品披露声明（PDS）》以及《目标市场确定书（TMD）》。
+            我们与 Corpay 建立的合作关系通过 API 连接，利用其庞大的国际银行合作伙伴网络，为 Expensify 的全球报销功能提供支持。根据澳大利亚相关法规，我们向您提供 Corpay 的《金融服务指南（FSG）》《产品披露声明（PDS）》以及《目标市场确定文件（TMD）》。
 
-            请仔细阅读 FSG、PDS 和 TMD 文件，因为其中包含 Corpay 所提供产品和服务的完整细节和重要信息。请妥善保存这些文件以备日后查阅。
+            请仔细阅读这些 FSG、PDS 和 TMD 文件，因为其中包含 Corpay 所提供产品和服务的完整细节和重要信息。请妥善保留这些文件，以备今后查阅。
         `),
         pleaseUpload: '请在下方上传更多证明文件，以帮助我们核实您作为该企业董事的身份。',
         enterSignerInfo: '输入签署人信息',
@@ -4137,7 +4137,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     agreementsStep: {
         bankStatement: '银行对账单',
-        bankStatementDescription: '请提供一份最近三个月内出具的、用于您正在连接的企业银行账户的银行对账单。',
+        bankStatementDescription: '请提供一份在最近三个月内出具的、用于您正在连接的企业银行账户的最新银行对账单。',
         agreements: '协议',
         pleaseConfirm: '请确认以下协议',
         regulationRequiresUs: '法规要求我们核实任何持有该企业超过 25% 股权的个人身份。',

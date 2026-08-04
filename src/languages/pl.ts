@@ -4215,8 +4215,8 @@ ${amount} dla ${merchant} - ${date}`,
         proofOf: 'Potwierdzenie adresu zamieszkania',
         enterOneEmail: (companyName: string) => `Wpisz adres e-mail dyrektora w firmie ${companyName}`,
         regulationRequiresOneMoreDirector: 'Przepisy wymagają co najmniej jednego dodatkowego dyrektora jako sygnatariusza.',
-        bothSignersMustBeOnIllionReport: 'Obaj sygnatariusze muszą być wymienieni jako dyrektorzy w raporcie illion firmy. Nie mogą to być dowolne dwie osoby w firmie.',
-        signerMustBeOnIllionReport: 'Dyrektor, którego dodasz jako sygnatariusza, musi być wymieniony w raporcie illion firmy.',
+        bothSignersMustBeOnIllionReport: 'Obaj sygnatariusze muszą być wymienieni jako dyrektorzy w raporcie illion firmy. Nie mogą to być przypadkowe dwie osoby z firmy.',
+        signerMustBeOnIllionReport: 'Dyrektor, którego dodasz jako sygnatariusza, musi figurować w raporcie illion firmy.',
         hangTight: 'Chwileczkę…',
         enterTwoEmails: (companyName: string) => `Wpisz adresy e-mail dwóch dyrektorów w firmie ${companyName}`,
         sendReminder: 'Wyślij przypomnienie',
@@ -4227,11 +4227,11 @@ ${amount} dla ${merchant} - ${date}`,
         proofOfDirectorsDescription: 'Przykłady: profil korporacyjny Oncorp lub rejestracja firmy.',
         codiceFiscale: 'Kod fiskalny',
         codiceFiscaleDescription: 'Codice Fiscale dla sygnatariuszy, użytkowników upoważnionych i beneficjentów rzeczywistych.',
-        PDSandFSG: 'Dokumentacja ujawnieniowa PDS, FSG + TMD',
+        PDSandFSG: 'Dokumenty ujawniające PDS, FSG + TMD',
         PDSandFSGDescription: Str.dedent(`
-            Nasze partnerstwo z Corpay wykorzystuje połączenie API, aby skorzystać z ich rozległej sieci międzynarodowych partnerów bankowych do obsługi Globalnych Zwrotów w Expensify. Zgodnie z australijskimi przepisami udostępniamy ci Przewodnik po usługach finansowych Corpay (FSG), Dokument ujawniający informacje o produkcie (PDS) oraz Określenie rynku docelowego (TMD).
+            Nasze partnerstwo z Corpay wykorzystuje połączenie API, aby skorzystać z ich rozległej sieci międzynarodowych partnerów bankowych i dzięki temu obsługiwać Globalne Zwroty w Expensify. Zgodnie z australijskimi przepisami udostępniamy ci Financial Services Guide (FSG), Product Disclosure Statement (PDS) oraz Target Market Determination (TMD) firmy Corpay.
 
-            Przeczytaj uważnie dokumenty FSG, PDS i TMD, ponieważ zawierają one pełne szczegóły oraz ważne informacje o produktach i usługach oferowanych przez Corpay. Zachowaj te dokumenty na przyszłość.
+            Przeczytaj uważnie dokumenty FSG, PDS i TMD, ponieważ zawierają one pełne informacje i ważne szczegóły na temat produktów i usług oferowanych przez Corpay. Zachowaj te dokumenty do przyszłego wglądu.
         `),
         pleaseUpload: 'Prześlij poniżej dodatkową dokumentację, abyśmy mogli zweryfikować Twoją tożsamość jako dyrektora firmy.',
         enterSignerInfo: 'Wprowadź dane sygnatariusza',
@@ -4244,7 +4244,7 @@ ${amount} dla ${merchant} - ${date}`,
     },
     agreementsStep: {
         bankStatement: 'Wyciąg bankowy',
-        bankStatementDescription: 'Podaj proszę aktualny wyciąg bankowy, wystawiony w ciągu ostatnich trzech miesięcy, dla firmowego konta bankowego, które łączysz.',
+        bankStatementDescription: 'Dołącz aktualny wyciąg bankowy z ostatnich trzech miesięcy dla firmowego rachunku bankowego, który chcesz połączyć.',
         agreements: 'Umowy',
         pleaseConfirm: 'Potwierdź poniższe zgody',
         regulationRequiresUs: 'Przepisy wymagają od nas weryfikacji tożsamości każdej osoby, która posiada ponad 25% udziałów w firmie.',
@@ -4253,7 +4253,7 @@ ${amount} dla ${merchant} - ${date}`,
         iAcceptTheTermsAndConditions: `Akceptuję <a href="https://www.corpay.com/cross-border/terms">warunki i zasady</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Akceptuję warunki.',
         accept: 'Zaakceptuj i dodaj konto bankowe',
-        iConsentToThePrivacyNotice: 'Wyrażam zgodę na <a href="https://www.corpay.com/privacy-policy">informację o ochronie prywatności</a>.',
+        iConsentToThePrivacyNotice: 'Wyrażam zgodę na <a href="https://www.corpay.com/privacy-policy">informację o prywatności</a>.',
         iConsentToThePrivacyNoticeAccessibility: 'Wyrażam zgodę na informację o prywatności.',
         error: {
             authorized: 'Musisz być osobą zasiadającą we władzach firmy z upoważnieniem do obsługi firmowego rachunku bankowego',

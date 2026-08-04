@@ -4249,9 +4249,8 @@ ${amount} für ${merchant} – ${date}`,
         enterOneEmail: (companyName: string) => `Gib die E-Mail-Adresse einer Geschäftsführungsperson von ${companyName} ein`,
         regulationRequiresOneMoreDirector: 'Vorschriften erfordern mindestens eine weitere:n Geschäftsführer:in als Unterzeichner:in.',
         bothSignersMustBeOnIllionReport:
-            'Beide Unterzeichnenden müssen im illion-Unternehmensbericht als Geschäftsführer aufgeführt sein. Es können nicht einfach zwei beliebige Personen im Unternehmen sein.',
-        signerMustBeOnIllionReport:
-            'Die als Unterzeichner hinzugefügte Geschäftsführerin bzw. der als Unterzeichner hinzugefügte Geschäftsführer muss im illion-Bericht des Unternehmens aufgeführt sein.',
+            'Beide Unterzeichner müssen im illion-Bericht des Unternehmens als Direktoren aufgeführt sein. Es können nicht beliebige zwei Personen im Unternehmen sein.',
+        signerMustBeOnIllionReport: 'Die als Unterzeichner hinzugefügte Geschäftsführungsperson muss im illion-Bericht des Unternehmens aufgeführt sein.',
         hangTight: 'Einen Moment bitte ...',
         enterTwoEmails: (companyName: string) => `Gib die E-Mail-Adressen von zwei Direktoren bei ${companyName} ein`,
         sendReminder: 'Erinnerung senden',
@@ -4262,11 +4261,11 @@ ${amount} für ${merchant} – ${date}`,
         proofOfDirectorsDescription: 'Beispiele: Oncorp-Unternehmensprofil oder Unternehmensregistrierung.',
         codiceFiscale: 'Steuernummer',
         codiceFiscaleDescription: 'Codice Fiscale für Unterzeichnende, Bevollmächtigte und wirtschaftlich Berechtigte.',
-        PDSandFSG: 'PDS-, FSG- + TMD-Offenlegungsunterlagen',
+        PDSandFSG: 'PDS-, FSG- und TMD-Offenlegungsunterlagen',
         PDSandFSGDescription: Str.dedent(`
-            Unsere Partnerschaft mit Corpay nutzt eine API-Verbindung, um deren großes Netzwerk internationaler Bankpartner zu verwenden und globale Erstattungen in Expensify zu ermöglichen. Gemäß den australischen Vorschriften stellen wir Ihnen den Financial Services Guide (FSG), die Product Disclosure Statement (PDS) und die Target Market Determination (TMD) von Corpay zur Verfügung.
+            Unsere Partnerschaft mit Corpay nutzt eine API-Verbindung, um das umfangreiche Netzwerk internationaler Bankpartner zu verwenden, das Globale Rückerstattungen in Expensify ermöglicht. Gemäß den australischen Vorschriften stellen wir Ihnen den Financial Services Guide (FSG), das Product Disclosure Statement (PDS) und die Target Market Determination (TMD) von Corpay zur Verfügung.
 
-            Bitte lesen Sie die FSG-, PDS- und TMD-Dokumente sorgfältig, da sie vollständige Details und wichtige Informationen zu den Produkten und Dienstleistungen enthalten, die Corpay anbietet. Bewahren Sie diese Dokumente für zukünftige Referenz auf.
+            Bitte lesen Sie die FSG-, PDS- und TMD-Dokumente sorgfältig, da sie vollständige Details und wichtige Informationen zu den Produkten und Dienstleistungen enthalten, die Corpay anbietet. Bewahren Sie diese Dokumente für eine spätere Bezugnahme auf.
         `),
         pleaseUpload: 'Bitte laden Sie unten zusätzliche Unterlagen hoch, damit wir Ihre Identität als Geschäftsführer*in des Unternehmens verifizieren können.',
         enterSignerInfo: 'Unterzeichnerinformationen eingeben',
@@ -4279,7 +4278,7 @@ ${amount} für ${merchant} – ${date}`,
     },
     agreementsStep: {
         bankStatement: 'Kontoauszug',
-        bankStatementDescription: 'Bitte laden Sie einen aktuellen Kontoauszug hoch, der innerhalb der letzten drei Monate datiert ist, für das Geschäftskonto, das Sie verbinden.',
+        bankStatementDescription: 'Bitte laden Sie einen aktuellen Kontoauszug hoch, der innerhalb der letzten drei Monate ausgestellt wurde, für das Geschäftskonto, das Sie verbinden.',
         agreements: 'Vereinbarungen',
         pleaseConfirm: 'Bitte bestätige die folgenden Vereinbarungen',
         regulationRequiresUs: 'Vorschriften verpflichten uns, die Identität jeder Person zu überprüfen, die mehr als 25 % des Unternehmens besitzt.',
@@ -4288,7 +4287,7 @@ ${amount} für ${merchant} – ${date}`,
         iAcceptTheTermsAndConditions: `Ich akzeptiere die <a href="https://www.corpay.com/cross-border/terms">Allgemeinen Geschäftsbedingungen</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Ich akzeptiere die Geschäftsbedingungen.',
         accept: 'Akzeptieren und Bankkonto hinzufügen',
-        iConsentToThePrivacyNotice: 'Ich stimme dem <a href="https://www.corpay.com/privacy-policy">Datenschutzhinweis</a> zu.',
+        iConsentToThePrivacyNotice: 'Ich stimme der <a href="https://www.corpay.com/privacy-policy">Datenschutzerklärung</a> zu.',
         iConsentToThePrivacyNoticeAccessibility: 'Ich stimme der Datenschutzerklärung zu.',
         error: {
             authorized: 'Sie müssen eine vertretungsberechtigte Führungskraft mit Vollmacht zur Führung des Geschäftskontos sein',

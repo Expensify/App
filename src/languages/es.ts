@@ -4128,7 +4128,8 @@ ${amount} para ${merchant} - ${date}`,
         proofOf: 'Comprobante de domicilio personal',
         enterOneEmail: (companyName) => `Introduce el correo electrónico del director en ${companyName}`,
         regulationRequiresOneMoreDirector: 'El reglamento exige que haya otro director como firmante.',
-        bothSignersMustBeOnIllionReport: 'Ambos firmantes deben aparecer como directores en el informe de illion de la empresa. No pueden ser dos personas cualesquiera del negocio.',
+        bothSignersMustBeOnIllionReport:
+            'Ambas personas firmantes deben figurar como directores en el informe de illion de la empresa. No pueden ser simplemente dos personas cualquiera del negocio.',
         signerMustBeOnIllionReport: 'El director que añadas como firmante debe estar incluido en el informe de illion de la empresa.',
         hangTight: 'Espera un momento...',
         enterTwoEmails: (companyName) => `Introduce los correos electrónicos de dos directores en ${companyName}`,
@@ -4140,7 +4141,7 @@ ${amount} para ${merchant} - ${date}`,
         proofOfDirectorsDescription: 'Ejemplos: Perfil Corporativo de Oncorp o Registro Comercial.',
         codiceFiscale: 'Codice Fiscale',
         codiceFiscaleDescription: 'Codice Fiscale para firmantes, usuarios autorizados y beneficiarios finales.',
-        PDSandFSG: 'Documentación de divulgación PDS, FSG y TMD',
+        PDSandFSG: 'Documentación de divulgación del PDS, FSG y TMD',
         PDSandFSGDescription: Str.dedent(`
             Nuestra colaboración con Corpay utiliza una conexión API para aprovechar su amplia red de socios bancarios internacionales y así impulsar los Reembolsos Globales en Expensify. De acuerdo con la normativa australiana, te proporcionamos la Guía de Servicios Financieros (FSG), el Documento de Divulgación del Producto (PDS) y la Determinación del Mercado Objetivo (TMD) de Corpay.
 
@@ -4157,7 +4158,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     agreementsStep: {
         bankStatement: 'Extracto bancario',
-        bankStatementDescription: 'Proporciona un extracto bancario reciente, con una fecha de emisión de los últimos tres meses, de la cuenta bancaria de empresa que estás conectando.',
+        bankStatementDescription: 'Por favor, proporciona un extracto bancario reciente, con fecha de los últimos tres meses, de la cuenta bancaria de empresa que estás conectando.',
         agreements: 'Acuerdos',
         pleaseConfirm: 'Por favor confirme los acuerdos a continuación',
         regulationRequiresUs: 'La normativa requiere que verifiquemos la identidad de cualquier individuo que posea más del 25% del negocio.',
