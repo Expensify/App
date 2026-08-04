@@ -65,8 +65,7 @@ type PayInvoiceArgs = {
     methodID?: number;
     paymentMethod?: PaymentMethod;
     activePolicy?: OnyxTypes.Policy;
-    // TODO: Make conciergeChat required once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
-    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName: string;
@@ -115,6 +114,7 @@ type PayMoneyRequestFunctionParams = {
     chatReportPolicy: OnyxEntry<OnyxTypes.Policy>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     methodID?: number;
@@ -183,8 +183,7 @@ function getPayMoneyRequestParams({
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
-    // TODO: Make conciergeChat required once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
-    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
@@ -766,6 +765,7 @@ function completePaymentOnboarding(
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     currentUserAccountID: number,
+    conciergeChat: OnyxEntry<OnyxTypes.Report>,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
 ) {
@@ -800,6 +800,7 @@ function completePaymentOnboarding(
         companySize: introSelected?.companySize as OnboardingCompanySize,
         introSelected,
         isSelfTourViewed,
+        conciergeChat,
     });
 }
 
@@ -820,6 +821,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         chatReportPolicy,
         betas,
         isSelfTourViewed,
+        conciergeChat,
         amountOwed,
         ownerBillingGracePeriodEnd,
         methodID,
@@ -841,7 +843,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     }
 
     const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountID);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params: payMoneyRequestParams, onyxData} = getPayMoneyRequestParams({
@@ -1125,7 +1127,7 @@ function payInvoice({
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountIDParam);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountIDParam, conciergeChat);
 
     let params: PayInvoiceParams = {
         reportID: invoiceReport?.reportID,
