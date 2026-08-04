@@ -115,7 +115,12 @@ function MissingPersonalDetailsValidateCodePage({
         [countryCode, values, isVirtualCard, cardID],
     );
 
-    const validateError = !isEmptyObject(revealCardError) ? revealCardError : (cardErrors ?? validateLoginError);
+    let validateError = validateLoginError;
+    if (!isEmptyObject(revealCardError)) {
+        validateError = revealCardError;
+    } else if (!isEmptyObject(cardErrors)) {
+        validateError = cardErrors;
+    }
 
     return (
         <ValidateCodeActionContent
