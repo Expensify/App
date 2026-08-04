@@ -275,6 +275,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 integrationToDisconnect,
                 shouldDisconnectIntegrationBeforeConnecting,
             });
+            Navigation.setParams({
+                newConnectionName: undefined,
+                isIntuitEnterpriseSuite: undefined,
+                integrationToDisconnect: undefined,
+                shouldDisconnectIntegrationBeforeConnecting: undefined,
+            });
         }, [newConnectionName, shouldConnectToIntuitEnterpriseSuite, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, policy, startIntegrationFlow, canWriteAccounting]),
     );
 
