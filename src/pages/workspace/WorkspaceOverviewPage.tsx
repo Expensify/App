@@ -46,7 +46,7 @@ import {
     updatePolicyRulesDocument,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
-import {getCardSettingsForSelectedProgram} from '@libs/CardUtils';
+import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -122,7 +122,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const defaultFundID = useDefaultFundID(policyID);
     const selectedProgramKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const settings = getCardSettingsForSelectedProgram(cardSettings, selectedProgramKey);
+    const settings = getCardSettings(cardSettings, selectedProgramKey);
     const isBankAccountVerified = !!settings?.paymentBankAccountID;
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policyID);
 

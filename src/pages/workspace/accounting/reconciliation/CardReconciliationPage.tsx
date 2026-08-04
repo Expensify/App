@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import type {CardProgramKey} from '@libs/CardUtils';
-import {getCardSettingsForSelectedProgram, getConfiguredExpensifyCardProgramKeys, getConnectionBankAccountsForReconciliation, isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import {getCardSettings, getConfiguredExpensifyCardProgramKeys, getConnectionBankAccountsForReconciliation, isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -93,7 +93,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`);
     const [reconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${effectiveDomainID}`);
 
-    const resolvedCardSettings = getCardSettingsForSelectedProgram(fullySetUpCardSetting.cardSetting, fullySetUpCardSetting.programKey);
+    const resolvedCardSettings = fullySetUpCardSetting.programKey ? getCardSettings(fullySetUpCardSetting.cardSetting, fullySetUpCardSetting.programKey) : fullySetUpCardSetting.cardSetting;
     const paymentBankAccountID = resolvedCardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {connection} = route.params;

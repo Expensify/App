@@ -8,7 +8,7 @@ import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProg
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
-import {filterCardsListByProgram, filterInactiveCardsForWorkspace, getCardSettingsForSelectedProgram} from '@libs/CardUtils';
+import {filterCardsListByProgram, filterInactiveCardsForWorkspace, getCardSettings} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -36,7 +36,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const selectedProgramKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const settings = getCardSettingsForSelectedProgram(cardSettings, selectedProgramKey);
+    const settings = getCardSettings(cardSettings, selectedProgramKey);
     const [allProgramsCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
 
     // A single fund can hold both programs' cards in one Onyx list, so keep only the selected program's cards.

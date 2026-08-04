@@ -11,7 +11,7 @@ import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProg
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateSettlementFrequency as updateSettlementFrequencyUtil} from '@libs/actions/Card';
-import {getCardSettingsForSelectedProgram} from '@libs/CardUtils';
+import {getCardSettings} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -39,7 +39,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const programKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
-    const settings = getCardSettingsForSelectedProgram(cardSettings, programKey);
+    const settings = getCardSettings(cardSettings, programKey);
 
     const shouldShowMonthlyOption = settings?.isMonthlySettlementAllowed ?? false;
     const selectedFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;

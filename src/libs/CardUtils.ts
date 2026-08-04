@@ -1605,9 +1605,13 @@ function getIssuedCardFeedCountry(isEuUkEnabled: boolean, selectedProgramKey: Ca
 
 /**
  * Resolves the settings block for a specific Expensify Card program, merging the shared root fields with the program's nested overrides.
- * `programKey` is required: in a domain that runs more than one program (e.g. US and GB on the same fund) only an explicit key resolves the
- * right block, so there is deliberately no auto-detect here. Callers that only have a "currently selected" program (which may not be nested,
- * e.g. a legacy domain the backend still sends flat) should use `getCardSettingsForSelectedProgram`, which layers the flat-root fallback on top.
+ * `programKey` is required and there is deliberately no auto-detect: in a domain running more than one program (e.g. US and GB on the same
+ * fund) only an explicit key resolves the right block, and the requested program's nested block always wins.
+ *
+ * When the requested program is not nested, this falls back to the flat root only for the US and CURRENT (legacy pre-2024 US) programs. The
+ * flat root is legacy un-nested US data, so recovering it for a US/CURRENT request is correct, but returning it for a GB or TRAVEL_US request
+ * would hand back the wrong program's settings — those programs only ever exist nested, so a miss means the program is genuinely absent and we
+ * return undefined instead of masking it with US data. The flat root is a read-only display fallback.
  */
 function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey: CardProgramKey): NestedExpensifyCardSettings | undefined {
     if (!cardSettings) {
@@ -1620,20 +1624,11 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
         // program-specific fields (e.g. paymentBankAccountID, monthlySettlementDate).
         return {...cardSettings, ...programSettings} as NestedExpensifyCardSettings;
     }
-    return undefined;
-}
 
-/**
- * Resolves the settings for the display page's currently-selected program, falling back to the flat root when that program is not nested on
- * the NVP. The flat-root fallback supports legacy domains the backend still sends un-nested (and single-program feeds that predate nesting);
- * it is a read-only display fallback only. Program-aware callers use this rather than `getCardSettings` so a missing nested block degrades to
- * the flat root instead of returning undefined — but the selected `programKey` is still honored first, so US+GB domains resolve correctly.
- */
-function getCardSettingsForSelectedProgram(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey: CardProgramKey | undefined): NestedExpensifyCardSettings | undefined {
-    if (!cardSettings) {
-        return undefined;
-    }
-    return (programKey ? getCardSettings(cardSettings, programKey) : undefined) ?? (cardSettings as NestedExpensifyCardSettings);
+    // The flat root holds legacy un-nested US settings, so only US/CURRENT may fall back to it. GB/TRAVEL_US always nest,
+    // so a miss there means the program is absent — returning the flat root would surface the wrong program's data.
+    const canFallBackToFlatRoot = programKey === CONST.COUNTRY.US || programKey === CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT;
+    return canFallBackToFlatRoot ? (cardSettings as NestedExpensifyCardSettings) : undefined;
 }
 
 function getNestedExpensifyCardProgramSettings(settings: ExpensifyCardSettings, key: CardProgramKey): ExpensifyCardSettingsBase | undefined {
@@ -2107,7 +2102,7 @@ function getDisplayableThirdPartyCards(cardList: CardList | undefined, cardFeedE
  * 4. Finally, if all else fails, fallback to USD
  */
 function getFeedCurrency(cardSettings?: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): string {
-    const settings = getCardSettingsForSelectedProgram(cardSettings, programKey);
+    const settings = programKey ? getCardSettings(cardSettings, programKey) : (cardSettings as NestedExpensifyCardSettings | undefined);
     return getExpensifyCardProgramCurrency(programKey, settings?.country, settings?.currency);
 }
 
@@ -2127,7 +2122,7 @@ function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<Expens
 
     // If not, attempt to get currency from the card settings. A card's `feedCountry` is its own program key.
     const programKey = card?.nameValuePairs?.feedCountry as CardProgramKey | undefined;
-    const settings = getCardSettingsForSelectedProgram(cardSettings, programKey);
+    const settings = programKey ? getCardSettings(cardSettings, programKey) : (cardSettings as NestedExpensifyCardSettings | undefined);
     return getExpensifyCardProgramCurrency(programKey, card?.nameValuePairs?.country, settings?.currency);
 }
 
@@ -2273,7 +2268,6 @@ export {
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
     getCardSettings,
-    getCardSettingsForSelectedProgram,
     getConfiguredExpensifyCardProgramKeys,
     getProgramKeyForCard,
     filterCardsListByProgram,

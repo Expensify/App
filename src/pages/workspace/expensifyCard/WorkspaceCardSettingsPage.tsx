@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearCashbackToBillError, toggleCashbackToBill} from '@libs/actions/Card';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getCardSettingsForSelectedProgram} from '@libs/CardUtils';
+import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
@@ -44,7 +44,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const settings = getCardSettingsForSelectedProgram(cardSettings, programKey);
+    const settings = getCardSettings(cardSettings, programKey);
     const privateSubscription = usePrivateSubscription();
     const isUSProgram = programKey === CONST.COUNTRY.US || programKey === CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT;
     const shouldShowCashbackToggle = isUSProgram && !isSubscriptionTypeOfInvoicing(privateSubscription?.type);

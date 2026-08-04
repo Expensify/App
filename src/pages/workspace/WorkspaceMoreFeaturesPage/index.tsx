@@ -23,14 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
-import {
-    filterInactiveCards,
-    getAllCardsForWorkspace,
-    getCardSettings,
-    getCardSettingsForSelectedProgram,
-    getCompanyFeeds,
-    isSmartLimitEnabled as isSmartLimitEnabledUtil,
-} from '@libs/CardUtils';
+import {filterInactiveCards, getAllCardsForWorkspace, getCardSettings, getCompanyFeeds, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getConnectedHRProvider, isAnyHRConnected, isGustoConnected, isMergeHRConnected, isZenefitsConnected} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -153,7 +146,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
-    const settings = getCardSettingsForSelectedProgram(cardSettings, selectedProgramKey);
+    const settings = getCardSettings(cardSettings, selectedProgramKey);
     const paymentBankAccountID = settings?.paymentBankAccountID;
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
     const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
