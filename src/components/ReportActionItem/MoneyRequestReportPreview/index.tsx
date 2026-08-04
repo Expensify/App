@@ -25,6 +25,7 @@ import {
 } from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -67,7 +68,7 @@ function MoneyRequestReportPreview({
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {markReportRHPWidth} = useWideRHPActions();
+    const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
     const personalDetailsList = usePersonalDetails();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -81,6 +82,10 @@ function MoneyRequestReportPreview({
     // reimbursable derivations so they include optimistically-deleted rows, exactly as before the decomposition.
     const allReportTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const transactions = allReportTransactions.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    // IDs seeded into the expense view's prev/next carousel. Offline-deleted rows stay visible in the preview (above)
+    // but their threads are gone, so they must not be reachable through the arrows either — same filter every other
+    // seeder in the tree applies.
+    const openableTransactionIDs = transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID);
     // Tracks how many actions the IOU report has loaded so a deferred expense press can be retried once
     // the actions arrive (they may be missing right after a cache clear).
     const [iouReportActionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
@@ -212,15 +217,17 @@ function MoneyRequestReportPreview({
             });
 
             if (isSmallScreenWidth) {
-                // Narrow layouts open the pressed expense as a plain forward navigation, so back returns to the chat
-                // it was opened from. v1 instead inserted the parent report beneath the expense (a spliced stack entry
-                // on native, an extra history entry on mobile web) so that back stopped on the report first. That
-                // hand-built stack broke whenever another flow mutated it -- deleting an expense replaced the thread
-                // with a duplicate report route, the split-expense save left a stale route behind, and on mobile web
-                // the extra entry forced a state rebuild that flashed the chat on back. Keeping the stack untouched
-                // costs one intermediate stop and removes that whole class of failure.
-                setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID));
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
+                // Narrow layouts open the pressed expense in the RHP over the chat — the same route every other
+                // narrow entry point uses (see useNavigateToTransactionThread). Back returns to the chat.
+                //
+                // Deliberately NOT as a split-navigator screen with the parent report placed beneath it. Doing that
+                // leaves the thread as a full-screen SCREENS.REPORT route inside the split stack, and the flows that
+                // clean up after a thread assume it is not there: the split-expense save path relies on
+                // removeScreenByKey, which only filters the ROOT navigator's routes and so can never remove a nested
+                // split screen, and the delete path's goBack can land on a second copy of the parent report. Keeping
+                // the expense in the RHP keeps the split stack exactly as those flows expect it.
+                setActiveTransactionIDs(openableTransactionIDs);
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
                 return;
             }
 
@@ -232,7 +239,7 @@ function MoneyRequestReportPreview({
                 const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()});
                 markReportRHPWidth(iouReportID, 'super-wide');
                 Navigation.navigate(reportRoute);
-                setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID)).then(() => {
+                setActiveTransactionIDs(openableTransactionIDs).then(() => {
                     markReportRHPWidth(childReportID, 'wide');
                     // Let the report's wide RHP settle before opening the pressed expense on top, so the two
                     // panels open as a cascade rather than at once.
@@ -240,6 +247,9 @@ function MoneyRequestReportPreview({
                         // The user may have closed the report's wide RHP or navigated away during the cascade delay;
                         // don't reopen the expense over whatever screen is now active.
                         if (!Navigation.isActiveRoute(reportRoute)) {
+                            // Drop the width hint we set for the expense, otherwise it would force that thread to
+                            // open wide later from an unrelated entry point.
+                            unmarkReportRHPWidth(childReportID);
                             return;
                         }
                         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
@@ -249,12 +259,12 @@ function MoneyRequestReportPreview({
             }
 
             // Fallback when the parent report is unknown: open the pressed expense alone in the wide RHP.
-            setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID)).then(() => {
+            setActiveTransactionIDs(openableTransactionIDs).then(() => {
                 markReportRHPWidth(childReportID, 'wide');
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
             });
         },
-        [isSmallScreenWidth, iouReportID, markReportRHPWidth, transactions],
+        [isSmallScreenWidth, iouReportID, markReportRHPWidth, unmarkReportRHPWidth, openableTransactionIDs],
     );
 
     const openTransactionFromPreview = useCallback(

@@ -15,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import * as ReportActions from '@libs/actions/Report';
+import * as TransactionThreadNavigation from '@libs/actions/TransactionThreadNavigation';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFormattedCreated, isManagedCardTransaction} from '@libs/TransactionUtils';
@@ -551,17 +552,44 @@ describe('MoneyRequestReportPreview', () => {
             expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
         });
 
-        it('opens the pressed expense as a plain forward navigation on narrow layouts', async () => {
+        it('opens the pressed expense in the RHP over the chat on narrow layouts', async () => {
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
 
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
 
-            // The pressed expense opens with a single navigate and nothing is inserted beneath it, so back returns to
-            // the chat and no other flow can trip over a hand-built stack.
-            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(`thread_${mockSecondTransactionID}`, undefined, undefined, ''));
-            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, ''));
+            // The expense opens in the RHP, leaving the split stack untouched — the flows that clean up after a
+            // thread (split-expense save, delete) assume the thread is not a split-navigator screen.
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(`thread_${mockSecondTransactionID}`, undefined, undefined, ''));
+        });
+
+        it('keeps an offline-deleted sibling out of the expense view prev/next carousel', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            mockUseNetwork.mockReturnValue({isOffline: true});
+            const setActiveTransactionIDsSpy = jest.spyOn(TransactionThreadNavigation, 'setActiveTransactionIDs');
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            // First row is live, second is delete-pending. Offline keeps the deleted row visible in the carousel.
+            mockUseReportTransactionsCollection.mockImplementation(() =>
+                toCollectionDataSet(
+                    ONYXKEYS.COLLECTION.TRANSACTION,
+                    [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+                    (transaction) => transaction.transactionID,
+                ),
+            );
+
+            await renderAndPopulateCarousel();
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndHeaderText(mockTransaction);
+            const [liveRow] = screen.getAllByText(transactionDisplayAmount);
+            fireEvent.press(liveRow);
+            await waitForBatchedUpdatesWithAct();
+
+            // Pressing the LIVE row must not seed the deleted sibling, otherwise the RHP's next arrow opens a thread
+            // that no longer exists and lands on "It's not here" (deploy blocker #97149, arrow path).
+            expect(setActiveTransactionIDsSpy).toHaveBeenCalled();
+            const seededIDs = setActiveTransactionIDsSpy.mock.calls.at(-1)?.at(0);
+            expect(seededIDs).not.toContain(mockSecondTransactionID);
         });
 
         it('opens the parent report instead of an expense deleted while offline', async () => {
@@ -626,7 +654,7 @@ describe('MoneyRequestReportPreview', () => {
             // The press fetches the IOU report's actions and waits, rather than falling back to the parent report.
             expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
             expect(navigateSpy).not.toHaveBeenCalled();
-            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(`thread_${mockSecondTransactionID}`, undefined, undefined, ''));
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
 
             // Once the actions arrive the thread resolves and the pressed expense opens (report placed underneath).
             getIOUActionSpy.mockImplementation(buildActionWithThread);
@@ -635,7 +663,7 @@ describe('MoneyRequestReportPreview', () => {
                 await waitForBatchedUpdatesWithAct();
             });
 
-            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(`thread_${mockSecondTransactionID}`, undefined, undefined, ''));
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
         });
 
         it('falls back to the parent report once the re-fetch settles when the expense has no IOU action at all', async () => {
@@ -688,7 +716,7 @@ describe('MoneyRequestReportPreview', () => {
             // Regression: the press used to give up immediately (parent report) because some actions were cached;
             // it must re-fetch instead — the missing IOU action may just not have been seeded.
             expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
-            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(`thread_${mockSecondTransactionID}`, undefined, undefined, ''));
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
             expect(navigateSpy).not.toHaveBeenCalled();
 
             // The fetch lands the missing IOU action — the pressed expense opens (report beneath), not the parent report.
@@ -698,7 +726,7 @@ describe('MoneyRequestReportPreview', () => {
                 await waitForBatchedUpdatesWithAct();
             });
 
-            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(`thread_${mockSecondTransactionID}`, undefined, undefined, ''));
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
             expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, ''));
         });
 
