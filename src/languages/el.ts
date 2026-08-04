@@ -588,6 +588,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: 'Σφάλμα συνημμένου',
         errorWhileSelectingAttachment: 'Παρουσιάστηκε σφάλμα κατά την επιλογή συνημμένου. Παρακαλούμε δοκιμάστε ξανά.',
         errorWhileSelectingCorruptedAttachment: 'Προέκυψε σφάλμα κατά την επιλογή κατεστραμμένου συνημμένου. Παρακαλούμε δοκιμάστε άλλο αρχείο.',
+        errorWhileConvertingHeic: 'Δεν μπορέσαμε να επεξεργαστούμε αυτήν την εικόνα. Δοκιμάστε ξανά ή ανεβάστε τη φωτογραφία σε διαφορετική μορφή.',
         takePhoto: 'Βγάλτε φωτογραφία',
         chooseFromGallery: 'Επιλογή από τη συλλογή',
         chooseDocument: 'Επιλέξτε αρχείο',
