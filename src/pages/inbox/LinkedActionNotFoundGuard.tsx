@@ -3,7 +3,6 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportActionVisible, isWhisperAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
@@ -89,7 +88,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
 
     // Track whether isLoadingInitialReportActions has been true at least once during this mount.
     // For previously loaded reports, stale metadata may already have isLoadingInitialReportActions: false
-    // before openReport() fires its optimistic update — without this guard we'd flash "not found".
+    // before openReport() fires its optimistic update — without this guard we'd navigate away prematurely.
     const [hasSeenLoadingCycle, setHasSeenLoadingCycle] = useState(false);
     if (isLoadingInitialReportActions && !hasSeenLoadingCycle) {
         setHasSeenLoadingCycle(true);
@@ -103,36 +102,8 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
     // handles navigation via setParams instead.
     //
     // Note: the inaccessible whisper case is handled separately by the whisper effect.
-
-    const shouldShowNotFoundLinkedAction =
+    const isLinkedActionUnavailable =
         !wasEverVisible && !isLinkedActionInaccessibleWhisper && (isLinkedActionDeleted || (hasSeenLoadingCycle && !isLoadingInitialReportActions && !linkedAction));
-
-    useEffect(() => {
-        if (!shouldShowNotFoundLinkedAction) {
-            return;
-        }
-
-        Log.info('[ReportScreen] Displaying NotFound Page for linked action', false, {
-            reportIDFromRoute,
-            reportActionIDFromRoute,
-            isLoadingInitialReportActions,
-            hasSeenLoadingCycle,
-            isLinkedActionDeleted,
-            isLinkedActionInaccessibleWhisper,
-            wasEverVisible,
-            linkedActionExists: !!linkedAction,
-        });
-    }, [
-        shouldShowNotFoundLinkedAction,
-        reportIDFromRoute,
-        reportActionIDFromRoute,
-        isLoadingInitialReportActions,
-        hasSeenLoadingCycle,
-        isLinkedActionDeleted,
-        isLinkedActionInaccessibleWhisper,
-        wasEverVisible,
-        linkedAction,
-    ]);
 
     // Action was deleted or completely removed while we were viewing it — navigate away.
     // This handles both: (1) action exists but is hidden/deleted, and (2) action was
@@ -174,7 +145,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
         Navigation.setParams({reportActionID: undefined}, route.key, navigatorKey);
     };
 
-    useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundLinkedAction, navigateToEndOfReport);
+    useAutoNavigateForDeletedLinkedAction(isLinkedActionUnavailable, navigateToEndOfReport);
 
     return children;
 }
