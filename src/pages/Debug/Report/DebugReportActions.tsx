@@ -30,7 +30,7 @@ type DebugReportActionsProps = {
 };
 
 function DebugReportActions({reportID}: DebugReportActionsProps) {
-    const {translate, datetimeToCalendarTime, localeCompare} = useLocalize();
+    const {translate, datetimeToCalendarTime, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -74,6 +74,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                         conciergeReportID,
                         derivedReportName,
                         isReportArchived,
+                        formatPhoneNumber,
                     }).messageText ?? translate('report.noActivityYet'),
                 );
             }
