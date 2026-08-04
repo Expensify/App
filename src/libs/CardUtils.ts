@@ -1442,7 +1442,18 @@ function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCol
  * Check if the Expensify Card is fully set up and a new card can be issued
  */
 function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): boolean {
-    return !!(policy?.areExpensifyCardsEnabled && getCardSettings(cardSettings)?.paymentBankAccountID);
+    if (!policy?.areExpensifyCardsEnabled) {
+        return false;
+    }
+
+    // A settings NVP is fully set up when any of its configured programs has a linked settlement account. This checks each program
+    // explicitly (US and GB), so a domain whose only set-up program is GB reads as set up — an auto-detect that resolved US first would not.
+    if (getConfiguredExpensifyCardProgramKeys(cardSettings).length > 0) {
+        return true;
+    }
+
+    // Legacy domains the backend still sends un-nested carry the settlement account on the flat root, with no nested program block.
+    return !!cardSettings?.paymentBankAccountID;
 }
 
 /**
@@ -1593,50 +1604,36 @@ function getIssuedCardFeedCountry(isEuUkEnabled: boolean, selectedProgramKey: Ca
 }
 
 /**
- * Resolves the settings block for a given Expensify Card program, merging the shared root fields with the program's nested overrides.
- * `programKey` is optional on purpose: when it is omitted (or the requested program is not nested on the NVP) this auto-detects the
- * program in US → CURRENT → GB priority and, as a last resort, returns the flat root. That flat-root fallback exists for legacy domains
- * the backend still sends un-nested, so program-aware callers should pass a `programKey` (or use `getCardSettingsForSelectedProgram`,
- * which keeps the flat fallback) rather than relying on the US-first auto-detect.
+ * Resolves the settings block for a specific Expensify Card program, merging the shared root fields with the program's nested overrides.
+ * `programKey` is required: in a domain that runs more than one program (e.g. US and GB on the same fund) only an explicit key resolves the
+ * right block, so there is deliberately no auto-detect here. Callers that only have a "currently selected" program (which may not be nested,
+ * e.g. a legacy domain the backend still sends flat) should use `getCardSettingsForSelectedProgram`, which layers the flat-root fallback on top.
  */
-function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): NestedExpensifyCardSettings | undefined {
+function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey: CardProgramKey): NestedExpensifyCardSettings | undefined {
     if (!cardSettings) {
         return undefined;
     }
 
-    const getMergedProgramSettings = (key: CardProgramKey): NestedExpensifyCardSettings | undefined => {
-        const programSettings = cardSettings[key];
-        if (programSettings && typeof programSettings === 'object' && !Array.isArray(programSettings)) {
-            // Nested program values take precedence — they are the authoritative source for
-            // program-specific fields (e.g. paymentBankAccountID, monthlySettlementDate).
-            return {...cardSettings, ...programSettings} as NestedExpensifyCardSettings;
-        }
-        return undefined;
-    };
-
-    if (programKey) {
-        return getMergedProgramSettings(programKey);
+    const programSettings = cardSettings[programKey];
+    if (programSettings && typeof programSettings === 'object' && !Array.isArray(programSettings)) {
+        // Nested program values take precedence — they are the authoritative source for
+        // program-specific fields (e.g. paymentBankAccountID, monthlySettlementDate).
+        return {...cardSettings, ...programSettings} as NestedExpensifyCardSettings;
     }
-
-    // Auto-detect: try known card programs in priority order.
-    // Newer domains nest settings under US/GB, legacy ones under CURRENT.
-    // The flat root fallback supports domains that the backend still sends without nesting
-    // (e.g. older accounts that haven't been migrated). This flat path is a read-only display fallback only.
-    return (
-        getMergedProgramSettings(CONST.COUNTRY.US) ??
-        getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ??
-        getMergedProgramSettings(CONST.COUNTRY.GB) ??
-        (cardSettings as NestedExpensifyCardSettings)
-    );
+    return undefined;
 }
 
 /**
- * Resolves the settings for the display page's currently-selected program, falling back to auto-detect when that program
- * is not nested on the NVP. This keeps legacy domains the backend still sends flat (or single-program feeds that default to
- * US) working, without changing `getCardSettings`, whose strict-`programKey` behavior other callers (e.g. currency resolution) rely on.
+ * Resolves the settings for the display page's currently-selected program, falling back to the flat root when that program is not nested on
+ * the NVP. The flat-root fallback supports legacy domains the backend still sends un-nested (and single-program feeds that predate nesting);
+ * it is a read-only display fallback only. Program-aware callers use this rather than `getCardSettings` so a missing nested block degrades to
+ * the flat root instead of returning undefined — but the selected `programKey` is still honored first, so US+GB domains resolve correctly.
  */
 function getCardSettingsForSelectedProgram(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey: CardProgramKey | undefined): NestedExpensifyCardSettings | undefined {
-    return getCardSettings(cardSettings, programKey) ?? getCardSettings(cardSettings);
+    if (!cardSettings) {
+        return undefined;
+    }
+    return (programKey ? getCardSettings(cardSettings, programKey) : undefined) ?? (cardSettings as NestedExpensifyCardSettings);
 }
 
 function getNestedExpensifyCardProgramSettings(settings: ExpensifyCardSettings, key: CardProgramKey): ExpensifyCardSettingsBase | undefined {
