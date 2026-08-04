@@ -43,6 +43,8 @@ type WorkspaceFilterItem = ListItem & {
     isArchived: boolean;
 };
 
+type WorkspaceOption = MultiSelectItem<string> & {isArchived: boolean};
+
 type WorkspaceSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 function SectionHeader({
@@ -103,7 +105,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
     // Fetch the full (unfiltered) workspace list and apply the search filter locally, so pinning is decided from the
     // full list length rather than the filtered result count (see reordering below).
     const {workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFiltersWorkspaces(policies);
-    const workspaceOptions: Array<MultiSelectItem<string> & {isArchived: boolean}> = workspaces
+    const workspaceOptions: WorkspaceOption[] = workspaces
         .flatMap((section) => section.data)
         .filter((workspace): workspace is typeof workspace & {policyID: string; icons: Icon[]} => !!workspace.policyID && !!workspace.icons)
         .map((workspace) => ({
@@ -131,7 +133,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
         onChange(newValue);
     };
 
-    const toFilterItem = (item: (typeof filteredOptions)[number]): WorkspaceFilterItem => ({
+    const toFilterItem = (item: WorkspaceOption): WorkspaceFilterItem => ({
         text: `${item.text}${item.isArchived ? ` (${translate('search.filters.workspace.archived')})` : ''}`,
         keyForList: item.value,
         isSelected: value.includes(item.value),
