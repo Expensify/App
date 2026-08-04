@@ -26,18 +26,15 @@ type UserAvatarProps = {
     /** Display name used as a fallback for the avatar tooltip */
     fallbackDisplayName?: string;
 
-    /** Container styles for the avatar */
+    /** Container styles for the avatar. Replaces the size-derived default container styles when provided */
     containerStyle?: StyleProp<ViewStyle>;
-
-    /** Whether the avatar is displayed within a report action */
-    isInReportAction?: boolean;
 };
 
 /**
  * Renders a single user's avatar, resolving the icon from the personal-details context (zero Onyx subscriptions).
  * Use whenever exactly one user is rendered.
  */
-function UserAvatar({accountID, size = CONST.AVATAR_SIZE.DEFAULT, shouldShowTooltip = true, fallbackDisplayName, containerStyle, isInReportAction = false}: UserAvatarProps) {
+function UserAvatar({accountID, size = CONST.AVATAR_SIZE.DEFAULT, shouldShowTooltip = true, fallbackDisplayName, containerStyle}: UserAvatarProps) {
     const personalDetails = usePersonalDetails();
     const defaultAvatars = useDefaultAvatars();
     const StyleUtils = useStyleUtils();
@@ -48,7 +45,7 @@ function UserAvatar({accountID, size = CONST.AVATAR_SIZE.DEFAULT, shouldShowTool
         <SingleAvatar
             avatar={icon}
             size={size}
-            containerStyles={containerStyle ?? StyleUtils.getContainerStyles(size, isInReportAction)}
+            containerStyles={containerStyle ?? StyleUtils.getContainerStyles(size)}
             shouldShowTooltip={shouldShowTooltip}
             fallbackDisplayName={fallbackDisplayName}
         />

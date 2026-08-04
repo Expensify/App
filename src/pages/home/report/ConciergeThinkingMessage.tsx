@@ -195,7 +195,6 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
                     ) : (
                         <UserAvatar
                             containerStyle={styles.actionAvatar}
-                            isInReportAction
                             shouldShowTooltip
                             accountID={accountID}
                         />
