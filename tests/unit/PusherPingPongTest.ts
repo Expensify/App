@@ -26,6 +26,8 @@ jest.mock('@libs/NetworkState', () => ({
 // The watchdog checks every 60s; each reconnect skips the following check, so while PONGs stay missing it fires on every second check tick (~2 minutes)
 const CHECK_INTERVAL_MS = 60_000;
 
+const PING_INTERVAL_MS = 30_000;
+
 describe('Pusher PINGPONG watchdog', () => {
     let reconnectSpy: jest.SpyInstance;
     let pongCallback: Parameters<typeof PusherUtils.subscribeToPrivateUserChannelEvent>[2];
@@ -86,7 +88,10 @@ describe('Pusher PINGPONG watchdog', () => {
         expect(reconnectSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('sends the PING off the durable write queue', () => {
+    it('sends the PING off the durable write queue', async () => {
+        mockAPI.makeRequestWithSideEffects.mockClear();
+        await jest.advanceTimersByTimeAsync(PING_INTERVAL_MS);
+
         expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.PUSHER_PING, expect.anything());
         expect(mockAPI.writeWithNoDuplicatesConflictAction).not.toHaveBeenCalled();
     });
