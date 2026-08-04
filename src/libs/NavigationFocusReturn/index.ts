@@ -3,10 +3,7 @@ import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import hasFocusableAttributes from '@libs/focusGuards';
 import {KEYBOARD_TRIGGER_TTL_MS, MAX_RESTORE_FRAMES, MOUSE_TRIGGER_TTL_MS, RETURN_HOLD_MS, TRIGGER_MAP_MAX} from '@libs/focusReturnTimings';
 import getHadTabNavigation from '@libs/hadTabNavigation';
-import isActivatableTarget from '@libs/isActivatableTarget';
-import isActivationKeydown from '@libs/isActivationKeydown';
 import isEffectivelyVisible from '@libs/isEffectivelyVisible';
-import isFocusMovingKeydown from '@libs/isFocusMovingKeydown';
 import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from '@libs/LauncherStack';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -23,6 +20,9 @@ import type {RefObject} from 'react';
 import type {View} from 'react-native';
 
 import setFifoEntry from './fifoMap';
+import isActivatableTarget from './isActivatableTarget';
+import isActivationKeydown from './isActivationKeydown';
+import isFocusMovingKeydown from './isFocusMovingKeydown';
 
 /** focusin tracks the last keyboard-focused element; a nav state listener captures it against the outgoing route and restores it on backward nav. */
 

@@ -1,4 +1,4 @@
-import isHTMLElement from './isHTMLElement';
+import isHTMLElement from '@libs/isHTMLElement';
 
 const TEXT_INPUT_TYPES = new Set(['text', 'search', 'email', 'password', 'tel', 'url', 'number', 'date', 'datetime-local', 'month', 'time', 'week']);
 const BUTTON_INPUT_TYPES = new Set(['button', 'submit', 'reset', 'image']);

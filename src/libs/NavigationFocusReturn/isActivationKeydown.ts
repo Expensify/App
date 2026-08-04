@@ -1,6 +1,6 @@
-import CONST from '@src/CONST';
+import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 
-import isEnterWhileComposition from './KeyboardShortcut/isEnterWhileComposition';
+import CONST from '@src/CONST';
 
 /**
  * True when a keydown activates a Pressable — Enter/Space, no repeat, no IME. Modifiers pass through (RNW allows Cmd+Enter); text-editable targets are filtered downstream by `isActivatableTarget`.
