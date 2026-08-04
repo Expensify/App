@@ -713,16 +713,6 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
                     isLoading: true,
                 },
             },
-            {
-                // Clear any incorrect-magic-code error from a previous attempt so the form doesn't show a stale message.
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.VALIDATE_ACTION_CODE,
-                value: {
-                    errorFields: {
-                        [CONST.MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD]: null,
-                    },
-                },
-            },
         ],
         finallyData: [
             {
