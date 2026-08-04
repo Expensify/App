@@ -2029,9 +2029,8 @@ function getChangeTransactionsReportOnyxData({
 function changeTransactionsReport(props: ChangeTransactionsReportProps) {
     const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
-    // The "all matching" path needs both the serialized query and its hash. A query without a hash would silently
-    // fall through to the explicit-transaction path below and move only the loaded sample while the UI says "all
-    // matching", so surface it instead of failing quietly. In practice the search query JSON always carries a hash.
+    // The "all matching" path needs the query and its hash together. Without the hash it falls through to the
+    // explicit-transaction path and moves only the loaded page while the UI says "all matching", so surface it
     if (props.jsonQuery && props.hash === undefined) {
         Log.warn('changeTransactionsReport: received an all-matching jsonQuery without a hash; falling back to the explicit transaction list, which only moves the loaded transactions.');
     }

@@ -12,6 +12,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
@@ -41,8 +42,21 @@ function SearchTransactionsChangeReport() {
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON} = useSearchQueryContext();
-    const allMatchingQuery = areAllMatchingItemsSelected && currentSearchQueryJSON ? serializeQueryJSONForBackend(currentSearchQueryJSON) : undefined;
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
+
+    /** The backend resolves an "all matching" move from the query, so it needs the query and its hash together.
+     *  Without them only the loaded page moves while the UI claims otherwise, so warn instead of degrading silently. */
+    const getAllMatchingQueryParams = (): {jsonQuery?: string; hash?: number} => {
+        if (!areAllMatchingItemsSelected) {
+            return {};
+        }
+        if (!currentSearchQueryJSON) {
+            Log.warn('[SearchTransactionsChangeReport] All matching expenses are selected but the search query is unavailable; only the loaded expenses will be moved.');
+            return {};
+        }
+        return {jsonQuery: serializeQueryJSONForBackend(currentSearchQueryJSON), hash: currentSearchQueryJSON.hash};
+    };
+
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
     const transactions = Object.values(selectedTransactions)
         .map((transactionItem) => transactionItem.transaction)
@@ -182,8 +196,7 @@ function SearchTransactionsChangeReport() {
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
-                jsonQuery: allMatchingQuery,
-                hash: currentSearchQueryJSON?.hash,
+                ...getAllMatchingQueryParams(),
             });
             clearSelectedTransactions();
         });
@@ -265,8 +278,7 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
-            jsonQuery: allMatchingQuery,
-            hash: currentSearchQueryJSON?.hash,
+            ...getAllMatchingQueryParams(),
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
@@ -289,8 +301,7 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
-            jsonQuery: allMatchingQuery,
-            hash: currentSearchQueryJSON?.hash,
+            ...getAllMatchingQueryParams(),
         });
         clearSelectedTransactions();
         Navigation.goBack();

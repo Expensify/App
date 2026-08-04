@@ -1841,11 +1841,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                   subMenuItems,
               };
 
-        // Move-eligibility (single owner + every expense has `canChangeReport`) is computed from the transactions
-        // currently loaded into the selection. For a "select all matching" selection that only covers the loaded
-        // page, so this gate is best-effort. When all matching items are selected we hand the search `jsonQuery` to
-        // the backend, which is the source of truth for enforcing ownership and change-report eligibility across the
-        // full matching set before moving anything.
+        // Move-eligibility (single owner + every expense has `canChangeReport`) only sees the loaded page, so for a
+        // "select all matching" selection this gate is best-effort — the backend enforces it on the full set
         const moveOwnerAccountIDs = new Set<number>();
         let moveHasUnknownOwner = false;
         for (const id of selectedTransactionsKeys) {
@@ -1866,7 +1863,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
         }
         const moveHasMultipleOwners = moveOwnerAccountIDs.size > 1 || (moveHasUnknownOwner && (moveOwnerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
-        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+        // `every` is vacuously true on an empty selection, and the destination page bails out when nothing is selected
+        const canAllTransactionsBeMoved = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
         const canMoveExpenses = canAllTransactionsBeMoved && !moveHasMultipleOwners && !isExpenseReportType;
 
         const moveExpensesOption: DropdownOption<SearchHeaderOptionValue> = {
@@ -1874,11 +1872,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             icon: expensifyIcons.DocumentMerge,
             value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
             shouldCloseModalOnSelect: true,
-            onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.getRoute()),
+            onSelected: () => {
+                // A queued all-matching move would carry a query that is stale by the time it is sent, so ask the
+                // user to reconnect instead, the same way the all-matching export does
+                if (areAllMatchingItemsSelected && isOffline) {
+                    setIsOfflineModalVisible(true);
+                    return;
+                }
+                Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.getRoute());
+            },
         };
 
         if (areAllMatchingItemsSelected) {
-            return canMoveExpenses ? [moveExpensesOption, exportButtonOption] : [exportButtonOption];
+            return canMoveExpenses ? [exportButtonOption, moveExpensesOption] : [exportButtonOption];
         }
 
         if (allSelectedAreDeleted) {
