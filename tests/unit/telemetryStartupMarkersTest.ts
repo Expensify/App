@@ -82,6 +82,16 @@ describe('telemetry startup markers (native)', () => {
         expect(stageNames).not.toContain('OldDotDeeplinkDeferred');
     });
 
+    it('skips the JS-init span when only flag markers are present', () => {
+        // Given markers with no stage boundaries — a JS-init span here would cover the whole native head
+        mockMarkers.mockReturnValue(JSON.stringify({OldDotDeeplinkDeferred: 1_500}));
+
+        setupTelemetry();
+
+        const stageNames = startInactiveSpanMock.mock.calls.map(([options]: [{name: string}]) => options.name);
+        expect(stageNames).not.toContain('StartupNewDotJSInit');
+    });
+
     it('ignores stale markers recorded before the app start time', () => {
         mockMarkers.mockReturnValue(JSON.stringify({StaleMarker: 500, NativeDeviceConfig: 1_003}));
 

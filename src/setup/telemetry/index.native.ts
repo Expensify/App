@@ -34,6 +34,7 @@ function reportStartupMarkers(startupSpan: Span, nativeAppStartTimeMs: number) {
             .sort(([, a], [, b]) => a - b);
 
         let previousTimestampMs = nativeAppStartTimeMs;
+        let stageSpanCount = 0;
         for (const [name, timestampMs] of markers) {
             const flagAttribute = STARTUP_FLAG_MARKERS[name];
             if (flagAttribute) {
@@ -48,10 +49,13 @@ function reportStartupMarkers(startupSpan: Span, nativeAppStartTimeMs: number) {
             });
             stageSpan.end(timestampMs);
             previousTimestampMs = timestampMs;
+            stageSpanCount++;
         }
 
         // The remaining gap is Hermes bundle eval + JS init, ending where this telemetry setup runs.
-        if (markers.length > 0) {
+        // Gate on stage spans, not raw markers — flag-only markers leave previousTimestampMs at app
+        // start, which would mislabel the whole native head as JS init.
+        if (stageSpanCount > 0) {
             const jsInitSpan = Sentry.startInactiveSpan({
                 name: CONST.TELEMETRY.SPAN_STARTUP_NEW_DOT_JS_INIT,
                 op: CONST.TELEMETRY.SPAN_STARTUP_NEW_DOT_JS_INIT,
