@@ -96,7 +96,7 @@ function getOdometerContainerConfig(isWebPlatform: boolean, isCreatingNewRequest
         key = isFocused ? 'focused' : 'unfocused';
     }
     const props = isWebPlatform
-        ? // Web already receives the iOS 26 Safari keyboard compensation from the parent ScreenWrapper.
+        ? // Web's KeyboardAvoidingView ignores `enabled`, so the parent ScreenWrapper still applies the iOS 26 Safari compensation.
           {}
         : {
               behavior: 'padding' as const,
