@@ -2586,10 +2586,14 @@ function getFilterFormValues<K extends ListFilterContentProps['baseFilterKey'] |
  * Used to detect when a query no longer represents a given default/suggested search (e.g. a filter was removed).
  */
 function doesQueryMatchDefaultFilterKeysAndType(queryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined) {
-    const queryFilterKeys = new Set(queryJSON?.flatFilters.map((filter) => filter.key));
-    const defaultQueryFilterKeys = new Set(defaultQueryJSON?.flatFilters.map((filter) => filter.key));
+    if (!queryJSON || !defaultQueryJSON) {
+        return true;
+    }
 
-    return [...defaultQueryFilterKeys].every((value) => queryFilterKeys.has(value)) && queryJSON?.type === defaultQueryJSON?.type;
+    const queryFilterKeys = new Set(queryJSON.flatFilters.map((filter) => filter.key));
+    const defaultQueryFilterKeys = new Set(defaultQueryJSON.flatFilters.map((filter) => filter.key));
+
+    return [...defaultQueryFilterKeys].every((value) => queryFilterKeys.has(value)) && queryJSON.type === defaultQueryJSON.type;
 }
 
 function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) {

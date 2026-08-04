@@ -1,4 +1,4 @@
-import {useSearchQueryActions} from '@components/Search/SearchContext';
+import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
@@ -15,6 +15,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
     const {translate} = useLocalize();
     const {resetSearchKey} = useSearchQueryActions();
+    const {currentSearchHash} = useSearchQueryContext();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     function getUpdatedFilterFormValues(currentValues: Partial<SearchAdvancedFiltersForm>, newValues: Partial<SearchAdvancedFiltersForm>) {
@@ -50,7 +51,10 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
         }
 
         if (values.type && searchAdvancedFiltersForm.type !== values.type) {
-            resetSearchKey(true, buildSearchQueryJSON(queryString));
+            const queryJSON = buildSearchQueryJSON(queryString);
+            if (currentSearchHash !== queryJSON?.hash) {
+                resetSearchKey(true, queryJSON);
+            }
         }
 
         Navigation.setParams({q: queryString, rawQuery: undefined});

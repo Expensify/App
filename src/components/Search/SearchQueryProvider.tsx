@@ -99,19 +99,11 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const [currentSearchKey, setCurrentSearchKey] = useState(getInitialCurrentSearchKey);
     const [pendingCurrentSearchKey, setPendingCurrentSearchKey] = useState<SearchKey | undefined | null>(null);
 
-    const currentDefaultSearchQueryString = currentSearchKey
-        ? (suggestedSearches[currentSearchKey]?.searchQuery ?? savedSearches?.[searchKeyToSavedSearchID(currentSearchKey) ?? '']?.query)
-        : undefined;
+    const currentDefaultSearchQueryString = currentSearchKey ? suggestedSearches[currentSearchKey]?.searchQuery : undefined;
     const currentDefaultSearchQueryJSON = currentDefaultSearchQueryString ? buildSearchQueryJSON(currentDefaultSearchQueryString) : undefined;
     const currentDefaultSearchQueryFilterKeys = new Set(currentDefaultSearchQueryJSON?.flatFilters.map((filter) => filter.key));
 
     const resetSearchKey = (pending = false, queryJSON = currentSearchQueryJSON) => {
-        // The query might resolve to a different search key than the current one even though it represents the same
-        // search (same hash as the current key's default query). In that case keep the current key instead of switching.
-        if (currentDefaultSearchQueryJSON?.hash === queryJSON?.hash) {
-            return;
-        }
-
         const searchKey = getInitialCurrentSearchKey(queryJSON);
         if (pending && queryJSON?.hash !== currentSearchHash) {
             setPendingCurrentSearchKey(searchKey);
