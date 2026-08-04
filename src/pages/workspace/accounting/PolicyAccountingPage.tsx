@@ -115,7 +115,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const newConnectionName = params?.newConnectionName;
     const integrationToDisconnect = params?.integrationToDisconnect;
     const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
-    const isIntuitEnterpriseSuite = params?.isIntuitEnterpriseSuite === true || params?.isIntuitEnterpriseSuite === 'true';
+    const shouldConnectToIntuitEnterpriseSuite = params?.isIntuitEnterpriseSuite === true || params?.isIntuitEnterpriseSuite === 'true';
     const policyID = policy?.id;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
@@ -272,11 +272,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
             startIntegrationFlow({
                 name: newConnectionName,
-                isIntuitEnterpriseSuite,
+                isIntuitEnterpriseSuite: shouldConnectToIntuitEnterpriseSuite,
                 integrationToDisconnect,
                 shouldDisconnectIntegrationBeforeConnecting,
             });
-        }, [newConnectionName, isIntuitEnterpriseSuite, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, policy, startIntegrationFlow, canWriteAccounting]),
+        }, [newConnectionName, shouldConnectToIntuitEnterpriseSuite, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, policy, startIntegrationFlow, canWriteAccounting]),
     );
 
     useEffect(() => {
