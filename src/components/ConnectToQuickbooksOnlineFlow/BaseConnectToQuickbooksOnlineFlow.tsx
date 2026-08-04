@@ -1,6 +1,6 @@
 /**
  * Shared QuickBooks Online and Intuit Enterprise Suite connection flow.
- * Development environments can select a production or sandbox connection before starting the platform-specific flow.
+ * Local development environments can select a production or sandbox connection before starting the platform-specific flow.
  */
 import PopoverMenu from '@components/PopoverMenu';
 
@@ -18,6 +18,7 @@ import type {AnchorPosition} from '@styles/index';
 
 import {enablePolicyTaxes} from '@userActions/Policy/Policy';
 
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -42,7 +43,7 @@ function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, o
     const icons = useMemoizedLazyExpensifyIcons(['LinkCopy']);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.QBO);
-    const shouldShowConnectionOptions = environment === CONST.ENVIRONMENT.DEV && !isAuthError;
+    const shouldShowConnectionOptions = environment === CONST.ENVIRONMENT.DEV && CONFIG.IS_USING_LOCAL_WEB && !isAuthError;
     const [isConnectionOptionsPopoverOpen, setIsConnectionOptionsPopoverOpen] = useState(shouldShowConnectionOptions);
     const [connectionOptionsPopoverPosition, setConnectionOptionsPopoverPosition] = useState<AnchorPosition | null>(null);
     const didInitialize = useRef(false);
