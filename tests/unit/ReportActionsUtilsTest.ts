@@ -71,7 +71,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {getFakeReportAction} from '../utils/ReportTestUtils';
-import {translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -3710,7 +3710,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('set max expense amount to "$100.00"');
         });
 
@@ -3725,7 +3725,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('removed max expense amount (previously "$100.00")');
         });
 
@@ -3740,7 +3740,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('changed max expense amount to "$500.00" (previously "$100.00")');
         });
     });
@@ -3801,7 +3801,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('set receipt required amount to "$25.00"');
         });
 
@@ -3816,7 +3816,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('removed receipt required amount (previously "$25.00")');
         });
 
@@ -3831,7 +3831,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('changed receipt required amount to "$75.00" (previously "$25.00")');
         });
     });
@@ -3848,7 +3848,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('set itemized receipt required amount to "$25.00"');
         });
 
@@ -3863,7 +3863,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('removed itemized receipt required amount (previously "$25.00")');
         });
 
@@ -3878,7 +3878,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('changed itemized receipt required amount to "$75.00" (previously "$25.00")');
         });
     });
@@ -5006,7 +5006,7 @@ describe('ReportActionsUtils', () => {
                 message: [],
             } as ReportAction;
 
-            const result = getAutoReimbursementMessage(translateLocal, action);
+            const result = getAutoReimbursementMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('set the auto-pay approved reports threshold to "$500.00"');
         });
 
@@ -5023,7 +5023,7 @@ describe('ReportActionsUtils', () => {
                 message: [],
             } as ReportAction;
 
-            const result = getAutoReimbursementMessage(translateLocal, action);
+            const result = getAutoReimbursementMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('removed the auto-pay approved reports threshold');
         });
 
@@ -5040,7 +5040,7 @@ describe('ReportActionsUtils', () => {
                 message: [],
             } as ReportAction;
 
-            const result = getAutoReimbursementMessage(translateLocal, action);
+            const result = getAutoReimbursementMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('changed the auto-pay approved reports threshold to "$1,000.00" (previously "$500.00")');
         });
     });
