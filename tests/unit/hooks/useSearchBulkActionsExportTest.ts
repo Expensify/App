@@ -5,6 +5,7 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
+import {getExportTemplates} from '@libs/actions/Search';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
 
 import CONST from '@src/CONST';
@@ -228,6 +229,8 @@ jest.mock('@components/Search/SearchContext', () => ({
         selectAllMatchingItems: mockSelectAllMatchingItems,
     }),
 }));
+
+const mockGetExportTemplates = jest.mocked(getExportTemplates);
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 
@@ -484,6 +487,56 @@ describe('useSearchBulkActions - export options', () => {
 
         await waitFor(() => {
             expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
+        });
+    });
+
+    describe('Canadian Multiple Tax Export eligibility', () => {
+        const SECOND_POLICY_ID = 'policy2';
+        const SECOND_REPORT_ID = 'report2';
+
+        /** The includeMultipleTaxExport argument getExportTemplates was last called with */
+        function getIncludeMultipleTaxExportArgument() {
+            return mockGetExportTemplates.mock.calls.at(-1)?.at(7);
+        }
+
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {outputCurrency: CONST.CURRENCY.CAD});
+        });
+
+        it('offers the template when every selected workspace outputs in CAD, even across several workspaces', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_POLICY_ID}`, {id: SECOND_POLICY_ID, outputCurrency: CONST.CURRENCY.CAD});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: SECOND_REPORT_ID, policyID: SECOND_POLICY_ID})];
+            mockSelectedTransactions = {
+                tx1: makeSelectedTransaction(),
+                tx2: makeSelectedTransaction({reportID: SECOND_REPORT_ID, policyID: SECOND_POLICY_ID}),
+            };
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getIncludeMultipleTaxExportArgument()).toBe(true);
+            });
+        });
+
+        it('hides the template when a transaction from a non-CAD workspace is selected alongside a CAD report', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_POLICY_ID}`, {id: SECOND_POLICY_ID, outputCurrency: CONST.CURRENCY.USD});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            // Only the CAD report is fully selected, but an extra transaction from a USD workspace is part of the same export request
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {
+                tx1: makeSelectedTransaction(),
+                tx2: makeSelectedTransaction({reportID: SECOND_REPORT_ID, policyID: SECOND_POLICY_ID}),
+            };
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(mockGetExportTemplates).toHaveBeenCalled();
+            });
+            expect(getIncludeMultipleTaxExportArgument()).toBe(false);
         });
     });
 });

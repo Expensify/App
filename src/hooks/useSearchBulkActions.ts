@@ -535,9 +535,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         [selectedTransactions],
     );
 
-    // A bulk selection can span several workspaces, so the Canadian Multiple Tax Export template is only offered when every selected item belongs to a workspace that outputs in CAD
+    // A bulk selection can span several workspaces, so the Canadian Multiple Tax Export template is only offered when every selected item belongs to a workspace that outputs in CAD.
+    // Reports and transactions are both checked because a selection can mix whole reports with individual transactions from other reports, and the export request covers all of them.
     const doAllSelectedItemsBelongToCADPolicies = useMemo(() => {
-        const selectedItems = selectedReports.length > 0 ? selectedReports : Object.values(selectedTransactions);
+        const selectedItems = [...selectedReports, ...Object.values(selectedTransactions)];
         if (selectedItems.length === 0) {
             return false;
         }
