@@ -81,8 +81,8 @@ describe('Fullstory consentAndIdentify (web)', () => {
         jest.spyOn(webFS, 'onReady').mockReturnValueOnce(staleChain.promise).mockReturnValueOnce(freshChain.promise);
         getEnvironmentMock.mockResolvedValue(CONST.ENVIRONMENT.PRODUCTION);
 
-        webFS.consentAndIdentify({accountID});
-        webFS.consentAndIdentify({accountID, email});
+        webFS.consentAndIdentify({accountID}, undefined);
+        webFS.consentAndIdentify({accountID, email}, undefined);
         await waitForBatchedUpdates();
 
         // When the email chain resolves first and the email-less chain resolves after it
@@ -102,7 +102,7 @@ describe('Fullstory consentAndIdentify (web)', () => {
         jest.spyOn(webFS, 'onReady').mockResolvedValue(undefined);
         getEnvironmentMock.mockResolvedValue(CONST.ENVIRONMENT.PRODUCTION);
 
-        webFS.consentAndIdentify({accountID, email});
+        webFS.consentAndIdentify({accountID, email}, undefined);
         await waitForBatchedUpdates();
 
         expect(identifySpy).toHaveBeenCalledTimes(1);
@@ -123,9 +123,9 @@ describe('Fullstory consentAndIdentify (web)', () => {
         const fullStoryMock = jest.mocked(FullStoryBrowser);
         fullStoryMock.mockClear();
 
-        webFS.consentAndIdentify({accountID, email});
+        webFS.consentAndIdentify({accountID, email}, undefined);
         await waitForBatchedUpdates();
-        webFS.consentAndIdentify({accountID: ineligibleAccountID});
+        webFS.consentAndIdentify({accountID: ineligibleAccountID}, undefined);
         await waitForBatchedUpdates();
 
         // When the first chain's onReady resolves after the switch
@@ -145,7 +145,7 @@ describe('Fullstory consentAndIdentify (web)', () => {
         getEnvironmentMock.mockResolvedValue(CONST.ENVIRONMENT.PRODUCTION);
 
         const userMetadata: UserMetadata = {accountID, email};
-        webFS.consentAndIdentify(userMetadata);
+        webFS.consentAndIdentify(userMetadata, undefined);
         await waitForBatchedUpdates();
 
         expect(userMetadata).not.toHaveProperty('environment');
@@ -161,8 +161,8 @@ describe('Fullstory consentAndIdentify (native)', () => {
         const freshChain = createDeferred<Environment>();
         getEnvironmentMock.mockReturnValueOnce(staleChain.promise).mockReturnValueOnce(freshChain.promise);
 
-        nativeFS.consentAndIdentify({accountID});
-        nativeFS.consentAndIdentify({accountID, email});
+        nativeFS.consentAndIdentify({accountID}, undefined);
+        nativeFS.consentAndIdentify({accountID, email}, undefined);
 
         // When the email chain resolves first and the email-less chain resolves after it
         freshChain.resolve(CONST.ENVIRONMENT.PRODUCTION);
@@ -180,7 +180,7 @@ describe('Fullstory consentAndIdentify (native)', () => {
         const identifySpy = jest.spyOn(nativeFS, 'identify').mockImplementation(() => {});
         getEnvironmentMock.mockResolvedValue(CONST.ENVIRONMENT.PRODUCTION);
 
-        nativeFS.consentAndIdentify({accountID, email});
+        nativeFS.consentAndIdentify({accountID, email}, undefined);
         await waitForBatchedUpdates();
 
         expect(identifySpy).toHaveBeenCalledTimes(1);

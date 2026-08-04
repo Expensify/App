@@ -20,7 +20,7 @@ const FS: Fullstory = {
 
     getChatFSClass,
 
-    init: (userMetadata) => FS.consentAndIdentify(userMetadata),
+    init: (userMetadata, session) => FS.consentAndIdentify(userMetadata, session),
 
     onReady: async () => FullStory.onReady(),
 
@@ -33,7 +33,7 @@ const FS: Fullstory = {
         FullStory.identify(String(localMetadata.accountID), localMetadata);
     },
 
-    consentAndIdentify: (userMetadata) => {
+    consentAndIdentify: (userMetadata, session) => {
         // On the first subscribe for UserMetadata, this function will be called. We need
         // to confirm that we actually have any value here before proceeding.
         if (!userMetadata?.accountID) {
@@ -53,7 +53,7 @@ const FS: Fullstory = {
                 // from clobbering a newer identity, while ensuring a switch to an ineligible account (e.g. a
                 // support or non-production account) is not identified just because an older chain passed.
                 const currentUserMetadata = latestUserMetadata;
-                if (!FS.shouldInitialize(currentUserMetadata, envName)) {
+                if (!FS.shouldInitialize(currentUserMetadata, envName, session)) {
                     return;
                 }
 

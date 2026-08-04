@@ -2,13 +2,23 @@ import {isSupportAuthToken} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import getEnvironment from '@src/libs/Environment/getEnvironment';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Session} from '@src/types/onyx';
 import type UserMetadata from '@src/types/onyx/UserMetadata';
 
 import {FullStory, init, isInitialized} from '@fullstory/browser';
+import Onyx from 'react-native-onyx';
 
 import type {FSPageLike, Fullstory} from './types';
 
 import {getChatFSClass, shouldInitializeFullstory} from './common';
+
+// Use connectWithoutView because it is only for fullstory initialization
+let fullstorySession: Session = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => (fullstorySession = value ?? {}),
+});
 
 // Placeholder Browser API does not support Manual Page definition
 class FSPage implements FSPageLike {
@@ -43,7 +53,7 @@ const FS: Fullstory = {
             }
         }),
 
-    shouldInitialize: (userMetadata, envName) => shouldInitializeFullstory(userMetadata, envName) && !isSupportAuthToken(),
+    shouldInitialize: (userMetadata, envName, session) => shouldInitializeFullstory(userMetadata, envName, session) && !isSupportAuthToken(session),
 
     consent: (shouldConsent) => FullStory(CONST.FULLSTORY.OPERATION.SET_IDENTITY, {consent: shouldConsent}),
 
@@ -59,7 +69,7 @@ const FS: Fullstory = {
         });
     },
 
-    consentAndIdentify: (userMetadata) => {
+    consentAndIdentify: (userMetadata, session) => {
         // On the first subscribe for UserMetadata, this function will be called. We need
         // to confirm that we actually have any value here before proceeding.
         if (!userMetadata?.accountID) {
@@ -76,7 +86,7 @@ const FS: Fullstory = {
                 // Gate on the freshest metadata so the eligibility decision and the identity below stay in
                 // sync: if the current user is no longer eligible (e.g. switched to a support or
                 // non-production account while this chain was pending), shut FS down instead of running it.
-                if (!FS.shouldInitialize(latestUserMetadata, envName)) {
+                if (!FS.shouldInitialize(latestUserMetadata, envName, session)) {
                     // On web, if we started FS at some point in a browser, it will run forever. So let's shut it down if we don't want it to run.
                     if (isInitialized()) {
                         FullStory(CONST.FULLSTORY.OPERATION.SHUTDOWN);
@@ -96,7 +106,7 @@ const FS: Fullstory = {
                     // that same snapshot, since the current user may have switched to an ineligible account
                     // while onReady was pending - in that case shut FS down rather than identify it.
                     const currentUserMetadata = latestUserMetadata;
-                    if (!FS.shouldInitialize(currentUserMetadata, envName)) {
+                    if (!FS.shouldInitialize(currentUserMetadata, envName, session)) {
                         if (isInitialized()) {
                             FullStory(CONST.FULLSTORY.OPERATION.SHUTDOWN);
                         }
@@ -155,5 +165,11 @@ const FS: Fullstory = {
         // It's a mobile-only feature
     },
 };
+
+// Use connectWithoutView because it is only for fullstory initialization
+Onyx.connectWithoutView({
+    key: ONYXKEYS.USER_METADATA,
+    callback: (value) => FS.consentAndIdentify(value, fullstorySession),
+});
 
 export default FS;
