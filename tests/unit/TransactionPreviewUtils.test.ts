@@ -132,11 +132,12 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it('returns missing amount message when amount is missing but merchant is present (expense report with field errors)', () => {
-            const functionArgs = {
+            const functionArgs: Parameters<typeof getTransactionPreviewTextAndTranslationPaths>[0] = {
                 ...basicProps,
                 iouReport: {...basicProps.iouReport, type: CONST.REPORT.TYPE.IOU},
                 transaction: {
                     ...basicProps.transaction,
+                    // @ts-expect-error - This scenario deliberately passes a transaction without an amount to exercise the missing-amount branch.
                     amount: undefined,
                     modifiedAmount: undefined,
                     merchant: 'Valid Merchant',
@@ -146,7 +147,6 @@ describe('TransactionPreviewUtils', () => {
                 originalTransaction: undefined,
                 shouldShowRBR: true,
             };
-            // @ts-expect-error - This scenario deliberately passes a transaction without an amount to exercise the missing-amount branch.
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.RBRMessage.translationPath).toEqual('iou.missingAmount');
         });

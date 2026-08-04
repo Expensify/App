@@ -579,7 +579,7 @@ describe('PerDiem', () => {
                 role: CONST.REPORT.ROLE.MEMBER,
             };
 
-            const mockTransactionParams = {
+            const mockTransactionParams = createMock<PerDiemExpenseTransactionParams>({
                 comment: 'Conference per diem',
                 currency: 'USD',
                 created: '2024-01-20',
@@ -589,19 +589,19 @@ describe('PerDiem', () => {
                 billable: false,
                 attendees: [],
                 reimbursable: true,
-            };
+            });
 
-            const mockParticipantParams = {
+            const mockParticipantParams = createMock<RequestMoneyParticipantParams>({
                 payeeAccountID: 456,
                 payeeEmail: 'payee@example.com',
                 participant: mockParticipant,
-            };
+            });
 
             // When: Call getPerDiemExpenseInformation with existing chat report
             const result = getPerDiemExpenseInformation({
                 parentChatReport: createMock<OnyxEntry<Report>>(existingChatReport),
-                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
-                participantParams: mockParticipantParams as RequestMoneyParticipantParams,
+                transactionParams: mockTransactionParams,
+                participantParams: mockParticipantParams,
                 recentlyUsedParams: {},
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
@@ -664,7 +664,7 @@ describe('PerDiem', () => {
                 quantity: 1,
             };
 
-            const mockTransactionParams = {
+            const mockTransactionParams = createMock<PerDiemExpenseTransactionParams>({
                 comment: 'Policy per diem',
                 currency: 'USD',
                 created: '2024-01-25',
@@ -674,13 +674,13 @@ describe('PerDiem', () => {
                 billable: true,
                 attendees: [],
                 reimbursable: true,
-            };
+            });
 
-            const mockParticipantParams = {
+            const mockParticipantParams = createMock<RequestMoneyParticipantParams>({
                 payeeAccountID: 456,
                 payeeEmail: 'payee@example.com',
                 participant: mockParticipant,
-            };
+            });
 
             const mockPolicyParams = {
                 policy: createRandomPolicy(2),
@@ -689,8 +689,8 @@ describe('PerDiem', () => {
             // When: Call getPerDiemExpenseInformation for policy expense chat
             const result = getPerDiemExpenseInformation({
                 parentChatReport: createMock<OnyxEntry<Report>>({}),
-                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
-                participantParams: mockParticipantParams as RequestMoneyParticipantParams,
+                transactionParams: mockTransactionParams,
+                participantParams: mockParticipantParams,
                 policyParams: mockPolicyParams,
                 recentlyUsedParams: {},
                 isASAPSubmitBetaEnabled: false,

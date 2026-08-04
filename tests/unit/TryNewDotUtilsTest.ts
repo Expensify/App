@@ -72,73 +72,73 @@ describe('TryNewDotUtils', () => {
     });
 
     it('blocks the OldDot redirect when the classicRedirect nudge has gone stale', () => {
-        const tryNewDot = {
+        const tryNewDot: Parameters<typeof isOldAppRedirectBlocked>[0] = {
             classicRedirect: {
                 dismissed: false,
+                // @ts-expect-error - NVP data is serialized with a string timestamp.
                 timestamp: subDays(new Date(), 31).toISOString(),
             },
         };
 
-        // @ts-expect-error - NVP data is serialized with a string timestamp and may omit newer fields.
         expect(isOldAppRedirectBlocked(tryNewDot, false)).toBe(true);
     });
 
     it('still shows the OldDot redirect when the classicRedirect nudge is fresh', () => {
-        const tryNewDot = {
+        const tryNewDot: Parameters<typeof isOldAppRedirectBlocked>[0] = {
             classicRedirect: {
                 dismissed: false,
+                // @ts-expect-error - NVP data is serialized with a string timestamp.
                 timestamp: subDays(new Date(), 5).toISOString(),
             },
         };
 
-        // @ts-expect-error - NVP data is serialized with a string timestamp and may omit newer fields.
         expect(isOldAppRedirectBlocked(tryNewDot, false)).toBe(false);
     });
 
     it('reports that a user has been in NewDot 30 days when the nudge is over a month old and not dismissed', () => {
-        const tryNewDot = {
+        const tryNewDot: Parameters<typeof hasBeenInNewDot30Days>[0] = {
             classicRedirect: {
                 dismissed: false,
+                // @ts-expect-error - NVP data is serialized with a string timestamp.
                 timestamp: subDays(new Date(), 31).toISOString(),
             },
         };
 
-        // @ts-expect-error - NVP data is serialized with a string timestamp and may omit newer fields.
         expect(hasBeenInNewDot30Days(tryNewDot)).toBe(true);
     });
 
     it('does not report 30 days in NewDot when the nudge is less than a month old', () => {
-        const tryNewDot = {
+        const tryNewDot: Parameters<typeof hasBeenInNewDot30Days>[0] = {
             classicRedirect: {
                 dismissed: false,
+                // @ts-expect-error - NVP data is serialized with a string timestamp.
                 timestamp: subDays(new Date(), 10).toISOString(),
             },
         };
 
-        // @ts-expect-error - NVP data is serialized with a string timestamp and may omit newer fields.
         expect(hasBeenInNewDot30Days(tryNewDot)).toBe(false);
     });
 
     it('does not report 30 days in NewDot once the user has dismissed the nudge', () => {
-        const tryNewDot = {
+        const tryNewDot: Parameters<typeof hasBeenInNewDot30Days>[0] = {
             classicRedirect: {
                 dismissed: true,
+                // @ts-expect-error - NVP data is serialized with a string timestamp.
                 timestamp: subDays(new Date(), 60).toISOString(),
             },
         };
 
-        // @ts-expect-error - NVP data is serialized with a string timestamp and may omit newer fields.
         expect(hasBeenInNewDot30Days(tryNewDot)).toBe(false);
     });
 
     it('does not report 30 days in NewDot when no timestamp is set', () => {
-        const tryNewDot = {
+        const tryNewDot: Parameters<typeof hasBeenInNewDot30Days>[0] = {
+            // @ts-expect-error - NVP data is serialized without newer required fields.
             classicRedirect: {
                 dismissed: false,
             },
         };
 
-        // @ts-expect-error - NVP data is serialized with a string timestamp and may omit newer fields.
         expect(hasBeenInNewDot30Days(tryNewDot)).toBe(false);
     });
 
