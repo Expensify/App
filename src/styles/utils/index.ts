@@ -902,7 +902,8 @@ type AvatarBorderStyleParams = {
     isHovered: boolean;
     isPressed: boolean;
     isInReportAction: boolean;
-    shouldUseCardBackground: boolean;
+    /** Border color when the avatar is idle — should match the surface behind the avatars. Defaults to `theme.appBG`. */
+    avatarBorderColor?: ColorValue;
     isActive?: boolean;
     customPressedBorderColor?: string;
 };
@@ -912,11 +913,11 @@ function getHorizontalStackedAvatarBorderStyle({
     isHovered,
     isPressed,
     isInReportAction = false,
-    shouldUseCardBackground = false,
+    avatarBorderColor,
     isActive = false,
     customPressedBorderColor,
 }: AvatarBorderStyleParams): ViewStyle {
-    let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
+    let borderColor = avatarBorderColor ?? theme.appBG;
 
     if (isHovered) {
         borderColor = isInReportAction ? theme.hoverComponentBG : theme.border;
