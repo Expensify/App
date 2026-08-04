@@ -2310,13 +2310,13 @@ function shouldHighlight(referenceText: string, searchText: string) {
         return false;
     }
 
-    const escapedText = StringUtils.normalizeAccents(searchText)
+    const escapedText = StringUtils.normalizeForMatch(searchText)
         .toLowerCase()
         .trim()
         .replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(`(^|\\s)${escapedText}(?=\\s|$)`, 'i');
 
-    return pattern.test(StringUtils.normalizeAccents(referenceText).toLowerCase());
+    return pattern.test(StringUtils.normalizeForMatch(referenceText).toLowerCase());
 }
 
 const TIME_BASED_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.YEAR, CONST.SEARCH.GROUP_BY.QUARTER]);
