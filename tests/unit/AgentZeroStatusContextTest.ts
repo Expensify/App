@@ -325,6 +325,84 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.candidateAgentIDs).not.toContain(CUSTOM_AGENT);
             expect(result.current.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE);
         });
+
+        it('renders only the tagged agent when an admins room has a stale label for another agent', async () => {
+            const taggedAgentID = 222;
+            const staleAgentID = 333;
+
+            await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                participants: {
+                    [currentUserAccountID]: participant,
+                    [taggedAgentID]: participant,
+                    [staleAgentID]: participant,
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                userRequest: {
+                    reportActionID: 'userRequest',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: currentUserAccountID,
+                    created: '2026-08-01 00:00:00.000',
+                    originalMessage: {mentionedAccountIDs: [taggedAgentID]},
+                    message: [{type: 'TEXT', text: '@agent please help'}],
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: {
+                    [taggedAgentID]: 'Thinking...',
+                    [staleAgentID]: 'Thinking...',
+                },
+            });
+
+            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            await waitForBatchedUpdates();
+
+            expect(result.current.candidateAgentIDs).toEqual([taggedAgentID]);
+        });
+
+        it('renders every active agent when the current admins request is untagged', async () => {
+            const firstAgentID = 222;
+            const secondAgentID = 333;
+
+            await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                participants: {
+                    [currentUserAccountID]: participant,
+                    [firstAgentID]: participant,
+                    [secondAgentID]: participant,
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                userRequest: {
+                    reportActionID: 'userRequest',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: currentUserAccountID,
+                    created: '2026-08-01 00:00:00.000',
+                    originalMessage: {mentionedAccountIDs: []},
+                    message: [{type: 'TEXT', text: 'please help'}],
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: {
+                    [firstAgentID]: 'Thinking...',
+                    [secondAgentID]: 'Thinking...',
+                },
+            });
+
+            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            await waitForBatchedUpdates();
+
+            expect(result.current.candidateAgentIDs).toEqual([CONST.ACCOUNT_ID.CONCIERGE, firstAgentID, secondAgentID]);
+        });
     });
 
     describe('kickoffWaitingIndicator', () => {

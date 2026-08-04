@@ -1,4 +1,4 @@
-import {filterOutDeprecatedReportActions, getLinkedTransactionID, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
+import {filterOutDeprecatedReportActions, getLinkedTransactionID, getOriginalMessage, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -8,7 +8,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import lodashFindLast from 'lodash/findLast';
 
-type NewestReportAction = Pick<ReportAction, 'reportActionID' | 'actorAccountID' | 'actionName'>;
+type NewestReportAction = Pick<ReportAction, 'reportActionID' | 'actorAccountID' | 'actionName'> & {
+    /** Account IDs mentioned by an add-comment action, used to identify a tagged agent request. */
+    mentionedAccountIDs?: number[];
+};
 
 /**
  * Scopes VISIBLE_REPORT_ACTIONS to one report, pre-wrapped in the `{[reportID]: slice}` shape
@@ -82,6 +85,42 @@ function getNewestReportActionSelector(reportActions: OnyxEntry<ReportActions>):
 }
 
 /**
+ * Selector factory for the latest comment authored by a specific account. Unlike the newest
+ * action selector, this remains useful after an agent reply lands because the user request that
+ * started the processing cycle is still present in the report actions collection.
+ */
+function getLatestReportActionForActorSelector(actorAccountID: number | undefined) {
+    return (reportActions: OnyxEntry<ReportActions>): NewestReportAction | undefined => {
+        if (actorAccountID === undefined) {
+            return undefined;
+        }
+
+        const userComments = Object.values(reportActions ?? {}).filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && action.actorAccountID === actorAccountID);
+        if (userComments.length === 0) {
+            return undefined;
+        }
+
+        const latestComment = userComments.reduce((a, b) => {
+            const createdA = a.created ?? '';
+            const createdB = b.created ?? '';
+            if (createdA !== createdB) {
+                return createdA > createdB ? a : b;
+            }
+            return a.reportActionID > b.reportActionID ? a : b;
+        });
+        const originalMessage = getOriginalMessage(latestComment);
+        const mentionedAccountIDs = originalMessage && 'mentionedAccountIDs' in originalMessage ? originalMessage.mentionedAccountIDs : undefined;
+
+        return {
+            reportActionID: latestComment.reportActionID,
+            actorAccountID: latestComment.actorAccountID,
+            actionName: latestComment.actionName,
+            mentionedAccountIDs,
+        };
+    };
+}
+
+/**
  * Finds the IOU action associated with a RECEIPT_SCAN_FAILED report action.
  * Prefer parentReportActionID (specific IOU action when `report` is a transaction thread).
  * Fall back to childReportID match, then to the only IOU action for one-transaction reports.
@@ -129,6 +168,7 @@ export {
     getParentReportActionSelector,
     getLastClosedReportAction,
     getNewestReportActionSelector,
+    getLatestReportActionForActorSelector,
     getReportActionByIDSelector,
     getReceiptScanFailedIOUActionDataSelector,
     reportVisibleActionsSelector,
