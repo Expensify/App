@@ -1,6 +1,8 @@
 import {dismissReferralBanner} from '@libs/actions/User';
+
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
 import useOnyx from './useOnyx';
 
 type UseDismissedReferralBannersProps = {

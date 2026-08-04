@@ -1,14 +1,18 @@
 import {renderHook} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import useSplitParticipants from '@components/MoneyRequestConfirmationList/hooks/useSplitParticipants';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useThemeStyles', () => ({
@@ -44,6 +48,7 @@ jest.mock('@components/MoneyRequestAmountInput', () => {
 type Params = Parameters<typeof useSplitParticipants>[0];
 
 const payee = {accountID: 1, login: 'me@test.com'} as CurrentUserPersonalDetails;
+const smsPayee = {accountID: 3, login: '+18332403627@expensify.sms'} as CurrentUserPersonalDetails;
 const otherParticipant = {accountID: 2, login: 'other@test.com', keyForList: '2'} as unknown as Participant;
 
 function makeBase(overrides: Partial<Params> = {}): Params {
@@ -98,6 +103,11 @@ describe('useSplitParticipants', () => {
         expect(result.current.splitParticipants).toHaveLength(2);
         expect(result.current.splitParticipants.at(0)?.accountID).toBe(payee.accountID);
         expect(result.current.splitParticipants.at(1)?.accountID).toBe(otherParticipant.accountID);
+    });
+
+    it('formats payee SMS login using the localized phone-number formatter', () => {
+        const {result} = renderHook(() => useSplitParticipants(makeBase({isTypeSplit: true, payeePersonalDetails: smsPayee as OnyxTypes.PersonalDetails})), {wrapper: Wrapper});
+        expect(result.current.splitParticipants.at(0)?.text).toBe('(833) 240-3627');
     });
 
     it('marks split rows as non-interactive', () => {

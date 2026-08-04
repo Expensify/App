@@ -1,10 +1,13 @@
-import React from 'react';
-import {View} from 'react-native';
 import StatusBadge from '@components/StatusBadge';
+
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, getStatusBadgeBackgroundColor} from '@libs/ReportUtils';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type StatusCellProps = {
     /** The stateNum of the report */

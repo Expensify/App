@@ -1,4 +1,5 @@
 import type {MetaData} from './TrieNode';
+
 import TrieNode from './TrieNode';
 
 type Word<TMetaData extends MetaData> = {

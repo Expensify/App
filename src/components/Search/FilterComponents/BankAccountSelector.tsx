@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -7,18 +5,27 @@ import type {SearchFilterCommonProps} from '@components/Search/types';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {TextInputOptions} from '@components/SelectionList/types';
+
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAccountUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import ListFilterView from './ListFilterViewWrapper';
 
 type BankAccountSelectorProps = SearchFilterCommonProps<string[] | undefined>;
@@ -91,12 +98,21 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
 
     const shouldShowSearchInput = openItems.length + closedItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
+    // Snapshot the accounts selected when the filter first opened so they stay floated in the top section on first render
+    // without repinning rows that are toggled afterwards. Section membership keys on this snapshot while each row's
+    // checkbox still reflects the live selection, so selecting/deselecting an account no longer makes it jump between sections.
+    // Only float the initial selection when the list is long enough to warrant it (>= STANDARD_LIST_ITEM_LIMIT), mirroring
+    // the shared moveInitialSelectionToTop gate; for short lists items stay in their natural order so nothing is pinned.
+    const initialSelectedValues = useInitialValue(() => value);
+    const wasInitiallySelected = (item: BankAccountFilterItem) => initialSelectedValues.includes(item.value);
+    const shouldPinInitialSelection = shouldShowSearchInput;
+
     const searchFunction = (item: BankAccountFilterItem) =>
         item.text.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) || item.lastFour.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase());
 
-    const selectedData = [...openItems, ...closedItems].filter((item) => item.isSelected && searchFunction(item));
-    const unselectedOpenData = openItems.filter((item) => !item.isSelected && searchFunction(item));
-    const unselectedClosedData = closedItems.filter((item) => !item.isSelected && searchFunction(item));
+    const selectedData = shouldPinInitialSelection ? [...openItems, ...closedItems].filter((item) => wasInitiallySelected(item) && searchFunction(item)) : [];
+    const unselectedOpenData = openItems.filter((item) => (!shouldPinInitialSelection || !wasInitiallySelected(item)) && searchFunction(item));
+    const unselectedClosedData = closedItems.filter((item) => (!shouldPinInitialSelection || !wasInitiallySelected(item)) && searchFunction(item));
 
     const itemCount = selectedData.length + unselectedOpenData.length + unselectedClosedData.length;
     const sectionHeaderCount = unselectedClosedData.length > 0 ? 1 : 0;
@@ -170,6 +186,9 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
                     textInputOptions={textInputOptions}
                     shouldStopPropagation
                     canSelectMultiple
+                    shouldClearInputOnSelect={false}
+                    shouldUpdateFocusedIndex
+                    shouldPreventAutoScrollOnSelect
                     style={selectionListStyle}
                     footerContent={footer}
                 />

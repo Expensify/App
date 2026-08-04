@@ -1,19 +1,19 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateQuickbooksOnlineSyncClasses, updateQuickbooksOnlineSyncCustomers, updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -27,8 +27,11 @@ import {
     isControlPolicy,
     isPaidGroupPolicy,
 } from '@libs/PolicyUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
+
 import CONST from '@src/CONST';
 import {
     enableAutoApprovalOptions,
@@ -43,16 +46,23 @@ import {
     isCurrencySupportedForDirectReimbursement,
     setPolicyPreventMemberCreatedTitle,
     setPolicyPreventSelfApproval,
+    setPolicyReceiptVisibilityPublic,
     setWorkspaceApprovalMode,
     setWorkspaceReimbursement,
     upgradeSubmit,
     upgradeToCorporate,
 } from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+
 import UpgradeConfirmation from './UpgradeConfirmation';
 import UpgradeIntro from './UpgradeIntro';
 import useWorkspaceUpgradeConfirmation from './useWorkspaceUpgradeConfirmation';
@@ -110,6 +120,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const isUpgraded = !!policy?.type && upgradingFromSubmit !== undefined && (isControlPolicy(policy) || !!(upgradingFromSubmit && isPaidGroupPolicy(policy)));
     const {translate} = useLocalize();
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [priorLastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
 
@@ -120,6 +131,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const canPerformUpgrade = canModifyPlan(ownerPolicies, policy) || canAccessSubmitWorkspaceFeatures;
     const policyData = usePolicyData(policyID);
     const policyDataRef = useRef(policyData);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     useEffect(() => {
         policyDataRef.current = policyData;
@@ -159,9 +171,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     }
                 }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)));
-                return;
+                return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
+                return Navigation.goBack(route.params.backTo ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:
@@ -196,7 +208,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
         if (!feature) {
             if (featureNameAlias === CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) {
-                setPolicyPreventMemberCreatedTitle(policyID, true, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
+                setPolicyPreventMemberCreatedTitle(policyID, true, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE], getReviewWorkspaceSettingsTaskCompletion());
             }
             return;
         }
@@ -241,6 +253,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
                 enablePolicyRules(policy, true, false, policyDataRef.current);
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:
+                setPolicyReceiptVisibilityPublic(policyID, true, policy?.isReceiptVisibilityPublic);
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:
                 enableCompanyCards(policyID, true, false);
@@ -253,7 +268,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
-                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);
+                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email, isTrackIntentUser);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.id:
                 break;
@@ -262,7 +277,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.id: {
                 let newReimbursementChoice;
-                if (!!policy?.achAccount && !isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
+                const hasConnectedBank =
+                    policy?.achAccount?.bankAccountID && (policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.LOCKED);
+                if (!hasConnectedBank || !isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
                     newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
                 } else {
                     newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -309,6 +326,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
         categoryId,
+        getReviewWorkspaceSettingsTaskCompletion,
+        isTrackIntentUser,
     ]);
 
     useWorkspaceUpgradeConfirmation({

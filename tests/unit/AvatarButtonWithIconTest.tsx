@@ -1,11 +1,15 @@
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
-import React, {createRef} from 'react';
-import {View} from 'react-native';
+
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
 import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import React, {createRef} from 'react';
+import {View} from 'react-native';
 
 const DEFAULT_AVATAR_ID = 'default-avatar';
 const ICON_TEST_ID = 'avatar-button-edit-icon';
@@ -100,7 +104,7 @@ describe('AvatarButtonWithIcon', () => {
             expect(screen.getByTestId(MOCK_TEST_ID, {includeHiddenElements: true})).toBeTruthy();
         });
 
-        it.each([CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.X_LARGE])('should render with size: %s', (size) => {
+        it.each([CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SIZE.XXX_LARGE, CONST.AVATAR_SIZE.XXXX_LARGE])('should render with size: %s', (size) => {
             renderWithProvider(
                 <AvatarButtonWithIcon
                     {...defaultProps}
@@ -145,7 +149,7 @@ describe('AvatarButtonWithIcon', () => {
                     disabledStyle={{opacity: 0.3}}
                     editIconStyle={{backgroundColor: 'blue'}}
                     DefaultAvatar={DefaultAvatar}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
+                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
                     fallbackIcon={icons.current.Building}
                     type={CONST.ICON_TYPE_WORKSPACE}
                     pendingAction="update"

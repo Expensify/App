@@ -1,4 +1,5 @@
 import type {TextSelection} from '@components/Composer/types';
+
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 
 type Selection = {

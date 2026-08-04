@@ -1,7 +1,9 @@
-import {useCallback, useEffect} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useSidePanelState from '@hooks/useSidePanelState';
+
 import CONST from '@src/CONST';
+
+import {useCallback, useEffect} from 'react';
 
 /**
  * Detects input or text area focus on browsers, to avoid scrolling on virtual viewports

@@ -1,11 +1,15 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React from 'react';
-import {View} from 'react-native';
 import type {AvatarProps} from '@components/Avatar';
 import Avatar from '@components/Avatar';
 import {getExpensifyIcon} from '@components/Icon/chunks/expensify-icons.chunk';
+
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
+
 import CONST from '@src/CONST';
+
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const AVATAR_URL = USER_AVATARS.entries['car-blue100'].url;
 
@@ -37,7 +41,7 @@ WorkspaceAvatar.args = {
     type: CONST.ICON_TYPE_WORKSPACE,
     name: 'Cathy’s Croissants',
     avatarID: 'policy_123',
-    size: CONST.AVATAR_SIZE.LARGE,
+    size: CONST.AVATAR_SIZE.XXX_LARGE,
 };
 
 const FallbackAvatar: AvatarStory = Template.bind({});

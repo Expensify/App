@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+
 import type {TelemetryBeforeSend} from './index';
 
 function getValidMinDuration(value: unknown): number | undefined {

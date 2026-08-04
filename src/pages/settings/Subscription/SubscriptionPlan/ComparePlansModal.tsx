@@ -1,16 +1,20 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import type {AnimationOut} from '@components/Modal/ReanimatedModal/types';
 import RenderHTML from '@components/RenderHTML';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollView from '@components/ScrollView';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import SubscriptionPlanCard from './SubscriptionPlanCard';
 
 type ComparePlansModalProps = {

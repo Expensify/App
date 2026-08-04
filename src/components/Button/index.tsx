@@ -1,27 +1,35 @@
-import {useIsFocused} from '@react-navigation/native';
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useMemo, useState} from 'react';
-import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
+import type IconSize from '@components/Icon/types';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
+
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import HapticFeedback from '@libs/HapticFeedback';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import type {ButtonSizeValue} from '@styles/utils/types';
+
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {ForwardedRef} from 'react';
+import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import {getButtonRole} from './utils';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
@@ -207,32 +215,39 @@ function KeyboardShortcutComponent({
     const isFocused = useIsFocused();
     const activeElementRole = useActiveElementRole();
 
-    const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ROLE.PRESENTATION, [activeElementRole]);
+    const shouldDisableEnterShortcut = accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ROLE.PRESENTATION;
 
-    const keyboardShortcutCallback = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
-                return;
-            }
-            onPress();
-        },
-        [isDisabled, isLoading, onPress],
-    );
+    const keyboardShortcutCallback = (event?: GestureResponderEvent | KeyboardEvent) => {
+        if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
+            return;
+        }
+        onPress();
+    };
 
-    const config = useMemo(
-        () => ({
-            isActive: pressOnEnter && !shouldDisableEnterShortcut && (isFocused || isPressOnEnterActive),
-            shouldBubble: allowBubble,
-            priority: enterKeyEventListenerPriority,
-            shouldPreventDefault: false,
-        }),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [shouldDisableEnterShortcut, isFocused],
-    );
+    const config = {
+        isActive: pressOnEnter && !shouldDisableEnterShortcut && (isFocused || isPressOnEnterActive),
+        shouldBubble: allowBubble,
+        priority: enterKeyEventListenerPriority,
+        shouldPreventDefault: false,
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, config);
 
     return null;
+}
+
+/** Maps the button's size booleans to the matching `Icon` preset size. */
+function getIconSize({extraSmall, small, large}: {extraSmall: boolean; small: boolean; large: boolean}): IconSize {
+    if (extraSmall) {
+        return CONST.ICON_SIZE.EXTRA_SMALL;
+    }
+    if (small) {
+        return CONST.ICON_SIZE.SMALL;
+    }
+    if (large) {
+        return CONST.ICON_SIZE.LARGE;
+    }
+    return CONST.ICON_SIZE.MEDIUM;
 }
 
 function Button({
@@ -305,6 +320,8 @@ function Button({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isHovered, setIsHovered] = useState(false);
+
+    const iconSize = getIconSize({extraSmall, small, large});
 
     const buttonLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'Button',
@@ -382,10 +399,7 @@ function Button({
                                 <Icon
                                     src={icon}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
-                                    extraSmall={extraSmall}
-                                    small={small}
-                                    medium={medium}
-                                    large={large}
+                                    size={iconSize}
                                     isButtonIcon
                                     accessibilityLabel={iconAccessibilityLabel}
                                 />
@@ -398,10 +412,7 @@ function Button({
                             <Icon
                                 src={iconRight ?? icons.ArrowRight}
                                 fill={isHovered ? (iconRightHoverFill ?? iconHoverFill ?? defaultFill) : (iconRightFill ?? iconFill ?? defaultFill)}
-                                extraSmall={extraSmall}
-                                small={small}
-                                medium={medium}
-                                large={large}
+                                size={iconSize}
                                 isButtonIcon
                             />
                         </View>
@@ -424,55 +435,33 @@ function Button({
         buttonSize = CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     }
 
-    const buttonStyles = useMemo<StyleProp<ViewStyle>>(
-        () => [
-            styles.button,
-            StyleUtils.getButtonStyleWithIcon(styles, buttonSize, !!icon, !!(text?.length > 0), shouldShowRightIcon),
-            success ? styles.buttonSuccess : undefined,
-            danger ? styles.buttonDanger : undefined,
-            isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
-            isDisabled && !danger && !success && !shouldStayNormalOnDisable ? styles.buttonDisabled : undefined,
-            shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-            shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-            text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
-            innerStyles,
-            link && styles.bgTransparent,
-        ],
-        [
-            StyleUtils,
-            danger,
-            icon,
-            innerStyles,
-            isDisabled,
-            buttonSize,
-            link,
-            shouldRemoveLeftBorderRadius,
-            shouldRemoveRightBorderRadius,
-            shouldShowRightIcon,
-            styles,
-            success,
-            text,
-            shouldStayNormalOnDisable,
-        ],
-    );
+    const buttonStyles: StyleProp<ViewStyle> = [
+        styles.button,
+        StyleUtils.getButtonStyleWithIcon(styles, buttonSize, !!icon, !!(text?.length > 0), shouldShowRightIcon),
+        success ? styles.buttonSuccess : undefined,
+        danger ? styles.buttonDanger : undefined,
+        isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
+        isDisabled && !danger && !success && !shouldStayNormalOnDisable ? styles.buttonDisabled : undefined,
+        shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+        shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+        text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
+        innerStyles,
+        link && styles.bgTransparent,
+    ];
 
-    const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
-        () => [buttonStyles, shouldBlendOpacity && styles.buttonBlendContainer],
-        [buttonStyles, shouldBlendOpacity, styles.buttonBlendContainer],
-    );
+    const buttonContainerStyles: StyleProp<ViewStyle> = [buttonStyles, shouldBlendOpacity && styles.buttonBlendContainer];
 
-    const buttonBlendForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
-        if (!shouldBlendOpacity) {
-            return undefined;
-        }
-
+    let buttonBlendForegroundStyle: StyleProp<ViewStyle>;
+    if (!shouldBlendOpacity) {
+        buttonBlendForegroundStyle = undefined;
+    } else {
         const {backgroundColor, opacity} = StyleSheet.flatten(buttonStyles);
 
-        return {
+        buttonBlendForegroundStyle = {
             backgroundColor,
             opacity,
         };
-    }, [buttonStyles, shouldBlendOpacity]);
+    }
 
     let loadingIndicatorColor = theme.text;
     if (danger) {

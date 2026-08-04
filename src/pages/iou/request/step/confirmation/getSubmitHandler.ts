@@ -69,6 +69,7 @@ function canUseDismissModalFastPath(snapshot: SubmitNavigationSnapshot): boolean
  *   isReportInRHP && destinationReportID                                        -> REPORT_IN_RHP_DISMISS
  *   isFromGlobalCreate && navigatesToDestinationReport && isSearchTopmostFullScreen -> DISMISS_MODAL
  *   isFromGlobalCreate && navigatesToDestinationReport && destinationReportID && isDestinationReportLoaded -> DISMISS_TO_REPORT
+ *   isFromGlobalCreate && canDismissFromSearch && !navigatesToDestinationReport && !isSearchTopmostFullScreen && !isReportTopmostSplit -> SEARCH_DISMISS
  *   else                                                                        -> DEFAULT
  */
 function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
@@ -97,6 +98,14 @@ function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
     // dismissModalAndOpenReportInInboxTab call.
     if (snapshot.isFromGlobalCreate && snapshot.navigatesToDestinationReport && snapshot.destinationReportID && snapshot.isDestinationReportLoaded) {
         return SUBMIT_HANDLER.DISMISS_TO_REPORT;
+    }
+    // Global create from tabs where neither Search nor Report is topmost (Home, Settings,
+    // Workspaces). The handler dismisses the modal and navigates to Search, avoiding the
+    // slow DEFAULT path that runs createTransaction before navigation.
+    // Destination-report flows (TRACK, SPLIT) are excluded via navigatesToDestinationReport
+    // because their report may not be loaded yet and they need shouldHandleNavigation=true.
+    if (snapshot.isFromGlobalCreate && snapshot.canDismissFromSearch && !snapshot.navigatesToDestinationReport && !snapshot.isSearchTopmostFullScreen && !snapshot.isReportTopmostSplit) {
+        return SUBMIT_HANDLER.SEARCH_DISMISS;
     }
     return SUBMIT_HANDLER.DEFAULT;
 }

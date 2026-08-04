@@ -1,8 +1,10 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
-import type {FlashListRef} from '@shopify/flash-list';
-import {useCallback, useContext} from 'react';
-import type {RefObject} from 'react';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+
+import type {FlashListRef} from '@shopify/flash-list';
+import type {RefObject} from 'react';
+
+import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {useCallback, useContext} from 'react';
 
 /**
  * Restores the Search list's vertical scroll position when the screen regains focus.

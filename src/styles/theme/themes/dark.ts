@@ -1,5 +1,6 @@
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
@@ -27,8 +28,10 @@ const darkTheme = {
     syntax: colors.productDark800,
     link: colors.blue300,
     linkHover: colors.blue100,
+    linkReversed: colors.blue600,
     buttonDefaultBG: colors.productDark400,
     buttonHoveredBG: colors.productDark500,
+    buttonHoveredBGReversed: colors.productLight500,
     buttonPressedBG: colors.productDark600,
     buttonSuccessText: colors.productLight100,
     buttonDangerText: colors.productDark900,

@@ -1,9 +1,13 @@
+import useOnyx from '@hooks/useOnyx';
+
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback} from 'react';
 import {BackHandler} from 'react-native';
-import useOnyx from '@hooks/useOnyx';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import type UseSearchBackPress from './types';
 
 const useSearchBackPress: UseSearchBackPress = ({onClearSelection, onNavigationCallBack}) => {

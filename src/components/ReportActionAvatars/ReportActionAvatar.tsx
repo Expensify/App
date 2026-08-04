@@ -1,9 +1,3 @@
-import lodashSortBy from 'lodash/sortBy';
-import React, {useMemo} from 'react';
-import type {ColorValue, ImageStyle, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
-import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import {WorkspaceBuilding} from '@components/Icon/WorkspaceDefaultAvatars';
@@ -11,6 +5,7 @@ import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,17 +13,29 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCardFeedIcon} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getUserDetailTooltipText, sortIconsByName} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+
+import type {ColorValue, ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
+
+import lodashSortBy from 'lodash/sortBy';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type SortingOptions = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
 
@@ -63,7 +70,7 @@ type AvatarStyles = {
     secondAvatarStyles: ViewStyle & ImageStyle;
 };
 
-type AvatarSizeToStyles = typeof CONST.AVATAR_SIZE.SMALL | typeof CONST.AVATAR_SIZE.LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
+type AvatarSizeToStyles = typeof CONST.AVATAR_SIZE.SMALL | typeof CONST.AVATAR_SIZE.XXX_LARGE | typeof CONST.AVATAR_SIZE.XXXX_LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
 
 type AvatarSizeToStylesMap = Record<AvatarSizeToStyles, AvatarStyles>;
 
@@ -199,21 +206,17 @@ function ReportActionAvatarSubscript({
 
     const subscriptAvatarStyle = useMemo(() => {
         if (size === CONST.AVATAR_SIZE.SMALL) {
-            return styles.secondAvatarSubscriptCompact;
+            return styles.secondAvatarSubscriptSmall;
         }
 
-        if (size === CONST.AVATAR_SIZE.SMALL_NORMAL) {
-            return styles.secondAvatarSubscriptSmallNormal;
-        }
-
-        if (size === CONST.AVATAR_SIZE.X_LARGE) {
-            return styles.secondAvatarSubscriptXLarge;
+        if (size === CONST.AVATAR_SIZE.XXXX_LARGE) {
+            return styles.secondAvatarSubscriptXxxxLarge;
         }
 
         return styles.secondAvatarSubscript;
     }, [size, styles]);
 
-    const subscriptAvatarSize = size === CONST.AVATAR_SIZE.X_LARGE ? CONST.AVATAR_SIZE.HEADER : CONST.AVATAR_SIZE.SUBSCRIPT;
+    const subscriptAvatarSize = size === CONST.AVATAR_SIZE.XXXX_LARGE ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.XX_SMALL;
 
     return (
         <View
@@ -232,7 +235,6 @@ function ReportActionAvatarSubscript({
                 <View>
                     <ProfileAvatar
                         useProfileNavigationWrapper={useProfileNavigationWrapper}
-                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
                         source={primaryAvatar.source}
                         size={size}
                         name={primaryAvatar.name}
@@ -250,15 +252,18 @@ function ReportActionAvatarSubscript({
                     accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
                     icon={secondaryAvatar}
                 >
-                    <View style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptAvatarStyle]}>
+                    <View style={subscriptAvatarStyle}>
                         <ProfileAvatar
                             useProfileNavigationWrapper={useProfileNavigationWrapper}
                             iconAdditionalStyles={[
-                                StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : subscriptAvatarSize),
+                                // The medium subscript on a xxxx-large avatar keeps the small border width (as before the size migration) — the default border width for its size is 1px thicker and would shrink the visible avatar.
+                                size === CONST.AVATAR_SIZE.XXXX_LARGE
+                                    ? StyleUtils.getAvatarBorderWidth(CONST.AVATAR_SIZE.SMALL)
+                                    : StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.XXXX_SMALL : subscriptAvatarSize),
                                 StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG),
                             ]}
                             source={secondaryAvatar.source}
-                            size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : subscriptAvatarSize}
+                            size={isSmall ? CONST.AVATAR_SIZE.XXXX_SMALL : subscriptAvatarSize}
                             fill={secondaryAvatar.fill}
                             name={secondaryAvatar.name}
                             avatarID={secondaryAvatar.id}
@@ -273,7 +278,6 @@ function ReportActionAvatarSubscript({
             {!!subscriptCardFeed && (
                 <View
                     style={[
-                        size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {},
                         // Nullish coalescing thinks that empty strings are truthy, thus I'm using OR operator
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor || theme.sidebar),
@@ -323,14 +327,13 @@ function ReportActionAvatarMultipleHorizontal({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {localeCompare, formatPhoneNumber} = useLocalize();
+    const {localeCompare, formatPhoneNumber, translate} = useLocalize();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const overlapSize = oneAvatarSize.width / overlapDivider;
-    const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
-    const height = oneAvatarSize.height + 2 * oneAvatarBorderWidth;
+    const height = StyleUtils.getAvatarSizeWithBorder(size);
     const avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height)]);
 
     const icons = useMemo(() => {
@@ -363,8 +366,8 @@ function ReportActionAvatarMultipleHorizontal({
     }, [icons, maxAvatarsInRow, shouldDisplayAvatarsInRows]);
 
     const tooltipTexts = useMemo(
-        () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : ['']),
-        [shouldShowTooltip, icons, formatPhoneNumber],
+        () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name)) : ['']),
+        [shouldShowTooltip, icons, formatPhoneNumber, translate],
     );
 
     return avatarRows.map((avatars, rowIndex) => (
@@ -432,7 +435,7 @@ function ReportActionAvatarMultipleHorizontal({
 
                             // Set overlay background color with RGBA value so that the text will not inherit opacity
                             StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
-                            StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
+                            StyleUtils.getHorizontalStackedOverlayAvatarStyle(size),
                             icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(3)?.type),
                         ]}
                     >
@@ -475,32 +478,32 @@ function ReportActionAvatarMultipleDiagonal({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
 
     const tooltipTexts = useMemo(
-        () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : ['']),
-        [shouldShowTooltip, icons, formatPhoneNumber],
+        () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name)) : ['']),
+        [shouldShowTooltip, icons, formatPhoneNumber, translate],
     );
-    const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.X_LARGE;
+    const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.XXXX_LARGE;
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
 
     const avatarSizeToStylesMap: AvatarSizeToStylesMap = useMemo(
         () => ({
             [CONST.AVATAR_SIZE.SMALL]: {
-                singleAvatarStyle: styles.singleAvatarSmall,
-                secondAvatarStyles: styles.secondAvatarSmall,
+                singleAvatarStyle: styles.singleAvatarXxxSmall,
+                secondAvatarStyles: styles.secondAvatarXxxSmall,
             },
-            [CONST.AVATAR_SIZE.LARGE]: {
-                singleAvatarStyle: styles.singleAvatarMedium,
-                secondAvatarStyles: styles.secondAvatarMedium,
+            [CONST.AVATAR_SIZE.XXX_LARGE]: {
+                singleAvatarStyle: styles.singleAvatarXLarge,
+                secondAvatarStyles: styles.secondAvatarXLarge,
             },
-            [CONST.AVATAR_SIZE.X_LARGE]: {
-                singleAvatarStyle: styles.singleAvatarMediumLarge,
-                secondAvatarStyles: styles.secondAvatarMediumLarge,
+            [CONST.AVATAR_SIZE.XXXX_LARGE]: {
+                singleAvatarStyle: styles.singleAvatarXxLarge,
+                secondAvatarStyles: styles.secondAvatarXxLarge,
             },
             [CONST.AVATAR_SIZE.DEFAULT]: {
-                singleAvatarStyle: styles.singleAvatar,
-                secondAvatarStyles: styles.secondAvatar,
+                singleAvatarStyle: styles.singleAvatarXSmall,
+                secondAvatarStyles: styles.secondAvatarXSmall,
             },
         }),
         [styles],
@@ -508,21 +511,24 @@ function ReportActionAvatarMultipleDiagonal({
 
     const avatarSize = useMemo(() => {
         if (useMidSubscriptSize) {
-            return CONST.AVATAR_SIZE.MID_SUBSCRIPT;
+            return CONST.AVATAR_SIZE.XXX_SMALL;
         }
 
-        if (size === CONST.AVATAR_SIZE.LARGE) {
-            return CONST.AVATAR_SIZE.MEDIUM;
+        if (size === CONST.AVATAR_SIZE.XXX_LARGE) {
+            return CONST.AVATAR_SIZE.X_LARGE;
         }
 
-        if (size === CONST.AVATAR_SIZE.X_LARGE) {
-            return CONST.AVATAR_SIZE.MEDIUM_LARGE;
+        if (size === CONST.AVATAR_SIZE.XXXX_LARGE) {
+            return CONST.AVATAR_SIZE.XX_LARGE;
         }
 
-        return CONST.AVATAR_SIZE.SMALLER;
+        return CONST.AVATAR_SIZE.X_SMALL;
     }, [useMidSubscriptSize, size]);
 
-    const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size, avatarSizeToStylesMap]);
+    const {singleAvatarStyle, secondAvatarStyles} = useMemo(
+        () => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap[CONST.AVATAR_SIZE.DEFAULT],
+        [size, avatarSizeToStylesMap],
+    );
     const secondaryAvatarContainerStyles = secondaryAvatarContainerStyle ?? [StyleUtils.getBackgroundAndBorderStyle(isHovered ? theme.activeComponentBG : theme.componentBG)];
 
     return (

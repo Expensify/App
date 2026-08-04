@@ -1,14 +1,21 @@
-import React from 'react';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
+
+import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+
 import WorkspaceInviteMessageComponent from './members/WorkspaceInviteMessageComponent';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
 type DynamicWorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &

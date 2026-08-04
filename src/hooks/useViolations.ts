@@ -1,8 +1,11 @@
-import {useCallback, useMemo} from 'react';
-import type {TupleToUnion} from 'type-fest';
 import {isHardViolationOrRateDateWarning} from '@libs/Violations/ViolationsUtils';
+
 import CONST from '@src/CONST';
 import type {TransactionViolation, ViolationName} from '@src/types/onyx';
+
+import type {TupleToUnion} from 'type-fest';
+
+import {useCallback, useMemo} from 'react';
 
 /**
  * Names of Fields where violations can occur.

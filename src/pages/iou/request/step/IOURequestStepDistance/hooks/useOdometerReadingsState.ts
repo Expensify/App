@@ -1,11 +1,14 @@
-import {useEffect, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {isOdometerDraftPendingHydration} from '@libs/actions/OdometerTransactionUtils';
 import type {OdometerResyncState} from '@libs/OdometerUtils';
 import {isExternalOdometerResync, shouldInitializeOdometerFromTransaction} from '@libs/OdometerUtils';
+
 import CONST from '@src/CONST';
 import type {OdometerDraft, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useRef, useState} from 'react';
 
 type UseOdometerReadingsStateParams = {
     /** The transaction whose odometer values seed and re-sync the local form state. */

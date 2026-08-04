@@ -1,9 +1,13 @@
-import {useEffect} from 'react';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+
+import {useScreenFreezeContext} from '@navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenFreezeWrapper/ScreenFreezeContext';
+
+import CONST from '@src/CONST';
+
 import type {GestureResponderEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
-import {useScreenFreezeContext} from '@navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenFreezeWrapper/ScreenFreezeContext';
-import CONST from '@src/CONST';
+
+import {useEffect} from 'react';
 
 type Shortcut = ValueOf<typeof CONST.KEYBOARD_SHORTCUTS>;
 type KeyboardShortcutConfig = {

@@ -1,7 +1,10 @@
-import type {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+import type {ValueOf} from 'type-fest';
+
 import type {Errors, OnyxValueWithOfflineFeedback, PendingAction, PendingFields} from './OnyxCommon';
 
 /**

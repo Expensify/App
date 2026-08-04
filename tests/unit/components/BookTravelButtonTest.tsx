@@ -1,22 +1,28 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import BookTravelButton from '@components/BookTravelButton';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {setTravelProvisioningNextStep} from '@libs/actions/Travel';
+
+import {cleanupTravelProvisioningSession, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const POLICY_ID = 'testPolicy123';
 const ADMIN_EMAIL = 'admin@company.com';
 const USER_LOGIN = 'user@company.com';
-const TCS_ROUTE = `terms/${CONST.TRAVEL.DEFAULT_DOMAIN}/accept/${POLICY_ID}`;
+const ENABLE_TRAVEL_ROUTE = ROUTES.TRAVEL_ENABLE.getRoute(POLICY_ID);
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -35,9 +41,9 @@ jest.mock('@libs/actions/Travel', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
-        setTravelProvisioningNextStep: jest.fn(),
         cleanupTravelProvisioningSession: jest.fn(),
         requestTravelAccess: jest.fn(),
+        setTravelProvisioningNextStep: jest.fn(),
     };
 });
 
@@ -100,7 +106,7 @@ describe('BookTravelButton', () => {
     });
 
     describe('when the workspace is provisioned but terms are not yet accepted', () => {
-        it('navigates a validated admin straight to the Travel terms screen using the default domain', async () => {
+        it('navigates a validated admin straight to the enablement stepper', async () => {
             // Given a provisioned, terms-not-accepted workspace and a validated admin
             await seedOnyx(true);
             renderBookTravelButton();
@@ -110,14 +116,12 @@ describe('BookTravelButton', () => {
             fireEvent.press(screen.getByText('Book a trip'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then it routes directly to the terms-and-conditions screen with the default domain sentinel
-            expect(Navigation.navigate).toHaveBeenCalledWith(TCS_ROUTE);
-            // And it does not dead-end through the verify-account hop that previously produced a not-found page
-            expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('verify-account'));
-            expect(setTravelProvisioningNextStep).not.toHaveBeenCalled();
+            // Then it routes to the enablement stepper, which computes the steps this workspace still needs
+            expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+            expect(cleanupTravelProvisioningSession).toHaveBeenCalled();
         });
 
-        it('validates an unvalidated admin first, storing the terms screen as the next step', async () => {
+        it('routes an unvalidated admin to verify their account first, deferring the stepper until after validation', async () => {
             // Given a provisioned, terms-not-accepted workspace and an admin who has not validated their account
             await seedOnyx(false);
             renderBookTravelButton();
@@ -127,10 +131,12 @@ describe('BookTravelButton', () => {
             fireEvent.press(screen.getByText('Book a trip'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then the terms screen is stored as the post-validation destination
-            expect(setTravelProvisioningNextStep).toHaveBeenCalledWith(TCS_ROUTE);
-            // And the admin is sent to verify their account first
-            expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('travel/verify-account'));
+            // Then it routes to verify-account instead of the stepper directly, recording the stepper as where to
+            // forward-navigate back to once validated (this avoids a URL blink from double-navigating through the
+            // stepper, which would otherwise immediately redirect to this same verify-account page anyway)
+            expect(setTravelProvisioningNextStep).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, POLICY_ID, ''));
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
         });
     });
 

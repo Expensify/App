@@ -1,12 +1,16 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
 import RenderHTML from '@components/RenderHTML';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import ROUTES from '@src/ROUTES';
+
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 function UpgradeConfirmation({addCompanyCard, addPersonalCard}: {addCompanyCard: () => void; addPersonalCard: () => void}) {
     const {translate} = useLocalize();

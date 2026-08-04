@@ -1,14 +1,25 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEntry<ACHAccount>, bankAccountID?: number, lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType) {
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+function resetNonUSDBankAccount(
+    policyID: string | undefined,
+    achAccount: OnyxEntry<ACHAccount>,
+    bankAccountID?: number,
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
+    policyOwner?: string,
+) {
+    const reimburserEmail = achAccount?.reimburser ?? policyOwner;
+
     // If there's no bankAccountID, we reset locally without making an API call
     if (!bankAccountID) {
         const updateData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT>> = [
@@ -21,7 +32,18 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    achAccount: null,
+                    achAccount: reimburserEmail
+                        ? {
+                              reimburser: reimburserEmail,
+                              bankAccountID: null,
+                              accountNumber: null,
+                              routingNumber: null,
+                              addressName: null,
+                              bankName: null,
+                              state: null,
+                              sharees: null,
+                          }
+                        : null,
                 },
             },
             {
@@ -58,7 +80,11 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                value: {
+                    [bankAccountID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
             },
         ],
         successData: [
@@ -97,7 +123,18 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                achAccount: null,
+                achAccount: reimburserEmail
+                    ? {
+                          reimburser: reimburserEmail,
+                          bankAccountID: null,
+                          accountNumber: null,
+                          routingNumber: null,
+                          addressName: null,
+                          bankName: null,
+                          state: null,
+                          sharees: null,
+                      }
+                    : null,
             },
         });
 

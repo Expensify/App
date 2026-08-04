@@ -24,14 +24,6 @@
 - PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
 - PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155)
 
-### [@react-navigation+core+7.16.1+002+fix-crash-when-parsing-emoji.patch](@react-navigation+core+7.16.1+002+fix-crash-when-parsing-emoji.patch)
-
-- Reason: App crashes when the path contains emoji
-- Upstream PR/issue: https://www.github.com/react-navigation/react-navigation/pull/12679
-- E/App issue: [#65709](https://github.com/Expensify/App/issues/65709)
-- PR Introducing Patch: [#65836](https://github.com/Expensify/App/pull/65836)
-- PR Updating Patch: N/A
-
 ### [@react-navigation+core+7.16.1+003+propagate-beforeremove-on-nested-reset.patch](@react-navigation+core+7.16.1+003+propagate-beforeremove-on-nested-reset.patch)
 
 - Reason: Browser back on web dispatches a root-targeted `RESET` that keeps route keys and only changes nested state, silently bypassing `usePreventRemove`/`beforeRemove` and losing unsaved data. The patch propagates the check into nested navigators.
@@ -44,7 +36,7 @@
 ### [@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch](@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch)
 
 - Reason: Adds `InteractionManager` implementation to `@react-navigation/native-stack`
-- Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/11887
+- Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/11887 (closed/declined upstream; we re-implement it). Still required on v7 — `runAfterInteractions` is used across the app and relies on this. Removing it is gated on migrating those consumers to `navigation.addListener('transitionEnd', ...)`, tracked in [#71913](https://github.com/Expensify/App/issues/71913). That migration works on v7 today and is not a v8-only task — v8 just forces it, since RN deprecated `InteractionManager` in 0.82+.
 - E/App issue: [#29948](https://github.com/Expensify/App/issues/29948)
 - PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
 - PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155) 
@@ -52,7 +44,7 @@
 ### [@react-navigation+native+7.1.33+001+initial.patch](@react-navigation+native+7.1.33+001+initial.patch)
 
 - Reason: Allows us to use some more advanced navigation actions without messing up the browser history
-- Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/11887
+- Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/12751 (`route.history` + `pushParams`, added upstream for this use case); originating issue https://github.com/react-navigation/react-navigation/issues/12460. On the v8 upgrade, evaluate adopting `pushParams` to shrink this patch.
 - E/App issue: [#21356](https://github.com/Expensify/App/issues/21356)
 - PR Introducing Patch: [#24165](https://github.com/Expensify/App/pull/24165)
 - PR Updating Patch: [#32087](https://github.com/Expensify/App/pull/32087) [#42465](https://github.com/Expensify/App/pull/42465) [#64155](https://github.com/Expensify/App/pull/64155)
@@ -72,10 +64,23 @@
 - E/App issue: [#22372](https://github.com/Expensify/App/issues/22372)
 - PR Introducing Patch: [#22437](https://github.com/Expensify/App/pull/22437)
 - PR Updating Patch: [#33280](https://github.com/Expensify/App/pull/33280) [#37421](https://github.com/Expensify/App/pull/37421) [#49539](https://github.com/Expensify/App/pull/49539) [#64155](https://github.com/Expensify/App/pull/64155) [#65119](https://github.com/Expensify/App/issues/65119)
+- Note: Not fully covered by the public `detachPreviousScreen` option (this also forces `activityState`). v8 replaces `detachInactiveScreens`/`detachPreviousScreen`/`freezeOnBlur` with a single `inactiveBehavior` option — re-evaluate this patch then.
 
-### [@react-navigation+core+7.16.1+002+getStateFromPath.patch](@react-navigation+core+7.16.1+002+getStateFromPath.patch)
-- Reason: Make sure navigation state props retrieved from the path are available at all nesting levels to avoid undefined state.
-- Upstream PR/issue: N/A
-- E/App issue: [#48150](https://github.com/Expensify/App/issues/48150)
-- PR Introducing Patch: [#48151](https://github.com/Expensify/App/pull/48151)
-- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155)
+### [@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch](@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch)
+
+- Reason:
+
+    ```
+    createMemoryHistory.go() waits for the browser's popstate after history.go(n) but gives up
+    after a 100ms fallback timer and deletes its pending record of the traversal. Firefox can
+    take 500ms+ to deliver the popstate when the main thread is busy (e.g. rendering the newly
+    created group chat report). Once the record is deleted, the late popstate is misclassified
+    by listen() as a user-initiated back/forward navigation and react-navigation resets state
+    to the previous route. Raising the timeout to 1000ms keeps the pending record alive until
+    the traversal actually settles. Fixes group/DM creation not opening the new report on
+    Firefox (#94571).
+    ```
+
+- Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/11145
+- E/App issue: [#94571](https://github.com/Expensify/App/issues/94571)
+- PR Introducing Patch: [#95980](https://github.com/Expensify/App/pull/95980)

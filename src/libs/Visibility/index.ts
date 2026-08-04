@@ -1,4 +1,5 @@
 import {AppState} from 'react-native';
+
 import type {HasFocus, IsVisible, OnVisibilityChange} from './types';
 
 /**

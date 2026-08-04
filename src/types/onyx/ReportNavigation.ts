@@ -1,4 +1,5 @@
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import type {SearchKey} from '@libs/SearchUIUtils';
 
 /**

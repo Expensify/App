@@ -1,8 +1,10 @@
-import React from 'react';
-import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function Terms() {
     const styles = useThemeStyles();

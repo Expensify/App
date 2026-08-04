@@ -1,4 +1,5 @@
 import Log from '@libs/Log';
+
 import type NotificationPermissionModule from './types';
 import type {NotificationPermissionStatus} from './types';
 

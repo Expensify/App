@@ -1,8 +1,12 @@
-import React, {useState} from 'react';
 import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
+
 import {clearExportDownload} from '@libs/actions/Export';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useState} from 'react';
+
 import useOnyx from './useOnyx';
 
 type UseExportDownloadStatusModalReturn = {
