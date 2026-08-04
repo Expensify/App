@@ -85,7 +85,7 @@ type RouteParams = {
     newConnectionName?: ConnectionName;
     integrationToDisconnect?: ConnectionName;
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
-    isIntuitEnterpriseSuite?: boolean | string;
+    isIntuitEnterpriseSuite?: string;
 };
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
@@ -115,7 +115,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const newConnectionName = params?.newConnectionName;
     const integrationToDisconnect = params?.integrationToDisconnect;
     const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
-    const shouldConnectToIntuitEnterpriseSuite = params?.isIntuitEnterpriseSuite === true || params?.isIntuitEnterpriseSuite === 'true';
+    const shouldConnectToIntuitEnterpriseSuite = params?.isIntuitEnterpriseSuite === 'true';
     const policyID = policy?.id;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
