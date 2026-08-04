@@ -5,7 +5,7 @@ import type {
     TransactionListItemType,
     TransactionReportGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
-import type {SearchGroupBy} from '@components/Search/types';
+import type {SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -59,16 +59,19 @@ type SearchResultsInfo = {
     /** Whether the search results are currently loading */
     isLoading: boolean;
 
-    /** Explicit terminal lifecycle state of the most recent search request for this snapshot.
+    /** The sort by of the current search */
+    sortBy: SearchSortBy;
+
+    /** The sort order of the current search */
+    sortOrder: SortOrder;
+
+    /** Explicit lifecycle state of the most recent search request for this snapshot.
      * Optional because snapshots persisted before this field existed (and snapshots written by
      * non-search actions) may not carry it.
      *
-     * Nothing reads this field yet. The existing isLoading/type/status-based loading and error gates
-     * migrate to read it in a follow-up PR.
-     *
-     * Residual limitation: if the app is killed or reloaded mid-request, no cleanup runs, so `loading` can
-     * still be stranded on disk. The future read side must treat a `loading` state with no in-flight request
-     * as stale. */
+     * Search pages use this state to decide whether to show a loading skeleton. If the app reloads while
+     * the state is `loading`, `useSearchPageSetup` starts the search again. `search()` ignores the call when
+     * the same request is already running. */
     state?: ValueOf<typeof CONST.SEARCH.SNAPSHOT_STATE>;
 
     /** The number of results */
@@ -79,6 +82,9 @@ type SearchResultsInfo = {
 
     /** The currency of the total spend */
     currency?: string;
+
+    /** The date from which violation snapshots are available for search */
+    violationSnapshotStartedAt?: string;
 };
 
 /** The action that can be performed for the transaction */
@@ -187,6 +193,18 @@ type SearchWithdrawalIDGroup = {
 
     /** Settlement state (5/6/7=failed, 8=cleared, others=pending) */
     state: number;
+
+    /** Workspace ID for the grouped settlement */
+    policyID?: string;
+
+    /** Expensify Card program for the grouped settlement */
+    feedCountry?: string;
+
+    /** The feed the settlement belongs to; absent when it spans more than one feed */
+    fundID?: number;
+
+    /** Whether the current user may export this settlement as a statement PDF (set by the backend, which applies the same admin authorization it uses to generate the PDF) */
+    canExportStatement?: boolean;
 };
 
 /** Model of category grouped search result */
