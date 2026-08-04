@@ -1836,17 +1836,17 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         sidebarAvatar: {
-            borderRadius: variables.sidebarAvatarSize,
-            height: variables.sidebarAvatarSize,
-            width: variables.sidebarAvatarSize,
+            borderRadius: variables.avatarSizeSmall,
+            height: variables.avatarSizeSmall,
+            width: variables.avatarSizeSmall,
         },
 
         selectedAvatarBorder: {
             padding: 1,
             borderWidth: 2,
             borderRadius: 20,
-            height: variables.sidebarAvatarSize + 6,
-            width: variables.sidebarAvatarSize + 6,
+            height: variables.avatarSizeSmall + 6,
+            width: variables.avatarSizeSmall + 6,
             borderColor: theme.success,
             right: -3,
             top: -3,
@@ -2500,67 +2500,67 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        singleAvatar: {
-            height: 24,
-            width: 24,
+        singleAvatarXSmall: {
+            height: variables.avatarSizeXSmall,
+            width: variables.avatarSizeXSmall,
             backgroundColor: theme.icon,
-            borderRadius: 12,
+            borderRadius: variables.avatarSizeXSmall / 2,
         },
 
-        singleAvatarSmall: {
-            height: 16,
-            width: 16,
+        singleAvatarXxxSmall: {
+            height: variables.avatarSizeXxxSmall,
+            width: variables.avatarSizeXxxSmall,
             backgroundColor: theme.icon,
-            borderRadius: 8,
+            borderRadius: variables.avatarSizeXxxSmall / 2,
         },
 
-        singleAvatarMedium: {
-            height: 52,
-            width: 52,
+        singleAvatarXLarge: {
+            height: variables.avatarSizeXLarge,
+            width: variables.avatarSizeXLarge,
             backgroundColor: theme.icon,
-            borderRadius: 52,
+            borderRadius: variables.avatarSizeXLarge,
         },
 
-        singleAvatarMediumLarge: {
-            height: 60,
-            width: 60,
+        singleAvatarXxLarge: {
+            height: variables.avatarSizeXxLarge,
+            width: variables.avatarSizeXxLarge,
             backgroundColor: theme.icon,
-            borderRadius: 80,
+            borderRadius: variables.avatarSizeXxLarge,
         },
 
-        secondAvatar: {
+        secondAvatarXSmall: {
             position: 'absolute',
             right: -18,
             bottom: -18,
-            borderWidth: 2,
-            borderRadius: 14,
+            borderWidth: variables.avatarBorderWidthSmall,
+            borderRadius: (variables.avatarSizeXSmall + 2 * variables.avatarBorderWidthSmall) / 2,
             borderColor: 'transparent',
         },
 
-        secondAvatarSmall: {
+        secondAvatarXxxSmall: {
             position: 'absolute',
             right: -14,
             bottom: -14,
-            borderWidth: 2,
-            borderRadius: 10,
+            borderWidth: variables.avatarBorderWidthSmall,
+            borderRadius: (variables.avatarSizeXxxSmall + 2 * variables.avatarBorderWidthSmall) / 2,
             borderColor: 'transparent',
         },
 
-        secondAvatarMedium: {
+        secondAvatarXLarge: {
             position: 'absolute',
             right: -36,
             bottom: -36,
-            borderWidth: 3,
-            borderRadius: 52,
+            borderWidth: variables.avatarBorderWidthDefault,
+            borderRadius: variables.avatarSizeXLarge,
             borderColor: 'transparent',
         },
 
-        secondAvatarMediumLarge: {
+        secondAvatarXxLarge: {
             position: 'absolute',
             right: -42,
             bottom: -42,
-            borderWidth: 3,
-            borderRadius: 80,
+            borderWidth: variables.avatarBorderWidthDefault,
+            borderRadius: variables.avatarSizeXxLarge,
             borderColor: 'transparent',
         },
 
@@ -2570,22 +2570,16 @@ const staticStyles = (theme: ThemeColors) =>
             bottom: -6,
         },
 
-        secondAvatarSubscriptXLarge: {
+        secondAvatarSubscriptXxxxLarge: {
             position: 'absolute',
             right: -10,
             bottom: -10,
         },
 
-        secondAvatarSubscriptCompact: {
+        secondAvatarSubscriptSmall: {
             position: 'absolute',
             bottom: -4,
             right: -4,
-        },
-
-        secondAvatarSubscriptSmallNormal: {
-            position: 'absolute',
-            bottom: 0,
-            right: 0,
         },
 
         secondAvatarInline: {
@@ -2595,11 +2589,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 18,
             borderColor: theme.cardBorder,
             backgroundColor: theme.appBG,
-        },
-
-        avatarXLarge: {
-            width: variables.avatarSizeXLarge,
-            height: variables.avatarSizeXLarge,
         },
 
         avatarInnerText: {
@@ -2620,8 +2609,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyAvatar: {
-            height: variables.avatarSizeNormal,
-            width: variables.avatarSizeNormal,
+            height: variables.avatarSizeMedium,
+            width: variables.avatarSizeMedium,
         },
 
         emptyAvatarSmall: {
@@ -2629,24 +2618,24 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.avatarSizeSmall,
         },
 
-        emptyAvatarSmaller: {
-            height: variables.avatarSizeSmaller,
-            width: variables.avatarSizeSmaller,
-        },
-
-        emptyAvatarMedium: {
-            height: variables.avatarSizeMedium,
-            width: variables.avatarSizeMedium,
-        },
-
-        emptyAvatarLarge: {
-            height: variables.avatarSizeLarge,
-            width: variables.avatarSizeLarge,
+        emptyAvatarXSmall: {
+            height: variables.avatarSizeXSmall,
+            width: variables.avatarSizeXSmall,
         },
 
         emptyAvatarXLarge: {
             height: variables.avatarSizeXLarge,
             width: variables.avatarSizeXLarge,
+        },
+
+        emptyAvatarXxxLarge: {
+            height: variables.avatarSizeXxxLarge,
+            width: variables.avatarSizeXxxLarge,
+        },
+
+        emptyAvatarXxxxLarge: {
+            height: variables.avatarSizeXxxxLarge,
+            width: variables.avatarSizeXxxxLarge,
         },
 
         emptyAvatarMargin: {
@@ -2661,7 +2650,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginRight: variables.avatarChatSpacing - 4,
         },
 
-        emptyAvatarMarginSmaller: {
+        emptyAvatarMarginXSmall: {
             marginRight: variables.avatarChatSpacing - 4,
         },
 
@@ -2704,6 +2693,60 @@ const staticStyles = (theme: ThemeColors) =>
 
         tableHeaderContentHeight: {
             minHeight: variables.tableHeaderContentHeight,
+        },
+
+        htmlTable: {
+            marginVertical: 8,
+            borderRadius: variables.componentBorderRadius,
+            backgroundColor: theme.highlightBG,
+            overflow: 'hidden',
+        },
+
+        htmlTableHeaderRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            minHeight: variables.htmlTableHeaderRowMinHeight,
+            paddingHorizontal: variables.tableRowPaddingHorizontal,
+            borderBottomWidth: 1,
+            borderColor: theme.border,
+        },
+
+        htmlTableRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            minHeight: variables.htmlTableRowMinHeight,
+            paddingHorizontal: variables.tableRowPaddingHorizontal,
+            borderBottomWidth: 1,
+            borderColor: theme.border,
+        },
+
+        htmlTableLastRow: {
+            borderBottomWidth: 0,
+        },
+
+        htmlTableCell: {
+            // A definite flexBasis with flexShrink: 0 gives every column a fixed width so a wide table keeps its size
+            // and can be scrolled horizontally, and columns stay aligned across rows; flexGrow: 1 still lets columns
+            // expand to fill the message width when the table is narrower than it.
+            flexGrow: 1,
+            flexShrink: 0,
+            flexBasis: variables.htmlTableColumnMaxWidth,
+            minWidth: variables.htmlTableColumnMinWidth,
+            paddingEnd: 8,
+        },
+
+        htmlTableCellMaxWidth: {
+            maxWidth: variables.htmlTableColumnMaxWidth,
+        },
+
+        htmlTableCellText: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
+        htmlTableHeaderCellText: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeSmall,
         },
 
         borderBottom: {
@@ -2964,9 +3007,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         roomHeaderAvatar: {
             backgroundColor: theme.appBG,
-            borderRadius: 100,
+            borderRadius: variables.avatarSizeXxxLarge + 2 * variables.avatarBorderWidthLarge,
             borderColor: theme.componentBG,
-            borderWidth: 4,
+            borderWidth: variables.avatarBorderWidthLarge,
         },
 
         roomHeaderAvatarOverlay: {
@@ -2977,7 +3020,7 @@ const staticStyles = (theme: ThemeColors) =>
             left: 0,
             backgroundColor: theme.overlay,
             opacity: variables.overlayOpacity,
-            borderRadius: 88,
+            borderRadius: variables.avatarSizeXxxLarge + 2 * variables.avatarBorderWidthLarge,
         },
 
         avatarInnerTextChat: {
@@ -2986,7 +3029,7 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             textAlign: 'center',
             position: 'absolute',
-            width: 88,
+            width: variables.avatarSizeXxxLarge + 2 * variables.avatarBorderWidthLarge,
             left: -16,
         },
 
@@ -3017,8 +3060,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         conciergeAnimatedAvatar: {
-            width: variables.avatarSizeNormal,
-            height: variables.avatarSizeNormal,
+            width: variables.avatarSizeMedium,
+            height: variables.avatarSizeMedium,
         },
 
         accountSettingsSectionContainer: {
@@ -3342,7 +3385,9 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 12,
         },
 
-        moneyRequestAmountContainer: {minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8)},
+        moneyRequestAmountContainer: {
+            minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8),
+        },
 
         requestPreviewBox: {
             marginTop: 12,
@@ -4521,7 +4566,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         assigneeTextStyle: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            minHeight: variables.avatarSizeSubscript,
+            minHeight: variables.avatarSizeXxSmall,
         },
 
         taskRightIconContainer: {
@@ -4890,17 +4935,17 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         sidebarStatusAvatarContainer: {
-            height: 40,
-            width: 40,
+            height: variables.avatarSizeMedium,
+            width: variables.avatarSizeMedium,
             backgroundColor: theme.componentBG,
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: 20,
+            borderRadius: variables.avatarSizeMedium / 2,
         },
 
         sidebarStatusAvatarWithEmojiContainer: {
-            height: 28,
-            width: 28,
+            height: variables.avatarSizeSmall,
+            width: variables.avatarSizeSmall,
             top: -2,
         },
 
@@ -4908,14 +4953,14 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: theme.border,
-            height: 20,
-            width: 20,
-            borderRadius: 10,
+            height: variables.avatarSizeXxSmall,
+            width: variables.avatarSizeXxSmall,
+            borderRadius: variables.avatarSizeXxSmall / 2,
             position: 'absolute',
             right: -6,
             bottom: -6,
             borderColor: theme.appBG,
-            borderWidth: 2,
+            borderWidth: variables.avatarBorderWidthSmall,
             overflow: 'hidden',
         },
 

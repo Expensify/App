@@ -28,7 +28,7 @@ import {View} from 'react-native';
 
 import WorkspaceExpensifyCardsTableRow from './WorkspaceExpensifyCardsTableRow';
 
-type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'status' | 'limit' | 'actions';
+type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'status' | 'limit' | 'remainingLimit' | 'actions';
 
 type WorkspaceExpensifyCardTableRowData = TableData & {
     cardID: number;
@@ -37,6 +37,7 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     name: string;
     cardholder?: PersonalDetails | null;
     limit: number;
+    remainingLimit: number;
     currency?: string;
     isVirtual: boolean;
     limitType: CardLimitType | undefined;
@@ -109,11 +110,21 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'name',
             label: translate('workspace.expensifyCard.name'),
             sortable: true,
+            styling: {
+                // Cardholder names and card titles are the longest values in the table, so this column takes the
+                // space freed up by giving Type, Last 4 and Status fixed widths. Limit type still needs a full share
+                // to fit its longest value, so this stops at double rather than taking everything.
+                flex: 2,
+            },
         },
         {
             key: 'type',
             label: translate('common.type'),
             sortable: true,
+            width: variables.tableTypeColumnWidth,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
         },
         {
             key: 'limitType',
@@ -121,7 +132,7 @@ export default function WorkspaceExpensifyCardsTable({
             sortable: true,
             styling: {
                 // minWidth: 0 lets the grid track size purely from its 1fr share instead of the cell content,
-                // so the Limit type and Status columns always render at the same width.
+                // so a long limit type value truncates instead of widening the column.
                 containerStyles: [styles.mnw0],
             },
         },
@@ -129,11 +140,13 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'lastFour',
             label: translate('workspace.expensifyCard.lastFour'),
             sortable: true,
+            width: variables.tableLastFourColumnWidth,
         },
         {
             key: 'status',
             label: translate('common.status'),
             sortable: true,
+            width: variables.tableCardStatusColumnWidth,
             styling: {
                 containerStyles: [styles.mnw0],
             },
@@ -141,6 +154,14 @@ export default function WorkspaceExpensifyCardsTable({
         {
             key: 'limit',
             label: translate('workspace.expensifyCard.limit'),
+            sortable: true,
+            styling: {
+                containerStyles: [styles.justifyContentEnd],
+            },
+        },
+        {
+            key: 'remainingLimit',
+            label: translate('workspace.expensifyCard.remaining'),
             sortable: true,
             styling: {
                 containerStyles: [styles.justifyContentEnd],
@@ -183,6 +204,10 @@ export default function WorkspaceExpensifyCardsTable({
 
         if (activeSorting.columnKey === 'limit') {
             return (item1.limit - item2.limit) * orderMultiplier;
+        }
+
+        if (activeSorting.columnKey === 'remainingLimit') {
+            return (item1.remainingLimit - item2.remainingLimit) * orderMultiplier;
         }
 
         const cardholderName1 = item1.cardholder?.displayName ?? item1.cardholder?.login ?? '';
