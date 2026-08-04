@@ -38,6 +38,8 @@ function renderContainer(
             rowCount={rowCount}
             columnCount={4}
             rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+            scrollWidth={undefined}
+            onLayout={undefined}
         >
             {children}
         </TableSemanticContainer>,
@@ -122,6 +124,8 @@ describe('TableSemanticContainer', () => {
                 rowCount={rowCount}
                 columnCount={4}
                 rendersBodyWhenEmpty={false}
+                scrollWidth={undefined}
+                onLayout={undefined}
             >
                 <TrackedFilterBar />
                 <TableHeader />

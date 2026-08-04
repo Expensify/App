@@ -64,8 +64,19 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, processedData, isMobileSelectionEnabled, shouldEnableSelectionInNarrowPaneModal} =
-        useTableContext<DataType, ColumnKey>();
+    const {
+        columns,
+        isEmptyResult,
+        title,
+        shouldUseNarrowTableLayout,
+        tableMethods,
+        selectionEnabled,
+        processedData,
+        isMobileSelectionEnabled,
+        shouldEnableSelectionInNarrowPaneModal,
+        dynamicGridTemplateColumns,
+        dynamicScrollWidth,
+    } = useTableContext<DataType, ColumnKey>();
     // Tables inside a narrow pane modal (RHP) opt into keying the header checkbox off the real screen size, since
     // shouldUseNarrowLayout is always true in an RHP. Other tables keep the original behavior. Visual padding below still uses shouldUseNarrowLayout.
     const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
@@ -80,7 +91,9 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         return null;
     }
 
-    const gridTemplateColumns = getGridTemplateColumns(columns);
+    // The tracks resolved from the columns' content are shared by the header and every row, so they take precedence over
+    // the static ones. They're only ever set on wide web layouts.
+    const gridTemplateColumns = dynamicGridTemplateColumns ? [...dynamicGridTemplateColumns] : getGridTemplateColumns(columns);
 
     if (isSelectionCheckboxVisible) {
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
@@ -117,6 +130,9 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
                 !shouldUseNarrowTableLayout && {gridTemplateColumns: gridTemplateColumns.join(' ')},
+                // The columns are wider than the table, so the header takes the same width as the rows it labels and
+                // scrolls with them.
+                !!dynamicScrollWidth && {width: dynamicScrollWidth},
                 style,
             ]}
             {...getRowAccessibilityProps(isTableSemanticsEnabled, 0, true)}
@@ -192,7 +208,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
     isTableSemanticsEnabled,
     columnIndex,
 }: {
-    column: TableColumn<ColumnKey>;
+    column: TableColumn<ColumnKey, DataType>;
     isTableSemanticsEnabled: boolean;
     columnIndex: number;
 }) {

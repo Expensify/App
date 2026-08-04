@@ -1,5 +1,7 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {LayoutChangeEvent} from 'react-native';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -27,6 +29,19 @@ type TableSemanticContainerProps = {
      */
     rendersBodyWhenEmpty: boolean;
 
+    /**
+     * The width the rows need when the columns are too wide to fit. Set only in that case, and it makes the header/body
+     * run scroll horizontally as one, so the header stays aligned with the rows it labels.
+     */
+    scrollWidth: number | undefined;
+
+    /**
+     * Measures the width the table's columns have to share. This node is the right thing to measure because it keeps the
+     * table's own width even while its content overflows and scrolls, so measuring it can't feed back into the widths it
+     * produced.
+     */
+    onLayout: ((event: LayoutChangeEvent) => void) | undefined;
+
     /** Table children — expected to contain a contiguous `TableHeader`/`TableBody` run. */
     children: React.ReactNode;
 };
@@ -38,7 +53,7 @@ type TableSemanticContainerProps = {
  * narrow card layout. Header and body are contiguous in every table, so grouping the consecutive run keeps a single
  * table container while preserving child order.
  */
-function TableSemanticContainer({isEnabled, title, rowCount, columnCount, rendersBodyWhenEmpty, children}: TableSemanticContainerProps) {
+function TableSemanticContainer({isEnabled, title, rowCount, columnCount, rendersBodyWhenEmpty, scrollWidth, onLayout, children}: TableSemanticContainerProps) {
     const styles = useThemeStyles();
 
     if (!isEnabled) {
@@ -67,7 +82,10 @@ function TableSemanticContainer({isEnabled, title, rowCount, columnCount, render
         renderedChildren.push(
             <View
                 key={`tableSemanticContainer-${renderedChildren.length}`}
-                style={[styles.flex1, styles.mnh0]}
+                // The header and the body share this node, so scrolling it horizontally keeps them aligned. Vertical
+                // scrolling stays with the body's own list.
+                style={[styles.flex1, styles.mnh0, !!scrollWidth && styles.overflowXAuto]}
+                onLayout={onLayout}
                 {...getTableContainerAccessibilityProps(true, title, rowCount, columnCount)}
             >
                 {rowGroup}
