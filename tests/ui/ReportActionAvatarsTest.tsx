@@ -481,7 +481,7 @@ describe('ReportActionAvatars', () => {
         it('renders a horizontal "+N" overlay when stacked avatars exceed the row limit', async () => {
             const retrievedData = await retrieveDataFromAvatarView({
                 accountIDs: [LOGGED_USER_ID, SECOND_USER_ID, THIRD_USER_ID],
-                horizontalStacking: {maxAvatarsInRow: 2},
+                horizontalStacking: {maxAvatarsPerRow: 2},
             });
 
             // Only the first two avatars render inline; the third collapses into the overlay
@@ -548,10 +548,10 @@ describe('ReportActionAvatars', () => {
             isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR});
         });
 
-        it('splits horizontally stacked avatars into two rows when displayInRows is enabled', async () => {
+        it('splits horizontally stacked avatars into two rows when maxRows allows it', async () => {
             const retrievedData = await retrieveDataFromAvatarView({
                 accountIDs: [LOGGED_USER_ID, SECOND_USER_ID, THIRD_USER_ID],
-                horizontalStacking: {shouldDisplayAvatarsInRows: true, maxAvatarsInRow: 2},
+                horizontalStacking: {maxRows: 2, maxAvatarsPerRow: 2},
             });
             const rows = retrievedData.fragments.filter((fragment) => fragment === 'ReportActionAvatars-MultipleAvatars-StackedHorizontally-Row');
             expect(rows).toHaveLength(2);

@@ -13,6 +13,8 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import type {ColorValue} from 'react-native';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -21,27 +23,28 @@ import type {MultipleAvatarsProps} from './types';
 import Avatar from '..';
 
 type HorizontalStackingOptions = Partial<{
-    shouldDisplayAvatarsInRows: boolean;
     isHovered: boolean;
     isActive: boolean;
     isPressed: boolean;
     overlapDivider: number;
-    maxAvatarsInRow: number;
-    shouldUseCardBackground: boolean;
+    maxAvatarsPerRow: number;
+    maxRows: number;
+    avatarBorderColor: ColorValue;
 }>;
 
 type HorizontalAvatarsProps = HorizontalStackingOptions & MultipleAvatarsProps;
 
-/** `HorizontalAvatars` renders a horizontally overlapping row of avatars, with a "+N" overflow indicator once `maxAvatarsInRow` is exceeded.
- * When `shouldDisplayAvatarsInRows` is set and the icons overflow, they wrap onto a second row instead of overflowing a single one.
+/** `HorizontalAvatars` renders a horizontally overlapping row of avatars, with a "+N" overflow indicator once `maxAvatarsPerRow` is exceeded.
+ * When `maxRows` is greater than 1 and the icons overflow, they wrap onto additional rows (balanced evenly) before the overflow indicator kicks in.
+ * `avatarBorderColor` should match the surface behind the avatars (e.g. `theme.cardBG` inside cards) and defaults to `theme.appBG`.
  */
 function HorizontalAvatars({
     isHovered = false,
     isActive = false,
     isPressed = false,
-    maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT,
-    shouldDisplayAvatarsInRows = false,
-    shouldUseCardBackground = false,
+    maxAvatarsPerRow = CONST.AVATAR_ROW_SIZE.DEFAULT,
+    maxRows = 1,
+    avatarBorderColor,
     overlapDivider = 3,
     size,
     shouldShowTooltip,
@@ -60,13 +63,12 @@ function HorizontalAvatars({
     const height = oneAvatarSize.height + 2 * oneAvatarBorderWidth;
     const avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height)]);
 
-    let avatarRows;
-    if (!shouldDisplayAvatarsInRows || icons.length <= maxAvatarsInRow) {
-        avatarRows = [icons];
-    } else {
-        const rowSize = Math.min(Math.ceil(icons.length / 2), maxAvatarsInRow);
-        avatarRows = [icons.slice(0, rowSize), icons.slice(rowSize)];
-    }
+    const rowCount = Math.max(1, Math.min(maxRows, Math.ceil(icons.length / maxAvatarsPerRow)));
+    const rowSize = Math.min(Math.ceil(icons.length / rowCount), maxAvatarsPerRow);
+    // The last row takes the remainder so overflowing icons collapse into its "+N" indicator
+    const avatarRows = Array.from({length: rowCount}, (_, rowIndex) =>
+        rowIndex === rowCount - 1 ? icons.slice(rowIndex * rowSize) : icons.slice(rowIndex * rowSize, (rowIndex + 1) * rowSize),
+    );
 
     const tooltipTexts = shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name)) : [''];
 
@@ -77,7 +79,7 @@ function HorizontalAvatars({
             key={`avatarRow-${rowIndex}`}
             testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Row"
         >
-            {avatars.slice(0, maxAvatarsInRow).map((icon, index) => (
+            {avatars.slice(0, maxAvatarsPerRow).map((icon, index) => (
                 <UserDetailsTooltip
                     key={`stackedAvatars-${icon.id}`}
                     accountID={Number(icon.id)}
@@ -96,7 +98,7 @@ function HorizontalAvatars({
                                     isHovered,
                                     isPressed,
                                     isInReportAction,
-                                    shouldUseCardBackground,
+                                    avatarBorderColor,
                                     isActive,
                                 }),
                                 StyleUtils.getAvatarBorderWidth(size),
@@ -113,9 +115,9 @@ function HorizontalAvatars({
                     </View>
                 </UserDetailsTooltip>
             ))}
-            {avatars.length > maxAvatarsInRow && (
+            {avatars.length > maxAvatarsPerRow && (
                 <Tooltip
-                    text={tooltipTexts.slice(avatarRows.length * maxAvatarsInRow - 1, avatarRows.length * maxAvatarsInRow + 9).join(', ')}
+                    text={tooltipTexts.slice(avatarRows.length * maxAvatarsPerRow - 1, avatarRows.length * maxAvatarsPerRow + 9).join(', ')}
                     shouldRender={shouldShowTooltip}
                 >
                     <View
@@ -128,7 +130,7 @@ function HorizontalAvatars({
                                 isHovered,
                                 isPressed,
                                 isInReportAction,
-                                shouldUseCardBackground,
+                                avatarBorderColor,
                             }),
                             StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
                             StyleUtils.getHorizontalStackedOverlayAvatarStyle(size),
@@ -139,7 +141,7 @@ function HorizontalAvatars({
                             <Text
                                 style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(size), styles.userSelectNone]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                            >{`+${avatars.length - maxAvatarsInRow}`}</Text>
+                            >{`+${avatars.length - maxAvatarsPerRow}`}</Text>
                         </View>
                     </View>
                 </Tooltip>
