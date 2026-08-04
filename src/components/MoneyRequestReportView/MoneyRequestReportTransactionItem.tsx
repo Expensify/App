@@ -25,6 +25,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
 
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useRef, useState} from 'react';
@@ -148,6 +149,14 @@ function MoneyRequestReportTransactionItemBody({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const shouldUseMediumNarrowLayout = isMediumScreenWidth && !shouldScrollHorizontally;
+    const shouldUseNarrowTransactionRow = shouldUseNarrowLayout || shouldUseMediumNarrowLayout;
+    let transactionRowStyle: StyleProp<ViewStyle> = [styles.ph3, styles.noBorderRadius];
+    if (shouldUseNarrowLayout) {
+        transactionRowStyle = [styles.p4, styles.noBorderRadius];
+    } else if (shouldUseMediumNarrowLayout) {
+        transactionRowStyle = [styles.p3, styles.pv2, styles.noBorderRadius];
+    }
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
 
@@ -241,12 +250,13 @@ function MoneyRequestReportTransactionItemBody({
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
                         shouldShowTooltip
-                        shouldUseNarrowLayout={shouldUseNarrowLayout || (isMediumScreenWidth && !shouldScrollHorizontally)}
+                        shouldUseNarrowLayout={shouldUseNarrowTransactionRow}
+                        shouldUseFullHeightEditableCellHoverTarget={!shouldUseNarrowTransactionRow}
                         shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
                         onCheckboxPress={toggleTransaction}
                         columns={columns}
                         isDisabled={isPendingDelete}
-                        style={!shouldUseNarrowLayout ? [styles.p3, styles.pv2, styles.noBorderRadius] : [styles.p4, styles.noBorderRadius]}
+                        style={transactionRowStyle}
                         onButtonPress={() => {
                             handleOnPress(transaction.transactionID);
                         }}

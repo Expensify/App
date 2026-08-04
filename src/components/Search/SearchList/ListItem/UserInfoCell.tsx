@@ -37,7 +37,7 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize, containerStyl
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyle]}>
             <Avatar
                 imageStyles={[styles.alignSelfCenter]}
-                size={avatarSize ?? CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                size={avatarSize ?? CONST.AVATAR_SIZE.XXX_SMALL}
                 source={avatar}
                 name={displayName}
                 type={CONST.ICON_TYPE_AVATAR}
