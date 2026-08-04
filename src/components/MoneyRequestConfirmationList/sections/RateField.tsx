@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
@@ -16,7 +17,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 
@@ -120,15 +121,17 @@ function RateField({
 
                 if ((!isPolicyExpenseChat && !isTrackExpense) || (shouldNavigateToUpgradePath && isTrackExpense)) {
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action,
-                            iouType,
-                            transactionID,
-                            reportID,
-                            upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                            backTo: Navigation.getActiveRoute(),
-                            shouldSubmitExpense: !isTrackExpense,
-                        }),
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                action,
+                                iouType,
+                                transactionID,
+                                reportID,
+                                upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                upgradeBackTo: Navigation.getActiveRoute(),
+                                shouldSubmitExpense: !isTrackExpense,
+                            }),
+                        ),
                     );
                 } else if (!policy && shouldSelectPolicy && isTrackExpense) {
                     Navigation.navigate(
