@@ -149,7 +149,6 @@ describe('Transaction', () => {
         async function loadReports() {
             await TestHelper.getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     reports = value;
                 },
@@ -411,7 +410,7 @@ describe('Transaction', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicateViolation],
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`]: [siblingDuplicateViolation, missingCategoryViolation],
                 },
-                allReports: undefined,
+                reports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -490,7 +489,7 @@ describe('Transaction', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${secondTransaction.transactionID}`]: [secondDuplicateViolation],
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`]: [siblingDuplicateViolation, missingCategoryViolation],
                 },
-                allReports: undefined,
+                reports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
