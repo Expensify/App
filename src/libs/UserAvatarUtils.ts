@@ -62,8 +62,10 @@ type GetAvatarArgsType = CommonAvatarArgsType & {
     avatarSource?: AvatarSource;
 };
 
+type DefaultAvatars = ReturnType<typeof useDefaultAvatars>;
+
 type DefaultAvatarsType = {
-    defaultAvatars: Record<'ConciergeAvatar' | 'NotificationsAvatar', IconAsset>;
+    defaultAvatars: DefaultAvatars;
 };
 
 /**
@@ -399,12 +401,7 @@ function getUpdatedLetterAvatarURL(source: AvatarSource | undefined, firstName: 
  */
 function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, defaultAvatars}: GetAvatarArgsType & DefaultAvatarsType): AvatarSource | undefined {
     if (isDefaultAvatar(avatarSource)) {
-        return getDefaultAvatar({
-            accountID,
-            accountEmail,
-            avatarURL: avatarSource,
-            defaultAvatars,
-        });
+        return getDefaultAvatar({accountID, accountEmail, avatarURL: avatarSource, defaultAvatars});
     }
 
     const localFromCatalog = findLocalAvatarForURL(avatarSource);
@@ -428,11 +425,7 @@ function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEm
  */
 function getAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, avatarSource, accountEmail}: GetAvatarArgsType): AvatarSource | undefined {
     if (isDefaultAvatar(avatarSource)) {
-        return getDefaultAvatarURL({
-            accountID,
-            accountEmail,
-            avatarURL: avatarSource,
-        });
+        return getDefaultAvatarURL({accountID, accountEmail, avatarURL: avatarSource});
     }
     const match = findCatalogMatchForURL(avatarSource);
     if (match) {
@@ -494,31 +487,33 @@ function getSmallSizeAvatar(args: GetAvatarArgsType & DefaultAvatarsType): Avata
     return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
 }
 
-type DefaultAvatars = ReturnType<typeof useDefaultAvatars>;
+type BuildUserIconArgsType = DefaultAvatarsType & {
+    /** Account ID whose avatar is being resolved */
+    accountID: number;
 
-type BuildUserIconOptions = {
+    /** Personal details from the `OnyxListItemProvider` context */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+
     /** Email tied to an invited (not-yet-registered) account, used as a fallback name and for the deterministic fallback avatar */
     invitedEmail?: string;
 
     /** Whether to compute a deterministic fallback avatar from the account email/ID */
     shouldUseCustomFallbackAvatar?: boolean;
+
+    /** Whether to name the icon after the account's display name instead of its login */
+    shouldUseDisplayName?: boolean;
 };
 
 /**
  * Resolves a single account ID into an avatar {@link Icon} using the personal-details context and the default-avatar set.
- * Shared by `UserAvatar` (single) and `UsersAvatar` (multiple) so the resolution stays in one place.
+ * Shared by `UserAvatar` and `useReportActionAvatars` so the resolution stays in one place.
  */
-function buildUserIcon(
-    accountID: number,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    defaultAvatars: DefaultAvatars,
-    {invitedEmail, shouldUseCustomFallbackAvatar = false}: BuildUserIconOptions = {},
-): Icon {
+function buildUserIcon({accountID, personalDetails, defaultAvatars, invitedEmail, shouldUseCustomFallbackAvatar = false, shouldUseDisplayName = false}: BuildUserIconArgsType): Icon {
     return {
         id: accountID,
         type: CONST.ICON_TYPE_AVATAR,
         source: personalDetails?.[accountID]?.avatar ?? defaultAvatars.FallbackAvatar,
-        name: personalDetails?.[accountID]?.login ?? invitedEmail ?? '',
+        name: personalDetails?.[accountID]?.[shouldUseDisplayName ? 'displayName' : 'login'] ?? invitedEmail ?? '',
         fallbackIcon: shouldUseCustomFallbackAvatar
             ? getDefaultAvatar({
                   accountID,

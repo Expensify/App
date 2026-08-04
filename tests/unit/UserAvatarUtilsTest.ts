@@ -60,11 +60,7 @@ describe('UserAvatarUtils', () => {
         it('should resolve an agent avatar URL to a local SVG component so the Share QR logo renders offline', () => {
             const agentAvatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/bot-avatar--blue.png';
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const avatar = UserAvatarUtils.getAvatar({
-                avatarSource: agentAvatarURL,
-                accountID: 1,
-                defaultAvatars: avatars.current,
-            });
+            const avatar = UserAvatarUtils.getAvatar({avatarSource: agentAvatarURL, accountID: 1, defaultAvatars: avatars.current});
 
             // A bundled SVG component (not the CDN URL string) means no network request is needed offline.
             expect(typeof avatar).toBe('function');
@@ -476,59 +472,64 @@ describe('UserAvatarUtils', () => {
 
     describe('buildUserIcon', () => {
         const ACCOUNT_ID = 42;
+        const AVATAR_URL = 'https://example.com/uploaded-avatar.png';
         const personalDetails: PersonalDetailsList = {
             [ACCOUNT_ID]: {
                 accountID: ACCOUNT_ID,
                 login: 'john@example.com',
-                avatar: 'https://example.com/uploaded-avatar.png',
+                displayName: 'John Doe',
+                avatar: AVATAR_URL,
             },
         };
 
-        it('should resolve the avatar from personal details when available', () => {
+        it('should resolve the avatar and login from personal details when available', () => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const icon = UserAvatarUtils.buildUserIcon(ACCOUNT_ID, personalDetails, avatars.current);
+            const icon = UserAvatarUtils.buildUserIcon({accountID: ACCOUNT_ID, personalDetails, defaultAvatars: avatars.current});
 
             expect(icon).toEqual({
                 id: ACCOUNT_ID,
                 type: CONST.ICON_TYPE_AVATAR,
-                source: 'https://example.com/uploaded-avatar.png',
+                source: AVATAR_URL,
                 name: 'john@example.com',
                 fallbackIcon: undefined,
             });
         });
 
-        it('should fall back to the default fallback avatar when the account has no avatar', () => {
+        it.each([
+            ['the account has no avatar', {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: 'john@example.com'}}],
+            ['the account is missing from personal details', {}],
+        ])('should fall back to the default fallback avatar when %s', (_case, details: PersonalDetailsList) => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const icon = UserAvatarUtils.buildUserIcon(ACCOUNT_ID, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: 'john@example.com'}}, avatars.current);
+            const icon = UserAvatarUtils.buildUserIcon({accountID: ACCOUNT_ID, personalDetails: details, defaultAvatars: avatars.current});
 
             expect(icon.source).toBe(avatars.current.FallbackAvatar);
         });
 
-        it('should fall back to the default fallback avatar when the account is missing from personal details', () => {
+        it.each([
+            ['the login by default', personalDetails, {}, 'john@example.com'],
+            ['the display name when shouldUseDisplayName is set', personalDetails, {shouldUseDisplayName: true}, 'John Doe'],
+            ['the invited email when the account has no personal details', {}, {invitedEmail: 'invited@example.com'}, 'invited@example.com'],
+            ['an empty string when nothing is known about the account', {}, {}, ''],
+        ])('should name the icon after %s', (_case, details: PersonalDetailsList, options: {invitedEmail?: string; shouldUseDisplayName?: boolean}, expectedName: string) => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const icon = UserAvatarUtils.buildUserIcon(ACCOUNT_ID, {}, avatars.current);
+            const icon = UserAvatarUtils.buildUserIcon({accountID: ACCOUNT_ID, personalDetails: details, defaultAvatars: avatars.current, ...options});
 
-            expect(icon.source).toBe(avatars.current.FallbackAvatar);
-            expect(icon.name).toBe('');
-        });
-
-        it('should use the invited email as the name when the account has no login', () => {
-            const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const icon = UserAvatarUtils.buildUserIcon(ACCOUNT_ID, {}, avatars.current, {invitedEmail: 'invited@example.com'});
-
-            expect(icon.name).toBe('invited@example.com');
+            expect(icon.name).toBe(expectedName);
         });
 
         it('should not compute a custom fallback icon by default', () => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const icon = UserAvatarUtils.buildUserIcon(ACCOUNT_ID, personalDetails, avatars.current);
+            const icon = UserAvatarUtils.buildUserIcon({accountID: ACCOUNT_ID, personalDetails, defaultAvatars: avatars.current});
 
             expect(icon.fallbackIcon).toBeUndefined();
         });
 
         it('should compute a deterministic custom fallback icon when requested', () => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
-            const icon = UserAvatarUtils.buildUserIcon(ACCOUNT_ID, {}, avatars.current, {
+            const icon = UserAvatarUtils.buildUserIcon({
+                accountID: ACCOUNT_ID,
+                personalDetails: {},
+                defaultAvatars: avatars.current,
                 invitedEmail: 'invited@example.com',
                 shouldUseCustomFallbackAvatar: true,
             });

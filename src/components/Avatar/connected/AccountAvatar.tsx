@@ -39,7 +39,7 @@ function UserAvatar({accountID, size = CONST.AVATAR_SIZE.DEFAULT, shouldShowTool
     const defaultAvatars = useDefaultAvatars();
     const StyleUtils = useStyleUtils();
 
-    const icon = buildUserIcon(accountID, personalDetails, defaultAvatars);
+    const icon = buildUserIcon({accountID, personalDetails, defaultAvatars});
 
     return (
         <SingleAvatar

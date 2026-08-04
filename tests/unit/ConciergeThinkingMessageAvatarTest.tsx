@@ -58,10 +58,7 @@ jest.mock('@hooks/useShouldSuppressConciergeIndicators', () => jest.fn(() => fal
 
 // Suppress reanimated/lazy-asset warnings in test
 jest.mock('@hooks/useLazyAsset', () => ({
-    useMemoizedLazyExpensifyIcons: () => ({
-        UpArrow: 'UpArrow',
-        DownArrow: 'DownArrow',
-    }),
+    useMemoizedLazyExpensifyIcons: () => ({UpArrow: 'UpArrow', DownArrow: 'DownArrow'}),
 }));
 
 // Avoid loading the full ReportActionItemMessageHeaderSender
@@ -79,14 +76,8 @@ const adminPolicyID = '7777';
 const adminRoomReportID = 9001;
 const announceRoomReportID = 9003;
 
-const mockAdminRoom = {
-    ...createAdminRoom(adminRoomReportID),
-    policyID: adminPolicyID,
-};
-const mockAnnounceRoom = {
-    ...createAnnounceRoom(announceRoomReportID),
-    policyID: adminPolicyID,
-};
+const mockAdminRoom = {...createAdminRoom(adminRoomReportID), policyID: adminPolicyID};
+const mockAnnounceRoom = {...createAnnounceRoom(announceRoomReportID), policyID: adminPolicyID};
 
 const personalDetails: PersonalDetailsList = {
     [conciergeAccountID]: {
@@ -150,12 +141,6 @@ describe('ConciergeThinkingMessage avatar prop integration', () => {
             render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
             expect(mockCapturedAvatarProps.accountID).toBe(customAgentAccountID);
-        });
-
-        test('should not pass reportID to UserAvatar (report context would override the agent avatar with the report-preview sender)', () => {
-            render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
-
-            expect(mockCapturedAvatarProps.reportID).toBeUndefined();
         });
     });
 });

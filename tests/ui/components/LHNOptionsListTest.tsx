@@ -390,7 +390,7 @@ describe('LHNOptionsList', () => {
 
             // Then it should render a single avatar, not a diagonal (multiple) avatar
             await waitFor(() => {
-                expect(screen.getByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
+                expect(screen.getByTestId('SingleAvatar')).toBeTruthy();
                 expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
             });
         });
@@ -645,7 +645,7 @@ describe('LHNOptionsList', () => {
             // Then it should render diagonal (multiple) avatars
             await waitFor(() => {
                 expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars')).toBeTruthy();
-                expect(screen.queryByTestId('ReportActionAvatars-SingleAvatar')).toBeNull();
+                expect(screen.queryByTestId('SingleAvatar')).toBeNull();
                 expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
             });
         });

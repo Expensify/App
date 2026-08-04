@@ -7,7 +7,6 @@ import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     getDelegateAccountIDFromReportAction,
     getHumanAgentAccountIDFromReportAction,
@@ -28,7 +27,7 @@ import {
     isTripRoom,
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
-import {getDefaultAvatar} from '@libs/UserAvatarUtils';
+import {buildUserIcon} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -137,13 +136,14 @@ function useReportActionAvatars({
 
     const avatarsForAccountIDs: IconType[] = accountIDsToMap.map((id) => {
         const invitedEmail = invitedEmailsToAccountIDs ? Object.keys(invitedEmailsToAccountIDs).find((email) => invitedEmailsToAccountIDs[email] === id) : undefined;
-        return {
-            id,
-            type: CONST.ICON_TYPE_AVATAR,
-            source: personalDetails?.[id]?.avatar ?? defaultAvatars.FallbackAvatar,
-            name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? invitedEmail ?? '',
-            fallbackIcon: shouldUseCustomFallbackAvatar ? getDefaultAvatar({accountID: id, accountEmail: addSMSDomainIfPhoneNumber(invitedEmail ?? ''), defaultAvatars}) : undefined,
-        };
+        return buildUserIcon({
+            accountID: id,
+            personalDetails,
+            defaultAvatars,
+            invitedEmail,
+            shouldUseCustomFallbackAvatar,
+            shouldUseDisplayName: shouldUseActorAccountID,
+        });
     });
 
     const fallbackWorkspaceAvatar: IconType = {

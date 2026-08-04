@@ -115,20 +115,14 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
             return 0;
         }
         const target = hasExpanded.get() ? contentHeight.get() : 0;
-        return withTiming(target, {
-            duration: animationDuration,
-            easing: Easing.inOut(Easing.quad),
-        });
+        return withTiming(target, {duration: animationDuration, easing: Easing.inOut(Easing.quad)});
     });
 
     const animatedOpacity = useDerivedValue(() => {
         if (!contentHeight.get()) {
             return 0;
         }
-        return withTiming(hasExpanded.get() ? 1 : 0, {
-            duration: animationDuration,
-            easing: Easing.inOut(Easing.quad),
-        });
+        return withTiming(hasExpanded.get() ? 1 : 0, {duration: animationDuration, easing: Easing.inOut(Easing.quad)});
     });
 
     const animatedStyle = useAnimatedStyle(() => ({
@@ -142,18 +136,8 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
     }));
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const displayName =
-        temporaryGetDisplayNameOrDefault({
-            passedPersonalDetails: personalDetails?.[accountID],
-            translate,
-        }) ?? CONST.CONCIERGE_DISPLAY_NAME;
-    const actorIcon = personalDetails?.[accountID]?.avatar
-        ? {
-              source: personalDetails[accountID].avatar,
-              name: displayName,
-              type: CONST.ICON_TYPE_AVATAR,
-          }
-        : undefined;
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], translate}) ?? CONST.CONCIERGE_DISPLAY_NAME;
+    const actorIcon = personalDetails?.[accountID]?.avatar ? {source: personalDetails[accountID].avatar, name: displayName, type: CONST.ICON_TYPE_AVATAR} : undefined;
 
     const showConciergeDetails = () => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
