@@ -1,21 +1,24 @@
 ---
-title: Create Agent Rules
-description: Create AI-powered workspace rules using natural-language instructions to automate report reviews, routing, approvals, and other actions.
-keywords: [agent rules, RuleBot, AI rules, automated approvals, report routing, workspace automation, approval automation]
-internalScope: Audience is Workspace Admins. Covers creating, managing, and understanding Agent Rules and how RuleBot enforces them. Does not cover Agent management, personal AI features, or Concierge AI.
+title: Automate Workflows with Agent Rules
+description: Create and manage Agent rules that use AI to automate expense reviews, approvals, routing, and other report actions in your workspace.
+keywords: [Agent rules, RuleBot, AI automation, workspace automation, workflow automation, expense approvals, report routing, AI rules]
+internalScope: Audience is Workspace Admins. Covers creating, managing, and deleting Agent rules, how RuleBot enforces them, and how to use RuleBot as a workspace approver. Does not cover personal Agents, Agent templates, general approval workflow configuration, or best practices for writing Agent instructions.
+contentType: task
 ---
 
-# Create Agent Rules 
+# Automate Workflows with Agent Rules
 
-Agent rules are AI-powered rules that let Workspace Admins automate report reviews, routing, approvals, and other workspace actions using natural-language instructions. You can use one of Expensify's suggested Agent rules, or create your own custom rules. 
+Agent rules let Workspace Admins automate expense reviews, routing, approvals, and other workspace actions using natural-language instructions.
 
-When you create your first Agent rule, Expensify automatically creates RuleBot, an AI-powered workspace agent that evaluates reports and enforces your Agent rules.
+You can use one of Expensify's suggested Agent rules as a starting point or create your own custom rules.
+
+When you create your first Agent rule, Expensify automatically creates RuleBot to enforce those rules.
+
+To learn how Agent rules work, how they differ from personal Agents, and how RuleBot uses your instructions, see [Understand How AI Agents Work in Expensify](/articles/new-expensify/ai-agents/Understand-How-AI-Agents-Work-in-Expensify).
 
 ---
 
 ## Who can use Agent rules
-
-Agent Rules are currently available through an open beta program. 
 
 To create an Agent rule: 
 
@@ -26,7 +29,7 @@ To create an Agent rule:
 
 ## How to create an Agent rule from Expensify's Suggested rules 
 
-You can use a pre-defined **Suggested** Agent rule as a starting point for your own Agent rule. Review and edit the natural-language instructions before saving it.
+You can use a pre-defined **Suggested** Agent rule as a starting point for your own Agent rule. Review and edit the natural-language instructions before saving the rule. 
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**
 2. Select **Rules**.
@@ -38,7 +41,7 @@ You can use a pre-defined **Suggested** Agent rule as a starting point for your 
    
 ---
 
-## How to an Agent rule from a custom natural-language description 
+## How to an Agent rule from a custom description 
 
 If none of the Suggested Agent rules match your workflow, you can create your own by writing natural-language instructions.
 
@@ -53,15 +56,23 @@ For guidance, examples, and prompt-writing best practices, [learn how to write A
 
 ---
 
-## What happens after an Agent rule is created 
+## What happens after you create an Agent rule
 
 When you create your first Agent rule, Expensify automatically creates RuleBot and adds it to the workspace as a Workspace Admin.
 
-After RuleBot is created, the **Agent rules** section displays **Agent rules are enforced by** followed by **RuleBot**. This indicates which agent enforces all Agent rules in the workspace.
+After RuleBot is created, the **Agent rules** section displays **Agent rules are enforced by** followed by **RuleBot**, indicating which AI Agent enforces your workspace's Agent rules.
 
 RuleBot immediately begins monitoring report activity and evaluating reports against all configured Agent rules.
 
-Agent rules apply to future report activity, but not existing Paid or Done reports. 
+---
+
+## How to add RuleBot as an approver
+
+After RuleBot is created, you can add it to an approval workflow the same way you would add any other workspace member.
+
+When RuleBot receives a report as an approver, it evaluates the report against the Agent rules configured for the workspace and takes the appropriate action.
+
+To add RuleBot as an approver, see [Add approvals to a workspace](/articles/new-expensify/workspaces/Add-Approvals).
 
 ---
 
@@ -134,3 +145,9 @@ When evaluating a report, RuleBot can review the 50 most recent report actions, 
 ## Do I need to create or manage RuleBot?
 
 No. RuleBot is created automatically when you add your first Agent rule and is managed by Expensify.
+
+## Can I use an Rulebot as a approval workflow? 
+
+Yes. On Control plans, agents can be used anywhere an approver can be selected, including multi-step approval workflows.
+
+On Collect plans, workspaces support a single approver. An agent can be used as that approver
