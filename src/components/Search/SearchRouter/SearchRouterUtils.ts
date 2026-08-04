@@ -1,6 +1,6 @@
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 
-import {getPolicyNameWithFallback, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {getPolicyNameWithFallback, sanitizeSearchValue, stripSearchValueQuotes} from '@libs/SearchQueryUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
@@ -56,19 +56,15 @@ function getContextualReportData(state: NavigationState | undefined): Contextual
     return {contextualReportID: undefined, isSearchRouterScreen};
 }
 
-function getContextualSearchValue(value: string) {
-    return value.replaceAll(/["“”]/g, '');
-}
-
 function getContextualSearchAutocompleteKey(item: SearchQueryItem, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {
     if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE) {
-        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${getContextualSearchValue(item.searchQuery ?? '')}`;
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${stripSearchValueQuotes(item.searchQuery ?? '')}`;
     }
     if (item.roomType === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${getContextualSearchValue(item.searchQuery ?? '')}`;
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${stripSearchValueQuotes(item.searchQuery ?? '')}`;
     }
     if (item.roomType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${getContextualSearchValue(item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : '')}`;
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${stripSearchValueQuotes(item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : '')}`;
     }
 }
 
@@ -79,19 +75,19 @@ function getContextualSearchQuery(item: SearchQueryItem, policies: OnyxCollectio
     switch (item.roomType) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${sanitizeSearchValue(
-                getContextualSearchValue(item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : ''),
+                stripSearchValueQuotes(item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : ''),
                 true,
             )}`;
             break;
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${item.policyID}`;
             if (item.autocompleteID) {
-                additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${sanitizeSearchValue(getContextualSearchValue(item.searchQuery ?? ''), true)}`;
+                additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${sanitizeSearchValue(stripSearchValueQuotes(item.searchQuery ?? ''), true)}`;
             }
             break;
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
-            additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${sanitizeSearchValue(getContextualSearchValue(item.searchQuery ?? ''), true)}`;
+            additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${sanitizeSearchValue(stripSearchValueQuotes(item.searchQuery ?? ''), true)}`;
             break;
     }
     return baseQuery + additionalQuery;

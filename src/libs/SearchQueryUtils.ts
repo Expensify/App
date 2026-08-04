@@ -163,14 +163,17 @@ function getUserFriendlyValue(value: string | undefined): UserFriendlyValue {
 
 /**
  * @private
- * Returns string value wrapped in quotes "", if the value contains space or &nbsp; (no-breaking space).
- * `shouldQuoteComma` additionally quotes on a comma, which the parser otherwise treats as a value separator.
+ * Returns string value wrapped in quotes "", if the value contains space, &nbsp; (no-breaking space), or a comma when shouldQuoteComma is set.
  */
 function sanitizeSearchValue(str: string, shouldQuoteComma = false) {
     if (str.includes(' ') || str.includes(`\xA0`) || (shouldQuoteComma && str.includes(','))) {
         return `"${str}"`;
     }
     return str;
+}
+
+function stripSearchValueQuotes(str: string) {
+    return str.replaceAll(/["“”]/g, '');
 }
 
 const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(-.+)+)[:><=].+$`);
@@ -2581,6 +2584,7 @@ export {
     buildFilterFormValuesFromQuery,
     buildCannedSearchQuery,
     sanitizeSearchValue,
+    stripSearchValueQuotes,
     getQueryWithUpdatedValues,
     getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,
