@@ -1,5 +1,6 @@
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/HRUtils';
+import {getObjectKeys} from '@libs/ObjectUtils';
 import {
     arePolicyRulesEnabled,
     canMemberRead,
@@ -146,9 +147,7 @@ function getWorkspaceMenuItems({
         [CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]: policy?.isTravelEnabled,
         [CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]: isTimeTrackingEnabled(policy),
     };
-    const highlightedPolicyFeature = (Object.keys(policyFeatureStates) as PolicyFeatureName[]).find(
-        (key) => policyFeatureStates[key] && !previousPendingFields?.[key] && policy?.pendingFields?.[key],
-    );
+    const highlightedPolicyFeature = getObjectKeys(policyFeatureStates).find((key) => policyFeatureStates[key] && !previousPendingFields?.[key] && policy?.pendingFields?.[key]);
 
     const items: WorkspaceMenuItem[] = [
         {
