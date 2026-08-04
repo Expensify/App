@@ -125,6 +125,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['Accounting']);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
+    const connectionSyncStage = connectionSyncProgress?.stageInProgress;
 
     const canUseRilletIntegration = isBetaEnabled(CONST.BETAS.RILLET) || !!policy?.connections?.rillet;
     const shouldShowIntuitEnterpriseSuiteIntegration = isBetaEnabled(CONST.BETAS.INTUIT_ENTERPRISE_SUITE) && (isCollectPolicy(policy) || isControlPolicy(policy));
@@ -546,9 +547,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
         let connectionMessage;
-        if (isSyncInProgress && connectionSyncProgress?.stageInProgress) {
+        if (isSyncInProgress && connectionSyncStage) {
             connectionMessage = translate('workspace.accounting.connections.syncStageName', {
-                stage: connectionSyncProgress.stageInProgress,
+                stage: connectionSyncStage,
                 integrationName: integrationData?.title,
             });
         } else if (!isConnectionVerified) {
@@ -667,7 +668,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         accountingIcons,
         cardFeeds,
         cardLists,
-        connectionSyncProgress?.stageInProgress,
+        connectionSyncStage,
         icons.Pencil,
         icons.ArrowRight,
         icons.ExpensifyCard,

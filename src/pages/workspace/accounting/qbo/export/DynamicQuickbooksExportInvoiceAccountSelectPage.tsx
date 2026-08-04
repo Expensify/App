@@ -78,7 +78,7 @@ function DynamicQuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyCon
                 containerStyle={styles.pb10}
             />
         ),
-        [illustrations.Telescope, translate, styles.pb10],
+        [illustrations.Telescope, translate, styles.pb10, integrationName],
     );
 
     return (

@@ -47,13 +47,15 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
     const isVendorFeatureAvailable = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) && isQBOVendorMatchingActive;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.path);
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!qboConfig?.autoCreateVendor);
-    const nonReimbursableExportDescription =
+    let nonReimbursableExportDescription;
+    if (
         qboNonReimbursableDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD ||
         qboNonReimbursableDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD
-            ? translate(`workspace.qbo.accounts.${qboNonReimbursableDestination}Description`, {integrationName})
-            : qboNonReimbursableDestination
-              ? translate(`workspace.qbo.accounts.${qboNonReimbursableDestination}Description`)
-              : undefined;
+    ) {
+        nonReimbursableExportDescription = translate(`workspace.qbo.accounts.${qboNonReimbursableDestination}Description`, {integrationName});
+    } else if (qboNonReimbursableDestination) {
+        nonReimbursableExportDescription = translate(`workspace.qbo.accounts.${qboNonReimbursableDestination}Description`);
+    }
 
     const sections = [
         {

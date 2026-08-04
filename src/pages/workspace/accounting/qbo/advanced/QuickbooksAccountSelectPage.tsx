@@ -57,7 +57,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
                 <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.accountSelectDescription', {integrationName})}</Text>
             </View>
         ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
+        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, integrationName],
     );
 
     const initiallyFocusedOptionKey = useMemo(() => qboOnlineSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [qboOnlineSelectorOptions]);
@@ -81,7 +81,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
                 containerStyle={styles.pb10}
             />
         ),
-        [illustrations.Telescope, translate, styles.pb10],
+        [illustrations.Telescope, translate, styles.pb10, integrationName],
     );
 
     return (

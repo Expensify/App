@@ -96,7 +96,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPoli
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10, illustrations.Telescope],
+        [translate, styles.pb10, illustrations.Telescope, integrationName],
     );
     return (
         <SelectionScreen
