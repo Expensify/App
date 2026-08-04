@@ -11705,9 +11705,7 @@ describe('ReportUtils', () => {
                 }),
             );
             // ...while the transaction whose tag stays enabled is skipped entirely (no redundant recompute/write).
-            expect(onyxData.optimisticData).not.toContainEqual(
-                expect.objectContaining({key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${otherTagTransaction.transactionID}`}),
-            );
+            expect(onyxData.optimisticData).not.toContainEqual(expect.objectContaining({key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${otherTagTransaction.transactionID}`}));
         });
 
         it('still recomputes tagless transactions when disabling the last enabled tag clears missingTag (fast path falls back)', () => {
