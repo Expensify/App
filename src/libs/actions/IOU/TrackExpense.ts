@@ -895,7 +895,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
 
     // STEP 1: Get existing chat report
-    let chatReport = !isEmptyObject(parentChatReport) && parentChatReport?.reportID ? parentChatReport : null;
+    let chatReport = parentChatReport ?? null;
 
     // If no chat report is passed, defaults to the self-DM report
     if (!chatReport) {
