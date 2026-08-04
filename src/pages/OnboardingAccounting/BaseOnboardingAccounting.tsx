@@ -294,7 +294,12 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>
                     {accountingOptions.map(renderOption)}
                     {/* Keep Other from expanding across the empty second column on wide layouts. */}
-                    {!isSmallScreenWidth && <View style={[styles.onboardingAccountingItem, styles.bgTransparent, styles.p0]} />}
+                    {!isSmallScreenWidth && (
+                        <View
+                            testID="onboarding-accounting-wide-layout-spacer"
+                            style={[styles.onboardingAccountingItem, styles.bgTransparent, styles.p0]}
+                        />
+                    )}
                 </View>
                 {isOtherSelected && (
                     <TextInput

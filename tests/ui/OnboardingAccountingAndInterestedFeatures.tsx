@@ -19,13 +19,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import type {ViewStyle} from 'react-native';
-
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports -- React Native primitives are imported directly to inspect their test instances
-import {ScrollView, StyleSheet} from 'react-native';
+import {ScrollView} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import * as TestHelper from '../utils/TestHelper';
@@ -156,21 +154,16 @@ describe('Onboarding interested features and accounting pages', () => {
 
         await waitForBatchedUpdatesWithAct();
         expect(screen.queryByText(TestHelper.translateLocal('onboarding.accounting.none'))).not.toBeOnTheScreen();
-        const wideLayoutSpacers = renderResult.UNSAFE_root.findAll((node) => {
-            const style = StyleSheet.flatten(node.props.style) as ViewStyle | undefined;
-            return node.children.length === 0 && style?.backgroundColor === 'transparent' && style.flexBasis === '35%' && style.flexGrow === 1;
-        });
-        expect(wideLayoutSpacers).toHaveLength(1);
+        expect(screen.getByTestId('onboarding-accounting-wide-layout-spacer')).toHaveStyle({backgroundColor: 'transparent', flexBasis: '35%', flexGrow: 1});
 
         fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
         const otherAccountingSoftwareLabel = TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware');
         const otherAccountingSoftwareInput = screen.getByLabelText(otherAccountingSoftwareLabel);
         expect(otherAccountingSoftwareInput.props.autoFocus).toBeFalsy();
         const accountingScrollView = renderResult.UNSAFE_getByType(ScrollView);
-        expect(accountingScrollView.props.onContentSizeChange).toBeDefined();
-        act(() => accountingScrollView.props.onContentSizeChange?.(0, 0));
+        fireEvent(accountingScrollView, 'onContentSizeChange', 0, 0);
         expect(scrollToEndSpy).toHaveBeenCalledWith({animated: false});
-        act(() => accountingScrollView.props.onContentSizeChange?.(0, 0));
+        fireEvent(accountingScrollView, 'onContentSizeChange', 0, 0);
         expect(scrollToEndSpy).toHaveBeenCalledTimes(1);
         fireEvent.changeText(otherAccountingSoftwareInput, '  Acme Books  ');
         fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
