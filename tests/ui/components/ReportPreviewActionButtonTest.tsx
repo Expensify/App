@@ -5,7 +5,6 @@ import ReportPreviewActionButton from '@components/ReportActionItem/MoneyRequest
 import CONST from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
@@ -88,6 +87,13 @@ const mockStyles = {flex1: {flex: 1}, flexRow: {flexDirection: 'row'}, gap2: {ga
 jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => mockStyles}));
 jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));
 
+// Reads the style array off the component's outermost View without an unsafe cast.
+function flattenContainerStyle(rendered: ReturnType<typeof render>): unknown[] {
+    const container = rendered.UNSAFE_getAllByType(View).at(0);
+    const style: unknown = container?.props.style;
+    return Array.isArray(style) ? style : [style];
+}
+
 describe('ReportPreviewActionButton', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -129,15 +135,13 @@ describe('ReportPreviewActionButton', () => {
         // styles are load-bearing: without flexRow/gap2 the two buttons stack instead of sitting side by side.
         mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         const withPrimary = render(<ReportPreviewActionButton />);
-        const rowStyle = withPrimary.UNSAFE_getAllByType(View).at(0)?.props.style as StyleProp<ViewStyle>;
-        expect(rowStyle).toEqual(expect.arrayContaining([mockStyles.flexRow, mockStyles.gap2]));
+        expect(flattenContainerStyle(withPrimary)).toEqual(expect.arrayContaining([mockStyles.flexRow, mockStyles.gap2]));
         withPrimary.unmount();
 
         // With no primary action the View button stands alone and must NOT be laid out as a row.
         jest.clearAllMocks();
         mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
         const viewOnly = render(<ReportPreviewActionButton />);
-        const soloStyle = viewOnly.UNSAFE_getAllByType(View).at(0)?.props.style as StyleProp<ViewStyle>;
-        expect(soloStyle).not.toEqual(expect.arrayContaining([mockStyles.flexRow]));
+        expect(flattenContainerStyle(viewOnly)).not.toEqual(expect.arrayContaining([mockStyles.flexRow]));
     });
 });
