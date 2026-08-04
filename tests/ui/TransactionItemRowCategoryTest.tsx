@@ -6,6 +6,8 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchColumnType} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
+import CategoryCell from '@components/TransactionItemRow/DataCells/CategoryCell';
+import {EditableCell} from '@components/TransactionItemRow/EditableCell';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow/types';
 
 import CONST from '@src/CONST';
@@ -109,6 +111,28 @@ describe('TransactionItemRow category display', () => {
 
         // Then the category should render in the readable `A: B` form
         expect(screen.getByText('A: B')).toBeOnTheScreen();
+    });
+
+    it('should preserve the raw category value for the inline picker', async () => {
+        // Given a transaction whose stored category has no space after the separator
+        const mockTransaction = createCategorizedTransaction('A:B');
+
+        // When rendering its editable category cell
+        const renderedCell = render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <CategoryCell
+                    transactionItem={mockTransaction}
+                    shouldShowTooltip={false}
+                    shouldUseNarrowLayout={false}
+                    canEdit
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdates();
+
+        // Then the display is normalized while the picker receives the exact stored value
+        expect(screen.getByText('A: B')).toBeOnTheScreen();
+        expect(renderedCell.UNSAFE_getByType(EditableCell).props.popoverContent).toEqual(expect.objectContaining({props: expect.objectContaining({selectedCategory: 'A:B'})}));
     });
 
     it('should normalize separator spacing when displaying the category in the narrow layout', async () => {
