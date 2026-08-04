@@ -7,6 +7,7 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -67,6 +68,7 @@ function DynamicIOURequestStepCategory({
     },
     transaction,
 }: DynamicIOURequestStepCategoryProps) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
@@ -188,7 +190,7 @@ function DynamicIOURequestStepCategory({
         if (transaction) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit) {
-                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: updatedCategory}, policy);
+                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: updatedCategory}, policy, undefined, undefined, getCurrencyDecimals);
                 saveAndNavigateBack();
                 return;
             }
@@ -212,13 +214,14 @@ function DynamicIOURequestStepCategory({
                     delegateAccountID,
                     reportPolicyTags,
                     isTrackIntentUser,
+                    getCurrencyDecimals,
                 });
                 saveAndNavigateBack();
                 return;
             }
         }
 
-        setMoneyRequestCategory(transactionID, updatedCategory, policy);
+        setMoneyRequestCategory(transactionID, updatedCategory, policy, getCurrencyDecimals);
 
         // `action === CATEGORIZE` only ever occurs when categorizing a fresh tracked expense directly from a
         // report (never from an existing Confirmation screen), so continue forward into Confirmation here.
