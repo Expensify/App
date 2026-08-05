@@ -404,6 +404,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: 'ID de note de frais longue',
         withdrawalID: 'ID de retrait',
         internationalReimbursementIDs: 'ID de remboursement international',
+        amountDebited: 'Montant débité',
+        amountReimbursed: 'Montant remboursé',
         withdrawalStatus: 'Statut de retrait',
         paidStatus: 'Statut payé',
         bankAccounts: 'Comptes bancaires',
@@ -10184,7 +10186,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     delegate: {
         switchAccount: 'Changer de compte :',
         copilotDelegatedAccess: 'Copilot : Accès délégué',
-        copilotDelegatedAccessDescription: 'Autoriser les autres membres à accéder à votre compte.',
+        copilotDelegatedAccessDescription: 'Autoriser les autres membres et agents à accéder à votre compte.',
         learnMoreAboutDelegatedAccess: "En savoir plus sur l'accès délégué",
         addCopilot: 'Ajouter un copilote',
         switch: 'Changer',

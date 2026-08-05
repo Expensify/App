@@ -1031,6 +1031,33 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the description is changed to a URL', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldComment: '<a href="https://old.example.com" target="_blank">https://old.example.com</a>',
+                    newComment: '<a href="https://new.example.com" target="_blank">https://new.example.com</a>',
+                },
+            };
+
+            it('keeps the stored HTML link instead of converting it to Markdown', () => {
+                const expectedResult =
+                    'changed the description to "<a href="https://new.example.com" target="_blank">https://new.example.com</a>" (previously "<a href="https://old.example.com" target="_blank">https://old.example.com</a>")';
+
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the category is changed with AI attribution', () => {
             const reportAction = {
                 ...createRandomReportAction(1),

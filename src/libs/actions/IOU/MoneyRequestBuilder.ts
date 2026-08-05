@@ -9,7 +9,7 @@ import {translateLocal} from '@libs/Localize';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -1301,6 +1301,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         rate,
         unit,
         customUnit,
+        customUnitRateID,
         waypoints,
         odometerStart,
         odometerEnd,
@@ -1479,6 +1480,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             rate,
             unit,
             customUnit,
+            customUnitRateID,
             waypoints,
             odometerStart,
             odometerEnd,
@@ -1513,6 +1515,31 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             optimisticTransaction.merchant = preservedMerchant;
         } else {
             optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
+        }
+    }
+
+    if (action === CONST.IOU.ACTION.SUBMIT && isDistanceRequest) {
+        const workspaceDistanceCustomUnit = getDistanceRateCustomUnit(policy);
+        const workspaceDistanceUnit = workspaceDistanceCustomUnit?.attributes?.unit;
+        optimisticTransaction.comment ??= {};
+        optimisticTransaction.comment.customUnit ??= {};
+
+        optimisticTransaction.comment.customUnit.name = optimisticTransaction.comment.customUnit.name ?? existingTransaction?.comment?.customUnit?.name ?? CONST.CUSTOM_UNITS.NAME_DISTANCE;
+
+        if (workspaceDistanceCustomUnit?.customUnitID) {
+            optimisticTransaction.comment.customUnit.customUnitID = workspaceDistanceCustomUnit.customUnitID;
+        }
+        if (customUnitRateID) {
+            optimisticTransaction.comment.customUnit.customUnitRateID = customUnitRateID;
+        }
+        if (workspaceDistanceUnit) {
+            optimisticTransaction.comment.customUnit.distanceUnit = workspaceDistanceUnit;
+        }
+        if (distance !== undefined) {
+            optimisticTransaction.comment.customUnit.quantity = distance;
+        }
+        if (workspaceDistanceCustomUnit) {
+            optimisticTransaction.comment.customUnit.defaultP2PRate = null;
         }
     }
 

@@ -387,7 +387,6 @@
 "../../src/components/Search/SearchPageHeader/SearchSaveButton.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/SearchPageHeader/useSearchPageInput.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchPageHeader/useSearchPageInput.tsx"	"react-hooks/set-state-in-effect"	2
-"../../src/components/Search/SearchQueryProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Search/SearchRouter/SearchRouter.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchRouter/SearchRouterUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchRouter/buildSubstitutionsMap.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -801,9 +800,8 @@
 "../../src/libs/actions/HybridApp/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/BulkEdit.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/BulkEdit.ts"	"no-restricted-syntax"	2
-"../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"@typescript-eslint/no-deprecated/Localize.translateLocal"	1
 "../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"no-restricted-syntax"	2
+"../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/Duplicate.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../src/libs/actions/IOU/Duplicate.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/Hold.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3

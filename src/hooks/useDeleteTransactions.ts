@@ -380,6 +380,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail: currentUserPersonalDetails.email ?? '',
                     policy: iouPolicy,
+                    getCurrencyDecimals,
                 });
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
