@@ -20,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
 import {createTransactionThreadReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {buildMergedTransactionData, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
+import {buildMergedTransactionData, getReportIDForExpense, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -97,7 +97,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         let targetTransactionThreadParentReportForMerge = targetTransactionThreadParentReport;
 
         if (!targetTransactionThreadReportIDForMerge) {
-            const targetIOUAction = getIOUActionForReportID(targetTransaction.reportID, targetTransaction.transactionID);
+            const targetIOUAction = getIOUActionForReportID(getReportIDForExpense(targetTransaction), targetTransaction.transactionID);
             const createdTransactionThreadReport = createTransactionThreadReport({
                 introSelected,
                 currentUserLogin: currentUserEmailParam,
