@@ -333,3 +333,10 @@
 - Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/57556
 - PR introducing patch: https://github.com/Expensify/App/pull/94332
+
+### [react-native+0.85.3+040+fix-android15-text-clipping-boundswidth.patch](react-native+0.85.3+040+fix-android15-text-clipping-boundswidth.patch)
+
+- Reason: On Android 15+, `StaticLayout`/`TextView` can use glyph visual bounds (which are wider than advance-based width) when rendering, causing trailing characters or whole words to be clipped off (e.g. "You appear to be offline" rendering as "You appear to be"). RN 0.85.3 already ships an implementation of a fix for this behind the `fixTextClippingAndroid15useBoundsForWidth` feature flag, but the flag defaults to `false` because the implementation has a bug: it computes each line's visual-bounds width as `getLineRight(i) - getLineLeft(i)`, which is wrong for lines with a nonzero left offset (e.g. leading margin spans) and caused regressions in unrelated text when tested. This patch enables the flag (both the Kotlin and C++ defaults) and fixes the width calculation to use `getLineMax(i)` instead, plus clamps the result so it can never shrink below the plain advance-based width (a safety net matching the direction of the still-unmerged upstream fix at https://github.com/react/react-native/pull/57117).
+- Upstream PR/issue: https://github.com/react/react-native/pull/57117
+- E/App issue: https://github.com/Expensify/App/issues/76531
+- PR introducing patch: 🛑 (local testing only, not yet submitted)

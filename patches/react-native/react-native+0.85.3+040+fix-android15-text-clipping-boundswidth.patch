@@ -1,0 +1,47 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/internal/featureflags/ReactNativeFeatureFlagsDefaults.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/internal/featureflags/ReactNativeFeatureFlagsDefaults.kt
+index f201093..e3efaf3 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/internal/featureflags/ReactNativeFeatureFlagsDefaults.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/internal/featureflags/ReactNativeFeatureFlagsDefaults.kt
+@@ -137,7 +137,7 @@ public open class ReactNativeFeatureFlagsDefaults : ReactNativeFeatureFlagsProvi
+
+   override fun fixMappingOfEventPrioritiesBetweenFabricAndReact(): Boolean = false
+
+-  override fun fixTextClippingAndroid15useBoundsForWidth(): Boolean = false
++  override fun fixTextClippingAndroid15useBoundsForWidth(): Boolean = true
+
+   override fun fuseboxAssertSingleHostState(): Boolean = true
+
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+index dca0ecb..8b8d901 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+@@ -873,10 +873,15 @@ internal object TextLayoutManager {
+     // Calculate visual bounds width from unconstrained layout
+     var desiredVisualWidth = 0f
+     for (i in 0 until unconstrainedLayout.lineCount) {
+-      val lineWidth = unconstrainedLayout.getLineRight(i) - unconstrainedLayout.getLineLeft(i)
++      val lineWidth = unconstrainedLayout.getLineMax(i)
+       desiredVisualWidth = max(desiredVisualWidth, lineWidth)
+     }
+
++    // Never shrink below the plain advance-based width; the visual-bounds probe above should
++    // only ever grow the layout width to avoid clipping, never shrink it.
++    val advanceWidth = ceil(Layout.getDesiredWidth(text, paint))
++    desiredVisualWidth = max(desiredVisualWidth, advanceWidth)
++
+     val layoutWidth =
+         when (widthYogaMeasureMode) {
+           YogaMeasureMode.AT_MOST -> min(ceil(desiredVisualWidth).toInt(), floor(width).toInt())
+diff --git a/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDefaults.h b/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDefaults.h
+index 8146298..7a0b920 100644
+--- a/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDefaults.h
++++ b/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDefaults.h
+@@ -256,7 +256,7 @@ class ReactNativeFeatureFlagsDefaults : public ReactNativeFeatureFlagsProvider {
+   }
+
+   bool fixTextClippingAndroid15useBoundsForWidth() override {
+-    return false;
++    return true;
+   }
+
+   bool fuseboxAssertSingleHostState() override {
