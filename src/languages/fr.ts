@@ -1463,7 +1463,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `approuvé via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l'espace de travail</a>`,
         forwarded: (memo?: string) => `approuvé${memo ? `, indiquant « ${memo} »` : ''}`,
         rejectedThisReport: 'rejeté',
-        waitingOnBankAccount: (submitterDisplayName: string) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire personnel.`,
         adminCanceledRequest: 'a annulé le paiement',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `a annulé le paiement de ${amount}, car ${submitterDisplayName} n’a pas activé son Portefeuille Expensify dans un délai de 30 jours`,
@@ -6155,6 +6155,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         subsections: {
                             currentTravelSpendLabel: 'Dépenses de voyage actuelles',
                             currentTravelSpendPaymentQueued: (amount: string) => `Le paiement de ${amount} est en file d’attente et sera traité bientôt.`,
+                            currentTravelSpendInvoiceQueued: 'Une nouvelle facture pour vos dépenses de voyage sera créée et vous sera envoyée bientôt.',
+                            currentTravelSpendInvoicePending: (amount: string) => `Une facture de ${amount} a été envoyée et est en attente de paiement.`,
                             currentTravelSpendCta: 'Payer le solde',
                             viewOnSpend: 'Voir dans Dépenses',
                             currentTravelLimitLabel: 'Plafond de déplacement actuel',
@@ -6169,6 +6171,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                                 'Si vous réduisez la limite, les membres ayant déjà dépensé plus que ce montant ne pourront pas effectuer de nouvelles réservations de voyage avant le mois prochain.',
                             provisioningError:
                                 'Nous n’avons pas pu configurer certains membres de votre espace de travail pour la facturation de voyage consolidée. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
+                            sendInvoiceNowCta: 'Envoyer la facture maintenant',
                         },
                     },
                     disableModal: {
@@ -6191,6 +6194,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     invalidDateRangeError: 'La date de début doit être antérieure à la date de fin',
                     enabled: 'Facturation de voyage consolidée activée !',
                     enabledDescription: 'Toutes les dépenses de voyage sur cet espace de travail seront désormais centralisées dans une facture mensuelle.',
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Envoyer la facture de ${amount} ?`,
+                        body: 'Nous créerons une facture pour vos dépenses de voyage actuelles. Votre plafond de voyage est à nouveau disponible une fois la facture payée.',
+                    },
                 },
                 personalDetailsDescription: 'Pour pouvoir réserver un voyage, veuillez saisir votre nom légal tel qu’il apparaît sur votre pièce d’identité délivrée par le gouvernement.',
             },
@@ -7538,8 +7545,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 note: "Vous perdrez l'accès aux fonctionnalités suivantes",
                 benefits: {
                     confirm: 'Vous devrez modifier le « Type de plan » de chaque espace de travail en « Collect » afin de bénéficier du tarif Collect.',
-                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
-                    benefit2: 'Workday, Certinia',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics, Certinia',
+                    benefit2: 'Gusto, TriNet, Workday',
                     benefit3: 'SSO/SAML',
                     benefit4: 'Règles de dépenses intelligentes, indemnités journalières, approbations multi-niveaux, rapports personnalisés et budgétisation',
                     headsUp: 'Attention !',
@@ -8091,6 +8098,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 subtitle: 'Créez une règle pour automatiser les politiques de votre espace de travail.',
                 cta: 'Ajouter une règle IA',
             },
+            categoriesDisabledEmptyState: {title: 'Les catégories ne sont pas activées', subtitle: 'Activez les catégories pour mieux contrôler vos dépenses.'},
         },
         planTypePage: {
             planTypes: {
@@ -10064,8 +10072,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 benefit1: 'Tout ce qui est inclus dans l’offre Collect',
                 benefit2: 'Flux d’approbation multi-niveaux',
                 benefit3: 'Règles de dépenses personnalisées',
-                benefit4: 'Intégrations ERP (NetSuite, Sage Intacct, Oracle)',
-                benefit5: 'Intégrations RH (Workday, Certinia)',
+                benefit4: 'Intégrations ERP (NetSuite, Sage Intacct, Oracle, Certinia)',
+                benefit5: 'Intégrations RH (Gusto, TriNet, Workday)',
                 benefit6: 'SAML/SSO',
                 benefit7: 'Analyses et rapports personnalisés',
                 benefit8: 'Budgétisation',
@@ -10350,6 +10358,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             buildReports: 'Créez des rapports de dépenses en quelques secondes',
             categorize: 'Catégorisez vos dépenses',
             inviteBoss: 'Invitez votre responsable quand vous êtes prêt',
+        },
+    },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nouveaux types de rôles pour les administrateurs',
+                body: 'Offrez à votre équipe des autorisations plus granulaires avec de nouveaux rôles d’administrateur pour les cartes, les personnes et les paiements.',
+                cta: 'Essayer',
+            },
         },
     },
     productTrainingTooltip: {
