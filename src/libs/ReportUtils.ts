@@ -3146,7 +3146,10 @@ function getAddExpenseDropdownOptions({
     lastDistanceExpenseType,
     currentUserAccountID,
 }: GetAddExpenseDropdownOptionsParams): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
-    const moneyRequestIOUType = getMoneyRequestIOUType(policy?.id);
+    // The iouReport being added to may belong to a different policy than the chat surrounding it is rendered in
+    // (e.g. a Teachers Unite expense report preview shown inside a non-Teachers-Unite chat), so derive the IOU
+    // type from the iouReport's own policy rather than from the surrounding `policy`.
+    const moneyRequestIOUType = getMoneyRequestIOUType(getReportOrDraftReport(iouReportID)?.policyID ?? policy?.id);
     return [
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
