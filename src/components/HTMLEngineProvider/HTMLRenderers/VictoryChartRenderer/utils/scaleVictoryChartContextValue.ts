@@ -123,3 +123,4 @@ function scaleVictoryChartContextValue(value: VictoryChartContextValue, scale: n
 }
 
 export default scaleVictoryChartContextValue;
+export {scaleLabelItem};
