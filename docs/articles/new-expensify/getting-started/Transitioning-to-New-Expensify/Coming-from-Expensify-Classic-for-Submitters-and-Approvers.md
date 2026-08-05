@@ -49,6 +49,8 @@ Use the examples below to understand where common Expensify Classic workflows no
 | Split an expense | Within the expense, select the three dots **(⋮)** and choose **Split expense**. | Split expenses evenly, by percentage, or by custom amounts.<br><br>[Learn how to split expenses](/articles/new-expensify/reports-and-expenses/Split-Expenses). |
 | Chat with Concierge | Select the **Concierge** icon in the upper-right corner | Ask questions directly inside expenses, reports, or chats while you work.<br><br>[Learn more about the Concierge support agent](/articles/new-expensify/concierge-ai/Support-Agent#where-to-find-concierge-support-agent). |
 
+![Spend tab with needs approval highlighted]({{site.url}}/assets/images/ExpensiHelp-Spend-tab-with-needs-approval-highlighted.png){:width="100%"}
+
 ---
 
 ## How common workflows become easier in New Expensify
