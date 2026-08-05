@@ -76,15 +76,14 @@ function useMenuItemAccessibility() {
     // Text contributed by Title/Description children, keyed by fixed slot
     const {entries: labels, register: registerLabel, unregister: unregisterLabel} = useLabelSlotRegistry();
 
-    const providerValue: MenuItemAccessibilityActions = useMemo(() => ({registerLabel, unregisterLabel}), [registerLabel, unregisterLabel]);
+    const accessibilityActions: MenuItemAccessibilityActions = useMemo(() => ({registerLabel, unregisterLabel}), [registerLabel, unregisterLabel]);
 
     const accessibilityLabel = MENU_ITEM_LABEL_SLOTS.map((slot) => labels.get(slot))
         .filter(Boolean)
         .join(', ');
 
-    return {accessibilityLabel, providerValue};
+    return {accessibilityLabel, accessibilityActions};
 }
 
 export default MenuItemAccessibilityContext;
 export {useMenuItemAccessibilityLabel, useMenuItemAccessibility};
-export type {MenuItemAccessibilityActions};
