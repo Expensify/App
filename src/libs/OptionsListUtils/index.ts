@@ -1548,20 +1548,32 @@ function isReportSelected(reportOption: SearchOptionData, selectedOptions: Array
     return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
 }
 
-function processReport(
-    report: OnyxEntry<Report> | null,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchived: boolean | undefined,
-    policy: OnyxEntry<Policy>,
-    currentUserAccountID: number,
-    conciergeReportID: string | undefined,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    policyTags?: OnyxEntry<PolicyTagLists>,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-    isTrackIntentUser?: boolean,
+function processReport({
+    report,
+    personalDetails,
+    privateIsArchived,
+    policy,
+    currentUserAccountID,
+    conciergeReportID,
+    reportAttributesDerived,
+    policyTags,
+    visibleReportActionsData = {},
+    isTrackIntentUser,
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
-    sortedActions?: Record<string, ReportAction[]>,
-): {
+    sortedActions,
+}: {
+    report: OnyxEntry<Report> | null;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    privateIsArchived: boolean | undefined;
+    policy: OnyxEntry<Policy>;
+    currentUserAccountID: number;
+    conciergeReportID: string | undefined;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    policyTags?: OnyxEntry<PolicyTagLists>;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    isTrackIntentUser?: boolean;
+    sortedActions?: Record<string, ReportAction[]>;
+}): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
 } {
@@ -1810,7 +1822,7 @@ function createFilteredOptionList(
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
         const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-        const {reportMapEntry, reportOption} = processReport(
+        const {reportMapEntry, reportOption} = processReport({
             report,
             personalDetails,
             privateIsArchived,
@@ -1818,11 +1830,11 @@ function createFilteredOptionList(
             currentUserAccountID,
             conciergeReportID,
             reportAttributesDerived,
-            reportPolicyTags,
+            policyTags: reportPolicyTags,
             visibleReportActionsData,
             isTrackIntentUser,
             sortedActions,
-        );
+        });
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
 
