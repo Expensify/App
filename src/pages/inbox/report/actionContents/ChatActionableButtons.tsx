@@ -252,7 +252,8 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                   ];
             const options = !isSplitExpense || hasWorkspaceToSubmitTo ? [...submitButtons] : [];
 
-            options.push(prepareTrackExpenseButton('categorize'), prepareTrackExpenseButton('share'));
+            options.push(prepareTrackExpenseButton('categorize', {isRestrictedToPreferredPolicy, preferredPolicyID}));
+            options.push(prepareTrackExpenseButton('share', {isRestrictedToPreferredPolicy, preferredPolicyID}));
             options.push({
                 text: 'actionableMentionTrackExpense.nothing',
                 key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
