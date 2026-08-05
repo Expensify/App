@@ -3568,11 +3568,11 @@ function getDisplayNameForParticipant({
 
     // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
-    // when searching for a new user. Imported device contacts persist a real
-    // display name on their optimistic record, so prefer that over the login.
-    if (personalDetails.isOptimisticPersonalDetail === true) {
-        const optimisticDisplayName = getDisplayNameOrDefault(personalDetails, formattedLogin, false);
-        return shouldUseShortForm && personalDetails.firstName ? personalDetails.firstName : optimisticDisplayName;
+    // when searching for a new user. Optimistic personal details that already have a known displayName
+    // (e.g. an agent pending creation, or an imported device contact) fall through to the normal name
+    // resolution below instead, so that name is shown rather than an empty/placeholder login.
+    if (personalDetails.isOptimisticPersonalDetail === true && !personalDetails.displayName) {
+        return formattedLogin;
     }
 
     // For selfDM, we display the user's displayName followed by '(you)' as a postfix
@@ -6356,7 +6356,7 @@ function getChatRoomSubtitle(
  * Get pending members for reports
  */
 function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers: PendingChatMember[], pendingAction: PendingAction): PendingChatMember[] {
-    const pendingChatMembers = accountIDs.map((accountID) => ({accountID: accountID.toString(), pendingAction}));
+    const pendingChatMembers = accountIDs.filter((accountID) => accountID != null).map((accountID) => ({accountID: accountID.toString(), pendingAction}));
     return [...previousPendingChatMembers, ...pendingChatMembers];
 }
 
@@ -6422,19 +6422,26 @@ function getParentNavigationSubtitle(
 
 /**
  * Navigate to the details page of a given report
+ *
+ * Side Panel reports use a synthetic route that is not part of the navigation state, so navigation must be anchored to the report.
+ * Otherwise, the active route is preserved to keep the details page within its originating context.
+ *
+ * @param isInSidePanel - Whether the report is rendered inside the Side Panel
  */
-function navigateToDetailsPage(report: OnyxEntry<Report>) {
+function navigateToDetailsPage(report: OnyxEntry<Report>, isInSidePanel = false) {
     const isSelfDMReport = isSelfDM(report);
     const isOneOnOneChatReport = isOneOnOneChat(report);
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
+    const basePath = isInSidePanel && report?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(report.reportID) : undefined;
+
     if (isSelfDMReport || isOneOnOneChatReport) {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0))));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0)), basePath));
         return;
     }
 
     if (report?.reportID) {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, basePath));
     }
 }
 
@@ -8108,15 +8115,11 @@ function buildOptimisticTaskReportAction(
     const effectiveDelegateEmail = delegateEmailParam ?? delegateEmail;
     const delegateAccountDetails = effectiveDelegateEmail ? getPersonalDetailByEmail(effectiveDelegateEmail) : undefined;
 
-    // Derive the avatar/person from the actor rather than the current user: onboarding tasks are completed as a
-    // side effect by Concierge (or the assigned guide), so `actorAccountID` is not always the current user.
-    const actorPersonalDetails = allPersonalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID];
-
     return {
         actionName,
         actorAccountID,
         automatic: false,
-        avatar: actorPersonalDetails?.avatar,
+        avatar: getCurrentUserAvatar(),
         isAttachmentOnly: false,
         originalMessage,
         message: [
@@ -8129,7 +8132,7 @@ function buildOptimisticTaskReportAction(
         person: [
             {
                 style: 'strong',
-                text: actorPersonalDetails?.displayName ?? String(deprecatedCurrentUserAccountID),
+                text: currentUserPersonalDetails?.displayName ?? String(deprecatedCurrentUserAccountID),
                 type: 'TEXT',
             },
         ],
@@ -12234,7 +12237,6 @@ function prepareOnboardingOnyxData({
     let addExpenseApprovalsTaskReportID;
     let setupTagsTaskReportID;
     let setupCategoriesAndTagsTaskReportID;
-    let reviewWorkspaceSettingsTaskReportID;
     const tasks = onboardingMessage.tasks;
     const tasksData = tasks
         .filter((task) => {
@@ -12302,9 +12304,6 @@ function prepareOnboardingOnyxData({
             }
             if (task.type === CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS) {
                 setupCategoriesAndTagsTaskReportID = currentTask.reportID;
-            }
-            if (task.type === CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS) {
-                reviewWorkspaceSettingsTaskReportID = currentTask.reportID;
             }
 
             return {
@@ -12516,7 +12515,6 @@ function prepareOnboardingOnyxData({
                 addExpenseApprovals: addExpenseApprovalsTaskReportID,
                 setupTags: setupTagsTaskReportID,
                 setupCategoriesAndTags: setupCategoriesAndTagsTaskReportID,
-                reviewWorkspaceSettings: reviewWorkspaceSettingsTaskReportID,
             },
         },
     );
@@ -12592,7 +12590,6 @@ function prepareOnboardingOnyxData({
                 addExpenseApprovals: null,
                 setupCategoriesAndTags: null,
                 setupTags: null,
-                reviewWorkspaceSettings: null,
             },
         },
     );
