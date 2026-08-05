@@ -27,9 +27,11 @@ To create an Agent rule:
 
 ---
 
-## How to create an Agent rule from Expensify's Suggested rules 
+## How to create an agent rule from Expensify's suggested rules 
 
 You can use a pre-defined **Suggested** Agent rule as a starting point for your own Agent rule. Review and edit the natural-language instructions before saving the rule. 
+
+For a complete list of available suggested rules and what each one does, see [Use Suggested Agent rules](/articles/new-expensify/ai-agents/Use-Suggested-Agent-Rules.md).
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**
 2. Select **Rules**.
@@ -41,7 +43,7 @@ You can use a pre-defined **Suggested** Agent rule as a starting point for your 
    
 ---
 
-## How to an Agent rule from a custom description 
+## How to create an agent rule from a custom description 
 
 If none of the Suggested Agent rules match your workflow, you can create your own by writing natural-language instructions.
 
@@ -52,7 +54,7 @@ If none of the Suggested Agent rules match your workflow, you can create your ow
 5. Enter a natural-language description of the behavior you want to enforce.
 6. Select **Save**.
 
-For guidance, examples, and prompt-writing best practices, [learn how to write Agent rules](/articles/new-expensify/ai-agents/How-to-Write-Agent-Rules).
+For guidance, examples, and prompt writing best practices, see [How to write Agent Rules](/articles/new-expensify/ai-agents/How-to-Write-Agent-Rules).
 
 ---
 
