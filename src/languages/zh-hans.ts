@@ -404,6 +404,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: '长报表 ID',
         withdrawalID: '提现编号',
         internationalReimbursementIDs: '国际报销 ID',
+        amountDebited: '扣款金额',
+        amountReimbursed: '已报销金额',
         withdrawalStatus: '提现状态',
         paidStatus: '已付款状态',
         bankAccounts: '银行账户',
@@ -1945,21 +1947,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `正在等待管理员报销费用。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>完成设置企业银行账户。`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>完成企业银行账户的设置。`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `正在等待管理员完成企业银行账户的设置。`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2399,7 +2386,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: '您的借记卡已成功添加',
         expensifyPassword: 'Expensify 密码',
         error: {
-            invalidName: '姓名只能包含字母',
+            invalidName: '卡片姓名不能包含 < 或 >',
             addressZipCode: '请输入有效的邮政编码',
             debitCardNumber: '请输入有效的借记卡号',
             expirationDate: '请选择一个有效的到期日期',
@@ -2422,7 +2409,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: '您的付款卡已成功添加',
         expensifyPassword: 'Expensify 密码',
         error: {
-            invalidName: '姓名只能包含字母',
+            invalidName: '卡片姓名不能包含 < 或 >',
             addressZipCode: '请输入有效的邮政编码',
             paymentCardNumber: '请输入有效的卡号',
             expirationDate: '请选择一个有效的到期日期',
@@ -9768,7 +9755,7 @@ ${reportName}`,
         switch: '切换',
         copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot：委托访问',
-        copilotDelegatedAccessDescription: '允许其他成员访问你的账户。',
+        copilotDelegatedAccessDescription: '允许其他成员和代理访问你的账户。',
         learnMoreAboutDelegatedAccess: '了解更多关于委托访问的信息',
         addCopilot: '添加副驾驶',
         membersCanAccessYourAccount: '这些成员可以访问你的账户：',
