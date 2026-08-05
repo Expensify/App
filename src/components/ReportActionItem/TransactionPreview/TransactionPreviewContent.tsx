@@ -2,6 +2,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import {ReportPreviewDataContext} from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import UserInfoCellsWithArrow from '@components/Search/SearchList/ListItem/UserInfoCellsWithArrow';
 import Text from '@components/Text';
@@ -46,7 +47,7 @@ import {cardByIdSelector} from '@src/selectors/Card';
 import {getStableReportSelector} from '@src/selectors/Report';
 
 import truncate from 'lodash/truncate';
-import React, {useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -133,6 +134,10 @@ function TransactionPreviewContent({
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
 
+    // Inside a report preview the header already reports a cancelled payment next to the expense count. Standalone previews
+    // (an expense report with a single expense, a self-DM, a split) have no such header, so they have to report it themselves.
+    const shouldShowCanceledStatus = !useContext(ReportPreviewDataContext);
+
     const isIOUActionType = isMoneyRequestAction(action);
     const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, isChatReportArchived, report, policy);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
@@ -160,12 +165,13 @@ function TransactionPreviewContent({
             getTransactionPreviewTextAndTranslationPaths({
                 ...transactionPreviewCommonArguments,
                 shouldShowRBR,
+                shouldShowCanceledStatus,
                 violationMessage,
                 reportActions,
                 originalTransaction,
                 convertToDisplayString,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, originalTransaction, convertToDisplayString],
+        [transactionPreviewCommonArguments, shouldShowRBR, shouldShowCanceledStatus, violationMessage, reportActions, originalTransaction, convertToDisplayString],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 

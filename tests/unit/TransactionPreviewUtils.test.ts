@@ -51,6 +51,7 @@ const basicProps = {
     transactionDetails: {},
     isBillSplit: false,
     shouldShowRBR: false,
+    shouldShowCanceledStatus: false,
     isReportAPolicyExpenseChat: false,
     areThereDuplicates: false,
     currentUserEmail: '',
@@ -228,10 +229,16 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });
 
-        it('does not show the canceled status when the iouReport is canceled, because it is shown at the report level instead', () => {
-            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined};
+        it('does not show the canceled status inside a report preview, because the preview header already shows it', () => {
+            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined, shouldShowCanceledStatus: false};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewStatusText).toEqual([]);
+        });
+
+        it('shows the canceled status in a standalone preview, because nothing else on that surface reports it', () => {
+            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined, shouldShowCanceledStatus: true};
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.previewStatusText).toContainEqual({translationPath: 'iou.canceled'});
         });
 
         it('does not show the approved status when the report is approved, because it is redundant with the report status badge', () => {
