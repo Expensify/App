@@ -1080,7 +1080,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             it('moves the scan-failed expense to a new report when another expense is being paid', async () => {
                 const validTransaction = buildTransaction('valid1', -3000, false);
-                const scanFailedTransaction = buildTransaction('scanFailed1', -5000, true);
+                const scanFailedTransaction = buildTransaction('scanFailed1', 0, true);
                 const expenseReport = await setUpReport([validTransaction, scanFailedTransaction]);
 
                 const newReportID = pay(expenseReport);
@@ -1098,7 +1098,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             });
 
             it('does not create a new report when every expense in the report is scan-failed', async () => {
-                const scanFailedTransaction = buildTransaction('scanFailed1', -5000, true);
+                const scanFailedTransaction = buildTransaction('scanFailed1', 0, true);
                 const expenseReport = await setUpReport([scanFailedTransaction]);
 
                 const newReportID = pay(expenseReport);
@@ -1107,6 +1107,23 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 expect(newReportID).toBeUndefined();
                 const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`);
                 expect(transaction?.reportID).toBe(expenseReport.reportID);
+            });
+
+            it('does not move a scan-failed expense that has an amount, so the payment total stays in sync with the backend', async () => {
+                const validTransaction = buildTransaction('valid1', -3000, false);
+                const scanFailedTransaction = buildTransaction('scanFailed1', -5000, true);
+                const expenseReport = await setUpReport([validTransaction, scanFailedTransaction]);
+
+                const newReportID = pay(expenseReport);
+                await waitForBatchedUpdates();
+
+                expect(newReportID).toBeUndefined();
+                const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`);
+                expect(transaction?.reportID).toBe(expenseReport.reportID);
+
+                const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
+                const payAction = Object.values(reportActions ?? {}).find((action) => isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY);
+                expect(payAction && isMoneyRequestAction(payAction) ? getOriginalMessage(payAction)?.amount : undefined).toBe(8000);
             });
         });
 

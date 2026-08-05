@@ -28,7 +28,7 @@ import {
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isProcessingReport,
 } from '@libs/ReportUtils';
-import {getAmount, getTransactionAmountInReportCurrency, hasSmartScanFailedWithMissingFields, isOnHold} from '@libs/TransactionUtils';
+import {getAmount, isScanFailedTransactionMovedOnPayment} from '@libs/TransactionUtils';
 
 import {notifyNewAction} from '@userActions/Report';
 
@@ -617,7 +617,7 @@ function getHoldReportActionsAndTransactions(
         }
 
         const isHeld = shouldMoveHeldTransactions && !!transaction.comment?.hold;
-        const isScanFailed = shouldMoveScanFailedTransactions && hasSmartScanFailedWithMissingFields([transaction], iouReport);
+        const isScanFailed = shouldMoveScanFailedTransactions && isScanFailedTransactionMovedOnPayment(transaction, iouReport);
 
         if (isHeld || isScanFailed) {
             holdReportActions.push(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>);
@@ -759,24 +759,10 @@ function getReportFromHoldRequestsOnyxData({
     const holdReimbursable = getReimbursableTotal(iouReport) - getUnheldReimbursableTotal(iouReport);
     const holdNonReimbursable = (iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0);
 
-    let movedReimbursableAmount = 0;
-    let movedNonReimbursableAmount = 0;
-    let movedUnheldReimbursableAmount = 0;
-    let movedUnheldNonReimbursableAmount = 0;
-    for (const movedTransaction of holdTransactions) {
-        const transactionAmount = getTransactionAmountInReportCurrency(movedTransaction, iouReport);
-        const isUnheld = !isOnHold(movedTransaction);
-        if (movedTransaction.reimbursable === false) {
-            movedNonReimbursableAmount += transactionAmount;
-            movedUnheldNonReimbursableAmount += isUnheld ? transactionAmount : 0;
-        } else {
-            movedReimbursableAmount += transactionAmount;
-            movedUnheldReimbursableAmount += isUnheld ? transactionAmount : 0;
-        }
-    }
-
-    const holdAmount = shouldMoveScanFailedTransactions ? movedReimbursableAmount + movedNonReimbursableAmount : (holdReimbursable + holdNonReimbursable) * coefficient;
-    const holdNonReimbursableAmount = shouldMoveScanFailedTransactions ? movedNonReimbursableAmount : holdNonReimbursable * coefficient;
+    // Scan-failed expenses only move out when they have no amount, so they carry nothing over to the new report and
+    // leave the totals of the report they came from untouched.
+    const holdAmount = shouldMoveScanFailedTransactions ? 0 : (holdReimbursable + holdNonReimbursable) * coefficient;
+    const holdNonReimbursableAmount = shouldMoveScanFailedTransactions ? 0 : holdNonReimbursable * coefficient;
 
     // Pass held transactions for formula computation (e.g., {report:startdate})
     const reportTransactions: Record<string, OnyxTypes.Transaction> = {};
@@ -882,30 +868,7 @@ function getReportFromHoldRequestsOnyxData({
     // Held transactions just moved out, leaving total/nonReimbursableTotal stale on this report —
     // offline consumers (e.g. the Pay button) would read the wrong amount until server reconciles.
     // unheldTotal stays as-is: every remaining transaction is unheld, so it already equals the new total.
-    const shouldUpdateOriginalReportTotals = holdTransactions.length > 0 && (shouldMoveScanFailedTransactions || iouReport?.unheldTotal !== undefined);
-
-    const movedTotal = holdAmount * coefficient;
-    const movedNonReimbursableTotal = holdNonReimbursableAmount * coefficient;
-    const movedUnheldTotal = (movedUnheldReimbursableAmount + movedUnheldNonReimbursableAmount) * coefficient;
-    const movedUnheldNonReimbursableTotal = movedUnheldNonReimbursableAmount * coefficient;
-    const remainingReportTotals = shouldMoveScanFailedTransactions
-        ? {
-              total: (iouReport?.total ?? 0) - movedTotal,
-              nonReimbursableTotal: (iouReport?.nonReimbursableTotal ?? 0) - movedNonReimbursableTotal,
-              reimbursableTotal: getReimbursableTotal(iouReport) - (movedTotal - movedNonReimbursableTotal),
-              ...(iouReport?.unheldTotal === undefined
-                  ? {}
-                  : {
-                        unheldTotal: iouReport.unheldTotal - movedUnheldTotal,
-                        unheldNonReimbursableTotal: (iouReport.unheldNonReimbursableTotal ?? 0) - movedUnheldNonReimbursableTotal,
-                        unheldReimbursableTotal: getUnheldReimbursableTotal(iouReport) - (movedUnheldTotal - movedUnheldNonReimbursableTotal),
-                    }),
-          }
-        : {
-              total: iouReport?.unheldTotal ?? 0,
-              nonReimbursableTotal: iouReport?.unheldNonReimbursableTotal ?? 0,
-              reimbursableTotal: getUnheldReimbursableTotal(iouReport),
-          };
+    const shouldUpdateOriginalReportTotals = !shouldMoveScanFailedTransactions && holdTransactions.length > 0 && iouReport?.unheldTotal !== undefined;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
         {
@@ -921,9 +884,9 @@ function getReportFromHoldRequestsOnyxData({
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
             value: {
                 ...optimisticExpenseReport,
-                unheldTotal: shouldMoveScanFailedTransactions ? movedUnheldTotal : 0,
-                unheldNonReimbursableTotal: shouldMoveScanFailedTransactions ? movedUnheldNonReimbursableTotal : 0,
-                unheldReimbursableTotal: shouldMoveScanFailedTransactions ? movedUnheldTotal - movedUnheldNonReimbursableTotal : 0,
+                unheldTotal: 0,
+                unheldNonReimbursableTotal: 0,
+                unheldReimbursableTotal: 0,
                 ...(isProcessingReport(iouReport) && isApprovalEnabled
                     ? {
                           stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -965,7 +928,11 @@ function getReportFromHoldRequestsOnyxData({
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: remainingReportTotals,
+            value: {
+                total: iouReport?.unheldTotal ?? 0,
+                nonReimbursableTotal: iouReport?.unheldNonReimbursableTotal ?? 0,
+                reimbursableTotal: getUnheldReimbursableTotal(iouReport),
+            },
         });
     }
 
@@ -1042,13 +1009,6 @@ function getReportFromHoldRequestsOnyxData({
                 total: iouReport?.total,
                 nonReimbursableTotal: iouReport?.nonReimbursableTotal,
                 reimbursableTotal: iouReport?.reimbursableTotal,
-                ...(shouldMoveScanFailedTransactions && iouReport?.unheldTotal !== undefined
-                    ? {
-                          unheldTotal: iouReport.unheldTotal,
-                          unheldNonReimbursableTotal: iouReport.unheldNonReimbursableTotal,
-                          unheldReimbursableTotal: iouReport.unheldReimbursableTotal,
-                      }
-                    : {}),
             },
         });
     }

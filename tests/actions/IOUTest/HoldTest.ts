@@ -826,22 +826,24 @@ describe('actions/IOU/Hold', () => {
             return {chatReport, iouReport, scanFailedTransaction, validTransaction, reportCollection, transactionCollection, actionCollection};
         };
 
-        const buildMixedExpenseReportScenario = () =>
+        // The backend only moves a scan-failed expense out when it has neither a merchant nor an amount, so the moved
+        // expense contributes nothing to either report's totals.
+        const buildMixedExpenseReportScenario = (scanFailedAmount = 0) =>
             buildScanFailedScenario(
                 {
                     type: CONST.REPORT.TYPE.EXPENSE,
-                    total: -8000,
+                    total: -3000,
                     nonReimbursableTotal: 0,
-                    reimbursableTotal: -8000,
-                    unheldTotal: -8000,
+                    reimbursableTotal: -3000,
+                    unheldTotal: -3000,
                     unheldNonReimbursableTotal: 0,
-                    unheldReimbursableTotal: -8000,
+                    unheldReimbursableTotal: -3000,
                 },
-                -5000,
+                scanFailedAmount,
                 -3000,
             );
 
-        test('should move only the scan-failed transactions and keep both reports totals in sync', () => {
+        test('should move only the scan-failed transactions and leave the totals of the report they came from untouched', () => {
             const {chatReport, iouReport, scanFailedTransaction, validTransaction, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario();
 
             return waitForBatchedUpdates()
@@ -869,21 +871,16 @@ describe('actions/IOU/Hold', () => {
                     );
                     expect(newReportUpdate?.value).toEqual(
                         expect.objectContaining({
-                            total: -5000,
-                            unheldTotal: -5000,
-                            unheldReimbursableTotal: -5000,
+                            // The expense-report sign flip turns the empty total into -0
+                            total: -0,
+                            unheldTotal: 0,
+                            unheldNonReimbursableTotal: 0,
+                            unheldReimbursableTotal: 0,
                         }),
                     );
 
                     const totalsUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
-                    expect(totalsUpdate?.value).toEqual({
-                        total: -3000,
-                        nonReimbursableTotal: 0,
-                        reimbursableTotal: -3000,
-                        unheldTotal: -3000,
-                        unheldNonReimbursableTotal: 0,
-                        unheldReimbursableTotal: -3000,
-                    });
+                    expect(totalsUpdate).toBeUndefined();
                 });
         });
 
@@ -947,6 +944,28 @@ describe('actions/IOU/Hold', () => {
                         policy: undefined,
                         betas: [],
                         delegateAccountID: undefined,
+                    });
+
+                    const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
+                    expect(Object.keys(transactionUpdate?.value ?? {})).not.toContain(`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`);
+                });
+        });
+
+        test('should not move a scan-failed transaction that has an amount, because the backend leaves it in the report', () => {
+            const {chatReport, iouReport, scanFailedTransaction, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario(-5000);
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const result = getReportFromHoldRequestsOnyxData({
+                        chatReport,
+                        iouReport,
+                        recipient: {accountID: 1},
+                        policy: undefined,
+                        betas: [],
+                        delegateAccountID: undefined,
+                        shouldMoveHeldTransactions: false,
+                        shouldMoveScanFailedTransactions: true,
                     });
 
                     const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);

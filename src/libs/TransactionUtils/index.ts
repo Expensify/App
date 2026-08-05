@@ -3190,35 +3190,15 @@ function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report
 }
 
 /**
- * Returns a transaction's amount expressed in the report's currency. When the transaction currency differs from the
- * report currency we rely on the pre-computed `convertedAmount`, otherwise the raw transaction amount already matches.
+ * Whether a scan-failed expense is one that the backend moves to its own report on payment. Auth only moves it when
+ * both the merchant and the amount are unset, so anything with an amount has to stay put to keep the payment total in
+ * sync with the server.
  */
-function getTransactionAmountInReportCurrency(transaction: Transaction, report: OnyxEntry<Report>): number {
-    const isFromExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
-    if (getCurrency(transaction) !== report?.currency && transaction.convertedAmount !== undefined) {
-        return isFromExpenseReport ? -transaction.convertedAmount : Math.abs(transaction.convertedAmount);
+function isScanFailedTransactionMovedOnPayment(transaction: Transaction, report: OnyxEntry<Report>): boolean {
+    if (!hasSmartScanFailedWithMissingFields([transaction], report)) {
+        return false;
     }
-    return getAmount(transaction, isFromExpenseReport);
-}
-
-/**
- * Sums, in the report's currency, the amounts of the scan-failed transactions that get moved to a new report on payment.
- */
-function getScanFailedTransactionsMovedTotals(transactions: Transaction[], report: OnyxEntry<Report>): {reimbursable: number; nonReimbursable: number} {
-    let reimbursable = 0;
-    let nonReimbursable = 0;
-    for (const transaction of transactions) {
-        if (!hasSmartScanFailedWithMissingFields([transaction], report)) {
-            continue;
-        }
-        const amount = getTransactionAmountInReportCurrency(transaction, report);
-        if (transaction.reimbursable === false) {
-            nonReimbursable += amount;
-        } else {
-            reimbursable += amount;
-        }
-    }
-    return {reimbursable, nonReimbursable};
+    return getMerchant(transaction) === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && getAmount(transaction, true) === 0;
 }
 
 /**
@@ -3228,7 +3208,7 @@ function shouldSplitScanFailedTransactions(transactions: Transaction[], report: 
     let hasScanFailedTransaction = false;
     let hasRemainingTransaction = false;
     for (const transaction of transactions) {
-        if (hasSmartScanFailedWithMissingFields([transaction], report)) {
+        if (isScanFailedTransactionMovedOnPayment(transaction, report)) {
             hasScanFailedTransaction = true;
         } else {
             hasRemainingTransaction = true;
@@ -3407,8 +3387,7 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
-    getScanFailedTransactionsMovedTotals,
-    getTransactionAmountInReportCurrency,
+    isScanFailedTransactionMovedOnPayment,
     shouldSplitScanFailedTransactions,
     isDeletedTransaction,
     getDistanceRequestType,
