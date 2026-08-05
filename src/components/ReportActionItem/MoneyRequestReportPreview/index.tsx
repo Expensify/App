@@ -300,7 +300,7 @@ function MoneyRequestReportPreview({
                 // The thread resolved from the transaction's own transactionThreadReportID rather than from a loaded
                 // IOU action, which means the report's actions aren't in OnyxDB yet. The expense view's prev/next
                 // carousel resolves each sibling through those actions, so fetch them in the background — without
-                // them an arrow press can't resolve the sibling's existing thread and mints a parentless duplicate.
+                // them an arrow press can't resolve the sibling's existing thread and mints a duplicate with no parent.
                 if (!isIOUActionLoaded && iouReportID && !isOffline) {
                     openReport({reportID: iouReportID, introSelected, betas});
                 }

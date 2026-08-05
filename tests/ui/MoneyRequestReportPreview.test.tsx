@@ -589,7 +589,7 @@ describe('MoneyRequestReportPreview', () => {
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
             // ...but the report's actions must still be fetched. The prev/next carousel resolves each sibling through
             // those actions; without them an arrow press cannot find the sibling's existing thread and mints a
-            // parentless duplicate instead.
+            // duplicate thread with no parent instead.
             expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
         });
 
