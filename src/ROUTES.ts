@@ -4456,6 +4456,46 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/rillet/advanced/travel-invoicing-settlement-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/travel-invoicing-settlement-account` as const,
     },
+    POLICY_ACCOUNTING_DUALENTRY_SETUP: {
+        route: 'workspaces/:policyID/accounting/dualentry/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/setup` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/dualentry/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_COMPANY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/dualentry/company-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/company-selector` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_IMPORT: {
+        route: 'workspaces/:policyID/accounting/dualentry/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/import` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_EXPORT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/vendor-bill-date` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_EXPENSIFY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/expensify-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/expensify-card-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/default-company-card-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/default-company-card-vendor` as const,
+    },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
         getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-existing-expense/${backToReport ?? ''}` as const,

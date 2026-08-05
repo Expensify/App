@@ -5857,6 +5857,71 @@ const translations = {
                 description: "Choose your settlement account and we'll create the payment in Rillet.",
             },
         },
+        dualentry: {
+            dualentrySetup: 'DualEntry setup',
+            enterCredentials: 'Enter your DualEntry API key',
+            howToFindAPIKey: '<strong>Finding your API key.</strong><ol><li>Log in to DualEntry</li><li>Navigate to Account -> Settings</li><li>Copy the API key below</li></ol>',
+            company: 'Company',
+            companySelectDescription: "Choose the company in DualEntry that you'd like to import data from.",
+            noCompaniesFound: 'No companies found',
+            noCompaniesFoundDescription: 'Please add a company in DualEntry and sync the connection again',
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in DualEntry and sync the connection again',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Please add accounts in DualEntry and sync the connection again',
+            accountTypesDescription: 'Your DualEntry accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New DualEntry accounts will be available as categories.',
+            classificationsImport: 'All DualEntry classifications import as tags',
+            importDescription: 'Choose which coding configurations to import from DualEntry.',
+            exportDescription: 'Configure how Expensify data exports to DualEntry.',
+            exportReimbursable: {
+                label: 'Export reimbursable expenses as',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Vendor bills',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Vendor bill date',
+                description: 'Use this date when exporting reports to DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'Date of the most recent expense on the report.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Export date',
+                        description: 'Date the report was exported to DualEntry.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'Date the report was submitted for approval.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Export company card expenses as',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Direct expenses',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Default vendor for all company cards',
+                description: "Choose a default DualEntry vendor for expenses that don't match automatically.",
+            },
+            companyCardAccount: {
+                label: 'Company card account',
+                description: 'Choose where to export company card transactions.',
+            },
+            expensifyCardAccount: {
+                label: 'Expensify Card account',
+                description: 'Choose where to export Expensify Card transactions.',
+            },
+        },
         type: {
             free: 'Free',
             control: 'Control',
@@ -6874,6 +6939,7 @@ const translations = {
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
+            dualentry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6893,6 +6959,8 @@ const translations = {
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DualEntry';
                     default: {
                         return '';
                     }
@@ -7126,6 +7194,12 @@ const translations = {
                         case 'rilletSyncConnection':
                             return 'Initializing connection to Rillet';
                         case 'rilletSyncImportData':
+                            return 'Loading data';
+                        case 'dualentrySyncTitle':
+                            return 'Syncing DualEntry data';
+                        case 'dualentrySyncConnection':
+                            return 'Initializing connection to DualEntry';
+                        case 'dualentrySyncImportData':
                             return 'Loading data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
@@ -7493,6 +7567,12 @@ const translations = {
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + Rillet integration. Align expense coding dimensions and tax sync with your Rillet setup for clearer financial visibility.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our Rillet integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                title: 'DualEntry',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + DualEntry integration. Align expense coding dimensions and tax sync with your DualEntry setup for clearer financial visibility.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our DualEntry integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Advanced Approvals',

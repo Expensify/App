@@ -92,6 +92,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policy?.id);
     const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policy?.id);
     const hasReusablePoliciesConnectedToRillet = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.RILLET, policy?.id);
+    const hasReusablePoliciesConnectedToDualEntry = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY, policy?.id);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const theme = useTheme();
@@ -118,21 +119,25 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'ExpensifyCard', 'Gear', 'Key', 'NewWindow', 'Pencil', 'QuestionMark', 'Send', 'Sync', 'Trashcan']);
-    const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare']);
+    const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare', 'DualEntrySquare']);
     const illustrations = useMemoizedLazyIllustrations(['Accounting']);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
 
     const canUseRilletIntegration = isBetaEnabled(CONST.BETAS.RILLET) || !!policy?.connections?.rillet;
+    const canUseDualEntryIntegration = isBetaEnabled(CONST.BETAS.DUALENTRY) || !!policy?.connections?.dualentry;
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
                 if (name === CONST.POLICY.CONNECTIONS.NAME.RILLET) {
                     return canUseRilletIntegration;
                 }
+                if (name === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY) {
+                    return canUseDualEntryIntegration;
+                }
                 return true;
             }),
-        [canUseRilletIntegration],
+        [canUseRilletIntegration, canUseDualEntryIntegration],
     );
     const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
@@ -283,6 +288,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
         const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
         const rilletSubsidiaryList = policy?.connections?.rillet?.data?.subsidiaries;
+        const dualentryCompanyList = policy?.connections?.dualentry?.data?.companies;
         const certiniaConfig = policy?.connections?.financialforce?.config;
         const certiniaCompanies = policy?.connections?.financialforce?.data?.companies ?? [];
         const certiniaCompanyID = certiniaConfig?.credentials?.companyID;
@@ -394,6 +400,25 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                   ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_SUBSIDIARY_SELECTOR.getRoute(policyID))
                                   : undefined,
                       };
+            case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                return !dualentryCompanyList?.length
+                    ? {}
+                    : {
+                          description: translate('workspace.dualentry.company'),
+                          iconRight: icons.ArrowRight,
+                          title: dualentryCompanyList?.find((company) => company.id === policy?.connections?.dualentry?.config?.companyID)?.name ?? '',
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: canWriteAccounting && dualentryCompanyList && dualentryCompanyList.length > 1,
+                          shouldShowDescriptionOnTop: true,
+                          interactive: canWriteAccounting,
+                          pendingAction: policy?.connections?.dualentry?.config.pendingFields?.companyID,
+                          brickRoadIndicator: policy?.connections?.dualentry?.config.errorFields?.companyID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          onPress:
+                              policyID && canWriteAccounting && dualentryCompanyList && dualentryCompanyList.length > 1
+                                  ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_COMPANY_SELECTOR.getRoute(policyID))
+                                  : undefined,
+                      };
 
             default:
                 return undefined;
@@ -424,6 +449,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             qbd: hasReusablePoliciesConnectedToQBD,
                             certinia: hasReusablePoliciesConnectedToCertinia,
                             rillet: hasReusablePoliciesConnectedToRillet,
+                            dualentry: hasReusablePoliciesConnectedToDualEntry,
                         },
                         undefined,
                         undefined,
@@ -508,6 +534,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 qbd: hasReusablePoliciesConnectedToQBD,
                 certinia: hasReusablePoliciesConnectedToCertinia,
                 rillet: hasReusablePoliciesConnectedToRillet,
+                dualentry: hasReusablePoliciesConnectedToDualEntry,
             },
             policy,
             undefined,
@@ -667,6 +694,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         hasReusablePoliciesConnectedToSageIntacct,
         hasReusablePoliciesConnectedToCertinia,
         hasReusablePoliciesConnectedToRillet,
+        hasReusablePoliciesConnectedToDualEntry,
         hasReusablePoliciesConnectedToQBD,
         canWriteAccounting,
         showReadOnlyModal,
@@ -690,6 +718,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         qbd: hasReusablePoliciesConnectedToQBD,
                         certinia: hasReusablePoliciesConnectedToCertinia,
                         rillet: hasReusablePoliciesConnectedToRillet,
+                        dualentry: hasReusablePoliciesConnectedToDualEntry,
                     },
                     undefined,
                     undefined,
@@ -758,6 +787,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         hasReusablePoliciesConnectedToSageIntacct,
         hasReusablePoliciesConnectedToCertinia,
         hasReusablePoliciesConnectedToRillet,
+        hasReusablePoliciesConnectedToDualEntry,
         hasReusablePoliciesConnectedToQBD,
         styles.justifyContentCenter,
         styles.buttonOpacityDisabled,

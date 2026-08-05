@@ -1,4 +1,5 @@
 import ConnectToCertiniaFlow from '@components/ConnectToCertiniaFlow';
+import ConnectToDualEntryFlow from '@components/ConnectToDualEntry';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
 import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
@@ -57,13 +58,13 @@ function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
-    existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean; rillet: boolean},
+    existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean; rillet: boolean; dualentry: boolean},
     policy?: Policy,
     key?: number,
     integrationToDisconnect?: ConnectionName,
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
-    expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare', IconAsset>,
+    expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare', IconAsset>,
     cardFeeds?: CombinedCardFeeds,
     cardList?: Record<string, WorkspaceCardsList | undefined>,
 ): AccountingIntegration | undefined {
@@ -106,6 +107,15 @@ function getAccountingIntegrationData(
             return ROUTES.POLICY_ACCOUNTING_RILLET_EXISTING_CONNECTIONS.getRoute(policyID);
         }
         return ROUTES.POLICY_ACCOUNTING_RILLET_SETUP.getRoute(policyID);
+    };
+    const getBackToAfterWorkspaceUpgradeRouteForDualEntry = () => {
+        if (integrationToDisconnect) {
+            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+        }
+        if (existingConnections.dualentry) {
+            return ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXISTING_CONNECTIONS.getRoute(policyID);
+        }
+        return ROUTES.POLICY_ACCOUNTING_DUALENTRY_SETUP.getRoute(policyID);
     };
 
     switch (connectionName) {
@@ -459,6 +469,63 @@ function getAccountingIntegrationData(
                 },
                 pendingFields: policy?.connections?.rillet?.config?.pendingFields,
                 errorFields: policy?.connections?.rillet?.config?.errorFields,
+            };
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY: {
+            return {
+                title: translate('workspace.accounting.dualentry'),
+                icon: expensifyIcons?.DualEntrySquare,
+                setupConnectionFlow: (
+                    <ConnectToDualEntryFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [
+                    CONST.DUALENTRY_CONFIG.ENABLE_NEW_CATEGORIES,
+                    CONST.DUALENTRY_CONFIG.SYNC_TAX_RATES,
+                    ...(policy?.connections?.dualentry?.data?.classifications?.map((classification) => `${CONST.DUALENTRY_CONFIG.FIELD_MAPPING_PREFIX}${classification.id}`) ?? []),
+                ],
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [
+                    CONST.DUALENTRY_CONFIG.EXPORTER,
+                    CONST.DUALENTRY_CONFIG.EXPORT_DATE,
+                    CONST.DUALENTRY_CONFIG.REIMBURSABLE,
+                    CONST.DUALENTRY_CONFIG.NON_REIMBURSABLE,
+                    CONST.DUALENTRY_CONFIG.DEFAULT_VENDORID,
+                    CONST.DUALENTRY_CONFIG.CREDIT_CARD_ACCOUNT_ID,
+                    CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID,
+                    CONST.DUALENTRY_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
+                    ...Object.values(cardFeeds ?? {}).map((program) => `${CONST.DUALENTRY_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`),
+                ],
+                externalSubscribedExportSettingsPendingAction: getCardsCustomExportPendingAction(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT,
+                ),
+                externalSubscribedExportSettingsHasErrorFields: areCardsCustomExportInErrorFields(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT,
+                ),
+                onAdvancedPagePress: () => null,
+                subscribedAdvancedSettings: [
+                    CONST.DUALENTRY_CONFIG.ACCOUNTING_METHOD,
+                    CONST.DUALENTRY_CONFIG.AUTO_SYNC,
+                    CONST.DUALENTRY_CONFIG.SYNC_REIMBURSED_REPORTS,
+                    CONST.DUALENTRY_CONFIG.BILL_PAYMENT_ACCOUNT_ID,
+                    CONST.DUALENTRY_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
+                    CONST.DUALENTRY_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS,
+                    CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
+                ],
+                workspaceUpgradeNavigationDetails: {
+                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.dualentry.alias,
+                    backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForDualEntry(),
+                },
+                pendingFields: policy?.connections?.dualentry?.config?.pendingFields,
+                errorFields: policy?.connections?.dualentry?.config?.errorFields,
             };
         }
         default:
