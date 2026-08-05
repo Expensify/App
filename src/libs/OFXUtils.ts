@@ -31,10 +31,25 @@ function getPostedDate(postedDateTime: string): string {
 }
 
 /**
+ * The spec wants a period, but plenty of banks ship a comma decimal separator or thousands grouping.
+ * Only the right-most separator can be the decimal point, and only when one or two digits follow it.
+ */
+function normalizeSeparators(transactionAmount: string): string {
+    const decimalIndex = Math.max(transactionAmount.lastIndexOf(','), transactionAmount.lastIndexOf('.'));
+    if (decimalIndex < 0) {
+        return transactionAmount;
+    }
+
+    const tail = transactionAmount.slice(decimalIndex + 1);
+    const head = transactionAmount.slice(0, decimalIndex).replaceAll(/[,.]/g, '');
+    return /^\d{1,2}$/.test(tail) ? `${head}.${tail}` : `${head}${tail}`;
+}
+
+/**
  * OFX signs a charge negative, while the importer treats a positive amount as a charge, so the sign is flipped here.
  */
 function getAmount(transactionAmount: string): string {
-    const amount = Number(transactionAmount);
+    const amount = Number(normalizeSeparators(transactionAmount));
     if (!transactionAmount || !Number.isFinite(amount)) {
         return '';
     }
