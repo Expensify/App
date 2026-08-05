@@ -1452,7 +1452,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `zatwierdzone przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reguły przestrzeni roboczej</a>`,
         forwarded: (memo?: string) => `zatwierdzono${memo ? `, wpisując ${memo}` : ''}`,
         rejectedThisReport: 'odrzucono',
-        waitingOnBankAccount: (submitterDisplayName: string) => `rozpoczęto płatność, ale oczekuje na to, aż ${submitterDisplayName} doda konto bankowe.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `rozpoczął(-ęła) płatność, ale czeka, aż ${submitterDisplayName} doda osobiste konto bankowe.`,
         adminCanceledRequest: 'anulowano płatność',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `anulowano płatność ${amount}, ponieważ ${submitterDisplayName} nie aktywował(-a) swojego portfela Expensify w ciągu 30 dni`,
@@ -8003,6 +8003,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 thenFlagForReview: 'Następnie oznacz do przejrzenia, gdy:',
             },
             agentRulesEmptyState: {title: 'Nie dodano reguł agenta', subtitle: 'Utwórz regułę, żeby zautomatyzować zasady swojego workspace’u.', cta: 'Dodaj regułę AI'},
+            categoriesDisabledEmptyState: {title: 'Kategorie nie są włączone', subtitle: 'Włącz kategorie, żeby mieć większą kontrolę nad wydatkami.'},
         },
         planTypePage: {
             planTypes: {
@@ -10244,6 +10245,15 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             buildReports: 'Twórz raporty wydatków w kilka sekund',
             categorize: 'Kategoryzuj swoje wydatki',
             inviteBoss: 'Zaproś swojego szefa, gdy będziesz gotowy',
+        },
+    },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nowe typy ról dla administratorów',
+                body: 'Daj swojemu zespołowi bardziej szczegółowe uprawnienia dzięki nowym rolom administratora kart, osób i płatności.',
+                cta: 'Wypróbuj to',
+            },
         },
     },
     productTrainingTooltip: {

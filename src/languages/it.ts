@@ -1457,7 +1457,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `approvata tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
         forwarded: (memo?: string) => `approvato${memo ? `, con nota: ${memo}` : ''}`,
         rejectedThisReport: 'rifiutato',
-        waitingOnBankAccount: (submitterDisplayName: string) => `ha avviato il pagamento, ma sta aspettando che ${submitterDisplayName} aggiunga un conto bancario.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `ha avviato il pagamento, ma sta aspettando che ${submitterDisplayName} aggiunga un conto bancario personale.`,
         adminCanceledRequest: 'ha annullato il pagamento',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `ha annullato il pagamento di ${amount}, perché ${submitterDisplayName} non ha abilitato il proprio Expensify Wallet entro 30 giorni`,
@@ -8043,6 +8043,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 thenFlagForReview: 'Poi segnala per revisione quando:',
             },
             agentRulesEmptyState: {title: 'Nessuna regola agente aggiunta', subtitle: 'Crea una regola per automatizzare le policy del tuo workspace.', cta: 'Aggiungi regola IA'},
+            categoriesDisabledEmptyState: {title: 'Le categorie non sono abilitate', subtitle: 'Attiva le categorie per avere un maggiore controllo sulle tue spese.'},
         },
         planTypePage: {
             planTypes: {
@@ -10305,6 +10306,15 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             buildReports: 'Crea report di spesa in pochi secondi',
             categorize: 'Categorizza le tue spese',
             inviteBoss: 'Invita il tuo capo quando sei pronto',
+        },
+    },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nuovi tipi di ruolo per gli amministratori',
+                body: 'Offri al tuo team autorizzazioni più granulari con i nuovi ruoli di amministratore per carte, persone e pagamenti.',
+                cta: 'Provalo',
+            },
         },
     },
     productTrainingTooltip: {

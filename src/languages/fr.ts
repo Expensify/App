@@ -1463,7 +1463,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `approuvé via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l'espace de travail</a>`,
         forwarded: (memo?: string) => `approuvé${memo ? `, indiquant « ${memo} »` : ''}`,
         rejectedThisReport: 'rejeté',
-        waitingOnBankAccount: (submitterDisplayName: string) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire personnel.`,
         adminCanceledRequest: 'a annulé le paiement',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `a annulé le paiement de ${amount}, car ${submitterDisplayName} n’a pas activé son Portefeuille Expensify dans un délai de 30 jours`,
@@ -8102,6 +8102,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 subtitle: 'Créez une règle pour automatiser les politiques de votre espace de travail.',
                 cta: 'Ajouter une règle IA',
             },
+            categoriesDisabledEmptyState: {title: 'Les catégories ne sont pas activées', subtitle: 'Activez les catégories pour mieux contrôler vos dépenses.'},
         },
         planTypePage: {
             planTypes: {
@@ -10363,6 +10364,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             buildReports: 'Créez des rapports de dépenses en quelques secondes',
             categorize: 'Catégorisez vos dépenses',
             inviteBoss: 'Invitez votre responsable quand vous êtes prêt',
+        },
+    },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nouveaux types de rôles pour les administrateurs',
+                body: 'Offrez à votre équipe des autorisations plus granulaires avec de nouveaux rôles d’administrateur pour les cartes, les personnes et les paiements.',
+                cta: 'Essayer',
+            },
         },
     },
     productTrainingTooltip: {

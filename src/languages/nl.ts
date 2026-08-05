@@ -1456,7 +1456,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `goedgekeurd via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimteregels</a>`,
         forwarded: (memo?: string) => `goedgekeurd${memo ? `, met de omschrijving ${memo}` : ''}`,
         rejectedThisReport: 'afgekeurd',
-        waitingOnBankAccount: (submitterDisplayName: string) => `is een betaling gestart, maar wacht tot ${submitterDisplayName} een bankrekening toevoegt.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `is met de betaling begonnen, maar wacht tot ${submitterDisplayName} een persoonlijke bankrekening toevoegt.`,
         adminCanceledRequest: 'heeft de betaling geannuleerd',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `heeft de betaling van ${amount} geannuleerd, omdat ${submitterDisplayName} hun Expensify Wallet niet binnen 30 dagen heeft geactiveerd`,
@@ -8024,6 +8024,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 thenFlagForReview: 'Vlag dan voor controle wanneer:',
             },
             agentRulesEmptyState: {title: 'Geen agentregels toegevoegd', subtitle: 'Maak een regel om je werkruimtebeleid te automatiseren.', cta: 'AI-regel toevoegen'},
+            categoriesDisabledEmptyState: {title: 'Categorieën zijn niet ingeschakeld', subtitle: 'Schakel categorieën in om meer controle te krijgen over je uitgaven.'},
         },
         planTypePage: {
             planTypes: {
@@ -10275,6 +10276,15 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             buildReports: 'Maak onkostenrapporten in enkele seconden',
             categorize: 'Categoriseer je uitgaven',
             inviteBoss: 'Nodig je baas uit wanneer je er klaar voor bent',
+        },
+    },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nieuwe roltypen voor beheerders',
+                body: 'Geef je team meer gedetailleerde toegangsrechten met nieuwe kaart-, personen- en betalingsbeheerrollen.',
+                cta: 'Probeer het uit',
+            },
         },
     },
     productTrainingTooltip: {
