@@ -73,22 +73,9 @@ function getSubmitExpensePreMountDestinationRoute({
     const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
     // Don't pre-insert if the report is already the topmost fullscreen - it would push a duplicate route (extra back press).
     const hasValidDestination = !!destinationReportID && (hasPreInsertedFullscreen || Navigation.getTopmostReportId() !== destinationReportID);
-    // The report must be in the REPORT collection so the pre-inserted screen can render immediately - the report screen
-    // only reads COLLECTION.REPORT, so pre-inserting a report that exists only as a draft would strand the user on an
-    // infinite skeleton if they back out before submitting. The zero-workspace "Submit to my employer" flow's draft
-    // policy expense chat is promoted into COLLECTION.REPORT by the caller (see IOURequestStepConfirmation.tsx) once its
-    // draft is available, so it satisfies this check on the render after that promotion runs. Passing an empty draft to
-    // getReportOrDraftReport skips its REPORT_DRAFT fallback while keeping the module-cache fallback for real reports
-    // that useOnyx hasn't hydrated yet.
-    //
-    // isOptimisticNewChatDestination is a separate, deliberately unloaded case: a brand-new 1:1 chat that has no
-    // report row anywhere yet (not even a draft). destinationReportID is the reportID useParticipantSubmission
-    // already committed to the draft transaction (setTransactionReport) when the user picked this brand-new
-    // recipient, and the submit-time builders (see requestMoney/submitPerDiemExpense in useExpenseSubmission.ts)
-    // reuse that same ID for the real chat, so the pre-inserted Report screen just sits in its own internal loading
-    // state until submit completes (ReportNotFoundGuard never fires "not found" for it - its
-    // RAM_ONLY_REPORT_LOADING_STATE key is never populated because nothing ever fetches a client-only ID). No row is
-    // written to COLLECTION.REPORT before submit, so there's no data to strand on a back-out.
+    // Only pre-insert loaded reports because drafts can show an infinite skeleton after backing out. Employer-flow drafts
+    // are promoted by the caller. Optimistic new chats are safe because submit reuses their reportID and no report row
+    // exists yet. Passing an empty draft skips REPORT_DRAFT while preserving the module-cache fallback.
     const isDestinationReportLoaded =
         isOptimisticNewChatDestination || (!!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID);
     const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded;

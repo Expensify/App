@@ -178,10 +178,9 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // When a fullscreen route is pre-inserted under the RHP, disable the slide-out animation so the
     // dismiss reveals the destination instantly, and disable the native swipe-to-dismiss gesture, since
     // swiping away reveals whatever's under this whole RHP route and a native swipe can pop it before any
-    // JS cleanup runs, flashing the pre-inserted destination. If the pre-insert is later cleaned up (user
-    // backs out without submitting) or revealed, restore both for that session. Both fire at exactly the
-    // same two moments (preInsertFullscreenUnderRHP / clearFullscreenPreInsertedFlag and
-    // removePreInsertedFullscreenIfNeeded), so one event pair drives both options.
+    // JS cleanup runs, flashing the pre-inserted destination. If the user backs out without submitting,
+    // removePreInsertedFullscreenIfNeeded emits RESTORE_RHP_ANIMATION and restores both options. On reveal,
+    // both options intentionally remain disabled through dismissal and reset when this navigator unmounts.
     useEffect(() => {
         const disableSub = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION, () => {
             navigation.setOptions({animation: Animations.NONE, gestureEnabled: false});

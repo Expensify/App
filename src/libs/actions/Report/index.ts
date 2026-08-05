@@ -3069,13 +3069,19 @@ function saveReportDraft(reportID: string, report: Report) {
  * immediately. Not a new entity and not an API write - the eventual backend success handler overwrites this same
  * key with confirmed data.
  */
-function promoteDraftReportForPreMount(reportID: string, draftReport: Report) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, draftReport);
+async function promoteDraftReportForPreMount(reportID: string, draftReport: Report) {
+    // Persist the marker first so startup cleanup can remove the speculative report if the app terminates before submit.
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`, true);
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, draftReport);
 }
 
-/** Removes a report promoted via `promoteDraftReportForPreMount` when the caller backs out before that promotion is confirmed by the backend. */
-function clearPromotedDraftReportForPreMount(reportID: string) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+/**
+ * Removes a report promoted via `promoteDraftReportForPreMount` when the caller backs out before that promotion is confirmed by the backend.
+ */
+async function clearPromotedDraftReportForPreMount(reportID: string) {
+    // Remove the report first. If the app terminates between these writes, startup cleanup consumes the remaining marker.
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+    return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`, null);
 }
 
 /**

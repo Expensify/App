@@ -297,6 +297,15 @@ function ReportFetchHandler() {
         navigation.setParams({secureKey: undefined});
     }, [secureKeyFromRoute, reportIDFromRoute, report?.reportID, report?.errorFields?.notFound, navigation]);
 
+    // isPendingCreation only protects the client-generated ID before submission. Remove it once the optimistic
+    // report exists locally so copied or restored links use the normal openReport path on other clients.
+    useEffect(() => {
+        if (!isPendingCreationFromRoute || !reportOnyx?.reportID) {
+            return;
+        }
+        navigation.setParams({isPendingCreation: undefined});
+    }, [isPendingCreationFromRoute, reportOnyx?.reportID, navigation]);
+
     useEffect(() => {
         if (!isAnonymousUser) {
             return;
