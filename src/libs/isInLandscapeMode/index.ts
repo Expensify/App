@@ -1,7 +1,7 @@
-/**
- * We only want to change UI according to the landscape mode on native platforms.
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function isInLandscapeMode(windowWidth: number, windowHeight: number): boolean {
-    return false;
+import {isMobile} from '@libs/Browser';
+
+import {Dimensions} from 'react-native';
+
+export default function isInLandscapeMode(windowWidth = Dimensions.get('window').width, windowHeight = Dimensions.get('window').height): boolean {
+    return isMobile() && windowWidth > windowHeight;
 }
