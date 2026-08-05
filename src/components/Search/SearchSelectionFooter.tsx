@@ -243,10 +243,9 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // Use the per-selection (client) total for a partial selection; nothing-selected and everything-selected both fall
     // to the whole-search grand total, which every search type now returns converted, keyed by the search hash.
     const shouldUseClientTotal = !metadataCount || hasPartialSelection;
-    // metadataCurrency is empty for a fresh no-workspace account until a search populates search.currency (e.g. after
+    // metadataCurrency is unset for a fresh no-workspace account until a search populates search.currency (e.g. after
     // visiting Reports), so fall back to the user's live payment currency instead of an arbitrary selected expense's currency.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const effectiveDefaultCurrency = defaultFooterCurrency || metadataCurrency || preferredCurrency;
+    const effectiveDefaultCurrency = defaultFooterCurrency ?? metadataCurrency ?? preferredCurrency;
     const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== effectiveDefaultCurrency;
 
     // The most recent conversion request for this currency failed, so stop waiting on a converted value that isn't coming.

@@ -36,7 +36,7 @@ const defaultSearchInfo: SearchResultsInfo = {
     isLoading: false,
     count: 0,
     total: 0,
-    currency: '',
+    currency: undefined,
 };
 
 function SearchResultsProvider({children}: SearchResultsProviderProps) {
