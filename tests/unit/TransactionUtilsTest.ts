@@ -620,7 +620,18 @@ describe('TransactionUtils', () => {
                         quantity: 10,
                     },
                 },
-                routes: {route0: {distance: 16093}},
+                routes: {
+                    route0: {
+                        distance: 16093,
+                        geometry: {
+                            coordinates: [
+                                [0, 0],
+                                [1, 1],
+                            ],
+                            type: 'LineString',
+                        },
+                    },
+                },
                 currency: CONST.CURRENCY.USD,
                 pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             });
