@@ -41,18 +41,20 @@ function precacheReceiptImage(sourceUri: string): Promise<string | undefined> {
         parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
     });
 
-    // Pre-decode the image in the native image pipeline so the
-    // confirmation screen can display it instantly without decode latency.
-    return Image.prefetch(sourceUri)
-        .then(() => {
-            endSpan(CONST.TELEMETRY.SPAN_THUMBNAIL_GATE);
-            return sourceUri;
-        })
-        .catch(() => {
-            // The prefetch failure is swallowed and navigation still happens, so the span has to close here too.
-            endSpan(CONST.TELEMETRY.SPAN_THUMBNAIL_GATE);
-            return sourceUri;
-        });
+    // Pre-decode the image in the native image pipeline so the confirmation screen can display it
+    // instantly without decode latency. Callers await this before navigating, so the wait is capped:
+    // past THUMBNAIL_NAV_TIMEOUT_MS we resolve anyway and let `useLocalReceiptThumbnail` generate the
+    // thumbnail lazily on the confirm screen. The prefetch itself keeps running in the background.
+    return Promise.race([
+        // The catch matters: callers gate navigation on this promise, so a prefetch failure must not reject the race.
+        Image.prefetch(sourceUri).catch(() => false),
+        new Promise((resolve) => {
+            setTimeout(resolve, CONST.RECEIPT_CAMERA.THUMBNAIL_NAV_TIMEOUT_MS);
+        }),
+    ]).then(() => {
+        endSpan(CONST.TELEMETRY.SPAN_THUMBNAIL_GATE);
+        return sourceUri;
+    });
 }
 
 /**
