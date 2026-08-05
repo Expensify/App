@@ -30,18 +30,19 @@ function parseCSVDate(input: string): string | null {
 
     const trimmedInput = input.trim();
 
-    // Try native Date parsing first (handles ISO and some other formats)
-    let date = new Date(trimmedInput);
-    if (isValid(date) && !Number.isNaN(date.getTime())) {
-        return format(date, CONST.DATE.FNS_FORMAT_STRING);
-    }
-
-    // Try parsing with common date formats using date-fns
+    // These parse in local time, so they run first. `new Date('2026-03-02')` reads as UTC midnight
+    // and formats back a day early for anyone west of UTC.
     for (const dateFormat of CSV_DATE_FORMATS) {
         const parsedDate = parse(trimmedInput, dateFormat, new Date());
         if (isValid(parsedDate)) {
             return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
         }
+    }
+
+    // Falls back to native parsing for anything with a time or zone, which the formats above reject
+    let date = new Date(trimmedInput);
+    if (isValid(date) && !Number.isNaN(date.getTime())) {
+        return format(date, CONST.DATE.FNS_FORMAT_STRING);
     }
 
     // If the date didn't parse, try taking just the first 10 characters
