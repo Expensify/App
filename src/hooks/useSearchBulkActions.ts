@@ -2121,7 +2121,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        if (isExpenseReportSearch && selectedReportIDs.length > 0) {
+        const hasSelectedReportsWithExpenses = selectedReports.some((report) => (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]?.transactionCount ?? 0) > 0);
+        if (isExpenseReportSearch && selectedReportIDs.length > 0 && hasSelectedReportsWithExpenses) {
             options.push({
                 icon: expensifyIcons.Download,
                 text: translate('common.downloadReceipts'),
