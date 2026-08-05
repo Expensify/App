@@ -57,6 +57,7 @@ import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismiss
 import Navigation from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -94,7 +95,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {policyDistanceDefaultCategoriesSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {startTransition, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -298,7 +298,6 @@ function IOURequestStepConfirmation({
 
     const participantsPolicies = useParticipantsPolicies(transaction?.participants ?? []);
     const [mappedPolicies] = useMappedPolicies(policyMapper);
-    const [policyDistanceDefaultCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyDistanceDefaultCategoriesSelector});
 
     const participants = useMemo(
         () =>
@@ -439,16 +438,20 @@ function IOURequestStepConfirmation({
                         setMoneyRequestCategory(activeTransactionID, '', undefined, getCurrencyDecimals);
                         setMoneyRequestTag(activeTransactionID, '');
                     } else {
+                        const workspacePolicy = firstParticipant.policyID ? mappedPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
                         if (isDistanceRequest) {
-                            const workspacePolicy = firstParticipant.policyID ? mappedPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
-                            const workspaceRateID = DistanceRequestUtils.getCustomUnitRateID({
-                                reportID: participantReportID,
-                                isPolicyExpenseChat: true,
-                                policy: workspacePolicy,
-                                lastSelectedDistanceRates,
-                                expenseDate: transaction?.created,
-                            });
-                            setCustomUnitRateID(activeTransactionID, workspaceRateID, transaction, workspacePolicy, false, workspacePolicy?.outputCurrency);
+                            const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
+                            const isCurrentRateFromWorkspace = !!currentRateID && !!DistanceRequestUtils.getMileageRates(workspacePolicy)[currentRateID];
+                            if (!isCurrentRateFromWorkspace) {
+                                const workspaceRateID = DistanceRequestUtils.getCustomUnitRateID({
+                                    reportID: participantReportID,
+                                    isPolicyExpenseChat: true,
+                                    policy: workspacePolicy,
+                                    lastSelectedDistanceRates,
+                                    expenseDate: transaction?.created,
+                                });
+                                setCustomUnitRateID(activeTransactionID, workspaceRateID, transaction, workspacePolicy, false, workspacePolicy?.outputCurrency);
+                            }
                         }
 
                         // Switching to a different workspace: the previous workspace's category and tag no longer apply,
@@ -456,7 +459,7 @@ function IOURequestStepConfirmation({
                         // flow (useParticipantSubmission.goToNextStep), which resets both on every selection and passes no
                         // policy so the previous workspace's category-derived tax is cleared along with the category.
                         if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
-                            const defaultCategory = isDistanceRequest ? (policyDistanceDefaultCategories?.[firstParticipant.policyID] ?? '') : '';
+                            const defaultCategory = isDistanceRequest ? (getDistanceRateCustomUnit(workspacePolicy)?.defaultCategory ?? '') : '';
                             setMoneyRequestCategory(activeTransactionID, defaultCategory, undefined, getCurrencyDecimals);
                             setMoneyRequestTag(activeTransactionID, '');
                         }
@@ -482,7 +485,6 @@ function IOURequestStepConfirmation({
             mappedPolicies,
             getCurrencyDecimals,
             policyID,
-            policyDistanceDefaultCategories,
         ],
     );
 
