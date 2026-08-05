@@ -26,7 +26,7 @@ import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions, ReportAttributesDerivedValue, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -159,14 +159,20 @@ const reportReferencesAccountIDs = (report: Report, accountIDs: Set<number>): bo
 
 // Returns the report-preview action ID of the oldest child in `reportIDs` matching `predicate`
 // (oldest by preview-action creation time), or undefined when none match.
-const getOldestPreviewActionID = (chatReportID: string, reportIDs: string[] | undefined, reports: OnyxCollection<Report>, predicate?: (childReport: OnyxEntry<Report>) => boolean) => {
+const getOldestPreviewActionID = (
+    chatReportID: string,
+    reportIDs: string[] | undefined,
+    reports: OnyxCollection<Report>,
+    reportActions: OnyxCollection<ReportActions>,
+    predicate?: (childReport: OnyxEntry<Report>) => boolean,
+) => {
     let oldestCreated: string | undefined;
     let targetReportActionID: string | undefined;
     for (const childReportID of reportIDs ?? []) {
         if (predicate && !predicate(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`])) {
             continue;
         }
-        const reportPreviewAction = getReportPreviewAction(chatReportID, childReportID);
+        const reportPreviewAction = getReportPreviewAction(chatReportID, childReportID, reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`]);
         if (!reportPreviewAction) {
             continue;
         }
@@ -682,8 +688,8 @@ export default createOnyxDerivedValueConfig({
             let actionTargetReportActionID = chatAttributes.actionTargetReportActionID;
 
             actionTargetReportActionID =
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, isActionable) ??
-                getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, (childReport) =>
+                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, reportActions, isActionable) ??
+                getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, reportActions, (childReport) =>
                     needsViolationFix(
                         childReport,
                         getLoginByAccountID(childReport?.ownerAccountID, personalDetails),
@@ -693,7 +699,7 @@ export default createOnyxDerivedValueConfig({
                         currentUserEmail,
                     ),
                 ) ??
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports) ??
+                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, reportActions) ??
                 actionTargetReportActionID;
 
             // Clone the entry before mutating — it may be a reference carried over from

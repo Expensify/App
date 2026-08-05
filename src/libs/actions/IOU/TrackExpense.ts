@@ -198,6 +198,7 @@ type GetTrackExpenseInformationParams = {
     policyType?: CreatableWorkspaceType;
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
     isDraftChatReport?: boolean;
+    chatReportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
 };
 
 type DeleteTrackExpenseParams = {
@@ -863,6 +864,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         isDraftChatReport,
         currentUserLocalCurrency,
         policyType,
+        chatReportActionsList,
     } = params;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy} = policyParams;
@@ -1145,7 +1147,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
 
     let reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = null;
     if (shouldUseMoneyReport && iouReport) {
-        reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+        reportPreviewAction = shouldCreateNewMoneyRequestReport
+            ? null
+            : getReportPreviewAction(chatReport.reportID, iouReport.reportID, chatReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]);
 
         if (reportPreviewAction) {
             reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
@@ -1655,6 +1659,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         shouldDeferAutoSubmit,
         delegateAccountID,
         isTrackIntentUser,
+        chatReportActionsList,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1703,6 +1708,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     const retryParams = {
         ...requestMoneyInformation,
+        // Strip chatReportActionsList from retryParams to keep the serialized error JSON small.
+        chatReportActionsList: undefined,
         participantParams: {
             ...requestMoneyInformation.participantParams,
             participant: (({icons, ...rest}) => rest)(requestMoneyInformation.participantParams.participant),
@@ -1765,6 +1772,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
+        chatReportActionsList,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -2594,6 +2602,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         currentUserLocalCurrency,
         // Only "Submit to my employer" creates a Submit (submit2026) workspace from a draft; everything else keeps the default (team) type.
         policyType: action === CONST.IOU.ACTION.SUBMIT && policy?.type === CONST.POLICY.TYPE.SUBMIT ? CONST.POLICY.TYPE.SUBMIT : undefined,
+        chatReportActionsList: reportActionsList,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
