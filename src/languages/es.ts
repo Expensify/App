@@ -464,6 +464,8 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: 'Total reembolsable',
         nonReimbursableTotal: 'Total no reembolsable',
         internationalReimbursementIDs: 'IDs de reembolso internacional',
+        amountDebited: 'Importe debitado',
+        amountReimbursed: 'Importe reembolsado',
         opensInNewTab: 'Se abre en una nueva pestaña',
         locked: 'Bloqueado',
         month: 'Monat',
@@ -1927,16 +1929,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que un administrador pague los gastos.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (actor, actorType, _eta, _etaType) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Esperando a que <strong>tú</strong> termines de configurar una cuenta bancaria de empresa.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Esperando a que <strong>${actor}</strong> termine de configurar una cuenta bancaria de empresa.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Esperando a que un administrador termine de configurar una cuenta bancaria de empresa.`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (_actor, _actorType, eta, etaType) => {
                 let formattedETA = '';
                 if (eta) {
@@ -2368,7 +2360,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Tu tarteja de débito se añadió correctamente',
         expensifyPassword: 'Contraseña de Expensify',
         error: {
-            invalidName: 'El nombre sólo puede incluir letras',
+            invalidName: 'El nombre en la tarjeta no puede contener < ni >',
             addressZipCode: 'Por favor, introduce un código postal válido',
             debitCardNumber: 'Por favor, introduce un número de tarjeta de débito válido',
             expirationDate: 'Por favor, selecciona una fecha de vencimiento válida',
@@ -2391,7 +2383,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Tu tarjeta de pago se añadió correctamente',
         expensifyPassword: 'Contraseña de Expensify',
         error: {
-            invalidName: 'El nombre sólo puede incluir letras',
+            invalidName: 'El nombre en la tarjeta no puede contener < ni >',
             addressZipCode: 'Por favor, introduce un código postal válido',
             paymentCardNumber: 'Por favor, introduce un número de tarjeta de pago válido',
             expirationDate: 'Por favor, selecciona una fecha de vencimiento válida',
@@ -7976,6 +7968,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 subtitle: 'Crea una regla para automatizar las políticas de tu espacio de trabajo.',
                 cta: 'Añadir regla de IA',
             },
+            categoriesDisabledEmptyState: {title: 'Las categorías no están habilitadas', subtitle: 'Habilita las categorías para tener más control sobre tus gastos.'},
         },
         emptyDomain: {
             title: 'Mejora tu seguridad con dominios',
@@ -10485,6 +10478,15 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             inviteBoss: 'Invita a tu jefe cuando estés listo',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nuevos tipos de roles para admins',
+                body: 'Ofrece a tu equipo permisos más granulares con los nuevos roles de administrador de tarjetas, personas y pagos.',
+                cta: 'Pruébalo',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>¡Comienza <strong>aquí</strong>!</tooltip>',
         accountSwitcher: '<tooltip>¡Ahora puedes copilotar en otra cuenta!</tooltip>',
@@ -10540,7 +10542,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         basicExport: 'Exportar básico',
         reportLevelExport: 'Todos los datos - a nivel de informe',
         expenseLevelExport: 'Todos los datos - a nivel de gasto',
-        multipleTaxExport: 'Canadian Multiple Tax Export',
         exportInProgress: 'Exportación en curso',
         conciergeWillSend: 'Concierge te enviará el archivo en breve.',
         currentView: 'Vista actual',

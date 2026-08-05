@@ -434,6 +434,8 @@ const translations = {
         longReportID: 'Long Report ID',
         withdrawalID: 'Withdrawal ID',
         internationalReimbursementIDs: 'International reimbursement IDs',
+        amountDebited: 'Amount debited',
+        amountReimbursed: 'Amount reimbursed',
         withdrawalStatus: 'Withdrawal status',
         paidStatus: 'Paid status',
         bankAccounts: 'Bank accounts',
@@ -2104,23 +2106,6 @@ const translations = {
                         return `Waiting for an admin to pay expenses.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to finish setting up a business bank account.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to finish setting up a business bank account.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to finish setting up a business bank account.`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2575,7 +2560,7 @@ const translations = {
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
-            invalidName: 'Name can only include letters',
+            invalidName: 'Name on card cannot contain tags',
             addressZipCode: 'Please enter a valid zip code',
             debitCardNumber: 'Please enter a valid debit card number',
             expirationDate: 'Please select a valid expiration date',
@@ -2598,7 +2583,7 @@ const translations = {
         growlMessageOnSave: 'Your payment card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
-            invalidName: 'Name can only include letters',
+            invalidName: 'Name on card cannot contain tags',
             addressZipCode: 'Please enter a valid zip code',
             paymentCardNumber: 'Please enter a valid card number',
             expirationDate: 'Please select a valid expiration date',
@@ -7987,6 +7972,10 @@ const translations = {
                 subtitle: 'Require or waive expense fields for specific categories.',
                 cta: 'Create field requirement rule',
             },
+            categoriesDisabledEmptyState: {
+                title: 'Categories are not enabled',
+                subtitle: 'Enable categories to gain more control of your spend.',
+            },
             requireFieldsRule: {
                 title: 'Field requirements',
                 subtitle: 'Require specific expense fields or waive requiring them.',
@@ -10477,6 +10466,15 @@ const translations = {
             description: `<muted-text>Create custom agents to review, approve, and route expenses based on rules you set. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Learn more</a>.</muted-text>`,
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'New role types for admins',
+                body: 'Give your team more granular permissions with new card, people, and payments admin roles.',
+                cta: 'Try it out',
+            },
+        },
+    },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
@@ -10535,7 +10533,6 @@ const translations = {
         currentView: 'Current view',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
-        multipleTaxExport: 'Canadian Multiple Tax Export',
         exportInProgress: 'Export in progress',
         conciergeWillSend: 'Concierge will send you the file shortly.',
     },

@@ -50,13 +50,13 @@ import type {PersonalDetails, Transaction} from '@src/types/onyx';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 
-type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE>;
+type DynamicIOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE>;
 
-function IOURequestStepUpgrade({
+function DynamicIOURequestStepUpgrade({
     route: {
-        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, iouType, backTo},
+        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, iouType, upgradeBackTo},
     },
-}: IOURequestStepUpgradeProps) {
+}: DynamicIOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
 
     const {translate} = useLocalize();
@@ -97,7 +97,6 @@ function IOURequestStepUpgrade({
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -140,7 +139,6 @@ function IOURequestStepUpgrade({
 
             const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas, isTrackIntentUser);
 
-            const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
 
             // Move ALL selected transactions to the new report
@@ -151,7 +149,6 @@ function IOURequestStepUpgrade({
                 email: session?.email ?? '',
                 newReport: optimisticReport,
                 policy: newPolicy,
-                reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
                 policyTagList,
                 transactions,
@@ -234,7 +231,7 @@ function IOURequestStepUpgrade({
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
                 Navigation.goBack();
-                navigateWithMicrotask(backTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                navigateWithMicrotask(upgradeBackTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
 
                 break;
             default:
@@ -242,7 +239,7 @@ function IOURequestStepUpgrade({
         }
     }, [
         action,
-        backTo,
+        upgradeBackTo,
         navigateWithMicrotask,
         reportID,
         shouldSubmitExpense,
@@ -253,7 +250,6 @@ function IOURequestStepUpgrade({
         hasViolations,
         isASAPSubmitBetaEnabled,
         allPolicies,
-        allReportNextSteps,
         allPolicyCategories,
         session?.accountID,
         session?.email,
@@ -408,4 +404,4 @@ function IOURequestStepUpgrade({
     );
 }
 
-export default IOURequestStepUpgrade;
+export default DynamicIOURequestStepUpgrade;
