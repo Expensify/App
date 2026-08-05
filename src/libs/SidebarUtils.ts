@@ -61,6 +61,7 @@ import {
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
+    getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
@@ -1163,6 +1164,8 @@ function getOptionData({
             result.alternateText = getWorkspaceAttendeeTrackingUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED) {
             result.alternateText = getRequireCompanyCardsEnabledMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE) {
+            result.alternateText = getCurrencyConversionFeeMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
             result.alternateText = getAutoPayApprovedReportsEnabledMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
