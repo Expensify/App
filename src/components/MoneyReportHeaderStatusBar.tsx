@@ -51,9 +51,6 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
         return buildNextStepMessage(nextStep, translate, currentUserAccountID, formatPhoneNumber);
     }, [nextStep, translate, currentUserAccountID, formatPhoneNumber]);
 
-    // iconFill can be set by frontend optimistic updates (deprecated format) but backend never sends it in new format
-    const iconFill = (nextStep && 'iconFill' in nextStep ? (nextStep as {iconFill?: string}).iconFill : undefined) ?? theme.icon;
-
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>
@@ -61,7 +58,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
                     src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? icons.Hourglass}
                     height={variables.iconSizeSmall}
                     width={variables.iconSizeSmall}
-                    fill={iconFill}
+                    fill={nextStep?.iconFill ?? theme.icon}
                 />
             </View>
             <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
