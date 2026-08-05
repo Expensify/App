@@ -1,3 +1,4 @@
+import CompactMenuContext from '@components/CompactMenuContext';
 import MenuItem from '@components/MenuItem';
 import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import Text from '@components/Text';
@@ -295,6 +296,79 @@ function Comparison() {
                     />
                 }
             />
+
+            <CompactMenuContext.Provider value>
+                <Card
+                    title="Compact popover — no description"
+                    legacy={
+                        <MenuItem
+                            title="Edit columns"
+                            icon={icons.Gear}
+                            shouldShowRightIcon
+                            onPress={noop}
+                        />
+                    }
+                    composable={
+                        <MenuItem.Root onPress={noop}>
+                            <MenuItem.Row>
+                                <MenuItem.Icon src={icons.Gear} />
+                                <MenuItem.Content>
+                                    <MenuItem.Title>Edit columns</MenuItem.Title>
+                                </MenuItem.Content>
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
+                    }
+                    standard={
+                        <MenuItemStandard
+                            title="Edit columns"
+                            icon={icons.Gear}
+                            shouldShowChevron
+                            onPress={noop}
+                        />
+                    }
+                />
+            </CompactMenuContext.Provider>
+
+            <CompactMenuContext.Provider value>
+                <Card
+                    title="Compact popover — with description"
+                    legacy={
+                        <MenuItem
+                            title="Edit columns"
+                            description="Choose what to display"
+                            icon={icons.Gear}
+                            shouldShowRightIcon
+                            onPress={noop}
+                        />
+                    }
+                    composable={
+                        <MenuItem.Root onPress={noop}>
+                            <MenuItem.Row>
+                                <MenuItem.Icon src={icons.Gear} />
+                                <MenuItem.Content>
+                                    <MenuItem.Title>Edit columns</MenuItem.Title>
+                                    <MenuItem.Description>Choose what to display</MenuItem.Description>
+                                </MenuItem.Content>
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
+                    }
+                    standard={
+                        <MenuItemStandard
+                            title="Edit columns"
+                            description="Choose what to display"
+                            icon={icons.Gear}
+                            shouldShowChevron
+                            onPress={noop}
+                        />
+                    }
+                />
+            </CompactMenuContext.Provider>
         </View>
     );
 }
