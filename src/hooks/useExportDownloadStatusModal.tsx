@@ -1,11 +1,11 @@
 import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
 
-import {clearExportDownload, markExportStartedThisSession} from '@libs/actions/Export';
+import {clearExportDownload, markExportModalClosed, markExportModalOpen} from '@libs/actions/Export';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import useOnyx from './useOnyx';
 
@@ -42,12 +42,16 @@ function useExportDownloadStatusModal(onCleanup?: () => void): UseExportDownload
         onCleanup?.();
     };
 
-    const trackExport = useCallback((exportID: string) => {
-        // Record the ID so the app-level reload handler knows this export is already being shown here and
-        // doesn't surface a duplicate modal for it.
-        markExportStartedThisSession(exportID);
-        setActiveExportID(exportID);
-    }, []);
+    // While this modal owns an export, register it so the app-level reload handler skips it and doesn't show a
+    // duplicate. The cleanup runs when the export is dismissed or this owner unmounts (e.g. the user navigates
+    // away before the export is ready), which hands surfacing over to the reload handler.
+    useEffect(() => {
+        if (!activeExportID) {
+            return;
+        }
+        markExportModalOpen(activeExportID);
+        return () => markExportModalClosed(activeExportID);
+    }, [activeExportID]);
 
     const exportDownloadStatusModal = activeExportID ? (
         <ExportDownloadStatusModal
@@ -57,7 +61,7 @@ function useExportDownloadStatusModal(onCleanup?: () => void): UseExportDownload
         />
     ) : null;
 
-    return {trackExport, exportDownloadStatusModal};
+    return {trackExport: setActiveExportID, exportDownloadStatusModal};
 }
 
 export default useExportDownloadStatusModal;
