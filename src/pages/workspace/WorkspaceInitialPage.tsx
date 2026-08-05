@@ -47,6 +47,7 @@ import {
     isPendingDeletePolicy,
     isPerDiemEnabled,
     isPolicyAdmin,
+    isPolicyGuest,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
@@ -125,6 +126,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const policyID = policy?.id;
+    const isGuest = isPolicyGuest(policy, currentUserLogin ?? '');
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
@@ -291,7 +293,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             screenName: SCREENS.WORKSPACE.ROOMS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ROOMS,
         },
-    ];
+    ].filter((item) => !isGuest || item.screenName === SCREENS.WORKSPACE.PROFILE);
 
     if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS)) {

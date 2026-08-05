@@ -112,7 +112,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
 
-        const controlPolicyOnlyRoles = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
+        const controlPolicyOnlyRoles = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.GUEST, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
         const hasControlPolicyOnlyRole =
             membersRolesColumn !== -1 &&
             spreadsheet?.data?.at(membersRolesColumn)?.some((role, index) => {

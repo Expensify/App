@@ -169,6 +169,11 @@ describe('WorkspaceMembers', () => {
             const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).toBeOnTheScreen();
 
+            // Find and verify "Make guest" dropdown menu item
+            const makeGuestText = TestHelper.translateLocal('workspace.people.makeGuest', {count: 1});
+            const makeGuestMenuItem = screen.getByTestId(`PopoverMenuItem-${makeGuestText}`);
+            expect(makeGuestMenuItem).toBeOnTheScreen();
+
             // Find and verify "Make card admin" dropdown menu item
             const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
             const makeCardAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeCardAdminText}`);

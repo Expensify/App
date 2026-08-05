@@ -57,6 +57,13 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
             keyForList: CONST.POLICY.ROLE.AUDITOR,
         },
         {
+            value: CONST.POLICY.ROLE.GUEST,
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.GUEST),
+            alternateText: translate('workspace.common.guestAlternateText'),
+            isSelected: role === CONST.POLICY.ROLE.GUEST,
+            keyForList: CONST.POLICY.ROLE.GUEST,
+        },
+        {
             value: CONST.POLICY.ROLE.CARD_ADMIN,
             text: translate('workspace.common.roleName', CONST.POLICY.ROLE.CARD_ADMIN),
             alternateText: translate('workspace.common.cardAdminAlternateText'),

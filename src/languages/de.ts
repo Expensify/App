@@ -4633,6 +4633,7 @@ ${amount} für ${merchant} – ${date}`,
             memberAlternateText: 'Berichte einreichen und freigeben.',
             adminAlternateText: 'Berichte und Arbeitsbereichseinstellungen verwalten.',
             auditorAlternateText: 'Berichte anzeigen und kommentieren.',
+            guestAlternateText: 'Berichte einreichen und genehmigen, mit Chats nur auf Einladung.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -4641,6 +4642,8 @@ ${amount} für ${merchant} – ${date}`,
                         return 'Workspace-Administrator';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Prüfer';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Gast';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -6653,6 +6656,10 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             makeAuditor: () => ({
                 one: 'Zum Prüfer machen',
                 other: 'Prüfende hinzufügen',
+            }),
+            makeGuest: () => ({
+                one: 'Zum Gast machen',
+                other: 'Zu Gästen machen',
             }),
             makePeopleAdmin: () => ({
                 one: 'Zum Personaladministrator machen',

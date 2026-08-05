@@ -4608,6 +4608,7 @@ ${amount} per ${merchant} - ${date}`,
             memberAlternateText: 'Invia e approva i report.',
             adminAlternateText: 'Gestisci i report e le impostazioni dello spazio di lavoro.',
             auditorAlternateText: 'Visualizza e commenta i report.',
+            guestAlternateText: 'Invia e approva i report, con chat solo su invito.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -4616,6 +4617,8 @@ ${amount} per ${merchant} - ${date}`,
                         return 'Amministratore spazio di lavoro';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Revisore';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Ospite';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -6630,6 +6633,10 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             makeAuditor: () => ({
                 one: 'Rendi revisore',
                 other: 'Crea revisori',
+            }),
+            makeGuest: () => ({
+                one: 'Rendi ospite',
+                other: 'Rendi ospiti',
             }),
             makePeopleAdmin: () => ({
                 one: 'Rendi amministratore persone',

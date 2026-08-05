@@ -145,7 +145,7 @@ function sendPoliciesContext() {
     }
     const activePolicies = getActivePolicies(policies, session.email).map((policy) => policy.id);
 
-    let userRole: string = CONST.POLICY.ROLE.USER;
+    let userRole: string = Object.values(policies).some((policy) => policy?.role === CONST.POLICY.ROLE.GUEST) ? CONST.POLICY.ROLE.GUEST : CONST.POLICY.ROLE.USER;
     for (const policy of Object.values(policies)) {
         if (policy?.role === CONST.POLICY.ROLE.ADMIN) {
             userRole = CONST.POLICY.ROLE.ADMIN;
@@ -153,6 +153,8 @@ function sendPoliciesContext() {
         }
         if (policy?.role === CONST.POLICY.ROLE.AUDITOR) {
             userRole = CONST.POLICY.ROLE.AUDITOR;
+        } else if (userRole !== CONST.POLICY.ROLE.AUDITOR && policy?.role !== CONST.POLICY.ROLE.GUEST) {
+            userRole = CONST.POLICY.ROLE.USER;
         }
     }
 
