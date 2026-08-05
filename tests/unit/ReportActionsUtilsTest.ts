@@ -2234,16 +2234,16 @@ describe('ReportActionsUtils', () => {
                 },
             } as ReportAction;
 
-            const mockCompanyCard = {
+            const mockCompanyCard: Card = {
                 cardID: 789,
                 state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-                bank: 'Company Card',
+                bank: CONST.EXPENSIFY_CARD.BANK,
                 availableSpend: 0,
                 domainName: '',
                 lastFourPAN: '',
                 lastUpdated: '2024-01-01',
                 fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
-            } as unknown as Card;
+            };
 
             it('should render company card link when current user is assignee', () => {
                 const messageResult = getCardIssuedMessage({
