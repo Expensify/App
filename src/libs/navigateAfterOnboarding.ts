@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {IntroSelected, OnboardingRHPVariant, ReportNameValuePairs} from '@src/types/onyx';
+import type {OnboardingRHPVariant, ReportNameValuePairs} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -18,23 +18,12 @@ import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingN
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
-import {buildCannedSearchQuery} from './SearchQueryUtils';
 
 let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT,
     callback: (value) => {
         onboardingRHPVariant = value;
-    },
-});
-
-// Read the onboarding intro choice at module level (non-render context) so navigateAfterOnboarding can route
-// "Looking around / Something else" (LOOKING_AROUND) users to the Search root instead of the Inbox (HOME).
-let introSelected: OnyxEntry<IntroSelected>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => {
-        introSelected = value;
     },
 });
 
@@ -119,12 +108,6 @@ function navigateAfterOnboarding(
     );
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), navigationOptions);
-    } else if (introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND && !isReportTopmostSplitNavigator()) {
-        // "Looking around / Something else" (LOOKING_AROUND) users have no report or workspace to land on, so they
-        // would otherwise be parked on the Inbox (HOME). Land them on the Search root (Spend > Expenses) instead so
-        // that after they create their first expense, navigateAfterExpenseCreate's isUserOnInbox check is false and
-        // routes them to Spend > Expenses. Uses the same canned Expenses query navigateAfterExpenseCreate lands on.
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}), navigationOptions);
     } else if (!isReportTopmostSplitNavigator()) {
         // Navigate to home to trigger guard evaluation
         Navigation.navigate(ROUTES.HOME, navigationOptions);
