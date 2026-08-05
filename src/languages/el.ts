@@ -411,6 +411,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: 'Μακρύ αναγνωριστικό αναφοράς',
         withdrawalID: 'Αναγνωριστικό ανάληψης',
         internationalReimbursementIDs: 'Διεθνή αναγνωριστικά αποζημιώσεων',
+        amountDebited: 'Ποσό χρέωσης',
+        amountReimbursed: 'Ποσό που αποζημιώθηκε',
         withdrawalStatus: 'Κατάσταση ανάληψης',
         paidStatus: 'Κατάσταση πληρωμής',
         bankAccounts: 'Τραπεζικοί λογαριασμοί',
@@ -2071,21 +2073,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Αναμονή για να πληρώσει ο/η <strong>${actor}</strong> τα έξοδα.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Αναμονή διαχειριστή για την πληρωμή εξόδων.`;
-                }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένουμε από <strong>εσάς</strong> να ολοκληρώσετε τη ρύθμιση επαγγελματικού τραπεζικού λογαριασμού.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για τον/την <strong>${actor}</strong> να ολοκληρώσει τη ρύθμιση επαγγελματικού τραπεζικού λογαριασμού.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για διαχειριστή ώστε να ολοκληρώσει τη ρύθμιση εταιρικού τραπεζικού λογαριασμού.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -10612,7 +10599,6 @@ ${reportName}`,
         currentView: 'Τρέχουσα προβολή',
         reportLevelExport: 'Όλα τα δεδομένα - σε επίπεδο αναφοράς',
         expenseLevelExport: 'Όλα τα δεδομένα - επίπεδο δαπάνης',
-        multipleTaxExport: 'Canadian Multiple Tax Export',
         exportInProgress: 'Εξαγωγή σε εξέλιξη',
         conciergeWillSend: 'Ο Concierge θα σας στείλει το αρχείο σύντομα.',
         downloadStatementPDF: 'Λήψη κατάστασης',

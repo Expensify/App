@@ -404,6 +404,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: 'Lang rapport-ID',
         withdrawalID: 'Opname-ID',
         internationalReimbursementIDs: 'Internationale terugbetalings-ID’s',
+        amountDebited: 'Afgeschreven bedrag',
+        amountReimbursed: 'Terugbetaald bedrag',
         withdrawalStatus: 'Opnamestatus',
         paidStatus: 'Betaald-status',
         bankAccounts: 'Bankrekeningen',
@@ -2014,21 +2016,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Wachten tot een beheerder de onkosten betaalt.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Wachten tot <strong>je</strong> klaar bent met het instellen van een zakelijke bankrekening.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Wachten tot <strong>${actor}</strong> klaar is met het instellen van een zakelijke bankrekening.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten tot een beheerder klaar is met het instellen van een zakelijke bankrekening.`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2478,7 +2465,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Je betaalpas is succesvol toegevoegd',
         expensifyPassword: 'Expensify-wachtwoord',
         error: {
-            invalidName: 'Naam mag alleen letters bevatten',
+            invalidName: 'Naam op kaart mag geen < of > bevatten',
             addressZipCode: 'Voer een geldige postcode in',
             debitCardNumber: 'Voer een geldig debitcardnummer in',
             expirationDate: 'Selecteer een geldige vervaldatum',
@@ -2501,7 +2488,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Je betalingskaart is succesvol toegevoegd',
         expensifyPassword: 'Expensify-wachtwoord',
         error: {
-            invalidName: 'Naam mag alleen letters bevatten',
+            invalidName: 'Naam op kaart mag geen < of > bevatten',
             addressZipCode: 'Voer een geldige postcode in',
             paymentCardNumber: 'Voer een geldig kaartnummer in',
             expirationDate: 'Selecteer een geldige vervaldatum',
@@ -10347,7 +10334,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         basicExport: 'Standaardexport',
         reportLevelExport: 'Alle gegevens - rapportniveau',
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',
-        multipleTaxExport: 'Canadian Multiple Tax Export',
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
         currentView: 'Huidige weergave',
