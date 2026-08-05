@@ -75,7 +75,6 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         isMobileSelectionEnabled,
         shouldEnableSelectionInNarrowPaneModal,
         dynamicGridTemplateColumns,
-        dynamicScrollWidth,
     } = useTableContext<DataType, ColumnKey>();
     // Tables inside a narrow pane modal (RHP) opt into keying the header checkbox off the real screen size, since
     // shouldUseNarrowLayout is always true in an RHP. Other tables keep the original behavior. Visual padding below still uses shouldUseNarrowLayout.
@@ -130,9 +129,6 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
                 !shouldUseNarrowTableLayout && {gridTemplateColumns: gridTemplateColumns.join(' ')},
-                // The columns are wider than the table, so the header takes the same width as the rows it labels and
-                // scrolls with them.
-                !!dynamicScrollWidth && {width: dynamicScrollWidth},
                 style,
             ]}
             {...getRowAccessibilityProps(isTableSemanticsEnabled, 0, true)}

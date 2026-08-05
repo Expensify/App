@@ -72,7 +72,6 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         hasSearchString,
         isEmptyResult,
         originalDataLength,
-        dynamicScrollWidth,
     } = useTableContext<DataType>();
     const {contentContainerStyle: listContentContainerStyle, ListEmptyComponent, ListHeaderComponent, ...restListProps} = listProps ?? {};
 
@@ -105,9 +104,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     return (
         <View
-            // When the columns don't fit, this node grows to the width the rows need so they aren't clipped, and the
-            // scrolling itself happens on the ancestor that also holds the header.
-            style={[styles.flex1, styles.mnh0, !!dynamicScrollWidth && {width: dynamicScrollWidth}, style]}
+            style={[styles.flex1, styles.mnh0, style]}
             {...getRowGroupAccessibilityProps(shouldUseTableSemantics(shouldUseNarrowTableLayout))}
             {...props}
         >

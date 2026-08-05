@@ -44,12 +44,6 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
      */
     dynamicGridTemplateColumns: string[] | undefined;
 
-    /**
-     * The width the rows need when the content is too wide to fit, so the header and rows can be scrolled horizontally
-     * together. `undefined` whenever the content fits.
-     */
-    dynamicScrollWidth: number | undefined;
-
     /** Filter configuration for dropdown filters. */
     filterConfig: FilterConfig<FilterKey> | undefined;
 
@@ -96,7 +90,6 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     originalDataLength: 0,
     columns: [],
     dynamicGridTemplateColumns: undefined,
-    dynamicScrollWidth: undefined,
     activeFilters: {},
     activeSorting: {
         columnKey: undefined,

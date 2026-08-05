@@ -1,3 +1,5 @@
+import ScrollView from '@components/ScrollView';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {LayoutChangeEvent} from 'react-native';
@@ -79,17 +81,37 @@ function TableSemanticContainer({isEnabled, title, rowCount, columnCount, render
             return;
         }
 
-        renderedChildren.push(
+        const rowGroupContainer = (
             <View
                 key={`tableSemanticContainer-${renderedChildren.length}`}
-                // The header and the body share this node, so scrolling it horizontally keeps them aligned. Vertical
-                // scrolling stays with the body's own list.
-                style={[styles.flex1, styles.mnh0, !!scrollWidth && styles.overflowXAuto]}
-                onLayout={onLayout}
+                style={[styles.flex1, styles.mnh0]}
+                // The columns are measured against this node while the table fits, and against the scroll view below once
+                // it doesn't. Either way the measured node keeps the table's own width rather than growing with the
+                // content, so measuring it can't feed back into the widths it produced.
+                onLayout={scrollWidth ? undefined : onLayout}
                 {...getTableContainerAccessibilityProps(true, title, rowCount, columnCount)}
             >
                 {rowGroup}
-            </View>,
+            </View>
+        );
+
+        // The columns don't fit, so the header and the body scroll horizontally as one and stay aligned. The content
+        // container carries the width they need, and the rows fill it, matching how the Search table scrolls.
+        renderedChildren.push(
+            scrollWidth ? (
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator
+                    key={`tableSemanticContainerScroll-${renderedChildren.length}`}
+                    style={[styles.flex1, styles.mnh0]}
+                    contentContainerStyle={{width: scrollWidth}}
+                    onLayout={onLayout}
+                >
+                    {rowGroupContainer}
+                </ScrollView>
+            ) : (
+                rowGroupContainer
+            ),
         );
         rowGroup = [];
     };

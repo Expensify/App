@@ -81,7 +81,6 @@ export default function TableRow({
         isMobileSelectionEnabled,
         shouldEnableSelectionInNarrowPaneModal = false,
         dynamicGridTemplateColumns,
-        dynamicScrollWidth,
     } = useTableContext();
 
     // Tables inside a narrow pane modal (RHP) opt into keying the selection UX off the real screen size (isSmallScreenWidth),
@@ -124,9 +123,6 @@ export default function TableRow({
         isLastRow && styles.tableBottomRadius,
         item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
         shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
-        // The columns are wider than the table, so every row takes the width its content needs and the whole
-        // header/body run scrolls horizontally.
-        !!dynamicScrollWidth && {width: dynamicScrollWidth},
     ];
 
     const tableRowContentContainerStyles = [

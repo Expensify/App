@@ -294,7 +294,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         originalDataLength,
         columns,
         dynamicGridTemplateColumns,
-        dynamicScrollWidth,
         filterConfig: filters,
         activeFilters: currentFilters,
         activeSorting,
