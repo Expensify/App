@@ -1806,9 +1806,9 @@ type RilletExportDate = ValueOf<typeof CONST.RILLET_EXPORT_DATE>;
 type RilletExportReimbursable = ValueOf<typeof CONST.RILLET_EXPORT_REIMBURSABLE>;
 
 /**
- * Export strategy for company card expenses.
+ * Export strategy for non-reimbursable expenses.
  */
-type RilletExportCompanyCard = ValueOf<typeof CONST.RILLET_EXPORT_COMPANY_CARD>;
+type RilletExportNonReimbursable = ValueOf<typeof CONST.RILLET_EXPORT_NON_REIMBURSABLE>;
 
 /**
  * Export configuration for sending accounting data to Rillet.
@@ -1823,8 +1823,8 @@ type RilletExport = {
     /** Export behavior for reimbursable expenses. */
     reimbursable: RilletExportReimbursable;
 
-    /** Export behavior for company card expenses. */
-    companyCard: RilletExportCompanyCard;
+    /** Export behavior for non-reimbursable expenses. */
+    nonReimbursable: RilletExportNonReimbursable;
 
     /** Default vendor to associate with exported transactions. */
     defaultVendorID: string;
