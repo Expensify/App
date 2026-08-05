@@ -1057,6 +1057,22 @@ describe('Session', () => {
         });
     });
 
+    describe('requestUnlinkValidationLink', () => {
+        test('sends the login argument as the email param, independent of the CREDENTIALS Onyx cache', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // CREDENTIALS is empty (cleared in beforeEach), so a correct email here proves the value comes from the param, not the module cache.
+            SessionUtil.requestUnlinkValidationLink('secondary@expensify.com');
+            await waitForBatchedUpdates();
+
+            const call = writeSpy.mock.calls.at(0);
+            expect(call?.at(0)).toBe(WRITE_COMMANDS.REQUEST_UNLINK_VALIDATION_LINK);
+            expect(call?.at(1)).toEqual(expect.objectContaining({email: 'secondary@expensify.com'}));
+
+            writeSpy.mockRestore();
+        });
+    });
+
     describe('signInWithValidateCode', () => {
         test('sends the entered code as the validate code when it is not a 2FA step', async () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);

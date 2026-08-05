@@ -1484,8 +1484,8 @@ function handleExitToNavigation(exitTo: Route) {
     });
 }
 
-function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, preferredLocale: Locale | undefined, twoFactorAuthCode = '', exitTo?: Route) {
-    signInWithValidateCode(accountID, validateCode, preferredLocale, twoFactorAuthCode);
+function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, preferredLocale: Locale | undefined, exitTo?: Route) {
+    signInWithValidateCode(accountID, validateCode, preferredLocale);
     if (exitTo) {
         handleExitToNavigation(exitTo);
     } else {
