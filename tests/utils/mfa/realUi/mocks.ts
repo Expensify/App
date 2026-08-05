@@ -58,26 +58,26 @@ const biometricsMock: Pick<UseBiometricsReturn, 'serverKnownCredentialIDs' | 'ar
     areLocalCredentialsKnownToServer: () => Promise.resolve(false),
 };
 
-let pendingCredentialsStateCapture: ((hasLocalCredentials: boolean) => void) | undefined;
+let pendingRegistrationStateCapture: ((hasLocalCredentials: boolean) => void) | undefined;
 
-/** Lets a test hold the Provider's pre-INIT credential snapshot across an account switch. */
-const credentialsStateCaptureControl = {
+/** Lets a test hold the Provider's pre-INIT registration-state snapshot across an account switch. */
+const registrationStateCaptureControl = {
     defer: () => {
         biometricsMock.areLocalCredentialsKnownToServer = () =>
             new Promise<boolean>((resolve) => {
-                pendingCredentialsStateCapture = resolve;
+                pendingRegistrationStateCapture = resolve;
             });
     },
     resolve: (hasLocalCredentials: boolean) => {
-        const resolve = pendingCredentialsStateCapture;
-        pendingCredentialsStateCapture = undefined;
+        const resolve = pendingRegistrationStateCapture;
+        pendingRegistrationStateCapture = undefined;
         if (!resolve) {
-            throw new Error('No pending credentials-state capture is available.');
+            throw new Error('No pending registration-state capture is available.');
         }
         resolve(hasLocalCredentials);
     },
     reset: () => {
-        pendingCredentialsStateCapture = undefined;
+        pendingRegistrationStateCapture = undefined;
         biometricsMock.areLocalCredentialsKnownToServer = () => Promise.resolve(false);
     },
 };
@@ -121,7 +121,7 @@ const createCredentialControl = createControlledActor<CreateCredentialOutput, Cr
 
 function resetMfaUiMocks() {
     pendingModalClose.clear();
-    credentialsStateCaptureControl.reset();
+    registrationStateCaptureControl.reset();
     validateDeviceControl.reset();
     checkLocalCredentialsControl.reset();
     requestRegistrationChallengeControl.reset();
@@ -225,7 +225,7 @@ function navigationMock() {
 
 export {
     pendingModalClose,
-    credentialsStateCaptureControl,
+    registrationStateCaptureControl,
     validateDeviceControl,
     checkLocalCredentialsControl,
     requestRegistrationChallengeControl,

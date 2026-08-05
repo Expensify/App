@@ -1,18 +1,18 @@
 import Log from '@libs/Log';
 
-import type {CredentialsState} from './trackMFAFlowOutcome';
+import type {MFARegistrationStateSnapshot} from './trackMFAFlowOutcome';
 
 type MFAFlowStartContext = {
     scenario: string;
     isOffline: boolean;
-    credentialsState: CredentialsState;
+    registrationState: MFARegistrationStateSnapshot;
 };
 
 function trackMFAFlowStart(context: MFAFlowStartContext): void {
     const extra = {
         scenario: context.scenario,
         isOffline: context.isOffline,
-        ...context.credentialsState,
+        ...context.registrationState,
     };
 
     Log.info('[MFA] Flow started', false, {mfa: extra});
