@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 
 type MenuItemTitleProps = {
+    /** Text to render as the title */
     children: string | number;
 };
 

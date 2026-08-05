@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import React from 'react';
 
 type MenuItemDescriptionProps = {
+    /** Text to render as the description */
     children: string | number;
 };
 
