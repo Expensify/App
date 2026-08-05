@@ -34,21 +34,29 @@ type TextWithEmoji = {
     text: string;
     isEmoji: boolean;
 };
+type EmojiShortcodeConversionOptions = {
+    shouldAddSeparators?: boolean;
+    textAfterPaste?: string;
+};
 
 const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
 
 const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
 
-function addEmojiSeparator(text: string, position: number, shortcodeLength: number, emoji: string, shouldAddSeparator: boolean): string {
-    if (!shouldAddSeparator) {
+function addEmojiSeparator(text: string, position: number, shortcodeLength: number, emoji: string, options: EmojiShortcodeConversionOptions): string {
+    if (options.shouldAddSeparators === false) {
         return emoji;
     }
 
-    return text.at(position + shortcodeLength) === ' ' ? emoji : `${emoji} `;
+    const nextCharacterCodePoint = text.codePointAt(position + shortcodeLength) ?? options.textAfterPaste?.codePointAt(0);
+    const nextCharacter = nextCharacterCodePoint === undefined ? undefined : String.fromCodePoint(nextCharacterCodePoint);
+
+    // Preserve punctuation, whitespace, symbols, and adjacent emoji while separating an emoji from following text.
+    return nextCharacter && !CONST.REGEX.STARTS_WITH_UNICODE_LETTER_OR_NUMBER.test(nextCharacter) ? emoji : `${emoji} `;
 }
 
 // Used for paste paths where shortcode text must be converted before the lazy emoji trie is ready.
-function convertEmojiShortcodesToUnicode(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, shouldAddSeparator = true): string {
+function convertEmojiShortcodesToUnicode(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, options: EmojiShortcodeConversionOptions = {}): string {
     if (!text.match(CONST.REGEX.EMOJI_NAME)) {
         return text;
     }
@@ -67,7 +75,7 @@ function convertEmojiShortcodesToUnicode(text: string, preferredSkinTone: OnyxEn
         }
 
         const skinToneIndex = 6 - Number(slackSkinTone);
-        return addEmojiSeparator(text, position, match.length, emoji.types?.at(skinToneIndex) ?? emoji.code, shouldAddSeparator);
+        return addEmojiSeparator(text, position, match.length, emoji.types?.at(skinToneIndex) ?? emoji.code, options);
     });
 
     const updatedCodeRanges = getCodeRanges(textWithSlackSkinTones);
@@ -83,7 +91,7 @@ function convertEmojiShortcodesToUnicode(text: string, preferredSkinTone: OnyxEn
             return shortcode;
         }
 
-        return addEmojiSeparator(textWithSlackSkinTones, position, shortcode.length, getEmojiCodeWithSkinColor(emoji, preferredSkinTone), shouldAddSeparator);
+        return addEmojiSeparator(textWithSlackSkinTones, position, shortcode.length, getEmojiCodeWithSkinColor(emoji, preferredSkinTone), options);
     });
 }
 

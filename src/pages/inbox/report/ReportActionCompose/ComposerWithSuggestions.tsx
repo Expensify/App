@@ -517,7 +517,8 @@ function ComposerWithSuggestions({
                 endIndex > startIndex &&
                 diff.trim() === diff &&
                 containsOnlyEmojis(diff);
-            const commentWithSpaceInserted = isEmojiInserted ? insertWhiteSpaceAtIndex(effectiveCommentValue, endIndex) : effectiveCommentValue;
+            const shouldInsertSpaceAfterEmoji = isEmojiInserted && effectiveCommentValue.at(endIndex)?.trim() !== '';
+            const commentWithSpaceInserted = shouldInsertSpaceAfterEmoji ? insertWhiteSpaceAtIndex(effectiveCommentValue, endIndex) : effectiveCommentValue;
             const {text: emojiConvertedText, emojis, cursorPosition} = replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
 
             if (emojis.length) {

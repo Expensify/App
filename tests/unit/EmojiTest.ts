@@ -164,7 +164,26 @@ describe('EmojiTest', () => {
         });
 
         it('can convert pasted shortcodes without adding a separator', () => {
-            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:', undefined, false)).toBe('😄');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:', undefined, {shouldAddSeparators: false})).toBe('😄');
+        });
+
+        it('does not add separators before punctuation or between adjacent emoji', () => {
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:,:tada:')).toBe('😄,🎉 ');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:,:tada:!')).toBe('😄,🎉!');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile::tada:')).toBe('😄🎉 ');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:\nhello')).toBe('😄\nhello');
+        });
+
+        it('adds separators between every converted emoji and following text', () => {
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:hello :tada:world')).toBe('😄 hello 🎉 world');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:𝕥est')).toBe('😄 𝕥est');
+        });
+
+        it('uses the destination text to avoid duplicate separators', () => {
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:', undefined, {textAfterPaste: ' world'})).toBe('😄');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:', undefined, {textAfterPaste: ', world'})).toBe('😄');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:', undefined, {textAfterPaste: '🎉'})).toBe('😄');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':smile:', undefined, {textAfterPaste: 'world'})).toBe('😄 ');
         });
 
         it('uses preferred skin tone when converting pasted shortcodes', () => {
@@ -173,6 +192,7 @@ describe('EmojiTest', () => {
 
         it('converts Slack skin tone shortcodes', () => {
             expect(EmojiUtils.convertEmojiShortcodesToUnicode('Hi :raised_hands::skin-tone-5:')).toBe('Hi 🙌🏾 ');
+            expect(EmojiUtils.convertEmojiShortcodesToUnicode(':raised_hands::skin-tone-5:,hello')).toBe('🙌🏾,hello');
         });
 
         it('preserves emoji shortcodes inside inline code and code fences', () => {

@@ -35,12 +35,32 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         return event;
     };
 
-    const mockWindowSelection = (selectedText: string) => {
+    const mockWindowSelection = (selectedText: string, textBeforeSelection = '', textAfterSelection = '') => {
+        const inputValue = `${textBeforeSelection}${selectedText}${textAfterSelection}`;
+        const textNode = document.createTextNode(inputValue);
+        textInputRef.current?.replaceChildren(textNode);
+
         const range = document.createRange();
-        range.selectNodeContents(textInputRef.current as Node);
-        range.deleteContents();
-        const textNode = document.createTextNode(selectedText);
-        range.insertNode(textNode);
+        range.setStart(textNode, textBeforeSelection.length);
+        range.setEnd(textNode, textBeforeSelection.length + selectedText.length);
+
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+    };
+
+    const mockWindowSelectionBetweenTextNodes = (textBeforeSelection: string, textAfterSelection: string) => {
+        const beforeNode = document.createTextNode(textBeforeSelection);
+        const afterNode = document.createTextNode(textAfterSelection);
+        const beforeSpan = document.createElement('span');
+        const afterSpan = document.createElement('span');
+        beforeSpan.appendChild(beforeNode);
+        afterSpan.appendChild(afterNode);
+        textInputRef.current?.replaceChildren(beforeSpan, afterSpan);
+
+        const range = document.createRange();
+        range.setStart(beforeNode, textBeforeSelection.length);
+        range.collapse(true);
 
         const selection = window.getSelection();
         selection?.removeAllRanges();
@@ -183,6 +203,42 @@ describe('useHtmlPaste - handlePastePlainText', () => {
             act(() => handlePastePlainText?.(event));
 
             expect(textInputRef.current?.textContent).toBe('Hello 😄 ');
+        }
+    });
+
+    it('does not add another separator when text after the paste starts with whitespace', async () => {
+        mockWindowSelectionBetweenTextNodes('Hello ', ' world');
+        const event = createMockClipboardEvent(':smile:');
+
+        const {result} = renderUseHtmlPaste(false, true);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(result?.current).toBeDefined();
+
+        if (result?.current) {
+            const handlePastePlainText = result.current.handlePastePlainText;
+
+            act(() => handlePastePlainText?.(event));
+
+            expect(textInputRef.current?.textContent).toBe('Hello 😄 world');
+        }
+    });
+
+    it('adds a separator when text after the paste starts with a letter', async () => {
+        mockWindowSelection('', 'Hello ', 'world');
+        const event = createMockClipboardEvent(':smile:');
+
+        const {result} = renderUseHtmlPaste(false, true);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(result?.current).toBeDefined();
+
+        if (result?.current) {
+            const handlePastePlainText = result.current.handlePastePlainText;
+
+            act(() => handlePastePlainText?.(event));
+
+            expect(textInputRef.current?.textContent).toBe('Hello 😄 world');
         }
     });
 

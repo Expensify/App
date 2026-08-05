@@ -44,6 +44,81 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
     }
 };
 
+const getTextAfterNode = (node: Node, root: Node): string => {
+    let currentNode: Node | null = node;
+
+    while (currentNode && currentNode !== root) {
+        const nextNode: ChildNode | null = currentNode.nextSibling;
+        if (nextNode) {
+            if (nextNode instanceof HTMLBRElement) {
+                return '\n';
+            }
+
+            const nextText = nextNode.textContent ?? '';
+            if (nextText) {
+                return nextText;
+            }
+
+            currentNode = nextNode;
+            continue;
+        }
+
+        currentNode = currentNode.parentNode;
+    }
+
+    return '';
+};
+
+const getTextAfterSelection = (target: unknown): string => {
+    if (!(target instanceof HTMLElement)) {
+        return '';
+    }
+
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+        return target.value.slice(target.selectionEnd ?? target.value.length);
+    }
+
+    if (!target.hasAttribute('contenteditable')) {
+        return '';
+    }
+
+    const selection = window.getSelection();
+    if (!selection?.rangeCount) {
+        return '';
+    }
+
+    const selectedRange = selection.getRangeAt(0);
+    if (!target.contains(selectedRange.endContainer)) {
+        return '';
+    }
+
+    const {endContainer, endOffset} = selectedRange;
+    if (endContainer instanceof Text) {
+        const textInEndNode = endContainer.data.slice(endOffset);
+        if (textInEndNode) {
+            return textInEndNode;
+        }
+
+        return getTextAfterNode(endContainer, target);
+    }
+
+    const nodeAfterSelection = endContainer.childNodes.item(endOffset);
+    if (!nodeAfterSelection) {
+        return getTextAfterNode(endContainer, target);
+    }
+
+    if (nodeAfterSelection instanceof HTMLBRElement) {
+        return '\n';
+    }
+
+    const textAfterSelection = nodeAfterSelection.textContent;
+    if (textAfterSelection) {
+        return textAfterSelection;
+    }
+
+    return getTextAfterNode(nodeAfterSelection, target);
+};
+
 const getEmojiFromImageAlt = (alt: string): string => {
     // iOS Safari can paste emoji images as blob URLs with codepoint filenames in alt text.
     const emojiHexCodepoints = alt.match(CONST.REGEX.EMOJI_IMAGE_ALT)?.at(1);
@@ -85,7 +160,7 @@ const getEmojiReplacementText = (image: HTMLImageElement, preferredSkinTone: Ony
 
     if (isEmojiImage(image)) {
         // Slack can put shortcode text in emoji image alt text, e.g. ":tada:".
-        const emojiFromShortcode = convertEmojiShortcodesToUnicode(image.alt, preferredSkinTone, false);
+        const emojiFromShortcode = convertEmojiShortcodesToUnicode(image.alt, preferredSkinTone, {shouldAddSeparators: false});
         if (emojiFromShortcode !== image.alt) {
             return emojiFromShortcode;
         }
@@ -189,9 +264,10 @@ const useHtmlPaste: UseHtmlPaste = (
             }
 
             // Composer plain-text paste has no image metadata, so convert shortcodes before inserting.
-            paste(convertEmojiShortcodesToUnicode(clipboardText, preferredSkinTone));
+            const textAfterSelection = getTextAfterSelection(textInputRef.current);
+            paste(convertEmojiShortcodesToUnicode(clipboardText, preferredSkinTone, {textAfterPaste: textAfterSelection}));
         },
-        [paste, preferredSkinTone, shouldConvertPlainTextEmojiShortcodes],
+        [paste, preferredSkinTone, shouldConvertPlainTextEmojiShortcodes, textInputRef],
     );
 
     const handlePaste = useCallback(
