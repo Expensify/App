@@ -2400,7 +2400,7 @@ const CONST = {
     INBOX_TAB: {
         ALL: 'all',
         TODO: 'todo',
-        UNREAD: 'unread',
+        CHATS: 'chats',
     },
     THEME: {
         DEFAULT: 'system',

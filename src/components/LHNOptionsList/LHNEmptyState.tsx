@@ -29,8 +29,8 @@ function LHNEmptyState() {
     const {activeTab} = useSidebarOrderedReportsState();
     const {setActiveTab} = useSidebarOrderedReportsActions();
 
-    if (activeTab === CONST.INBOX_TAB.UNREAD || activeTab === CONST.INBOX_TAB.TODO) {
-        const title = activeTab === CONST.INBOX_TAB.UNREAD ? translate('common.emptyLHN.noUnreadChats') : translate('common.emptyLHN.noTodos');
+    if (activeTab === CONST.INBOX_TAB.CHATS || activeTab === CONST.INBOX_TAB.TODO) {
+        const title = activeTab === CONST.INBOX_TAB.CHATS ? translate('common.emptyLHN.noChats') : translate('common.emptyLHN.noTodos');
         const caughtUpSubtitle = (
             <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('common.emptyLHN.caughtUp')}</Text>

@@ -377,7 +377,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: 'Βρείτε μια συνομιλία χρησιμοποιώντας το',
             subtitleText2: 'κουμπί παραπάνω ή δημιουργήστε κάτι χρησιμοποιώντας το',
             subtitleText3: 'κουμπί παρακάτω.',
-            noUnreadChats: 'Καμία μη αναγνωσμένη συνομιλία',
+            noChats: 'Καμία συνομιλία',
             noTodos: 'Καμία εκκρεμότητα',
             caughtUp: 'Είστε πλήρως ενημερωμένοι. Μπράβο!',
             seeAllChats: 'Δείτε όλες τις συνομιλίες',
@@ -3134,7 +3134,7 @@ ${amount} για ${merchant} - ${date}`,
     inboxTabs: {
         all: 'Όλα',
         todo: 'Εκκρεμότητες',
-        unread: 'Μη αναγνωσμένα',
+        chats: 'Συνομιλίες',
     },
     reportDetailsPage: {
         goToRoom: 'Μετάβαση στο δωμάτιο',
