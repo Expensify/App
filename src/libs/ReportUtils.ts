@@ -6362,6 +6362,19 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 }
 
 /**
+ * Returns the account IDs that have a pending DELETE action.
+ * Preserves the original inline behavior (an account is included if any entry marks it DELETE).
+ * The result is not deduplicated, callers that need unique IDs should handle it (getGroupChatName already builds a Set).
+ */
+function getPendingDeleteMemberAccountIDs(pendingChatMembers: PendingChatMember[] | undefined): string[] {
+    if (!pendingChatMembers?.length) {
+        return [];
+    }
+
+    return pendingChatMembers.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID);
+}
+
+/**
  * Gets the parent navigation subtitle for the report
  */
 function getParentNavigationSubtitle(
@@ -14053,6 +14066,7 @@ export {
     getParticipantsAccountIDsForDisplay,
     getParticipantsList,
     getPendingChatMembers,
+    getPendingDeleteMemberAccountIDs,
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
     getPolicyExpenseChat,

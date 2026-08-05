@@ -1,3 +1,5 @@
+import {getPendingDeleteMemberAccountIDs} from '@libs/ReportUtils';
+
 import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -26,6 +28,8 @@ const isLoadingInitialReportActionsSelector = (loadingState: OnyxEntry<ReportLoa
 const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
     reportMetadata ? {pendingChatMembers: reportMetadata.pendingChatMembers} : undefined;
 
+const pendingDeleteMemberAccountIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers);
+
 const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingNewTransactionIDs;
 
 const isOptimisticReportSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.isOptimisticReport;
@@ -41,5 +45,6 @@ export {
     isOptimisticReportSelector,
     pendingNewTransactionIDsSelector,
     pendingChatMembersSelector,
+    pendingDeleteMemberAccountIDsSelector,
     unconfirmedReadWindowSelector,
 };
