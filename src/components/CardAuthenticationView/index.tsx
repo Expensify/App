@@ -1,4 +1,3 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LoadingIndicator from '@components/LoadingIndicator';
 
 import useLocalize from '@hooks/useLocalize';
