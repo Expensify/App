@@ -1456,7 +1456,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `goedgekeurd via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimteregels</a>`,
         forwarded: (memo?: string) => `goedgekeurd${memo ? `, met de omschrijving ${memo}` : ''}`,
         rejectedThisReport: 'afgekeurd',
-        waitingOnBankAccount: (submitterDisplayName: string) => `is een betaling gestart, maar wacht tot ${submitterDisplayName} een bankrekening toevoegt.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `is met de betaling begonnen, maar wacht tot ${submitterDisplayName} een persoonlijke bankrekening toevoegt.`,
         adminCanceledRequest: 'heeft de betaling geannuleerd',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `heeft de betaling van ${amount} geannuleerd, omdat ${submitterDisplayName} hun Expensify Wallet niet binnen 30 dagen heeft geactiveerd`,
@@ -5926,6 +5926,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             balanceWillBeSettledOn: (settlementDate: string) => `Saldo wordt vereffend op ${settlementDate}`,
             settleBalance: 'Saldo vereffenen',
             cardLimit: 'Kaartlimiet',
+            remaining: 'Resterend',
             remainingLimit: 'Resterende limiet',
             requestLimitIncrease: 'Verhoging van limiet aanvragen',
             remainingLimitDescription:
@@ -6101,6 +6102,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         subsections: {
                             currentTravelSpendLabel: 'Huidige reiskosten',
                             currentTravelSpendPaymentQueued: (amount: string) => `Betaling van ${amount} staat in de wachtrij en wordt binnenkort verwerkt.`,
+                            currentTravelSpendInvoiceQueued: 'Er wordt binnenkort een nieuwe factuur voor je reiskosten aangemaakt en naar je verzonden.',
+                            currentTravelSpendInvoicePending: (amount: string) => `Er is een factuur voor ${amount} verzonden en deze wacht op betaling.`,
                             currentTravelSpendCta: 'Saldo betalen',
                             viewOnSpend: 'Bekijken in Uitgaven',
                             currentTravelLimitLabel: 'Huidige reisl imiet',
@@ -6113,6 +6116,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             reduceLimitWarning: 'Als u het limiet verlaagt, kunnen leden die dit bedrag al hebben overschreden geen nieuwe reisboekingen maken tot volgende maand.',
                             provisioningError:
                                 'We konden voor sommige leden van je werkruimte geen toegang instellen tot Geconsolideerde Reisfacturering. Probeer het later opnieuw of neem contact op met Concierge voor ondersteuning.',
+                            sendInvoiceNowCta: 'Verzend factuur nu',
                         },
                     },
                     disableModal: {
@@ -6135,6 +6139,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     invalidDateRangeError: 'De begindatum moet vóór de einddatum liggen',
                     enabled: 'Geconsolideerde reiskostenfacturatie ingeschakeld!',
                     enabledDescription: 'Alle reiskosten in deze workspace worden nu gebundeld op één maandelijkse factuur.',
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Factuur voor ${amount} versturen?`,
+                        body: 'We maken een factuur aan voor je huidige reiskosten. Je reistegoed komt weer vrij zodra de factuur is betaald.',
+                    },
                 },
                 personalDetailsDescription: 'Om een reis te boeken, voer je wettelijke naam in zoals deze op je door de overheid uitgegeven identiteitsbewijs staat.',
             },
@@ -7465,8 +7473,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 note: 'Je verliest toegang tot de volgende functies',
                 benefits: {
                     confirm: 'Je moet het “Plan type” van elke workspace wijzigen naar “Collect” om het Collect-tarief veilig te stellen.',
-                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
-                    benefit2: 'Workday, Certinia',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics, Certinia',
+                    benefit2: 'Gusto, TriNet, Workday',
                     benefit3: 'SSO/SAML',
                     benefit4: 'Slimme onkostregels, dagvergoedingen, goedkeuring op meerdere niveaus, aangepaste rapportage en budgettering',
                     headsUp: 'Let op!',
@@ -8012,6 +8020,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 thenFlagForReview: 'Vlag dan voor controle wanneer:',
             },
             agentRulesEmptyState: {title: 'Geen agentregels toegevoegd', subtitle: 'Maak een regel om je werkruimtebeleid te automatiseren.', cta: 'AI-regel toevoegen'},
+            categoriesDisabledEmptyState: {title: 'Categorieën zijn niet ingeschakeld', subtitle: 'Schakel categorieën in om meer controle te krijgen over je uitgaven.'},
         },
         planTypePage: {
             planTypes: {
@@ -9974,8 +9983,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 benefit1: 'Alles in het Collect-abonnement',
                 benefit2: 'Meerlagige goedkeuringsworkflows',
                 benefit3: 'Aangepaste onkostregels',
-                benefit4: 'ERP-integraties (NetSuite, Sage Intacct, Oracle)',
-                benefit5: 'HR-integraties (Workday, Certinia)',
+                benefit4: 'ERP-integraties (NetSuite, Sage Intacct, Oracle, Certinia)',
+                benefit5: 'HR-integraties (Gusto, TriNet, Workday)',
                 benefit6: 'SAML/SSO',
                 benefit7: 'Aangepaste inzichten en rapportage',
                 benefit8: 'Budgettering',
@@ -10261,6 +10270,15 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             buildReports: 'Maak onkostenrapporten in enkele seconden',
             categorize: 'Categoriseer je uitgaven',
             inviteBoss: 'Nodig je baas uit wanneer je er klaar voor bent',
+        },
+    },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nieuwe roltypen voor beheerders',
+                body: 'Geef je team meer gedetailleerde toegangsrechten met nieuwe kaart-, personen- en betalingsbeheerrollen.',
+                cta: 'Probeer het uit',
+            },
         },
     },
     productTrainingTooltip: {
