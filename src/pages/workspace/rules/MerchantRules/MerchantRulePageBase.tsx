@@ -30,7 +30,7 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {findVendorByID, getCleanedTagName, getTagLists, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {findVendorByID, getCleanedTagName, getTagLists, hasVendorFeature, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -216,8 +216,24 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
 
     const isVendorFeatureEnabled = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
-    const vendorFieldLabel = translate(isXeroActiveMatchingSource(policy) ? 'common.supplier' : 'common.vendor');
-    const vendorDisplayName = form?.vendorID ? findVendorByID(policy, form.vendorID)?.name : undefined;
+    const isOnXero = isXeroActiveMatchingSource(policy);
+    const vendorFieldLabel = translate(isOnXero ? 'common.supplier' : 'common.vendor');
+    // Mirror the rule-summary fallback so an already-stored vendor never renders as unset while the row still saves it:
+    // resolved name when available, the "unavailable" copy once the vendor list has synced without a match, otherwise the raw stored ID.
+    const getVendorDisplayName = () => {
+        if (!form?.vendorID) {
+            return undefined;
+        }
+        const resolvedVendorName = findVendorByID(policy, form.vendorID)?.name;
+        if (resolvedVendorName) {
+            return resolvedVendorName;
+        }
+        if (isMatchingVendorListLoaded(policy)) {
+            return translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+        }
+        return form.vendorID;
+    };
+    const vendorDisplayName = getVendorDisplayName();
 
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     const taxDisplayName = () => {

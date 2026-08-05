@@ -1,14 +1,18 @@
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {findVendorByID, getMatchingVendors, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {findVendorByID, getMatchingVendors, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -38,6 +42,7 @@ function AddVendorPage({route}: AddVendorPageProps) {
     const isEditing = ruleID !== ROUTES.NEW;
 
     const policy = usePolicy(policyID);
+    const {isBetaEnabled} = usePermissions();
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
 
     const selectedVendorItem = getSelectedVendorItem(policy, form?.vendorID);
@@ -49,6 +54,12 @@ function AddVendorPage({route}: AddVendorPageProps) {
     const onSave = (value?: string) => {
         updateDraftMerchantRule({vendorID: value});
     };
+
+    // Gate direct/deeplink access behind the same predicate that hides the "Set vendor to" row, so the beta can't be
+    // bypassed by opening this picker's URL directly (which would otherwise write vendorID into the draft and save it).
+    if (!hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING))) {
+        return <NotFoundPage />;
+    }
 
     return (
         <RuleSelectionBase
