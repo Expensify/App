@@ -1370,13 +1370,12 @@ function isCardConnectionBroken(card: Card): boolean {
 }
 
 /**
- * Check if the card connection is broken specifically because the user needs to re-authenticate with
- * their bank (account refresh required / session expired), as opposed to a generic broken connection.
+ * Check if the card connection is broken specifically because the user needs to re-authenticate with their bank
  *
  * @param card the card to check
  * @returns true if the connection needs re-authentication, false otherwise
  */
-function isCardConnectionNeedsReauth(card: Card): boolean {
+function doesCardConnectionNeedReauth(card: Card): boolean {
     return isCardConnectionBroken(card) && !!card.lastScrapeResult && CONST.COMPANY_CARDS.REAUTH_SCRAPE_STATUSES.includes(card.lastScrapeResult);
 }
 
@@ -1397,8 +1396,6 @@ function getCardConnectionStatusDisplay({
     const shouldShowMessage = isCardBroken || shouldShowRBR || isCardInactiveStatus;
     const shouldUsePersonalCardFix = shouldShowMessage && isPersonalCardStatus;
     const shouldUseCompanyCardsLink = shouldShowMessage && !isPersonalCardStatus && isAdminForCardPolicy && !!policyID;
-    // Re-auth message takes precedence over the generic broken-connection copy, but not over the company
-    // cards link (admins are still routed there to reconnect). The fix/link actions are left unchanged.
     const shouldUseReauthMessage = shouldShowMessage && !!isCardNeedsReauth && !shouldUseCompanyCardsLink;
     let messageKey: TranslationPaths | undefined;
 
@@ -2144,7 +2141,7 @@ export {
     getCSVFeedType,
     getFeedType,
     isCardConnectionBroken,
-    isCardConnectionNeedsReauth,
+    doesCardConnectionNeedReauth,
     getCardConnectionStatusDisplay,
     isBrokenConnectionPastDismissThreshold,
     isSmartLimitEnabled,

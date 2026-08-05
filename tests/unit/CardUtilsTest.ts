@@ -4730,7 +4730,7 @@ describe('getCardConnectionStatusDisplay', () => {
         });
     });
 
-    it('returns the reconnect-bank message for a broken card that needs re-auth', () => {
+    it('returns the reconnect bank message for a broken card that needs re-auth', () => {
         expect(getCardConnectionStatusDisplay({...defaultParams, isCardBroken: true, isCardNeedsReauth: true})).toEqual({
             statusKey: 'walletPage.cardStatus.inactive',
             statusTone: 'danger',
@@ -4742,7 +4742,7 @@ describe('getCardConnectionStatusDisplay', () => {
         });
     });
 
-    it('prefers the company-cards link over the reconnect-bank message for an admin', () => {
+    it('prefers the company cards link over the reconnect bank message for an admin', () => {
         expect(getCardConnectionStatusDisplay({...defaultParams, isCardBroken: true, isCardNeedsReauth: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toEqual({
             statusKey: 'walletPage.cardStatus.inactive',
             statusTone: 'danger',

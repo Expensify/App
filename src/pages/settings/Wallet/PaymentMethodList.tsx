@@ -24,7 +24,7 @@ import {
     isActionableVirtualExpensifyCard,
     isBrokenConnectionPastDismissThreshold,
     isCardConnectionBroken,
-    isCardConnectionNeedsReauth,
+    doesCardConnectionNeedReauth,
     isCardFrozen,
     isCardInactive,
     isExpensifyCard,
@@ -323,7 +323,7 @@ function PaymentMethodList({
                     isCardInactive: isCardInactiveState,
                     isPersonalCard: isUserPersonalCard,
                     isAdminForCardPolicy,
-                    isCardNeedsReauth: isCardConnectionNeedsReauth(card),
+                    isCardNeedsReauth: doesCardConnectionNeedReauth(card),
                     policyID: policyIDForCard,
                 });
                 const shouldShowCardConnectionMessage = !!cardConnectionStatusDisplay?.messageKey;
