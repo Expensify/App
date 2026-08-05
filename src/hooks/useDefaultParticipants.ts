@@ -81,7 +81,8 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
             return [];
         }
 
-        const canUseDefaultPolicy = shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, accountID);
+        const globalCreateIOUType = iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.CREATE : iouType;
+        const canUseDefaultPolicy = shouldUseDefaultExpensePolicy(globalCreateIOUType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, accountID);
         if (!canUseDefaultPolicy) {
             return [];
         }
