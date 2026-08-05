@@ -1287,7 +1287,7 @@ function submitMoneyRequestOnSearch(
     });
 }
 
-function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connectionName: ConnectionName, currentSearchKey?: SearchKey, connectionNameFriendly?: string) {
+function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connectionName: ConnectionName, currentSearchKey?: SearchKey) {
     if (!reportIDs.length) {
         return;
     }
@@ -1314,7 +1314,7 @@ function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connecti
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
 
     for (const reportID of reportIDs) {
-        const optimisticAction = buildOptimisticExportIntegrationAction(connectionName, false, connectionNameFriendly);
+        const optimisticAction = buildOptimisticExportIntegrationAction(connectionName);
         const successAction: OptimisticExportIntegrationAction = {
             ...optimisticAction,
             pendingAction: null,

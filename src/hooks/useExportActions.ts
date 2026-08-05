@@ -177,7 +177,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                     triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
                     return;
                 }
-                exportToIntegration(moneyRequestReport.reportID, connectedIntegration, connectionNameFriendly);
+                exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
             },
         },
         [CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED]: {
@@ -195,7 +195,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                     triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
                     return;
                 }
-                markAsManuallyExported([moneyRequestReport.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegrationFallback, connectionNameFriendly);
+                markAsManuallyExported([moneyRequestReport.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegrationFallback);
             },
         },
     };

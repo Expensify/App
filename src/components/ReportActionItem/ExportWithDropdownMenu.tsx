@@ -102,9 +102,9 @@ function ExportWithDropdownMenu({
             return;
         }
         if (exportType === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-            exportToIntegration(reportID, connectionName, connectionNameFriendly);
+            exportToIntegration(reportID, connectionName);
         } else if (exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-            markAsManuallyExported([reportID], connectionName, connectionNameFriendly);
+            markAsManuallyExported([reportID], connectionName);
         }
     };
 

@@ -6188,8 +6188,8 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
 
-function exportToIntegration(reportID: string, connectionName: ConnectionName, connectionNameFriendly?: string) {
-    const action = buildOptimisticExportIntegrationAction(connectionName, false, connectionNameFriendly);
+function exportToIntegration(reportID: string, connectionName: ConnectionName) {
+    const action = buildOptimisticExportIntegrationAction(connectionName);
     const optimisticReportActionID = action.reportActionID;
     const previousExportedValue = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.isExportedToIntegration;
 
@@ -6241,8 +6241,8 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName, c
     API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData});
 }
 
-function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionName, connectionNameFriendly?: string) {
-    const label = connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionName) {
+    const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -6251,7 +6251,7 @@ function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionN
 
     // Process each report ID
     for (const reportID of reportIDs) {
-        const action = buildOptimisticExportIntegrationAction(connectionName, true, connectionNameFriendly);
+        const action = buildOptimisticExportIntegrationAction(connectionName, true);
         const optimisticReportActionID = action.reportActionID;
         const previousExportedValue = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.isExportedToIntegration;
 

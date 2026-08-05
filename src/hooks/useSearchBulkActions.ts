@@ -1723,7 +1723,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     exportOptions.push({
                         text: connectionNameFriendly,
                         icon: integrationIcon,
-                        onSelected: () => handleExportAction(() => exportToIntegrationOnSearch(hash, selectedReportIDs, connectedIntegration, currentSearchKey, connectionNameFriendly)),
+                        onSelected: () => handleExportAction(() => exportToIntegrationOnSearch(hash, selectedReportIDs, connectedIntegration, currentSearchKey)),
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
                         displayInDefaultIconColor: true,
@@ -1735,7 +1735,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     exportOptions.push({
                         text: translate('workspace.common.markAsExported'),
                         icon: integrationIcon,
-                        onSelected: () => handleExportAction(() => markAsManuallyExported(selectedReportIDs, connectedIntegration, connectionNameFriendly)),
+                        onSelected: () => handleExportAction(() => markAsManuallyExported(selectedReportIDs, connectedIntegration)),
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
                         displayInDefaultIconColor: true,

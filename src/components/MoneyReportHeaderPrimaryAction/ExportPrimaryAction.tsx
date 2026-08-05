@@ -44,7 +44,7 @@ function ExportPrimaryAction({reportID, onExportModalOpen}: ExportPrimaryActionP
                     onExportModalOpen();
                     return;
                 }
-                exportToIntegration(moneyRequestReport.reportID, connectedIntegration, connectionNameFriendly);
+                exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
             }}
         >
             <Button.Text>

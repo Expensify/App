@@ -46,9 +46,9 @@ function useExportAgainModal(reportID: string | undefined, policyID: string | un
                 return;
             }
             if (exportType === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                exportToIntegration(reportID, integrationForExport, connectionNameFriendly);
+                exportToIntegration(reportID, integrationForExport);
             } else if (exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                markAsManuallyExported([reportID], integrationForExport, connectionNameFriendly);
+                markAsManuallyExported([reportID], integrationForExport);
             }
         });
     };

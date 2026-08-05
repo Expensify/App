@@ -9061,10 +9061,9 @@ function buildOptimisticTaskReport(
  *
  * @param integration - The connectionName of the integration
  * @param markedManually - Whether the integration was marked as manually exported
- * @param integrationName - The user-facing name of the integration
  */
-function buildOptimisticExportIntegrationAction(integration: ConnectionName, markedManually = false, integrationName?: string): OptimisticExportIntegrationAction {
-    const label = integrationName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration];
+function buildOptimisticExportIntegrationAction(integration: ConnectionName, markedManually = false): OptimisticExportIntegrationAction {
+    const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration];
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
