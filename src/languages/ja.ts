@@ -404,6 +404,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: '長いレポートID',
         withdrawalID: '出金ID',
         internationalReimbursementIDs: '国際払い戻しID',
+        amountDebited: '引き落とし額',
+        amountReimbursed: '精算済み金額',
         withdrawalStatus: '出金ステータス',
         paidStatus: '支払済みステータス',
         bankAccounts: '銀行口座',
@@ -438,6 +440,7 @@ const translations: TranslationDeepObject<typeof en> = {
         perDiem: '日当',
         validate: '検証',
         downloadAsPDF: 'PDFとしてダウンロード',
+        downloadReceipts: '領収書をダウンロード',
         downloadAsCSV: 'CSVとしてダウンロード',
         submitViaPDF: 'PDFで提出',
         print: '印刷',
@@ -1439,7 +1442,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>により承認済み`,
         forwarded: (memo?: string) => `承認済み${memo ? `、メモ: ${memo}` : ''}`,
         rejectedThisReport: '却下しました',
-        waitingOnBankAccount: (submitterDisplayName: string) => `支払いを開始しましたが、${submitterDisplayName}が銀行口座を追加するのを待っています。`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `支払いを開始しましたが、${submitterDisplayName} が個人の銀行口座を追加するのを待っています。`,
         adminCanceledRequest: '支払いをキャンセルしました',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${submitterDisplayName} が30日以内に Expensify Wallet を有効化しなかったため、${amount} の支払いをキャンセルしました`,
@@ -1997,21 +2000,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `管理者が経費を支払うのを待っています。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `ビジネス銀行口座の設定が完了するのを<strong>お客様</strong>の操作待ちです。`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> がビジネス銀行口座の設定を完了するのを待っています。`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者がビジネス銀行口座の設定を完了するのを待っています。`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2457,7 +2445,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'デビットカードが正常に追加されました',
         expensifyPassword: 'Expensify のパスワード',
         error: {
-            invalidName: '名前には文字のみ使用できます',
+            invalidName: 'カード名義に「<」または「>」を含めることはできません',
             addressZipCode: '有効な郵便番号を入力してください',
             debitCardNumber: '有効なデビットカード番号を入力してください',
             expirationDate: '有効な有効期限を選択してください',
@@ -2480,7 +2468,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: '支払いカードが正常に追加されました',
         expensifyPassword: 'Expensify のパスワード',
         error: {
-            invalidName: '名前には文字のみ使用できます',
+            invalidName: 'カード名義に「<」または「>」を含めることはできません',
             addressZipCode: '有効な郵便番号を入力してください',
             paymentCardNumber: '有効なカード番号を入力してください',
             expirationDate: '有効な有効期限を選択してください',
@@ -5868,6 +5856,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             balanceWillBeSettledOn: (settlementDate: string) => `残高は${settlementDate}に精算されます`,
             settleBalance: '残高を清算',
             cardLimit: 'カード上限',
+            remaining: '残り',
             remainingLimit: '残りの上限',
             requestLimitIncrease: 'リクエスト上限の引き上げ',
             remainingLimitDescription:
@@ -6036,6 +6025,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         subsections: {
                             currentTravelSpendLabel: '現在の出張費支出',
                             currentTravelSpendPaymentQueued: (amount: string) => `${amount} の支払いはキューに登録されており、まもなく処理されます。`,
+                            currentTravelSpendInvoiceQueued: '出張費用の新しい請求書が作成され、まもなくお客様に送信されます。',
+                            currentTravelSpendInvoicePending: (amount: string) => `${amount} の請求書が送信され、支払い待ちです。`,
                             currentTravelSpendCta: '残高を支払う',
                             viewOnSpend: '支出で表示',
                             currentTravelLimitLabel: '現在の出張上限',
@@ -6048,6 +6039,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                             reduceLimitWarning: 'この上限を引き下げると、すでにこの金額を超えて支出しているメンバーは、翌月まで新しい出張予約ができなくなります。',
                             provisioningError:
                                 'ワークスペース内の一部メンバーに対して、Consolidated Travel Billing を有効化できませんでした。時間をおいてもう一度お試しいただくか、サポートが必要な場合は Concierge までお問い合わせください。',
+                            sendInvoiceNowCta: '請求書を今すぐ送信',
                         },
                     },
                     disableModal: {
@@ -6066,6 +6058,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     invalidDateRangeError: '開始日は終了日より前でなければなりません',
                     enabled: '一括出張請求が有効になりました！',
                     enabledDescription: 'このワークスペースでの出張費用は、今後すべて月次の請求書に集約されます。',
+                    sendInvoiceModal: {
+                        title: (amount: string) => `${amount}の請求書を送信しますか？`,
+                        body: '現在の出張費用について請求書を作成します。請求書が支払われると、出張の利用可能枠が再び使えるようになります。',
+                    },
                 },
                 personalDetailsDescription: '旅行を予約するために、政府発行の身分証明書に記載されているとおりの正式な氏名を入力してください。',
             },
@@ -7389,8 +7385,8 @@ ${reportName}`,
                 note: '次の機能へのアクセス権がなくなります',
                 benefits: {
                     confirm: 'Collect レートを適用するには、すべてのワークスペースの「プランタイプ」を「Collect」に変更する必要があります。',
-                    benefit1: 'NetSuite、Sage Intacct、QuickBooks Desktop、Oracle、Microsoft Dynamics',
-                    benefit2: 'Workday、Certinia',
+                    benefit1: 'NetSuite、Sage Intacct、QuickBooks Desktop、Oracle、Microsoft Dynamics、Certinia',
+                    benefit2: 'Gusto、TriNet、Workday',
                     benefit3: 'SSO/SAML',
                     benefit4: 'スマート経費ルール、日当、マルチレベル承認、カスタムレポート、予算管理',
                     headsUp: 'ご注意ください！',
@@ -7932,6 +7928,7 @@ ${reportName}`,
                 thenFlagForReview: '次の条件で確認フラグを付けます：',
             },
             agentRulesEmptyState: {title: 'エージェントルールが追加されていません', subtitle: 'ワークスペースのポリシーを自動化するルールを作成します。', cta: 'AIルールを追加'},
+            categoriesDisabledEmptyState: {title: 'カテゴリが有効になっていません', subtitle: 'カテゴリを有効にして、支出をより細かく管理しましょう。'},
         },
         planTypePage: {
             planTypes: {
@@ -9866,8 +9863,8 @@ ${reportName}`,
                 benefit1: 'Collect プランのすべての内容',
                 benefit2: '多段階承認ワークフロー',
                 benefit3: 'カスタム経費ルール',
-                benefit4: 'ERP連携（NetSuite、Sage Intacct、Oracle）',
-                benefit5: '人事統合（Workday、Certinia）',
+                benefit4: 'ERP連携（NetSuite、Sage Intacct、Oracle、Certinia）',
+                benefit5: '人事統合（Gusto、TriNet、Workday）',
                 benefit6: 'SAML/SSO',
                 benefit7: 'カスタム分析とレポート作成',
                 benefit8: '予算管理',
@@ -10152,6 +10149,15 @@ ${reportName}`,
             inviteBoss: '準備ができたら上司を招待しましょう',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: '管理者向けの新しいロールタイプ',
+                body: '新しいカード、メンバー、支払いの各管理者ロールで、チームにより細かな権限を付与できます。',
+                cta: '試してみる',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
         accountSwitcher: '<tooltip>他のアカウントにコパイロットとして入ることができるようになりました！</tooltip>',
@@ -10227,6 +10233,11 @@ ${reportName}`,
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        receiptsFailedBody: '領収書をダウンロードできませんでした。後でもう一度お試しください。',
+        noReceiptsTitle: 'ダウンロード可能な領収書がありません',
+        noReceiptsBody: 'このレポートの経費にはダウンロード可能な領収書がありません。',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${total}件中${count}件の領収書がエクスポートされました。自動的にダウンロードされなかった場合は、下のボタンを使用してください。`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
