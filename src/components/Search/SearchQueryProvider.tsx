@@ -1,5 +1,6 @@
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLoadSearchCategoryData from '@hooks/useLoadSearchCategoryData';
 import useOnyx from '@hooks/useOnyx';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
@@ -8,6 +9,7 @@ import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
@@ -24,32 +26,51 @@ type SearchQueryProviderProps = {
     children: React.ReactNode;
 };
 
-function selectSearchQueryParam(state: NavigationState | undefined) {
+/** Joins `q` and `rawQuery` so they can't drift apart: off the Search screen both read as `undefined`, and restoring
+ *  only `q` would drop `rawFilterList` from the query JSON while keeping the same hash. */
+function selectSearchQueryParams(state: NavigationState | undefined) {
     const focused = getDeepestFocusedScreen(state);
-    return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.q as string | undefined) : undefined;
+    if (focused?.name !== SCREENS.SEARCH.ROOT) {
+        return undefined;
+    }
+    const query = focused.params?.q;
+    if (typeof query !== 'string') {
+        return undefined;
+    }
+    const rawQuery = focused.params?.rawQuery;
+    return `${query}${CONST.SEARCH.QUERY_PARAMS_SEPARATOR}${typeof rawQuery === 'string' ? rawQuery : ''}`;
 }
 
-function selectSearchRawQueryParam(state: NavigationState | undefined) {
-    const focused = getDeepestFocusedScreen(state);
-    return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.rawQuery as string | undefined) : undefined;
+function splitSearchQueryParams(queryParams: string | undefined) {
+    if (queryParams === undefined) {
+        return {query: undefined, rawQuery: undefined};
+    }
+    const separatorIndex = queryParams.indexOf(CONST.SEARCH.QUERY_PARAMS_SEPARATOR);
+    if (separatorIndex === -1) {
+        return {query: queryParams, rawQuery: undefined};
+    }
+    const rawQuery = queryParams.slice(separatorIndex + CONST.SEARCH.QUERY_PARAMS_SEPARATOR.length);
+    return {query: queryParams.slice(0, separatorIndex), rawQuery: rawQuery || undefined};
 }
 
 function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const navigation = useNavigation();
     // Extract only the primitive values we need from the focused screen to avoid
     // re-renders from new object references returned by getDeepestFocusedScreen.
-    const queryParam = useRootNavigationState((state) => selectSearchQueryParam(state ?? navigation.getState()));
-    const rawQueryParam = useRootNavigationState((state) => selectSearchRawQueryParam(state ?? navigation.getState()));
-    const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
+    const queryParams = useRootNavigationState((state) => selectSearchQueryParams(state ?? navigation.getState()));
+    const {query: queryParam, rawQuery: rawQueryParam} = splitSearchQueryParams(usePreviousDefined(queryParams));
+    const definedQueryParam = queryParam ?? buildSearchQueryString();
     const currentSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
+    const shouldLoadCategoryData = currentSearchQueryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) ?? false;
+    useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 
-    const {defaultCardFeed} = useCardFeedsForDisplay();
+    const {defaultCardFeed, activeExpensifyCardFeedID} = useCardFeedsForDisplay();
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const defaultCardFeedID = defaultCardFeed?.id;
     // Only policy IDs are needed so Top Spenders matches the type menu hash; card feeds aren't used for that eligibility.
     const topSpendersPolicyIDs = useMemo(() => getSuggestedSearchesVisibility(email, {}, policies, undefined).topSpendersPolicyIDs, [email, policies]);
-    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID, undefined, topSpendersPolicyIDs);
+    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID, undefined, topSpendersPolicyIDs, activeExpensifyCardFeedID);
 
     const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;

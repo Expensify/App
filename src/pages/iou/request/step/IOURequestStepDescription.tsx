@@ -17,6 +17,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
@@ -65,7 +66,6 @@ function IOURequestStepDescription({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
@@ -155,7 +155,6 @@ function IOURequestStepDescription({
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
-                parentReportNextStep,
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
@@ -175,7 +174,7 @@ function IOURequestStepDescription({
 
     useDiscardChangesConfirmation({
         onCancel: () => {
-            inputRef.current?.focus();
+            focusComposerWithDelay(inputRef.current)(true);
         },
         getHasUnsavedChanges: () => {
             if (isSaved) {

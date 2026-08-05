@@ -77,7 +77,7 @@ function AvatarLeftElement({icon}: {icon: Icon}) {
         <View style={[styles.mentionSuggestionsAvatarContainer, styles.mr3]}>
             <Avatar
                 source={icon.source}
-                size={CONST.AVATAR_SIZE.SMALLER}
+                size={CONST.AVATAR_SIZE.X_SMALL}
                 name={icon.name}
                 avatarID={icon.id}
                 type={icon.type ?? CONST.ICON_TYPE_AVATAR}
