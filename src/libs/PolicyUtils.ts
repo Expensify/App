@@ -105,7 +105,7 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserL
  * These will be policies that has expense chat enabled.
  * These are policies that we can use to create reports with in NewDot.
  */
-function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, isSubmit2026BetaEnabled = false): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
         (policy): policy is Policy =>
             !!policy &&
@@ -113,19 +113,12 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             !!policy.name &&
             !!policy.id &&
             !!getPolicyRole(policy, currentUserLogin) &&
-            isPaidGroupPolicy(policy),
+            (isPaidGroupPolicy(policy) || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)),
     );
 }
 
 function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => isPerDiemEnabled(policy) && isControlPolicy(policy));
-}
-
-function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => {
-        const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-        return isPerDiemEnabled(policy) && isControlPolicy(policy) && !isEmptyObject(perDiemCustomUnit?.rates);
-    });
 }
 
 function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
@@ -657,6 +650,26 @@ function isPolicyMemberWithoutPendingDelete(currentUserLogin: string | undefined
     return !!policyEmployee && policyEmployee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+/**
+ * Resolve the email of the workspace's Authorized Payer (reimburser), matching the canonical resolution used across the app.
+ * Returns undefined when reimbursement is disabled or no payer can be resolved.
+ */
+function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
+    if (!policy) {
+        return undefined;
+    }
+
+    const isAutoReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const isManualReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+
+    // Reimbursement is disabled for this workspace.
+    if (!isAutoReimbursement && !isManualReimbursement) {
+        return undefined;
+    }
+
+    return policy.reimburser ?? policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
+}
+
 function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
     if (!policy) {
         return false;
@@ -671,7 +684,7 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
         return false;
     }
 
-    const reimburserEmail = policy.reimburser ?? policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
+    const reimburserEmail = getReimburserEmail(policy);
 
     // No designated reimburser means any workspace admin can pay.
     if (!reimburserEmail) {
@@ -691,6 +704,26 @@ function isPolicyApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
     return Object.values(policy?.employeeList ?? {}).some(
         (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
     );
+}
+
+/** Set of every approver login in the policy. Prefer over calling isPolicyApprover in a loop (scans employeeList once, not per candidate). */
+function getPolicyApproverLogins(policy: OnyxEntry<Policy>): Set<string> {
+    const approverLogins = new Set<string>();
+    if (policy?.approver) {
+        approverLogins.add(policy.approver);
+    }
+    for (const employee of Object.values(policy?.employeeList ?? {})) {
+        if (employee?.submitsTo) {
+            approverLogins.add(employee.submitsTo);
+        }
+        if (employee?.forwardsTo) {
+            approverLogins.add(employee.forwardsTo);
+        }
+        if (employee?.overLimitForwardsTo) {
+            approverLogins.add(employee.overLimitForwardsTo);
+        }
+    }
+    return approverLogins;
 }
 
 function getUberConnectionErrorDirectlyFromPolicy(policy: OnyxEntry<Policy>) {
@@ -1390,16 +1423,16 @@ function isAttendeeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
 /**
  * Whether the policy can access a feature based on plan level.
  * Corporate-only features are restricted to control (Corporate) policies.
+ * Rules are available on Control always, and on Collect only when the rulesRevamp beta is enabled.
  */
-function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
+function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, isRulesRevampEnabled = false): boolean {
     if (!isPaidGroupPolicy(policy)) {
         return false;
     }
-    const corporateOnlyFeatures = new Set<PolicyFeatureName>([
-        CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
-        CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
-        CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
-    ]);
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
+        return isControlPolicy(policy) || (isCollectPolicy(policy) && isRulesRevampEnabled);
+    }
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]);
     if (corporateOnlyFeatures.has(featureName)) {
         return isControlPolicy(policy);
     }
@@ -1408,6 +1441,23 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
 
 function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
+}
+
+/**
+ * Collect workspaces can access a limited subset of Rules features. When a Collect admin tries to
+ * access a Control-only Rules feature, navigate to the upgrade flow and return true.
+ *
+ * @param shouldReplace - Replace the current screen instead of pushing the upgrade page on top of it. Use this when
+ * the redirect happens from the Control-only page itself, so pressing Back doesn't land back on a page Collect
+ * can't use. Press handlers on a page Collect *can* use should keep the default push.
+ */
+function tryNavigateToControlPolicyUpgrade(policy: OnyxEntry<Policy>, upgradeFeatureAlias: string, backTo?: string, shouldReplace = false): boolean {
+    if (!policy?.id || isControlPolicy(policy) || !isCollectPolicy(policy)) {
+        return false;
+    }
+
+    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy.id, upgradeFeatureAlias, backTo ?? ROUTES.WORKSPACE_RULES.getRoute(policy.id)), {forceReplace: shouldReplace});
+    return true;
 }
 
 function isTaxTrackingEnabled(
@@ -1591,8 +1641,15 @@ function canEditTaxRate(policy: Policy, taxID: string): boolean {
     return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
-function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
-    if (!isControlPolicy(policy)) {
+/**
+ * @param isRulesRevampEnabled - Prefer `isBetaEnabled(CONST.BETAS.RULES_REVAMP)` from `usePermissions()`, not raw betas from Onyx.
+ * Collect workspaces can only access Rules when this beta is enabled.
+ */
+function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null, isRulesRevampEnabled = false): boolean {
+    if (!isPaidGroupPolicy(policy)) {
+        return false;
+    }
+    if (isCollectPolicy(policy) && !isRulesRevampEnabled) {
         return false;
     }
     if (policy?.areRulesEnabled === true) {
@@ -1601,13 +1658,16 @@ function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: Pol
     if (policy?.areRulesEnabled === false) {
         return false;
     }
-    // areRulesEnabled is undefined - this can happen in case of migrated old policies, in such case users might have set up category rules in Classic and we should show Rules as enabled
+    // areRulesEnabled is undefined - this can happen in case of migrated old Control policies, in such case users might have set up category rules in Classic and we should show Rules as enabled
+    if (!isControlPolicy(policy)) {
+        return false;
+    }
     return hasAnyCategoryRules(policyCategories ?? undefined);
 }
 
-function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null): boolean {
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null, isRulesRevampEnabled = false): boolean {
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
-        return arePolicyRulesEnabled(policy, policyCategories);
+        return arePolicyRulesEnabled(policy, policyCategories, isRulesRevampEnabled);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!policy?.tax?.trackingEnabled;
@@ -2922,6 +2982,7 @@ export {
     canPolicyAccessFeature,
     escapeTagName,
     getActivePolicies,
+    getActivePoliciesWithExpenseChat,
     getAdminEmployees,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -3002,6 +3063,7 @@ export {
     isPolicyOwner,
     isPolicyMember,
     isPolicyPayer,
+    getReimburserEmail,
     arePaymentsEnabled,
     isSubmitterAndApprover,
     isSubmitAndClose,
@@ -3109,7 +3171,6 @@ export {
     getTravelStep,
     isWorkspaceProvisionedForTravel,
     isNonUSDPolicy,
-    getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     isDefaultTagName,
     isTimeTrackingEnabled,
     getDefaultTimeTrackingRate,
@@ -3117,7 +3178,9 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
+    getPolicyApproverLogins,
     tryNavigateToSubmitWorkspaceUpgrade,
+    tryNavigateToControlPolicyUpgrade,
     canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
     isSubmitPolicy,
