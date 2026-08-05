@@ -25,6 +25,7 @@ import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import {getReportName} from '@src/libs/ReportNameUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -591,6 +592,36 @@ describe('MoneyRequestReportPreview', () => {
             // those actions; without them an arrow press cannot find the sibling's existing thread and mints a
             // duplicate thread with no parent instead.
             expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
+        });
+
+        it('does not let a deferred press hijack an explicit "View" of the report', async () => {
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+            // Cold cache: the press cannot resolve a thread, so it defers and nothing opens.
+            const getIOUActionSpy = jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            // The tap looked dead, so the user opens the report the other way. That is an explicit choice and must
+            // supersede the deferred press — otherwise the fetch landing yanks them into the expense.
+            navigateSpy.mockClear();
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.view')));
+            await waitForBatchedUpdatesWithAct();
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, ''));
+            // The app is now on the report, not the chat the press was made from. The suite pins getActiveRoute to a
+            // constant, so model the real navigation for the assertion below to mean anything.
+            jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID) as Route);
+
+            navigateSpy.mockClear();
+            getIOUActionSpy.mockImplementation(buildActionWithThread);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[`${mockAction.reportActionID}_late`]: mockAction});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(navigateSpy).not.toHaveBeenCalled();
         });
 
         it('does not let a deferred press hijack a later press once its fetch lands', async () => {
