@@ -40,6 +40,9 @@ const ONYXKEYS = {
     /** Boolean flag set whenever the sidebar has loaded */
     RAM_ONLY_IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
+    /** Whether a semantic modal is covering the product marketing window in this app instance */
+    RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED: 'isProductMarketingWindowCovered',
+
     /** Boolean flag set whenever we are searching for reports in the server */
     RAM_ONLY_IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
 
@@ -222,6 +225,9 @@ const ONYXKEYS = {
 
     /** This NVP contains the active policyID */
     NVP_ACTIVE_POLICY_ID: 'nvp_expensify_activePolicyID',
+
+    /** The stable key of the most recent product marketing update dismissed by the user */
+    NVP_LAST_DISMISSED_MARKETING_WINDOW: 'nvp_lastDismissedMarketingWindow',
 
     /** This NVP contains the referral banners the user dismissed */
     NVP_DISMISSED_REFERRAL_BANNERS: 'nvp_dismissedReferralBanners',
@@ -480,9 +486,6 @@ const ONYXKEYS = {
     /** Set while search filter category data is loading */
     RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA: 'isLoadingSearchFiltersCategoryData',
 
-    /** Set when OpenSearchPage has been fetched for the first time */
-    IS_SEARCH_PAGE_DATA_LOADED: 'isSearchPageDataLoaded',
-
     /** Is the app loaded? */
     HAS_LOADED_APP: 'hasLoadedApp',
 
@@ -699,6 +702,9 @@ const ONYXKEYS = {
 
     /** Stores the current search page context (e.g., whether to show the search query) */
     SEARCH_CONTEXT: 'searchContext',
+
+    /** Caches converted footer-total amounts (by transaction and by whole-search query, nested by currency) for the Search footer currency picker */
+    SEARCH_FOOTER_CONVERSION: 'searchFooterConversion',
 
     /** Maps each loaded search snapshot's hash to its original query string, used to fan optimistic IOU updates to every matching snapshot */
     SEARCH_QUERY_BY_HASH: 'searchQueryByHash',
@@ -1535,11 +1541,13 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
     [ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH]: boolean;
     [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
+    [ONYXKEYS.SEARCH_FOOTER_CONVERSION]: OnyxTypes.SearchFooterConversion;
     [ONYXKEYS.SEARCH_QUERY_BY_HASH]: Record<string, string>;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.AnyRequest[];
     [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.AnyRequest;
     [ONYXKEYS.CURRENT_DATE]: string;
@@ -1617,6 +1625,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PREFERRED_LOCALE]: OnyxTypes.Locale;
     [ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING]: boolean;
     [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: string;
+    [ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW]: string;
     [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
     [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
     [ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION]: OnyxTypes.PrivateSubscription;
@@ -1662,7 +1671,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA]: boolean;
     [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;
     [ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA]: boolean;
-    [ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
     [ONYXKEYS.ARE_AGENTS_LOADED]: boolean;
