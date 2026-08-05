@@ -22,6 +22,7 @@ type MockFlashListProps<T> = {
     keyExtractor?: (item: T, index: number) => string;
     ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
     ListEmptyComponent?: React.ComponentType | React.ReactElement | null;
+    ListEmptyComponentStyle?: React.ComponentProps<typeof View>['style'];
     ListFooterComponent?: React.ComponentType | React.ReactElement | null;
     ListFooterComponentStyle?: React.ComponentProps<typeof View>['style'];
     contentContainerStyle?: React.ComponentProps<typeof View>['style'];
@@ -161,6 +162,8 @@ jest.mock('@shopify/flash-list', () => {
             const data = props.data ?? [];
             const stickyHeaderIndex = props.stickyHeaderIndices?.at(0);
             const stickyHeaderItem = stickyHeaderIndex === undefined ? undefined : data.at(stickyHeaderIndex);
+            const emptyComponent = renderComponent(props.ListEmptyComponent);
+            const renderedEmptyComponent = props.ListEmptyComponentStyle ? <RNView style={props.ListEmptyComponentStyle}>{emptyComponent}</RNView> : emptyComponent;
 
             ReactLocal.useEffect(() => {
                 mockFlashListMount();
@@ -178,7 +181,7 @@ jest.mock('@shopify/flash-list', () => {
                 <RNView testID="flash-list">
                     {renderComponent(props.ListHeaderComponent)}
                     {data.length === 0
-                        ? renderComponent(props.ListEmptyComponent)
+                        ? renderedEmptyComponent
                         : data.map((item, index) => {
                               const key = props.keyExtractor?.(item, index) ?? String(index);
                               return (
@@ -718,11 +721,11 @@ describe('Table', () => {
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
             expect(screen.getAllByLabelText('Name').length).toBeGreaterThan(0);
             expect(screen.getByTestId('row-index-1').props.children).toBe(0);
-            expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeUndefined();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
+            expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeDefined();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
         });
 
-        it('should compose ListHeaderComponent and headerComponent as the first list row', () => {
+        it('should compose ListHeaderComponent and headerComponent as the persistent list header', () => {
             const props = createDefaultProps();
             const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
                 <View testID={`row-${item.id}`}>
@@ -748,13 +751,13 @@ describe('Table', () => {
             expect(screen.getByTestId('table-list-header-component')).toBeTruthy();
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
             expect(screen.getByTestId('row-index-1').props.children).toBe(0);
-            expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeUndefined();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
+            expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeDefined();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
 
             activateStickyHeadersAfterListLoad();
 
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
         });
 
         it('should keep page controls outside ARIA table semantics while owning virtualized rows', () => {
@@ -890,7 +893,7 @@ describe('Table', () => {
 
             activateStickyHeadersAfterListLoad();
             act(() => {
-                mockFlashListProps.at(-1)?.onChangeStickyIndex?.(1, -1);
+                mockFlashListProps.at(-1)?.onChangeStickyIndex?.(0, -1);
             });
 
             const allHeaders = getHostTableRows().filter((row) => row.props['aria-rowindex'] === 1);
@@ -971,8 +974,9 @@ describe('Table', () => {
                 </Table>
             );
 
-            // The synthetic page header is index 0, the column header is 1, and the first data row is 2.
-            mockFlashListMeasurementTargetIndexes = [0, 1, 2];
+            // The page controls and semantic owner live in FlashList's persistent header. Only the column header and
+            // data rows are virtualized, at indexes 0 and 1 respectively.
+            mockFlashListMeasurementTargetIndexes = [0, 1];
             const {rerender} = render(renderTable());
 
             const table = screen.getByLabelText('Members');
@@ -989,42 +993,15 @@ describe('Table', () => {
             expectNodeBefore(screen.getByTestId('table-header-component'), table);
             expectNodeBefore(table, firstOwnedRow);
             expect(ownedRowIDs).toEqual(visibleRows.map((row) => String(row.props.id)));
+            expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeDefined();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
 
-            const pageHeaderMeasurement = screen.getByTestId('flash-list-measurement-0');
-            expect(within(pageHeaderMeasurement).queryByTestId('table-header-component')).toBeNull();
-            expect(within(pageHeaderMeasurement).queryByTestId('search-input')).toBeNull();
-            expect(within(pageHeaderMeasurement).queryByRole(CONST.ROLE.TABLE)).toBeNull();
-            const pageHeaderMeasurementPlaceholder = within(pageHeaderMeasurement)
-                .UNSAFE_getAllByProps({
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    'aria-hidden': true,
-                })
-                .find((node) => typeof node.type === 'string');
-            if (!pageHeaderMeasurementPlaceholder) {
-                throw new Error('Expected an inert page-header measurement placeholder');
-            }
-
-            let pageHeaderWrapper = table.parent;
-            while (pageHeaderWrapper && typeof pageHeaderWrapper.props.onLayout !== 'function') {
-                pageHeaderWrapper = pageHeaderWrapper.parent;
-            }
-            if (!pageHeaderWrapper) {
-                throw new Error('Expected the real page header to expose its layout handler');
-            }
-            fireEvent(pageHeaderWrapper, 'layout', {nativeEvent: {layout: {height: 120, width: 800, x: 0, y: 0}}});
-            const updatedPageHeaderMeasurementPlaceholder = within(screen.getByTestId('flash-list-measurement-0'))
-                .UNSAFE_getAllByProps({
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    'aria-hidden': true,
-                })
-                .find((node) => typeof node.type === 'string');
-            if (!updatedPageHeaderMeasurementPlaceholder) {
-                throw new Error('Expected the page-header measurement placeholder to remain mounted');
-            }
-            expect(updatedPageHeaderMeasurementPlaceholder).toHaveStyle({height: 120});
-
-            const measurementHeader = getHostTableRowsWithin(screen.getByTestId('flash-list-measurement-1')).at(0);
-            const measurementDataRow = getHostTableRowsWithin(screen.getByTestId('flash-list-measurement-2')).at(0);
+            const virtualizedHeaderMeasurement = screen.getByTestId('flash-list-measurement-0');
+            expect(within(virtualizedHeaderMeasurement).queryByTestId('table-header-component')).toBeNull();
+            expect(within(virtualizedHeaderMeasurement).queryByTestId('search-input')).toBeNull();
+            expect(within(virtualizedHeaderMeasurement).queryByRole(CONST.ROLE.TABLE)).toBeNull();
+            const measurementHeader = getHostTableRowsWithin(screen.getByTestId('flash-list-measurement-0')).at(0);
+            const measurementDataRow = getHostTableRowsWithin(screen.getByTestId('flash-list-measurement-1')).at(0);
             if (!measurementHeader || !measurementDataRow) {
                 throw new Error('Expected FlashList measurement copies for the header and first data row');
             }
@@ -1036,7 +1013,7 @@ describe('Table', () => {
             expect(measurementDataRow.props.inert).toBe(true);
             expect(measurementDataRow.props.tabIndex).toBe(-1);
             expect(measurementDataRow.props.onPress).toBeUndefined();
-            expect(within(screen.getByTestId('flash-list-measurement-2')).UNSAFE_queryAllByProps({tabIndex: 0})).toHaveLength(0);
+            expect(within(screen.getByTestId('flash-list-measurement-1')).UNSAFE_queryAllByProps({tabIndex: 0})).toHaveLength(0);
             expect(
                 within(measurementHeader)
                     .UNSAFE_getAllByProps({accessibilityLabel: 'Name'})
@@ -1135,7 +1112,7 @@ describe('Table', () => {
 
             const {rerender} = render(renderTable(props.data));
             activateStickyHeadersAfterListLoad();
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
 
             rerender(renderTable([]));
             expect(screen.queryByTestId('flash-list')).toBeNull();
@@ -1149,7 +1126,7 @@ describe('Table', () => {
 
             rerender(renderTable(props.data));
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
             expect(animationFrameCallback).toBeUndefined();
 
             act(() => {
@@ -1165,7 +1142,7 @@ describe('Table', () => {
             });
             requestAnimationFrameSpy.mockRestore();
 
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
         });
 
         it('should temporarily remove the sticky table header while search has no results', () => {
@@ -1192,8 +1169,8 @@ describe('Table', () => {
             );
 
             activateStickyHeadersAfterListLoad();
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
 
             fireEvent.changeText(screen.getByTestId('search-input'), 'xyz123nonexistent');
 
@@ -1202,7 +1179,7 @@ describe('Table', () => {
             expect(screen.queryByRole(CONST.ROLE.TABLE)).toBeNull();
             expect(screen.queryByRole(CONST.ROLE.ROWGROUP)).toBeNull();
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(0);
 
             let animationFrameCallback: FrameRequestCallback | undefined;
             const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
@@ -1213,7 +1190,7 @@ describe('Table', () => {
             fireEvent.changeText(screen.getByTestId('search-input'), '');
 
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
 
             if (!animationFrameCallback) {
                 throw new Error('Expected sticky-header activation to be rescheduled when rows return');
@@ -1224,7 +1201,7 @@ describe('Table', () => {
             });
             requestAnimationFrameSpy.mockRestore();
 
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
         });
 
         it('should defer sticky table header activation again when the list remounts', () => {
@@ -1289,7 +1266,7 @@ describe('Table', () => {
             });
 
             expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
-                index: 2,
+                index: 1,
                 animated: false,
             });
         });
@@ -1311,7 +1288,7 @@ describe('Table', () => {
 
             const {rerender} = render(renderTable(true));
             activateStickyHeadersAfterListLoad();
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
 
             rerender(renderTable(false));
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
@@ -1334,10 +1311,10 @@ describe('Table', () => {
             });
             requestAnimationFrameSpy.mockRestore();
 
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
         });
 
-        it('should not add a page-header row when no page header is provided', () => {
+        it('should render only the synthetic table header when no page header is provided', () => {
             const props = createDefaultProps();
             const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
 
@@ -1376,7 +1353,7 @@ describe('Table', () => {
             });
         });
 
-        it('should offset scrollToIndex calls when synthetic header rows are present', () => {
+        it('should offset scrollToIndex calls for the synthetic table-header row', () => {
             const props = createDefaultProps();
             const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
 
@@ -1404,7 +1381,7 @@ describe('Table', () => {
             });
 
             expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
-                index: 2,
+                index: 1,
                 animated: false,
             });
         });
@@ -1633,7 +1610,14 @@ describe('Table', () => {
             expect(within(flashList).getByTestId('search-input').props.value).toBe('no-match-search');
             expect(within(flashList).getByTestId('search-input').props.nativeID).toBe(searchInputNativeID);
             expect(tableRef.current?.getActiveSearchString()).toBe('no-match-search');
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(0);
+            expect(StyleSheet.flatten(mockFlashListProps.at(-1)?.ListEmptyComponentStyle)).toEqual(
+                expect.objectContaining({
+                    flexGrow: 1,
+                    justifyContent: 'center',
+                }),
+            );
+            expect(StyleSheet.flatten(mockFlashListProps.at(-1)?.contentContainerStyle)).toEqual(expect.objectContaining({flexGrow: 1}));
             expect(mockFlashListProps.at(-1)?.onEndReached).toBeUndefined();
             expect(mockFlashListProps.at(-1)?.onStartReached).toBeUndefined();
             expect(mockFlashListProps.at(-1)?.onViewableItemsChanged).toBeUndefined();
@@ -1656,7 +1640,7 @@ describe('Table', () => {
             expect(screen.queryByTestId('generic-empty-state')).toBeNull();
             expect(screen.getByTestId('search-input').props.nativeID).toBe(searchInputNativeID);
             expect(tableRef.current?.getActiveSearchString()).toBe('');
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
             expect(mockFlashListProps.at(-1)?.onEndReached).toBe(onEndReached);
             expect(mockFlashListProps.at(-1)?.onStartReached).toBe(onStartReached);
             expect(mockFlashListProps.at(-1)?.onViewableItemsChanged).toBe(onViewableItemsChanged);
@@ -1758,7 +1742,12 @@ describe('Table', () => {
                     paddingBottom: 12,
                 }),
             );
-            expect(mockFlashListProps.at(-1)?.ListFooterComponentStyle).toBeUndefined();
+            expect(StyleSheet.flatten(mockFlashListProps.at(-1)?.ListFooterComponentStyle)).toEqual(
+                expect.objectContaining({
+                    flexGrow: 0,
+                    justifyContent: listFooterComponentStyle.justifyContent,
+                }),
+            );
             const footerAncestorStyles: unknown[] = [];
             let footerAncestor = screen.getByTestId('list-footer').parent;
             while (footerAncestor) {

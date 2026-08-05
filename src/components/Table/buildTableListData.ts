@@ -2,10 +2,9 @@ import type React from 'react';
 
 import type {SharedListProps, TableData, TableRow} from './types';
 
-const PAGE_HEADER_KEY = '__table_page_header__';
 const TABLE_HEADER_KEY = '__table_header__';
 
-type SyntheticRowKind = 'pageHeader' | 'tableHeader' | 'data';
+type SyntheticRowKind = 'tableHeader' | 'data';
 
 type TableListMetadata = {
     hasPageHeader: boolean;
@@ -30,14 +29,14 @@ function getTableListMetadata<DataType extends TableData>({
     shouldRenderStickyHeader,
 }: TableListMetadataParams<DataType>): TableListMetadata {
     const hasPageHeader = !!listHeaderComponent || !!headerComponent;
-    const syntheticRowsBeforeData = (hasPageHeader ? 1 : 0) + (shouldRenderStickyHeader ? 1 : 0);
+    const syntheticRowsBeforeData = shouldRenderStickyHeader ? 1 : 0;
 
     return {
         hasPageHeader,
         shouldRenderStickyHeader,
         isEmptyResult,
         syntheticRowsBeforeData,
-        stickyTableHeaderIndex: hasPageHeader ? 1 : 0,
+        stickyTableHeaderIndex: 0,
         listDataRowOffset: syntheticRowsBeforeData,
     };
 }
@@ -49,18 +48,10 @@ function createSyntheticRow<DataType extends TableData>(keyForList: string): Dat
 }
 
 function buildTableListData<DataType extends TableData>(data: Array<TableRow<DataType>>, metadata: TableListMetadata): DataType[] {
-    return [
-        ...(metadata.hasPageHeader ? [createSyntheticRow<DataType>(PAGE_HEADER_KEY)] : []),
-        ...(metadata.shouldRenderStickyHeader ? [createSyntheticRow<DataType>(TABLE_HEADER_KEY)] : []),
-        ...data,
-    ];
+    return [...(metadata.shouldRenderStickyHeader ? [createSyntheticRow<DataType>(TABLE_HEADER_KEY)] : []), ...data];
 }
 
 function getSyntheticRowKind(index: number, metadata: TableListMetadata): SyntheticRowKind {
-    if (metadata.hasPageHeader && index === 0) {
-        return 'pageHeader';
-    }
-
     if (metadata.shouldRenderStickyHeader && index === metadata.stickyTableHeaderIndex) {
         return 'tableHeader';
     }
@@ -77,7 +68,7 @@ function getAdjustedStickyHeaderIndices(metadata: TableListMetadata, stickyHeade
         return [metadata.stickyTableHeaderIndex];
     }
 
-    return stickyHeaderIndices?.map((index) => index + (metadata.hasPageHeader ? 1 : 0));
+    return stickyHeaderIndices;
 }
 
 export {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getSyntheticRowKind, getTableListMetadata};
