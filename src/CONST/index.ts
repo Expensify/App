@@ -2260,15 +2260,8 @@ const CONST = {
         ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_JSON_CODE: 'json_code',
-        /** The update ID a reconnect request asked to catch up from. Absent on a full ReconnectApp, which refetches everything. */
         ATTRIBUTE_UPDATE_ID_FROM: 'update_id_from',
-        /**
-         * The update ID a GetMissingOnyxMessages request asked to catch up to. Pairs with `update_id_from` to separate a
-         * client that falls behind a busy server, where this keeps rising, from a client stuck on a range the server
-         * will not serve, where both hold still. ReconnectApp has no such target.
-         */
         ATTRIBUTE_UPDATE_ID_TO: 'update_id_to',
-        /** Whether a reconnect response carried a newer update ceiling than the request asked from. False is the stall loop. */
         ATTRIBUTE_RESPONSE_ADVANCED: 'response_advanced',
         ATTRIBUTE_COLD_START: 'cold_start',
         ATTRIBUTE_TRIGGER: 'trigger',
