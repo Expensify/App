@@ -3497,7 +3497,7 @@ const CONST = {
         EXPORTER: 'exporter',
         EXPORT_DATE: 'exportDate',
         REIMBURSABLE: 'reimbursable',
-        COMPANY_CARD: 'companyCard',
+        NON_REIMBURSABLE: 'nonReimbursable',
         DEFAULT_VENDORID: 'defaultVendorID',
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',

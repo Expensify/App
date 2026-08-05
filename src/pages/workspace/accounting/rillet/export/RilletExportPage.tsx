@@ -97,13 +97,13 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                 />
             </OfflineWithFeedback>
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
-            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.COMPANY_CARD], rilletConfig?.pendingFields)}>
+            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.NON_REIMBURSABLE], rilletConfig?.pendingFields)}>
                 <MenuItemWithTopDescription
                     title={translate(`workspace.rillet.exportNonReimbursable.values.${exportNonReimbursable}.label`)}
                     description={translate('workspace.rillet.exportNonReimbursable.label')}
                     onPress={() => {}}
                     interactive={false}
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.COMPANY_CARD], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.NON_REIMBURSABLE], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.DEFAULT_VENDORID], rilletConfig?.pendingFields)}>
