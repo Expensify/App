@@ -53,6 +53,13 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
             return undefined;
         }
 
+        // On Spend > Expenses (EXPENSE search) the selected transactions can span multiple reports,
+        // so contextReportID doesn't correspond to them. Send selectedReportIDs (+ selectedTransactionIDs)
+        // instead of an invalid reportID.
+        if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && selectedReportIDsForContext) {
+            return {selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
+        }
+
         return {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
     }, [conciergeReportID, reportID, isInSidePanel, currentSearchQueryJSON?.type, currentRHPReportID, currentReportID, selectedTransactionIDs, selectedTransactions, selectedReports]);
 }
