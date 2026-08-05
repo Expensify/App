@@ -19,7 +19,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 // Capture the inner focus function so we can assert the exact args the component invokes it with.
 const mockFocusFn = jest.fn();
-const mockFocusComposerFactory = jest.fn(() => mockFocusFn);
+const mockFocusComposerFactory = jest.fn((..._factoryArgs: unknown[]) => mockFocusFn);
 jest.mock('@libs/focusComposerWithDelay', () => ({
     __esModule: true,
     default: (...factoryArgs: unknown[]) => mockFocusComposerFactory(...factoryArgs),
@@ -83,8 +83,6 @@ describe('IOURequestStepDescription - discard modal onCancel', () => {
             <IOURequestStepDescription
                 route={ROUTE}
                 navigation={NAVIGATION}
-                transaction={undefined}
-                report={undefined}
             />,
         );
         // Let the component's useOnyx subscriptions settle so their updates don't fire outside act().
