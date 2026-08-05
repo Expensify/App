@@ -699,7 +699,6 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     delegateAccountID: undefined,
                     isASAPSubmitBetaEnabled: false,
                     policyRecentlyUsedCurrencies: [],
-                    parentReportNextStep: undefined,
                     isTrackIntentUser: false,
                 });
             }
