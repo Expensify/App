@@ -2314,19 +2314,6 @@ describe('ReportUtils', () => {
                 // Should generate name from participants instead
                 expect(reportName).toBe('Ragnar Lothbrok');
             });
-
-            test('should not resolve the Concierge name from the deprecated Onyx-connected value when the parameter is undefined', () => {
-                // conciergeReportID is already set in beforeAll to 'concierge-123', but only the threaded parameter counts now
-                const report: Report = {
-                    reportID: conciergeReportID,
-                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
-                };
-
-                const reportName = computeReportName(report, undefined, undefined, undefined, undefined, participantsPersonalDetails);
-                expect(reportName).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
-                // The name is generated from the participants instead
-                expect(reportName).toBe('Ragnar Lothbrok');
-            });
         });
 
         describe('Money Request', () => {
@@ -7632,24 +7619,8 @@ describe('ReportUtils', () => {
             const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
-            // The deprecated Onyx-connected value alone must not mark the chat as the concierge chat anymore
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
             await waitForBatchedUpdates();
-
-            expect(
-                reasonForReportToBeInOptionList({
-                    report,
-                    chatReport: mockedChatReport,
-                    currentReportId,
-                    isInFocusMode,
-                    betas,
-                    doesReportHaveViolations: false,
-                    excludeEmptyChats: true,
-                    draftComment: '',
-                    isReportArchived: undefined,
-                    conciergeReportID: undefined,
-                }),
-            ).not.toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
 
             // Threading the conciergeReportID is what keeps the empty concierge chat visible
             expect(
@@ -16727,19 +16698,6 @@ describe('ReportUtils', () => {
             const report = LHNTestUtils.getFakeReport();
             expect(isConciergeChatReport(report, '')).toBe(false);
         });
-
-        it('should not fall back to the deprecated Onyx CONCIERGE_REPORT_ID when no conciergeReportID is threaded', async () => {
-            const report = LHNTestUtils.getFakeReport();
-            // Populate the deprecated module-level Onyx.connect value with a matching ID.
-            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, report.reportID);
-            await waitForBatchedUpdates();
-
-            // The threaded parameter is the only source of truth now, so an undefined value must not match.
-            expect(isConciergeChatReport(report, undefined)).toBe(false);
-            expect(isConciergeChatReport(report, report.reportID)).toBe(true);
-
-            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, null);
-        });
     });
 
     describe('isPolicyRelatedReport', () => {
@@ -20143,20 +20101,6 @@ describe('ReportUtils', () => {
             const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
             const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal);
             expect(result).toBe('Custom Action Name');
-        });
-
-        it('should not fall back to the deprecated Onyx-connected conciergeReportID when the parameter is undefined', async () => {
-            const conciergeReport: Report = {
-                reportID: conciergeReportID,
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, conciergeReport);
-            await waitForBatchedUpdates();
-
-            const action = {...createRandomReportAction(4)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, translateLocal);
-            expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
         it('should compute the invoice report name through the provided translate function', () => {
