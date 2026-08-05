@@ -743,7 +743,8 @@ function computeReportNameBasedOnReportAction(
                 return getElsewherePaymentReportActionMessage(translate, originalMessage);
             }
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-                const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits);
+                // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+                const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
                 if (crossBorderMessage) {
                     return crossBorderMessage;
                 }
