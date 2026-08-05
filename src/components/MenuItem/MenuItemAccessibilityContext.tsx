@@ -1,6 +1,6 @@
 import type {TupleToUnion} from 'type-fest';
 
-import {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {createContext, useContext, useEffect, useState} from 'react';
 
 /** The label slots a `MenuItem` row can contribute, in the order they are announced */
 const MENU_ITEM_LABEL_SLOTS = ['title', 'description'] as const;
@@ -43,7 +43,7 @@ function useMenuItemAccessibilityLabel(slot: MenuItemLabelSlot, text: string | u
 function useLabelSlotRegistry() {
     const [entries, setEntries] = useState<Map<MenuItemLabelSlot, string>>(() => new Map());
 
-    const register = useCallback((slot: MenuItemLabelSlot, value: string) => {
+    const register = (slot: MenuItemLabelSlot, value: string) => {
         setEntries((prev) => {
             if (prev.get(slot) === value) {
                 return prev;
@@ -52,9 +52,9 @@ function useLabelSlotRegistry() {
             next.set(slot, value);
             return next;
         });
-    }, []);
+    };
 
-    const unregister = useCallback((slot: MenuItemLabelSlot) => {
+    const unregister = (slot: MenuItemLabelSlot) => {
         setEntries((prev) => {
             if (!prev.has(slot)) {
                 return prev;
@@ -63,7 +63,7 @@ function useLabelSlotRegistry() {
             next.delete(slot);
             return next;
         });
-    }, []);
+    };
 
     return {entries, register, unregister};
 }
@@ -76,7 +76,7 @@ function useMenuItemAccessibility() {
     // Text contributed by Title/Description children, keyed by fixed slot
     const {entries: labels, register: registerLabel, unregister: unregisterLabel} = useLabelSlotRegistry();
 
-    const accessibilityActions: MenuItemAccessibilityActions = useMemo(() => ({registerLabel, unregisterLabel}), [registerLabel, unregisterLabel]);
+    const accessibilityActions: MenuItemAccessibilityActions = {registerLabel, unregisterLabel};
 
     const accessibilityLabel = MENU_ITEM_LABEL_SLOTS.map((slot) => labels.get(slot))
         .filter(Boolean)
