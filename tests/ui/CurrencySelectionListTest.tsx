@@ -88,7 +88,7 @@ describe('CurrencySelectionList', () => {
 
         // The selection moves to EUR, but the pinned row stays frozen to the currency that was selected on open.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only props stub
-        const nextProps = {onSelect: jest.fn(), initiallySelectedCurrencyCode: 'EUR'} as React.ComponentProps<typeof CurrencySelectionList>;
+        const nextProps = {onSelect: jest.fn(), initiallySelectedCurrencyCode: 'EUR'} as unknown as React.ComponentProps<typeof CurrencySelectionList>;
         rerender(<CurrencySelectionList {...nextProps} />);
 
         expect(pinnedCurrencyCodes()).toEqual(['USD']);
