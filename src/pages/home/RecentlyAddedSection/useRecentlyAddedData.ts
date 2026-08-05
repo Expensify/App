@@ -52,8 +52,10 @@ type RecentlyAddedExpense = {
 };
 
 /** Selecting inside the subscription scans the (very large) collection once per update rather than once per render. */
-const pendingAddTransactionsSelector = (transactions: OnyxCollection<Transaction>): Transaction[] =>
-    Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+const pendingAddTransactionIDsSelector = (transactions: OnyxCollection<Transaction>): string[] =>
+    Object.values(transactions ?? {})
+        .filter((transaction): transaction is Transaction => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+        .map((transaction) => transaction.transactionID);
 
 const getLocalTransaction = (localTransactions: OnyxCollection<Transaction>, transactionID: string) => localTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
@@ -93,7 +95,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
     // Read by key only, never iterated: the collection holds tens of thousands of entries.
     const [localTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [pendingAddTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: pendingAddTransactionsSelector});
+    const [pendingAddTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: pendingAddTransactionIDsSelector});
 
     // Holding a just-created expense here keeps it in the slot after `pendingAction` clears on sync but before the
     // refreshed snapshot arrives (otherwise it briefly disappears and reappears).
@@ -165,11 +167,10 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
         // Merge in locally-pending expenses, skipping any already in the snapshot so a row never appears twice.
         // A local optimistic ADD always belongs to the current user, so no ownership check is needed (unlike the snapshot path).
         const snapshotTransactionIDs = new Set(snapshotTransactions.map((transaction) => transaction.transactionID));
-        const pendingAddIDs = (pendingAddTransactions ?? []).map((transaction) => transaction.transactionID);
-        const nextUnconfirmed = new Set([...unconfirmedTransactionIDs, ...pendingAddIDs].filter((transactionID) => !snapshotTransactionIDs.has(transactionID)));
+        const nextUnconfirmed = new Set([...unconfirmedTransactionIDs, ...(pendingAddTransactionIDs ?? [])].filter((transactionID) => !snapshotTransactionIDs.has(transactionID)));
         const combined = [
             ...filtered,
-            // Resolved by key, not from `pendingAddTransactions`: an ID held over from `unconfirmedTransactionIDs` may
+            // Resolved by key, not from `pendingAddTransactionIDs`: an ID held over from `unconfirmedTransactionIDs` may
             // have had its `pendingAction` cleared by a sync.
             ...[...nextUnconfirmed]
                 .map((transactionID) => getLocalTransaction(localTransactions, transactionID))
@@ -222,7 +223,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             });
 
         return {transactions: transactionsList, nextUnconfirmedTransactionIDs: nextUnconfirmed};
-    }, [snapshotData, unconfirmedTransactionIDs, accountID, localTransactions, pendingAddTransactions, translate]);
+    }, [snapshotData, unconfirmedTransactionIDs, accountID, localTransactions, pendingAddTransactionIDs, translate]);
 
     const hasSameUnconfirmedIDs =
         nextUnconfirmedTransactionIDs.size === unconfirmedTransactionIDs.size && [...nextUnconfirmedTransactionIDs].every((id) => unconfirmedTransactionIDs.has(id));
