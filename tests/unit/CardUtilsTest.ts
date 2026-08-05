@@ -4678,6 +4678,7 @@ describe('getCardConnectionStatusDisplay', () => {
             actionKey: undefined,
             shouldUsePersonalCardFix: false,
             shouldUseCompanyCardsLink: false,
+            shouldUseReauthMessage: false,
         });
     });
 
@@ -4689,6 +4690,7 @@ describe('getCardConnectionStatusDisplay', () => {
             actionKey: 'common.actionBadge.fix',
             shouldUsePersonalCardFix: true,
             shouldUseCompanyCardsLink: false,
+            shouldUseReauthMessage: false,
         });
     });
 
@@ -4700,6 +4702,7 @@ describe('getCardConnectionStatusDisplay', () => {
             actionKey: undefined,
             shouldUsePersonalCardFix: false,
             shouldUseCompanyCardsLink: true,
+            shouldUseReauthMessage: false,
         });
     });
 
@@ -4711,6 +4714,7 @@ describe('getCardConnectionStatusDisplay', () => {
             actionKey: undefined,
             shouldUsePersonalCardFix: false,
             shouldUseCompanyCardsLink: false,
+            shouldUseReauthMessage: false,
         });
     });
 
@@ -4722,6 +4726,31 @@ describe('getCardConnectionStatusDisplay', () => {
             actionKey: undefined,
             shouldUsePersonalCardFix: false,
             shouldUseCompanyCardsLink: false,
+            shouldUseReauthMessage: false,
+        });
+    });
+
+    it('returns the reconnect-bank message for a broken card that needs re-auth', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardBroken: true, isCardNeedsReauth: true})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'danger',
+            messageKey: 'walletPage.cardStatus.reconnectBank',
+            actionKey: undefined,
+            shouldUsePersonalCardFix: false,
+            shouldUseCompanyCardsLink: false,
+            shouldUseReauthMessage: true,
+        });
+    });
+
+    it('prefers the company-cards link over the reconnect-bank message for an admin', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardBroken: true, isCardNeedsReauth: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'danger',
+            messageKey: 'walletPage.cardStatus.fixConnectionIn',
+            actionKey: undefined,
+            shouldUsePersonalCardFix: false,
+            shouldUseCompanyCardsLink: true,
+            shouldUseReauthMessage: false,
         });
     });
 });

@@ -2672,6 +2672,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnection: 'Παρακαλούμε διορθώστε αυτήν τη σύνδεση',
             fixConnectionIn: (companyCardsRoute: string) => `Παρακαλούμε διορθώστε αυτήν τη σύνδεση στις <a href="${companyCardsRoute}">εταιρικές κάρτες</a>`,
             askAdminToFixConnection: 'Παρακαλούμε ζητήστε από έναν διαχειριστή να διορθώσει αυτήν τη σύνδεση',
+            reconnectBank: 'Παρακαλούμε επανασυνδέστε την τράπεζά σας',
         },
         bankAccountStatus: {
             active: 'Ενεργό',
