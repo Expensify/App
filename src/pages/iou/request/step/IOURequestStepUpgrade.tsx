@@ -50,13 +50,13 @@ import type {PersonalDetails, Transaction} from '@src/types/onyx';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 
-type DynamicIOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE>;
+type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE>;
 
-function DynamicIOURequestStepUpgrade({
+function IOURequestStepUpgrade({
     route: {
-        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, iouType, upgradeBackTo},
+        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, iouType, backTo},
     },
-}: DynamicIOURequestStepUpgradeProps) {
+}: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
 
     const {translate} = useLocalize();
@@ -234,7 +234,7 @@ function DynamicIOURequestStepUpgrade({
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
                 Navigation.goBack();
-                navigateWithMicrotask(upgradeBackTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                navigateWithMicrotask(backTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
 
                 break;
             default:
@@ -242,7 +242,7 @@ function DynamicIOURequestStepUpgrade({
         }
     }, [
         action,
-        upgradeBackTo,
+        backTo,
         navigateWithMicrotask,
         reportID,
         shouldSubmitExpense,
@@ -408,4 +408,4 @@ function DynamicIOURequestStepUpgrade({
     );
 }
 
-export default DynamicIOURequestStepUpgrade;
+export default IOURequestStepUpgrade;
