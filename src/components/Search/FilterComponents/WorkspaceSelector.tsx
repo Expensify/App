@@ -32,7 +32,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import React from 'react';
-import {View} from 'react-native';
+import {Pressable, View} from 'react-native';
 
 import type {MultiSelectItem} from './MultiSelect';
 
@@ -83,15 +83,20 @@ function SectionHeader({
             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, styles.ph5]}>
                 <Text style={[styles.textLabelSupporting]}>{title}</Text>
             </View>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv2]}>
-                <Text style={[styles.textNormal]}>{selectAllLabel}</Text>
+            <Pressable
+                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv2]}
+                onPress={toggleSection}
+                accessibilityRole={CONST.ROLE.BUTTON}
+                accessibilityLabel={`${selectAllLabel} ${title}`}
+            >
+                <Text style={[styles.textStrong]}>{selectAllLabel}</Text>
                 <Checkbox
                     isChecked={isAllSelected}
                     isIndeterminate={isIndeterminate}
                     onPress={toggleSection}
                     accessibilityLabel={`${selectAllLabel} ${title}`}
                 />
-            </View>
+            </Pressable>
         </View>
     );
 }
