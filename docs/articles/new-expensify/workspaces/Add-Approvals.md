@@ -75,7 +75,7 @@ You can update or remove approval workflows at any time as your team or process 
 3. Select a new member or deselect one to remove them.
 4. Click **Save**.
 
-**Note:** When you change an approver in a workflow, any reports currently pending approval with the previous approver are automatically reassigned to the new approver. A system message will appear in the report confirming the reassignment. Reports are also reassigned when you remove an approver from the workspace or shorten an approval chain. Some reports are intentionally excluded — see the FAQ below for the full list of triggers and exclusions.
+**Note:** When you change an approver in a workflow, any Outstanding reports assigned to the approver you replaced are reassigned to the new approver. A system message appears in the report confirming the reassignment. Reports are also reassigned when you remove an approver from the workspace or shorten an approval chain. Some reports are intentionally excluded — see the FAQ below for the full list of triggers and exclusions.
 
 ## Delete a Workflow
 
@@ -151,7 +151,7 @@ You’ll need to be on the Control plan, as this feature isn’t available on Co
 
 ## What happens to pending reports when I change an approver?
 
-Any reports currently awaiting approval from the previous approver are automatically reassigned to the correct new approver, with no prompt or confirmation required. A system message appears in each report indicating the approver was reassigned. This applies to reports that are already in the approval process, not just new reports, and it happens in these situations:
+Outstanding reports are automatically reassigned to the new approver, with no prompt or confirmation required. A system message appears in each report indicating the approver was reassigned. This applies to reports that are already in the approval process, not just new reports, and it happens in these situations:
 
 - **You change an approver in a workflow:** reports pending with the previous approver move to the new approver.
 - **You remove an approver from the workspace:** if you remove a member who is an approver on pending reports, those reports are reassigned to the **workspace owner**.
