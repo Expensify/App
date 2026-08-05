@@ -1,4 +1,4 @@
-import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
+import Button from '@components/ButtonComposed';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import FollowupListSkeleton from '@components/ReportActionItem/FollowupListSkeleton';
 
@@ -17,7 +17,8 @@ import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
-import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
+import type {Followup} from '@libs/ReportActionFollowupUtils';
+import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     getOriginalMessage,
     getReportActionMessage,
@@ -28,7 +29,6 @@ import {
     isResolvedConciergeCategoryOptions,
     isResolvedConciergeDescriptionOptions,
 } from '@libs/ReportActionsUtils';
-import type {CreateDraftTransactionParams} from '@libs/ReportUtils';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
@@ -48,113 +48,119 @@ import {createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
 
-type ChatActionableButtonsProps = {
-    action: OnyxTypes.ReportAction;
-    originalReportID: string | undefined;
-    reportID: string | undefined;
-    hasPendingFollowupListSkeleton: boolean;
-};
-
 type ConciergeOptionsActionName = typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS | typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS;
 
-type ConciergeOptionsAction = OnyxTypes.ReportAction<ConciergeOptionsActionName>;
-
-type ConciergeOptionsCheck = (action: OnyxEntry<OnyxTypes.ReportAction>) => action is ConciergeOptionsAction;
-
-type ConciergeOptionsResolutionCheck = typeof isResolvedConciergeCategoryOptions;
-
-type ConciergeOptionsResolver = typeof resolveConciergeCategoryOptions;
-
-function ChatActionableButtons({action, originalReportID, reportID, hasPendingFollowupListSkeleton}: ChatActionableButtonsProps) {
-    const styles = useThemeStyles();
+/** Sends the user to the subscription page to add a payment card. */
+function AddPaymentCardButton() {
     const {translate} = useLocalize();
-    const lastWorkspaceNumber = useLastWorkspaceNumber();
-    const actionOwnerReportID = originalReportID ?? reportID;
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReportID)}`);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
-    const actionOwnerReport = originalReport ?? report;
-    const personalDetail = useCurrentUserPersonalDetails();
-    const {isBetaEnabled} = usePermissions();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
-    const activePolicy = useActivePolicy();
-
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: validTransactionDraftIDsSelector,
-    });
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(personalDetail.email)});
-    const filteredPoliciesCount = filteredPoliciesInfo?.filteredPoliciesCount ?? 0;
-    const firstPolicyID = filteredPoliciesInfo?.firstPolicyID;
-    const trackExpenseTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
-    const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(trackExpenseTransactionID)}`);
-    const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasWorkspaceToSubmitToSelector(personalDetail.login, isSubmit2026BetaEnabled)});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const delegateAccountID = useDelegateAccountID();
 
-    /**
-     * @returns `undefined` when the action is not of the handled Concierge options type, so the caller can keep looking for other actionable items
-     */
-    function getConciergeOptionButtons(
-        isConciergeOptions: ConciergeOptionsCheck,
-        isResolved: ConciergeOptionsResolutionCheck,
-        resolve: ConciergeOptionsResolver,
-    ): ActionableItem[] | undefined {
-        if (!isConciergeOptions(action)) {
-            return undefined;
-        }
-
-        const options = getOriginalMessage<ConciergeOptionsActionName>(action)?.options;
-        if (!options || isResolved(action) || !actionOwnerReport) {
-            return [];
-        }
-
-        return options.map((option, i) => ({
-            text: `${i + 1} - ${option}`,
-            key: `${action.reportActionID}-conciergeOptions-${option}`,
-            onPress: () => {
-                resolve(actionOwnerReport, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, personalDetail.accountID, delegateAccountID);
-            },
-        }));
+    if (doesUserHavePaymentCardAdded(userBillingFundID) || !shouldRenderAddPaymentCard()) {
+        return null;
     }
 
-    const actionableItemButtons = ((): ActionableItem[] => {
-        if (isActionableAddPaymentCard(action) && !doesUserHavePaymentCardAdded(userBillingFundID) && shouldRenderAddPaymentCard()) {
-            return [
-                {
-                    text: 'subscription.cardSection.addCardButton',
-                    key: `${action.reportActionID}-actionableAddPaymentCard-submit`,
-                    onPress: () => {
-                        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
-                    },
-                    isPrimary: true,
-                },
-            ];
-        }
+    return (
+        <ActionableItemButtons layout="horizontal">
+            <Button
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                onPress={() => {
+                    Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                }}
+            >
+                <Button.Text>{translate('subscription.cardSection.addCardButton')}</Button.Text>
+            </Button>
+        </ActionableItemButtons>
+    );
+}
 
-        const conciergeCategoryOptionButtons = getConciergeOptionButtons(isConciergeCategoryOptions, isResolvedConciergeCategoryOptions, resolveConciergeCategoryOptions);
-        if (conciergeCategoryOptionButtons) {
-            return conciergeCategoryOptionButtons;
-        }
+type ConciergeOptionsButtonsProps = {
+    /** All the data of the action item */
+    action: OnyxTypes.ReportAction<ConciergeOptionsActionName>;
 
-        const conciergeDescriptionOptionButtons = getConciergeOptionButtons(isConciergeDescriptionOptions, isResolvedConciergeDescriptionOptions, resolveConciergeDescriptionOptions);
-        if (conciergeDescriptionOptionButtons) {
-            return conciergeDescriptionOptionButtons;
-        }
+    /** Report that owns this action for mutations (thread / merged-list cases use the original report) */
+    actionOwnerReport: OnyxEntry<OnyxTypes.Report>;
 
-        const messageHtml = getReportActionMessage(action)?.html;
-        if (messageHtml && actionOwnerReport) {
-            const followups = parseFollowupsFromHtml(messageHtml);
-            if (followups && followups.length > 0) {
-                return followups.map((followup) => ({
-                    text: followup.text,
-                    shouldUseLocalization: false,
-                    key: `${action.reportActionID}-followup-${followup.text}`,
-                    onPress: () => {
+    /** ID of the report the resolution is announced in */
+    reportID: string | undefined;
+};
+
+/** The category or description options Concierge offers, one button per option. */
+function ConciergeOptionsButtons({action, actionOwnerReport, reportID}: ConciergeOptionsButtonsProps) {
+    const styles = useThemeStyles();
+    const personalDetail = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
+
+    const isCategoryOptions = isConciergeCategoryOptions(action);
+    const isResolved = isCategoryOptions ? isResolvedConciergeCategoryOptions(action) : isResolvedConciergeDescriptionOptions(action);
+    const resolveOptions = isCategoryOptions ? resolveConciergeCategoryOptions : resolveConciergeDescriptionOptions;
+
+    const options = getOriginalMessage<ConciergeOptionsActionName>(action)?.options;
+    if (!options?.length || isResolved || !actionOwnerReport) {
+        return null;
+    }
+
+    return (
+        <ActionableItemButtons
+            layout="vertical"
+            style={styles.mt4}
+        >
+            {options.map((option, index) => (
+                <Button
+                    key={`${action.reportActionID}-conciergeOptions-${option}`}
+                    innerStyles={styles.actionableItemButton}
+                    onPress={() => {
+                        resolveOptions(
+                            actionOwnerReport,
+                            reportID,
+                            action.reportActionID,
+                            option,
+                            personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                            personalDetail.accountID,
+                            delegateAccountID,
+                        );
+                    }}
+                >
+                    <Button.Text
+                        numberOfLines={3}
+                        style={styles.actionableItemButtonText}
+                    >{`${index + 1} - ${option}`}</Button.Text>
+                </Button>
+            ))}
+        </ActionableItemButtons>
+    );
+}
+
+type SuggestedFollowupButtonsProps = {
+    /** All the data of the action item */
+    action: OnyxTypes.ReportAction;
+
+    /** Report that owns this action for mutations (thread / merged-list cases use the original report) */
+    actionOwnerReport: OnyxTypes.Report;
+
+    /** ID of the report the followup is sent to */
+    reportID: string | undefined;
+
+    /** Unresolved followups parsed out of the action's message HTML */
+    followups: Followup[];
+};
+
+/** The followups Concierge suggests as a reply to its own message, one button per followup. */
+function SuggestedFollowupButtons({action, actionOwnerReport, reportID, followups}: SuggestedFollowupButtonsProps) {
+    const styles = useThemeStyles();
+    const personalDetail = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+
+    return (
+        <ActionableItemButtons
+            layout="vertical"
+            style={styles.mt4}
+        >
+            {followups.map((followup) => (
+                <Button
+                    key={`${action.reportActionID}-followup-${followup.text}`}
+                    innerStyles={styles.actionableItemButton}
+                    onPress={() => {
                         resolveSuggestedFollowup(
                             actionOwnerReport,
                             reportID,
@@ -166,115 +172,193 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                             delegateAccountID,
                             conciergeReportID,
                         );
-                    },
-                }));
-            }
-        }
+                    }}
+                >
+                    <Button.Text
+                        numberOfLines={3}
+                        style={styles.actionableItemButtonText}
+                    >
+                        {followup.text}
+                    </Button.Text>
+                </Button>
+            ))}
+        </ActionableItemButtons>
+    );
+}
 
-        if (isActionableTrackExpense(action)) {
-            const baseDraftTransactionParams = {
-                reportID: actionOwnerReportID,
-                reportActionID: action.reportActionID,
-                introSelected,
-                draftTransactionIDs,
-                activePolicy,
-                userBillingGracePeriodEnds,
-                amountOwed,
-                ownerBillingGracePeriodEnd,
-                transaction: trackExpenseTransaction,
-                currentUserAccountID: personalDetail.accountID,
-                currentUserEmail: personalDetail.email ?? '',
-                currentUserLocalCurrency: personalDetail.localCurrencyCode ?? CONST.CURRENCY.USD,
-                filteredPoliciesCount,
-                firstPolicyID,
-            };
-            const TRACK_EXPENSE_ACTIONS = {
-                submit: CONST.IOU.ACTION.SUBMIT,
-                categorize: CONST.IOU.ACTION.CATEGORIZE,
-                share: CONST.IOU.ACTION.SHARE,
-            } as const;
-            const prepareTrackExpenseButton = (actionKey: keyof typeof TRACK_EXPENSE_ACTIONS, extraParams?: Partial<CreateDraftTransactionParams>) => ({
-                text: `actionableMentionTrackExpense.${actionKey}`,
-                key: `${action.reportActionID}-actionableMentionTrackExpense-${actionKey}`,
-                onPress: () => {
-                    createDraftTransactionAndNavigateToParticipantSelector({
-                        ...baseDraftTransactionParams,
-                        ...extraParams,
-                        actionName: TRACK_EXPENSE_ACTIONS[actionKey],
-                    });
-                },
-            });
-            const isSplitExpense = isSplitChildTransaction(trackExpenseTransaction);
-            // On the Submit (submit2026) plan, "Submit it to someone" splits into two destinations:
-            // submit to an individual ("a friend") or route to a submit-enabled workspace ("my employer").
-            const prepareSubmitDestinationButton = (destination: ValueOf<typeof CONST.IOU.SUBMIT_DESTINATION>, textKey: 'submitToFriend' | 'submitToEmployer'): ActionableItem => ({
-                text: `actionableMentionTrackExpense.${textKey}`,
-                key: `${action.reportActionID}-actionableMentionTrackExpense-${textKey}`,
-                onPress: () => {
-                    createDraftTransactionAndNavigateToParticipantSelector({
-                        ...baseDraftTransactionParams,
-                        isRestrictedToPreferredPolicy,
-                        preferredPolicyID,
-                        actionName: CONST.IOU.ACTION.SUBMIT,
-                        submitDestination: destination,
-                        defaultWorkspaceName: generateDefaultWorkspaceName(personalDetail.email ?? '', lastWorkspaceNumber, translate, personalDetail.displayName),
-                    });
-                },
-            });
-            const submitButtons: ActionableItem[] = isSubmit2026BetaEnabled
-                ? [
-                      ...(isSplitExpense ? [] : [prepareSubmitDestinationButton(CONST.IOU.SUBMIT_DESTINATION.FRIEND, 'submitToFriend')]),
-                      prepareSubmitDestinationButton(CONST.IOU.SUBMIT_DESTINATION.EMPLOYER, 'submitToEmployer'),
-                  ]
-                : [
-                      prepareTrackExpenseButton('submit', {
-                          isRestrictedToPreferredPolicy,
-                          preferredPolicyID,
-                      }),
-                  ];
-            const options = !isSplitExpense || hasWorkspaceToSubmitTo ? [...submitButtons] : [];
+type TrackExpenseButtonsProps = {
+    /** All the data of the action item */
+    action: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER>;
 
-            if (Permissions.canUseTrackFlows()) {
-                options.push(prepareTrackExpenseButton('categorize'), prepareTrackExpenseButton('share'));
-            }
-            options.push({
-                text: 'actionableMentionTrackExpense.nothing',
-                key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
-                onPress: () => {
-                    dismissTrackExpenseActionableWhisper(actionOwnerReportID, action);
-                },
-            });
-            return options;
-        }
+    /** ID of the report that owns this action */
+    actionOwnerReportID: string | undefined;
+};
 
-        return [];
-    })();
+/** What the user can do with an expense they tracked: submit it, categorize it, share it, or nothing. */
+function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsProps) {
+    const {translate} = useLocalize();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
+    const personalDetail = useCurrentUserPersonalDetails();
+    const activePolicy = useActivePolicy();
+    const {isBetaEnabled} = usePermissions();
+    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
 
-    if (actionableItemButtons.length === 0) {
-        if (hasPendingFollowupListSkeleton) {
-            return <FollowupListSkeleton />;
-        }
-        return null;
-    }
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(personalDetail.email)});
+    const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getOriginalMessage(action)?.transactionID)}`);
+    const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasWorkspaceToSubmitToSelector(personalDetail.login, isSubmit2026BetaEnabled)});
 
-    const isConciergeOptions = isConciergeCategoryOptions(action) || isConciergeDescriptionOptions(action);
-    const actionContainsFollowUps = containsActionableFollowUps(action);
-    const isPhrasalConciergeOptions = isConciergeOptions || actionContainsFollowUps;
-    const actionableButtonsNoLines = isPhrasalConciergeOptions ? 3 : 1;
+    const baseDraftTransactionParams = {
+        reportID: actionOwnerReportID,
+        reportActionID: action.reportActionID,
+        introSelected,
+        draftTransactionIDs,
+        activePolicy,
+        userBillingGracePeriodEnds,
+        amountOwed,
+        ownerBillingGracePeriodEnd,
+        transaction: trackExpenseTransaction,
+        currentUserAccountID: personalDetail.accountID,
+        currentUserEmail: personalDetail.email ?? '',
+        currentUserLocalCurrency: personalDetail.localCurrencyCode ?? CONST.CURRENCY.USD,
+        filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+        firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+    };
+    const isSplitExpense = isSplitChildTransaction(trackExpenseTransaction);
+    const shouldShowSubmitButtons = !isSplitExpense || hasWorkspaceToSubmitTo;
+
+    const submit = (submitDestination?: ValueOf<typeof CONST.IOU.SUBMIT_DESTINATION>) => {
+        createDraftTransactionAndNavigateToParticipantSelector({
+            ...baseDraftTransactionParams,
+            isRestrictedToPreferredPolicy,
+            preferredPolicyID,
+            actionName: CONST.IOU.ACTION.SUBMIT,
+            submitDestination,
+            defaultWorkspaceName: submitDestination && generateDefaultWorkspaceName(personalDetail.email ?? '', lastWorkspaceNumber, translate, personalDetail.displayName),
+        });
+    };
+
+    const renderSubmitDestinationButtons = () => (
+        <>
+            {!isSplitExpense && (
+                <Button onPress={() => submit(CONST.IOU.SUBMIT_DESTINATION.FRIEND)}>
+                    <Button.Text>{translate('actionableMentionTrackExpense.submitToFriend')}</Button.Text>
+                </Button>
+            )}
+            <Button onPress={() => submit(CONST.IOU.SUBMIT_DESTINATION.EMPLOYER)}>
+                <Button.Text>{translate('actionableMentionTrackExpense.submitToEmployer')}</Button.Text>
+            </Button>
+        </>
+    );
+
+    const renderSubmitButton = () => (
+        <Button onPress={() => submit()}>
+            <Button.Text>{translate('actionableMentionTrackExpense.submit')}</Button.Text>
+        </Button>
+    );
+
+    const renderTrackFlowButtons = () => (
+        <>
+            <Button
+                onPress={() => {
+                    createDraftTransactionAndNavigateToParticipantSelector({...baseDraftTransactionParams, actionName: CONST.IOU.ACTION.CATEGORIZE});
+                }}
+            >
+                <Button.Text>{translate('actionableMentionTrackExpense.categorize')}</Button.Text>
+            </Button>
+            <Button
+                onPress={() => {
+                    createDraftTransactionAndNavigateToParticipantSelector({...baseDraftTransactionParams, actionName: CONST.IOU.ACTION.SHARE});
+                }}
+            >
+                <Button.Text>{translate('actionableMentionTrackExpense.share')}</Button.Text>
+            </Button>
+        </>
+    );
 
     return (
-        <ActionableItemButtons
-            items={actionableItemButtons}
-            layout={isActionableTrackExpense(action) || isPhrasalConciergeOptions ? 'vertical' : 'horizontal'}
-            shouldUseLocalization={!isPhrasalConciergeOptions}
-            primaryTextNumberOfLines={actionableButtonsNoLines}
-            styles={{
-                text: isPhrasalConciergeOptions ? styles.actionableItemButtonText : undefined,
-                button: isPhrasalConciergeOptions ? styles.actionableItemButton : undefined,
-            }}
-            wrapperStyle={isPhrasalConciergeOptions ? styles.mt4 : undefined}
-        />
+        <ActionableItemButtons layout="vertical">
+            {/* On the Submit (submit2026) plan, the single "Submit it to someone" button splits into one button per destination. */}
+            {shouldShowSubmitButtons && (isSubmit2026BetaEnabled ? renderSubmitDestinationButtons() : renderSubmitButton())}
+            {Permissions.canUseTrackFlows() && renderTrackFlowButtons()}
+            <Button
+                onPress={() => {
+                    dismissTrackExpenseActionableWhisper(actionOwnerReportID, action);
+                }}
+            >
+                <Button.Text>{translate('actionableMentionTrackExpense.nothing')}</Button.Text>
+            </Button>
+        </ActionableItemButtons>
     );
+}
+
+type ChatActionableButtonsProps = {
+    /** All the data of the action item */
+    action: OnyxTypes.ReportAction;
+
+    /** ID of the original report from which the given reportAction is first created */
+    originalReportID: string | undefined;
+
+    /** ID of the report currently being displayed */
+    reportID: string | undefined;
+
+    /** Whether Concierge is still composing the followup list for this action, so its placeholder should be shown */
+    hasPendingFollowupListSkeleton: boolean;
+};
+
+function ChatActionableButtons({action, originalReportID, reportID, hasPendingFollowupListSkeleton}: ChatActionableButtonsProps) {
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReportID)}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const actionOwnerReport = originalReport ?? report;
+
+    if (isActionableAddPaymentCard(action)) {
+        return <AddPaymentCardButton />;
+    }
+
+    if (isConciergeCategoryOptions(action) || isConciergeDescriptionOptions(action)) {
+        return (
+            <ConciergeOptionsButtons
+                action={action}
+                actionOwnerReport={actionOwnerReport}
+                reportID={reportID}
+            />
+        );
+    }
+
+    const messageHtml = getReportActionMessage(action)?.html;
+    const followups = messageHtml ? parseFollowupsFromHtml(messageHtml) : undefined;
+    if (followups?.length && actionOwnerReport) {
+        return (
+            <SuggestedFollowupButtons
+                action={action}
+                actionOwnerReport={actionOwnerReport}
+                reportID={reportID}
+                followups={followups}
+            />
+        );
+    }
+
+    if (isActionableTrackExpense(action)) {
+        return (
+            <TrackExpenseButtons
+                action={action}
+                actionOwnerReportID={originalReportID ?? reportID}
+            />
+        );
+    }
+
+    if (hasPendingFollowupListSkeleton) {
+        return <FollowupListSkeleton />;
+    }
+
+    return null;
 }
 
 export default ChatActionableButtons;
