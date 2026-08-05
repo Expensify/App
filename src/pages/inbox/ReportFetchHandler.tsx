@@ -38,6 +38,7 @@ import {
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
     joinReportViaSecureLink,
+    markLocalReportActionsAsLoaded,
     openReport,
     readNewestAction,
     setViewingPublicRoomReportID,
@@ -155,6 +156,14 @@ function ReportFetchHandler() {
 
     const fetchReport = useEffectEvent(() => {
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
+            // openReport is intentionally never called for an optimistic chat report, so nothing else can settle its
+            // initial-load state. The stamp written at creation lives in a RAM-only key and is lost on an app restart,
+            // which would leave the report pinned on the loading skeleton once online (the effect below re-arms
+            // isLoadingInitialReportActions while hasOnceLoadedReportActions is false). The persisted local actions are
+            // the complete truth for an optimistic report, so reconstruct the readiness stamp here.
+            if (!reportLoadingState.hasOnceLoadedReportActions) {
+                markLocalReportActionsAsLoaded(reportIDFromRoute);
+            }
             return;
         }
 
@@ -178,7 +187,7 @@ function ReportFetchHandler() {
             return;
         }
 
-        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas, hasReportActions});
+        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas, hasReportActions, currentUserAccountID});
     });
 
     const createOneTransactionThread = useEffectEvent(() => {
@@ -210,7 +219,7 @@ function ReportFetchHandler() {
         if (!shouldUseNarrowLayout || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport({reportID, introSelected, betas, hasReportActions});
+        openReport({reportID, introSelected, betas, hasReportActions, currentUserAccountID});
     });
 
     const joinPublicRoomIfNeeded = useEffectEvent(() => {
@@ -218,7 +227,7 @@ function ReportFetchHandler() {
         if (!viewingPublicRoomReportID || viewingPublicRoomReportID === reportIDFromRoute) {
             return;
         }
-        openReport({reportID: viewingPublicRoomReportID, introSelected, betas, hasReportActions: hasViewingPublicRoomReportActions});
+        openReport({reportID: viewingPublicRoomReportID, introSelected, betas, hasReportActions: hasViewingPublicRoomReportActions, currentUserAccountID});
     });
 
     // Effect order below matches the original declaration order in ReportScreen.tsx.

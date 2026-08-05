@@ -78,9 +78,10 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     return;
                 }
 
-                const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+                const shouldShowHoldEducationalModal = isReportSubmitter || isChatReportDM;
+                const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
-                if (isDismissed || isChatReportDM || shouldSuppressPromotionalUI) {
+                if (isDismissed || shouldSuppressPromotionalUI) {
                     changeMoneyRequestHoldStatus(
                         requestParentReportAction,
                         transaction,
@@ -91,7 +92,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                         isTrackIntentUser,
                         delegateAccountID,
                     );
-                } else if (isReportSubmitter) {
+                } else if (shouldShowHoldEducationalModal) {
                     onHoldEducationalOpen();
                 } else {
                     onRejectModalOpen(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);

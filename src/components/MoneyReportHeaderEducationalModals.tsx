@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {changeMoneyRequestHoldStatus, rejectMoneyRequestReason} from '@libs/ReportUtils';
+import {changeMoneyRequestHoldStatus, isDM, rejectMoneyRequestReason} from '@libs/ReportUtils';
 
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 
@@ -52,6 +52,8 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
     const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
 
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const {iouTransactionID, requestParentReportAction} = useMoneyReportTransactionThread();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
@@ -129,6 +131,7 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
                 <HoldSubmitterEducationalModal
                     onClose={dismissModalAndUpdateUseHold}
                     onConfirm={dismissModalAndUpdateUseHold}
+                    isDM={isDM(chatReport)}
                 />
             )}
         </>
