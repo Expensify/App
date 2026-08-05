@@ -64,7 +64,10 @@ type TableColumnDynamicSizing<DataType extends TableData = TableData> = {
     /** Width of the cell's non-text content, e.g. an avatar plus its gap. */
     extraWidth?: number;
 
-    /** Smallest width this column may shrink to. Defaults to the width of its header label. */
+    /**
+     * Smallest width this column may shrink to. Defaults to its header label's width, or to a width that keeps its
+     * content readable when that content is long.
+     */
     minWidth?: number;
 
     /** Largest width this column may claim, so one long value can't starve the other columns. */

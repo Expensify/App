@@ -27,6 +27,13 @@ const SORT_ICON_WIDTH = variables.iconSizeExtraSmall + 4;
  */
 const MEASURED_CANDIDATES_PER_COLUMN = 5;
 
+/**
+ * How narrow a column with long content may get before it stops shrinking. Without this a column's floor is just its
+ * header label, so a column holding long values could shrink to a sliver that shows only a few characters. Columns whose
+ * content is already narrower than this keep being sized by their content, so it never pads a short column.
+ */
+const MIN_CONTENT_COLUMN_WIDTH = 160;
+
 type UseDynamicColumnWidthsParams<DataType extends TableData, ColumnKey extends string> = {
     /** Column configuration for the table. */
     columns: Array<TableColumn<ColumnKey, DataType>>;
@@ -175,7 +182,10 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
 
             constraints.push({
                 contentWidth,
-                minWidth: column.dynamicSizing?.minWidth ?? headerLabelWidth,
+                // A column never shrinks below its header label, and a column with long content stops at a width where
+                // that content is still readable. `Math.min` keeps the readable floor from inflating a column whose
+                // content is already narrower than it.
+                minWidth: column.dynamicSizing?.minWidth ?? Math.max(headerLabelWidth, Math.min(contentWidth, MIN_CONTENT_COLUMN_WIDTH)),
                 // Uncapped by default. A cap can't be derived from the available width without breaking the sizing: a
                 // column capped at its equal share looks like it fits in one, so the columns would be left equal and the
                 // long column would stay truncated. Columns that genuinely need a ceiling set `maxWidth` themselves.
@@ -203,8 +213,11 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
             return {gridTemplateColumns, scrollWidth: undefined};
         }
 
-        // The rows are wider than the table, so the caller scrolls them horizontally at exactly the width they need.
-        const scrollWidth = widths.reduce((total, width) => total + width, 0) + fixedColumnsWidth + selectionColumnWidth + totalGapWidth + ROW_HORIZONTAL_PADDING * 2;
+        // The rows are wider than the table, so the caller scrolls them horizontally at exactly the width they need. This
+        // adds back all of the row chrome subtracted above, margin included: the rows keep their horizontal margin inside
+        // the scrolled content, so leaving it out would make the content container too narrow and clip the rows' trailing
+        // edge at the end of the scroll.
+        const scrollWidth = widths.reduce((total, width) => total + width, 0) + fixedColumnsWidth + selectionColumnWidth + totalGapWidth + rowChromeWidth;
 
         return {gridTemplateColumns, scrollWidth};
     }, [columns, data, tableWidth, isEnabled, hasSelectionColumn]);
