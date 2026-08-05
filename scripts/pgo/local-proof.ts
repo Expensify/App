@@ -875,6 +875,21 @@ async function benchmarkStartups(adapter: PlatformAdapter, kind: BenchmarkKind, 
     console.log(`Recorded ${runs} ${label} startup samples: ${benchmarkPath}`);
 }
 
+async function benchmarkAll(adapter: PlatformAdapter, runs: number, readyTimeoutSeconds: number): Promise<void> {
+    console.log('=== Benchmark phase 1/2: Release ===');
+    console.log(`Installing release artifact: ${adapter.artifactPaths.release}`);
+    adapter.install('release');
+    await benchmarkStartups(adapter, 'release', runs, readyTimeoutSeconds);
+
+    console.log('=== Benchmark phase 2/2: PGO optimized ===');
+    console.log(`Installing PGO optimized artifact: ${adapter.artifactPaths.optimized}`);
+    adapter.install('optimized');
+    await benchmarkStartups(adapter, 'optimized', runs, readyTimeoutSeconds);
+
+    console.log('=== Benchmark comparison ===');
+    compareBenchmarks(adapter);
+}
+
 function percentile(sortedValues: number[], fraction: number): number {
     const position = (sortedValues.length - 1) * fraction;
     const lowerIndex = Math.floor(position);
@@ -993,11 +1008,7 @@ async function runWorkflow(platformName: PlatformName, workflow: WorkflowCommand
             await benchmarkStartups(adapter, 'optimized', runs, timeoutSeconds);
             return;
         case 'benchmark':
-            adapter.install('release');
-            await benchmarkStartups(adapter, 'release', runs, timeoutSeconds);
-            adapter.install('optimized');
-            await benchmarkStartups(adapter, 'optimized', runs, timeoutSeconds);
-            compareBenchmarks(adapter);
+            await benchmarkAll(adapter, runs, timeoutSeconds);
             return;
         case 'compare-benchmarks':
             compareBenchmarks(adapter);
