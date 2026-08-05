@@ -111,6 +111,7 @@ import {
     getParsedComment,
     getParticipantsList,
     getPayeeName,
+    getPendingChatMembers,
     getPolicyChangeLogCopyMessage,
     getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
@@ -15056,6 +15057,21 @@ describe('ReportUtils', () => {
             const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: iouReport.ownerAccountID});
             expect(displayName).toBe(fakePersonalDetails?.[1]?.displayName);
         });
+        it('should return the known displayName for an optimistic personal detail that already has one (e.g. an agent pending creation)', async () => {
+            const optimisticAccountID = 8399123;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [optimisticAccountID]: {
+                    accountID: optimisticAccountID,
+                    displayName: "Bob's Agent",
+                    isOptimisticPersonalDetail: true,
+                },
+            });
+
+            waitForBatchedUpdates();
+
+            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: optimisticAccountID});
+            expect(displayName).toBe("Bob's Agent");
+        });
 
         it('should return hidden translation using translate param when participant has no displayName or login', async () => {
             const hiddenAccountID = 9999;
@@ -19118,6 +19134,49 @@ describe('ReportUtils', () => {
             const result = getOriginalReportID(reportID, reportAction, {});
             expect(result).toBe(reportID);
         });
+
+        it('should return the parent report ID for a thread parent action that is missing from the passed reportActions', async () => {
+            const reportID = 'getOriginalReportID-thread';
+            const parentReportID = 'getOriginalReportID-parent';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, parentReportID});
+            await waitForBatchedUpdates();
+
+            // The action is the thread's parent message: its childReportID points back to the thread and it is not present in the thread's own actions,
+            // so getOriginalReportID must resolve to the parent report using only the passed reportActions (no module-level Onyx.connect fallback).
+            const reportAction = {...createRandomReportAction(1), childReportID: reportID};
+            expect(getOriginalReportID(reportID, reportAction, {})).toBe(parentReportID);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+            await waitForBatchedUpdates();
+        });
+
+        it('should return the transaction thread report ID for a one-transaction report when the action is not in the passed reportActions', async () => {
+            const reportID = 'getOriginalReportID-one-transaction';
+            const transactionThreadReportID = 'getOriginalReportID-transaction-thread';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.EXPENSE});
+            await waitForBatchedUpdates();
+
+            // The report's only money request action, whose childReportID is the single transaction thread
+            const iouAction: ReportAction = {
+                ...createRandomReportAction(21),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: transactionThreadReportID,
+                originalMessage: {
+                    IOUReportID: reportID,
+                    IOUTransactionID: 'txn-one-transaction',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 100,
+                    currency: 'USD',
+                },
+            };
+            // The queried action is not part of the passed reportActions and is not a thread parent action
+            const reportAction = {...createRandomReportAction(22), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, childReportID: undefined};
+
+            expect(getOriginalReportID(reportID, reportAction, {[iouAction.reportActionID]: iouAction})).toBe(transactionThreadReportID);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+            await waitForBatchedUpdates();
+        });
     });
 
     describe('hasVisibleReportFieldViolations', () => {
@@ -21875,5 +21934,41 @@ describe('areAllRequestsBeingSmartScanned', () => {
         const transactions = [buildScanningTransaction(1), scannedReceipt];
 
         expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
+    });
+});
+
+describe('getPendingChatMembers', () => {
+    it('should append each account ID to the previous pending members', () => {
+        const previousPendingChatMembers = [{accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}];
+
+        const result = getPendingChatMembers([2, 3], previousPendingChatMembers, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+        expect(result).toEqual([
+            {accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            {accountID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            {accountID: '3', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+        ]);
+    });
+
+    it('should skip account IDs that are missing at runtime', () => {
+        // @ts-expect-error A personal detail that has not finished loading contributes a missing account ID at runtime
+        const accountIDs: number[] = [1, undefined, 2, null];
+
+        const result = getPendingChatMembers(accountIDs, [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+        expect(result).toEqual([
+            {accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            {accountID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        ]);
+    });
+
+    it('should keep the previous pending members when every account ID is missing', () => {
+        const previousPendingChatMembers = [{accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}];
+        // @ts-expect-error A personal detail that has not finished loading contributes a missing account ID at runtime
+        const accountIDs: number[] = [undefined];
+
+        const result = getPendingChatMembers(accountIDs, previousPendingChatMembers, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+        expect(result).toEqual(previousPendingChatMembers);
     });
 });
