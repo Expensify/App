@@ -8039,6 +8039,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 thenFlagForReview: 'Poi segnala per revisione quando:',
             },
             agentRulesEmptyState: {title: 'Nessuna regola agente aggiunta', subtitle: 'Crea una regola per automatizzare le policy del tuo workspace.', cta: 'Aggiungi regola IA'},
+            categoriesDisabledEmptyState: {title: 'Le categorie non sono abilitate', subtitle: 'Attiva le categorie per avere un maggiore controllo sulle tue spese.'},
         },
         planTypePage: {
             planTypes: {
@@ -10302,6 +10303,15 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             inviteBoss: 'Invita il tuo capo quando sei pronto',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nuovi tipi di ruolo per gli amministratori',
+                body: 'Offri al tuo team autorizzazioni più granulari con i nuovi ruoli di amministratore per carte, persone e pagamenti.',
+                cta: 'Provalo',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Inizia <strong>qui!</strong></tooltip>',
         accountSwitcher: '<tooltip>Ora puoi fare da copilota in un altro account!</tooltip>',
@@ -10359,7 +10369,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         basicExport: 'Esportazione di base',
         reportLevelExport: 'Tutti i dati - livello report',
         expenseLevelExport: 'Tutti i dati - livello spesa',
-        multipleTaxExport: 'Canadian Multiple Tax Export',
         exportInProgress: 'Esportazione in corso',
         conciergeWillSend: 'Concierge ti invierà il file a breve.',
         currentView: 'Vista corrente',

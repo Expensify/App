@@ -7745,6 +7745,7 @@ ${reportName}`,
                 thenFlagForReview: '然后在以下情况下标记为待审核：',
             },
             agentRulesEmptyState: {title: '未添加代理规则', subtitle: '创建规则以自动化您的工作区策略。', cta: '添加 AI 规则'},
+            categoriesDisabledEmptyState: {title: '类别未启用', subtitle: '启用类别以更好地控制您的支出。'},
         },
         planTypePage: {
             planTypes: {
@@ -9923,6 +9924,15 @@ ${reportName}`,
             inviteBoss: '准备好后即可邀请你的上司',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: '新的管理员角色类型',
+                body: '通过新增卡片、成员和付款管理员角色，为你的团队提供更精细的权限控制。',
+                cta: '试用一下',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',
         accountSwitcher: '<tooltip>您现在可以协同操作另一位用户的账户了！</tooltip>',
@@ -9980,7 +9990,6 @@ ${reportName}`,
         basicExport: '基本导出',
         reportLevelExport: '所有数据 - 报告级别',
         expenseLevelExport: '所有数据 - 报销级别',
-        multipleTaxExport: 'Canadian Multiple Tax Export',
         exportInProgress: '导出进行中',
         conciergeWillSend: 'Concierge 将很快把文件发送给你。',
         currentView: '当前视图',
