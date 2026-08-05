@@ -9169,8 +9169,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         genericUpdateReportNameEditFailureMessage: 'Nieoczekiwany błąd podczas zmiany nazwy raportu. Spróbuj ponownie później.',
         noActivityYet: 'Brak aktywności',
         collapsedSystemMessages: () => ({
-            one: 'Wprowadzono 1 zmianę',
-            other: (count: number) => `Wprowadzono ${count} ${count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? 'zmiany' : 'zmian'}`,
+            one: '1 akcja',
+            other: (count: number) => `${count} ${count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? 'akcje' : 'akcji'}`,
         }),
         connectionSettings: 'Ustawienia połączenia',
         actions: {

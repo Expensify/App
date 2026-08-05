@@ -9095,8 +9095,8 @@ ${reportName}`,
         genericUpdateReportNameEditFailureMessage: 'レポート名の変更中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
         noActivityYet: 'まだアクティビティがありません',
         collapsedSystemMessages: () => ({
-            one: '1件の変更が行われました',
-            other: (count: number) => `${count}件の変更が行われました`,
+            one: '1件のアクション',
+            other: (count: number) => `${count}件のアクション`,
         }),
         connectionSettings: '接続設定',
         actions: {

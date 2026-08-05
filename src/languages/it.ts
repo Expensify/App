@@ -9222,8 +9222,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         genericUpdateReportNameEditFailureMessage: 'Errore imprevisto durante la rinomina del report. Riprova più tardi.',
         noActivityYet: 'Ancuna nessuna attività',
         collapsedSystemMessages: () => ({
-            one: 'È stata apportata 1 modifica',
-            other: (count: number) => `Sono state apportate ${count} modifiche`,
+            one: '1 azione',
+            other: (count: number) => `${count} azioni`,
         }),
         connectionSettings: 'Impostazioni di connessione',
         actions: {

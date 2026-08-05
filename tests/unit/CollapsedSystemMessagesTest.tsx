@@ -18,7 +18,7 @@ jest.mock('@hooks/useLocalize', () => () => ({
         if (count === undefined) {
             return 'New message line indicator';
         }
-        return count === 1 ? '1 change was made' : `${count} changes were made`;
+        return count === 1 ? '1 action' : `${count} actions`;
     },
 }));
 
@@ -35,7 +35,7 @@ describe('CollapsedSystemMessages', () => {
             </LocaleContextProvider>,
         );
 
-        const control = screen.getByRole('button', {name: '4 changes were made'});
+        const control = screen.getByRole('button', {name: '4 actions'});
         expect(control.props.accessibilityState).toMatchObject({expanded: false});
 
         fireEvent.press(control);
@@ -53,7 +53,7 @@ describe('CollapsedSystemMessages', () => {
             </LocaleContextProvider>,
         );
 
-        expect(screen.getByRole('button', {name: '1 change was made'}).props.accessibilityState).toMatchObject({expanded: true});
+        expect(screen.getByRole('button', {name: '1 action'}).props.accessibilityState).toMatchObject({expanded: true});
     });
 
     it('renders an unread marker for a member represented by the collapsed row', () => {

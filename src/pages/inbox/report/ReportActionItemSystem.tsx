@@ -16,6 +16,7 @@ import {View} from 'react-native';
 
 import DelegateOnBehalfOfText from './DelegateOnBehalfOfText';
 import HumanAgentAssistedByText from './HumanAgentAssistedByText';
+import ReportActionItemDate from './ReportActionItemDate';
 import VacationDelegateText from './VacationDelegateText';
 
 type ReportActionItemSystemProps = {
@@ -72,7 +73,11 @@ function ReportActionItemSystem({children, action, report, iouReport, shouldUseR
                     <VacationDelegateText action={action} />
                 </View>
             )}
-            <View style={styles.flexShrink1}>{children}</View>
+            <View style={[styles.flexShrink1, styles.mr1]}>{children}</View>
+            <ReportActionItemDate
+                created={action.created ?? ''}
+                isLowercase
+            />
         </View>
     );
 }

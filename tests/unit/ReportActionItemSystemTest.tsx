@@ -4,10 +4,13 @@ import useReportActionAvatars from '@components/ReportActionAvatars/useReportAct
 import Text from '@components/Text';
 
 import DelegateOnBehalfOfText from '@pages/inbox/report/DelegateOnBehalfOfText';
+import ReportActionItemDate from '@pages/inbox/report/ReportActionItemDate';
 import ReportActionItemSystem from '@pages/inbox/report/ReportActionItemSystem';
 
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type ReactNative from 'react-native';
 
 import React from 'react';
 
@@ -33,6 +36,13 @@ jest.mock('@pages/inbox/report/VacationDelegateText', () => ({
     __esModule: true,
     default: jest.fn(() => null),
 }));
+jest.mock('@pages/inbox/report/ReportActionItemDate', () => {
+    const {Text: MockText} = jest.requireActual<typeof ReactNative>('react-native');
+    return {
+        __esModule: true,
+        default: jest.fn(({created}: {created: string; isLowercase?: boolean}) => <MockText>{created}</MockText>),
+    };
+});
 
 jest.mock('@hooks/useThemeStyles', () => {
     const styleProxy = new Proxy({}, {get: () => ({})});
@@ -64,6 +74,8 @@ describe('ReportActionItemSystem', () => {
 
         expect(screen.getByText('Todd Clyde ')).toBeOnTheScreen();
         expect(screen.getByText('submitted')).toBeOnTheScreen();
+        expect(screen.getByText('2026-07-30 00:00:00.000')).toBeOnTheScreen();
+        expect(jest.mocked(ReportActionItemDate).mock.calls.at(-1)?.[0]).toEqual({created: '2026-07-30 00:00:00.000', isLowercase: true});
         expect(jest.mocked(useReportActionAvatars)).toHaveBeenLastCalledWith(expect.objectContaining({shouldUseRealActor: true}));
     });
 

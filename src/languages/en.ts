@@ -9377,8 +9377,8 @@ const translations = {
         genericUpdateReportNameEditFailureMessage: 'Unexpected error renaming the report. Please try again later.',
         noActivityYet: 'No activity yet',
         collapsedSystemMessages: () => ({
-            one: '1 change was made',
-            other: (count: number) => `${count} changes were made`,
+            one: '1 action',
+            other: (count: number) => `${count} actions`,
         }),
         connectionSettings: 'Connection Settings',
         actions: {

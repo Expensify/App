@@ -9035,8 +9035,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         genericUpdateReportNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Por favor, intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
         collapsedSystemMessages: () => ({
-            one: '1 cambio realizado',
-            other: (count: number) => `${count} cambios realizados`,
+            one: '1 acción',
+            other: (count: number) => `${count} acciones`,
         }),
         connectionSettings: 'Configuración de conexión',
         actions: {

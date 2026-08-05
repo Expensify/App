@@ -9281,8 +9281,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         genericUpdateReportNameEditFailureMessage: 'Erreur inattendue lors du renommage de la note de frais. Veuillez réessayer plus tard.',
         noActivityYet: 'Aucune activité pour le moment',
         collapsedSystemMessages: () => ({
-            one: '1 modification a été effectuée',
-            other: (count: number) => `${count} modifications ont été effectuées`,
+            one: '1 action',
+            other: (count: number) => `${count} actions`,
         }),
         connectionSettings: 'Paramètres de connexion',
         actions: {

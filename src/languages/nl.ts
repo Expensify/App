@@ -9193,8 +9193,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         genericUpdateReportNameEditFailureMessage: 'Onverwachte fout bij het hernoemen van het rapport. Probeer het later opnieuw.',
         noActivityYet: 'Nog geen activiteit',
         collapsedSystemMessages: () => ({
-            one: 'Er is 1 wijziging aangebracht',
-            other: (count: number) => `Er zijn ${count} wijzigingen aangebracht`,
+            one: '1 actie',
+            other: (count: number) => `${count} acties`,
         }),
         connectionSettings: 'Verbindingsinstellingen',
         actions: {
