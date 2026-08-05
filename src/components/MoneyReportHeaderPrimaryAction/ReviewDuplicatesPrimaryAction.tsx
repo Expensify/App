@@ -8,7 +8,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {isDuplicate} from '@libs/TransactionUtils';
 
@@ -29,7 +29,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
     const {translate} = useLocalize();
     const {accountID, email} = useCurrentUserPersonalDetails();
 
-    const {moneyRequestReport, reportActions, transactionThreadReportID} = useTransactionThreadData(reportID, chatReportID);
+    const {moneyRequestReport, transactionThreadReportID} = useTransactionThreadData(reportID, chatReportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -63,7 +63,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
                     return;
                 }
 
-                const iouAction = getIOUActionForTransactionID(reportActions, duplicateTransaction.transactionID);
+                const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, duplicateTransaction.transactionID);
                 let threadID = iouAction?.childReportID;
 
                 if (threadID) {
