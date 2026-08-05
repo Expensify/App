@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
 
 import Onyx from 'react-native-onyx';
-import createInitEvent, {MFA_TEST_ACCOUNT_ID} from 'tests/utils/mfa/flowFixtures';
+import createInitEvent, {MFA_TEST_ACCOUNT_ID, MFA_TEST_VALIDATE_CODE} from 'tests/utils/mfa/flowFixtures';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
 import {checkLocalCredentialsControl, resetMfaUiMocks, validateDeviceControl} from 'tests/utils/mfa/realUi/mocks';
 import {translateLocal} from 'tests/utils/TestHelper';
@@ -40,7 +40,7 @@ describe('MultifactorAuthenticationValidateCodePage', () => {
         jest.clearAllMocks();
     });
 
-    it('puts the submit button in a loading state for the registration challenge request when the account has 2FA enabled', async () => {
+    it('puts the submit button in a loading state while the registration challenge request is pending', async () => {
         const {executeScenario} = renderMfaUi();
         await waitForBatchedUpdatesWithAct();
 
@@ -62,12 +62,9 @@ describe('MultifactorAuthenticationValidateCodePage', () => {
         expect(submitButton).toBeEnabled();
         expect(submitButtonText).toBeVisible();
 
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {
-                isLoading: true,
-                loadingForm: CONST.FORMS.VALIDATE_CODE_FORM,
-            });
-        });
+        fireEvent.changeText(screen.getByTestId(TEST_ID.VALIDATE_CODE_INPUT), MFA_TEST_VALIDATE_CODE);
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(submitButton);
         await waitForBatchedUpdatesWithAct();
 
         expect(submitButton).toBeDisabled();
