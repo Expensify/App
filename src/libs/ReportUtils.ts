@@ -122,7 +122,7 @@ import {removeDraftTransactionsByIDs} from './actions/TransactionEdit';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
 import {convertAttendeesToArray} from './AttendeeUtils';
 import {getCategoryGLCode} from './CategoryUtils';
-import {convertToDisplayString as convertToDisplayStringUtil} from './CurrencyUtils';
+import {convertToDisplayString as convertToDisplayStringUtil, convertToDisplayStringEnLocale, getCurrencyDecimals as getCurrencyDecimalsUtil} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import getEnvironment from './Environment/getEnvironment';
@@ -5938,7 +5938,7 @@ function getReportPreviewMessage(
  * IMPORTANT: keep the English strings here in sync with the `iou.*` entries in `en.ts` and with the branching
  * in {@link getReportPreviewMessage}.
  */
-function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBaseParams): string {
+function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBaseParams, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']): string {
     const {reportOrID, iouReportAction = null, shouldConsiderScanningReceiptOrPendingRoute = false, isPreviewMessageForParentChatReport = false, policy, isForListPreview = false} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
@@ -5970,7 +5970,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
             }
 
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
-            const formattedAmount = convertToDisplayStringUtil(amount, getCurrency(linkedTransaction)) ?? '';
+            const formattedAmount = convertToDisplayStringEnLocale(amount, getCurrency(linkedTransaction), getCurrencyDecimals) ?? '';
             const comment = getMerchantOrDescription(linkedTransaction);
             return `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
         }
@@ -5986,7 +5986,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
             const comment = originalMessage?.comment;
 
             if (amount && currency) {
-                const formattedAmount = convertToDisplayStringUtil(amount, currency);
+                const formattedAmount = convertToDisplayStringEnLocale(amount, currency, getCurrencyDecimals);
                 return `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
             }
 
@@ -6003,7 +6003,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
             }
 
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
-            const formattedAmount = convertToDisplayStringUtil(amount, getCurrency(linkedTransaction)) ?? '';
+            const formattedAmount = convertToDisplayStringEnLocale(amount, getCurrency(linkedTransaction), getCurrencyDecimals) ?? '';
 
             const merchantOrComment = getMerchantOrDescription(linkedTransaction);
 
@@ -6020,7 +6020,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
         ? policyName
         : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils});
 
-    const formattedAmount = convertToDisplayStringUtil(totalAmount, report.currency);
+    const formattedAmount = convertToDisplayStringEnLocale(totalAmount, report.currency, getCurrencyDecimals);
 
     const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
@@ -6084,7 +6084,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
 
             // This variant returns raw English to match the surrounding non-localized preview strings.
             if (originalMessage?.creditedAmount && originalMessage.creditedCurrency) {
-                const creditedAmountDisplay = convertToDisplayStringUtil(originalMessage.creditedAmount, originalMessage.creditedCurrency);
+                const creditedAmountDisplay = convertToDisplayStringEnLocale(originalMessage.creditedAmount, originalMessage.creditedCurrency, getCurrencyDecimals);
                 return `paid ${creditedAmountDisplay} from account ${originalMessage.debitBankAccountLast4 ?? last4Digits} to account ${originalMessage.creditBankAccountLast4 ?? ''}`;
             }
             return `paid with bank account ${last4Digits}`;
@@ -6132,7 +6132,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
 
     // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest expense
     if (amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
-        const amountToDisplay = convertToDisplayStringUtil(Math.abs(amount), currency);
+        const amountToDisplay = convertToDisplayStringEnLocale(Math.abs(amount), currency, getCurrencyDecimals);
 
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName =
@@ -7353,6 +7353,7 @@ function getIOUReportActionMessage(
     total: number,
     comment: string,
     currency: string,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     paymentType = '',
     isSettlingUp = false,
     bankAccountID?: number | undefined,
@@ -7360,10 +7361,12 @@ function getIOUReportActionMessage(
 ): Message[] {
     const report = getReportOrDraftReport(iouReportID);
     const isInvoice = isInvoiceReport(report);
+    // Formatted with the `en` locale because this message is stored on the report action and must be
+    // in English regardless of the viewer's locale.
     const amount =
         type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isEmptyObject(report)
-            ? convertToDisplayStringUtil(getMoneyRequestSpendBreakdown(report).totalDisplaySpend, currency)
-            : convertToDisplayStringUtil(total, currency);
+            ? convertToDisplayStringEnLocale(getMoneyRequestSpendBreakdown(report).totalDisplaySpend, currency, getCurrencyDecimals)
+            : convertToDisplayStringEnLocale(total, currency, getCurrencyDecimals);
 
     let paymentMethodMessage;
     switch (paymentType) {
@@ -7539,7 +7542,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
             },
         ],
         avatar: getCurrentUserAvatar(),
-        message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp, bankAccountID, payAsBusiness),
+        message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, getCurrencyDecimalsUtil, paymentType, isSettlingUp, bankAccountID, payAsBusiness),
     };
 
     return iouReportAction;
@@ -7569,7 +7572,7 @@ function buildOptimisticApprovedReportAction(
         avatar: getCurrentUserAvatar(),
         isAttachmentOnly: false,
         originalMessage,
-        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
+        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency, getCurrencyDecimalsUtil),
         person: [
             {
                 style: 'strong',
@@ -7601,7 +7604,7 @@ function buildOptimisticUnapprovedReportAction(amount: number, currency: string,
             currency,
             expenseReportID,
         },
-        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED, Math.abs(amount), '', currency),
+        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED, Math.abs(amount), '', currency, getCurrencyDecimalsUtil),
         person: [
             {
                 style: 'strong',
@@ -7838,7 +7841,7 @@ function buildOptimisticSubmittedReportAction(
         avatar: getCurrentUserAvatar(),
         isAttachmentOnly: false,
         originalMessage,
-        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, Math.abs(amount), '', currency),
+        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, Math.abs(amount), '', currency, getCurrencyDecimalsUtil),
         person: [
             {
                 style: 'strong',
@@ -7873,7 +7876,7 @@ function buildOptimisticReportPreview(
     delegateAccountIDParam: number | undefined = undefined,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
-    const message = getReportPreviewReportActionMessage({reportOrID: iouReport});
+    const message = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimalsUtil);
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66425
@@ -8064,7 +8067,7 @@ function updateReportPreview(
         }
     }
 
-    const message = getReportPreviewReportActionMessage({reportOrID: iouReport, iouReportAction: reportPreviewAction});
+    const message = getReportPreviewReportActionMessage({reportOrID: iouReport, iouReportAction: reportPreviewAction}, getCurrencyDecimalsUtil);
     const originalMessage = getOriginalMessage(reportPreviewAction);
     return {
         ...reportPreviewAction,

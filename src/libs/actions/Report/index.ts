@@ -1,5 +1,7 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
@@ -445,6 +447,7 @@ type MergeReportsProps = {
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
     selfDMReportActions: OnyxEntry<ReportActions>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -4123,6 +4126,7 @@ function buildNewReportOptimisticData(
     isASAPSubmitBetaEnabled: boolean,
     betas: OnyxEntry<Beta[]>,
     isTrackIntentUser: boolean | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     reportName?: string,
 ) {
     const {accountID, login, email} = ownerPersonalDetails;
@@ -4163,7 +4167,7 @@ function buildNewReportOptimisticData(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
-    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData});
+    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData}, getCurrencyDecimals);
     const createReportActionMessage = [
         {
             html: message,
@@ -4352,6 +4356,7 @@ function createNewReport(
     policy: OnyxEntry<Policy>,
     betas: OnyxEntry<Beta[]>,
     isTrackIntentUser: boolean | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
     options: {managedCardTransactionID?: string; reportName?: string} = {},
@@ -4371,6 +4376,7 @@ function createNewReport(
         isASAPSubmitBetaEnabled,
         betas,
         isTrackIntentUser,
+        getCurrencyDecimals,
         reportName,
     );
 
@@ -8211,6 +8217,7 @@ function mergeReports({
     isTrackIntentUser,
     personalPolicyOutputCurrency,
     selfDMReportActions,
+    getCurrencyDecimals,
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
     const destinationReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
@@ -8239,6 +8246,7 @@ function mergeReports({
         isTrackIntentUser,
         personalPolicyOutputCurrency,
         selfDMReportActions,
+        getCurrencyDecimals,
     });
 
     const {

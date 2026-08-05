@@ -1,3 +1,5 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {
     ChangeTransactionsReportParams,
@@ -834,6 +836,7 @@ type ChangeTransactionsReportProps = {
     selfDMReportActions: OnyxEntry<ReportActions>;
     jsonQuery?: string;
     hash?: number;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -852,6 +855,7 @@ function getChangeTransactionsReportOnyxData({
     isTrackIntentUser,
     personalPolicyOutputCurrency,
     selfDMReportActions,
+    getCurrencyDecimals,
 }: ChangeTransactionsReportProps) {
     const reports = allReportsParam ?? allReports;
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1102,7 +1106,7 @@ function getChangeTransactionsReportOnyxData({
             created: oldIOUAction?.created ?? DateUtils.getDBTime(),
             ...(!oldIOUAction && {
                 actorAccountID: accountID,
-                message: getIOUReportActionMessage(reportID, actionType, Math.abs(transaction.amount), transaction.comment?.comment ?? '', transaction.currency),
+                message: getIOUReportActionMessage(reportID, actionType, Math.abs(transaction.amount), transaction.comment?.comment ?? '', transaction.currency, getCurrencyDecimals),
             }),
         };
 
