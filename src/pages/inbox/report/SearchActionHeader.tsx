@@ -33,10 +33,10 @@ type SearchActionHeaderProps = {
 
 function SearchActionHeaderContent({action, report, isWhisper, onPress, children}: SearchActionHeaderProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const reportName = getChatListItemReportName(action, report, conciergeReportID, translate);
+    const reportName = getChatListItemReportName(action, report, conciergeReportID, translate, formatPhoneNumber);
 
     return (
         <View style={[styles.p4]}>
