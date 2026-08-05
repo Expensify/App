@@ -99,7 +99,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.COMPANY_CARD], rilletConfig?.pendingFields)}>
                 <MenuItemWithTopDescription
-                    title={translate(`workspace.rillet.exportNonReimbursable.values.${exportCompanyCard}.label`)}
+                    title={translate(`workspace.rillet.exportNonReimbursable.values.${exportNonReimbursable}.label`)}
                     description={translate('workspace.rillet.exportNonReimbursable.label')}
                     onPress={() => {}}
                     interactive={false}

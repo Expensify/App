@@ -5545,7 +5545,10 @@ ${amount} para ${merchant} - ${date}`,
                     },
                 },
             },
-            exportCompanyCard: {label: 'Exportar gastos de tarjetas de empresa como', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'Tarjetas de crédito'}}},
+            exportNonReimbursable: {
+                label: 'Exportar gastos de tarjetas de empresa como',
+                values: {[CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE]: {label: 'Tarjetas de crédito'}},
+            },
             defaultCompanyCardVendor: {
                 label: 'Proveedor predeterminado de la tarjeta de empresa',
                 description: 'Elige un proveedor Rillet predeterminado para los gastos que no se asignen automáticamente.',
