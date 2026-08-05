@@ -89,7 +89,7 @@ const MFAMachine = setup({
             Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT, {promptType: PROMPT_TYPE}));
         },
         navigateToValidateCode: () => {
-            Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE));
+            Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE));
         },
         // Emails the user a validate code. Runs only on the decision transition into the
         // validate-code screen and on an explicit resend request, never on (re)entry, so the
