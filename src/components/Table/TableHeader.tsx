@@ -16,10 +16,11 @@ import CONST from '@src/CONST';
 import type {ViewProps} from 'react-native';
 
 import React, {useRef} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import type {TableColumn, TableData} from './types';
 
+import getGridTemplateColumns from './getGridTemplateColumns';
 import {getColumnHeaderAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
 
@@ -79,7 +80,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         return null;
     }
 
-    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
+    const gridTemplateColumns = getGridTemplateColumns(columns);
 
     if (isSelectionCheckboxVisible) {
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
@@ -223,14 +224,19 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
         toggleColumnSorting(columnKey);
     };
 
-    const tableHeaderStyles = [
-        styles.flexRow,
-        styles.alignItemsCenter,
-        styles.tableHeaderContentHeight,
-        column.styling?.flex ? {flex: column.styling.flex} : styles.flex1,
-        column.styling?.containerStyles,
-        !column.sortable && styles.cursorDefault,
-    ];
+    // Honor an explicit `styling.flex`, otherwise fill the available width equally.
+    const columnFlexStyle = column.styling?.flex ? {flex: column.styling.flex} : styles.flex1;
+
+    // In the semantic path the `role="columnheader"` wrapper below is the CSS grid item, so a grid-track sizing
+    // constraint (currently `mnw0`) from `containerStyles` must live on it, or a `1fr` track sizes from its content
+    // instead of its share.
+    const {minWidth, maxWidth} = StyleSheet.flatten(column.styling?.containerStyles) ?? {};
+    const columnCellSizingStyle = {minWidth, maxWidth};
+
+    // Base sort-button styles shared by both paths. The column's `containerStyles` are horizontal-alignment styles for
+    // the header row, so they belong on this `flexRow` button rather than the column-direction cell wrapper below. Flex
+    // sizing is appended per path since it differs.
+    const tableHeaderStyles = [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, column.styling?.containerStyles, !column.sortable && styles.cursorDefault];
 
     const label = (
         <>
@@ -268,11 +274,11 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             accessibilityRole="button"
             disabled={!column.sortable}
             sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
-            style={
-                isTableSemanticsEnabled
-                    ? [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.flex1, !column.sortable && styles.cursorDefault]
-                    : tableHeaderStyles
-            }
+            // In the semantic path the column's flex sizing lives on the columnheader cell wrapper below, so the button
+            // just fills it — `flex1` on both the pressable and its OpacityView wrapper (`wrapperStyle`) so neither
+            // collapses to content height.
+            style={isTableSemanticsEnabled ? [...tableHeaderStyles, styles.flex1] : [...tableHeaderStyles, columnFlexStyle]}
+            wrapperStyle={isTableSemanticsEnabled ? styles.flex1 : undefined}
             onPress={() => toggleSorting(column.key)}
         >
             {label}
@@ -288,7 +294,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
     // announces the header once (via the button's accessibilityLabel) instead of re-reading the cell's contents.
     return (
         <View
-            style={[column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles]}
+            style={[columnFlexStyle, columnCellSizingStyle]}
             {...getColumnHeaderAccessibilityProps(true, !!column.sortable, isSortingByColumn, activeSorting.order, columnIndex)}
         >
             {sortButton}
