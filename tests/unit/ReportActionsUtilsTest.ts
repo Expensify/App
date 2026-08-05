@@ -6085,5 +6085,27 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
             expect(actual).toBe('changed the "Advertising" category attendees to not required (previously required)');
         });
+
+        it('should return the correct message when a required description is enabled', () => {
+            const action = buildUpdateCategoryAction({
+                categoryName: 'Advertising',
+                updatedField: 'areCommentsRequired',
+                oldValue: false,
+                newValue: true,
+            });
+            const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+            expect(actual).toBe('changed the "Advertising" category description to required (previously not required)');
+        });
+
+        it('should return the correct message when a required description is disabled', () => {
+            const action = buildUpdateCategoryAction({
+                categoryName: 'Advertising',
+                updatedField: 'areCommentsRequired',
+                oldValue: true,
+                newValue: false,
+            });
+            const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+            expect(actual).toBe('changed the "Advertising" category description to not required (previously required)');
+        });
     });
 });
