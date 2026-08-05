@@ -396,6 +396,7 @@ type AddCommentParams = {
     reportActionID?: string;
     delegateAccountID: number | undefined;
     conciergeReportID: string | undefined;
+    conciergeThreadReportID?: string;
 };
 
 type AddActionsParams = {
@@ -412,6 +413,7 @@ type AddActionsParams = {
     reportActionID?: string;
     delegateAccountID: number | undefined;
     conciergeReportID: string | undefined;
+    conciergeThreadReportID?: string;
 };
 
 type AddAttachmentWithCommentParams = {
@@ -844,47 +846,6 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
     };
 }
 
-/** How long to wait for the server to report a Concierge thread before giving up on following the user into it. */
-const CONCIERGE_THREAD_NAVIGATION_TIMEOUT_MS = 15000;
-
-/**
- * Concierge answers each question in a thread off the asking message. The server opens that thread while the
- * comment is being created and the thread's ID reaches us as `childReportID` on the comment, so wait for it
- * rather than guessing an ID. Write requests resolve as soon as they are queued and never carry the server's
- * response, so this is the only place the thread ID surfaces.
- *
- * Gives up after a timeout because the server declines to thread in several cases (a human agent already
- * handling the chat, pregenerated replies, the beta being off), and then `childReportID` never arrives.
- */
-function followConciergeThreadWhenOpened(reportID: string, reportActionID: string) {
-    let timeoutID: ReturnType<typeof setTimeout>;
-
-    // connectWithoutView because this is an action-layer subscription with no component behind it.
-    const connectionID = Onyx.connectWithoutView({
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        callback: (reportActions) => {
-            const childReportID = reportActions?.[reportActionID]?.childReportID;
-            if (!childReportID) {
-                return;
-            }
-            clearTimeout(timeoutID);
-            Onyx.disconnect(connectionID);
-
-            // The user may have moved on while the thread was being opened; only follow the reply if they
-            // are still sitting in the chat they asked from.
-            if (Navigation.getTopmostReportId() !== reportID) {
-                return;
-            }
-            if (isSearchTopmostFullScreenRoute()) {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
-            } else {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
-            }
-        },
-    });
-    timeoutID = setTimeout(() => Onyx.disconnect(connectionID), CONCIERGE_THREAD_NAVIGATION_TIMEOUT_MS);
-}
-
 /**
  * Add up to two report actions to a report. This method can be called for the following situations:
  *
@@ -911,6 +872,7 @@ function addActions({
     reportActionID,
     delegateAccountID,
     conciergeReportID,
+    conciergeThreadReportID,
 }: AddActionsParams) {
     if (!report?.reportID) {
         return;
@@ -1114,7 +1076,7 @@ function addActions({
         successReportActions[actionKey] = {pendingAction: null, isOptimisticAction: null};
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -1179,16 +1141,65 @@ function addActions({
         DateUtils.setTimezoneUpdated();
     }
 
+    // Concierge answers each question in a thread off it, so build that thread here and hand its ID to the server.
+    if (conciergeThreadReportID && resolvedReportActionID) {
+        parameters.conciergeThreadReportID = conciergeThreadReportID;
+
+        const optimisticThread = buildOptimisticChatReport({
+            participantList: [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE],
+            reportName: reportCommentText,
+            parentReportActionID: resolvedReportActionID,
+            parentReportID: reportID,
+            optimisticReportID: conciergeThreadReportID,
+            currentUserAccountID,
+        });
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${conciergeThreadReportID}`,
+                value: {...optimisticThread, pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[resolvedReportActionID]: {childReportID: conciergeThreadReportID, childType: CONST.REPORT.TYPE.CHAT}} as ReportActions,
+            },
+        );
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${conciergeThreadReportID}`,
+            value: {pendingFields: {createChat: null}, errorFields: {createChatThread: null}},
+        });
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${conciergeThreadReportID}`,
+                value: {
+                    pendingFields: {createChat: null},
+                    errorFields: {createChatThread: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')},
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[resolvedReportActionID]: {childReportID: undefined, childType: ''}} as ReportActions,
+            },
+        );
+    }
+
     API.write(commandName, parameters, {
         optimisticData,
         successData,
         failureData,
     });
 
-    // Concierge answers each question in its own thread, opened server-side while the comment is created.
-    // Not from the side panel, which renders its own report and would navigate a surface the user isn't looking at.
-    if (isConciergeChat && !isInSidePanel && resolvedReportActionID) {
-        followConciergeThreadWhenOpened(reportID, resolvedReportActionID);
+    if (conciergeThreadReportID && resolvedReportActionID) {
+        if (isSearchTopmostFullScreenRoute()) {
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: conciergeThreadReportID, backTo: Navigation.getActiveRoute()}));
+        } else {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeThreadReportID, undefined, undefined, Navigation.getActiveRoute()));
+        }
     }
     notifyNewAction(resolvedNotifyReportID, lastAction, lastAction?.actorAccountID === currentUserAccountID);
 }
@@ -1277,6 +1288,7 @@ function addComment({
     reportActionID,
     delegateAccountID,
     conciergeReportID,
+    conciergeThreadReportID,
 }: AddCommentParams) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
@@ -1294,6 +1306,7 @@ function addComment({
         delegateAccountID,
         sidePanelContext,
         conciergeReportID,
+        conciergeThreadReportID,
     });
 }
 
