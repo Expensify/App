@@ -1163,7 +1163,7 @@ function addActions({
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {[resolvedReportActionID]: {childReportID: conciergeThreadReportID, childType: CONST.REPORT.TYPE.CHAT}} as ReportActions,
+                value: {[resolvedReportActionID]: {childReportID: conciergeThreadReportID, childType: CONST.REPORT.TYPE.CHAT}},
             },
         );
         successData.push({
@@ -1183,7 +1183,7 @@ function addActions({
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {[resolvedReportActionID]: {childReportID: undefined, childType: ''}} as ReportActions,
+                value: {[resolvedReportActionID]: {childReportID: null, childType: ''}},
             },
         );
     }
