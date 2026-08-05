@@ -99,13 +99,14 @@ type DefaultVendorHelperTextParams = {
 type ExportAgainModalDescriptionParams = {
     reportName: string;
     connectionName: ConnectionName;
+    connectionNameFriendly?: string;
 };
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
 
 type YourPlanPriceParams = {lower: string; upper: string};
 
-type ExportIntegrationSelectedParams = {connectionName: ConnectionName};
+type ExportIntegrationSelectedParams = {connectionName: ConnectionName; connectionNameFriendly?: string};
 
 type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
 

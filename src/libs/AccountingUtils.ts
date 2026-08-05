@@ -1,7 +1,13 @@
-import CONST from '@src/CONST';
-import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
+import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
+
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+
+const INTUIT_ENTERPRISE_SUITE_SCOPE = 'app-foundations.custom-dimensions.read';
 
 const ROUTE_NAME_MAPPING = {
     [CONST.POLICY.CONNECTIONS.ROUTE.QBO]: CONST.POLICY.CONNECTIONS.NAME.QBO,
@@ -46,8 +52,31 @@ function getSearchValueForConnection(connectionName: ConnectionName): string {
     return CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
 }
 
+function isIntuitEnterpriseSuiteConnection(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.quickbooksOnline?.config?.credentials?.scope?.includes(INTUIT_ENTERPRISE_SUITE_SCOPE);
+}
+
+function getQuickbooksOnlineIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
+    return translate(isIntuitEnterpriseSuiteConnection(policy) ? 'workspace.accounting.intuitEnterpriseSuite' : 'workspace.accounting.qbo');
+}
+
+function getAccountingIntegrationDisplayName(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, translate: LocaleContextProps['translate']): string {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
+        return getQuickbooksOnlineIntegrationName(policy, translate);
+    }
+    return CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+}
+
 function getStandardExportTemplateDisplayName(templateName: string): string {
     return STANDARD_EXPORT_TEMPLATE_NAME_MAPPING[templateName as keyof typeof STANDARD_EXPORT_TEMPLATE_NAME_MAPPING] ?? templateName;
 }
 
-export {getConnectionNameFromRouteParam, getRouteParamForConnection, getSearchValueForConnection, getStandardExportTemplateDisplayName};
+export {
+    getAccountingIntegrationDisplayName,
+    getConnectionNameFromRouteParam,
+    getQuickbooksOnlineIntegrationName,
+    getRouteParamForConnection,
+    getSearchValueForConnection,
+    getStandardExportTemplateDisplayName,
+    isIntuitEnterpriseSuiteConnection,
+};

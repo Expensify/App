@@ -2,6 +2,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useExportDownloadStatus} from '@components/MoneyReportHeaderActions/ExportDownloadStatusContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 
+import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
 import {exportReceiptsToZip} from '@libs/actions/Export';
 import {openOldDotLink} from '@libs/actions/Link';
 import {exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
@@ -64,6 +65,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     const connectedIntegration = getValidConnectedIntegration(policy);
     const connectedIntegrationFallback = getConnectedIntegration(policy);
+    const connectionNameFriendly = connectedIntegrationFallback ? getAccountingIntegrationDisplayName(policy, connectedIntegrationFallback, translate) : undefined;
     // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside the other default templates.
     const {customTemplates, defaultTemplates} = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, policy, true, true);
     const isExported = isExportedUtils(reportActions, moneyRequestReport);
@@ -160,6 +162,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             text: translate('workspace.common.exportIntegrationSelected', {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 connectionName: connectedIntegrationFallback!,
+                connectionNameFriendly,
             }),
             icon: getIntegrationIcon(connectedIntegration ?? connectedIntegrationFallback, expensifyIcons),
             displayInDefaultIconColor: true,
@@ -174,7 +177,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                     triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
                     return;
                 }
-                exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
+                exportToIntegration(moneyRequestReport.reportID, connectedIntegration, connectionNameFriendly);
             },
         },
         [CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED]: {
@@ -192,7 +195,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                     triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
                     return;
                 }
-                markAsManuallyExported([moneyRequestReport.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegrationFallback);
+                markAsManuallyExported([moneyRequestReport.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegrationFallback, connectionNameFriendly);
             },
         },
     };

@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getSearchValueForConnection} from '@libs/AccountingUtils';
+import {getAccountingIntegrationDisplayName, getSearchValueForConnection} from '@libs/AccountingUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies} from '@libs/SearchQueryUtils';
 
@@ -35,7 +35,7 @@ const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
 
 function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: ExportedToSelectorProps) {
     const styles = useThemeStyles();
-    const {localeCompare} = useLocalize();
+    const {localeCompare, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -75,6 +75,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
         const connectedIntegrationPickerItems = integrationConnectionNames
             .filter((connectionName) => connectedIntegrationNames.has(connectionName))
             .map((connectionName) => {
+                const connectionPolicy = policiesToLoadTemplatesFrom.find((policy) => !!policy?.connections?.[connectionName]);
                 const icon = getIntegrationIcon(connectionName, expensifyIcons);
                 const leftElement = icon ? (
                     <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -89,7 +90,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
                     tableIconForExportOption(expensifyIcons.Table)
                 );
                 return {
-                    text: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
+                    text: getAccountingIntegrationDisplayName(connectionPolicy, connectionName, translate),
                     value: getSearchValueForConnection(connectionName),
                     leftElement,
                 };
