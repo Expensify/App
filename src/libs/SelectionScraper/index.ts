@@ -21,7 +21,7 @@ const copyableRowSelector = [`[${tagAttribute}=transaction-group-header-row][${h
 );
 
 function getCopyableElementText(element: globalThis.Element): string {
-    return element.textContent?.trim().replace(/[\t\n\r ]+/g, ' ') ?? '';
+    return element.textContent?.trim().replaceAll(/[\t\n\r ]+/g, ' ') ?? '';
 }
 
 function isTopLevelCopyableElementForHiddenElement(copyableElement: globalThis.Element, hiddenElement: globalThis.Element): boolean {

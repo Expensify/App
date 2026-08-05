@@ -11,17 +11,6 @@ const COPYABLE_TEXT_DATA_SET = {[CONST.COPYABLE_TEXT_ELEMENT]: true} as const;
 // Keep the delay short while leaving enough time for the browser to report a second click.
 const COPYABLE_TEXT_SINGLE_PRESS_DELAY_MS = 300;
 
-type CaretPosition = {
-    offsetNode: Node | null;
-    offset: number;
-};
-
-type DocumentWithCaretHelpers = Document & {
-    // Browsers expose different caret APIs for finding the text node under a pointer.
-    caretPositionFromPoint?: (x: number, y: number) => CaretPosition | null;
-    caretRangeFromPoint?: (x: number, y: number) => Range | null;
-};
-
 function getCopyableTextElement(target: EventTarget | Node | null | undefined): HTMLElement | null {
     if (typeof HTMLElement === 'undefined') {
         return null;
@@ -68,48 +57,44 @@ function getMouseEventPosition(event: unknown): {clientX: number; clientY: numbe
     return null;
 }
 
-function getTextNodeAtMousePosition(clientX: number, clientY: number): {node: Node; offset: number} | null {
-    if (typeof document === 'undefined' || typeof Node === 'undefined') {
+function getMouseEventTarget(event: unknown): EventTarget | null {
+    if (typeof EventTarget === 'undefined' || typeof event !== 'object' || event === null || !('target' in event) || !(event.target instanceof EventTarget)) {
         return null;
     }
 
-    const ownerDocument: DocumentWithCaretHelpers = document;
-
-    if (typeof ownerDocument.caretPositionFromPoint === 'function') {
-        const position = ownerDocument.caretPositionFromPoint(clientX, clientY);
-        if (position?.offsetNode?.nodeType === Node.TEXT_NODE) {
-            return {node: position.offsetNode, offset: position.offset};
-        }
-    }
-
-    if (typeof ownerDocument.caretRangeFromPoint === 'function') {
-        const range = ownerDocument.caretRangeFromPoint(clientX, clientY);
-        if (range?.startContainer?.nodeType === Node.TEXT_NODE) {
-            return {node: range.startContainer, offset: range.startOffset};
-        }
-    }
-
-    return null;
+    return event.target;
 }
 
-function isPointInsideTextRect(node: Node, offset: number, clientX: number, clientY: number): boolean {
-    const text = node.textContent ?? '';
-    if (!text.trim()) {
-        return false;
+function getTextNodes(element: HTMLElement): Node[] {
+    if (typeof document === 'undefined' || typeof NodeFilter === 'undefined' || typeof document.createTreeWalker !== 'function') {
+        return [];
     }
 
-    // Caret APIs can return a nearby text node from padding/empty space, so confirm the pointer is inside a glyph rect.
-    const offsetsToCheck = [offset, offset - 1].filter((textOffset) => textOffset >= 0 && textOffset < text.length);
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    const textNodes: Node[] = [];
+    let currentNode = walker.nextNode();
 
-    for (const textOffset of offsetsToCheck) {
-        const range = document.createRange();
-        range.setStart(node, textOffset);
-        range.setEnd(node, textOffset + 1);
+    while (currentNode) {
+        if (currentNode.textContent?.trim()) {
+            textNodes.push(currentNode);
+        }
+        currentNode = walker.nextNode();
+    }
 
-        for (const rect of Array.from(range.getClientRects())) {
-            if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
-                return true;
-            }
+    return textNodes;
+}
+
+function isPointInsideRect(clientX: number, clientY: number, rect: DOMRect): boolean {
+    return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+}
+
+function isPointInsideTextNode(node: Node, clientX: number, clientY: number): boolean {
+    const range = document.createRange();
+    range.selectNodeContents(node);
+
+    for (const rect of Array.from(range.getClientRects())) {
+        if (isPointInsideRect(clientX, clientY, rect)) {
+            return true;
         }
     }
 
@@ -123,12 +108,12 @@ function isMouseDownOnCopyableText(event: unknown): boolean {
     }
 
     // Only treat direct text hits as copyable interactions, so blank space inside a copyable cell keeps normal row behavior.
-    const textPosition = getTextNodeAtMousePosition(position.clientX, position.clientY);
-    if (!textPosition || !isCopyableTextTarget(textPosition.node)) {
+    const copyableElement = getCopyableTextElement(getMouseEventTarget(event));
+    if (!copyableElement) {
         return false;
     }
 
-    return isPointInsideTextRect(textPosition.node, textPosition.offset, position.clientX, position.clientY);
+    return getTextNodes(copyableElement).some((textNode) => isPointInsideTextNode(textNode, position.clientX, position.clientY));
 }
 
 function shouldSuppressCopyableTextPressOnMouseDown(event: unknown): boolean {
