@@ -6285,7 +6285,8 @@ function getReportSubtitlePrefix(report: OnyxEntry<Report>, currentUserEmail?: s
     const currentUserLogin = currentUserEmail ?? deprecatedCurrentUserEmail;
     let policyCount = 0;
     for (const policy of policiesArray) {
-        if (!shouldShowPolicy(policy, false, currentUserLogin)) {
+        // Archived policies count here because their rooms remain visible in the LHN and still need the workspace-name prefix to disambiguate them.
+        if (!shouldShowPolicy(policy, false, currentUserLogin, true)) {
             continue;
         }
 
