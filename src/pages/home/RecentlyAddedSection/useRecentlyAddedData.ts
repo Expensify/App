@@ -196,6 +196,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             }
             return ids;
         }, []);
+
         const nextDeleted = new Set(
             [...deletedTransactionIDs, ...pendingDeleteIDs].filter((transactionID) => {
                 if (!snapshotTransactionIDs.has(transactionID)) {
@@ -211,14 +212,20 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             ...Object.values(localTransactions ?? {}).filter(
                 (transaction): transaction is Transaction & {reportID: string} => !!transaction?.reportID && nextUnconfirmed.has(transaction.transactionID),
             ),
-        ]
+        ].filter((transaction) => {
+            const localTransaction = localTransactionByID.get(transaction.transactionID);
+
             // When an expense is split, its (local) copy is reassigned to the synthetic SPLIT_REPORT_ID and the
             // resulting split children are added as new expenses. Drop the now-orphaned original so the slot shows
             // only the splits. Prefer the local copy's reportID, which reflects the split even before the snapshot refreshes.
-            .filter((transaction) => (localTransactionByID.get(transaction.transactionID)?.reportID ?? transaction.reportID) !== CONST.REPORT.SPLIT_REPORT_ID)
+            if ((localTransaction?.reportID ?? transaction.reportID) === CONST.REPORT.SPLIT_REPORT_ID) {
+                return false;
+            }
+
             // Drop a watched delete only once its local copy is gone (the delete succeeded). While the local copy is
             // still there the row stays visible so it can render the DELETE pending treatment.
-            .filter((transaction) => !nextDeleted.has(transaction.transactionID) || localTransactionByID.has(transaction.transactionID));
+            return !nextDeleted.has(transaction.transactionID) || !!localTransaction;
+        });
 
         // Order by the transaction's `inserted` timestamp (the immutable insertion time), most recent first.
         const transactionsList = combined
