@@ -62,8 +62,9 @@ function roundWidths(widths: number[], availableWidth: number): number[] {
  * has, implementing three behaviors in order:
  *
  * 1. Every column's content fits inside an equal share of the available width, so the columns stay equal (`1fr`).
- * 2. The content fits overall but unevenly, so each column takes what it needs and the leftover space is split equally.
- *    A column with long content grows and its short-content siblings shrink.
+ * 2. The content fits overall but unevenly, so each column takes what it needs and the leftover space is shared out in
+ *    proportion to what each column asked for. A column with long content grows and its short-content siblings shrink;
+ *    sharing the leftover equally instead would pad a short column with space it has nothing to put in.
  * 3. The content does not fit, so every column shrinks toward its minimum width in proportion to how much slack it has.
  *    Once even the minimum widths don't fit, the columns are pinned to those minimums and the table scrolls.
  *
@@ -85,13 +86,14 @@ function calculateDynamicColumnWidths(constraints: DynamicColumnConstraints[], a
         return EQUAL_WIDTHS;
     }
 
-    // 2. Everything fits, so each column takes what it needs and the leftover space is shared equally.
+    // 2. Everything fits, so each column takes what it needs and the leftover space is shared out in proportion to what
+    // each column asked for, which keeps a short column from being padded with space it can't use.
     const totalDesiredWidth = sum(desiredWidths);
     if (totalDesiredWidth <= availableWidth) {
-        const leftoverPerColumn = (availableWidth - totalDesiredWidth) / constraints.length;
+        const leftoverWidth = availableWidth - totalDesiredWidth;
         return {
             widths: roundWidths(
-                desiredWidths.map((desiredWidth) => desiredWidth + leftoverPerColumn),
+                desiredWidths.map((desiredWidth) => desiredWidth + (leftoverWidth * desiredWidth) / totalDesiredWidth),
                 availableWidth,
             ),
             shouldScrollHorizontally: false,

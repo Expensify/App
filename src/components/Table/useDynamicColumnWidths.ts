@@ -27,12 +27,6 @@ const SORT_ICON_WIDTH = variables.iconSizeExtraSmall + 4;
  */
 const MEASURED_CANDIDATES_PER_COLUMN = 5;
 
-/**
- * Share of the available width a single column may claim by default. A column with one very long value would otherwise
- * squeeze all of its siblings down to their minimum width.
- */
-const DEFAULT_MAX_WIDTH_RATIO = 0.4;
-
 type UseDynamicColumnWidthsParams<DataType extends TableData, ColumnKey extends string> = {
     /** Column configuration for the table. */
     columns: Array<TableColumn<ColumnKey, DataType>>;
@@ -168,8 +162,6 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
             return noDynamicWidths;
         }
 
-        const defaultMaxWidth = Math.max(availableWidth * DEFAULT_MAX_WIDTH_RATIO, availableWidth / dynamicColumns.length);
-
         const constraints: DynamicColumnConstraints[] = [];
 
         for (const column of dynamicColumns) {
@@ -184,7 +176,10 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
             constraints.push({
                 contentWidth,
                 minWidth: column.dynamicSizing?.minWidth ?? headerLabelWidth,
-                maxWidth: column.dynamicSizing?.maxWidth ?? defaultMaxWidth,
+                // Uncapped by default. A cap can't be derived from the available width without breaking the sizing: a
+                // column capped at its equal share looks like it fits in one, so the columns would be left equal and the
+                // long column would stay truncated. Columns that genuinely need a ceiling set `maxWidth` themselves.
+                maxWidth: column.dynamicSizing?.maxWidth ?? Number.POSITIVE_INFINITY,
             });
         }
 

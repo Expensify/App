@@ -1,7 +1,8 @@
 import type {DynamicColumnConstraints} from '@components/Table/calculateDynamicColumnWidths';
 import calculateDynamicColumnWidths from '@components/Table/calculateDynamicColumnWidths';
 
-function buildConstraints(contentWidth: number, minWidth = 50, maxWidth = 1000): DynamicColumnConstraints {
+// Columns are uncapped by default, matching what the hook passes when a column doesn't set its own `maxWidth`.
+function buildConstraints(contentWidth: number, minWidth = 50, maxWidth = Number.POSITIVE_INFINITY): DynamicColumnConstraints {
     return {contentWidth, minWidth, maxWidth};
 }
 
@@ -33,8 +34,8 @@ describe('calculateDynamicColumnWidths', () => {
 
             expect(result.shouldScrollHorizontally).toBe(false);
             expect(sumOf(result.widths)).toBe(900);
-            // Each column gets its content width plus an equal share of the 120px left over.
-            expect(result.widths).toEqual([640, 140, 120]);
+            // Each column gets its content width plus a share of the 120px left over, in proportion to what it asked for.
+            expect(result.widths).toEqual([693, 115, 92]);
         });
 
         it('does not let a column grow past its maximum width', () => {
@@ -42,8 +43,8 @@ describe('calculateDynamicColumnWidths', () => {
 
             expect(result.shouldScrollHorizontally).toBe(false);
             expect(sumOf(result.widths)).toBe(900);
-            // The first column is capped at 500px, so the 220px left over is split equally.
-            expect(result.widths).toEqual([574, 173, 153]);
+            // The first column is capped at 500px, so the 220px left over is shared out from there.
+            expect(result.widths).toEqual([663, 132, 105]);
         });
 
         it('gives a column at least its minimum width even when its content is narrower', () => {
@@ -75,6 +76,21 @@ describe('calculateDynamicColumnWidths', () => {
             const result = calculateDynamicColumnWidths([buildConstraints(900, 400), buildConstraints(300, 200)], 600);
 
             expect(result).toEqual({widths: [400, 200], shouldScrollHorizontally: false});
+        });
+    });
+
+    describe('a long column next to a short one', () => {
+        it('keeps the short column at its label width and gives the rest to the long one', () => {
+            // The workspace members table: long emails in the Member column, a two-character custom field next to it,
+            // whose minimum is the width of its own header label. Regression test for capping a column at its equal share,
+            // which made the long column look like it fit in one and left both columns equal (so the emails stayed cut off
+            // while the custom field held ~half the table).
+            const result = calculateDynamicColumnWidths([buildConstraints(2000, 60), buildConstraints(14, 91)], 1270);
+
+            expect(result.shouldScrollHorizontally).toBe(false);
+            expect(sumOf(result.widths)).toBe(1270);
+            expect(result.widths.at(1)).toBe(91);
+            expect(result.widths.at(0)).toBe(1179);
         });
     });
 
