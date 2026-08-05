@@ -73,10 +73,10 @@ describe('getInsightState', () => {
         expect(getInsightState(false, undefined, queryJSON, undefined)).toBe(INSIGHT_STATE.LOADING);
     });
 
-    it('returns HIDDEN when loaded but no data points', () => {
+    it('returns EMPTY when loaded but no data points', () => {
         const results = makeSearchResults();
-        expect(getInsightState(false, results, queryJSON, [])).toBe(INSIGHT_STATE.HIDDEN);
-        expect(getInsightState(false, results, queryJSON, undefined)).toBe(INSIGHT_STATE.HIDDEN);
+        expect(getInsightState(false, results, queryJSON, [])).toBe(INSIGHT_STATE.EMPTY);
+        expect(getInsightState(false, results, queryJSON, undefined)).toBe(INSIGHT_STATE.EMPTY);
     });
 
     it('returns READY when loaded with 1+ data points', () => {

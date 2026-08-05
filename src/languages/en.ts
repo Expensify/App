@@ -1189,6 +1189,10 @@ const translations = {
             }),
             today: 'Today',
         },
+        insightsSection: {
+            chartUnavailable: 'Chart unavailable',
+            notEnoughData: 'We don’t have enough data to populate this chart yet',
+        },
     },
     allSettingsScreen: {
         subscription: 'Subscription',

@@ -24,7 +24,7 @@ const INSIGHT_STATE = {
     OFFLINE: 'offline',
     ERROR: 'error',
     LOADING: 'loading',
-    HIDDEN: 'hidden',
+    EMPTY: 'empty',
     READY: 'ready',
 } as const;
 
@@ -50,14 +50,13 @@ function getInsightState(
         return INSIGHT_STATE.LOADING;
     }
     if (!sortedData?.length) {
-        return INSIGHT_STATE.HIDDEN;
+        return INSIGHT_STATE.EMPTY;
     }
     return INSIGHT_STATE.READY;
 }
 
 function useInsightData(config: SearchTypeMenuItem | undefined) {
     const queryJSON = config?.searchQueryJSON;
-    const query = config?.searchQuery;
     const searchKey = config?.key;
     const {groupBy} = queryJSON ?? {};
     const view = queryJSON?.view && isChartView(queryJSON.view) ? queryJSON.view : CONST.SEARCH.VIEW.BAR;
@@ -125,11 +124,9 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
             : undefined;
     const sortedData = sortedSections && isGroupedItemArray(sortedSections) ? sortedSections : undefined;
 
-    const state = config ? getInsightState(isOffline, searchResults, queryJSON, sortedData) : INSIGHT_STATE.HIDDEN;
+    const state = getInsightState(isOffline, searchResults, queryJSON, sortedData);
 
     return {
-        config,
-        query,
         queryJSON,
         groupBy,
         view,
