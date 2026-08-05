@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
+
 import type GetHighResolutionInfoWrapperStyle from './types';
 
 const getHighResolutionInfoWrapperStyle: GetHighResolutionInfoWrapperStyle = (isUploaded) => ({

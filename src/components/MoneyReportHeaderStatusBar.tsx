@@ -1,17 +1,23 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {buildNextStepMessage, parseMessage} from '@libs/NextStepUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDeprecated';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 
@@ -37,7 +43,7 @@ function isDeprecatedFormatNextStep(step: NextStepData): step is ReportNextStepD
 function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch', 'DotIndicator']);
     const iconMap: IconMap = useMemo(
         () => ({
@@ -64,11 +70,11 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
 
         // Fall back to new format (with messageKey)
         if ('messageKey' in nextStep && nextStep.messageKey) {
-            return buildNextStepMessage(nextStep, translate, currentUserAccountID);
+            return buildNextStepMessage(nextStep, translate, currentUserAccountID, formatPhoneNumber);
         }
 
         return '';
-    }, [nextStep, translate, currentUserAccountID, currentUserEmail]);
+    }, [nextStep, translate, currentUserAccountID, currentUserEmail, formatPhoneNumber]);
 
     // iconFill can be set by frontend optimistic updates (deprecated format) but backend never sends it in new format
     const iconFill = (nextStep && 'iconFill' in nextStep ? (nextStep as {iconFill?: string}).iconFill : undefined) ?? theme.icon;

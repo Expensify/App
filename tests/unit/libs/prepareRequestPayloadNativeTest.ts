@@ -15,10 +15,9 @@ jest.mock('@libs/validateFormDataParameter', () => ({
     default: jest.fn(),
 }));
 
-const mockLogAlert = jest.fn();
-jest.mock('@libs/Log', () => ({
-    __esModule: true,
-    default: {alert: mockLogAlert},
+const mockLogReceiptDropped = jest.fn();
+jest.mock('@libs/telemetry/ReceiptObservability', () => ({
+    logReceiptDropped: mockLogReceiptDropped,
 }));
 
 // Bypass the global jest/setup.ts mock to test the real native implementation.
@@ -47,7 +46,7 @@ describe('prepareRequestPayload (native)', () => {
         expect(formData.get('amount')).toBe('100');
     });
 
-    it('should log an alert and omit receipt from FormData when file does not exist', async () => {
+    it('should log a joinable [Receipt] dropped line and omit receipt from FormData when file does not exist', async () => {
         mockCheckFileExists.mockResolvedValue(false);
 
         const receipt = {
@@ -55,13 +54,17 @@ describe('prepareRequestPayload (native)', () => {
             name: 'receipt.jpg',
             type: 'image/jpeg',
             uri: 'file:///var/mobile/Library/Caches/ImageManipulator/receipt.jpg',
+            receiptTraceId: 'trace-123',
         };
 
-        const formData = await prepareRequestPayload('RequestMoney', {receipt, amount: '100'}, false);
+        const formData = await prepareRequestPayload('RequestMoney', {receipt, transactionID: 'txn-456', amount: '100'}, false);
 
         expect(formData.has('receipt')).toBe(false);
         expect(formData.get('amount')).toBe('100');
-        expect(mockLogAlert).toHaveBeenCalledWith('[prepareRequestPayload] Receipt file missing at upload time', {
+        // The drop carries the trace id and transaction id so it joins the capture/enqueue lines on the [Receipt] spine.
+        expect(mockLogReceiptDropped).toHaveBeenCalledWith({
+            receiptTraceId: 'trace-123',
+            transactionID: 'txn-456',
             command: 'RequestMoney',
             source: 'file:///var/mobile/Library/Caches/ImageManipulator/receipt.jpg',
             fileName: 'receipt.jpg',

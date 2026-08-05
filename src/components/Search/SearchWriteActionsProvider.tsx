@@ -1,28 +1,32 @@
-import {useIsFocused} from '@react-navigation/native';
-import {deepEqual} from 'fast-equals';
-import React, {useEffect} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
+
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canRejectReportAction} from '@libs/ReportUtils';
 import {isGroupedItemArray, isReportActionListItemType, isTaskListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OutstandingReportsByPolicyIDDerivedValue, Report, SearchResults, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import {deepEqual} from 'fast-equals';
+import React, {useEffect} from 'react';
+
+import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
+
 import {useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchRowSelectionActionsContext} from './SearchContextDefinitions';
 import {useSyncSelectedReports} from './SearchSelectionProvider';
 import {mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry, prepareTransactionsList} from './selectionBuilders';
-import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 type SearchWriteActionsProviderProps = {
     /** The currently displayed (filtered, grouped) rows. Screen-derived; the provider cannot recompute it. */
@@ -93,8 +97,8 @@ type ReconcileSelectionParams = {
     /** Whether the app is running in production (affects split eligibility) */
     isProduction: boolean;
 
-    /** Set of archived report IDs, used for the change-report eligibility check */
-    archivedReportsIDSet: ArchivedReportsIDSet;
+    /** Report name-value pairs collection, used for the change-report eligibility archived check */
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 
     /** Derived outstanding reports per policy, used for the change-report eligibility check */
     outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
@@ -120,7 +124,7 @@ function useReconcileSelectionWithData({
     currentUserAccountID,
     selfDMReport,
     isProduction,
-    archivedReportsIDSet,
+    reportNameValuePairs,
     outstandingReportsByPolicyID,
 }: ReconcileSelectionParams) {
     const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
@@ -191,7 +195,7 @@ function useReconcileSelectionWithData({
                         originalItemTransaction,
                         currentUserLogin,
                         currentUserAccountID,
-                        archivedReportsIDSet,
+                        reportNameValuePairs,
                         outstandingReportsByPolicyID,
                         selfDMReport,
                         isProduction,
@@ -205,6 +209,7 @@ function useReconcileSelectionWithData({
                         canReject: currentUserEmail && transactionItem.report ? canRejectReportAction(currentUserEmail, transactionItem.report) : false,
                         policyID: transactionItem.report?.policyID,
                         groupKey: previousSelection?.groupKey ?? (propagateSelectionToAllRows && !isExpenseReportType ? reportKey : undefined),
+                        isSelectedViaGroup: previousSelection?.isSelectedViaGroup,
                     };
                 }
             }
@@ -229,7 +234,7 @@ function useReconcileSelectionWithData({
                     originalItemTransaction,
                     currentUserLogin,
                     currentUserAccountID,
-                    archivedReportsIDSet,
+                    reportNameValuePairs,
                     outstandingReportsByPolicyID,
                     selfDMReport,
                     isProduction,
@@ -342,7 +347,7 @@ function SearchWriteActionsProvider({
     const {isProduction} = useEnvironment();
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
-    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const {applySelection} = useSearchSelectionActions();
 
@@ -371,18 +376,27 @@ function SearchWriteActionsProvider({
                         selectedTransactions,
                         currentUserLogin: currentUserEmail,
                         currentUserAccountID: accountID,
-                        archivedReportsIDSet,
+                        reportNameValuePairs,
                         outstandingReportsByPolicyID,
                         selfDMReport,
                         isProduction,
                         parentReport: itemParentReport,
                     });
 
-                    // Tag individual transactions with their parent group key so export filtering can derive the group when needed.
                     if (areItemsGrouped && isGroupedItemArray(filteredData)) {
                         const parentGroup = filteredData.find((group) => group.transactions.some((transaction) => transaction.keyForList === item.keyForList));
-                        if (parentGroup?.keyForList && updatedTransactions[item.keyForList]) {
-                            updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey: parentGroup.keyForList};
+                        const groupKey = selectedTransactions[item.keyForList]?.groupKey ?? parentGroup?.keyForList;
+                        // Toggling one expense makes this group a partial selection, so export the remaining expenses individually.
+                        if (groupKey) {
+                            for (const [key, transaction] of Object.entries(updatedTransactions)) {
+                                if (transaction.groupKey === groupKey && transaction.isSelectedViaGroup) {
+                                    updatedTransactions[key] = {...transaction, isSelectedViaGroup: false};
+                                }
+                            }
+                        }
+                        // If the clicked expense is still selected, keep its parent group key.
+                        if (groupKey && updatedTransactions[item.keyForList]) {
+                            updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey};
                         }
                     }
 
@@ -414,8 +428,16 @@ function SearchWriteActionsProvider({
                     return {...selectedTransactions, [reportKey]: emptyReportSelection};
                 }
 
-                if (currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
+                // A group selected before its children were fetched is stored under the group key. Once the children load,
+                // deselecting has to clear that entry too, otherwise the group stays selected with no way to deselect it.
+                const groupKey = item.keyForList;
+                const isGroupKeySelected = !!(groupKey && selectedTransactions[groupKey]?.isSelected);
+
+                if (isGroupKeySelected || currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
                     const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
+                    if (groupKey) {
+                        delete reducedSelectedTransactions[groupKey];
+                    }
                     for (const transaction of currentTransactions) {
                         delete reducedSelectedTransactions[transaction.keyForList];
                     }
@@ -440,14 +462,14 @@ function SearchWriteActionsProvider({
                                     originalItemTransaction,
                                     currentUserLogin: currentUserEmail,
                                     currentUserAccountID: accountID,
-                                    archivedReportsIDSet,
+                                    reportNameValuePairs,
                                     outstandingReportsByPolicyID,
                                     selfDMReport,
                                     isProduction,
                                     allowNegativeAmount: true,
                                     parentReport: itemParentReport,
                                 });
-                                return [key, {...entry, groupKey: item.keyForList}];
+                                return [key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}];
                             }),
                     ),
                 };
@@ -485,14 +507,14 @@ function SearchWriteActionsProvider({
                                 originalItemTransaction,
                                 currentUserLogin: currentUserEmail,
                                 currentUserAccountID: accountID,
-                                archivedReportsIDSet,
+                                reportNameValuePairs,
                                 outstandingReportsByPolicyID,
                                 selfDMReport,
                                 isProduction,
                                 allowNegativeAmount: true,
                                 parentReport: itemParentReport,
                             });
-                            entries.push([key, {...entry, groupKey: item.keyForList}]);
+                            entries.push([key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}]);
                         }
                         return entries;
                     });
@@ -518,7 +540,7 @@ function SearchWriteActionsProvider({
                             originalItemTransaction,
                             currentUserLogin: currentUserEmail,
                             currentUserAccountID: accountID,
-                            archivedReportsIDSet,
+                            reportNameValuePairs,
                             outstandingReportsByPolicyID,
                             selfDMReport,
                             isProduction,
@@ -546,7 +568,7 @@ function SearchWriteActionsProvider({
         currentUserAccountID: accountID,
         selfDMReport,
         isProduction,
-        archivedReportsIDSet,
+        reportNameValuePairs,
         outstandingReportsByPolicyID,
     });
     useTurnOffSelectionModeWhenEmpty({isFocused, isMobileSelectionModeEnabled});

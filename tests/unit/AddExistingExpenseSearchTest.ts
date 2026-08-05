@@ -1,45 +1,48 @@
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {getAmount, getCurrency, getDescription, getMerchant} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import createMock from '../utils/createMock';
 
 // Mock the dependencies
 jest.mock('@libs/CurrencyUtils');
 jest.mock('@libs/TransactionUtils');
 
-const mockConvertToDisplayString = convertToDisplayString as jest.MockedFunction<typeof convertToDisplayString>;
-const mockGetMerchant = getMerchant as jest.MockedFunction<typeof getMerchant>;
-const mockGetDescription = getDescription as jest.MockedFunction<typeof getDescription>;
-const mockGetAmount = getAmount as jest.MockedFunction<typeof getAmount>;
-const mockGetCurrency = getCurrency as jest.MockedFunction<typeof getCurrency>;
+const mockConvertToDisplayString = jest.mocked(convertToDisplayString);
+const mockGetMerchant = jest.mocked(getMerchant);
+const mockGetDescription = jest.mocked(getDescription);
+const mockGetAmount = jest.mocked(getAmount);
+const mockGetCurrency = jest.mocked(getCurrency);
 
 describe('AddExistingExpense Search Functionality', () => {
-    const mockTransaction1: Partial<Transaction> = {
+    const mockTransaction1 = createMock<Transaction>({
         transactionID: '1',
         merchant: 'Starbucks',
         comment: {comment: 'Coffee meeting'},
         amount: 500, // $5.00
         currency: 'USD',
-    };
+    });
 
-    const mockTransaction2: Partial<Transaction> = {
+    const mockTransaction2 = createMock<Transaction>({
         transactionID: '2',
         merchant: 'Uber',
         comment: {comment: 'Taxi to airport'},
         amount: 2500, // $25.00
         currency: 'USD',
-    };
+    });
 
-    const mockTransaction3: Partial<Transaction> = {
+    const mockTransaction3 = createMock<Transaction>({
         transactionID: '3',
         merchant: 'Hotel California',
         comment: {comment: 'Business trip accommodation'},
         amount: 15000, // $150.00
         currency: 'USD',
-    };
+    });
 
-    const transactions = [mockTransaction1, mockTransaction2, mockTransaction3] as Transaction[];
+    const transactions = [mockTransaction1, mockTransaction2, mockTransaction3];
 
     beforeEach(() => {
         // Setup mocks

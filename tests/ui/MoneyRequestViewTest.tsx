@@ -1,12 +1,17 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {act, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -42,10 +47,23 @@ jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
     return () => <RN.View testID="animated-bg" />;
 });
 
-// Mock MenuItemWithTopDescription to expose interactive state via text for assertions
+// Mock MenuItemWithTopDescription to expose interactive state via text and title via a sibling testID.
+// Title lives in a sibling element so existing toHaveTextContent('editable'|'readonly') assertions on
+// the menu-item testID stay strict-equal — they don't pick up the title text.
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({description, interactive}: {description?: string; interactive?: boolean}) => <RN.Text testID={`menu-item-${description}`}>{interactive ? 'editable' : 'readonly'}</RN.Text>;
+    return ({description, title, interactive}: {description?: string; title?: string; interactive?: boolean}) => (
+        <>
+            <RN.View testID={`menu-item-${description}`}>
+                <RN.Text>{interactive ? 'editable' : 'readonly'}</RN.Text>
+            </RN.View>
+            {title !== undefined && (
+                <RN.View testID={`menu-item-title-${description}`}>
+                    <RN.Text>{title}</RN.Text>
+                </RN.View>
+            )}
+        </>
+    );
 });
 
 // Mock MenuItem (used for some fields like billable)
@@ -496,6 +514,110 @@ describe('MoneyRequestView edit fields', () => {
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-iou.taxAmount')).toBeOnTheScreen();
             expect(screen.queryByTestId(/^menu-item-iou\.taxAmount.*common\.converted/i)).not.toBeOnTheScreen();
+        });
+    });
+
+    it('falls back to the vendor externalID when the assigned vendor is missing from every connection', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'stale-vendor-id', isManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: []},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
+            expect(vendorTitle).toHaveTextContent('stale-vendor-id');
+            expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
+        });
+    });
+
+    it('falls back to the vendor externalID before the synced vendor list has loaded', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'still-valid-vendor-id', isManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
+            expect(vendorTitle).toHaveTextContent('still-valid-vendor-id');
+            expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
+        });
+    });
+
+    it("shows the vendor's name from a secondary connection when the active integration's list dropped it", async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'stale-vendor-id', isManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: []},
+                },
+                [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                    data: {vendors: [{id: 'stale-vendor-id', value: 'Stale Intacct Vendor', name: 'stale-code'}]},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
+            expect(vendorTitle).toHaveTextContent('Stale Intacct Vendor');
+            expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
         });
     });
 });

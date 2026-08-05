@@ -1,22 +1,28 @@
-import React, {Activity, useState} from 'react';
-import type {ActivityProps, RefObject} from 'react';
-import {View} from 'react-native';
 import CompactMenuContext from '@components/CompactMenuContext';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {close} from '@libs/actions/Modal';
 import {isSafari} from '@libs/Browser';
+
 import CONST from '@src/CONST';
+
+import type {ActivityProps, RefObject} from 'react';
+
+import React, {Activity, useState} from 'react';
+import {View} from 'react-native';
+
 import {FABMenuContext} from './FABMenuContext';
 
 const FAB_ITEM_ORDER = [
     CONST.FAB_MENU_ITEM_IDS.EXPENSE,
-    CONST.FAB_MENU_ITEM_IDS.TRACK_DISTANCE,
     CONST.FAB_MENU_ITEM_IDS.CREATE_REPORT,
+    CONST.FAB_MENU_ITEM_IDS.TRACK_DISTANCE,
     CONST.FAB_MENU_ITEM_IDS.NEW_CHAT,
     CONST.FAB_MENU_ITEM_IDS.INVOICE,
     CONST.FAB_MENU_ITEM_IDS.TRAVEL,

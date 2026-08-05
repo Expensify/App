@@ -1,9 +1,9 @@
 ---
-ruleId: CLEAN-REACT-6
+ruleId: CLEAN-REACT-PATTERNS-6
 title: Import the exported prop type instead of ComponentProps
 ---
 
-## [CLEAN-REACT-6] Import the exported prop type instead of ComponentProps
+## [CLEAN-REACT-PATTERNS-6] Import the exported prop type instead of ComponentProps
 
 ### Reasoning
 

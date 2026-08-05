@@ -1,12 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
 import ImageSVG from './ImageSVG';
 import Lottie from './Lottie';
@@ -47,6 +51,7 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
         <Modal
             onClose={onCancel}
             isVisible={isVisible}
+            shouldTreatModalAsCovering
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={{...styles.pb5, ...styles.pt0, ...styles.boxShadowNone}}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}

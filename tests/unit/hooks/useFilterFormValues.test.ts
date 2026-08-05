@@ -1,15 +1,18 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import {typeOptionsPoliciesSelector} from '@components/Search/FilterComponents/TypeSelector';
+
 import {advancedSearchPoliciesSelector} from '@hooks/useAdvancedSearchFilters';
 import {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
-import {policiesSelector, policyCategoriesSelector, policyTagsSelector, reportsSelector} from '@hooks/useFilterFormValues';
+import {policiesSelector, policyCategoriesSelector, policyTagsSelector} from '@hooks/useFilterFormValues';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyReportField, PolicyTagLists} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import createMock from '../../utils/createMock';
 
 const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}1`;
 const POLICY_KEY_2 = `${ONYXKEYS.COLLECTION.POLICY}2`;
-const REPORT_KEY = `${ONYXKEYS.COLLECTION.REPORT}1`;
-const REPORT_KEY_2 = `${ONYXKEYS.COLLECTION.REPORT}2`;
 const CATEGORIES_KEY = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`;
 const CATEGORIES_KEY_2 = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}2`;
 const TAGS_KEY = `${ONYXKEYS.COLLECTION.POLICY_TAGS}1`;
@@ -24,8 +27,8 @@ describe('useFilterFormValues selectors', () => {
         it('extracts only taxRates from each policy', () => {
             const taxRates = {name: 'Tax', defaultValue: '10%', taxes: {}};
             const policies: OnyxCollection<Policy> = {
-                [POLICY_KEY]: {id: '1', name: 'Policy 1', taxRates, employeeList: [{email: 'a@b.com'}]} as unknown as Policy,
-                [POLICY_KEY_2]: {id: '2', name: 'Policy 2', taxRates: undefined, employeeList: [{email: 'c@d.com'}]} as unknown as Policy,
+                [POLICY_KEY]: createMock<Policy>({id: '1', name: 'Policy 1', taxRates}),
+                [POLICY_KEY_2]: createMock<Policy>({id: '2', name: 'Policy 2', taxRates: undefined}),
             };
 
             const result = policiesSelector(policies);
@@ -40,7 +43,7 @@ describe('useFilterFormValues selectors', () => {
 
         it('skips undefined policy entries', () => {
             const policies: OnyxCollection<Policy> = {
-                [POLICY_KEY]: {id: '1', taxRates: {}} as unknown as Policy,
+                [POLICY_KEY]: createMock<Policy>({id: '1', taxRates: {}}),
                 [POLICY_KEY_2]: undefined,
             };
 
@@ -51,38 +54,6 @@ describe('useFilterFormValues selectors', () => {
         });
     });
 
-    describe('reportsSelector', () => {
-        it('returns undefined input as-is', () => {
-            expect(reportsSelector(undefined)).toBeUndefined();
-        });
-
-        it('extracts only reportID from each report', () => {
-            const reports: OnyxCollection<Report> = {
-                [REPORT_KEY]: {reportID: '100', reportName: 'Expense Report', chatType: 'policyExpenseChat'} as unknown as Report,
-                [REPORT_KEY_2]: {reportID: '200', reportName: 'Invoice', chatType: 'invoice'} as unknown as Report,
-            };
-
-            const result = reportsSelector(reports);
-
-            expect(result).toEqual({
-                [REPORT_KEY]: {reportID: '100'},
-                [REPORT_KEY_2]: {reportID: '200'},
-            });
-            expect(result?.[REPORT_KEY]).not.toHaveProperty('reportName');
-        });
-
-        it('skips undefined report entries', () => {
-            const reports: OnyxCollection<Report> = {
-                [REPORT_KEY]: {reportID: '100'} as Report,
-                [REPORT_KEY_2]: undefined,
-            };
-
-            const result = reportsSelector(reports);
-
-            expect(result).toEqual({[REPORT_KEY]: {reportID: '100'}});
-        });
-    });
-
     describe('policyCategoriesSelector', () => {
         it('returns undefined input as-is', () => {
             expect(policyCategoriesSelector(undefined)).toBeUndefined();
@@ -90,10 +61,10 @@ describe('useFilterFormValues selectors', () => {
 
         it('extracts only category names', () => {
             const categories: OnyxCollection<PolicyCategories> = {
-                [CATEGORIES_KEY]: {
+                [CATEGORIES_KEY]: createMock<PolicyCategories>({
                     Food: {name: 'Food', enabled: true, unencodedName: 'Food', areCommentsRequired: false, externalID: '123', origin: 'abc'},
                     Travel: {name: 'Travel', enabled: false, unencodedName: 'Travel', areCommentsRequired: true, externalID: '456', origin: 'def'},
-                } as unknown as PolicyCategories,
+                }),
             };
 
             const result = policyCategoriesSelector(categories);
@@ -106,9 +77,9 @@ describe('useFilterFormValues selectors', () => {
 
         it('skips undefined collection entries', () => {
             const categories: OnyxCollection<PolicyCategories> = {
-                [CATEGORIES_KEY]: {
-                    Food: {name: 'Food'} as PolicyCategories[string],
-                } as unknown as PolicyCategories,
+                [CATEGORIES_KEY]: createMock<PolicyCategories>({
+                    Food: {name: 'Food'},
+                }),
                 [CATEGORIES_KEY_2]: undefined,
             };
 
@@ -126,7 +97,7 @@ describe('useFilterFormValues selectors', () => {
 
         it('extracts only tag names', () => {
             const tags: OnyxCollection<PolicyTagLists> = {
-                [TAGS_KEY]: {
+                [TAGS_KEY]: createMock<PolicyTagLists>({
                     Department: {
                         name: 'Department',
                         required: true,
@@ -135,7 +106,7 @@ describe('useFilterFormValues selectors', () => {
                             Marketing: {name: 'Marketing', enabled: false},
                         },
                     },
-                } as unknown as PolicyTagLists,
+                }),
             };
 
             const result = policyTagsSelector(tags);
@@ -152,13 +123,13 @@ describe('useFilterFormValues selectors', () => {
 
         it('skips undefined collection entries', () => {
             const tags: OnyxCollection<PolicyTagLists> = {
-                [TAGS_KEY]: {
+                [TAGS_KEY]: createMock<PolicyTagLists>({
                     Department: {
                         tags: {
                             Engineering: {name: 'Engineering'},
                         },
                     },
-                } as unknown as PolicyTagLists,
+                }),
                 [TAGS_KEY_2]: undefined,
             };
 
@@ -174,12 +145,12 @@ describe('useFilterFormValues selectors', () => {
 
         it('handles tag lists with empty tags object', () => {
             const tags: OnyxCollection<PolicyTagLists> = {
-                [TAGS_KEY]: {
+                [TAGS_KEY]: createMock<PolicyTagLists>({
                     Department: {
                         name: 'Department',
                         tags: {},
                     },
-                } as unknown as PolicyTagLists,
+                }),
             };
 
             const result = policyTagsSelector(tags);
@@ -199,7 +170,7 @@ describe('useFilterFormValues selectors', () => {
             const connections = {quickbooksOnline: {config: {}, lastSync: {isConnected: true}}};
             const exportLayouts = {template1: {name: 'Template 1'}};
             const policies: OnyxCollection<Policy> = {
-                [POLICY_KEY]: {
+                [POLICY_KEY]: createMock<Policy>({
                     id: '1',
                     name: 'Policy 1',
                     connections,
@@ -208,7 +179,7 @@ describe('useFilterFormValues selectors', () => {
                     employeeList: {'a@b.com': {email: 'a@b.com', role: 'user'}},
                     taxRates: {name: 'Tax', taxes: {}},
                     customUnits: {unit1: {name: 'Miles'}},
-                } as unknown as Policy,
+                }),
             };
 
             const result = exportedToPoliciesSelector(policies);
@@ -221,7 +192,7 @@ describe('useFilterFormValues selectors', () => {
 
         it('skips undefined policy entries', () => {
             const policies: OnyxCollection<Policy> = {
-                [POLICY_KEY]: {id: '1', name: 'P1', connections: undefined, exportLayouts: undefined} as unknown as Policy,
+                [POLICY_KEY]: createMock<Policy>({id: '1', name: 'P1', connections: undefined, exportLayouts: undefined}),
                 [POLICY_KEY_2]: undefined,
             };
 
@@ -242,7 +213,7 @@ describe('useFilterFormValues selectors', () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 {'a@b.com': {email: 'a@b.com', role: 'admin'}};
             const policies: OnyxCollection<Policy> = {
-                [POLICY_KEY]: {
+                [POLICY_KEY]: createMock<Policy>({
                     id: '1',
                     type: 'team',
                     role: 'admin',
@@ -257,7 +228,7 @@ describe('useFilterFormValues selectors', () => {
                     taxRates: {name: 'Tax', taxes: {}},
                     customUnits: {unit1: {name: 'Miles'}},
                     fieldList: {field1: {name: 'Field 1'}},
-                } as unknown as Policy,
+                }),
             };
 
             const result = typeOptionsPoliciesSelector(policies);
@@ -282,7 +253,7 @@ describe('useFilterFormValues selectors', () => {
 
         it('skips undefined policy entries', () => {
             const policies: OnyxCollection<Policy> = {
-                [POLICY_KEY]: {id: '1', type: 'team'} as unknown as Policy,
+                [POLICY_KEY]: createMock<Policy>({id: '1', type: 'team'}),
                 [POLICY_KEY_2]: undefined,
             };
 
@@ -304,9 +275,9 @@ describe('useFilterFormValues selectors', () => {
                 {'a@b.com': {email: 'a@b.com', role: 'admin'}};
             const taxRates = {name: 'Tax', defaultValue: '10%', taxes: {tax1: {name: 'VAT', value: '20%'}}};
             const tax = {trackingEnabled: true};
-            const fieldList = {field1: {name: 'Project', type: 'text'}};
+            const fieldList = {field1: createMock<PolicyReportField>({name: 'Project', type: 'text'})};
             const policies: OnyxCollection<Policy> = {
-                [POLICY_KEY]: {
+                [POLICY_KEY]: createMock<Policy>({
                     id: '1',
                     name: 'Policy 1',
                     type: 'team',
@@ -328,7 +299,7 @@ describe('useFilterFormValues selectors', () => {
                     customUnits: {unit1: {name: 'Miles'}},
                     rules: {approvalRules: []},
                     exportLayouts: {template1: {name: 'T1'}},
-                } as unknown as Policy,
+                }),
             };
 
             const result = advancedSearchPoliciesSelector(policies);
@@ -346,12 +317,12 @@ describe('useFilterFormValues selectors', () => {
                 errors: {},
                 taxRates,
                 tax,
-                areCategoriesEnabled: true,
                 areTagsEnabled: true,
                 areInvoicesEnabled: false,
                 isAttendeeTrackingEnabled: false,
                 fieldList,
             });
+            expect(result?.[POLICY_KEY]).not.toHaveProperty('areCategoriesEnabled');
             expect(result?.[POLICY_KEY]).not.toHaveProperty('connections');
             expect(result?.[POLICY_KEY]).not.toHaveProperty('customUnits');
             expect(result?.[POLICY_KEY]).not.toHaveProperty('rules');
@@ -360,7 +331,7 @@ describe('useFilterFormValues selectors', () => {
 
         it('skips undefined policy entries', () => {
             const policies: OnyxCollection<Policy> = {
-                [POLICY_KEY]: {id: '1', name: 'P1', type: 'team'} as unknown as Policy,
+                [POLICY_KEY]: createMock<Policy>({id: '1', name: 'P1', type: 'team'}),
                 [POLICY_KEY_2]: undefined,
             };
 

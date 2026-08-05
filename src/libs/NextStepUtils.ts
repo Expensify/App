@@ -1,20 +1,22 @@
-import {addMonths, format, isPast, setDate} from 'date-fns';
-import {Str} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {IntroSelected, Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {addMonths, format, isPast, setDate} from 'date-fns';
+import {Str} from 'expensify-common';
+
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
-import isTrackOnboardingChoice from './OnboardingUtils';
-import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
+import {deprecatedGetLoginsByAccountIDs, deprecatedGetPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
+import {getOriginalMessage, isDynamicExternalWorkflowApproveFailedAction} from './ReportActionsUtils';
 import {
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -28,15 +30,6 @@ import {
     shouldShowMarkAsDone,
 } from './ReportUtils';
 import {hasSubmissionBlockingViolations} from './TransactionUtils';
-
-let introSelected: OnyxEntry<IntroSelected>;
-// eslint-disable-next-line rulesdir/no-onyx-connect -- NextStepUtils is a pure utility called from action files that cannot use hooks
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => {
-        introSelected = value;
-    },
-});
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
@@ -55,11 +48,32 @@ type BuildNextStepNewParams = {
      * This is necessary in the case where report actions are not yet updated to determine the bypass action.
      */
     bypassNextApproverID?: number;
+    isTrackIntentUser: boolean | undefined;
+    translate?: LocaleContextProps['translate'];
 };
 
-function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate'], currentUserAccountID: number): string {
+type GetReportNextStepParams = {
+    currentNextStep: ReportNextStepDeprecated | undefined;
+    moneyRequestReport: OnyxEntry<Report>;
+    moneyRequestReportOwnerLogin: string | undefined;
+    transactions: Array<OnyxEntry<Transaction>>;
+    policy: OnyxEntry<Policy>;
+    transactionViolations: OnyxCollection<TransactionViolations>;
+    currentUserEmail: string;
+    currentUserAccountID: number;
+    isTrackIntentUser: boolean | undefined;
+    translate: LocaleContextProps['translate'];
+    reportNextStep?: ReportNextStep;
+};
+
+function buildNextStepMessage(
+    nextStep: ReportNextStep,
+    translate: LocaleContextProps['translate'],
+    currentUserAccountID: number,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
-    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '');
+    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, translate}) ?? '');
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
     if (nextStep.actorAccountID === currentUserAccountID) {
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
@@ -101,6 +115,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         isReopen,
         isRejectedReport: isRejectedReportParam,
         bypassNextApproverID,
+        isTrackIntentUser,
     } = params;
 
     if (!isExpenseReport(report)) {
@@ -152,7 +167,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
             if (isReopen) {
                 nextStep = {
-                    messageKey: shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy})
+                    messageKey: shouldShowMarkAsDone({isTrackIntentUser, report, policy})
                         ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
                         : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -216,7 +231,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             if (hasTransactions && !policy?.harvesting?.enabled) {
                 nextStep = {
                     messageKey: shouldShowMarkAsDone({
-                        isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
+                        isTrackIntentUser,
                         report,
                         policy,
                     })
@@ -320,10 +335,10 @@ function parseMessage(messages: Message[] | undefined, currentUserEmail: string)
 /**
  * @private
  */
-function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boolean) {
+function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boolean, translate?: LocaleContextProps['translate']) {
     const approverAccountID = getNextApproverAccountID(report, isUnapprove);
 
-    return getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
+    return getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
 }
 
 function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
@@ -376,15 +391,19 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
     return optimisticNextStep;
 }
 
-function getReportNextStep(
-    currentNextStep: ReportNextStepDeprecated | undefined,
-    moneyRequestReport: OnyxEntry<Report>,
-    transactions: Array<OnyxEntry<Transaction>>,
-    policy: OnyxEntry<Policy>,
-    transactionViolations: OnyxCollection<TransactionViolations>,
-    currentUserEmail: string,
-    currentUserAccountID: number,
-) {
+function getReportNextStep({
+    currentNextStep,
+    moneyRequestReport,
+    moneyRequestReportOwnerLogin,
+    transactions,
+    policy,
+    transactionViolations,
+    currentUserEmail,
+    currentUserAccountID,
+    isTrackIntentUser,
+    translate,
+    reportNextStep,
+}: GetReportNextStepParams) {
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const shouldShowNoFurtherAction =
         reimbursableSpend === 0 &&
@@ -395,7 +414,9 @@ function getReportNextStep(
         isOpenExpenseReport(moneyRequestReport) &&
         transactions.length > 0 &&
         transactions.every(
-            (transaction) => !!transaction && hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, policy),
+            (transaction) =>
+                !!transaction &&
+                hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, moneyRequestReportOwnerLogin, policy),
         )
     ) {
         // eslint-disable-next-line rulesdir/no-default-id-values -- actorAccountID can be -1 for unspecified owner
@@ -418,10 +439,20 @@ function getReportNextStep(
             hasViolations: false,
             isASAPSubmitBetaEnabled: false,
             predictedNextStatus: moneyRequestReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            isTrackIntentUser,
+            translate,
         });
     }
 
-    return currentNextStep;
+    // Prefer the new translatable next step for the empty-report case so the "Waiting for you to add expenses" message
+    // respects the user's locale. The deprecated format is kept as the fallback for every other case.
+    if (reportNextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS) {
+        return reportNextStep;
+    }
+
+    // Prefer the report-embedded next step: the deprecated reportNextStep_* collection is only refreshed for the
+    // local actor, so a user viewing a report someone else acted on would otherwise keep seeing the stale message.
+    return moneyRequestReport?.nextStep ?? currentNextStep;
 }
 function buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(iconFill?: string) {
     const optimisticNextStep: ReportNextStepDeprecated = {
@@ -453,6 +484,20 @@ function buildOptimisticNextStepForDynamicExternalWorkflowApproveError(iconFill?
     };
 
     return optimisticNextStep;
+}
+
+/**
+ * Whether to show the DEW approve-error next step.
+ * Only manual approve failures (`automaticAction` false/absent) for the current approver should show it.
+ * Auto-approval blocks keep the normal workflow next step.
+ */
+function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: OnyxEntry<ReportAction>, hasDEWApproveFailed: boolean, isCurrentUserTheApprover: boolean): boolean {
+    if (!hasDEWApproveFailed || !isCurrentUserTheApprover || !isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
+        return false;
+    }
+
+    const {automaticAction} = getOriginalMessage(reportAction) ?? {};
+    return !automaticAction;
 }
 
 function buildOptimisticNextStepForDEWOffline() {
@@ -488,8 +533,9 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         isReopen,
         isRejectedReport,
         bypassNextApproverID,
+        isTrackIntentUser,
+        translate,
     } = params;
-
     if (!isExpenseReport(report)) {
         return null;
     }
@@ -498,7 +544,8 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
-    const [policyOwnerPersonalDetails, ownerPersonalDetails] = getPersonalDetailsByIDs({
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const [policyOwnerPersonalDetails, ownerPersonalDetails] = deprecatedGetPersonalDetailsByIDs({
         accountIDs: [policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, ownerAccountID],
         currentUserAccountID: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
         shouldChangeUserDisplayName: true,
@@ -507,16 +554,20 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const ownerDisplayName =
-        ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+        ownerPersonalDetails?.displayName ??
+        ownerPersonalDetails?.login ??
+        getDisplayNameForParticipant({accountID: ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate});
     const policyOwnerDisplayName =
         policyOwnerPersonalDetails?.displayName ??
         policyOwnerPersonalDetails?.login ??
-        getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+        getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate});
     const nextApproverDisplayName = bypassNextApproverID
-        ? (getDisplayNameForParticipant({accountID: bypassNextApproverID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? getPersonalDetailsForAccountID(bypassNextApproverID).login)
-        : getNextApproverDisplayName(report, isUnapprove);
+        ? (getDisplayNameForParticipant({accountID: bypassNextApproverID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ??
+          getPersonalDetailsForAccountID(bypassNextApproverID).login)
+        : getNextApproverDisplayName(report, isUnapprove, translate);
     const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
-    const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const approvers = deprecatedGetLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
     const type: ReportNextStepDeprecated['type'] = 'neutral';
@@ -559,7 +610,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
             {
-                const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy});
+                const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({isTrackIntentUser, report, policy});
 
                 if (isRejectedReport) {
                     optimisticNextStep = {
@@ -826,7 +877,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             } else if (reimburserAccountID === -1) {
                 payerMessage = {text: 'an admin'};
             } else {
-                payerMessage = {text: getDisplayNameForParticipant({accountID: reimburserAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}), type: 'strong'};
+                payerMessage = {text: getDisplayNameForParticipant({accountID: reimburserAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}), type: 'strong'};
             }
 
             optimisticNextStep = {
@@ -867,6 +918,7 @@ export {
     buildOptimisticNextStepForStrictPolicyRuleViolations,
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
+    shouldShowDynamicExternalWorkflowApproveErrorNextStep,
     buildOptimisticNextStepForDEWOffline,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildNextStepNew,

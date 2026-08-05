@@ -4,9 +4,11 @@ import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocus
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import type {State} from '@libs/Navigation/types';
+
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
 import useRootNavigationState from './useRootNavigationState';
 
 /**
@@ -25,8 +27,8 @@ import useRootNavigationState from './useRootNavigationState';
  */
 const FORWARD_TO_MAPPINGS: Record<string, Record<string, Route>> = {
     [DYNAMIC_ROUTES.VERIFY_ACCOUNT.path]: {
-        [SCREENS.SETTINGS.WALLET.ROOT]: ROUTES.SETTINGS_ENABLE_PAYMENTS,
-        [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.route,
+        [SCREENS.SETTINGS.WALLET.ROOT]: ROUTES.SETTINGS_ENABLE_PAYMENTS.route,
+        [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS]: ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE.route,
     },
     [DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path]: {
         [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: ROUTES.WORKSPACE_ACCOUNTING.route,

@@ -38,17 +38,26 @@ taxRate
 cardID
   = "cardID"
   / "card"i { return "cardID"; }
+bankAccount
+  = "bankAccount"
+  / "bank-account"i { return "bankAccount"; }
 from = "from"i { return "from"; }
 attendee = "attendee"i {return "attendee"}
 expenseType
   = "expenseType"
   / "expense-type"i { return "expenseType"; }
+receiptType
+  = "receiptType"
+  / "receipt-type"i { return "receiptType"; }
 withdrawalType
   = "withdrawalType"
   / "withdrawal-type"i { return "withdrawalType"; }
 withdrawalStatus
   = "withdrawalStatus"
   / "withdrawal-status"i { return "withdrawalStatus"; }
+paidStatus
+  = "paidStatus"
+  / "paid-status"i { return "paidStatus"; }
 withdrawalID
   = "withdrawalID"i
   / "withdrawal-id"i { return "withdrawalID"; }
@@ -75,6 +84,9 @@ groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
 limit = "limit"i { return "limit"; }
 feed = "feed"i { return "feed"; }
 title = "title"i { return "title"; }
+submitterUserID = "submitterUserID"i / "submitter-user-id"i { return "submitterUserID"; }
+submitterPayrollID = "submitterPayrollID"i / "submitter-payroll-id"i { return "submitterPayrollID"; }
+orderDealNumbers = "orderDealNumbers"i / "order-deal-numbers"i { return "orderDealNumbers"; }
 assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 action = "action"i { return "action"; }
@@ -101,7 +113,7 @@ columnsValues
   / taxAmount
   / policyName
   / withdrawalId
-  / bankAccount
+  / bankAccountColumn
   / reportId
   / base62ReportId
   / exportedToColumnValue
@@ -126,12 +138,12 @@ columnsValues
 
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
-originalAmount          = "original-amount"i &wordBoundary          { return "originalamount"; }
+originalAmount          = "purchase-amount"i &wordBoundary          { return "originalamount"; }
 taxAmount               = "tax"i &wordBoundary                      { return "taxAmount"; }
 taxRateValue            = "tax-rate"i &wordBoundary                 { return "taxrate"; }
 policyName              = "policy-name"i &wordBoundary              { return "policyname"; }
 withdrawalId            = "withdrawal-id"i &wordBoundary            { return "withdrawalID"; }
-bankAccount             = "bank-account"i &wordBoundary             { return "bankAccount"; }
+bankAccountColumn       = "bank-account"i &wordBoundary             { return "bankAccount"; }
 reportId                = "long-report-id"i &wordBoundary           { return "reportID"; }
 base62ReportId          = "report-id"i &wordBoundary                { return "base62ReportID"; }
 exportedToColumnValue   = "exported-to"i &wordBoundary              { return "exportedto"; }

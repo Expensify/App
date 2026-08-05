@@ -1,25 +1,35 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
 import useFilesValidation from '@hooks/useFilesValidation';
 import {precacheReceiptImage} from '@hooks/useLocalReceiptThumbnail';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
+
 import {navigateToConfirmationPage} from '@libs/IOUUtils';
+import type {ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
+import {getPickerCaptureSource} from '@libs/telemetry/ReceiptObservability';
+
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
+
 import {setMultipleMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import Camera from './Camera';
 import {useMultiScanActions, useMultiScanState} from './MultiScanContext';
 
@@ -53,7 +63,7 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
         );
     };
 
-    const processReceipts = (files: FileObject[]) => {
+    const processReceipts = (files: FileObject[], captureSource: ReceiptCaptureSource) => {
         const receiptFiles = buildReceiptFiles({
             files,
             getFileSource,
@@ -65,6 +75,7 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
             isMultiScanEnabled,
             transactions,
             draftTransactionIDsToCleanUp: draftTransactionIDs,
+            captureSource,
         });
 
         if (receiptFiles.length === 0) {
@@ -87,7 +98,7 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
     };
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        processReceipts(files);
+        processReceipts(files, getPickerCaptureSource());
     });
 
     return (
@@ -96,12 +107,12 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
             <Camera
                 onCapture={(file, source) => {
                     if (isMultiScanEnabled) {
-                        processReceipts([file]);
+                        processReceipts([file], 'camera');
                         return;
                     }
                     // Pre-warm the thumbnail cache before navigating so the confirm page
                     // doesn't flash an un-thumbnail receipt.
-                    precacheReceiptImage(source).then(() => processReceipts([file]));
+                    precacheReceiptImage(source).then(() => processReceipts([file], 'camera'));
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}

@@ -1,13 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type MultifactorAuthenticationPromptContentProps = {
     illustration: DotLottieAnimation | IconAsset;

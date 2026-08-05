@@ -1,9 +1,9 @@
 ---
-ruleId: CLEAN-REACT-8
+ruleId: CLEAN-REACT-PATTERNS-8
 title: Use function components, not class components
 ---
 
-## [CLEAN-REACT-8] Use function components, not class components
+## [CLEAN-REACT-PATTERNS-8] Use function components, not class components
 
 ### Reasoning
 

@@ -1,9 +1,9 @@
 ---
-ruleId: CLEAN-REACT-9
+ruleId: CLEAN-REACT-PATTERNS-9
 title: Use TypeScript types, not propTypes or defaultProps
 ---
 
-## [CLEAN-REACT-9] Use TypeScript types, not propTypes or defaultProps
+## [CLEAN-REACT-PATTERNS-9] Use TypeScript types, not propTypes or defaultProps
 
 ### Reasoning
 

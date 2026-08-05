@@ -1,9 +1,11 @@
-import Onyx from 'react-native-onyx';
 import * as Browser from '@libs/Browser';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Modal} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
 
 function inputFocusChange(focus: boolean) {
     Onyx.set(ONYXKEYS.INPUT_FOCUSED, focus);

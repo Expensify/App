@@ -1,13 +1,17 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import ROUTES from '@src/ROUTES';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type Props = {
     policyName: string;
@@ -20,9 +24,11 @@ type Props = {
     isReporting?: boolean;
     isTravelUpgrade?: boolean;
     isDistanceRateUpgrade?: boolean;
+    /** Overrides the primary button label (defaults to "Got it, thanks"). */
+    buttonText?: string;
 };
 
-function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade}: Props) {
+function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade, buttonText}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -70,7 +76,7 @@ function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, is
             descriptionComponent={description}
             shouldShowButton
             onButtonPress={afterUpgradeAcknowledged}
-            buttonText={translate('workspace.upgrade.completed.gotIt')}
+            buttonText={buttonText ?? translate('workspace.upgrade.completed.gotIt')}
             containerStyle={styles.h100}
         />
     );

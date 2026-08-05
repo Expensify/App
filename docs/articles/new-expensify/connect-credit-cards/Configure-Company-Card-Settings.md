@@ -62,7 +62,7 @@ To override the central export account per card:
 2. Click on an assigned card to open the **Card Details** page.
 3. Select a specific **export account** for that card.
 
-**Note:** If the card is set to Default Card, the central export account will be used.
+**Note:** If the card is set to Default option, the central export account will be used.
 
 ---
 

@@ -1,4 +1,5 @@
 import type {TurboModule} from 'react-native';
+
 import {TurboModuleRegistry} from 'react-native';
 
 // We need to export the interface inline for proper TypeScript type inference with TurboModules

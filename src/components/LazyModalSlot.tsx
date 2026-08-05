@@ -1,8 +1,9 @@
+import isChunkLoadError from '@libs/isChunkLoadError';
+import Log from '@libs/Log';
+
 import * as Sentry from '@sentry/react-native';
 import React, {Suspense} from 'react';
 import {ErrorBoundary as ReactErrorBoundary} from 'react-error-boundary';
-import isChunkLoadError from '@libs/isChunkLoadError';
-import Log from '@libs/Log';
 
 const logModalError = (error: Error, info: {componentStack?: string | null}) => {
     const componentStack = info.componentStack ?? undefined;

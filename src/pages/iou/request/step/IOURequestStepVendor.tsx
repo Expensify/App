@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -11,19 +11,26 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getQBOVendors, hasVendorFeature} from '@libs/PolicyUtils';
+import {getMatchingVendors, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import StepScreenWrapper from './StepScreenWrapper';
+
+import React, {useState} from 'react';
+
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
-import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
+import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type VendorListItem = ListItem & {
@@ -56,12 +63,14 @@ function IOURequestStepVendor({
     const delegateAccountID = useDelegateAccountID();
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const isOnXero = isXeroActiveMatchingSource(policy);
 
-    // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the QBO CC vendor-matching flow).
+    // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the vendor-matching flow).
     const isReimbursable = !!transaction?.reimbursable;
     const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
-    const vendors = getQBOVendors(policy);
+    const vendors = getMatchingVendors(policy);
     const currentVendorID = transaction?.comment?.vendor?.externalID;
+    const vendorLabel = isOnXero ? translate('common.supplier') : translate('common.vendor');
 
     const trimmedSearch = searchValue.trim().toLowerCase();
     const vendorRows: VendorListItem[] = vendors
@@ -75,19 +84,19 @@ function IOURequestStepVendor({
         }));
 
     // When a vendor is currently set, offer a "None" row so the user can clear a stale (e.g. removed-from-QBO) vendor without picking a replacement, which resolves an inactiveVendor violation. Hidden during search to keep results clean.
-    const data: VendorListItem[] =
-        !currentVendorID || trimmedSearch
-            ? vendorRows
-            : [
-                  {
-                      value: '',
-                      text: translate('common.none'),
-                      keyForList: 'clear-vendor',
-                      isSelected: false,
-                      searchText: '',
-                  },
-                  ...vendorRows,
-              ];
+    const shouldShowNoneRow = !!currentVendorID && !trimmedSearch;
+    const data: VendorListItem[] = shouldShowNoneRow
+        ? [
+              {
+                  value: '',
+                  text: translate('common.none'),
+                  keyForList: 'clear-vendor',
+                  isSelected: false,
+                  searchText: '',
+              },
+              ...vendorRows,
+          ]
+        : vendorRows;
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable || isReimbursable || isInvoice;
 
@@ -118,36 +127,45 @@ function IOURequestStepVendor({
                 icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.qbo.noAccountsFound')}
-                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+                title={isOnXero ? translate('workspace.xero.noSuppliersFound') : translate('workspace.qbo.noAccountsFound')}
+                subtitle={isOnXero ? translate('workspace.xero.noSuppliersFoundDescription') : translate('workspace.qbo.noAccountsFoundDescription')}
                 containerStyle={styles.pb10}
             />
         ) : null;
 
     return (
         <StepScreenWrapper
-            headerTitle={translate('common.vendor')}
+            headerTitle={vendorLabel}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             testID="IOURequestStepVendor"
             includeSafeAreaPaddingBottom
         >
-            <SelectionList
-                data={data}
-                onSelectRow={selectVendor}
-                textInputOptions={{
-                    label: translate('common.search'),
-                    value: searchValue,
-                    onChangeText: setSearchValue,
-                    headerMessage,
-                }}
-                initiallyFocusedItemKey={data.find((item) => item.isSelected)?.keyForList}
-                ListItem={SingleSelectListItem}
-                shouldShowLoadingPlaceholder={!policy}
-                listEmptyContent={listEmptyContent}
-                shouldSingleExecuteRowSelect
-            />
+            {({didScreenTransitionEnd}) => {
+                // Defer mounting the SelectionList (and its policy-derived data / lazy illustrations)
+                // until the RHP entry animation ends. First-open cost otherwise lands mid-transition
+                // and shows up as a backdrop flicker on the underlying expense view.
+                if (!didScreenTransitionEnd) {
+                    return null;
+                }
+                return (
+                    <SelectionList
+                        data={data}
+                        onSelectRow={selectVendor}
+                        textInputOptions={{
+                            label: translate('common.search'),
+                            value: searchValue,
+                            onChangeText: setSearchValue,
+                            headerMessage,
+                        }}
+                        initiallyFocusedItemKey={shouldShowNoneRow ? undefined : data.find((item) => item.isSelected)?.keyForList}
+                        ListItem={SingleSelectListItem}
+                        listEmptyContent={listEmptyContent}
+                        shouldSingleExecuteRowSelect
+                    />
+                );
+            }}
         </StepScreenWrapper>
     );
 }

@@ -3,17 +3,43 @@ const {getDefaultConfig: getReactNativeDefaultConfig} = require('@react-native/m
 
 const {mergeConfig} = require('@react-native/metro-config');
 const {wrapWithReanimatedMetroConfig} = require('react-native-reanimated/metro-config');
+const {getBundleModeMetroConfig} = require('react-native-worklets/bundleMode');
 const {withSentryConfig} = require('@sentry/react-native/metro');
 const {createSentryMetroSerializer} = require('@sentry/react-native/dist/js/tools/sentryMetroSerializer');
 
 const path = require('path');
 
+const {wrapTransformResultMaps} = require('@expo/metro-config/build/serializer/packedMap');
+const Bundler = require('metro/private/Bundler').default;
+
+// Expo SDK 56's transformer emits packed per-module source maps stock metro-source-map can't
+// read ("Unexpected module with full source map found"); unpack them here as Expo's CLI does.
+function patchMetroForExpoPackedSourceMaps() {
+    // Rock never exposes a Bundler instance, so we patch the shared prototype; the flag stops
+    // repeated config evaluation from stacking wrappers.
+    if (Bundler.prototype.__expoPackedSourceMapsPatched) {
+        return;
+    }
+    const originalTransformFile = Bundler.prototype.transformFile;
+    Bundler.prototype.transformFile = async function transformFile(...args) {
+        return wrapTransformResultMaps(await originalTransformFile.apply(this, args));
+    };
+    Bundler.prototype.__expoPackedSourceMapsPatched = true;
+}
+
+patchMetroForExpoPackedSourceMaps();
+
 // Prefer explicit ENVFILE (Fastlane/GHA set this), else fall back to local .env
 const envPath = process.env.ENVFILE ? (path.isAbsolute(process.env.ENVFILE) ? process.env.ENVFILE : path.join(__dirname, process.env.ENVFILE)) : path.join(__dirname, '.env');
 require('dotenv').config({path: envPath});
 
+// Expo SDK 56 replaces global fetch with expo/fetch on native, which breaks large API responses (e.g. OpenApp).
+// Keep React Native's built-in fetch unless explicitly overridden.
+process.env.EXPO_PUBLIC_USE_RN_FETCH = process.env.EXPO_PUBLIC_USE_RN_FETCH ?? '1';
+
 const defaultConfig = getReactNativeDefaultConfig(__dirname);
 const expoConfig = getExpoDefaultConfig(__dirname);
+const noopExpoUpdatesPath = path.resolve(__dirname, 'src/setup/telemetry/noopExpoUpdates.ts');
 
 const isDev = process.env.ENVIRONMENT === undefined || process.env.ENVIRONMENT === 'development';
 
@@ -28,6 +54,11 @@ const defaultGetPolyfills = defaultConfig.serializer?.getPolyfills ?? (() => [])
 const config = {
     resolver: {
         assetExts: [...defaultConfig.resolver.assetExts, 'lottie'],
+        extraNodeModules: {
+            ...(defaultConfig.resolver.extraNodeModules ?? {}),
+            ...(expoConfig.resolver.extraNodeModules ?? {}),
+            'expo-updates': noopExpoUpdatesPath,
+        },
         sourceExts: [...defaultConfig.resolver.sourceExts, ...defaultConfig.watcher.additionalExts, 'jsx'],
     },
     // We are merging the default config from Expo and React Native and expo one is overriding the React Native one so inlineRequires is set to false so we want to set it to true
@@ -45,6 +76,6 @@ const config = {
     },
 };
 
-const mergedConfig = wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config));
+const mergedConfig = getBundleModeMetroConfig(wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config)));
 
 module.exports = isDev ? mergedConfig : withSentryConfig(mergedConfig);

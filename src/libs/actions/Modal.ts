@@ -1,8 +1,10 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ModalType from '@src/types/utils/ModalType';
 
+import Onyx from 'react-native-onyx';
+
 const closeModals: Array<(isNavigating?: boolean) => void> = [];
+const coveringModalIDs = new Set<number>();
 
 let onModalClose: null | (() => void | Promise<void>);
 let isNavigate: undefined | boolean;
@@ -81,6 +83,21 @@ function setModalVisibility(isVisible: boolean, type: ModalType | null = null) {
 }
 
 /**
+ * Tracks covering modals by instance so one modal cannot clear the covering state while another is still open.
+ * The entry is kept until the modal's hide animation has completed.
+ * The published value is RAM-only so independently running browser tabs cannot overwrite each other's registry.
+ */
+function setModalCovering(modalID: number, isCovering: boolean) {
+    if (isCovering) {
+        coveringModalIDs.add(modalID);
+    } else {
+        coveringModalIDs.delete(modalID);
+    }
+
+    Onyx.set(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED, coveringModalIDs.size > 0);
+}
+
+/**
  * Allows other parts of the app to set whether modals should be dismissible using the Escape key
  */
 function setDisableDismissOnEscape(disableDismissOnEscape: boolean) {
@@ -103,4 +120,4 @@ function areAllModalsHidden() {
     return closeModals.length === 0;
 }
 
-export {setCloseModal, close, onModalDidClose, setModalVisibility, willAlertModalBecomeVisible, setDisableDismissOnEscape, closeTop, areAllModalsHidden};
+export {setCloseModal, close, onModalDidClose, setModalVisibility, setModalCovering, willAlertModalBecomeVisible, setDisableDismissOnEscape, closeTop, areAllModalsHidden};
