@@ -26,7 +26,7 @@ jest.mock('@src/languages/de', () => {
         mockShouldChunkFail = false;
         throw new Error('ChunkLoadError: Loading chunk languages_de failed');
     }
-    return {__esModule: true, default: {common: {cancel: 'Abbrechen'}}};
+    return {__esModule: true, default: {common: {cancel: 'Cancel (translated)'}}};
 });
 
 function confirmReachability() {
@@ -73,7 +73,7 @@ describe('IntlStore.load offline recovery', () => {
 
         expect(onRejected).not.toHaveBeenCalled();
         expect(IntlStore.getCurrentLocale()).toBe(LOCALES.DE);
-        expect(IntlStore.get('common.cancel', LOCALES.DE)).toBe('Abbrechen');
+        expect(IntlStore.get('common.cancel', LOCALES.DE)).toBe('Cancel (translated)');
         expect(mockReachabilityListeners.size).toBe(0);
         await expect(getOnyxValue(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING)).resolves.toBe(false);
     });
