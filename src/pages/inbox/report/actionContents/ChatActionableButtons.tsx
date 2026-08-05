@@ -16,6 +16,7 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     getOriginalMessage,
@@ -251,8 +252,9 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                   ];
             const options = !isSplitExpense || hasWorkspaceToSubmitTo ? [...submitButtons] : [];
 
-            options.push(prepareTrackExpenseButton('categorize', {isRestrictedToPreferredPolicy, preferredPolicyID}));
-            options.push(prepareTrackExpenseButton('share', {isRestrictedToPreferredPolicy, preferredPolicyID}));
+            if (Permissions.canUseTrackFlows()) {
+                options.push(prepareTrackExpenseButton('categorize'), prepareTrackExpenseButton('share'));
+            }
             options.push({
                 text: 'actionableMentionTrackExpense.nothing',
                 key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
