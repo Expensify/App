@@ -54,7 +54,7 @@ function prepareDualEntryOnyxData<TSettingName extends keyof DualEntryConnection
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             [settingName]: settingValue ?? null,
                             pendingFields: {
@@ -76,7 +76,7 @@ function prepareDualEntryOnyxData<TSettingName extends keyof DualEntryConnection
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             pendingFields: {
                                 [settingName]: null,
@@ -94,7 +94,7 @@ function prepareDualEntryOnyxData<TSettingName extends keyof DualEntryConnection
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             [settingName]: oldSettingValue ?? null,
                             pendingFields: {

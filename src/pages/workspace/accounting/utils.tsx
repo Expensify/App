@@ -58,7 +58,7 @@ function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
-    existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean; rillet: boolean; dualentry: boolean},
+    existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean; rillet: boolean; dualEntry: boolean},
     policy?: Policy,
     key?: number,
     integrationToDisconnect?: ConnectionName,
@@ -112,7 +112,7 @@ function getAccountingIntegrationData(
         if (integrationToDisconnect) {
             return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
-        if (existingConnections.dualentry) {
+        if (existingConnections.dualEntry) {
             return ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXISTING_CONNECTIONS.getRoute(policyID);
         }
         return ROUTES.POLICY_ACCOUNTING_DUALENTRY_SETUP.getRoute(policyID);
@@ -473,7 +473,7 @@ function getAccountingIntegrationData(
         }
         case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY: {
             return {
-                title: translate('workspace.accounting.dualentry'),
+                title: translate('workspace.accounting.dualEntry'),
                 icon: expensifyIcons?.DualEntrySquare,
                 setupConnectionFlow: (
                     <ConnectToDualEntryFlow
@@ -485,7 +485,7 @@ function getAccountingIntegrationData(
                 subscribedImportSettings: [
                     CONST.DUALENTRY_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.DUALENTRY_CONFIG.SYNC_TAX_RATES,
-                    ...(policy?.connections?.dualentry?.data?.classifications?.map((classification) => `${CONST.DUALENTRY_CONFIG.FIELD_MAPPING_PREFIX}${classification.id}`) ?? []),
+                    ...(policy?.connections?.dualEntry?.data?.classifications?.map((classification) => `${CONST.DUALENTRY_CONFIG.FIELD_MAPPING_PREFIX}${classification.id}`) ?? []),
                 ],
                 onExportPagePress: () => null,
                 subscribedExportSettings: [
@@ -521,11 +521,11 @@ function getAccountingIntegrationData(
                     CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
                 ],
                 workspaceUpgradeNavigationDetails: {
-                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.dualentry.alias,
+                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.dualEntry.alias,
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForDualEntry(),
                 },
-                pendingFields: policy?.connections?.dualentry?.config?.pendingFields,
-                errorFields: policy?.connections?.dualentry?.config?.errorFields,
+                pendingFields: policy?.connections?.dualEntry?.config?.pendingFields,
+                errorFields: policy?.connections?.dualEntry?.config?.errorFields,
             };
         }
         default:

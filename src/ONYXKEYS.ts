@@ -1287,8 +1287,8 @@ const ONYXKEYS = {
         EDIT_AGENT_RULE_FORM_DRAFT: 'editAgentRuleFormDraft',
         RILLET_CREDENTIALS_FORM: 'rilletCredentialsForm',
         RILLET_CREDENTIALS_FORM_DRAFT: 'rilletCredentialsFormDraft',
-        DUALENTRY_CREDENTIALS_FORM: 'dualentryCredentialsForm',
-        DUALENTRY_CREDENTIALS_FORM_DRAFT: 'dualentryCredentialsFormDraft',
+        DUALENTRY_CREDENTIALS_FORM: 'dualEntryCredentialsForm',
+        DUALENTRY_CREDENTIALS_FORM_DRAFT: 'dualEntryCredentialsFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',

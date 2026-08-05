@@ -125,7 +125,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [cardLists] = useCardsLists();
 
     const canUseRilletIntegration = isBetaEnabled(CONST.BETAS.RILLET) || !!policy?.connections?.rillet;
-    const canUseDualEntryIntegration = isBetaEnabled(CONST.BETAS.DUALENTRY) || !!policy?.connections?.dualentry;
+    const canUseDualEntryIntegration = isBetaEnabled(CONST.BETAS.DUALENTRY) || !!policy?.connections?.dualEntry;
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
@@ -288,7 +288,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
         const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
         const rilletSubsidiaryList = policy?.connections?.rillet?.data?.subsidiaries;
-        const dualentryCompanyList = policy?.connections?.dualentry?.data?.companies;
+        const dualEntryCompanyList = policy?.connections?.dualEntry?.data?.companies;
         const certiniaConfig = policy?.connections?.financialforce?.config;
         const certiniaCompanies = policy?.connections?.financialforce?.data?.companies ?? [];
         const certiniaCompanyID = certiniaConfig?.credentials?.companyID;
@@ -401,21 +401,21 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                   : undefined,
                       };
             case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                return !dualentryCompanyList?.length
+                return !dualEntryCompanyList?.length
                     ? {}
                     : {
-                          description: translate('workspace.dualentry.company'),
+                          description: translate('workspace.dualEntry.company'),
                           iconRight: icons.ArrowRight,
-                          title: dualentryCompanyList?.find((company) => company.id === policy?.connections?.dualentry?.config?.companyID)?.name ?? '',
+                          title: dualEntryCompanyList?.find((company) => company.id === policy?.connections?.dualEntry?.config?.companyID)?.name ?? '',
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
-                          shouldShowRightIcon: canWriteAccounting && dualentryCompanyList && dualentryCompanyList.length > 1,
+                          shouldShowRightIcon: canWriteAccounting && dualEntryCompanyList && dualEntryCompanyList.length > 1,
                           shouldShowDescriptionOnTop: true,
                           interactive: canWriteAccounting,
-                          pendingAction: policy?.connections?.dualentry?.config.pendingFields?.companyID,
-                          brickRoadIndicator: policy?.connections?.dualentry?.config.errorFields?.companyID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          pendingAction: policy?.connections?.dualEntry?.config.pendingFields?.companyID,
+                          brickRoadIndicator: policy?.connections?.dualEntry?.config.errorFields?.companyID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                           onPress:
-                              policyID && canWriteAccounting && dualentryCompanyList && dualentryCompanyList.length > 1
+                              policyID && canWriteAccounting && dualEntryCompanyList && dualEntryCompanyList.length > 1
                                   ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_COMPANY_SELECTOR.getRoute(policyID))
                                   : undefined,
                       };
@@ -449,7 +449,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             qbd: hasReusablePoliciesConnectedToQBD,
                             certinia: hasReusablePoliciesConnectedToCertinia,
                             rillet: hasReusablePoliciesConnectedToRillet,
-                            dualentry: hasReusablePoliciesConnectedToDualEntry,
+                            dualEntry: hasReusablePoliciesConnectedToDualEntry,
                         },
                         undefined,
                         undefined,
@@ -534,7 +534,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 qbd: hasReusablePoliciesConnectedToQBD,
                 certinia: hasReusablePoliciesConnectedToCertinia,
                 rillet: hasReusablePoliciesConnectedToRillet,
-                dualentry: hasReusablePoliciesConnectedToDualEntry,
+                dualEntry: hasReusablePoliciesConnectedToDualEntry,
             },
             policy,
             undefined,
@@ -718,7 +718,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         qbd: hasReusablePoliciesConnectedToQBD,
                         certinia: hasReusablePoliciesConnectedToCertinia,
                         rillet: hasReusablePoliciesConnectedToRillet,
-                        dualentry: hasReusablePoliciesConnectedToDualEntry,
+                        dualEntry: hasReusablePoliciesConnectedToDualEntry,
                     },
                     undefined,
                     undefined,

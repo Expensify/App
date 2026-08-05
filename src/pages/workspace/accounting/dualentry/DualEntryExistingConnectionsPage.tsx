@@ -32,7 +32,7 @@ function DualEntryExistingConnectionsPage({route}: DualEntryExistingConnectionsP
     const {reusablePoliciesConnectedTo: reusablePoliciesConnectedToDualEntry} = useReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY, policyID);
 
     const menuItems = reusablePoliciesConnectedToDualEntry.map((policy) => {
-        const lastSuccessfulSyncDate = policy.connections?.dualentry?.lastSync?.successfulDate;
+        const lastSuccessfulSyncDate = policy.connections?.dualEntry?.lastSync?.successfulDate;
         const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
         return {
             title: policy.name,
@@ -41,7 +41,7 @@ function DualEntryExistingConnectionsPage({route}: DualEntryExistingConnectionsP
             icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
             iconType: CONST.ICON_TYPE_WORKSPACE,
             shouldShowRightIcon: true,
-            description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.dualentry, date) : translate('workspace.accounting.dualentry'),
+            description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.dualEntry, date) : translate('workspace.accounting.dualEntry'),
             onPress: () => {
                 copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.DUALENTRY);
                 Navigation.dismissModal();

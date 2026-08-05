@@ -5857,8 +5857,8 @@ const translations = {
                 description: "Choose your settlement account and we'll create the payment in Rillet.",
             },
         },
-        dualentry: {
-            dualentrySetup: 'DualEntry setup',
+        dualEntry: {
+            dualEntrySetup: 'DualEntry setup',
             enterCredentials: 'Enter your DualEntry API key',
             howToFindAPIKey:
                 '<strong>Finding your API key.</strong><ol><li>Log in to DualEntry</li><li>Navigate to [organization name] -> Settings -> Developer access -> API keys</li><li>Create API key</li><li>Paste the API key below</li></ol>',
@@ -6884,7 +6884,7 @@ const translations = {
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
-            dualentry: 'DualEntry',
+            dualEntry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -7140,11 +7140,11 @@ const translations = {
                             return 'Initializing connection to Rillet';
                         case 'rilletSyncImportData':
                             return 'Loading data';
-                        case 'dualentrySyncTitle':
+                        case 'dualEntrySyncTitle':
                             return 'Syncing DualEntry data';
-                        case 'dualentrySyncConnection':
+                        case 'dualEntrySyncConnection':
                             return 'Initializing connection to DualEntry';
-                        case 'dualentrySyncImportData':
+                        case 'dualEntrySyncImportData':
                             return 'Loading data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
