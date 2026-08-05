@@ -73,17 +73,19 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   # Update the production branch to trigger the production deploy.
+  # If StagingOnlyDeploy label was added, this is skipped
   updateProduction:
     needs: validate
-    if: ${{ fromJSON(needs.validate.outputs.isValid) }}
+    if: ${{ fromJSON(needs.validate.outputs.isValid) && !contains(github.event.issue.labels.*.name, 'StagingOnlyDeploy') }}
     uses: ./.github/workflows/updateProtectedBranch.yml
     secrets: inherit
     with:
       TARGET_BRANCH: production
 
-  # Remove DeployBlockerCash label from issues that had it since we just deployed production
+  # Remove DeployBlockerCash label from issues that had it since we just deployed (or are about to deploy) staging
   cleanupDeployBlockers:
-    needs: updateProduction
+    needs: [validate, updateProduction]
+    if: ${{ !cancelled() && fromJSON(needs.validate.outputs.isValid) && needs.updateProduction.result != 'failure' }}
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - run: |
