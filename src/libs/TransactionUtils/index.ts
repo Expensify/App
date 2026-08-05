@@ -1130,9 +1130,13 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
 /**
  * Whether the transaction's route distance is already known locally (from a computed route or stored quantity),
  * so amount/merchant can be recalculated without waiting for the server.
+ *
+ * A waypoint edit whose route is still being computed by the server zeroes the amount but leaves the
+ * quantity/routes of the pre-edit route in place, so a zero amount means the stored distance is stale.
  */
 function hasLocallyKnownDistance(transaction: OnyxInputOrEntry<Transaction>): boolean {
-    return !!transaction?.comment?.customUnit?.quantity || !!transaction?.routes?.route0?.distance;
+    const hasDistanceSource = !!transaction?.comment?.customUnit?.quantity || !!transaction?.routes?.route0?.distance;
+    return hasDistanceSource && !!getAmount(transaction);
 }
 
 // Editing any of these fields makes the server regenerate the distance map receipt. `customUnitRateID`/`distance`

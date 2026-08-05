@@ -532,6 +532,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             // Then: the amount/merchant are recalculated locally against the new rate (10 mi × rate2), not deferred to the server
@@ -578,11 +580,65 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             // Then: the rate id updates, but amount/merchant recalculation is deferred to the server (no valid local mileage data)
             expect(updatedTransaction.comment?.customUnit?.customUnitRateID).toBe('rate2');
             expect(updatedTransaction.modifiedAmount).not.toBe(20);
+        });
+
+        it('defers amount/merchant recalculation on a rate change when the pending waypoint edit invalidated the amount', () => {
+            // Given: a policy with two mileage rates
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {customUnitRateID: 'rate1', currency: CONST.CURRENCY.USD, rate: 1},
+                            rate2: {customUnitRateID: 'rate2', currency: CONST.CURRENCY.USD, rate: 2},
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            // And: the waypoints of an existing distance expense were just edited, so the amount/merchant were
+            // zeroed out while the server computes the new route. The quantity/routes left over from the
+            // pre-edit route are stale and must not be used to recalculate.
+            const transaction = generateTransaction({
+                amount: CONST.IOU.DEFAULT_AMOUNT,
+                modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                routes: {route0: {distance: 16093}},
+                currency: CONST.CURRENCY.USD,
+                pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            });
+
+            // When: changing the rate before the new route arrives
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {customUnitRateID: 'rate2'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            // Then: the rate id updates, but the stale distance is not turned into an amount/merchant
+            expect(updatedTransaction.comment?.customUnit?.customUnitRateID).toBe('rate2');
+            expect(updatedTransaction.modifiedAmount).toBe(CONST.IOU.DEFAULT_AMOUNT);
         });
 
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
