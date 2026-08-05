@@ -18,7 +18,6 @@ const reportActionsListLoadingStateSelector = (
         ? {
               hasOnceLoadedReportActions: loadingState.hasOnceLoadedReportActions,
               isLoadingInitialReportActions: loadingState.isLoadingInitialReportActions,
-              // Read by the backfill that recovers a chain with no visible actions to render.
               isLoadingOlderReportActions: loadingState.isLoadingOlderReportActions,
               hasLoadingOlderReportActionsError: loadingState.hasLoadingOlderReportActionsError,
           }

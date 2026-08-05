@@ -10,21 +10,13 @@ type UseBackfillWhenNoVisibleActionsParams = {
     /** If the report has older actions to load */
     hasOlderActions: boolean;
 
-    /**
-     * If the report has newer actions to load. Only the newest chain is backfilled: a chain anchored on a
-     * linked or unread action sits in the middle of the history, so walking backwards from it could page
-     * through everything older while the visible actions sit on the newer side.
-     */
+    /** If the report has newer actions to load */
     hasNewerActions: boolean;
 
     /** Whether the device is offline */
     isOffline: boolean;
 
-    /**
-     * Whether the initial OpenReport call is still in flight. Must come from the request queue
-     * (`useIsReportLoadPending`), not from the RAM-only loading flag: a flag that never cleared would
-     * block the backfill for as long as the report stays open.
-     */
+    /** Whether the initial OpenReport call is still in flight. Must come from the request queue (`useIsReportLoadPending`) */
     isReportLoadPending: boolean;
 
     /** Whether a GetOlderActions call is already in flight */
@@ -33,7 +25,7 @@ type UseBackfillWhenNoVisibleActionsParams = {
     /** Whether the last GetOlderActions call failed */
     hasLoadingOlderReportActionsError: boolean | undefined;
 
-    /** The cursor `loadOlderChats` sends, i.e. the oldest action of the current report */
+    /** The oldest action of the current report, i.e. the cursor `loadOlderChats` sends */
     oldestReportActionID: string | undefined;
 
     /** Fetches the page of actions older than the current chain */
@@ -41,7 +33,7 @@ type UseBackfillWhenNoVisibleActionsParams = {
 };
 
 /**
- * Recovers a report whose newest page contains no visible actions.
+ * Loads older chats in a report whose newest page contains no visible actions.
  *
  * The backend prioritizes IOU actions in OpenReport, so a report can come back with a page made up
  * entirely of invisible actions (e.g. a self DM whose imported card expenses were all deleted), while
@@ -67,20 +59,19 @@ function useBackfillWhenNoVisibleActions({
     const previousReportIDRef = useRef(reportID);
 
     useEffect(() => {
-        // A different report gets its own cursor, otherwise the guard could carry over an ID this report never requested.
         if (previousReportIDRef.current !== reportID) {
             previousReportIDRef.current = reportID;
             lastRequestedCursorRef.current = undefined;
             retriedCursorRef.current = undefined;
         }
 
+        // Only the newest chain is backfilled, walking backwards from the middle could page through everything older while the visible actions sit on the newer side
         if (!isMissingReportActions || !hasOlderActions || hasNewerActions || isOffline || isReportLoadPending) {
             return;
         }
 
-        // A failed request consumes the cursor without advancing it, so without this one transient failure
-        // would strand the report on the skeleton — the symptom this hook exists to fix. Each cursor gets a
-        // single retry, so a request that keeps failing can't spin.
+        // A failed request consumes the cursor without advancing it.
+        // Each cursor gets a single retry, so a request that keeps failing can't spin.
         if (hasLoadingOlderReportActionsError && oldestReportActionID && retriedCursorRef.current !== oldestReportActionID) {
             retriedCursorRef.current = oldestReportActionID;
             lastRequestedCursorRef.current = undefined;
@@ -90,8 +81,7 @@ function useBackfillWhenNoVisibleActions({
             return;
         }
 
-        // Safety guard against an infinite request loop: if the cursor hasn't advanced since the last
-        // call, the server has no more actions to give us for this chain.
+        // If the cursor hasn't advanced since the last call, the server has no more actions for this chain.
         if (!oldestReportActionID || lastRequestedCursorRef.current === oldestReportActionID) {
             return;
         }

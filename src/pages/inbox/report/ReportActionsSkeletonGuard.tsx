@@ -65,7 +65,6 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
 
     useMarkOpenReportEndOnSkeleton(report, shouldShowInitialSkeleton);
 
-    // The list owns pagination, so it can't recover a chain that renders as empty — it isn't mounted yet.
     useBackfillWhenNoVisibleActions({
         reportID,
         isMissingReportActions,
