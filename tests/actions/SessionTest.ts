@@ -18,7 +18,6 @@ import reauthenticate from '@libs/Reauthentication';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import * as SessionUtil from '@src/libs/actions/Session';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import '@libs/Notification/PushNotification/subscribeToPushNotifications';
@@ -26,7 +25,7 @@ import '@libs/Notification/PushNotification/subscribeToPushNotifications';
 import {KEYS_TO_PRESERVE_SUPPORTAL, signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, Credentials, Session} from '@src/types/onyx';
+import type {Credentials, Session} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -823,44 +822,6 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             expect(session?.signedInWithSAML).toBe(false);
-        });
-    });
-
-    describe('unlinkLogin', () => {
-        test('sets account.errors when the request fails, without clearing credentials.login', async () => {
-            await IntlStore.load(CONST.LOCALES.EN);
-
-            let account: OnyxEntry<Account>;
-            Onyx.connect({
-                key: ONYXKEYS.ACCOUNT,
-                callback: (val) => (account = val),
-            });
-
-            await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'secondary@example.com'});
-            await waitForBatchedUpdates();
-
-            jest.mocked(HttpUtils.xhr).mockImplementationOnce(() =>
-                Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.EXP_ERROR,
-                }),
-            );
-
-            SessionUtil.unlinkLogin(1, 'ABCDEF');
-            await waitForBatchedUpdates();
-
-            expect(account?.isLoading).toBe(false);
-            expect(Object.values(account?.errors ?? {})).toContain("Couldn't unlink your secondary login. Please try again.");
-
-            // UnlinkLoginForm (the correct destination for a failed unlink) already renders account.errors
-            // and has no mount-time clear — clearing the credential here would force the plain login form
-            // instead, dropping the resend/unlink affordance right after a failed unlink.
-            const credentials = await new Promise<OnyxEntry<Credentials>>((resolve) => {
-                Onyx.connect({
-                    key: ONYXKEYS.CREDENTIALS,
-                    callback: resolve,
-                });
-            });
-            expect(credentials?.login).toBe('secondary@example.com');
         });
     });
 

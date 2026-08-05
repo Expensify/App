@@ -10,7 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getErrorsWithTranslationData} from '@libs/ErrorUtils';
 import {normalizeLogin} from '@libs/LoginUtils';
-import {isUnlinkLoginSuccessMessage} from '@libs/SessionUtils';
 
 import {requestUnlinkValidationLink} from '@userActions/Session';
 import redirectToSignIn from '@userActions/SignInRedirect';
@@ -29,12 +28,8 @@ function UnlinkLoginForm() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
 
-    let unlinkMessage = account?.message;
-    if (account?.message === 'unlinkLoginForm.linkSent') {
-        unlinkMessage = translate(account.message);
-    } else if (isUnlinkLoginSuccessMessage(account?.message)) {
-        unlinkMessage = translate('unlinkLoginForm.successfullyUnlinkedLogin');
-    }
+    const unlinkMessage =
+        account?.message === 'unlinkLoginForm.linkSent' || account?.message === 'unlinkLoginForm.successfullyUnlinkedLogin' ? translate(account?.message) : account?.message;
     const primaryLogin = normalizeLogin(account?.primaryLogin);
     const secondaryLogin = normalizeLogin(credentials?.login);
 

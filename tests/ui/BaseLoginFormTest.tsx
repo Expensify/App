@@ -185,38 +185,4 @@ describe('BaseLoginForm', () => {
             expect(clearAccountMessages).toHaveBeenCalled();
         });
     });
-
-    it('does not clear a freshly-set unlink error on mount', async () => {
-        // A failed/expired unlink can also land on this form: when credentials.login isn't already
-        // cached in this browser, shouldShowLoginForm selects this form instead of UnlinkLoginForm.
-        // The error must survive the mount the same way the success message does.
-        await Onyx.set(ONYXKEYS.ACCOUNT, {
-            isLoading: false,
-            errors: {[Date.now()]: 'unlinkLoginForm.unlinkError'},
-        });
-        await waitForBatchedUpdates();
-
-        renderForm();
-        await waitFor(() => {
-            expect(screen.getByText('unlinkLoginForm.unlinkError')).toBeTruthy();
-        });
-
-        expect(clearAccountMessages).not.toHaveBeenCalled();
-    });
-
-    it('still clears an unrelated stale error on an ordinary mount (control case)', async () => {
-        // Regression guard: the skip must be scoped to the specific unlink error value only — any
-        // other leftover error (e.g. from an earlier failed sign-in attempt) must still be cleared.
-        await Onyx.set(ONYXKEYS.ACCOUNT, {
-            isLoading: false,
-            errors: {[Date.now()]: 'loginForm.error.invalidFormatEmailLogin'},
-        });
-        await waitForBatchedUpdates();
-
-        renderForm();
-
-        await waitFor(() => {
-            expect(clearAccountMessages).toHaveBeenCalled();
-        });
-    });
 });

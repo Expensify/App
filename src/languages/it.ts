@@ -3574,7 +3574,6 @@ ${amount} per ${merchant} - ${date}`,
         unlink: 'Scollega',
         linkSent: 'Link inviato!',
         successfullyUnlinkedLogin: 'Accesso secondario scollegato correttamente!',
-        unlinkError: 'Impossibile scollegare il tuo accesso secondario. Riprova.',
     },
     emailDeliveryFailurePage: {
         ourEmailProvider: (login: string) =>

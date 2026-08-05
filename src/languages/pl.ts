@@ -3559,7 +3559,6 @@ ${amount} dla ${merchant} - ${date}`,
         unlink: 'Odłącz',
         linkSent: 'Link wysłany!',
         successfullyUnlinkedLogin: 'Dodatkowe logowanie zostało pomyślnie odłączone!',
-        unlinkError: 'Nie udało się odłączyć dodatkowego logowania. Spróbuj ponownie.',
     },
     emailDeliveryFailurePage: {
         ourEmailProvider: (login: string) =>

@@ -1273,7 +1273,6 @@ function unlinkLogin(accountID: number, validateCode: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('unlinkLoginForm.unlinkError'),
             },
         },
     ];

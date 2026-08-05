@@ -3575,7 +3575,6 @@ ${amount} voor ${merchant} - ${date}`,
         unlink: 'Koppeling verbreken',
         linkSent: 'Link verzonden!',
         successfullyUnlinkedLogin: 'Secundaire login is succesvol ontkoppeld!',
-        unlinkError: 'Je secundaire login kon niet worden ontkoppeld. Probeer het opnieuw.',
     },
     emailDeliveryFailurePage: {
         ourEmailProvider: (login: string) =>

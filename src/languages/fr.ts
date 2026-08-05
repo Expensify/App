@@ -3594,7 +3594,6 @@ ${amount} pour ${merchant} - ${date}`,
         unlink: 'Dissocier',
         linkSent: 'Lien envoyé !',
         successfullyUnlinkedLogin: 'Connexion secondaire dissociée avec succès !',
-        unlinkError: 'Impossible de dissocier votre connexion secondaire. Veuillez réessayer.',
     },
     emailDeliveryFailurePage: {
         ourEmailProvider: (login: string) =>

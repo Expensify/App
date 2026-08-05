@@ -3462,7 +3462,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         unlink: '取消关联',
         linkSent: '链接已发送！',
         successfullyUnlinkedLogin: '次要登录已成功取消关联！',
-        unlinkError: '无法取消关联次要登录，请重试。',
     },
     emailDeliveryFailurePage: {
         ourEmailProvider: (login: string) => `由于投递问题，我们的邮件服务提供商已暂时停止向 ${login} 发送邮件。要解除对您登录的限制，请按以下步骤操作：`,

@@ -3563,7 +3563,6 @@ ${amount} para ${merchant} - ${date}`,
         unlink: 'Desvincular',
         linkSent: 'Link enviado!',
         successfullyUnlinkedLogin: 'Login secundário desvinculado com sucesso!',
-        unlinkError: 'Não foi possível desvincular seu login secundário. Tente novamente.',
     },
     emailDeliveryFailurePage: {
         ourEmailProvider: (login: string) =>

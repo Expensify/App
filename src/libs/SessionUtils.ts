@@ -133,17 +133,6 @@ function useIsAgentAccount(): boolean {
     return isAgentEmail(sessionEmail);
 }
 
-const UNLINK_LOGIN_SUCCESS_MESSAGE = 'unlinkLoginForm.successfullyUnlinkedLogin';
-
-/**
- * `account.message` is compared against this raw translation key from multiple sign-in surfaces
- * (BaseLoginForm's success text and its mount-clear guard, UnlinkLoginForm). Centralizing the
- * literal here means a rename of the key can't silently break one of those sites.
- */
-function isUnlinkLoginSuccessMessage(message?: string | null): boolean {
-    return message === UNLINK_LOGIN_SUCCESS_MESSAGE;
-}
-
 export {
     isLoggingInAsNewUser,
     didUserLogInDuringSession,
@@ -153,5 +142,4 @@ export {
     isLoggingInAsDelegate,
     isAgentEmail,
     useIsAgentAccount,
-    isUnlinkLoginSuccessMessage,
 };
