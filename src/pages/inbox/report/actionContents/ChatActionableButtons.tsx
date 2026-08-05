@@ -252,9 +252,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                   ];
             const options = !isSplitExpense || hasWorkspaceToSubmitTo ? [...submitButtons] : [];
 
-            if (Permissions.canUseTrackFlows()) {
-                options.push(prepareTrackExpenseButton('categorize'), prepareTrackExpenseButton('share'));
-            }
+            options.push(prepareTrackExpenseButton('categorize'), prepareTrackExpenseButton('share'));
             options.push({
                 text: 'actionableMentionTrackExpense.nothing',
                 key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
