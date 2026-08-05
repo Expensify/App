@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import type {FlashListRef} from '@shopify/flash-list';
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 
 import type {TableContextValue} from './TableContext';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
@@ -243,9 +243,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     const [tableWidth, setTableWidth] = useState(0);
 
-    const handleTableLayout = useCallback((event: LayoutChangeEvent) => {
+    const handleTableLayout = (event: LayoutChangeEvent) => {
         setTableWidth(event.nativeEvent.layout.width);
-    }, []);
+    };
 
     // Columns are sized from the full data set rather than the processed one, so the widths stay put while the user
     // searches or filters instead of reflowing on every keystroke. Narrow layouts render as cards with no columns to

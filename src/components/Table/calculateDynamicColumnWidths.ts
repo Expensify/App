@@ -63,8 +63,8 @@ function roundWidths(widths: number[], availableWidth: number): number[] {
  *
  * 1. Every column's content fits inside an equal share of the available width, so the columns stay equal (`1fr`).
  * 2. The content fits overall but unevenly, so each column takes what it needs and the leftover space is shared out in
- *    proportion to what each column asked for. A column with long content grows and its short-content siblings shrink;
- *    sharing the leftover equally instead would pad a short column with space it has nothing to put in.
+ *    proportion to what each column asked for. A column with long content grows and its short-content siblings shrink.
+ *    Sharing the leftover equally instead would pad a short column with space it has nothing to put in.
  * 3. The content does not fit, so every column shrinks toward its minimum width in proportion to how much slack it has.
  *    Once even the minimum widths don't fit, the columns are pinned to those minimums and the table scrolls.
  *

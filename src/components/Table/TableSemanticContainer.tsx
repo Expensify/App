@@ -1,5 +1,6 @@
 import ScrollView from '@components/ScrollView';
 
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {LayoutChangeEvent} from 'react-native';
@@ -57,6 +58,7 @@ type TableSemanticContainerProps = {
  */
 function TableSemanticContainer({isEnabled, title, rowCount, columnCount, rendersBodyWhenEmpty, scrollWidth, onLayout, children}: TableSemanticContainerProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     if (!isEnabled) {
         return children;
@@ -104,7 +106,7 @@ function TableSemanticContainer({isEnabled, title, rowCount, columnCount, render
                     showsHorizontalScrollIndicator
                     key={`tableSemanticContainerScroll-${renderedChildren.length}`}
                     style={[styles.flex1, styles.mnh0]}
-                    contentContainerStyle={{width: scrollWidth}}
+                    contentContainerStyle={StyleUtils.getWidthStyle(scrollWidth)}
                     onLayout={onLayout}
                 >
                     {rowGroupContainer}

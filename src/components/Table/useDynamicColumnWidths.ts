@@ -127,7 +127,7 @@ function measureHeaderLabelWidth(label: string): number | null {
  * CSS track (`max-content`) would resolve per row, leaving the columns out of line. So the widths are measured once and
  * shared, and the result is a plain track list the header and rows both render.
  *
- * Returns `undefined` when dynamic sizing doesn't apply — it isn't enabled, the table hasn't been measured yet, text
+ * Returns `undefined` when dynamic sizing doesn't apply: it isn't enabled, the table hasn't been measured yet, text
  * can't be measured (native), or the content already fits in equal columns. Callers then fall back to the table's
  * static tracks.
  */
@@ -138,6 +138,9 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     isEnabled,
     hasSelectionColumn,
 }: UseDynamicColumnWidthsParams<DataType, ColumnKey>): {gridTemplateColumns: string[] | undefined; scrollWidth: number | undefined} {
+    // This `useMemo` is load-bearing rather than redundant: it is the only hook call here, so without it the React
+    // Compiler sees a plain function instead of a hook and memoizes nothing (both compilers report `no-components`).
+    // The measurement below would then re-run on every render, including on every keystroke in the table's search box.
     return useMemo(() => {
         const noDynamicWidths = {gridTemplateColumns: undefined, scrollWidth: undefined};
 
