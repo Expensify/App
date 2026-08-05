@@ -25,6 +25,9 @@ import {makeSearchData, makeSelectedTransaction, makeSettlementGroup} from '../.
 
 jest.mock('@libs/actions/Export', () => ({
     exportReportsToPDF: jest.fn(() => 'mock-export-id'),
+    markExportModalOpen: jest.fn(),
+    markExportModalClosed: jest.fn(),
+    isExportModalOpen: jest.fn(),
 }));
 jest.mock('@libs/actions/Report', () => ({
     exportReportToPDF: jest.fn(),
