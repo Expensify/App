@@ -2150,9 +2150,6 @@ type DualEntryExport = {
      */
     cardProgramAccounts: Record<CardFeedWithNumber, string>;
 
-    /** Account used when exporting Expensify Card expenses. */
-    expensifyCardAccountID: string;
-
     /** Default vendor used when exporting transactions. */
     defaultVendorID: string;
 

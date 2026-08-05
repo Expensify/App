@@ -3559,7 +3559,6 @@ const CONST = {
         NON_REIMBURSABLE: 'nonReimbursable',
         CREDIT_CARD_ACCOUNT_ID: 'creditCardAccountID',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
-        EXPENSIFY_CARD_ACCOUNT_ID: 'expensifyCardAccountID',
         DEFAULT_VENDORID: 'defaultVendorID',
         TRAVEL_INVOICING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
         ACCOUNTING_METHOD: 'accountingMethod',
