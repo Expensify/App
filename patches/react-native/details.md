@@ -1,5 +1,12 @@
 # `react-native` patches
 
+### [react-native+0.85.3+040+add-local-pgo-build-switch.patch](react-native+0.85.3+040+add-local-pgo-build-switch.patch)
+
+- Reason: Adds an opt-in local LLVM PGO mode to the React Native Android runtime and Hermes source builds. The mode is disabled by default and is used only by the local PGO proof tooling.
+- Upstream PR/issue: 🛑
+- E/App issue: 🛑
+- PR Introducing Patch: 🛑
+
 ### [react-native+0.85.3+001+initial.patch](react-native+0.85.3+001+initial.patch)
 
 - Reason: Fixes keyboard flickering issue when opening/closing modals. When an input is blurred and a modal is opened, the `rootView` becomes the `firstResponder`, causing the system to retain an incorrect keyboard state. This leads to keyboard flickering when the modal is closed. The patch adds code to resign the `rootView`'s `firstResponder` status before presenting the modal to prevent this issue.

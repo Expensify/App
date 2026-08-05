@@ -1,0 +1,184 @@
+diff --git a/node_modules/react-native/ReactAndroid/build.gradle.kts b/node_modules/react-native/ReactAndroid/build.gradle.kts
+index bae034d..94d11e1 100644
+--- a/node_modules/react-native/ReactAndroid/build.gradle.kts
++++ b/node_modules/react-native/ReactAndroid/build.gradle.kts
+@@ -42,6 +42,16 @@ val reactNativeRootDir = projectDir.parent
+ val hermesV1Enabled =
+     rootProject.extensions.getByType(PrivateReactExtension::class.java).hermesV1Enabled.get()
+ 
++val pgoMode = project.findProperty("pgoMode")?.toString() ?: "off"
++val pgoProfile = project.findProperty("pgoProfile")?.toString()
++
++check(pgoMode in setOf("off", "generate", "use")) {
++  "Unsupported pgoMode '$pgoMode'. Use off, generate, or use."
++}
++if (pgoMode == "use") {
++  check(!pgoProfile.isNullOrBlank()) { "pgoProfile is required when pgoMode=use." }
++}
++
+ // We put the publishing version from gradle.properties inside ext. so other
+ // subprojects can access it as well.
+ extra["publishing_version"] = project.findProperty("VERSION_NAME")?.toString()!!
+@@ -579,8 +589,13 @@ android {
+             "-DANDROID_TOOLCHAIN=clang",
+             "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON",
+             "-DCMAKE_POLICY_DEFAULT_CMP0069=NEW",
++            "-DPGO_MODE=$pgoMode",
+         )
+ 
++        if (pgoMode == "use") {
++          arguments("-DPGO_PROFILE=$pgoProfile")
++        }
++
+         if (hermesV1Enabled) {
+           arguments("-DHERMES_V1_ENABLED=1")
+         }
+diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts
+index 6610782..853b937 100644
+--- a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts
++++ b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts
+@@ -52,6 +52,18 @@ fun getSDKManagerPath(): String {
+ 
+ val hermesV1Enabled =
+     rootProject.extensions.getByType(PrivateReactExtension::class.java).hermesV1Enabled.get()
++
++val pgoMode = project.findProperty("pgoMode")?.toString() ?: "off"
++val pgoProfile = project.findProperty("pgoProfile")?.toString()
++val pgoCmakePath = File(projectDir, "pgo.cmake")
++
++check(pgoMode in setOf("off", "generate", "use")) {
++  "Unsupported pgoMode '$pgoMode'. Use off, generate, or use."
++}
++if (pgoMode == "use") {
++  check(!pgoProfile.isNullOrBlank()) { "pgoProfile is required when pgoMode=use." }
++}
++
+ val reactNativeRootDir = project(":packages:react-native:ReactAndroid").projectDir.parent
+ val customDownloadDir = System.getenv("REACT_NATIVE_DOWNLOADS_DIR")
+ val downloadsDir =
+@@ -415,8 +427,14 @@ android {
+             // We intentionally build Hermes with Intl support only. This is to simplify
+             // the build setup and to avoid overcomplicating the build-type matrix.
+             "-DHERMES_ENABLE_INTL=True",
++            "-DPGO_MODE=$pgoMode",
++            "-DCMAKE_PROJECT_Hermes_INCLUDE=${pgoCmakePath.absolutePath}",
+         )
+ 
++        if (pgoMode == "use") {
++          arguments("-DPGO_PROFILE=$pgoProfile")
++        }
++
+         if (hermesV1Enabled) {
+           arguments("-DHERMESVM_HEAP_HV_MODE=HEAP_HV_PREFER32")
+         }
+diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/pgo.cmake b/node_modules/react-native/ReactAndroid/hermes-engine/pgo.cmake
+new file mode 100644
+index 0000000..bcc335d
+--- /dev/null
++++ b/node_modules/react-native/ReactAndroid/hermes-engine/pgo.cmake
+@@ -0,0 +1,25 @@
++if(PGO_MODE STREQUAL "generate")
++  execute_process(
++    COMMAND ${CMAKE_CXX_COMPILER} --print-resource-dir
++    OUTPUT_VARIABLE CLANG_RESOURCE_DIR
++    OUTPUT_STRIP_TRAILING_WHITESPACE
++  )
++  set(PGO_RUNTIME "${CLANG_RESOURCE_DIR}/lib/linux/libclang_rt.profile-aarch64-android.a")
++  if(NOT EXISTS "${PGO_RUNTIME}")
++    message(FATAL_ERROR "LLVM profiling runtime was not found at ${PGO_RUNTIME}")
++  endif()
++  add_compile_options(-fprofile-generate)
++  add_link_options(
++    -fprofile-generate
++    "-Wl,--whole-archive,${PGO_RUNTIME},--no-whole-archive"
++    -Wl,--undefined=__llvm_profile_set_filename
++    -Wl,--undefined=__llvm_profile_write_file
++    -Wl,--defsym=expensify_llvm_profile_set_filename=__llvm_profile_set_filename
++    -Wl,--defsym=expensify_llvm_profile_write_file=__llvm_profile_write_file
++    -Wl,--export-dynamic-symbol=expensify_llvm_profile_set_filename
++    -Wl,--export-dynamic-symbol=expensify_llvm_profile_write_file
++  )
++elseif(PGO_MODE STREQUAL "use")
++  add_compile_options("-fprofile-use=${PGO_PROFILE}")
++  add_link_options("-fprofile-use=${PGO_PROFILE}")
++endif()
+diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/CMakeLists.txt b/node_modules/react-native/ReactAndroid/src/main/jni/CMakeLists.txt
+index 8125e02..d466798 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/jni/CMakeLists.txt
++++ b/node_modules/react-native/ReactAndroid/src/main/jni/CMakeLists.txt
+@@ -8,6 +8,32 @@ set(CMAKE_VERBOSE_MAKEFILE on)
+ 
+ project(ReactAndroid)
+ 
++if(PGO_MODE STREQUAL "generate")
++  execute_process(
++    COMMAND ${CMAKE_CXX_COMPILER} --print-resource-dir
++    OUTPUT_VARIABLE CLANG_RESOURCE_DIR
++    OUTPUT_STRIP_TRAILING_WHITESPACE
++  )
++  set(PGO_RUNTIME "${CLANG_RESOURCE_DIR}/lib/linux/libclang_rt.profile-aarch64-android.a")
++  if(NOT EXISTS "${PGO_RUNTIME}")
++    message(FATAL_ERROR "LLVM profiling runtime was not found at ${PGO_RUNTIME}")
++  endif()
++  add_compile_options(-fprofile-generate)
++  add_link_options(
++    -fprofile-generate
++    "-Wl,--whole-archive,${PGO_RUNTIME},--no-whole-archive"
++    -Wl,--undefined=__llvm_profile_set_filename
++    -Wl,--undefined=__llvm_profile_write_file
++    -Wl,--defsym=expensify_llvm_profile_set_filename=__llvm_profile_set_filename
++    -Wl,--defsym=expensify_llvm_profile_write_file=__llvm_profile_write_file
++    -Wl,--export-dynamic-symbol=expensify_llvm_profile_set_filename
++    -Wl,--export-dynamic-symbol=expensify_llvm_profile_write_file
++  )
++elseif(PGO_MODE STREQUAL "use")
++  add_compile_options("-fprofile-use=${PGO_PROFILE}")
++  add_link_options("-fprofile-use=${PGO_PROFILE}")
++endif()
++
+ include(CheckIPOSupported)
+ check_ipo_supported(RESULT IPO_SUPPORT)
+ if (IPO_SUPPORT)
+diff --git a/node_modules/react-native/sdks/hermes-engine/utils/build-hermes-xcode.sh b/node_modules/react-native/sdks/hermes-engine/utils/build-hermes-xcode.sh
+--- a/node_modules/react-native/sdks/hermes-engine/utils/build-hermes-xcode.sh
++++ b/node_modules/react-native/sdks/hermes-engine/utils/build-hermes-xcode.sh
+@@ -59,6 +59,19 @@ if [[ $xcode_major_version -ge 15 ]]; then
+   xcode_15_flags="LINKER:-ld_classic"
+ fi
+ 
++pgo_compile_flags=""
++pgo_linker_flags=""
++if [[ "${EXPENSIFY_PGO_MODE:-off}" == "generate" ]]; then
++  pgo_compile_flags="-fprofile-instr-generate"
++  pgo_linker_flags="-fprofile-instr-generate"
++elif [[ "${EXPENSIFY_PGO_MODE:-off}" == "use" ]]; then
++  if [[ -z "${EXPENSIFY_PGO_PROFILE:-}" ]]; then
++    echo "EXPENSIFY_PGO_PROFILE is required when EXPENSIFY_PGO_MODE=use" >&2
++    exit 1
++  fi
++  pgo_compile_flags="-fprofile-instr-use=${EXPENSIFY_PGO_PROFILE} -Wno-profile-instr-unprofiled -Wno-profile-instr-out-of-date"
++fi
++
+ boost_context_flag=""
+ if [[ $PLATFORM_NAME == "catalyst" ]]; then
+   boost_context_flag="-DHERMES_ALLOW_BOOST_CONTEXT=0"
+@@ -70,7 +84,7 @@ echo "Configure Apple framework"
+ "$CMAKE_BINARY" \
+   -S "${PODS_ROOT}/hermes-engine" \
+   -B "${PODS_ROOT}/hermes-engine/build/${PLATFORM_NAME}" \
+-  -DHERMES_EXTRA_LINKER_FLAGS="$xcode_15_flags" \
++  -DHERMES_EXTRA_LINKER_FLAGS="$xcode_15_flags;$pgo_linker_flags" \
+   -DHERMES_APPLE_TARGET_PLATFORM:STRING="$PLATFORM_NAME" \
+   -DCMAKE_OSX_ARCHITECTURES:STRING="$architectures" \
+   -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING="$deployment_target" \
+@@ -82,8 +96,8 @@ echo "Configure Apple framework"
+   -DHERMES_ENABLE_BITCODE:BOOLEAN=false \
+   -DHERMES_BUILD_APPLE_FRAMEWORK:BOOLEAN=true \
+   -DHERMES_BUILD_SHARED_JSI:BOOLEAN=false \
+-  -DCMAKE_CXX_FLAGS:STRING="-gdwarf" \
+-  -DCMAKE_C_FLAGS:STRING="-gdwarf" \
++  -DCMAKE_CXX_FLAGS:STRING="-gdwarf $pgo_compile_flags" \
++  -DCMAKE_C_FLAGS:STRING="-gdwarf $pgo_compile_flags" \
+   -DIMPORT_HOST_COMPILERS:PATH="${hermesc_path}" \
+   -DJSI_DIR="$jsi_path" \
+   -DHERMES_RELEASE_VERSION="for RN $release_version" \

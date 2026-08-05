@@ -27,6 +27,14 @@
         android:theme="@style/AppTheme"
         tools:replace="android:supportsRtl">
 
+        <receiver
+            android:name=".PgoProfileReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.expensify.chat.action.WRITE_PGO_PROFILES" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name="com.expensify.reactnativebackgroundtask.BackgroundJobService"
             android:permission="android.permission.BIND_JOB_SERVICE"
