@@ -317,6 +317,70 @@ describe('useSearchBulkActions - CSV export flow', () => {
         expect(exportPayload?.jsonQuery).not.toContain('group_123');
     });
 
+    it('preserves excluded group negations when the query already filters the grouped field', async () => {
+        const firstExcludedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123` as const;
+        const secondExcludedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456` as const;
+        const filteredGroupedExpenseQueryJSON: SearchQueryJSON = {
+            ...groupedExpenseQueryJSON,
+            inputQuery: 'type:expense sortBy:groupCategory sortOrder:asc groupBy:category category:Meals,Travel,Lodging',
+            groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+            flatFilters: [
+                {
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Meals'},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Travel'},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Lodging'},
+                    ],
+                },
+            ],
+        };
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockExcludedTransactions = {
+            [firstExcludedGroupKey]: makeSelectedTransaction(),
+            [secondExcludedGroupKey]: makeSelectedTransaction(),
+        };
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE},
+            data: {
+                [firstExcludedGroupKey]: {category: 'Meals', count: 3, total: 300, currency: 'USD'},
+                [secondExcludedGroupKey]: {category: 'Travel', count: 2, total: 200, currency: 'USD'},
+            },
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: filteredGroupedExpenseQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
+
+        await act(async () => {
+            onSelected?.();
+        });
+
+        const exportPayload = mockQueueExportSearchItemsToCSV.mock.calls.at(-1)?.at(0);
+        const exportQueryJSON = JSON.parse(exportPayload?.jsonQuery ?? '{}') as SearchQueryJSON;
+        const categoryFilters = exportQueryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY).flatMap((filter) => filter.filters);
+        const includedCategoryFilters = categoryFilters.filter((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        const excludedCategoryFilters = categoryFilters.filter((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
+        expect(includedCategoryFilters).toEqual(
+            expect.arrayContaining([
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Meals'},
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Travel'},
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Lodging'},
+            ]),
+        );
+        expect(excludedCategoryFilters).toEqual([
+            {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: 'Meals'},
+            {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: 'Travel'},
+        ]);
+    });
+
     it('does not export when an excluded group cannot be resolved', async () => {
         const excludedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123` as const;
         mockAreAllMatchingItemsSelected = true;

@@ -255,13 +255,8 @@ function getAllMatchingExportQueryAndExclusions(
 
     const flatFilters = queryJSON.flatFilters.map((filter) => ({...filter, filters: [...filter.filters]}));
     for (const entry of excludedGroupEntries) {
-        const existingFilter = flatFilters.find((filter) => filter.key === entry.key);
         const exclusionFilter = {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: entry.value};
-        if (existingFilter) {
-            existingFilter.filters.push(exclusionFilter);
-        } else {
-            flatFilters.push({key: entry.key, filters: [exclusionFilter]});
-        }
+        flatFilters.push({key: entry.key, filters: [exclusionFilter]});
     }
 
     const exportQueryJSON = buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
