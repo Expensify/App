@@ -1088,6 +1088,7 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateTitle: 'No hay gastos recientes',
             emptyStateMessage: 'Crea uno o arrastra un recibo aquí',
         },
+        insightsSection: {chartUnavailable: 'Gráfico no disponible', notEnoughData: 'Todavía no tenemos suficientes datos para completar este gráfico'},
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
