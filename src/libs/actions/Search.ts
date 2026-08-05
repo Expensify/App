@@ -78,6 +78,7 @@ import type {
     ReportNextStepDeprecated,
     SaveSearch,
     Transaction,
+    TransactionViolations,
 } from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -96,7 +97,6 @@ import Onyx from 'react-native-onyx';
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 
-import {getAllTransactionViolations} from './IOU';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import {approveMoneyRequest} from './IOU/ReportWorkflow';
@@ -231,6 +231,7 @@ type HandleActionButtonPressParams = {
     delegateEmail?: string;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    allViolations: OnyxCollection<TransactionViolations>;
     conciergeChat: OnyxEntry<Report>;
 };
 
@@ -270,6 +271,7 @@ function handleActionButtonPress({
     delegateEmail,
     delegateAccountID,
     isTrackIntentUser,
+    allViolations,
     conciergeChat,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
@@ -357,6 +359,7 @@ function handleActionButtonPress({
                 delegateAccountID,
                 isTrackIntentUser,
                 ownerLogin: submitterLogin,
+                allViolations,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
@@ -633,6 +636,7 @@ type GetApproveActionCallbackParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
+    allViolations: OnyxCollection<TransactionViolations>;
 };
 
 function getApproveActionCallback({
@@ -653,14 +657,14 @@ function getApproveActionCallback({
     delegateAccountID,
     isTrackIntentUser,
     ownerLogin,
+    allViolations,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
     }
 
     const reportPolicy = policy ?? snapshotPolicy;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- using deprecated getAllTransactionViolations until #66512 migrates this call
-    const hasViolations = hasViolationsReportUtils(item.reportID, getAllTransactionViolations(), currentUserAccountID, currentUserLogin ?? '');
+    const hasViolations = hasViolationsReportUtils(item.reportID, allViolations, currentUserAccountID, currentUserLogin ?? '');
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
 
     approveMoneyRequest({
