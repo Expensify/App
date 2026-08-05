@@ -1057,7 +1057,7 @@ function getSuggestedSearches(
                 {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
-                    dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                    submittedOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
                     has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
                     view: CONST.SEARCH.VIEW.TABLE,
                     limit: String(CONST.SEARCH.TOP_SEARCH_LIMIT),

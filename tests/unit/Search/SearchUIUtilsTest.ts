@@ -9742,9 +9742,9 @@ describe('SearchUIUtils', () => {
             expect(searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
             expect(searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
 
-            const dateFilter = searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-            expect(dateFilter).toBeDefined();
-            expect(dateFilter?.filters?.some((filter) => filter.value === CONST.SEARCH.DATE_PRESETS.LAST_MONTH)).toBe(true);
+            const submittedFilter = searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED);
+            expect(submittedFilter).toBeDefined();
+            expect(submittedFilter?.filters?.some((filter) => filter.value === CONST.SEARCH.DATE_PRESETS.LAST_MONTH)).toBe(true);
 
             const hasFilter = searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS);
             expect(hasFilter).toBeDefined();
@@ -9760,7 +9760,7 @@ describe('SearchUIUtils', () => {
 
             expect(searchQuery).toContain(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`);
             expect(searchQuery).toContain(`groupBy:${CONST.SEARCH.GROUP_BY.FROM}`);
-            expect(searchQuery).toContain(`date:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`);
+            expect(searchQuery).toContain(`submitted:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`);
             expect(searchQuery).toContain(`has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
             expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.TABLE}`);
             expect(searchQuery).toContain(`limit:${CONST.SEARCH.TOP_SEARCH_LIMIT}`);
