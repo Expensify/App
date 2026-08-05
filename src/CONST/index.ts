@@ -406,6 +406,7 @@ const CONST = {
             MULTIPLE_DIAGONAL: 'multipleDiagonal',
             MULTIPLE_HORIZONTAL: 'multipleHorizontal',
             SUBSCRIPT: 'subscript',
+            SUBSCRIPT_CARD_FEED: 'subscriptCardFeed',
             SINGLE: 'single',
         },
         SORT_BY: {
@@ -495,6 +496,7 @@ const CONST = {
         TYPE: {
             CSV: 'csv',
             PDF: 'pdf',
+            RECEIPTS: 'receipts',
         },
     },
 
@@ -1474,6 +1476,7 @@ const CONST = {
             CANCEL_PAYMENT: 'cancelPayment',
             HOLD: 'hold',
             DOWNLOAD_PDF: 'downloadPDF',
+            DOWNLOAD_RECEIPTS: 'downloadReceipts',
             PRINT: 'print',
             CHANGE_WORKSPACE: 'changeWorkspace',
             CHANGE_APPROVER: 'changeApprover',
@@ -2552,6 +2555,12 @@ const CONST = {
         SUSTAINED_FAILURE_WINDOW_MS: 10 * 1000,
         RECONNECT_STAMPEDE_JITTER_MS: 5000,
         STALLED_UPDATES_FETCH_BACKOFF_TIME_MS: 60 * 1000,
+        MAX_PAUSE_WATCHDOG_TIME_MS: 60 * 1000,
+        MAX_PAUSE_WATCHDOG_ESCALATION_TIME_MS: 15 * 1000,
+        // Hard ceiling on a single pause, measured from pause() and not extendable by progress. The re-arm signal
+        // ("some update was applied") can keep firing while the gap that paused us stays open, so the per-window
+        // timer alone doesn't actually bound how long the queue can sit paused.
+        MAX_PAUSE_WATCHDOG_ABSOLUTE_TIME_MS: 2 * 60 * 1000,
     },
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
@@ -4667,7 +4676,7 @@ const CONST = {
             COPY_EXISTING: 'copy',
             CREATE_NEW: 'create',
         },
-        MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
+        MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card-US',
         PIN: {
             LENGTH: 4,
             INVALID_PINS: [
@@ -5167,7 +5176,7 @@ const CONST = {
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|#|\?|\\|\|/g,
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
-        OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
+        OTHER_INVISIBLE_CHARACTERS: /[\u3164\u115f\u1160\uffa0\u2800]/g,
         SHORT_MENTION_HTML: /<mention-short>(.*?)<\/mention-short>/g,
         REPORT_ID_FROM_PATH: /(?<!\/search)\/r\/(\d+)/,
         DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
@@ -7348,6 +7357,9 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'reportField',
             EXPORTED_TO: 'exportedTo',
+            SUBMITTER_USER_ID: 'submitterUserID',
+            SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
+            ORDER_DEAL_NUMBERS: 'orderDealNumbers',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field
@@ -7424,6 +7436,9 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'report-field',
             EXPORTED_TO: 'exported-to',
+            SUBMITTER_USER_ID: 'submitter-user-id',
+            SUBMITTER_PAYROLL_ID: 'submitter-payroll-id',
+            ORDER_DEAL_NUMBERS: 'order-deal-numbers',
             COLUMNS: 'columns',
             LIMIT: 'limit',
         },
@@ -8361,6 +8376,10 @@ const CONST = {
             CTA: 'AgentsRulesBanner-CTA',
             DISMISS: 'AgentsRulesBanner-Dismiss',
         },
+        PRODUCT_MARKETING_WINDOW: {
+            CTA: 'ProductMarketingWindow-CTA',
+            DISMISS: 'ProductMarketingWindow-Dismiss',
+        },
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
             INBOX: 'NavigationTabBar-Inbox',
@@ -8594,6 +8613,7 @@ const CONST = {
             EXPORT: 'MoreMenu-Export',
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
+            DOWNLOAD_RECEIPTS: 'MoreMenu-DownloadReceipts',
             PRINT: 'MoreMenu-Print',
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
@@ -8744,6 +8764,9 @@ const CONST = {
             PARTICIPANTS_IMPORT_CONTACTS_ITEM: 'MoneyRequest-ParticipantsImportContacts',
             ATTENDEES_SAVE_BUTTON: 'MoneyRequest-AttendeesSaveButton',
             CONFIRMATION_SUBMIT_BUTTON: 'MoneyRequest-ConfirmationSubmitButton',
+            CONFIRMATION_SPLIT_BUTTON: 'MoneyRequest-ConfirmationSplitButton',
+            CONFIRMATION_TRACK_BUTTON: 'MoneyRequest-ConfirmationTrackButton',
+            CONFIRMATION_INVOICE_BUTTON: 'MoneyRequest-ConfirmationInvoiceButton',
             CONFIRMATION_REMOVE_EXPENSE_BUTTON: 'MoneyRequest-ConfirmationRemoveExpenseButton',
             CONFIRMATION_PAY_BUTTON: 'MoneyRequest-ConfirmationPayButton',
             GOOGLE_MERCHANT_SEARCH_BUTTON: 'MoneyRequest-GoogleMerchantSearchButton',
@@ -8779,7 +8802,9 @@ const CONST = {
             EDIT_TAGS_BUTTON: 'IOURequestStep-TagEditButton',
             EDIT_PER_DIEM_RATES_BUTTON: 'IOURequestStep-EditPerDiemRatesButton',
             HOURS_NEXT_BUTTON: 'IOURequestStep-HoursNextButton',
-            SCAN_SUBMIT_BUTTON: 'IOURequestStep-ScanSubmitButton',
+            SCAN_FILE_UPLOAD_BUTTON: 'IOURequestStep-ScanFileUploadButton',
+            SCAN_CAMERA_PERMISSION_BUTTON: 'IOURequestStep-ScanCameraPermissionButton',
+            SCAN_CAMERA_PERMISSION_PROMPT_BUTTON: 'IOURequestStep-ScanCameraPermissionPromptButton',
             RECEIPT_DELETE_BUTTON: 'IOURequestStep-ReceiptDeleteButton',
             RECEIPT_PREVIEW_ITEM: 'IOURequestStep-ReceiptPreviewItem',
             RECEIPT_PREVIEW_SUBMIT_BUTTON: 'IOURequestStep-ReceiptPreviewSubmitButton',

@@ -440,6 +440,7 @@ const translations: TranslationDeepObject<typeof en> = {
         perDiem: 'Diaria',
         validate: 'Convalida',
         downloadAsPDF: 'Scarica come PDF',
+        downloadReceipts: 'Scarica ricevute',
         downloadAsCSV: 'Scarica come CSV',
         submitViaPDF: 'Invia tramite PDF',
         print: 'Stampa',
@@ -1457,7 +1458,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `approvata tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
         forwarded: (memo?: string) => `approvato${memo ? `, con nota: ${memo}` : ''}`,
         rejectedThisReport: 'rifiutato',
-        waitingOnBankAccount: (submitterDisplayName: string) => `ha avviato il pagamento, ma sta aspettando che ${submitterDisplayName} aggiunga un conto bancario.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `ha avviato il pagamento, ma sta aspettando che ${submitterDisplayName} aggiunga un conto bancario personale.`,
         adminCanceledRequest: 'ha annullato il pagamento',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `ha annullato il pagamento di ${amount}, perché ${submitterDisplayName} non ha abilitato il proprio Expensify Wallet entro 30 giorni`,
@@ -5932,6 +5933,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             balanceWillBeSettledOn: (settlementDate: string) => `Il saldo sarà regolato il ${settlementDate}`,
             settleBalance: 'Saldo da saldare',
             cardLimit: 'Limite carta',
+            remaining: 'Rimanente',
             remainingLimit: 'Limite rimanente',
             requestLimitIncrease: 'Richiedi aumento limite',
             remainingLimitDescription:
@@ -6112,6 +6114,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         subsections: {
                             currentTravelSpendLabel: 'Spesa di viaggio attuale',
                             currentTravelSpendPaymentQueued: (amount: string) => `Il pagamento di ${amount} è in coda e verrà elaborato a breve.`,
+                            currentTravelSpendInvoiceQueued: 'Una nuova fattura per le tue spese di viaggio verrà creata e ti sarà inviata a breve.',
+                            currentTravelSpendInvoicePending: (amount: string) => `Una fattura di ${amount} è stata inviata ed è in attesa di pagamento.`,
                             currentTravelSpendCta: 'Paga saldo',
                             viewOnSpend: 'Visualizza in Spese',
                             currentTravelLimitLabel: 'Limite di viaggio attuale',
@@ -6126,6 +6130,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                                 'Se riduci il limite, i membri che hanno già speso più di questo importo non potranno effettuare nuove prenotazioni di viaggio fino al mese prossimo.',
                             provisioningError:
                                 'Non siamo riusciti a effettuare il provisioning di alcuni membri del tuo workspace per la Fatturazione Viaggi Consolidata. Riprova più tardi oppure contatta Concierge per assistenza.',
+                            sendInvoiceNowCta: 'Invia fattura ora',
                         },
                     },
                     disableModal: {
@@ -6148,6 +6153,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     invalidDateRangeError: 'La data di inizio deve essere precedente alla data di fine',
                     enabled: 'Fatturazione viaggio consolidata abilitata!',
                     enabledDescription: 'Tutte le spese di viaggio in questo spazio di lavoro saranno ora accentrate in una fattura mensile.',
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Inviare la fattura per ${amount}?`,
+                        body: 'Creeremo una fattura per le tue spese di viaggio attuali. Il tuo limite di viaggio si libera una volta che la fattura è stata pagata.',
+                    },
                 },
                 personalDetailsDescription: 'Per prenotare il viaggio, inserisci il tuo nome legale così come appare sul tuo documento d’identità rilasciato dal governo.',
             },
@@ -7481,8 +7490,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 note: 'Perderai l’accesso alle seguenti funzionalità',
                 benefits: {
                     confirm: 'Dovrai cambiare il “Tipo di piano” di ogni spazio di lavoro in “Collect” per poter ottenere la tariffa Collect.',
-                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
-                    benefit2: 'Workday, Certinia',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics, Certinia',
+                    benefit2: 'Gusto, TriNet, Workday',
                     benefit3: 'SSO/SAML',
                     benefit4: 'Regole intelligenti per le spese, diarie, approvazioni multilivello, report personalizzati e budget',
                     headsUp: 'Attenzione!',
@@ -8031,6 +8040,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 thenFlagForReview: 'Poi segnala per revisione quando:',
             },
             agentRulesEmptyState: {title: 'Nessuna regola agente aggiunta', subtitle: 'Crea una regola per automatizzare le policy del tuo workspace.', cta: 'Aggiungi regola IA'},
+            categoriesDisabledEmptyState: {title: 'Le categorie non sono abilitate', subtitle: 'Attiva le categorie per avere un maggiore controllo sulle tue spese.'},
         },
         planTypePage: {
             planTypes: {
@@ -10051,8 +10061,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 benefit1: 'Tutto ciò che è incluso nel piano Collect',
                 benefit2: 'Flussi di approvazione multilivello',
                 benefit3: 'Regole personalizzate per le spese',
-                benefit4: 'Integrazioni ERP (NetSuite, Sage Intacct, Oracle)',
-                benefit5: 'Integrazioni HR (Workday, Certinia)',
+                benefit4: 'Integrazioni ERP (NetSuite, Sage Intacct, Oracle, Certinia)',
+                benefit5: 'Integrazioni HR (Gusto, TriNet, Workday)',
                 benefit6: 'SAML/SSO',
                 benefit7: 'Analisi personalizzate e reportistica',
                 benefit8: 'Budgeting',
@@ -10339,6 +10349,15 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             inviteBoss: 'Invita il tuo capo quando sei pronto',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nuovi tipi di ruolo per gli amministratori',
+                body: 'Offri al tuo team autorizzazioni più granulari con i nuovi ruoli di amministratore per carte, persone e pagamenti.',
+                cta: 'Provalo',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Inizia <strong>qui!</strong></tooltip>',
         accountSwitcher: '<tooltip>Ora puoi fare da copilota in un altro account!</tooltip>',
@@ -10414,6 +10433,11 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        receiptsFailedBody: 'Non è stato possibile scaricare le ricevute. Riprova più tardi.',
+        noReceiptsTitle: 'Nessuna ricevuta da scaricare',
+        noReceiptsBody: 'Nessuna delle spese in questo report ha ricevute scaricabili.',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} ricevute su ${total} sono state esportate con successo. Se il download non è partito automaticamente, usa il pulsante qui sotto.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
