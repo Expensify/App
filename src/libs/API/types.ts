@@ -526,6 +526,25 @@ const WRITE_COMMANDS = {
     UPDATE_RILLET_SETTLEMENTS_ACCOUNT: 'UpdateRilletSettlementsAccount',
     UPDATE_RILLET_SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'UpdateRilletSyncTravelInvoicingSettlements',
     UPDATE_RILLET_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT: 'UpdateRilletTravelInvoicingSettlementsAccount',
+    CONNECT_POLICY_TO_DUALENTRY: 'ConnectPolicyToDualEntry',
+    UPDATE_DUALENTRY_SUBSIDIARY: 'UpdateDualEntrySubsidiary',
+    UPDATE_DUALENTRY_ENABLE_NEW_CATEGORIES: 'UpdateDualEntryEnableNewCategories',
+    UPDATE_DUALENTRY_SYNC_TAX_RATES: 'UpdateDualEntrySyncTaxRates',
+    UPDATE_DUALENTRY_FIELD_MAPPING: 'UpdateDualEntryFieldMapping',
+    UPDATE_DUALENTRY_EXPORTER: 'UpdateDualEntryExporter',
+    UPDATE_DUALENTRY_EXPORT_DATE: 'UpdateDualEntryExportDate',
+    UPDATE_DUALENTRY_DEFAULT_VENDOR: 'UpdateDualEntryDefaultVendor',
+    UPDATE_DUALENTRY_CREDIT_CARD_ACCOUNT: 'UpdateDualEntryCreditCardAccount',
+    UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT: 'UpdateDualEntryExpensifyCardAccount',
+    UPDATE_DUALENTRY_AUTO_SYNC: 'UpdateDualEntryAutoSync',
+    UPDATE_DUALENTRY_ACCOUNTING_METHOD: 'UpdateDualEntryAccountingMethod',
+    UPDATE_DUALENTRY_SYNC_REIMBURSED_REPORTS: 'UpdateDualEntrySyncReimbursedReports',
+    UPDATE_DUALENTRY_BILL_PAYMENT_ACCOUNT: 'UpdateDualEntryBillPaymentAccount',
+    UPDATE_DUALENTRY_SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'UpdateDualEntrySyncExpensifyCardSettlements',
+    UPDATE_DUALENTRY_SETTLEMENTS_ACCOUNT: 'UpdateDualEntrySettlementsAccount',
+    UPDATE_DUALENTRY_SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'UpdateDualEntrySyncTravelInvoicingSettlements',
+    UPDATE_DUALENTRY_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT: 'UpdateDualEntryTravelInvoicingSettlementsAccount',
+    UPDATE_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateDualEntryTravelInvoicingPayableAccount',
 
     SET_PROMO_CODE: 'User_SetPromoCode',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
@@ -1157,6 +1176,26 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_RILLET_SYNC_TRAVEL_INVOICING_SETTLEMENTS]: Parameters.UpdateRilletSyncTravelInvoicingSettlementsParams;
     [WRITE_COMMANDS.UPDATE_RILLET_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateRilletTravelInvoicingSettlementsAccountParams;
 
+    [WRITE_COMMANDS.CONNECT_POLICY_TO_DUALENTRY]: Parameters.ConnectPolicyToDualEntryParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SUBSIDIARY]: Parameters.UpdateDualEntrySubsidiaryParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_ENABLE_NEW_CATEGORIES]: Parameters.UpdateDualEntryEnableNewCategoriesParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_TAX_RATES]: Parameters.UpdateDualEntrySyncTaxRatesParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_FIELD_MAPPING]: Parameters.UpdateDualEntryFieldMappingParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_EXPORTER]: Parameters.UpdateDualEntryExporterParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_EXPORT_DATE]: Parameters.UpdateDualEntryExportDateParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_DEFAULT_VENDOR]: Parameters.UpdateDualEntryDefaultVendorParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_CREDIT_CARD_ACCOUNT]: Parameters.UpdateDualEntryCreditCardAccountParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT]: Parameters.UpdateDualEntryExpensifyCardAccountParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_AUTO_SYNC]: Parameters.UpdateDualEntryAutoSyncParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_ACCOUNTING_METHOD]: Parameters.UpdateDualEntryAccountingMethodParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateDualEntrySyncReimbursedReportsParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_BILL_PAYMENT_ACCOUNT]: Parameters.UpdateDualEntryBillPaymentAccountParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateDualEntrySyncExpensifyCardSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDualEntrySettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_TRAVEL_INVOICING_SETTLEMENTS]: Parameters.UpdateDualEntrySyncTravelInvoicingSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDualEntryTravelInvoicingSettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateDualEntryTravelInvoicingPayableAccountParams;
+
     [WRITE_COMMANDS.UPGRADE_TO_CORPORATE]: Parameters.UpgradeToCorporateParams;
     [WRITE_COMMANDS.DOWNGRADE_TO_TEAM]: Parameters.DowngradeToTeamParams;
     [WRITE_COMMANDS.UPGRADE_SUBMIT]: Parameters.UpgradeSubmitParams;
@@ -1360,6 +1399,7 @@ const READ_COMMANDS = {
     SYNC_POLICY_TO_ZENEFITS: 'SyncPolicyToZenefits',
     SYNC_POLICY_TO_FINANCIAL_FORCE: 'SyncPolicyToFinancialForce',
     SYNC_POLICY_TO_RILLET: 'SyncPolicyToRillet',
+    SYNC_POLICY_TO_DUALENTRY: 'SyncPolicyToDualEntry',
     CONNECT_POLICY_TO_FINANCIAL_FORCE: 'ConnectPolicyToFinancialForce',
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
@@ -1469,6 +1509,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.SYNC_POLICY_TO_ZENEFITS]: Parameters.SyncPolicyToZenefitsParams;
     [READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE]: Parameters.SyncPolicyToFinancialForceParams;
     [READ_COMMANDS.SYNC_POLICY_TO_RILLET]: Parameters.SyncPolicyToRilletParams;
+    [READ_COMMANDS.SYNC_POLICY_TO_DUALENTRY]: Parameters.SyncPolicyToDualEntryParams;
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: null;

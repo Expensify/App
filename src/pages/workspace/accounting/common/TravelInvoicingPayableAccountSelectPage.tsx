@@ -27,6 +27,7 @@ type TravelInvoicingPayableAccountSelectPageProps = {
     emptyStateTitle: TranslationPaths;
     emptyStateSubtitle: TranslationPaths;
     accessVariants?: AccessVariant[];
+    shouldBeBlocked?: boolean;
     pendingAction?: OnyxCommon.PendingAction | null;
     errors?: OnyxCommon.Errors | ReceiptErrors | null;
     onSelect: (row: SelectorType<string>) => void;
@@ -43,6 +44,7 @@ function TravelInvoicingPayableAccountSelectPage({
     emptyStateTitle,
     emptyStateSubtitle,
     accessVariants = [CONST.POLICY.ACCESS_VARIANTS.ADMIN],
+    shouldBeBlocked,
     pendingAction,
     errors,
     onSelect,
@@ -68,6 +70,7 @@ function TravelInvoicingPayableAccountSelectPage({
         <SelectionScreen
             policyID={policyID}
             accessVariants={accessVariants}
+            shouldBeBlocked={shouldBeBlocked}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={displayName}
             title={title}
