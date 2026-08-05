@@ -708,7 +708,7 @@ function IOURequestStepDistanceOdometer({
                     {/* Total Distance Display - always shown, updated live */}
                     <View style={[styles.borderRadiusComponentNormal, {backgroundColor: theme.componentBG}]}>
                         <Text style={[styles.textSupporting]}>
-                            {`${translate('distance.odometer.totalDistance')}: ${totalDistance !== null ? roundToTwoDecimalPlaces(totalDistance) : 0} ${unit}`}
+                            {`${translate('distance.odometer.totalDistance')}: ${(totalDistance ?? 0).toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${unit}`}
                         </Text>
                     </View>
                 </View>
