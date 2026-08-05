@@ -5360,7 +5360,7 @@ const staticStyles = (theme: ThemeColors) =>
         typeFilterMenu: {
             flexDirection: 'row',
             alignItems: 'center',
-            minHeight: 52,
+            height: 52,
             paddingHorizontal: 20,
             paddingVertical: 4,
             gap: 12,
