@@ -114,6 +114,14 @@ type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransac
     shouldSkipDeferRBR?: boolean;
 };
 
+function getPressEventTarget(target: unknown): EventTarget | null {
+    if (typeof EventTarget === 'undefined' || !(target instanceof EventTarget)) {
+        return null;
+    }
+
+    return target;
+}
+
 function MoneyRequestReportTransactionItemBody({
     transaction,
     violations,
@@ -209,7 +217,7 @@ function MoneyRequestReportTransactionItemBody({
         }
 
         // Let copyable values use native long-press/drag selection instead of applying the global selection blocker.
-        const isCopyableTarget = markMouseDownOnCopyableText(event?.target as unknown as EventTarget | null | undefined);
+        const isCopyableTarget = markMouseDownOnCopyableText(getPressEventTarget(event?.target));
         if (isCopyableTarget) {
             return;
         }
