@@ -21,6 +21,8 @@ Each Agent template includes a predefined set of instructions designed for a spe
 
 When you create an Agent from a template, you can review and edit those instructions before saving the Agent. After it's created, you can continue updating its instructions at any time.
 
+For guidance on writing clear, effective instructions, see [How to Write Agent Instructions](/articles/new-expensify/ai-agents/How-to-Write-Agent-Instructions).
+
 ---
 
 ## What TipMaster does
@@ -62,6 +64,5 @@ After the Agent is created, you can:
 
 ## Related articles
 
-* [Understand How AI Agents Work in Expensify](/articles/new-expensify/ai-agents/Understand-How-AI-Agents-Work-in-Expensify)
-* [Create and Manage Agents](/articles/new-expensify/ai-agents/Create-and-Manage-Agents)
-* [How to Write Agent Instructions](/articles/new-expensify/ai-agents/How-to-Write-Agent-Instructions)
+ - [Understand How AI Agents Work in Expensify](/articles/new-expensify/ai-agents/Understand-How-AI-Agents-Work-in-Expensify)
+ - [Create and Use Agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents)
