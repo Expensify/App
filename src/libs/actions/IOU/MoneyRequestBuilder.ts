@@ -1543,18 +1543,26 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     if (action === CONST.IOU.ACTION.SUBMIT && isDistanceRequest) {
         const workspaceDistanceCustomUnit = getDistanceRateCustomUnit(policy);
         const workspaceDistanceUnit = workspaceDistanceCustomUnit?.attributes?.unit;
-        optimisticTransaction.comment = {
-            ...optimisticTransaction.comment,
-            customUnit: {
-                ...optimisticTransaction.comment?.customUnit,
-                ...(workspaceDistanceCustomUnit?.customUnitID && {customUnitID: workspaceDistanceCustomUnit.customUnitID}),
-                ...(customUnitRateID && {customUnitRateID}),
-                ...(workspaceDistanceUnit && {distanceUnit: workspaceDistanceUnit}),
-                ...(distance !== undefined && {quantity: distance}),
-                ...(!!workspaceDistanceCustomUnit && {defaultP2PRate: null}),
-                name: optimisticTransaction.comment?.customUnit?.name ?? existingTransaction?.comment?.customUnit?.name ?? CONST.CUSTOM_UNITS.NAME_DISTANCE,
-            },
-        };
+        optimisticTransaction.comment ??= {};
+        optimisticTransaction.comment.customUnit ??= {};
+
+        optimisticTransaction.comment.customUnit.name = optimisticTransaction.comment.customUnit.name ?? existingTransaction?.comment?.customUnit?.name ?? CONST.CUSTOM_UNITS.NAME_DISTANCE;
+
+        if (workspaceDistanceCustomUnit?.customUnitID) {
+            optimisticTransaction.comment.customUnit.customUnitID = workspaceDistanceCustomUnit.customUnitID;
+        }
+        if (customUnitRateID) {
+            optimisticTransaction.comment.customUnit.customUnitRateID = customUnitRateID;
+        }
+        if (workspaceDistanceUnit) {
+            optimisticTransaction.comment.customUnit.distanceUnit = workspaceDistanceUnit;
+        }
+        if (distance !== undefined) {
+            optimisticTransaction.comment.customUnit.quantity = distance;
+        }
+        if (workspaceDistanceCustomUnit) {
+            optimisticTransaction.comment.customUnit.defaultP2PRate = null;
+        }
     }
 
     if (isSplitExpense && existingTransaction) {
