@@ -27,6 +27,8 @@ Agents are AI assistants that work on your behalf in Expensify. Each Agent is cr
 
 You can create multiple Agents with different responsibilities, chat with them, update their instructions, and review their activity.
 
+To learn more about agents, see [Create and Use Agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents).
+
 ---
 
 ## What are Agent rules
@@ -36,6 +38,8 @@ Agent rules let Workspace Admins automate how AI handles expenses and reports in
 Instead of creating an Agent directly, you create natural-language rules in a workspace that describe how AI should respond to report activity.
 
 These rules can review reports, request additional information, update expenses, route reports, or approve reports when the conditions you define are met.
+
+To learn more about agent rules, see [Automate Workflows with Agent Rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules.md).
 
 ---
 
@@ -65,6 +69,8 @@ Suggested rules are pre-written Agent rules for common workspace workflows.
 
 Instead of starting with a blank Agent rule, you can choose a suggested rule and edit it before saving.
 
+To learn about the available suggested rules, see [Use Suggested Agent Rules](/articles/new-expensify/ai-agents/Use-Suggested-Agent-Rules.md).
+
 ---
 
 ## How do Agents and Agent rules use instructions
@@ -77,7 +83,7 @@ For Agent rules, the instructions tell RuleBot how to handle expenses and report
 
 Although they operate in different contexts, the same principles apply: write clear, specific instructions that describe the outcome you want.
 
-To learn more, see [Write Effective Agent Instructions](/articles/new-expensify/ai-agents/Write-Effective-Agent-Instructions).
+To learn more, see [Write Effective Agent Instructions](/articles/new-expensify/ai-agents/How-to-Write-Agent-Instructions).
 
 ---
 
@@ -98,11 +104,20 @@ Many organizations use both. For example, you might use a personal Agent to help
 | **AI that follows your instructions** | Your Agent | RuleBot |
 | **Applies to** | Your own account | The entire workspace |
 
----
+# FAQ
 
-## Related articles
+## Do I need to know how to write prompts to use AI Agents?
 
-- [Create and Manage Agents](/articles/new-expensify/ai-agents/Create-and-Manage-Agents)
-- [Automate Workflows with Agent Rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules)
-- [Write Effective Agent Instructions](/articles/new-expensify/ai-agents/Write-Effective-Agent-Instructions)
-- [Use Agent Templates](/articles/new-expensify/ai-agents/Use-Agent-Templates)
+No. Both Agents and Agent rules use natural-language instructions, so you can describe the behavior you want in plain language. Clear, specific instructions generally produce better results.
+
+## Can I use both Agents and Agent rules?
+
+Yes. Many organizations use both. Personal Agents help manage your own work, while Agent rules automate how expenses and reports are handled across a workspace.
+
+## Are there pre-written agent instructions I can use?
+
+Yes. Agent templates are prebuilt personal Agents with pre-written instructions for common tasks. Suggested Agent rules are pre-written workspace Agent rules that you can use as a starting point for common workflows. You can review and customize the instructions before saving.
+
+## Can I customize Agent templates and suggested rules?
+
+Yes. Both are intended to be starting points. You can review and edit the instructions before creating the Agent or saving the Agent rule.
