@@ -88,6 +88,7 @@ function TransactionItemRowWide({
     columns,
     onButtonPress = () => {},
     style,
+    dataSet,
     isReportItemChild = false,
     isActionLoading,
     isInSingleTransactionReport = false,
@@ -682,6 +683,7 @@ function TransactionItemRowWide({
                     styles.mw100,
                     style,
                 ]}
+                dataSet={dataSet}
                 testID="transaction-item-row"
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, fullHeightMainRowStyle]}>

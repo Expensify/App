@@ -4,6 +4,7 @@ import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {COPYABLE_TEXT_DATA_SET} from '@components/TextWithTooltip/selection';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -76,12 +77,18 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <ReportActionAvatars
-                            size={avatarSize}
-                            accountIDs={[item.accountID]}
-                            fallbackDisplayName={item.name ?? item.email}
-                            secondaryAvatarContainerStyle={getSecondaryAvatarContainerStyle(!!hovered)}
-                        />
+                        <View
+                            // Avatar initials are visual-only in member rows, so keep them out of multi-row copied text.
+                            style={styles.userSelectNone}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                        >
+                            <ReportActionAvatars
+                                size={avatarSize}
+                                accountIDs={[item.accountID]}
+                                fallbackDisplayName={item.name ?? item.email}
+                                secondaryAvatarContainerStyle={getSecondaryAvatarContainerStyle(!!hovered)}
+                            />
+                        </View>
                         <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
                             <TextWithTooltip
                                 shouldShowTooltip
@@ -139,7 +146,14 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <Text numberOfLines={1}>{roleLabel}</Text>
+                            {/* Keep role as plain text while marking it copyable like the other member-table values. */}
+                            <Text
+                                numberOfLines={1}
+                                selectable
+                                dataSet={COPYABLE_TEXT_DATA_SET}
+                            >
+                                {roleLabel}
+                            </Text>
                         </View>
                     )}
 

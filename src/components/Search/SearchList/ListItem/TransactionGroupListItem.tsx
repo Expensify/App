@@ -6,7 +6,7 @@ import {useSearchResultsContext, useSearchSelectionContext} from '@components/Se
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
-import {useCopyableTextRowPress} from '@components/TextWithTooltip/selection';
+import {isMouseDownOnCopyableText, shouldSuppressCopyableTextPressOnMouseDown, useCopyableTextRowPress} from '@components/TextWithTooltip/selection';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -252,7 +252,7 @@ function TransactionGroupListItemImpl({
         isItemSelected && styles.activeComponentBG,
     ];
     const pressableRef = useRef<View>(null);
-    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
+    const {handleCopyableTextRowPress, markMouseDownOnCopyableText} = useCopyableTextRowPress();
 
     useEffect(() => {
         if (!newTransactionID || !isExpanded) {
@@ -311,16 +311,18 @@ function TransactionGroupListItemImpl({
     };
 
     const onPress = (event?: ModifiedMouseEvent) => {
-        if (shouldSuppressCopyableTextRowPress()) {
-            return;
-        }
-
-        if (isExpenseReportType || transactions.length === 0) {
-            onSelectRow(item, transactionPreviewData, event);
-        }
-        if (!isExpenseReportType) {
-            handleToggle();
-        }
+        handleCopyableTextRowPress(
+            () => {
+                if (isExpenseReportType || transactions.length === 0) {
+                    onSelectRow(item, transactionPreviewData, event);
+                }
+                if (!isExpenseReportType) {
+                    handleToggle();
+                }
+            },
+            true,
+            true,
+        );
     };
 
     const onLongPress = () => {
@@ -575,7 +577,11 @@ function TransactionGroupListItemImpl({
                 hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 onMouseDown={(e) => {
-                    const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
+                    // Suppress grouped-row toggle only when the interaction starts on selectable text;
+                    // blank row space keeps expand/collapse behavior.
+                    const isCopyableTextMouseDown = isMouseDownOnCopyableText(e);
+                    const shouldSuppressTextPress = isCopyableTextMouseDown && shouldSuppressCopyableTextPressOnMouseDown(e);
+                    const isCopyableTarget = markMouseDownOnCopyableText(e?.target, isCopyableTextMouseDown, shouldSuppressTextPress);
                     if (isCopyableTarget) {
                         return;
                     }
