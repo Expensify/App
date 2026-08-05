@@ -3146,6 +3146,7 @@ function getAddExpenseDropdownOptions({
     lastDistanceExpenseType,
     currentUserAccountID,
 }: GetAddExpenseDropdownOptionsParams): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
+    const moneyRequestIOUType = isTeachersUnitePolicyID(policy?.id) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
     return [
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
@@ -3164,7 +3165,7 @@ function getAddExpenseDropdownOptions({
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
-                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, undefined, false, iouRequestBackToReport);
+                startMoneyRequest(moneyRequestIOUType, iouReportID, draftTransactionIDs, undefined, false, iouRequestBackToReport);
             },
         },
         {
@@ -3180,7 +3181,7 @@ function getAddExpenseDropdownOptions({
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
-                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, lastDistanceExpenseType, false, iouRequestBackToReport);
+                startDistanceRequest(moneyRequestIOUType, iouReportID, draftTransactionIDs, lastDistanceExpenseType, false, iouRequestBackToReport);
             },
         },
         {
@@ -10337,6 +10338,19 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
 }
 
 /**
+ * The Teachers Unite workspace doesn't allow submitting expenses for reimbursement (CONST.IOU.TYPE.SUBMIT),
+ * only tracking them (CONST.IOU.TYPE.TRACK).
+ */
+function isTeachersUnitePolicyID(policyID: string | undefined): boolean {
+    const teacherUnitePolicyID = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+    return policyID === teacherUnitePolicyID;
+}
+
+function isTeachersUniteReport(report: OnyxEntry<Report>): boolean {
+    return isTeachersUnitePolicyID(report?.policyID);
+}
+
+/**
  * Helper method to define what expense options we want to show for particular method.
  * There are 4 expense options: Submit, Split, Pay and Track expense:
  * - Submit option should show for:
@@ -10371,8 +10385,7 @@ function getMoneyRequestOptions(
     isRestrictedToPreferredPolicy = false,
     currentUserAccountID?: number,
 ): IOUType[] {
-    const teacherUnitePolicyID = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
-    const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
+    const isTeachersUniteReportValue = isTeachersUniteReport(report);
 
     // In any thread, task report or trip room, we do not allow any new expenses
     if (isChatThread(report) || isTaskReport(report) || isInvoiceReport(report) || isSystemChat(report) || isReportArchived || isTripRoom(report)) {
@@ -10405,7 +10418,7 @@ function getMoneyRequestOptions(
 
     if (canRequestMoney(report, policy, otherParticipants, currentUserAccountID)) {
         // For Teachers Unite policy, don't show Create Expense option
-        if (!isTeachersUniteReport) {
+        if (!isTeachersUniteReportValue) {
             options = [...options, CONST.IOU.TYPE.SUBMIT];
             if (!filterDeprecatedTypes) {
                 options = [...options, CONST.IOU.TYPE.REQUEST];
@@ -10419,7 +10432,7 @@ function getMoneyRequestOptions(
     }
 
     // For expense reports on Teachers Unite workspace, disable "Create report" option
-    if (isExpenseReport(report) && report?.policyID === teacherUnitePolicyID) {
+    if (isExpenseReport(report) && isTeachersUniteReportValue) {
         options = options.filter((option) => option !== CONST.IOU.TYPE.SUBMIT);
     }
 
@@ -10432,7 +10445,7 @@ function getMoneyRequestOptions(
         (isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
         (isDM(report) && otherParticipants.length > 0) ||
         (isGroupChat(report) && otherParticipants.length > 0) ||
-        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat && isTeachersUniteReport)
+        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat && isTeachersUniteReportValue)
     ) {
         options = [...options, CONST.IOU.TYPE.SPLIT];
     }
@@ -14139,6 +14152,8 @@ export {
     isSettled,
     isSystemChat,
     isTaskReport,
+    isTeachersUnitePolicyID,
+    isTeachersUniteReport,
     isThread,
     isTrackExpenseReport,
     isUnread,
