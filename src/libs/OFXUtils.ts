@@ -1,8 +1,8 @@
-import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
-
 import CONST from '@src/CONST';
 
 import {Str} from 'expensify-common';
+
+import {splitExtensionFromFileName} from './fileDownload/FileUtils';
 
 // The headers stay untranslated because they are persisted in the saved column layout and matched by name on a later import.
 const OFX_COLUMNS = [
