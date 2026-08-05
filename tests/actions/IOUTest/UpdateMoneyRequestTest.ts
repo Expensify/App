@@ -1572,7 +1572,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'test@example.com',
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals,
