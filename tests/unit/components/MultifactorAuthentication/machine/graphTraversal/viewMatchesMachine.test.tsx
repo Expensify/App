@@ -21,6 +21,7 @@ import renderMfaUi from 'tests/utils/mfa/realUi/harness';
 import {
     checkLocalCredentialsControl,
     createCredentialControl,
+    credentialsStateCaptureControl,
     pendingModalClose,
     requestRegistrationChallengeControl,
     resetMfaUiMocks,
@@ -320,6 +321,40 @@ describe('the real MFA modal matches the machine at every step of every generate
         const {executeScenario} = renderMfaUi();
         await waitForBatchedUpdatesWithAct();
         await path.test({...testConfig, events: createMfaEventExecutors(executeScenario)});
+    });
+});
+
+describe('MFA flow initialization', () => {
+    beforeEach(async () => {
+        resetMfaUiMocks();
+        await act(async () => {
+            await Onyx.clear();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: MFA_TEST_ACCOUNT_ID});
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('does not initialize a flow when the account changes while credentials are being captured', async () => {
+        const {executeScenario} = renderMfaUi();
+        await waitForBatchedUpdatesWithAct();
+        credentialsStateCaptureControl.defer();
+
+        const flowPromise = executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: MFA_TEST_ACCOUNT_ID + 1});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        credentialsStateCaptureControl.resolve(false);
+        await act(async () => flowPromise);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByTestId(TEST_ID.MODAL_BACKDROP)).not.toBeOnTheScreen();
     });
 });
 

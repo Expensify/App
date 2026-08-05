@@ -58,6 +58,30 @@ const biometricsMock: Pick<UseBiometricsReturn, 'serverKnownCredentialIDs' | 'ar
     areLocalCredentialsKnownToServer: () => Promise.resolve(false),
 };
 
+let pendingCredentialsStateCapture: ((hasLocalCredentials: boolean) => void) | undefined;
+
+/** Lets a test hold the Provider's pre-INIT credential snapshot across an account switch. */
+const credentialsStateCaptureControl = {
+    defer: () => {
+        biometricsMock.areLocalCredentialsKnownToServer = () =>
+            new Promise<boolean>((resolve) => {
+                pendingCredentialsStateCapture = resolve;
+            });
+    },
+    resolve: (hasLocalCredentials: boolean) => {
+        const resolve = pendingCredentialsStateCapture;
+        pendingCredentialsStateCapture = undefined;
+        if (!resolve) {
+            throw new Error('No pending credentials-state capture is available.');
+        }
+        resolve(hasLocalCredentials);
+    },
+    reset: () => {
+        pendingCredentialsStateCapture = undefined;
+        biometricsMock.areLocalCredentialsKnownToServer = () => Promise.resolve(false);
+    },
+};
+
 /**
  * Builds a controlled deferred mock for one invoked machine actor. Each machine invocation parks a
  * pending promise that the test settles later through `resolve` or `reject`, at the exact path step
@@ -97,6 +121,7 @@ const createCredentialControl = createControlledActor<CreateCredentialOutput, Cr
 
 function resetMfaUiMocks() {
     pendingModalClose.clear();
+    credentialsStateCaptureControl.reset();
     validateDeviceControl.reset();
     checkLocalCredentialsControl.reset();
     requestRegistrationChallengeControl.reset();
@@ -200,6 +225,7 @@ function navigationMock() {
 
 export {
     pendingModalClose,
+    credentialsStateCaptureControl,
     validateDeviceControl,
     checkLocalCredentialsControl,
     requestRegistrationChallengeControl,
