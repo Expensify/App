@@ -267,9 +267,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction, policy, policyTagList, transactionViolations, policyCategories);
+        detachReceipt(transaction, policy, policyTagList, transactionViolations, transactionReport, policyCategories);
         navigation.goBack();
-    }, [transaction, policy, policyTagList, transactionViolations, policyCategories, navigation]);
+    }, [transaction, policy, policyTagList, transactionViolations, transactionReport, policyCategories, navigation]);
 
     /**
      * Remove odometer image and close the modal.
@@ -321,12 +321,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                             transactionPolicy: policy,
                             transactionPolicyTagList: policyTagList,
                             transactionViolations,
+                            transactionReport,
                             ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
                         });
                     }
                 });
         },
-        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList, transactionViolations],
+        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList, transactionViolations, transactionReport],
     );
 
     const rotateReceipt = useCallback(() => {
