@@ -16710,6 +16710,19 @@ describe('ReportUtils', () => {
             const report = LHNTestUtils.getFakeReport();
             expect(isConciergeChatReport(report, '')).toBe(false);
         });
+
+        it('should not fall back to the deprecated Onyx CONCIERGE_REPORT_ID when no conciergeReportID is threaded', async () => {
+            const report = LHNTestUtils.getFakeReport();
+            // Populate the deprecated module-level Onyx.connect value with a matching ID.
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, report.reportID);
+            await waitForBatchedUpdates();
+
+            // The threaded parameter is the only source of truth now, so an undefined value must not match.
+            expect(isConciergeChatReport(report, undefined)).toBe(false);
+            expect(isConciergeChatReport(report, report.reportID)).toBe(true);
+
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, null);
+        });
     });
 
     describe('isPolicyRelatedReport', () => {

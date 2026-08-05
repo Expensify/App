@@ -1900,9 +1900,11 @@ function getReportNotificationPreference(report: OnyxEntry<Report>, currentUserA
 
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge.
+ * The conciergeReportID must be threaded from the caller (sourced with useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID));
+ * callers on paths that can never be the Concierge chat pass an explicit undefined.
  */
-function isConciergeChatReport(report: OnyxInputOrEntry<Report>, conciergeReportID?: string): boolean {
-    return !!report && report?.reportID === (conciergeReportID ?? conciergeReportIDOnyxConnect);
+function isConciergeChatReport(report: OnyxInputOrEntry<Report>, conciergeReportID: string | undefined): boolean {
+    return !!report && !!conciergeReportID && report.reportID === conciergeReportID;
 }
 
 function findSelfDMReportID(reports?: OnyxCollection<Report>): string | undefined {
