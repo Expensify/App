@@ -54,6 +54,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isOptimisticNewChatDestination: false,
             }),
         ).toBeUndefined();
     });
@@ -69,6 +70,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isOptimisticNewChatDestination: false,
             }),
         ).toBeUndefined();
     });
@@ -83,6 +85,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isOptimisticNewChatDestination: false,
         });
 
         expect(route).toEqual(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}));
@@ -100,6 +103,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isOptimisticNewChatDestination: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
@@ -115,6 +119,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.TRACK,
             isCreatingTrackExpense: true,
             isSelfDMDestination: false,
+            isOptimisticNewChatDestination: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
@@ -130,6 +135,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.CREATE,
             isCreatingTrackExpense: false,
             isSelfDMDestination: true,
+            isOptimisticNewChatDestination: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
@@ -145,6 +151,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.PAY,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isOptimisticNewChatDestination: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
@@ -163,8 +170,27 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isOptimisticNewChatDestination: false,
             }),
         ).toBeUndefined();
+    });
+
+    it('returns a pending-creation route for an unloaded optimistic chat destination', () => {
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+
+        const route = getSubmitExpensePreMountDestinationRoute({
+            isTransactionReady: true,
+            destinationReportID: '123',
+            destinationReport: undefined,
+            isFromGlobalCreate: false,
+            canPreInsertSearch: false,
+            iouType: CONST.IOU.TYPE.CREATE,
+            isCreatingTrackExpense: false,
+            isSelfDMDestination: false,
+            isOptimisticNewChatDestination: true,
+        });
+
+        expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123', undefined, undefined, undefined, undefined, true));
     });
 
     it('returns undefined when report is already topmost', () => {
@@ -181,6 +207,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isOptimisticNewChatDestination: false,
             }),
         ).toBeUndefined();
     });
@@ -202,6 +229,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isOptimisticNewChatDestination: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
@@ -221,6 +249,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isOptimisticNewChatDestination: false,
             }),
         ).toBeUndefined();
     });
@@ -240,6 +269,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isOptimisticNewChatDestination: false,
         });
 
         expect(route).toEqual(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}));
@@ -264,6 +294,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isOptimisticNewChatDestination: false,
         });
 
         expect(route).toEqual(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}));
