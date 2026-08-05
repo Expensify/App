@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 
 import {calculateBillNewDot, deleteWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
-import {filterInactiveCards, getCardSettings, isCard, isTravelCard} from '@libs/CardUtils';
+import {filterInactiveCards, getCardSettings, isCard} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -110,15 +110,11 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
     const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
     const hasTravelInvoicingEnabledOnWorkspace = getIsTravelInvoicingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
-    // A Travel Invoicing card is an Expensify-issued card that lives in the same cardsList bucket as real Expensify Cards, and that bucket also holds
-    // non-card assignment metadata, so neither the feature flags nor raw list emptiness tell us which kind of card is actually blocking the delete.
-    const workspaceCards = Object.values(cardsList ?? {}).filter(isCard);
-    const hasExpensifyCards = workspaceCards.some((card) => !isTravelCard(card));
-    const hasTravelCards = workspaceCards.some((card) => isTravelCard(card));
-    // The delete is blocked by Expensify Cards / Travel Invoicing only when the feature is enabled *and* the workspace still has a card of that kind.
-    // When both block the delete we surface the Expensify Cards copy first, and the Travel Invoicing one on the next attempt once Expensify Cards are turned off.
+    // Travel Invoicing cards live on the `_TRAVEL_US` feed key rather than the cardsList read above, and that list also holds non-card assignment
+    // metadata, so the Expensify Cards copy is only correct when the workspace really has an Expensify Card assigned - otherwise the blocker is Travel Invoicing.
+    const hasExpensifyCards = Object.values(cardsList ?? {}).some(isCard);
     const isBlockedByExpensifyCards = hasExpensifyCardsEnabledOnWorkspace && hasExpensifyCards;
-    const isBlockedByTravelInvoicing = hasTravelInvoicingEnabledOnWorkspace && hasTravelCards;
+    const isBlockedByTravelInvoicing = hasTravelInvoicingEnabledOnWorkspace;
     // While offline we can't get the real rejection reason from the backend, so if we already know locally that the workspace has active Expensify Cards, block the delete up front instead of queuing one that will fail on reconnect.
     const hasDeleteWorkspaceExpensifyCardsError = isBlockedByExpensifyCards && !!isOffline;
 
