@@ -1,5 +1,4 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,7 +12,7 @@ import MoneyRequestAccountantSelector from '@pages/iou/request/MoneyRequestAccou
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {Accountant} from '@src/types/onyx/IOU';
@@ -28,20 +27,19 @@ import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotF
 import StepScreenWrapper from './StepScreenWrapper';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type DynamicIOURequestStepAccountantProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ACCOUNTANT>;
+type IOURequestStepAccountantProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT>;
 
-function DynamicIOURequestStepAccountant({
+function IOURequestStepAccountant({
     route: {
-        params: {transactionID, reportID, iouType, action},
+        params: {transactionID, reportID, iouType, backTo, action},
     },
-}: DynamicIOURequestStepAccountantProps) {
+}: IOURequestStepAccountantProps) {
     const {translate} = useLocalize();
     const {accountID, login, email = '', localCurrencyCode} = useCurrentUserPersonalDetails();
     const selector = (policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? '');
     const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.path);
 
     const setAccountant = (accountant: Accountant) => {
         setMoneyRequestAccountant(transactionID, accountant, true);
@@ -67,7 +65,7 @@ function DynamicIOURequestStepAccountant({
     };
 
     const navigateBack = () => {
-        Navigation.goBack(backPath);
+        Navigation.goBack(backTo);
     };
 
     return (
@@ -75,7 +73,7 @@ function DynamicIOURequestStepAccountant({
             headerTitle={translate('iou.whoIsYourAccountant')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID="DynamicIOURequestStepAccountant"
+            testID="IOURequestStepAccountant"
         >
             <MoneyRequestAccountantSelector
                 onFinish={navigateToNextStep}
@@ -86,4 +84,4 @@ function DynamicIOURequestStepAccountant({
     );
 }
 
-export default withWritableReportOrNotFound(DynamicIOURequestStepAccountant);
+export default withWritableReportOrNotFound(IOURequestStepAccountant);
