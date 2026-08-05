@@ -266,6 +266,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The old tax code of the tax rate when we edit the tax code */
     previousTaxCode?: string;
 
+    /** Every tax code this rate has previously used, oldest first, so expenses still referencing any old code can be resolved back to this rate */
+    previousTaxCodes?: string[];
+
     /** The old tax code kept only while a tax code edit is in flight, used to resolve the rate from the old code; cleared once the API resolves */
     optimisticPreviousTaxCode?: string;
 

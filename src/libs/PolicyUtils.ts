@@ -2630,11 +2630,24 @@ function hasOnlyPersonalPolicies(policies: OnyxCollection<Policy>) {
 
 function getCurrentTaxID(policy: OnyxEntry<PolicyWithTaxRates>, taxID: string): string | undefined {
     const taxes = policy?.taxRates?.taxes;
+
+    // A rate that currently owns the code always wins. This is what keeps a code that was renamed away and later
+    // reused by a brand new rate resolving to that new rate instead of to the rate it was renamed into.
     if (taxes?.[taxID]) {
         return taxID;
     }
 
-    return Object.keys(taxes ?? {}).find((taxIDKey) => taxes?.[taxIDKey].optimisticPreviousTaxCode === taxID);
+    return Object.keys(taxes ?? {}).find((taxIDKey) => {
+        const taxRate = taxes?.[taxIDKey];
+        return (
+            // Set only while a rename is in flight, so renamed codes still resolve offline before the API responds.
+            taxRate?.optimisticPreviousTaxCode === taxID ||
+            // The rename history the back-end persists. previousTaxCode holds only the most recent old code, so it is
+            // checked as well to cover rates renamed before the back-end started returning the full chain.
+            taxRate?.previousTaxCode === taxID ||
+            !!taxRate?.previousTaxCodes?.includes(taxID)
+        );
+    });
 }
 
 /**
