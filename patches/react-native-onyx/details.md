@@ -1,6 +1,6 @@
 # `react-native-onyx` patches
 
-### [react-native-onyx+3.0.91.patch](react-native-onyx+3.0.91.patch)
+### [react-native-onyx+3.0.92.patch](react-native-onyx+3.0.92.patch)
 
 - Reason:
   
