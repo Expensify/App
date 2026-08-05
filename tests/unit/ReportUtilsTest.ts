@@ -112,6 +112,7 @@ import {
     getParsedComment,
     getParticipantsList,
     getPayeeName,
+    getPendingChatMembers,
     getPolicyChangeLogCopyMessage,
     getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
@@ -15058,6 +15059,21 @@ describe('ReportUtils', () => {
             const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: iouReport.ownerAccountID});
             expect(displayName).toBe(fakePersonalDetails?.[1]?.displayName);
         });
+        it('should return the known displayName for an optimistic personal detail that already has one (e.g. an agent pending creation)', async () => {
+            const optimisticAccountID = 8399123;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [optimisticAccountID]: {
+                    accountID: optimisticAccountID,
+                    displayName: "Bob's Agent",
+                    isOptimisticPersonalDetail: true,
+                },
+            });
+
+            waitForBatchedUpdates();
+
+            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: optimisticAccountID});
+            expect(displayName).toBe("Bob's Agent");
+        });
 
         it('should return hidden translation using translate param when participant has no displayName or login', async () => {
             const hiddenAccountID = 9999;
@@ -21861,5 +21877,41 @@ describe('areAllRequestsBeingSmartScanned', () => {
         const transactions = [buildScanningTransaction(1), scannedReceipt];
 
         expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
+    });
+});
+
+describe('getPendingChatMembers', () => {
+    it('should append each account ID to the previous pending members', () => {
+        const previousPendingChatMembers = [{accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}];
+
+        const result = getPendingChatMembers([2, 3], previousPendingChatMembers, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+        expect(result).toEqual([
+            {accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            {accountID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            {accountID: '3', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+        ]);
+    });
+
+    it('should skip account IDs that are missing at runtime', () => {
+        // @ts-expect-error A personal detail that has not finished loading contributes a missing account ID at runtime
+        const accountIDs: number[] = [1, undefined, 2, null];
+
+        const result = getPendingChatMembers(accountIDs, [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+        expect(result).toEqual([
+            {accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            {accountID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        ]);
+    });
+
+    it('should keep the previous pending members when every account ID is missing', () => {
+        const previousPendingChatMembers = [{accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}];
+        // @ts-expect-error A personal detail that has not finished loading contributes a missing account ID at runtime
+        const accountIDs: number[] = [undefined];
+
+        const result = getPendingChatMembers(accountIDs, previousPendingChatMembers, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+        expect(result).toEqual(previousPendingChatMembers);
     });
 });
