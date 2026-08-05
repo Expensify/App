@@ -1,7 +1,6 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
-import useLocalize from '@hooks/useLocalize';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -40,7 +39,6 @@ import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
 let environmentURL: string;
-const {formatPhoneNumber} = useLocalize();
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 /**
@@ -155,7 +153,13 @@ function getForDistanceRequest(translate: LocalizedTranslate, newMerchant: strin
     return translate('iou.updatedTheDistanceMerchant', translatedChangedField, newMerchant, oldMerchant, newAmount, oldAmount);
 }
 
-function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destinationReport: OnyxEntry<Report>, currentUserLogin: string, policy: OnyxEntry<Policy>) {
+function getForExpenseMovedFromSelfDM(
+    translate: LocalizedTranslate,
+    destinationReport: OnyxEntry<Report>,
+    currentUserLogin: string,
+    policy: OnyxEntry<Policy>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+) {
     const rootParentReport = getRootParentReport({report: destinationReport});
     // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
     if (isSelfDM(rootParentReport)) {
@@ -187,6 +191,7 @@ function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<t
 
 function getMovedFromOrToReportMessage(
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     movedFromReport: OnyxEntry<Report> | undefined,
     movedToReport: OnyxEntry<Report> | undefined,
     currentUserLogin: string,
@@ -194,7 +199,7 @@ function getMovedFromOrToReportMessage(
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string | undefined {
     if (movedToReport) {
-        return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserLogin, policy);
+        return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserLogin, policy, formatPhoneNumber);
     }
 
     if (movedFromReport) {
@@ -280,6 +285,7 @@ function getForReportAction({
     policyCategories,
     currentUserLogin,
     reportAttributes,
+    formatPhoneNumber,
 }: {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -294,12 +300,13 @@ function getForReportAction({
     policyCategories?: OnyxEntry<PolicyCategories>;
     currentUserLogin: string;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin, policy, reportAttributes);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, formatPhoneNumber, movedFromReport, movedToReport, currentUserLogin, policy, reportAttributes);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }

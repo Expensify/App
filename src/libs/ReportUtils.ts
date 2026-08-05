@@ -92,7 +92,6 @@ import isEmpty from 'lodash/isEmpty';
 import isNumber from 'lodash/isNumber';
 import mapValues from 'lodash/mapValues';
 import lodashMaxBy from 'lodash/maxBy';
-import {format} from 'path';
 import Onyx from 'react-native-onyx';
 
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';

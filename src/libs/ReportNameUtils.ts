@@ -458,7 +458,7 @@ function getMoneyRequestReportName({
         const chatReport = getReportOrDraftReport(report?.chatReportID);
         payerOrApproverName = getInvoicePayerName({report: chatReport, translate, invoiceReceiverPolicy, formatPhoneNumber});
     } else {
-        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber: formatPhoneNumber, translate}) ?? '';
+        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber, translate}) ?? '';
     }
     const payerPaidAmountMessage = translate('iou.payerPaidAmount', formattedAmount, payerOrApproverName);
 
@@ -471,7 +471,7 @@ function getMoneyRequestReportName({
     }
 
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
-        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumber, translate}) ?? '';
+        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber, translate}) ?? '';
         return translate('iou.payerSpentAmount', formattedAmount, payerOrApproverName);
     }
 
@@ -913,6 +913,7 @@ function computeReportNameBasedOnReportAction(
 
 function computeChatThreadReportName(
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isArchived: boolean,
     report: Report,
     reports: OnyxCollection<Report>,
@@ -987,6 +988,7 @@ function computeChatThreadReportName(
             policyTags,
             policy,
             currentUserLogin,
+            formatPhoneNumber,
         });
         // Strip HTML tags for plain text display in report previews
         const modifiedMessage = Parser.htmlToText(modifiedMessageWithHTML);
@@ -1080,6 +1082,7 @@ function computeReportName({
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`];
     const chatThreadReportName = computeChatThreadReportName(
         translate,
+        formatPhoneNumber,
         privateIsArchivedValue,
         report,
         reports ?? {},
