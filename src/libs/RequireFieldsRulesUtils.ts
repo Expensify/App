@@ -935,8 +935,8 @@ type RequireFieldsFieldCouplingTooltipKey = 'receiptDisabledWhenItemizedRequired
  * keeps it dismissed for later rules instead of only for the current mount.
  */
 const REQUIRE_FIELDS_COUPLING_TOOLTIP_NAMES: Record<RequireFieldsFieldCouplingTooltipKey, ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>> = {
-    receiptDisabledWhenItemizedRequired: CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.REQUIRE_FIELDS_RULE_RECEIPT_COUPLING,
-    itemizedDisabledWhenReceiptWaived: CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING,
+    receiptDisabledWhenItemizedRequired: CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP,
+    itemizedDisabledWhenReceiptWaived: CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP,
 };
 
 function getRequireFieldsFieldCouplingTooltipKey(

@@ -9,8 +9,8 @@ const {
     GPS_TOOLTIP,
     HAS_FILTER_NEGATION,
     MILEAGE_RATE_AUTO_UPDATED,
-    REQUIRE_FIELDS_RULE_RECEIPT_COUPLING,
-    REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING,
+    REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP,
+    REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 /**
@@ -93,13 +93,13 @@ type DismissedProductTraining = {
      * When user dismisses the require fields rule tooltip explaining why Receipt is locked while
      * Itemized receipt is required, we store the timestamp here.
      */
-    [REQUIRE_FIELDS_RULE_RECEIPT_COUPLING]: DismissedProductTrainingElement;
+    [REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the require fields rule tooltip explaining why Itemized receipt is locked
      * while Receipt is waived, we store the timestamp here.
      */
-    [REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING]: DismissedProductTrainingElement;
+    [REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP]: DismissedProductTrainingElement;
 };
 
 export default DismissedProductTraining;
