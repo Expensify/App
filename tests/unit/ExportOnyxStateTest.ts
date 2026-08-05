@@ -136,6 +136,7 @@ describe('maskOnyxState', () => {
                 [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: 'stripe-id',
                 [ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN]: 'plaid-token',
                 [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: true,
+                [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'reset', readyIDs: {}},
                 [ONYXKEYS.ONFIDO_TOKEN]: 'onfido-token',
             };
             const result = maskOnyxState(input);
@@ -145,6 +146,7 @@ describe('maskOnyxState', () => {
             expect(result[ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]).toBeUndefined();
             expect(result[ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN]).toBeUndefined();
             expect(result[ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]).toBeUndefined();
+            expect(result[ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]).toBeUndefined();
             expect(result[ONYXKEYS.ONFIDO_TOKEN]).toBeUndefined();
 
             // Session should still be present

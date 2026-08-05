@@ -55,6 +55,8 @@ export default function () {
                 willAlertModalBecomeVisible: false,
             },
             [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: false,
+            // PRODUCT_MARKETING_WINDOW_DATA_STATE intentionally has no default. Onyx initial defaults
+            // overwrite stored fields, but a persisted reset-without-readiness must survive a restart.
             // Ensure the Supportal permission modal doesn't persist across reloads
             [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
             [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,

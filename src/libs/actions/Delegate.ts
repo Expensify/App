@@ -52,12 +52,14 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
 ];
 
 /**
- * Atomically reset Onyx for a delegate-access transition. The IS_LOADING_APP=true
- * seed is delegate-specific: without it, consumers observe HAS_LOADED_APP=true and
- * IS_LOADING_APP=undefined together, which looks like a stuck app and triggers
+ * Atomically reset Onyx for a delegate-access transition. The delegate-specific loading seed
+ * keeps app-loading consumers gated until OpenApp rehydrates the destination account. Without
+ * it, consumers observe HAS_LOADED_APP=true and IS_LOADING_APP=undefined together, which looks
+ * like a stuck app and triggers
  * DelegateAccessHandler's recovery effect, queueing a duplicate openApp.
  *
- * The reconnect-time seed is handled by clearOnyxAndSeedFullReconnect.
+ * The reconnect-time seed and product marketing rehydration generation are handled by
+ * clearOnyxAndSeedFullReconnect.
  */
 function clearOnyxForDelegateTransition(): Promise<void> {
     return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS, {

@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {OnyxKey, OnyxMultiSetInput} from 'react-native-onyx';
 
+import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 /**
@@ -15,7 +16,11 @@ import Onyx from 'react-native-onyx';
  * response.onyxData before successData, so without the seed the timestamp would
  * still be empty when the comparison runs and trigger a duplicate reconnect.
  *
- * Pass `extraSeeds` to seed additional keys atomically with the timestamp (e.g.
+ * Every account-scoped reset also starts a new product marketing data generation before
+ * account data is removed. OpenApp marks that generation ready after the successful
+ * sequential-queue flush, once the destination account's dismissal NVP has landed.
+ *
+ * Pass `extraSeeds` to seed additional keys atomically with these shared seeds (e.g.
  * IS_LOADING_APP=true for delegate transitions). Seeded keys are appended to the
  * preserve list automatically so they survive the clear.
  */
@@ -26,6 +31,7 @@ async function clearOnyxAndSeedFullReconnect(keysToPreserve: OnyxKey[], extraSee
 
     const seeds: OnyxMultiSetInput = {
         ...extraSeeds,
+        [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: Str.guid(), readyIDs: {}},
         [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: DateUtils.getDBTime(),
     };
     await Onyx.multiSet(seeds);
