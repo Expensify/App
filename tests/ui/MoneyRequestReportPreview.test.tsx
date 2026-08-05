@@ -10,6 +10,7 @@ import type ReportPreviewActionButton from '@components/ReportActionItem/MoneyRe
 import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
+import type * as WideRHPContextProvider from '@components/WideRHPContextProvider';
 
 import useNetwork from '@hooks/useNetwork';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
@@ -155,6 +156,18 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewA
         },
     };
 });
+
+// The preview widens the RHP for the report it opens and narrows it back when a press is abandoned. Nothing in the
+// rendered output reflects that, so capture the calls to assert the widths are actually requested and released.
+const mockMarkReportRHPWidth = jest.fn();
+const mockUnmarkReportRHPWidth = jest.fn();
+jest.mock('@components/WideRHPContextProvider', () => ({
+    ...jest.requireActual<typeof WideRHPContextProvider>('@components/WideRHPContextProvider'),
+    useWideRHPActions: () => ({
+        markReportRHPWidth: mockMarkReportRHPWidth,
+        unmarkReportRHPWidth: mockUnmarkReportRHPWidth,
+    }),
+}));
 
 // Capture the props the preview forwards to the hold menu so the selected bank account that reaches it can be asserted.
 const mockHoldMenuPropsHolder: {current?: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number}} = {current: undefined};
@@ -876,6 +889,50 @@ describe('MoneyRequestReportPreview', () => {
             await pressSecondTransaction();
 
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+        });
+
+        it('falls back to the full report view, not the super-wide RHP, when the pressed expense has no thread on narrow layouts', async () => {
+            // Every other fallback assertion here runs wide. Narrow has no super-wide RHP, so the fallback has to
+            // land on the report screen itself — the route the deleted-expense and offline dead-tap paths rely on.
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            jest.spyOn(ReportActions, 'createTransactionThreadReport').mockReturnValue(undefined);
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation((reportID, transactionID) => {
+                if (!reportID || !transactionID) {
+                    return undefined;
+                }
+                return {...mockAction, childReportID: undefined, originalMessage: {...mockAction, IOUTransactionID: transactionID}};
+            });
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, ''));
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+        });
+
+        it('widens the RHP for the report and the pressed expense, and narrows the expense back when the press is abandoned', async () => {
+            // The widths are invisible in the rendered output, so without this the whole widen/release mechanism
+            // could be deleted and every other test here would still pass.
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            // The user leaves the report before the cascade fires, so the expense's reserved width must be released.
+            jest.spyOn(Navigation, 'isActiveRoute').mockReturnValue(false);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            expect(mockMarkReportRHPWidth).toHaveBeenCalledWith(mockIOUReport.reportID, 'super-wide');
+            expect(mockMarkReportRHPWidth).toHaveBeenCalledWith(`thread_${mockSecondTransactionID}`, 'wide');
+            expect(mockUnmarkReportRHPWidth).not.toHaveBeenCalled();
+
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            expect(mockUnmarkReportRHPWidth).toHaveBeenCalledWith(`thread_${mockSecondTransactionID}`);
         });
 
         it('opens the report instead of the lone expense for a single-expense report', async () => {
