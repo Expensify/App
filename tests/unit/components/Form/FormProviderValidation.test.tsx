@@ -8,6 +8,8 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 
+import {isValidNameOnCard} from '@libs/ValidationUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -79,7 +81,7 @@ function renderForm(handlers: {current: CapturedHandlers | undefined}, formProvi
                         if (typeof street === 'string' && street.toLowerCase().includes('po box')) {
                             errors[STREET] = PO_BOX_ERROR;
                         }
-                        if (typeof street === 'string' && street.includes('<') && street.includes('>')) {
+                        if (typeof street === 'string' && !isValidNameOnCard(street)) {
                             errors[STREET] = CUSTOM_TAG_ERROR;
                         }
                         return errors;
