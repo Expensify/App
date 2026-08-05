@@ -205,53 +205,6 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.queryByText(adminHeading)).toBeNull();
     });
 
-    it('does not flash a dismissed announcement while delegate-return account data is rehydrating', async () => {
-        await act(async () => {
-            await setupOnyxBaseline({isAdmin: true});
-            await Onyx.set(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, announcement.updateKey);
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        renderManager();
-        await waitForBatchedUpdatesWithAct();
-        expect(screen.queryByText(adminHeading)).toBeNull();
-
-        await act(async () => {
-            // Match the deployed race: policies and IS_LOADING_APP can become usable before this NVP
-            // finishes rehydrating. The transition gate must keep the missing key from meaning "show".
-            await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'delegateReset', readyIDs: {}});
-            await Onyx.set(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, null);
-            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
-            await waitForBatchedUpdatesWithAct();
-        });
-        expect(screen.queryByText(adminHeading)).toBeNull();
-
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, announcement.updateKey);
-            await Onyx.merge(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {readyIDs: {delegateReset: true}});
-            await waitForBatchedUpdatesWithAct();
-        });
-        expect(screen.queryByText(adminHeading)).toBeNull();
-    });
-
-    it('shows an eligible announcement only after the current account-reset generation becomes ready', async () => {
-        await act(async () => {
-            await setupOnyxBaseline({isAdmin: true});
-            await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'eligibleReset', readyIDs: {}});
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        renderManager();
-        await waitForBatchedUpdatesWithAct();
-        expect(screen.queryByText(adminHeading)).toBeNull();
-
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {readyIDs: {eligibleReset: true}});
-            await waitForBatchedUpdatesWithAct();
-        });
-        expect(screen.getByText(adminHeading)).toBeOnTheScreen();
-    });
-
     it('renders nothing when the initial app load state was never written, as on a fresh sign-in', async () => {
         await act(async () => {
             // Deliberately do not write IS_LOADING_APP: the manager must treat the never-written key as still loading.

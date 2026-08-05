@@ -81,16 +81,6 @@ Onyx.connectWithoutView({
     },
 });
 
-// Full account requests capture this generation when they are created. Their success handoff only
-// marks that captured generation ready, so a response that finishes after another reset stays stale.
-let productMarketingWindowDataResetID: string | undefined;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE,
-    callback: (value) => {
-        productMarketingWindowDataResetID = value?.resetID;
-    },
-});
-
 // hasLoadedAppPromise is used in the "reconnectApp" function and is not directly associated with the View,
 // so retrieving it using Onyx.connectWithoutView is correct.
 let resolveHasLoadedAppPromise: () => void;
@@ -169,7 +159,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.STASHED_CREDENTIALS,
-
+    ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
     // Preserve IS_USING_IMPORTED_STATE so that when the app restarts (especially in HybridApp mode),
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
     ONYXKEYS.IS_USING_IMPORTED_STATE,
@@ -309,12 +299,7 @@ function getPolicyParamsForOpenOrReconnect(): PolicyParamsForOpenOrReconnect {
     return {policyIDList: getNonOptimisticPolicyIDs(allPolicies)};
 }
 
-type OnyxDataForOpenOrReconnectKeys =
-    | typeof ONYXKEYS.COLLECTION.REPORT
-    | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
-    | typeof ONYXKEYS.HAS_LOADED_APP
-    | typeof ONYXKEYS.IS_LOADING_APP
-    | typeof ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE;
+type OnyxDataForOpenOrReconnectKeys = typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.IS_LOADING_REPORT_DATA | typeof ONYXKEYS.HAS_LOADED_APP | typeof ONYXKEYS.IS_LOADING_APP;
 
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
@@ -325,7 +310,6 @@ function getOnyxDataForOpenOrReconnect(
     shouldKeepPublicRooms = false,
     allReportsWithDraftComments?: Record<string, string | undefined>,
     shouldClearAppLoading = false,
-    shouldApplyProductMarketingWindowDataReadyOnSuccess = false,
 ): OnyxData<OnyxDataForOpenOrReconnectKeys> {
     let commandName: string;
     if (isOpenApp) {
@@ -368,22 +352,6 @@ function getOnyxDataForOpenOrReconnect(
             key: ONYXKEYS.IS_LOADING_APP,
             value: true,
         });
-    }
-
-    // Every account-scoped reset through clearOnyxAndSeedFullReconnect starts a new generation. Queued
-    // requests mark their captured generation ready after the complete queue flush. Full side-effect
-    // reconnects bypass that queue, so their successData does the same after the HTTPS payload is applied.
-    if ((isOpenApp || isFullReconnect) && productMarketingWindowDataResetID) {
-        const productMarketingWindowDataReadyUpdate: OnyxUpdate<typeof ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE> = {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE,
-            value: {readyIDs: {[productMarketingWindowDataResetID]: true}},
-        };
-        if (shouldApplyProductMarketingWindowDataReadyOnSuccess) {
-            result.successData?.push(productMarketingWindowDataReadyUpdate);
-        } else {
-            result.queueFlushedData?.push(productMarketingWindowDataReadyUpdate);
-        }
     }
 
     // Clear IS_LOADING_APP in finallyData for OpenApp and ReconnectApp, not just OpenApp. The optimistic `true`
@@ -452,14 +420,6 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         Onyx.multiSet({
             [ONYXKEYS.IS_LOADING_APP]: false,
             [ONYXKEYS.HAS_LOADED_APP]: true,
-            ...(productMarketingWindowDataResetID
-                ? {
-                      [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {
-                          resetID: productMarketingWindowDataResetID,
-                          readyIDs: {[productMarketingWindowDataResetID]: true},
-                      },
-                  }
-                : {}),
         });
         return Promise.resolve();
     }
@@ -577,7 +537,7 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
     // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
     // as soon as we have everyone migrated to the reliableUpdate beta.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, true, false, undefined, false, true));
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, true));
 }
 
 /**
@@ -605,7 +565,7 @@ function reconnectAppWithSideEffects(updateIDFrom = 0): Promise<void | OnyxTypes
 
         // The watchdog must await the gap closing; same justified exception as the sibling functions above.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, !updateIDFrom, false, undefined, false, true));
+        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, !updateIDFrom));
     });
 }
 

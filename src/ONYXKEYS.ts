@@ -43,9 +43,6 @@ const ONYXKEYS = {
     /** Whether a semantic modal is covering the product marketing window in this app instance */
     RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED: 'isProductMarketingWindowCovered',
 
-    /** Tracks which account-reset generation the product marketing window data has finished rehydrating */
-    PRODUCT_MARKETING_WINDOW_DATA_STATE: 'productMarketingWindowDataState',
-
     /** Boolean flag set whenever we are searching for reports in the server */
     RAM_ONLY_IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
 
@@ -1549,7 +1546,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: boolean;
-    [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: string; readyIDs: Record<string, boolean>};
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.AnyRequest[];
     [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.AnyRequest;
     [ONYXKEYS.CURRENT_DATE]: string;

@@ -41,6 +41,10 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.STASHED_CREDENTIALS,
     ONYXKEYS.HYBRID_APP,
 
+    // Otherwise it's wiped and refetched by OpenApp, letting the product-marketing window flash back in
+    // before the dismissal value round-trips back from the server.
+    ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
+
     // We need to preserve the sidebar loaded state since we never unmount the sidebar when connecting as a delegate
     // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
@@ -52,14 +56,12 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
 ];
 
 /**
- * Atomically reset Onyx for a delegate-access transition. The delegate-specific loading seed
- * keeps app-loading consumers gated until OpenApp rehydrates the destination account. Without
- * it, consumers observe HAS_LOADED_APP=true and IS_LOADING_APP=undefined together, which looks
- * like a stuck app and triggers
+ * Atomically reset Onyx for a delegate-access transition. The IS_LOADING_APP=true
+ * seed is delegate-specific: without it, consumers observe HAS_LOADED_APP=true and
+ * IS_LOADING_APP=undefined together, which looks like a stuck app and triggers
  * DelegateAccessHandler's recovery effect, queueing a duplicate openApp.
  *
- * The reconnect-time seed and product marketing rehydration generation are handled by
- * clearOnyxAndSeedFullReconnect.
+ * The reconnect-time seed is handled by clearOnyxAndSeedFullReconnect.
  */
 function clearOnyxForDelegateTransition(): Promise<void> {
     return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS, {

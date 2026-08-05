@@ -2,7 +2,6 @@ import {waitFor} from '@testing-library/react-native';
 
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {waitForIdle} from '@libs/Network/SequentialQueue';
 
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import '@libs/Navigation/AppNavigator/AuthScreens';
@@ -10,7 +9,7 @@ import '@libs/Navigation/AppNavigator/AuthScreens';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
-import type {OnyxCollection, OnyxValue} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -26,13 +25,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 OnyxUpdateManager();
-
-function isCurrentProductMarketingWindowDataReady(dataState: OnyxValue<typeof ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE>): boolean {
-    if (!dataState?.resetID) {
-        throw new Error('Expected a product marketing data generation');
-    }
-    return dataState.readyIDs?.[dataState.resetID] === true;
-}
 
 describe('actions/App', () => {
     let mockFetch: MockFetch;
@@ -109,103 +101,6 @@ describe('actions/App', () => {
         expect(mockFetch).not.toHaveBeenCalled();
     });
 
-    test('reconnectAppWithSideEffects reopens product marketing readiness only after a full reconnect', async () => {
-        await Onyx.multiSet({
-            [ONYXKEYS.HAS_LOADED_APP]: true,
-            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'sideEffectReset', readyIDs: {}},
-        });
-        await waitForBatchedUpdates();
-
-        await App.reconnectAppWithSideEffects(123);
-        await waitForBatchedUpdates();
-        let dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(isCurrentProductMarketingWindowDataReady(dataState)).toBe(false);
-
-        await App.reconnectAppWithSideEffects();
-        await waitForBatchedUpdates();
-        dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(isCurrentProductMarketingWindowDataReady(dataState)).toBe(true);
-    });
-
-    test('a full side-effect reconnect cannot mark a newer account-reset generation ready', async () => {
-        await Onyx.multiSet({
-            [ONYXKEYS.HAS_LOADED_APP]: true,
-            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'oldSideEffectReset', readyIDs: {oldSideEffectReset: true}},
-        });
-        await waitForBatchedUpdates();
-        mockFetch.pause();
-
-        const reconnectPromise = App.reconnectAppWithSideEffects();
-        await waitForBatchedUpdates();
-        // Simulate the replacement generation finishing before this older side-effect response.
-        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'newSideEffectReset', readyIDs: {newSideEffectReset: true}});
-        await waitForBatchedUpdates();
-
-        await mockFetch.resume();
-        await reconnectPromise;
-        await waitForBatchedUpdates();
-
-        const dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.resetID).toBe('newSideEffectReset');
-        expect(dataState?.readyIDs?.newSideEffectReset).toBe(true);
-    });
-
-    test('a stale full side-effect reconnect leaves a newer generation pending until its own full reconnect succeeds', async () => {
-        await Onyx.multiSet({
-            [ONYXKEYS.HAS_LOADED_APP]: true,
-            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'oldPendingReset', readyIDs: {oldPendingReset: true}},
-        });
-        await waitForBatchedUpdates();
-        mockFetch.pause();
-
-        const staleReconnectPromise = App.reconnectAppWithSideEffects();
-        await waitForBatchedUpdates();
-        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'newPendingReset', readyIDs: {}});
-        await waitForBatchedUpdates();
-
-        await mockFetch.resume();
-        await staleReconnectPromise;
-        await waitForBatchedUpdates();
-
-        let dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.readyIDs?.newPendingReset).not.toBe(true);
-
-        await App.reconnectAppWithSideEffects();
-        await waitForBatchedUpdates();
-        dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.readyIDs?.newPendingReset).toBe(true);
-    });
-
-    test('a failed full side-effect reconnect leaves the current product marketing generation pending', async () => {
-        const failedFetch = TestHelper.createGlobalFetchMock();
-        failedFetch.fail();
-        global.fetch = failedFetch;
-        await Onyx.multiSet({
-            [ONYXKEYS.HAS_LOADED_APP]: true,
-            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'failedSideEffectReset', readyIDs: {}},
-        });
-        await waitForBatchedUpdates();
-
-        await App.reconnectAppWithSideEffects();
-        await waitForBatchedUpdates();
-
-        const dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.readyIDs?.failedSideEffectReset).not.toBe(true);
-    });
-
-    test('openApp immediately marks product marketing data ready when using imported state', async () => {
-        await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
-        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'importedReset', readyIDs: {}});
-        await waitForBatchedUpdates();
-
-        await App.openApp();
-        await waitForBatchedUpdates();
-
-        expect(mockFetch).not.toHaveBeenCalled();
-        const dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(isCurrentProductMarketingWindowDataReady(dataState)).toBe(true);
-    });
-
     test('trigger full reconnect', async () => {
         const triggerFullReconnect = jest.spyOn(App, 'triggerFullReconnect');
 
@@ -280,24 +175,6 @@ describe('actions/App', () => {
             );
             expect((await getOnyxValue(ONYXKEYS.PERSISTED_ONGOING_REQUESTS)) == null).toBe(true);
         });
-    });
-
-    test('clearOnyxAndResetApp keeps product marketing gated while account data is rehydrating', async () => {
-        jest.spyOn(Navigation, 'clearPreloadedRoutes').mockImplementation(() => {});
-        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'loadedReset', readyIDs: {loadedReset: true}});
-        mockFetch.pause();
-
-        try {
-            await App.clearOnyxAndResetApp();
-            await waitForBatchedUpdates();
-
-            const dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-            expect(dataState?.resetID).not.toBe('loadedReset');
-            expect(isCurrentProductMarketingWindowDataReady(dataState)).toBe(false);
-        } finally {
-            await mockFetch.resume();
-        }
-        await waitForIdle();
     });
 
     describe('getNonOptimisticPolicyIDs', () => {

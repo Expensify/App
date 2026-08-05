@@ -16,11 +16,6 @@ jest.mock('@libs/Log', () => ({
 jest.mock('@libs/DateUtils', () => ({
     getDBTime: mockGetDBTime,
 }));
-jest.mock('expensify-common', () => ({
-    Str: {
-        guid: () => 'productMarketingResetID',
-    },
-}));
 jest.mock('react-native-onyx', () => ({
     __esModule: true,
     default: {
@@ -65,10 +60,9 @@ describe('auth startup prefetch cleanup', () => {
         expect(mockClearPrefetchOnAppStart).toHaveBeenCalledTimes(2);
         expect(mockMultiSet).toHaveBeenCalledWith({
             [ONYXKEYS.IS_LOADING_APP]: true,
-            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'productMarketingResetID', readyIDs: {}},
             [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: '2026-07-16 12:00:00.000',
         });
-        expect(mockClear).toHaveBeenCalledWith([ONYXKEYS.SESSION, ONYXKEYS.IS_LOADING_APP, ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, ONYXKEYS.LAST_FULL_RECONNECT_TIME]);
+        expect(mockClear).toHaveBeenCalledWith([ONYXKEYS.SESSION, ONYXKEYS.IS_LOADING_APP, ONYXKEYS.LAST_FULL_RECONNECT_TIME]);
         expect(mockClearPrefetchOnAppStart.mock.invocationCallOrder.at(0)).toBeLessThan(mockMultiSet.mock.invocationCallOrder.at(0) ?? 0);
         expect(mockClearPrefetchOnAppStart.mock.invocationCallOrder.at(1)).toBeGreaterThan(mockClear.mock.invocationCallOrder.at(0) ?? 0);
     });

@@ -90,7 +90,6 @@ describe('cleanAndTransformState', () => {
             [ONYXKEYS.CREDENTIALS]: 'remove4',
             [ONYXKEYS.PREFERRED_THEME]: 'remove5',
             [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: true,
-            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'reset', readyIDs: {}},
             keepThis: 'value',
         });
 
@@ -107,6 +106,5 @@ describe('cleanAndTransformState', () => {
         expect(result).not.toHaveProperty(ONYXKEYS.CREDENTIALS);
         expect(result).not.toHaveProperty(ONYXKEYS.PREFERRED_THEME);
         expect(result).not.toHaveProperty(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED);
-        expect(result).not.toHaveProperty(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
     });
 });

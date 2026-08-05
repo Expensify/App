@@ -273,23 +273,6 @@ describe('actions/Delegate', () => {
                 });
             });
 
-            // The marketing window must remain gated while destination-account keys are rehydrating.
-            await new Promise<void>((resolve) => {
-                const conn = Onyx.connect({
-                    key: ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE,
-                    callback: (value) => {
-                        expect(value?.resetID).toEqual(expect.any(String));
-                        expect(value?.resetID).not.toBe('');
-                        if (!value?.resetID) {
-                            throw new Error('Expected the delegate transition to create a product marketing data generation');
-                        }
-                        expect(value.readyIDs?.[value.resetID]).not.toBe(true);
-                        Onyx.disconnect(conn);
-                        resolve();
-                    },
-                });
-            });
-
             // HAS_LOADED_APP is in the preserve list and should remain true.
             await new Promise<void>((resolve) => {
                 const conn = Onyx.connect({
