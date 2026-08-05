@@ -41,6 +41,7 @@ type PlatformAdapter = {
     readonly benchmarkDirectory: string;
     readonly benchmarkPaths: Record<BenchmarkKind, string>;
     readonly artifactPaths: BuildArtifactPaths;
+    readonly profileFormat?: string;
     build: (kind: BuildKind) => void;
     install: (kind: BuildKind) => void;
     verifyInstrumentation: () => void;
@@ -393,6 +394,7 @@ function createAndroidAdapter(): PlatformAdapter {
 }
 
 function createIosAdapter(): PlatformAdapter {
+    const profileFormat = 'ios-clang-frontend-swift-ir-v1';
     const profileDirectory = join(rootDirectory, '.pgo/ios/arm64');
     const rawProfileDirectory = join(profileDirectory, 'raw');
     const appDirectory = join(profileDirectory, 'app');
@@ -536,31 +538,39 @@ function createIosAdapter(): PlatformAdapter {
     }
 
     function pgoBuildSettings(kind: BuildKind): string[] {
+        const baseSettings = ['ENABLE_CODE_COVERAGE=NO', 'CLANG_COVERAGE_MAPPING=NO', 'CLANG_USE_OPTIMIZATION_PROFILE=NO'];
         if (kind === 'instrumented') {
             return [
-                'CLANG_USE_OPTIMIZATION_PROFILE=NO',
+                ...baseSettings,
                 'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) EXPENSIFY_PGO_GENERATE=1',
                 'OTHER_CFLAGS=$(inherited) -fprofile-instr-generate',
                 'OTHER_CPLUSPLUSFLAGS=$(inherited) -fprofile-instr-generate',
-                'OTHER_SWIFT_FLAGS=$(inherited) -profile-generate',
+                'OTHER_SWIFT_FLAGS=$(inherited) -ir-profile-generate',
                 'OTHER_LDFLAGS=$(inherited) -fprofile-instr-generate',
             ];
         }
         if (kind === 'optimized') {
             const clangProfileFlags = `-fprofile-instr-use=${mergedProfilePath} -Wno-profile-instr-unprofiled -Wno-profile-instr-out-of-date`;
             return [
-                'CLANG_USE_OPTIMIZATION_PROFILE=NO',
+                ...baseSettings,
                 `OTHER_CFLAGS=$(inherited) ${clangProfileFlags}`,
                 `OTHER_CPLUSPLUSFLAGS=$(inherited) ${clangProfileFlags}`,
-                `OTHER_SWIFT_FLAGS=$(inherited) -profile-use=${mergedProfilePath}`,
+                `OTHER_SWIFT_FLAGS=$(inherited) -ir-profile-use=${mergedProfilePath}`,
             ];
         }
-        return ['CLANG_USE_OPTIMIZATION_PROFILE=NO'];
+        return baseSettings;
     }
 
     function build(kind: BuildKind): void {
         if (kind === 'optimized' && !existsSync(mergedProfilePath)) {
             fail(`Missing ${mergedProfilePath}. Run merge first.`);
+        }
+        if (kind === 'optimized') {
+            const profileFormatPath = `${mergedProfilePath}.format`;
+            const recordedFormat = existsSync(profileFormatPath) ? readFileSync(profileFormatPath, 'utf8').trim() : undefined;
+            if (recordedFormat !== profileFormat) {
+                fail('The merged iOS profile predates the current Swift IR instrumentation. Install the latest instrumented app and run record-startups again.');
+            }
         }
 
         let mode: PgoMode = 'off';
@@ -591,7 +601,7 @@ function createIosAdapter(): PlatformAdapter {
             '-configuration',
             'Release',
             '-destination',
-            `id=${deviceIdentifier()}`,
+            'generic/platform=iOS',
             '-derivedDataPath',
             derivedDataDirectory,
             ...(codeSigningAllowed ? ['-allowProvisioningUpdates'] : []),
@@ -786,6 +796,7 @@ function createIosAdapter(): PlatformAdapter {
         benchmarkDirectory,
         benchmarkPaths,
         artifactPaths,
+        profileFormat,
         build,
         install,
         verifyInstrumentation,
@@ -810,6 +821,9 @@ function mergeProfiles(adapter: PlatformAdapter): void {
 
     const llvmProfdata = adapter.llvmTool('llvm-profdata');
     run(llvmProfdata, ['merge', `--output=${adapter.mergedProfilePath}`, ...profiles]);
+    if (adapter.profileFormat) {
+        writeFileSync(`${adapter.mergedProfilePath}.format`, `${adapter.profileFormat}\n`);
+    }
     const profileReport = capture(llvmProfdata, ['show', '--all-functions', adapter.mergedProfilePath]);
     writeFileSync(`${adapter.mergedProfilePath}.txt`, profileReport);
     console.log(`Merged PGO profile: ${adapter.mergedProfilePath}`);

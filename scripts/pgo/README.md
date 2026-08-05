@@ -137,7 +137,7 @@ scripts/pgo/local-proof.ts ios merge
 scripts/pgo/local-proof.ts ios build-optimized
 ```
 
-The iOS adapter uses an arm64 Release device build with local development signing. It forces React Native core, React Native dependencies, and Hermes to build from source. Xcode-level Clang and Swift frontend instrumentation covers app and source-based CocoaPods targets; a React Native patch forwards the matching flags into Hermes' nested CMake build. Release, instrumented, and optimized `.app` bundles are archived under `.pgo/ios/arm64/app/` and benchmarks under `.pgo/ios/benchmarks/`.
+The iOS adapter uses an arm64 Release device build with local development signing. It forces React Native core, React Native dependencies, and Hermes to build from source. Xcode-level Clang frontend instrumentation and Swift IR instrumentation cover app and source-based CocoaPods targets; a React Native patch forwards the matching flags into Hermes' nested CMake build. Release, instrumented, and optimized `.app` bundles are archived under `.pgo/ios/arm64/app/` and benchmarks under `.pgo/ios/benchmarks/`.
 
 The source-build preparation also validates the source roots CocoaPods needs for Hermes, `libdav1d`, and `libwebp`. If an existing generated checkout is incomplete, the tool removes only that Pod directory and lets the locked `pod install` restore it before compiling. This prevents missing private-header failures caused by a partially materialized CocoaPods sandbox.
 
@@ -148,10 +148,10 @@ The three-stage procedure is the same on both platforms, but the mechanics diffe
 | Stage | Android | iOS |
 | --- | --- | --- |
 | Build | Gradle/NDK | CocoaPods + `xcodebuild` |
-| Instrument | Clang `-fprofile-generate` | Clang `-fprofile-instr-generate`, Swift `-profile-generate` |
+| Instrument | Clang `-fprofile-generate` | Clang `-fprofile-instr-generate`, Swift `-ir-profile-generate` |
 | Flush | Android broadcast/JNI | Darwin notification/native LLVM runtime |
 | Retrieve | `adb pull` from external cache | CoreDevice copy from the app data container |
 | Merge | NDK `llvm-profdata` | Xcode `llvm-profdata` |
-| Consume | Clang `-fprofile-use` | Clang `-fprofile-instr-use`, Swift `-profile-use` |
+| Consume | Clang `-fprofile-use` | Clang `-fprofile-instr-use`, Swift `-ir-profile-use` |
 
 Profiles are tied to the exact compiler, architecture, source, dependencies, and build configuration that produced them. Rebuild all three app variants from the same revision and Xcode version, do not reuse an Android profile on iOS, and regenerate the iOS profile after meaningful native-source or toolchain changes. The release and optimized benchmarks preserve app data and use the same bundle identifier so the authenticated state and data set remain comparable.
