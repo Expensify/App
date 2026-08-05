@@ -22,7 +22,9 @@ function DynamicAddBankAccountVerifyAccountPage({route}: DynamicAddBankAccountVe
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const currentUserEmail = getCurrentUserEmail();
     const isAdmin = useMemo(() => hasActiveAdminWorkspaces(currentUserEmail ?? '', allPolicies), [currentUserEmail, allPolicies]);
-    const navigateForwardTo = isAdmin && !shouldSkipPurposeSelection ? ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE : ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route;
+    const navigateForwardTo = isAdmin && !shouldSkipPurposeSelection ? ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE : ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backPath);
+
+    console.log({backPath, route, navigateForwardTo});
 
     return (
         <VerifyAccountPageBase
