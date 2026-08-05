@@ -1,6 +1,6 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
-import {getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
+import {getAccountingIntegrationDisplayName, getStandardExportTemplateDisplayName, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies, getFilterFromQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -10,12 +10,14 @@ import type {ExportTemplate, Policy} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import useCombinedExportTemplates from './useCombinedExportTemplates';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 type UseExportedToFilterDataResult = {
     exportedToFilterOptions: string[];
     combinedUniqueExportTemplates: ExportTemplate[];
     connectedIntegrationNames: Set<string>;
+    exportedToFilterDisplayNames: Map<string, string>;
 };
 
 /**
@@ -42,6 +44,7 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
  * When currentSearchQueryJSON has policyID, options are scoped to those workspaces so form hydration and autocomplete stay consistent.
  */
 export default function useExportedToFilterOptions(): UseExportedToFilterDataResult {
+    const {translate} = useLocalize();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const policyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
 
@@ -77,11 +80,16 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
     });
 
     const exportedToFilterOptions = [...new Set([...connectedIntegrationDisplayNames, ...standardAndCustomExportTemplates])];
+    const quickbooksPolicies = policiesToUse.filter((policy) => !!policy?.connections?.quickbooksOnline);
+    const areAllQuickbooksConnectionsIES = quickbooksPolicies.length > 0 && quickbooksPolicies.every(isIntuitEnterpriseSuiteConnection);
+    const quickbooksDisplayName = getAccountingIntegrationDisplayName(areAllQuickbooksConnectionsIES ? quickbooksPolicies.at(0) : undefined, CONST.POLICY.CONNECTIONS.NAME.QBO, translate);
+    const exportedToFilterDisplayNames = new Map([[CONST.EXPORT_LABELS.QBO, quickbooksDisplayName]]);
 
     return {
         exportedToFilterOptions,
         combinedUniqueExportTemplates,
         connectedIntegrationNames,
+        exportedToFilterDisplayNames,
     };
 }
 
