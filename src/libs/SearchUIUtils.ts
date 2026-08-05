@@ -231,7 +231,6 @@ import {
 import getFormattedPostedDate from './TransactionUtils/getFormattedPostedDate';
 import shouldShowTransactionPostedYear from './TransactionUtils/shouldShowTransactionPostedYear';
 import {isInvalidMerchantValue} from './ValidationUtils';
-import {isValidViolationName} from './Violations/ViolationsUtils';
 
 type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
 type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
@@ -5064,7 +5063,7 @@ type SubmittedTransactionViolationShortName = TupleToUnion<typeof SUBMITTED_TRAN
 
 const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET = new Set<string>(SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAMES);
 
-function isSubmittedTransactionViolationShortName(name: ValueOf<typeof CONST.VIOLATIONS>): name is SubmittedTransactionViolationShortName {
+function isSubmittedTransactionViolationShortName(name: string): name is SubmittedTransactionViolationShortName {
     return SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET.has(name);
 }
 
@@ -5073,15 +5072,7 @@ function isSubmittedTransactionViolationShortName(name: ValueOf<typeof CONST.VIO
  * Falls back to the raw identifier when no short-name translation exists.
  */
 function getSubmittedViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
-    if (!isValidViolationName(violationName)) {
-        return violationName;
-    }
-
-    if (isSubmittedTransactionViolationShortName(violationName)) {
-        return translate(`violations.shortName.${violationName}`);
-    }
-
-    return violationName;
+    return isSubmittedTransactionViolationShortName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
 }
 
 /**
