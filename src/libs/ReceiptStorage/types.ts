@@ -9,7 +9,7 @@ type ReceiptStorage = {
     toLocalUri: (durableName: string) => string;
 
     /** Re-roots a stored source onto the current folder. A remote source passes through unchanged. */
-    resolve: (source: ReceiptSource | undefined) => string | undefined;
+    resolve: (source: ReceiptSource | null | undefined) => string | undefined;
 };
 
 export default ReceiptStorage;
