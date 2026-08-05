@@ -13,8 +13,11 @@ jest.mock('@libs/telemetry/activeSpans', () => ({
     cancelSpan: jest.fn(),
 }));
 
+let requestIndex = 0;
+
 function buildRequest(command: string, data: Record<string, unknown>): Request<OnyxKey> {
-    return {command, data};
+    requestIndex += 1;
+    return {command, data, requestIndex};
 }
 
 function buildResponse(lastUpdateID: number): Response<OnyxKey> {

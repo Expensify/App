@@ -56,15 +56,11 @@ function findTrackedGroup(command: string): TrackedCommandGroup | undefined {
     return TRACKED_COMMAND_GROUPS.find((group) => group.commands.has(command));
 }
 
-// `requestIndex` is unset on side-effect requests, so keying spans off it collides and cancels one still in flight.
-let spanSequence = 0;
-
 function readUpdateIDTo(data: Request<OnyxKey>['data']): number | undefined {
     const updateIDTo = Number(data?.updateIDTo);
     return Number.isFinite(updateIDTo) ? updateIDTo : undefined;
 }
 
-// Sentry cannot compare one attribute against another, so the verdict cannot be left to a query.
 function didResponseAdvance(updateIDFrom: number | undefined, lastUpdateID: number | string | undefined): boolean | undefined {
     if (updateIDFrom === undefined) {
         return undefined;
@@ -85,8 +81,7 @@ const SentryServerTiming: Middleware = (response, request) => {
     }
 
     const updateIDFrom = readUpdateIDFrom(request.data);
-    spanSequence += 1;
-    const spanId = `${group.spanOp}_${spanSequence}`;
+    const spanId = `${group.spanOp}_${request.requestIndex}`;
     startSpan(spanId, {
         name: group.spanName,
         op: group.spanOp,
