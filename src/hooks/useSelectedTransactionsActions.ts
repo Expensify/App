@@ -96,7 +96,6 @@ function useSelectedTransactionsActions({
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -500,7 +499,7 @@ function useSelectedTransactionsActions({
                 value: MOVE,
                 onSelected: () => {
                     const shouldTurnOffSelectionMode = allTransactionsLength - selectedTransactionIDs.length <= 1;
-                    const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID, shouldTurnOffSelectionMode, lastVisitedPath);
+                    const route = createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID, shouldTurnOffSelectionMode));
                     Navigation.navigate(route);
                 },
             });
