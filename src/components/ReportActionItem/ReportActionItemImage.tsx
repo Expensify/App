@@ -171,7 +171,6 @@ function ReportActionItemImage({
         );
     }
 
-    // localSource is a second stored copy of the receipt path, so it goes stale the same way source does.
     const localSource = ReceiptStorage.resolve(transaction?.receipt?.localSource);
     const effectiveIsLocalFile = isLocalFile || !!localSource;
     const effectiveThumbnail = localSource ?? thumbnail;

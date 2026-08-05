@@ -28,9 +28,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 const {source, name, type, receiptTraceId} = value as Omit<File, 'source'> & Pick<Receipt, 'receiptTraceId' | 'source'>;
 
                 if (source) {
-                    // Distance and per diem expenses carry a bundled placeholder image, so the source is a
-                    // require() asset id. No file exists on disk and the server receives nothing, so a
-                    // filesystem check here only logs a false drop.
+                    // A bundled placeholder image (distance, per diem) is a require() asset id, so no file exists on disk.
                     if (typeof source === 'number') {
                         return Promise.resolve();
                     }

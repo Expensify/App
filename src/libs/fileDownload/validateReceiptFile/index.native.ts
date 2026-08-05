@@ -22,7 +22,6 @@ function validateReceiptFile(
         return Promise.resolve();
     }
 
-    // The stored path can name a container this launch no longer has, so re-root before reading it.
     const localPath = ReceiptStorage.resolve(receiptPath) ?? receiptPathString;
 
     return checkFileExists(localPath).then((exists) => {

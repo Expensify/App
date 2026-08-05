@@ -378,8 +378,6 @@ function checkIfLocalFileIsAccessible(
         return Promise.resolve();
     }
 
-    // Every caller reads the path from a stored transaction, where it can name a container this launch
-    // no longer has. Re-root here so no caller has to remember to.
     return readFileAsync(ReceiptStorage.resolve(receiptPath) ?? receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
