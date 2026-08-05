@@ -125,8 +125,8 @@ function biometricsHookMock() {
 }
 
 /**
- * Stubs only the magic-code email request. It is a backend call outside the modal lifecycle
- * contract, and the machine fires it when the walk enters the magic-code screen.
+ * Stubs only the validate-code email request. It is a backend call outside the modal lifecycle
+ * contract, and the machine fires it when the walk enters the validate-code screen.
  */
 function userActionsMock() {
     return {

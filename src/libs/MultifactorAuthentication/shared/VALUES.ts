@@ -223,7 +223,7 @@ const MFA_STATE = {
     VALIDATING_DEVICE: 'validatingDevice',
     DECIDING_REGISTRATION: 'decidingRegistration',
     CHECKING_SOFT_PROMPT_ACCEPTANCE: 'checkingSoftPromptAcceptance',
-    MAGIC_CODE: 'magicCode',
+    VALIDATE_CODE: 'validateCode',
     AWAITING_VALIDATE_CODE: 'awaitingValidateCode',
     AWAITING_INPUT: 'awaitingInput',
     INVALID_CODE: 'invalidCode',

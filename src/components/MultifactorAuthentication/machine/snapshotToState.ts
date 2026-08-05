@@ -13,13 +13,13 @@ type MfaSnapshot = SnapshotFrom<typeof MFAMachine>;
 type MfaState = MfaContext & {
     modalState: MfaModalState;
 
-    /** Whether the machine currently accepts a request for a fresh magic-code email. */
+    /** Whether the machine currently accepts a request for a fresh validate-code email. */
     canResendValidateCode: boolean;
 
-    /** Whether the submitted magic code is currently being validated. */
+    /** Whether the submitted validate code is currently being validated. */
     isValidateCodeFormSubmitting: boolean;
 
-    /** Whether the magic-code screen currently shows the inline invalid-code error. */
+    /** Whether the validate-code screen currently shows the inline invalid-code error. */
     showsInvalidCodeError: boolean;
 };
 
@@ -46,12 +46,12 @@ function snapshotToState(snapshot: MfaSnapshot): MfaState {
         canResendValidateCode: snapshot.can({type: 'RESEND_VALIDATE_CODE'}),
         isValidateCodeFormSubmitting: snapshot.matches({
             [MFA_STATE.OPEN]: {
-                [MFA_STATE.MAGIC_CODE]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE,
+                [MFA_STATE.VALIDATE_CODE]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE,
             },
         }),
         showsInvalidCodeError: snapshot.matches({
             [MFA_STATE.OPEN]: {
-                [MFA_STATE.MAGIC_CODE]: {
+                [MFA_STATE.VALIDATE_CODE]: {
                     [MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE,
                 },
             },

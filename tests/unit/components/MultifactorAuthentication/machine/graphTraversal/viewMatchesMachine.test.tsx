@@ -55,7 +55,7 @@ jest.mock('@components/ValidateCodeCountdown', () => jest.requireActual<typeof M
 jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').syncHistoryMock());
 // The test renderer runs no real navigation transitions, so the mock controls when the transition callbacks fire.
 jest.mock('@libs/Navigation/Navigation', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').navigationMock());
-// The magic-code email request is a backend call outside the modal lifecycle contract.
+// The validate-code email request is a backend call outside the modal lifecycle contract.
 jest.mock('@libs/actions/User', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').userActionsMock());
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
@@ -193,21 +193,21 @@ const testConfig = {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(state.context.validateCode).toBeUndefined();
-            // A registration challenge means the flow re-entered this check from the magic-code
+            // A registration challenge means the flow re-entered this check from the validate-code
             // screen, which stays visible while the read runs; a first pass has no challenge and
             // runs behind the transparent initial screen.
             if (state.context.registrationChallenge === undefined) {
                 expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
             } else {
                 expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);
-                // The magic-code screen stays visible during this read, but the machine no longer
+                // The validate-code screen stays visible during this read, but the machine no longer
                 // accepts resend requests after a valid code has advanced the flow.
                 expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON)).toBeDisabled();
             }
             expect(state.context.accountID).toBeDefined();
             expect(state.context.error).toBeUndefined();
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.MAGIC_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);
@@ -218,13 +218,13 @@ const testConfig = {
             expect(screen.getByText(translateLocal('multifactorAuthentication.letsVerifyItsYou'))).toBeOnTheScreen();
             expect(state.context.error).toBeUndefined();
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.MAGIC_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.AWAITING_INPUT}`]: () => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.AWAITING_INPUT}`]: () => {
             expect(screen.queryByText(translateLocal('validateCodeForm.error.incorrectSecurityCode'))).not.toBeOnTheScreen();
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.MAGIC_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.INVALID_CODE}`]: () => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.INVALID_CODE}`]: () => {
             expect(screen.getByText(translateLocal('validateCodeForm.error.incorrectSecurityCode'))).toBeOnTheScreen();
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.MAGIC_CODE}.${MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);

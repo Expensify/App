@@ -24,7 +24,7 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 const OUTCOME_TARGET = `#${MFA_STATE.OUTCOME}` as const;
 const PROMPT_TARGET = `#${MFA_STATE.PROMPT}` as const;
 const SOFT_PROMPT_CHECK_TARGET = `#${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}` as const;
-const MAGIC_CODE_TARGET = `#${MFA_STATE.MAGIC_CODE}` as const;
+const VALIDATE_CODE_TARGET = `#${MFA_STATE.VALIDATE_CODE}` as const;
 
 // Which prompt variant the screen renders is a device property, resolved once per platform.
 const PROMPT_TYPE = CONST.MULTIFACTOR_AUTHENTICATION.PROMPT_TYPE_MAP[deviceVerificationType];
@@ -88,12 +88,12 @@ const MFAMachine = setup({
         navigateToPrompt: () => {
             Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT, {promptType: PROMPT_TYPE}));
         },
-        navigateToMagicCode: () => {
+        navigateToValidateCode: () => {
             Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE));
         },
-        // Emails the user a magic code. Runs only on the decision transition into the magic-code
-        // screen and on an explicit resend request, never on (re)entry, so the invalid-code retry
-        // loop cannot resend the email.
+        // Emails the user a validate code. Runs only on the decision transition into the
+        // validate-code screen and on an explicit resend request, never on (re)entry, so the
+        // invalid-code retry loop cannot resend the email.
         requestValidateCode: () => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REGISTER_AUTHENTICATION_KEY}),
         // Stores the submitted code. Same narrowing pattern as initFlow: only VALIDATE_CODE_ENTERED
         // is wired here, so the early return just satisfies the type checker.
@@ -188,7 +188,7 @@ const MFAMachine = setup({
                                 // A returning user's credentials are already registered, so only a fresh registration asks for a code.
                                 onDone: [
                                     {guard: ({event}) => event.output, target: SOFT_PROMPT_CHECK_TARGET},
-                                    {target: MAGIC_CODE_TARGET, actions: 'requestValidateCode'},
+                                    {target: VALIDATE_CODE_TARGET, actions: 'requestValidateCode'},
                                 ],
                                 onError: {
                                     target: OUTCOME_TARGET,
@@ -216,9 +216,9 @@ const MFAMachine = setup({
                         },
                     },
                 },
-                [MFA_STATE.MAGIC_CODE]: {
-                    id: MFA_STATE.MAGIC_CODE,
-                    entry: 'navigateToMagicCode',
+                [MFA_STATE.VALIDATE_CODE]: {
+                    id: MFA_STATE.VALIDATE_CODE,
+                    entry: 'navigateToValidateCode',
                     initial: MFA_STATE.AWAITING_VALIDATE_CODE,
                     states: {
                         // Waits for the emailed code. A resend is accepted only here, so one fired

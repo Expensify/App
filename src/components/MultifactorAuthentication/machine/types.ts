@@ -33,10 +33,10 @@ type MfaContext = {
     /** Additional parameters for the current scenario */
     payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
 
-    /** Magic code the user entered on this flow's validate-code screen */
+    /** Validate code the user entered on this flow's validate-code screen */
     validateCode: string | undefined;
 
-    /** Registration challenge returned after the backend accepts the magic code */
+    /** Registration challenge returned after the backend accepts the validate code */
     registrationChallenge: RegistrationChallenge | undefined;
 
     /** Whether the user approved the soft prompt during this flow. The durable acceptance lives in Onyx under the device-biometrics key. */
@@ -83,7 +83,7 @@ type ReadHasAcceptedSoftPromptInput = {accountID: number};
 /** Identifies the account whose local credentials the registration-decision actor checks. */
 type CheckLocalCredentialsInput = {accountID: number};
 
-/** Magic code sent to the backend to obtain a registration challenge. */
+/** Validate code sent to the backend to obtain a registration challenge. */
 type RequestRegistrationChallengeInput = {validateCode: string};
 
 /** A successful response must carry the validated registration challenge. */

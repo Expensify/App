@@ -34,7 +34,7 @@ const readHasAcceptedSoftPrompt = fromPromise<boolean, ReadHasAcceptedSoftPrompt
 const checkLocalCredentials = fromPromise<boolean, CheckLocalCredentialsInput>(({input, signal}) => areLocalCredentialsKnownToServer(input.accountID, signal));
 
 /**
- * Exchanges the submitted magic code for a validated registration challenge. The action normalizes
+ * Exchanges the submitted validate code for a validated registration challenge. The action normalizes
  * backend failures into a reason; the actor exposes them as failed MFA results for machine routing.
  */
 const requestRegistrationChallengeActor = fromPromise<RequestRegistrationChallengeOutput, RequestRegistrationChallengeInput>(async ({input}) => {
