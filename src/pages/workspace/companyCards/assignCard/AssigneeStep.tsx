@@ -196,12 +196,14 @@ function AssigneeStep({route}: AssigneeStepProps) {
         sortAlphabetically(membersDetails, 'text', localeCompare);
     }
 
-    // Pin the currently-assigned member to the top of the base member list (the search branch below builds its
-    // own list). moveInitialSelectionToTop no-ops for lists under the search-box threshold.
-    let assignees = moveInitialSelectionToTop(filterGuideAndAccountManager(membersDetails, assignedGuideEmail, accountManagerLogin), initialAssigneeEmail ? [initialAssigneeEmail] : []);
+    // Pin the currently-assigned member to the top of the full member list, then reuse the pinned list for both
+    // the base list and the search source below so it stays pinned while searching (when it still matches).
+    // moveInitialSelectionToTop no-ops for lists under the search-box threshold.
+    const orderedMembersDetails = moveInitialSelectionToTop(membersDetails, initialAssigneeEmail ? [initialAssigneeEmail] : []);
+    let assignees = filterGuideAndAccountManager(orderedMembersDetails, assignedGuideEmail, accountManagerLogin);
     if (debouncedSearchTerm && areOptionsInitialized) {
         const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-        const filteredMembers = filterGuideAndAccountManager(membersDetails, assignedGuideEmail, accountManagerLogin);
+        const filteredMembers = filterGuideAndAccountManager(orderedMembersDetails, assignedGuideEmail, accountManagerLogin);
         const filteredOptions = tokenizedSearch(filteredMembers, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
         const options = canInviteMembers
