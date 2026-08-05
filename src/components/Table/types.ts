@@ -65,12 +65,9 @@ type TableColumnDynamicSizing<DataType extends TableData = TableData> = {
     extraWidth?: number;
 
     /**
-     * Smallest width this column may shrink to. Defaults to its header label's width, or to a width that keeps its
-     * content readable when that content is long.
+     * Largest width this column may claim. Uncapped by default, so content that doesn't fit scrolls the table rather
+     * than truncating. Set this on a column that should truncate instead of widening the table any further.
      */
-    minWidth?: number;
-
-    /** Largest width this column may claim, so one long value can't starve the other columns. */
     maxWidth?: number;
 };
 

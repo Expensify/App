@@ -2,13 +2,10 @@
  * Sizing constraints for a single dynamically sized column.
  */
 type DynamicColumnConstraints = {
-    /** Width the column's widest content needs in order to render untruncated, including non-text extras like avatars. */
+    /** Width the column needs to render its widest content and its header label in full, including non-text extras. */
     contentWidth: number;
 
-    /** Smallest width the column may shrink to. Below the sum of these, the table has to scroll horizontally. */
-    minWidth: number;
-
-    /** Largest width the column may claim, so a single very long value can't starve its siblings. */
+    /** Largest width the column may claim. Content past it truncates instead of widening the column any further. */
     maxWidth: number;
 };
 
@@ -22,18 +19,11 @@ type CalculatedDynamicColumnWidths = {
      */
     widths: number[];
 
-    /**
-     * Whether the columns had to be pinned to their minimum widths because they cannot all fit, meaning the caller has
-     * to let the table scroll horizontally.
-     */
+    /** Whether the columns need more room than the table has, so the caller has to scroll them horizontally. */
     shouldScrollHorizontally: boolean;
 };
 
 const EQUAL_WIDTHS: CalculatedDynamicColumnWidths = {widths: [], shouldScrollHorizontally: false};
-
-function clamp(value: number, min: number, max: number): number {
-    return Math.min(Math.max(value, min), max);
-}
 
 function sum(values: number[]): number {
     return values.reduce((total, value) => total + value, 0);
@@ -115,14 +105,16 @@ function distributeLeftoverWidth(desiredWidths: number[], maxWidths: number[], a
 
 /**
  * Resolves the widths of a table's dynamically sized columns from what their content needs and how much room the table
- * has, implementing three behaviors in order:
+ * has, implementing the three behaviors from https://github.com/Expensify/App/issues/96510:
  *
  * 1. Every column's content fits inside an equal share of the available width, so the columns stay equal (`1fr`).
- * 2. The content fits overall but unevenly, so each column takes what it needs and the leftover space is shared out in
- *    proportion to what each column asked for. A column with long content grows and its short-content siblings shrink.
- *    Sharing the leftover equally instead would pad a short column with space it has nothing to put in.
- * 3. The content does not fit, so every column shrinks toward its minimum width in proportion to how much slack it has.
- *    Once even the minimum widths don't fit, the columns are pinned to those minimums and the table scrolls.
+ * 2. The content fits overall but unevenly, so each column takes what it needs and the leftover space is shared out
+ *    among the columns that can still grow, in proportion to what each asked for. A column with long content grows and
+ *    its short-content siblings shrink. Sharing the leftover equally instead would pad a short column with space it has
+ *    nothing to put in.
+ * 3. The content does not fit, so each column keeps the width its content needs and the table scrolls horizontally
+ *    rather than truncating. A column only truncates when it has been given an explicit `maxWidth`, which is the one
+ *    way a caller can choose truncation over an even wider scroll.
  *
  * @param constraints - Sizing constraints per column, in column order.
  * @param availableWidth - Width the dynamic columns share, i.e. the row's width minus padding, gaps, and any
@@ -133,10 +125,8 @@ function calculateDynamicColumnWidths(constraints: DynamicColumnConstraints[], a
         return EQUAL_WIDTHS;
     }
 
-    const minWidths = constraints.map((constraint) => constraint.minWidth);
-    // A minimum outranks a maximum, so a column whose maximum sits below its minimum is sized by the minimum.
-    const maxWidths = constraints.map((constraint, index) => Math.max(constraint.maxWidth, minWidths.at(index) ?? 0));
-    const desiredWidths = constraints.map((constraint, index) => clamp(constraint.contentWidth, minWidths.at(index) ?? 0, maxWidths.at(index) ?? 0));
+    const maxWidths = constraints.map((constraint) => constraint.maxWidth);
+    const desiredWidths = constraints.map((constraint, index) => Math.min(constraint.contentWidth, maxWidths.at(index) ?? 0));
 
     // 1. Equal columns already give every column enough room, so nothing needs resizing. A column whose maximum is
     // narrower than an equal share is excluded, because equal tracks would stretch it past that maximum.
@@ -156,26 +146,12 @@ function calculateDynamicColumnWidths(constraints: DynamicColumnConstraints[], a
         };
     }
 
-    // 3. Nothing fits. Columns shrink toward their minimum width proportionally to their slack, and once even the
-    // minimum widths overflow, they're pinned there and the table scrolls horizontally instead of truncating further.
-    const totalMinWidth = sum(minWidths);
-    if (totalMinWidth >= availableWidth) {
-        return {widths: minWidths, shouldScrollHorizontally: totalMinWidth > availableWidth};
-    }
-
-    const totalSlack = totalDesiredWidth - totalMinWidth;
-    const slackRatio = (availableWidth - totalMinWidth) / totalSlack;
-
+    // 3. The content doesn't fit. Every column keeps the width its content needs and the table scrolls, so nothing is
+    // truncated that a caller hasn't capped. Rounding up rather than down, since a column a fraction of a px short would
+    // clip the last character it is meant to show.
     return {
-        widths: roundWidths(
-            desiredWidths.map((desiredWidth, index) => {
-                const minWidth = minWidths.at(index) ?? 0;
-                return minWidth + (desiredWidth - minWidth) * slackRatio;
-            }),
-            availableWidth,
-            maxWidths,
-        ),
-        shouldScrollHorizontally: false,
+        widths: desiredWidths.map((desiredWidth) => Math.ceil(desiredWidth)),
+        shouldScrollHorizontally: true,
     };
 }
 

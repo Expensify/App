@@ -2,8 +2,8 @@ import type {DynamicColumnConstraints} from '@components/Table/calculateDynamicC
 import calculateDynamicColumnWidths from '@components/Table/calculateDynamicColumnWidths';
 
 // Columns are uncapped by default, matching what the hook passes when a column doesn't set its own `maxWidth`.
-function buildConstraints(contentWidth: number, minWidth = 50, maxWidth = Number.POSITIVE_INFINITY): DynamicColumnConstraints {
-    return {contentWidth, minWidth, maxWidth};
+function buildConstraints(contentWidth: number, maxWidth = Number.POSITIVE_INFINITY): DynamicColumnConstraints {
+    return {contentWidth, maxWidth};
 }
 
 function sumOf(values: number[]): number {
@@ -19,16 +19,27 @@ describe('calculateDynamicColumnWidths', () => {
         it('keeps equal columns when the table has not been measured yet', () => {
             expect(calculateDynamicColumnWidths([buildConstraints(400), buildConstraints(100)], 0)).toEqual({widths: [], shouldScrollHorizontally: false});
         });
+    });
 
-        it('keeps equal columns when every column fits inside an equal share', () => {
+    describe('behavior 1: every column fits in an equal share', () => {
+        it('leaves the columns equal', () => {
             // An equal share is 300px and no column needs more than that.
             const result = calculateDynamicColumnWidths([buildConstraints(120), buildConstraints(300), buildConstraints(80)], 900);
 
             expect(result).toEqual({widths: [], shouldScrollHorizontally: false});
         });
+
+        it('sizes the columns explicitly when a maximum is narrower than an equal share', () => {
+            // Both columns' content fits in an equal share (450px), but equal tracks would stretch the capped column to
+            // 450px, past its 200px maximum.
+            const result = calculateDynamicColumnWidths([buildConstraints(100, 200), buildConstraints(100)], 900);
+
+            expect(result.widths.at(0)).toBe(200);
+            expect(sumOf(result.widths)).toBe(900);
+        });
     });
 
-    describe('when the content fits but unevenly', () => {
+    describe('behavior 2: the content fits but unevenly', () => {
         it('grows the long column, shrinks the short ones, and fills the available width', () => {
             const result = calculateDynamicColumnWidths([buildConstraints(600), buildConstraints(100), buildConstraints(80)], 900);
 
@@ -39,7 +50,7 @@ describe('calculateDynamicColumnWidths', () => {
         });
 
         it('does not let a column grow past its maximum width', () => {
-            const result = calculateDynamicColumnWidths([buildConstraints(800, 50, 500), buildConstraints(100), buildConstraints(80)], 900);
+            const result = calculateDynamicColumnWidths([buildConstraints(800, 500), buildConstraints(100), buildConstraints(80)], 900);
 
             expect(result.shouldScrollHorizontally).toBe(false);
             expect(sumOf(result.widths)).toBe(900);
@@ -48,67 +59,49 @@ describe('calculateDynamicColumnWidths', () => {
             expect(result.widths).toEqual([500, 223, 177]);
         });
 
-        it('keeps a capped column at its maximum instead of leaving the columns equal', () => {
-            // Both columns' content fits in an equal share (450px), but equal tracks would stretch the capped column to
-            // 450px, past its 200px maximum. So the columns are sized explicitly instead of left equal.
-            const result = calculateDynamicColumnWidths([buildConstraints(100, 50, 200), buildConstraints(100)], 900);
-
-            expect(result.widths.at(0)).toBe(200);
-            expect(sumOf(result.widths)).toBe(900);
-        });
-
         it('leaves space unclaimed when every column has reached its maximum', () => {
             // A maximum outranks filling the row, so the columns stop at 200px each rather than absorbing the leftover.
-            const result = calculateDynamicColumnWidths([buildConstraints(100, 50, 200), buildConstraints(100, 50, 200)], 900);
+            const result = calculateDynamicColumnWidths([buildConstraints(100, 200), buildConstraints(100, 200)], 900);
 
             expect(result.widths).toEqual([200, 200]);
             expect(result.shouldScrollHorizontally).toBe(false);
         });
+    });
 
-        it('gives a column at least its minimum width even when its content is narrower', () => {
-            const result = calculateDynamicColumnWidths([buildConstraints(600), buildConstraints(10, 200)], 900);
+    describe('behavior 3: the content does not fit', () => {
+        it('scrolls at the width the content needs instead of truncating it', () => {
+            const result = calculateDynamicColumnWidths([buildConstraints(900), buildConstraints(300)], 700);
 
-            expect(result.widths.at(1)).toBeGreaterThanOrEqual(200);
+            expect(result).toEqual({widths: [900, 300], shouldScrollHorizontally: true});
+        });
+
+        it('scrolls as soon as the content is one pixel too wide', () => {
+            const result = calculateDynamicColumnWidths([buildConstraints(600), buildConstraints(301)], 900);
+
+            expect(result).toEqual({widths: [600, 301], shouldScrollHorizontally: true});
+        });
+
+        it('does not scroll when the content adds up to exactly the available width', () => {
+            const result = calculateDynamicColumnWidths([buildConstraints(600), buildConstraints(300)], 900);
+
+            expect(result.shouldScrollHorizontally).toBe(false);
+            expect(result.widths).toEqual([600, 300]);
+        });
+
+        it('truncates instead of scrolling further for a column that set a maximum', () => {
+            // Capping the first column at 400px brings the total to 700px, which fits, so the table doesn't scroll and
+            // that column truncates instead. This is the only way a caller chooses truncation over a wider scroll.
+            const result = calculateDynamicColumnWidths([buildConstraints(2000, 400), buildConstraints(300)], 900);
+
+            expect(result.shouldScrollHorizontally).toBe(false);
+            expect(result.widths.at(0)).toBe(400);
             expect(sumOf(result.widths)).toBe(900);
         });
-    });
 
-    describe('when the content does not fit', () => {
-        it('shrinks every column toward its minimum width in proportion to its slack', () => {
-            // 1200px of content in a 700px row, with 200px of that already committed to minimum widths.
-            const result = calculateDynamicColumnWidths([buildConstraints(900, 100), buildConstraints(300, 100)], 700);
+        it('rounds up so a column is never a fraction of a pixel short of its content', () => {
+            const result = calculateDynamicColumnWidths([buildConstraints(900.2), buildConstraints(300.7)], 700);
 
-            expect(result.shouldScrollHorizontally).toBe(false);
-            expect(sumOf(result.widths)).toBe(700);
-            // 500px of slack is shared out at 50%: 100 + 800 * 0.5 and 100 + 200 * 0.5.
-            expect(result.widths).toEqual([500, 200]);
-        });
-
-        it('pins the columns to their minimum widths and scrolls once even those do not fit', () => {
-            const result = calculateDynamicColumnWidths([buildConstraints(900, 400), buildConstraints(300, 300)], 600);
-
-            expect(result).toEqual({widths: [400, 300], shouldScrollHorizontally: true});
-        });
-
-        it('does not scroll when the minimum widths add up to exactly the available width', () => {
-            const result = calculateDynamicColumnWidths([buildConstraints(900, 400), buildConstraints(300, 200)], 600);
-
-            expect(result).toEqual({widths: [400, 200], shouldScrollHorizontally: false});
-        });
-    });
-
-    describe('a long column next to a short one', () => {
-        it('keeps the short column at its label width and gives the rest to the long one', () => {
-            // The workspace members table: long emails in the Member column, a two-character custom field next to it,
-            // whose minimum is the width of its own header label. Regression test for capping a column at its equal share,
-            // which made the long column look like it fit in one and left both columns equal (so the emails stayed cut off
-            // while the custom field held ~half the table).
-            const result = calculateDynamicColumnWidths([buildConstraints(2000, 60), buildConstraints(14, 91)], 1270);
-
-            expect(result.shouldScrollHorizontally).toBe(false);
-            expect(sumOf(result.widths)).toBe(1270);
-            expect(result.widths.at(1)).toBe(91);
-            expect(result.widths.at(0)).toBe(1179);
+            expect(result).toEqual({widths: [901, 301], shouldScrollHorizontally: true});
         });
     });
 

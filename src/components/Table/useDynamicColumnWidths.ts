@@ -27,13 +27,6 @@ const SORT_ICON_WIDTH = variables.iconSizeExtraSmall + 4;
  */
 const MEASURED_CANDIDATES_PER_COLUMN = 5;
 
-/**
- * How narrow a column with long content may get before it stops shrinking. Without this a column's floor is just its
- * header label, so a column holding long values could shrink to a sliver that shows only a few characters. Columns whose
- * content is already narrower than this keep being sized by their content, so it never pads a short column.
- */
-const MIN_CONTENT_COLUMN_WIDTH = 160;
-
 type UseDynamicColumnWidthsParams<DataType extends TableData, ColumnKey extends string> = {
     /** Column configuration for the table. */
     columns: Array<TableColumn<ColumnKey, DataType>>;
@@ -184,14 +177,13 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
             }
 
             constraints.push({
-                contentWidth,
-                // A column never shrinks below its header label, and a column with long content stops at a width where
-                // that content is still readable. `Math.min` keeps the readable floor from inflating a column whose
-                // content is already narrower than it.
-                minWidth: column.dynamicSizing?.minWidth ?? Math.max(headerLabelWidth, Math.min(contentWidth, MIN_CONTENT_COLUMN_WIDTH)),
-                // Uncapped by default. A cap can't be derived from the available width without breaking the sizing: a
-                // column capped at its equal share looks like it fits in one, so the columns would be left equal and the
-                // long column would stay truncated. Columns that genuinely need a ceiling set `maxWidth` themselves.
+                // A column has to fit its header label as well as its cells, so the label is part of what its content
+                // needs rather than a separate floor.
+                contentWidth: Math.max(contentWidth, headerLabelWidth),
+                // Uncapped by default, so the table scrolls rather than truncating. A cap also can't be derived from the
+                // available width without breaking the sizing: a column capped at its equal share looks like it fits in
+                // one, so the columns would be left equal and the long column would stay truncated. Columns that should
+                // truncate rather than widen the table set `maxWidth` themselves.
                 maxWidth: column.dynamicSizing?.maxWidth ?? Number.POSITIVE_INFINITY,
             });
         }
