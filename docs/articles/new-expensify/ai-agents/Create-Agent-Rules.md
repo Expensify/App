@@ -115,17 +115,18 @@ Deleting an Agent rule stops RuleBot from enforcing that rule on future report a
 
 ---
 
-## How Agent rule changes are recorded in the #admins room
+## How to review Agent rule changes in the #admins room
 
-Every time an Agent rule is added, updated, or deleted, Expensify posts a system message to the workspace's #admins room so admins have a visible audit trail of who changed what.
+Whenever an Agent rule is added, updated, or deleted, Expensify records a system message in your workspace's **#admins** room so admins have a visible history of the change.
 
- - **Added:** Records the rule title and its full prompt.
- - **Updated:** Records the rule title and the new prompt.
- - **Deleted:** Records the rule title.
+ - **Added** and **updated** messages show the rule's title and its full prompt.
+ - **Deleted** messages show the rule's title.
 
-The #admins room's preview in your chat list shows a concise summary, such as that someone added, updated, or deleted an Agent rule.
+The **#admins** room's preview in your chat list shows a concise summary, such as that someone added, updated, or deleted an Agent rule.
 
-[Learn how to find the #admins room for a workspace](/articles/new-expensify/chat/Expensify-Chat-Rooms-for-Admins).
+Because the **#admins** room is visible only to Workspace Admins, this history stays private to your admin team. To review it, open your workspace's **#admins** room and find the relevant system message.
+
+Learn more about the [#admins room](/articles/new-expensify/chat/Expensify-Chat-Rooms-for-Admins).
 
 ---
 
