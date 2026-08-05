@@ -98,7 +98,6 @@ describe('prepareRequestPayload (native)', () => {
 
         expect(mockCheckFileExists).toHaveBeenCalledWith(`file://${RECEIPTS_FOLDER}/receipt_9.jpg`);
         expect(formData.has('receipt')).toBe(true);
-        // The uploaded uri must be the re-rooted path, not the stale `uri` field the receipt carries.
         expect(mockValidateFormDataParameter).toHaveBeenCalledWith('RequestMoney', 'receipt', expect.objectContaining({uri: `file://${RECEIPTS_FOLDER}/receipt_9.jpg`}));
         expect(mockLogReceiptDropped).not.toHaveBeenCalled();
     });
