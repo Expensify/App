@@ -534,6 +534,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         ],
         [selectedTransactions],
     );
+
+    // A bulk selection can span several workspaces, so the Canadian Multiple Tax Export template is only offered when every selected item belongs to a workspace that outputs in CAD.
+    // Reports and transactions are both checked because a selection can mix whole reports with individual transactions from other reports, and the export request covers all of them.
+    const doAllSelectedItemsBelongToCADPolicies = useMemo(() => {
+        const selectedItems = [...selectedReports, ...Object.values(selectedTransactions)];
+        if (selectedItems.length === 0) {
+            return false;
+        }
+
+        return selectedItems.every((item) => !!item.policyID && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]?.outputCurrency === CONST.CURRENCY.CAD);
+    }, [selectedReports, selectedTransactions, policies]);
+
     const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
 
@@ -1638,6 +1650,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 policy,
                 includeReportLevelExport,
                 !isGroupedSearch,
+                doAllSelectedItemsBelongToCADPolicies,
             );
 
             const exportOptions: PopoverMenuItem[] = [];
@@ -2436,6 +2449,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         personalPolicy?.outputCurrency,
         restrictedActionPolicyID,
         doSelectedItemsBelongToSubmitPolicy,
+        doAllSelectedItemsBelongToCADPolicies,
         openSearchReportSubmitToPopover,
         deleteTransactionsFromHook,
         duplicateTransactionViolations,
