@@ -122,6 +122,7 @@ function useSearchOverlay({
             groupBy: validGroupBy,
             shouldUseStrictDefaultExpenseColumns,
             fallbackPolicyID: policyForMovingExpensesID,
+            sortBy: queryJSON.sortBy,
         });
     })();
 
