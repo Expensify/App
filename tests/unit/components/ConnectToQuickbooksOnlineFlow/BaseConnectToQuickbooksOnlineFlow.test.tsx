@@ -11,6 +11,8 @@ import {enablePolicyTaxes} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 
+import type {ValueOf} from 'type-fest';
+
 import React from 'react';
 
 const POLICY_ID = '123';
@@ -22,12 +24,15 @@ type MockPopoverMenuProps = {
     onItemSelected?: (item: PopoverMenuItem, index: number) => void;
 };
 
-const mockPopoverMenu = jest.fn((_props: MockPopoverMenuProps) => null);
+const mockPopoverMenu = jest.fn<void, [MockPopoverMenuProps]>();
 const mockCalculatePopoverPosition = jest.fn(() => Promise.resolve(POPOVER_POSITION));
 
 jest.mock('@components/PopoverMenu', () => ({
     __esModule: true,
-    default: (props: MockPopoverMenuProps) => mockPopoverMenu(props),
+    default: (props: MockPopoverMenuProps) => {
+        mockPopoverMenu(props);
+        return null;
+    },
 }));
 
 jest.mock('@hooks/useEnvironment', () => jest.fn());
@@ -62,7 +67,7 @@ const mockUseEnvironment = jest.mocked(useEnvironment);
 const mockIsAuthenticationError = jest.mocked(isAuthenticationError);
 const mockEnablePolicyTaxes = jest.mocked(enablePolicyTaxes);
 
-function setEnvironment(environment: (typeof CONST.ENVIRONMENT)[keyof typeof CONST.ENVIRONMENT]) {
+function setEnvironment(environment: ValueOf<typeof CONST.ENVIRONMENT>) {
     mockUseEnvironment.mockReturnValue({
         environment,
         environmentURL: '',
