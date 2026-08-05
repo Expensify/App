@@ -3,7 +3,7 @@ import {getScenarioConfig} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
 import {MFAMachine, snapshotToState} from '@components/MultifactorAuthentication/machine';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
-import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
+import type {MFARegistrationStateSnapshot} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
 import trackMFAFlowStart from '@components/MultifactorAuthentication/observability/trackMFAFlowStart';
 import useSyncMfaModalNavigatorWithHistory from '@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory';
 
@@ -44,7 +44,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const [snapshot, send] = useInspectedMachine(MFAMachine);
     const state = snapshotToState(snapshot);
 
-    const captureCredentialsState = async (flowAccountID: number): Promise<CredentialsState> => {
+    const captureRegistrationState = async (flowAccountID: number): Promise<MFARegistrationStateSnapshot> => {
         const [hasLocalCredentials, deviceBiometrics] = await Promise.all([biometrics.areLocalCredentialsKnownToServer(), readOnyxValueOnce(getDeviceBiometricsOnyxKey(flowAccountID))]);
         return {
             hasServerCredentials: biometrics.serverKnownCredentialIDs.length > 0,
@@ -61,7 +61,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         const [params] = args;
 
         // Perf short-circuit: while the modal is open or closing the machine drops INIT, so skip the
-        // redundant captureCredentialsState() native call + breadcrumb on the happy path.
+        // redundant captureRegistrationState() native call + breadcrumb on the happy path.
         if (state.modalState !== MFA_STATE.CLOSED) {
             return;
         }
@@ -74,9 +74,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         }
 
         const flowAccountID = accountID;
-        const startCredentialsState = await captureCredentialsState(flowAccountID);
+        const startRegistrationState = await captureRegistrationState(flowAccountID);
 
-        // A session switch can happen while the asynchronous credential snapshot is being read. Read
+        // A session switch can happen while the asynchronous registration-state snapshot is being read. Read
         // the source of truth again immediately before INIT so stale account data never starts a flow.
         const currentSession = await readOnyxValueOnce(ONYXKEYS.SESSION);
         const currentAccountID = currentSession?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -90,10 +90,10 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             hasPayload: params !== undefined && Object.keys(params).length > 0,
             platform,
             isOffline,
-            serverHasAnyCredentials: startCredentialsState.hasServerCredentials,
-            hasEverAcceptedSoftPrompt: startCredentialsState.hasEverAcceptedSoftPrompt,
+            serverHasAnyCredentials: startRegistrationState.hasServerCredentials,
+            hasEverAcceptedSoftPrompt: startRegistrationState.hasEverAcceptedSoftPrompt,
         });
-        trackMFAFlowStart({scenario: scenarioName, isOffline, credentialsState: startCredentialsState});
+        trackMFAFlowStart({scenario: scenarioName, isOffline, registrationState: startRegistrationState});
 
         const scenario = getScenarioConfig(scenarioName);
 
@@ -103,7 +103,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             scenarioName,
             scenario,
             payload: params && Object.keys(params).length > 0 ? params : undefined,
-            hasEverAcceptedSoftPrompt: startCredentialsState.hasEverAcceptedSoftPrompt,
+            hasEverAcceptedSoftPrompt: startRegistrationState.hasEverAcceptedSoftPrompt,
         });
     };
 

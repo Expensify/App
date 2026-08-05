@@ -21,7 +21,7 @@ import renderMfaUi from 'tests/utils/mfa/realUi/harness';
 import {
     checkLocalCredentialsControl,
     createCredentialControl,
-    credentialsStateCaptureControl,
+    registrationStateCaptureControl,
     pendingModalClose,
     requestRegistrationChallengeControl,
     resetMfaUiMocks,
@@ -338,10 +338,10 @@ describe('MFA flow initialization', () => {
         jest.clearAllMocks();
     });
 
-    it('does not initialize a flow when the account changes while credentials are being captured', async () => {
+    it('does not initialize a flow when the account changes while registration state is being captured', async () => {
         const {executeScenario} = renderMfaUi();
         await waitForBatchedUpdatesWithAct();
-        credentialsStateCaptureControl.defer();
+        registrationStateCaptureControl.defer();
 
         const flowPromise = executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
 
@@ -350,7 +350,7 @@ describe('MFA flow initialization', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        credentialsStateCaptureControl.resolve(false);
+        registrationStateCaptureControl.resolve(false);
         await act(async () => flowPromise);
         await waitForBatchedUpdatesWithAct();
 

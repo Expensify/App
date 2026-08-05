@@ -26,7 +26,8 @@ function classifyFailure(reason: MultifactorAuthenticationReason | undefined): F
     return 'unclassified';
 }
 
-type CredentialsState = {
+/** Snapshot of account and device registration signals captured at MFA flow boundaries for routing decisions and telemetry. */
+type MFARegistrationStateSnapshot = {
     hasServerCredentials: boolean;
     hasLocalCredentials: boolean;
     hasEverAcceptedSoftPrompt: boolean;
@@ -41,8 +42,8 @@ type MFAFlowOutcomeContext = {
     isRegistrationComplete: boolean;
     isAuthorizationComplete: boolean;
     softPromptApproved: boolean;
-    startState: CredentialsState;
-    endState: CredentialsState;
+    startState: MFARegistrationStateSnapshot;
+    endState: MFARegistrationStateSnapshot;
 };
 
 function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
@@ -99,4 +100,4 @@ function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
 }
 
 export default trackMFAFlowOutcome;
-export type {CredentialsState};
+export type {MFARegistrationStateSnapshot};
