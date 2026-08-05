@@ -72,7 +72,7 @@ function HelpPage() {
               shouldShowRightIcon: !partnerManagerCalendarLink,
               shouldShowRightComponent: !!partnerManagerCalendarLink,
 
-              // Ungroup the row so native (iOS/Android) screen readers announce the nested Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
+              // Remove the row's accessibility grouping so native (iOS/Android) screen readers can announce the nested Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
               shouldBeAccessible: !partnerManagerCalendarLink,
               rightComponent: partnerManagerCalendarLink ? (
                   <BookCallButton
@@ -106,7 +106,7 @@ function HelpPage() {
               shouldShowRightIcon: !guideCalendarLink,
               shouldShowRightComponent: !!guideCalendarLink,
 
-              // Ungroup the row so native (iOS/Android) screen readers announce the nested Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
+              // Remove the row's accessibility grouping so native (iOS/Android) screen readers can announce the nested Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
               shouldBeAccessible: !guideCalendarLink,
               rightComponent: guideCalendarLink ? (
                   <BookCallButton
@@ -140,7 +140,7 @@ function HelpPage() {
               shouldShowRightIcon: !accountManagerCalendarLink,
               shouldShowRightComponent: !!accountManagerCalendarLink,
 
-              // Ungroup the row so native (iOS/Android) screen readers announce the nested Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
+              // Remove the row's accessibility grouping so native (iOS/Android) screen readers can announce the nested Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
               shouldBeAccessible: !accountManagerCalendarLink,
               rightComponent: accountManagerCalendarLink ? (
                   <BookCallButton
