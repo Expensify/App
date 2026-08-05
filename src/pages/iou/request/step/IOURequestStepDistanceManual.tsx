@@ -186,11 +186,16 @@ function IOURequestStepDistanceManual({
     // whenever it or the selected tab changes. This is syncing with an external
     // (imperative) widget, which is a legitimate effect use case.
     useEffect(() => {
-        if (numberFormRef.current && numberFormRef.current?.getNumber() === distance?.toString()) {
+        // The transaction can hydrate after this screen mounts, so the mount-time mirror above can be
+        // empty while the input already shows the committed distance. Re-seed it here or an untouched
+        // screen reads as dirty and prompts on back.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setTypedDistance(committedDistance);
+        if (numberFormRef.current && numberFormRef.current?.getNumber() === committedDistance) {
             return;
         }
-        numberFormRef.current?.updateNumber(distance?.toString() ?? '');
-    }, [distance, selectedTab]);
+        numberFormRef.current?.updateNumber(committedDistance);
+    }, [committedDistance, selectedTab]);
 
     useFocusEffect(() => {
         focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
