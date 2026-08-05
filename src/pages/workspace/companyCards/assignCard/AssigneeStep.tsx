@@ -4,6 +4,7 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -22,6 +23,7 @@ import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsLi
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {canMemberWrite, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import Navigation from '@navigation/Navigation';
@@ -82,6 +84,8 @@ function AssigneeStep({route}: AssigneeStepProps) {
     });
 
     const isEditing = assignCard?.isEditing;
+    // Freeze the assignee selected when the list opened so it can be pinned to the top of long member lists.
+    const initialAssigneeEmail = useInitialSelection(assignCard?.cardToAssign?.email, {resetOnFocus: true});
 
     const submit = (assignee: ListItem) => {
         const personalDetail = getPersonalDetailByEmail(assignee?.login ?? '');
@@ -175,6 +179,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 text: personalDetail?.displayName,
                 alternateText: email,
                 login: email,
+                value: email,
                 accountID: personalDetail?.accountID,
                 isSelected: assignCard?.cardToAssign?.email === email,
                 icons: [
@@ -191,7 +196,9 @@ function AssigneeStep({route}: AssigneeStepProps) {
         sortAlphabetically(membersDetails, 'text', localeCompare);
     }
 
-    let assignees = filterGuideAndAccountManager(membersDetails, assignedGuideEmail, accountManagerLogin);
+    // Pin the currently-assigned member to the top of the base member list (the search branch below builds its
+    // own list). moveInitialSelectionToTop no-ops for lists under the search-box threshold.
+    let assignees = moveInitialSelectionToTop(filterGuideAndAccountManager(membersDetails, assignedGuideEmail, accountManagerLogin), initialAssigneeEmail ? [initialAssigneeEmail] : []);
     if (debouncedSearchTerm && areOptionsInitialized) {
         const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
         const filteredMembers = filterGuideAndAccountManager(membersDetails, assignedGuideEmail, accountManagerLogin);
@@ -261,7 +268,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                     onSelectRow={submit}
                     ListItem={UserListItem}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={assignCard?.cardToAssign?.email}
+                    initiallyFocusedItemKey={initialAssigneeEmail}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={canInviteMembers && !!isSearchingForReports}
                     disableMaintainingScrollPosition
