@@ -611,9 +611,6 @@ function updateMoneyRequestVendor({transactionID, vendorID, vendorName, transact
     const previousVendor = resolvedTransaction?.comment?.vendor;
     const isClearing = !vendorID;
 
-    // Persist the selected vendor's display name alongside the externalID so the title still renders a
-    // human-readable label after the vendor later leaves the workspace's synced list. Auth's command
-    // persists `name` from the `vendorName` param, so the value written here matches the eventual sync.
     const newVendorOptimisticValue = isClearing ? null : {externalID: vendorID, name: vendorName, isManuallySet: true};
 
     // Build an optimistic MODIFIED_EXPENSE so the transaction thread shows "set vendor X" /
