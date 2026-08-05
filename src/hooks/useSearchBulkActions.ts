@@ -2140,7 +2140,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         const isExpenseSearch = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
-        if (isExpenseSearch && selectedTransactionsKeys.length > 0) {
+        // A group selected before its children load is stored under a group_ key, which is not a real
+        // transaction ID. Drop those keys so ExportReceiptsToZip only receives valid transaction IDs.
+        const transactionIDs = selectedTransactionsKeys.filter((key) => !key.startsWith(CONST.SEARCH.GROUP_PREFIX));
+        if (isExpenseSearch && selectedTransactionsKeys.length > 0 && transactionIDs.length > 0) {
             options.push({
                 icon: expensifyIcons.Download,
                 text: translate('common.downloadReceipts'),
@@ -2149,12 +2152,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 onSelected: () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
-                        return;
-                    }
-                    // A group selected before its children load is stored under a group_ key, which is not a real
-                    // transaction ID. Drop those keys so ExportReceiptsToZip only receives valid transaction IDs.
-                    const transactionIDs = selectedTransactionsKeys.filter((key) => !key.startsWith(CONST.SEARCH.GROUP_PREFIX));
-                    if (transactionIDs.length === 0) {
                         return;
                     }
                     const exportID = exportReceiptsToZip({transactionIDs});
