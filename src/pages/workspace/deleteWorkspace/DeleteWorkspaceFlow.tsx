@@ -110,8 +110,6 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
     const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
     const hasTravelInvoicingEnabledOnWorkspace = getIsTravelInvoicingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
-    // Travel Invoicing cards live on the `_TRAVEL_US` feed key rather than the cardsList read above, and that list also holds non-card assignment
-    // metadata, so the Expensify Cards copy is only correct when the workspace really has an Expensify Card assigned - otherwise the blocker is Travel Invoicing.
     const hasExpensifyCards = Object.values(cardsList ?? {}).some(isCard);
     const isBlockedByExpensifyCards = hasExpensifyCardsEnabledOnWorkspace && hasExpensifyCards;
     const isBlockedByTravelInvoicing = hasTravelInvoicingEnabledOnWorkspace;
