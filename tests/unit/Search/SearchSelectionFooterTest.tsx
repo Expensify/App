@@ -45,10 +45,22 @@ const SELECTED_EXPENSE_CURRENCY = 'JPY';
 const ACCOUNT_ID = 1;
 
 function buildSearchResults(currency: string | undefined): SearchResults {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return {
-        search: {count: 1, currency, total: -100, offset: 0, isLoading: false, hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE},
-    } as unknown as SearchResults;
+        search: {
+            count: 1,
+            currency,
+            total: -100,
+            offset: 0,
+            isLoading: false,
+            hash: 1,
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            hasMoreResults: false,
+            hasResults: true,
+        },
+        data: {},
+    };
 }
 
 function buildSelectedTransaction(currency: string): SelectedTransactionInfo {
@@ -95,7 +107,7 @@ describe('SearchSelectionFooter', () => {
         await waitForBatchedUpdates();
 
         // The footer's Reset/default currency follows the live USD payment currency, not the selected expense's own
-        // (stale) currency — this was the bug in https://github.com/Expensify/App/issues/97583.
+        // (stale) currency.
         expect(mockCapturedFooterProps.current?.defaultCurrency).toBe(CONST.CURRENCY.USD);
     });
 
