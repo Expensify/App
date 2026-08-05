@@ -1,8 +1,11 @@
+import {useInitialURLState} from '@components/InitialURLContextProvider';
+
 import AccountUtils from '@libs/AccountUtils';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
+import {hasSecureLinkKey} from '@libs/Url';
 
 import {completeHybridAppOnboarding} from '@userActions/Welcome';
 import {buildOnboardingFlowParams, startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
@@ -15,7 +18,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
-import {useEffect} from 'react';
+import {useCallback, useEffect} from 'react';
 
 import useOnyx from './useOnyx';
 import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
@@ -34,7 +37,12 @@ function useOnboardingFlowRouter() {
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const isLoggingInAsNewSessionUser = isLoggingInAsNewUser(currentUrl, sessionEmail);
     // A user arriving via a Submit-via-PDF secure access link should land directly on the shared report, not onboarding.
-    const isVisitingSecureLink = !!currentUrl?.includes('secureKey=');
+    // The signal must survive the whole session and not depend on navigation timing, so we read the captured deep-link URL
+    // (set on cold launch and on warm url events for secure links) alongside the web URL and the active route. getCurrentUrl()
+    // is empty on native, and getActiveRoute() serializes the secureKey query param on every platform via getPathFromState.
+    const {initialURL} = useInitialURLState();
+    const getIsVisitingSecureLink = useCallback(() => hasSecureLinkKey(getCurrentUrl()) || hasSecureLinkKey(Navigation.getActiveRoute()) || hasSecureLinkKey(initialURL), [initialURL]);
+    const isVisitingSecureLink = getIsVisitingSecureLink();
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
     });
@@ -65,7 +73,9 @@ function useOnboardingFlowRouter() {
                 }
 
                 // Skip onboarding when arriving via a Submit-via-PDF secure access link so the user lands directly on the shared report.
-                if (isVisitingSecureLink) {
+                // Re-read the active route here too: on a cold-launch deep link the render-time check can run before navigation
+                // is ready, so the render-time isVisitingSecureLink may be stale when this transition callback fires.
+                if (getIsVisitingSecureLink()) {
                     return;
                 }
 
@@ -154,7 +164,7 @@ function useOnboardingFlowRouter() {
         wasInvitedToNewDot,
         isOnboardingCompleted,
         shouldSuppressPromotionalUI,
-        isVisitingSecureLink,
+        getIsVisitingSecureLink,
     ]);
 
     return {
