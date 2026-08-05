@@ -729,8 +729,7 @@
 "../../src/libs/Parser.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/ParsingUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/PaymentUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/PersonalDetailsUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	3
-"../../src/libs/PersonalDetailsUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/libs/PersonalDetailsUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	2
 "../../src/libs/PersonalDetailsUtils.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/PhoneNumber.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/PolicyUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
