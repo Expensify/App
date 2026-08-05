@@ -2300,6 +2300,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidateWithDelay: 'Ακύρωση με καθυστέρηση',
             leftHandNavCache: 'μνήμη προσωρινής αποθήκευσης αριστερού πλαϊνού μενού',
             clearleftHandNavCache: 'Εκκαθάριση',
+            xstateInspector: 'Επιθεωρητής XState',
+            openXstateInspector: 'Άνοιγμα',
             softKillTheApp: 'Κλείσιμο της εφαρμογής (soft kill)',
             kill: 'Σκότωσε',
             sentryDebug: 'Εντοπισμός σφαλμάτων Sentry',
