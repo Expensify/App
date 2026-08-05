@@ -192,6 +192,8 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                             label={translate('addAgentPage.instructions')}
                             accessibilityLabel={translate('addAgentPage.instructions')}
                             role={CONST.ROLE.PRESENTATION}
+                            type="markdown"
+                            excludedMarkdownStyles={['mentionReport']}
                             defaultValue={defaultPrompt}
                             multiline
                             containerStyles={[styles.flex1]}
