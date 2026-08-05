@@ -40,10 +40,12 @@ function sum(values: number[]): number {
 }
 
 /**
- * Rounds widths down to whole px and hands the rounding remainder to the widest column, so the columns add up to
- * exactly `availableWidth` and no sub-pixel gap is left at the end of the row.
+ * Rounds widths down to whole px and hands the rounding remainder to the widest column that can still take it without
+ * exceeding its maximum, so the columns add up to exactly `availableWidth` and no sub-pixel gap is left at the end of
+ * the row. When every column is already at its maximum the remainder is left unclaimed, since a column's maximum
+ * outranks filling the row.
  */
-function roundWidths(widths: number[], availableWidth: number): number[] {
+function roundWidths(widths: number[], availableWidth: number, maxWidths: number[]): number[] {
     const roundedWidths = widths.map((width) => Math.floor(width));
     const remainder = availableWidth - sum(roundedWidths);
 
@@ -51,10 +53,64 @@ function roundWidths(widths: number[], availableWidth: number): number[] {
         return roundedWidths;
     }
 
-    const widestColumnIndex = roundedWidths.indexOf(Math.max(...roundedWidths));
-    roundedWidths[widestColumnIndex] += remainder;
+    let widestGrowableIndex = -1;
+    for (const [index, roundedWidth] of roundedWidths.entries()) {
+        if (roundedWidth + remainder > (maxWidths.at(index) ?? 0) || (widestGrowableIndex !== -1 && roundedWidth <= (roundedWidths.at(widestGrowableIndex) ?? 0))) {
+            continue;
+        }
+
+        widestGrowableIndex = index;
+    }
+
+    if (widestGrowableIndex === -1) {
+        return roundedWidths;
+    }
+
+    roundedWidths[widestGrowableIndex] += remainder;
 
     return roundedWidths;
+}
+
+/**
+ * Shares the space left over once every column has what its content needs, in proportion to what each column asked for.
+ * A column that reaches its maximum width drops out and what it declines is re-offered to the columns that can still
+ * use it, which is what keeps `maxWidth` from being handed back the space it just refused.
+ */
+function distributeLeftoverWidth(desiredWidths: number[], maxWidths: number[], availableWidth: number): number[] {
+    const widths = [...desiredWidths];
+    let leftoverWidth = availableWidth - sum(widths);
+
+    // Every pass either hands out all of the leftover or pins at least one more column to its maximum, so the column
+    // count bounds how many passes are needed.
+    for (let pass = 0; pass < widths.length && leftoverWidth > 0; pass++) {
+        const growableIndexes = widths.map((width, index) => (width < (maxWidths.at(index) ?? 0) ? index : -1)).filter((index) => index !== -1);
+
+        if (growableIndexes.length === 0) {
+            break;
+        }
+
+        // Columns are grown in proportion to their current width, unless they're all empty, in which case there's no
+        // proportion to go by and the leftover is split evenly.
+        const totalGrowableWidth = sum(growableIndexes.map((index) => widths.at(index) ?? 0));
+        let distributedWidth = 0;
+
+        for (const index of growableIndexes) {
+            const width = widths.at(index) ?? 0;
+            const share = totalGrowableWidth > 0 ? (leftoverWidth * width) / totalGrowableWidth : leftoverWidth / growableIndexes.length;
+            const grownWidth = Math.min(width + share, maxWidths.at(index) ?? 0);
+
+            distributedWidth += grownWidth - width;
+            widths[index] = grownWidth;
+        }
+
+        if (distributedWidth <= 0) {
+            break;
+        }
+
+        leftoverWidth -= distributedWidth;
+    }
+
+    return widths;
 }
 
 /**
@@ -78,24 +134,24 @@ function calculateDynamicColumnWidths(constraints: DynamicColumnConstraints[], a
     }
 
     const minWidths = constraints.map((constraint) => constraint.minWidth);
-    const desiredWidths = constraints.map((constraint, index) => clamp(constraint.contentWidth, minWidths.at(index) ?? 0, Math.max(constraint.maxWidth, minWidths.at(index) ?? 0)));
+    // A minimum outranks a maximum, so a column whose maximum sits below its minimum is sized by the minimum.
+    const maxWidths = constraints.map((constraint, index) => Math.max(constraint.maxWidth, minWidths.at(index) ?? 0));
+    const desiredWidths = constraints.map((constraint, index) => clamp(constraint.contentWidth, minWidths.at(index) ?? 0, maxWidths.at(index) ?? 0));
 
-    // 1. Equal columns already give every column enough room, so nothing needs resizing.
+    // 1. Equal columns already give every column enough room, so nothing needs resizing. A column whose maximum is
+    // narrower than an equal share is excluded, because equal tracks would stretch it past that maximum.
     const equalShare = availableWidth / constraints.length;
-    if (desiredWidths.every((desiredWidth) => desiredWidth <= equalShare)) {
+    const doEqualColumnsFit = desiredWidths.every((desiredWidth) => desiredWidth <= equalShare) && maxWidths.every((maxWidth) => maxWidth >= equalShare);
+    if (doEqualColumnsFit) {
         return EQUAL_WIDTHS;
     }
 
-    // 2. Everything fits, so each column takes what it needs and the leftover space is shared out in proportion to what
-    // each column asked for, which keeps a short column from being padded with space it can't use.
+    // 2. Everything fits, so each column takes what it needs and the leftover space is shared out among the columns that
+    // can still grow, which keeps a short column from being padded with space it can't use.
     const totalDesiredWidth = sum(desiredWidths);
     if (totalDesiredWidth <= availableWidth) {
-        const leftoverWidth = availableWidth - totalDesiredWidth;
         return {
-            widths: roundWidths(
-                desiredWidths.map((desiredWidth) => desiredWidth + (leftoverWidth * desiredWidth) / totalDesiredWidth),
-                availableWidth,
-            ),
+            widths: roundWidths(distributeLeftoverWidth(desiredWidths, maxWidths, availableWidth), availableWidth, maxWidths),
             shouldScrollHorizontally: false,
         };
     }
@@ -117,6 +173,7 @@ function calculateDynamicColumnWidths(constraints: DynamicColumnConstraints[], a
                 return minWidth + (desiredWidth - minWidth) * slackRatio;
             }),
             availableWidth,
+            maxWidths,
         ),
         shouldScrollHorizontally: false,
     };

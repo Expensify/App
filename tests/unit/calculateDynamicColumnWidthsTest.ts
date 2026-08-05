@@ -43,8 +43,26 @@ describe('calculateDynamicColumnWidths', () => {
 
             expect(result.shouldScrollHorizontally).toBe(false);
             expect(sumOf(result.widths)).toBe(900);
-            // The first column is capped at 500px, so the 220px left over is shared out from there.
-            expect(result.widths).toEqual([663, 132, 105]);
+            // The capped column stops at 500px and takes no part in sharing the 220px left over, which goes to the two
+            // columns that can still use it.
+            expect(result.widths).toEqual([500, 223, 177]);
+        });
+
+        it('keeps a capped column at its maximum instead of leaving the columns equal', () => {
+            // Both columns' content fits in an equal share (450px), but equal tracks would stretch the capped column to
+            // 450px, past its 200px maximum. So the columns are sized explicitly instead of left equal.
+            const result = calculateDynamicColumnWidths([buildConstraints(100, 50, 200), buildConstraints(100)], 900);
+
+            expect(result.widths.at(0)).toBe(200);
+            expect(sumOf(result.widths)).toBe(900);
+        });
+
+        it('leaves space unclaimed when every column has reached its maximum', () => {
+            // A maximum outranks filling the row, so the columns stop at 200px each rather than absorbing the leftover.
+            const result = calculateDynamicColumnWidths([buildConstraints(100, 50, 200), buildConstraints(100, 50, 200)], 900);
+
+            expect(result.widths).toEqual([200, 200]);
+            expect(result.shouldScrollHorizontally).toBe(false);
         });
 
         it('gives a column at least its minimum width even when its content is narrower', () => {
