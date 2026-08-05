@@ -1,3 +1,4 @@
+import useActivePolicy from '@hooks/useActivePolicy';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -17,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
@@ -45,6 +47,7 @@ import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils'
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
+    createDraftTransactionAndNavigateToParticipantSelector,
     generateReportID,
     getPolicyExpenseChat,
     isCurrentUserSubmitter,
@@ -80,7 +83,8 @@ import {useRoute} from '@react-navigation/native';
 import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
-import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
+import {createFilteredPoliciesInfoSelector} from '@selectors/Policy';
+import {validTransactionDraftIDsSelector, validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useRef, useState} from 'react';
 
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
@@ -125,6 +129,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         'DocumentMerge',
         'ExpenseCopy',
         'Info',
+        'Send',
         'Stopwatch',
         'ThumbsDown',
         'Trashcan',
@@ -174,6 +179,13 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+
+    // Data needed to launch the track-expense "Choose a recipient" flow from the "Send to someone" row (mirrors the
+    // track-expense whisper in ChatActionableButtons).
+    const activePolicy = useActivePolicy();
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(currentUserLogin)});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     // Custom hooks
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -585,6 +597,40 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 Navigation.navigate(
                     createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, parentReport.reportID, true, transaction.transactionID)),
                 );
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE]: {
+            text: translate('actionableMentionTrackExpense.submit'),
+            icon: expensifyIcons.Send,
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE,
+            onSelected: () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                // Reuse the exact track-expense whisper flow: create a draft from the tracked expense and open the
+                // "Choose a recipient" RHP. Scoped against the self-DM (parentReport), matching the whisper.
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: parentReport?.reportID,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: undefined,
+                    reportActions: parentReportActions,
+                    introSelected,
+                    draftTransactionIDs,
+                    activePolicy,
+                    userBillingGracePeriodEnds,
+                    amountOwed,
+                    ownerBillingGracePeriodEnd,
+                    isRestrictedToPreferredPolicy,
+                    preferredPolicyID,
+                    transaction,
+                    currentUserAccountID: accountID,
+                    currentUserEmail: currentUserLogin ?? '',
+                    currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
+                    filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                    firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+                });
             },
         },
     };

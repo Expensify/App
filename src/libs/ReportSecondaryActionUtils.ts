@@ -81,6 +81,7 @@ import {
     isReportManager as isReportManagerUtils,
     isSelfDM as isSelfDMReportUtils,
     isSettled,
+    isTrackExpenseReportNew,
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
 import {
@@ -1215,6 +1216,14 @@ function getSecondaryTransactionThreadActions({
         canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
+    }
+
+    // Show "Send to someone" only for an unreported self-tracked expense in personal space (a track expense not yet
+    // submitted to a workspace/report), where the same convert-from-track "Choose a recipient" flow from the
+    // track-expense whisper applies. Once submitted, parentReport is no longer a self-DM and reportAction is no longer
+    // a track action, so this correctly hides.
+    if (isTrackExpenseReportNew(transactionThreadReport, parentReport, reportAction)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
