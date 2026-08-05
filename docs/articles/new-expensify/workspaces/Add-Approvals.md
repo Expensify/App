@@ -158,12 +158,13 @@ Outstanding reports are automatically reassigned to the new approver, with no pr
 - **You shorten an approval chain:** if you remove a downstream approver from a chain, reports already partway through move to the appropriate remaining approver. For example, in an Alice → Bob → Claire chain where Bob has already approved and you remove Claire, the report returns to Bob for final approval.
 - **The workflow changes through an integration:** the same reassignment happens when the workflow changes through an HR integration such as Gusto or TriNet, or through a bulk member update. In that case, the report's system message indicates the change came from the integration rather than from a specific person.
 
-## Are there cases where reports are not reassigned?
+## Are there cases where reports are not automatically reassigned?
 
 Yes. Reports are not automatically reassigned in these cases:
 
 - **The current approver is a Category or Tag approver:** reports awaiting a Category or Tag approver are not reassigned. Those approval steps run before, and take precedence over, the workspace approval workflow.
-- **The workspace uses Advanced Approval:** automatic reassignment does not run for workspaces using Advanced Approval.
+- ​**The report already moved past the approver you changed:** If it's further along the approval chain, it stays where it is.
+- **​You changed the default workspace approver, but the employee has their own approver set:**​ Employees with a specific approver aren't affected by default-approver changes; only employees using the default are.
 
 ## What happens when a report exceeds the over-limit threshold?
 
