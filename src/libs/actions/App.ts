@@ -449,21 +449,18 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     // The imported state already contains all the data, so we just need to mark the app as loaded
     // Exception: When forceRun is true (exiting imported state), always make the API call
     if (isUsingImportedState && !forceRun) {
-        if (productMarketingWindowDataResetID) {
-            Onyx.multiSet({
-                [ONYXKEYS.IS_LOADING_APP]: false,
-                [ONYXKEYS.HAS_LOADED_APP]: true,
-                [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {
-                    resetID: productMarketingWindowDataResetID,
-                    readyIDs: {[productMarketingWindowDataResetID]: true},
-                },
-            });
-        } else {
-            Onyx.multiSet({
-                [ONYXKEYS.IS_LOADING_APP]: false,
-                [ONYXKEYS.HAS_LOADED_APP]: true,
-            });
-        }
+        Onyx.multiSet({
+            [ONYXKEYS.IS_LOADING_APP]: false,
+            [ONYXKEYS.HAS_LOADED_APP]: true,
+            ...(productMarketingWindowDataResetID
+                ? {
+                      [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {
+                          resetID: productMarketingWindowDataResetID,
+                          readyIDs: {[productMarketingWindowDataResetID]: true},
+                      },
+                  }
+                : {}),
+        });
         return Promise.resolve();
     }
 

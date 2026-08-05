@@ -55,7 +55,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const [isProductMarketingWindowCovered = false] = useOnyx(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED);
     // Account-scoped resets clear Onyx concurrently. A request only marks the generation it began
     // under as ready, so an older in-flight response cannot expose the replacement account's gap.
-    const [productMarketingWindowDataState] = useOnyx(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
+    const [productMarketingWindowDataState, productMarketingWindowDataStateMetadata] = useOnyx(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
     const [isAnonymousSession = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousSessionSelector});
     const [isActingAsDelegate = false, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [lastDismissedMarketingWindow, lastDismissedMarketingWindowMetadata] = useOnyx(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW);
@@ -70,7 +70,15 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const targetAdminPolicyID = activeAdminPolicies?.find((policy) => policy.id === activePolicyID)?.id ?? activeAdminPolicies?.at(0)?.id;
     const variant = getProductMarketingAnnouncementVariant(announcement, !!targetAdminPolicyID, lastDismissedMarketingWindow);
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
-    const isLoading = isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, activeAdminPoliciesMetadata, activePolicyIDMetadata, isLoadingAppMetadata, accountMetadata) || isLoadingApp;
+    const isLoading =
+        isLoadingOnyxValue(
+            lastDismissedMarketingWindowMetadata,
+            activeAdminPoliciesMetadata,
+            activePolicyIDMetadata,
+            productMarketingWindowDataStateMetadata,
+            isLoadingAppMetadata,
+            accountMetadata,
+        ) || isLoadingApp;
     const currentProductMarketingWindowDataResetID = productMarketingWindowDataState?.resetID;
     const isProductMarketingWindowDataReady = !currentProductMarketingWindowDataResetID || !!productMarketingWindowDataState?.readyIDs?.[currentProductMarketingWindowDataResetID];
 
