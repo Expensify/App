@@ -7,6 +7,7 @@ import type DomainErrors from '@src/types/onyx/DomainErrors';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 const domainAccountID = 123;
+const adminAccountID = 1;
 const mockIcon: IconAsset = () => null;
 const icons = {
     User: mockIcon,
@@ -37,7 +38,7 @@ describe('getDomainMenuItems', () => {
 
     it.each([
         ['Members', {errors: {}, memberErrors: {member: {errors: {memberError: 'Member error'}}}}, 'domain.domainMembers'],
-        ['Admins', {errors: {}, adminErrors: {1: {errors: {adminError: 'Admin error'}}}}, 'domain.domainAdmins'],
+        ['Admins', {errors: {}, adminErrors: {[adminAccountID]: {errors: {adminError: 'Admin error'}}}}, 'domain.domainAdmins'],
         ['Groups', groupErrors, 'domain.groups.title'],
     ] satisfies Array<[string, DomainErrors, string]>)('preserves the %s error indicator', (_name, domainErrors, expectedTranslationKey) => {
         const items = getDomainMenuItems({domainAccountID, domainErrors, icons});
