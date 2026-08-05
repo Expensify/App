@@ -193,6 +193,37 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         expect(Object.keys(result.current.state.selectedTransactions)).toEqual(['tx_2', 'tx_1']);
     });
 
+    it('atomically refreshes and prunes exclusions during data reconciliation', () => {
+        const {result} = renderSelection();
+        seedAllMatchingSelection(result);
+
+        act(() => {
+            result.current.actions.applySelection((selectedTransactions) => removeTransaction(selectedTransactions, 'tx_1'), {
+                totalSelectableItemsCount: 2,
+                shouldPreserveAllMatchingSelection: true,
+            });
+        });
+
+        const refreshedExclusion = buildSelected('tx_1');
+        if (!refreshedExclusion.tx_1) {
+            throw new Error('Expected tx_1 exclusion fixture');
+        }
+        refreshedExclusion.tx_1.amount = 500;
+        act(() => {
+            result.current.actions.applySelection((selectedTransactions) => selectedTransactions, {reconciledExcludedTransactions: refreshedExclusion});
+        });
+
+        expect(result.current.state.excludedTransactions.tx_1?.amount).toBe(500);
+        expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
+
+        act(() => {
+            result.current.actions.applySelection((selectedTransactions) => selectedTransactions, {reconciledExcludedTransactions: {}});
+        });
+
+        expect(result.current.state.excludedTransactions).toEqual({});
+        expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
+    });
+
     it('exits all-matching and clears exclusions when the header deselects all', () => {
         const {result} = renderSelection();
         seedAllMatchingSelection(result);

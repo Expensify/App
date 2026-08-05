@@ -241,6 +241,7 @@ type SearchSelectionActionsValue = {
      * `totalSelectableItemsCount` unchecks "select all matching" when the new selection no longer covers every item.
      * `shouldPreserveAllMatchingSelection` keeps that mode active for row toggles and records removed rows as exclusions.
      * `shouldClearAllMatchingSelectionWhenEmpty` exits that mode when no selected rows or additional results remain.
+     * `reconciledExcludedTransactions` refreshes or prunes exclusions when the underlying search data changes.
      */
     applySelection: (
         updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions,
@@ -249,6 +250,7 @@ type SearchSelectionActionsValue = {
             totalSelectableItemsCount?: number;
             shouldPreserveAllMatchingSelection?: boolean;
             shouldClearAllMatchingSelectionWhenEmpty?: boolean;
+            reconciledExcludedTransactions?: SelectedTransactions;
         },
     ) => void;
     setSelectedReports: (reports: SelectedReports[]) => void;

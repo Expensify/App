@@ -87,14 +87,15 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const applySelection: SearchSelectionActionsValue['applySelection'] = (updater, options) => {
         setSelectionState((prevState) => {
             const selectedTransactions = updater(prevState.selectedTransactions);
-            if (selectedTransactions === prevState.selectedTransactions) {
+            const reconciledExcludedTransactions = options?.reconciledExcludedTransactions;
+            if (selectedTransactions === prevState.selectedTransactions && (!reconciledExcludedTransactions || reconciledExcludedTransactions === prevState.excludedTransactions)) {
                 return prevState;
             }
 
             const totalSelectableItemsCount = options?.totalSelectableItemsCount;
             let areAllMatchingItemsSelected =
                 totalSelectableItemsCount && totalSelectableItemsCount !== Object.keys(selectedTransactions).length ? false : prevState.areAllMatchingItemsSelected;
-            let excludedTransactions = prevState.excludedTransactions;
+            let excludedTransactions = reconciledExcludedTransactions ?? prevState.excludedTransactions;
 
             const shouldClearAllMatchingSelection = options?.shouldClearAllMatchingSelectionWhenEmpty && isEmptyObject(selectedTransactions);
             if (shouldClearAllMatchingSelection) {
