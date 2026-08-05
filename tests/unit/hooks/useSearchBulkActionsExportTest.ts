@@ -208,12 +208,13 @@ const mockSelectAllMatchingItems = jest.fn();
 let mockSelectedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockCurrentSearchResults: SearchResults | undefined;
+let mockAreAllMatchingItemsSelected = false;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions,
         selectedReports: mockSelectedReports,
-        areAllMatchingItemsSelected: false,
+        areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
     }),
     useSearchResultsContext: () => ({
         currentSearchResults: mockCurrentSearchResults,
@@ -369,6 +370,7 @@ describe('useSearchBulkActions - export options', () => {
         mockSelectedTransactions = {};
         mockSelectedReports = [];
         mockCurrentSearchResults = undefined;
+        mockAreAllMatchingItemsSelected = false;
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
         // A policy connected to NetSuite so the integration export branch is reachable.
@@ -555,6 +557,67 @@ describe('useSearchBulkActions - export options', () => {
             };
 
             renderHook(() => useSearchBulkActions({queryJSON: expenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(mockGetExportTemplates).toHaveBeenCalled();
+            });
+            expect(getIncludeMultipleTaxExportArgument()).toBe(false);
+        });
+
+        /** A query scoped to the given workspaces, as "Select all matching" would export it. */
+        function policyScopedQueryJSON(policyIDs: string[]): SearchQueryJSON {
+            return {
+                ...expenseReportQueryJSON,
+                flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                        filters: policyIDs.map((policyID) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: policyID})),
+                    },
+                ],
+            } as SearchQueryJSON;
+        }
+
+        it('offers the template under select all when the query is scoped to CAD workspaces only', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_POLICY_ID}`, {id: SECOND_POLICY_ID, outputCurrency: CONST.CURRENCY.CAD});
+            mockAreAllMatchingItemsSelected = true;
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: policyScopedQueryJSON([POLICY_ID, SECOND_POLICY_ID])}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getIncludeMultipleTaxExportArgument()).toBe(true);
+            });
+        });
+
+        it('hides the template under select all when a workspace in the query scope is not CAD', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_POLICY_ID}`, {id: SECOND_POLICY_ID, outputCurrency: CONST.CURRENCY.USD});
+            mockAreAllMatchingItemsSelected = true;
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            // The loaded rows are all CAD, but the query also matches a USD workspace that hasn't been loaded yet
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: policyScopedQueryJSON([POLICY_ID, SECOND_POLICY_ID])}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(mockGetExportTemplates).toHaveBeenCalled();
+            });
+            expect(getIncludeMultipleTaxExportArgument()).toBe(false);
+        });
+
+        it('hides the template under select all when the query is not scoped to any workspace', async () => {
+            mockAreAllMatchingItemsSelected = true;
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            // Every loaded row is CAD, but an unscoped query can still match a non-CAD workspace further down the results
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
             await waitFor(() => {
                 expect(mockGetExportTemplates).toHaveBeenCalled();
