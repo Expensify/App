@@ -183,7 +183,6 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
     }
 
     const itemCount = activeItems.length + archivedItems.length;
-    const SECTION_HEADER_HEIGHT = 60;
     const headerExtraHeight = (activeItems.length > 0 ? SECTION_HEADER_HEIGHT : 0) + (hasArchived ? SECTION_HEADER_HEIGHT : 0);
 
     const textInputOptions: TextInputOptions = {
