@@ -109,8 +109,6 @@ function IOURequestStepVendor({
             updateMoneyRequestVendor({
                 transactionID,
                 vendorID: item.value,
-                // `item.text` is the selected vendor's display name; forward it so the backend persists
-                // `name` on the transaction and the title survives the vendor leaving the synced list.
                 vendorName: item.text ?? '',
                 transaction,
                 transactionThreadReport: report,
