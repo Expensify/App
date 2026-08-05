@@ -49,6 +49,9 @@ type WorkspaceMembersTableProps = {
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
@@ -71,6 +74,7 @@ export default function WorkspaceMembersTable({
     shouldShowCustomField2Column,
     members,
     onRowSelectionChange,
+    headerButton,
 }: WorkspaceMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -332,7 +336,7 @@ export default function WorkspaceMembersTable({
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.people.findMember')} />
+            <Table.FilterBar label={translate('workspace.people.findMember')}>{headerButton}</Table.FilterBar>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

@@ -60,9 +60,12 @@ type WorkspaceListTableProps = {
 
     /** ID of the workspace with a deletion in progress, if any */
     pendingDeletePolicyID?: string;
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
-export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, pendingDeletePolicyID, headerButton}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
@@ -151,7 +154,7 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
             title={translate('common.workspaces')}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >
-            <Table.FilterBar label={translate('workspace.common.findWorkspace')} />
+            <Table.FilterBar label={translate('workspace.common.findWorkspace')}>{headerButton}</Table.FilterBar>
             <Table.NoResultsState />
             <Table.EmptyState
                 titleStyles={styles.pt2}

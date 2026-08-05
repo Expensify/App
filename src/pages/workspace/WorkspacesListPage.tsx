@@ -215,6 +215,7 @@ function WorkspacesListPage() {
     const headerButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
         <Button
             success
+            small
             accessibilityLabel={translate('common.new')}
             text={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}
@@ -231,10 +232,7 @@ function WorkspacesListPage() {
     useAndroidBackButtonHandler(onBackButtonPress);
 
     return (
-        <WorkspaceListLayout
-            activeTabKey="workspaces"
-            headerButton={headerButton}
-        >
+        <WorkspaceListLayout activeTabKey="workspaces">
             {shouldShowLoadingIndicator ? (
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
                     <ActivityIndicator
@@ -253,6 +251,7 @@ function WorkspacesListPage() {
                     workspaces={workspaceRows}
                     onDeleteWorkspace={setPolicyIDToDelete}
                     pendingDeletePolicyID={policyIDToDelete}
+                    headerButton={headerButton}
                 />
             )}
             {!!policyIDToDelete && (

@@ -736,15 +736,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             />
         ) : (
             <View style={[styles.flexRow, styles.gap2]}>
-                <Button
-                    success
-                    onPress={inviteUser}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_BUTTON}
-                    text={translate('workspace.invite.member')}
-                    icon={icons.Plus}
-                    innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                />
                 <ButtonWithDropdownMenu
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
@@ -757,6 +748,17 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             </View>
         );
     };
+
+    const inviteMemberButton = canWriteMembers ? (
+        <Button
+            success
+            small
+            onPress={inviteUser}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_BUTTON}
+            text={translate('workspace.invite.member')}
+            icon={icons.Plus}
+        />
+    ) : undefined;
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
@@ -815,6 +817,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         shouldShowCustomField1Column={shouldShowCustomField1Column}
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
                         onRowSelectionChange={setSelectedEmployees}
+                        headerButton={inviteMemberButton}
                     />
                 </>
             )}

@@ -42,6 +42,9 @@ type DomainMembersTableProps = {
     shouldShowGroupColumn: boolean;
     filterConfig?: FilterConfig<DomainMembersTableFilterKey>;
     isItemInFilter?: IsItemInFilterCallback<DomainMemberRowData>;
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
 /**
@@ -80,6 +83,7 @@ export default function DomainMembersTable({
     shouldShowGroupColumn,
     filterConfig,
     isItemInFilter,
+    headerButton,
 }: DomainMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -162,7 +166,7 @@ export default function DomainMembersTable({
                 />
             )}
 
-            <Table.FilterBar label={translate('domain.members.findMember')} />
+            <Table.FilterBar label={translate('domain.members.findMember')}>{headerButton}</Table.FilterBar>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

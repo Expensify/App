@@ -39,9 +39,12 @@ type DomainRowData = {
 
 type DomainListTableProps = {
     domains: DomainRowData[];
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
-export default function DomainListTable({domains}: DomainListTableProps) {
+export default function DomainListTable({domains, headerButton}: DomainListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EarthWithControls']);
@@ -102,7 +105,7 @@ export default function DomainListTable({domains}: DomainListTableProps) {
             title={translate('common.domains')}
             keyExtractor={(row, index) => `${row.domainAccountID}-${index}`}
         >
-            <Table.FilterBar label={translate('workspace.common.findDomain')} />
+            <Table.FilterBar label={translate('workspace.common.findDomain')}>{headerButton}</Table.FilterBar>
             <Table.EmptyState
                 headerMedia={illustrations.EarthWithControls}
                 headerContentStyles={styles.emptyDomainListStaticIllustrationStyle}

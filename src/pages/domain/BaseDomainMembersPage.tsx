@@ -57,6 +57,9 @@ type BaseDomainMembersPageProps = {
 
     /** Whether the group column should be shown in the table */
     shouldShowGroupColumn: boolean;
+
+    /** Action button (e.g. create) rendered in the table filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
 function BaseDomainMembersPage({
@@ -73,6 +76,7 @@ function BaseDomainMembersPage({
     isItemInFilter,
     shouldShowGroupFilter,
     shouldShowGroupColumn,
+    headerButton,
 }: BaseDomainMembersPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -107,6 +111,7 @@ function BaseDomainMembersPage({
                     shouldShowGroupColumn={shouldShowGroupColumn}
                     filterConfig={shouldShowGroupFilter ? filterConfig : undefined}
                     isItemInFilter={shouldShowGroupFilter ? isItemInFilter : undefined}
+                    headerButton={headerButton}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

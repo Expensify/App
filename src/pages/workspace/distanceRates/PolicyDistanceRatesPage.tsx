@@ -402,25 +402,15 @@ function PolicyDistanceRatesPage({
     const headerButtons = canWriteDistanceRates ? (
         <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
             {(shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedDistanceRates.length === 0) ? (
-                <>
-                    <Button
-                        text={translate('workspace.distanceRates.addRate')}
-                        onPress={addRate}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ADD_BUTTON}
-                        style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                        icon={icons.Plus}
-                        success
-                    />
-                    <ButtonWithDropdownMenu
-                        onPress={() => {}}
-                        shouldUseOptionIcon
-                        customText={translate('common.more')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.MORE_DROPDOWN}
-                        options={secondaryActions}
-                        isSplitButton={false}
-                        wrapperStyle={styles.flexGrow0}
-                    />
-                </>
+                <ButtonWithDropdownMenu
+                    onPress={() => {}}
+                    shouldUseOptionIcon
+                    customText={translate('common.more')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.MORE_DROPDOWN}
+                    options={secondaryActions}
+                    isSplitButton={false}
+                    wrapperStyle={styles.flexGrow0}
+                />
             ) : (
                 <ButtonWithDropdownMenu<WorkspaceDistanceRatesBulkActionType>
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -441,6 +431,17 @@ function PolicyDistanceRatesPage({
     ) : null;
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+
+    const addRateButton = canWriteDistanceRates ? (
+        <Button
+            text={translate('workspace.distanceRates.addRate')}
+            onPress={addRate}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ADD_BUTTON}
+            icon={icons.Plus}
+            success
+            small
+        />
+    ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -495,6 +496,7 @@ function PolicyDistanceRatesPage({
                             selectionEnabled={canWriteDistanceRates}
                             onRowSelectionChange={setSelectedDistanceRates}
                             canWriteDistanceRates={canWriteDistanceRates}
+                            headerButton={addRateButton}
                         />
                     </>
                 )}

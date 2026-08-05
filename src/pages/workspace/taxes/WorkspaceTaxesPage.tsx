@@ -312,16 +312,6 @@ function WorkspaceTaxesPage({
         if (!shouldShowBulkActionsButton) {
             return (
                 <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-                    {!hasAccountingConnections && (
-                        <Button
-                            success
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.ADD_BUTTON}
-                            icon={icons.Plus}
-                            text={translate('workspace.taxes.addRate')}
-                            style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                        />
-                    )}
                     <ButtonWithDropdownMenu
                         onPress={() => {}}
                         shouldUseOptionIcon
@@ -352,6 +342,18 @@ function WorkspaceTaxesPage({
     };
 
     const headerButtons = getHeaderButtons();
+
+    const addTaxButton =
+        canWriteTaxes && !hasAccountingConnections ? (
+            <Button
+                success
+                small
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.ADD_BUTTON}
+                icon={icons.Plus}
+                text={translate('workspace.taxes.addRate')}
+            />
+        ) : undefined;
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
@@ -420,6 +422,7 @@ function WorkspaceTaxesPage({
                             selectionEnabled={canWriteTaxes}
                             selectedKeys={selectedTaxesIDs}
                             onRowSelectionChange={setSelectedTaxesIDs}
+                            headerButton={addTaxButton}
                         />
                     </>
                 )}

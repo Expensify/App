@@ -255,14 +255,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             />
         ) : (
             <View style={[styles.flexRow, styles.gap2]}>
-                <Button
-                    success
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
-                    text={translate('domain.members.addMember')}
-                    icon={icons.Plus}
-                    innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-                    style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
-                />
                 <ButtonWithDropdownMenu
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
@@ -289,6 +281,16 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             </View>
         );
     };
+
+    const addMemberButton = (
+        <Button
+            success
+            small
+            onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
+            text={translate('domain.members.addMember')}
+            icon={icons.Plus}
+        />
+    );
 
     if (!domain?.validated) {
         return (
@@ -354,6 +356,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 isItemInFilter={isItemInFilter}
                 shouldShowGroupFilter={shouldShowGroupFilter}
                 shouldShowGroupColumn={shouldShowGroupColumn}
+                headerButton={addMemberButton}
                 onBackButtonPress={() => {
                     if (isMobileSelectionModeEnabled) {
                         clearSelectedMembers();

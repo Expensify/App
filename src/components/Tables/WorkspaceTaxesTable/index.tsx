@@ -24,9 +24,12 @@ type WorkspaceTaxesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
-export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceTaxesTableProps) {
+export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, onRowSelectionChange, headerButton}: WorkspaceTaxesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -95,7 +98,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             keyExtractor={(tax) => tax.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.taxes.findTaxRate')} />
+            <Table.FilterBar label={translate('workspace.taxes.findTaxRate')}>{headerButton}</Table.FilterBar>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

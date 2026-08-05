@@ -35,7 +35,6 @@ import type SCREENS from '@src/SCREENS';
 import {useFocusEffect} from '@react-navigation/native';
 import {policyChatRoomsSelector} from '@selectors/Report';
 import React from 'react';
-import {View} from 'react-native';
 
 type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.ROOMS>;
 
@@ -97,6 +96,16 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         openPolicyRoomsPage(policyID);
     });
 
+    const createRoomButton = (
+        <Button
+            success
+            small
+            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
+            icon={headerIcons.Plus}
+            text={translate('common.create')}
+        />
+    );
+
     return (
         <AccessOrNotFoundWrapper policyID={policyID}>
             <ScreenWrapper
@@ -113,33 +122,13 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={Navigation.goBack}
                     shouldDisplayHelpButton
-                >
-                    {!shouldUseNarrowLayout && (
-                        <Button
-                            success
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                            icon={headerIcons.Plus}
-                            text={translate('common.create')}
-                        />
-                    )}
-                </HeaderWithBackButton>
-
-                {shouldUseNarrowLayout && (
-                    <View style={[styles.ph5, styles.pb3]}>
-                        <Button
-                            success
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                            icon={headerIcons.Plus}
-                            text={translate('common.create')}
-                            style={styles.w100}
-                        />
-                    </View>
-                )}
+                />
 
                 <WorkspaceRoomsTable
                     rooms={rooms}
                     policyID={policyID}
                     highlightedReportID={highlightedReportID}
+                    headerButton={createRoomButton}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

@@ -22,9 +22,12 @@ type DomainGroupsTableColumnKey = 'name' | 'members' | 'actions';
 type DomainGroupsTableProps = {
     domainAccountID: number;
     groups: DomainGroupRowData[];
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
-export default function DomainGroupsTable({domainAccountID, groups}: DomainGroupsTableProps) {
+export default function DomainGroupsTable({domainAccountID, groups, headerButton}: DomainGroupsTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<DomainGroupRowData, DomainGroupsTableColumnKey>>(null);
@@ -87,7 +90,7 @@ export default function DomainGroupsTable({domainAccountID, groups}: DomainGroup
             title={translate('domain.groups.title')}
             keyExtractor={(item) => item.keyForList}
         >
-            <Table.FilterBar label={translate('domain.groups.findGroup')} />
+            <Table.FilterBar label={translate('domain.groups.findGroup')}>{headerButton}</Table.FilterBar>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

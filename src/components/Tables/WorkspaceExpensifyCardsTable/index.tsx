@@ -83,6 +83,9 @@ type WorkspaceExpensifyCardsTableProps = {
 
     /** Optional styles for the list content container */
     listContentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
 export default function WorkspaceExpensifyCardsTable({
@@ -97,6 +100,7 @@ export default function WorkspaceExpensifyCardsTable({
     listFooterComponent,
     listFooterComponentStyle,
     listContentContainerStyle,
+    headerButton,
 }: WorkspaceExpensifyCardsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -241,7 +245,7 @@ export default function WorkspaceExpensifyCardsTable({
                     </View>
                 )}
             </View>
-            <Table.FilterBar label={translate('workspace.expensifyCard.findCard')} />
+            <Table.FilterBar label={translate('workspace.expensifyCard.findCard')}>{headerButton}</Table.FilterBar>
             <Table.NoResultsState />
             <Table.Header />
         </>

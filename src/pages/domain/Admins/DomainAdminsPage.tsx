@@ -108,16 +108,18 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
+    const addAdminButton = isAdmin ? (
+        <Button
+            success
+            small
+            icon={icons.Plus}
+            text={translate('domain.admins.addAdmin')}
+            onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
+        />
+    ) : undefined;
+
     const headerContent = isAdmin ? (
         <View style={[styles.flexRow, styles.gap2]}>
-            <Button
-                success
-                onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
-                text={translate('domain.admins.addAdmin')}
-                icon={icons.Plus}
-                innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-                style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
-            />
             <Button
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
                 text={translate('domain.common.settings')}
@@ -152,6 +154,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 <DomainAdminsTable
                     domainAccountID={domainAccountID}
                     admins={admins}
+                    headerButton={addAdminButton}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

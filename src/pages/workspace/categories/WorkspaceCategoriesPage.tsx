@@ -551,33 +551,35 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 />
             );
         }
-        const shouldShowAddCategory = canWriteCategories && !policyHasAccountingConnections && hasVisibleCategories;
+        if (secondaryActions.length === 0) {
+            return null;
+        }
         return (
             <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-                {shouldShowAddCategory && (
-                    <Button
-                        success
-                        onPress={navigateToCreateCategoryPage}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ADD_BUTTON}
-                        icon={icons.Plus}
-                        text={translate('workspace.categories.addCategory')}
-                        style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                    />
-                )}
-                {secondaryActions.length > 0 && (
-                    <ButtonWithDropdownMenu
-                        onPress={() => {}}
-                        shouldAlwaysShowDropdownMenu
-                        customText={translate('common.more')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_DROPDOWN}
-                        options={secondaryActions}
-                        isSplitButton={false}
-                        wrapperStyle={shouldShowAddCategory || !shouldDisplayButtonsInSeparateLine ? styles.flexGrow0 : styles.flexGrow1}
-                    />
-                )}
+                <ButtonWithDropdownMenu
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_DROPDOWN}
+                    options={secondaryActions}
+                    isSplitButton={false}
+                    wrapperStyle={!shouldDisplayButtonsInSeparateLine ? styles.flexGrow0 : styles.flexGrow1}
+                />
             </View>
         );
     };
+
+    const shouldShowAddCategory = canWriteCategories && !policyHasAccountingConnections && hasVisibleCategories;
+    const addCategoryButton = shouldShowAddCategory ? (
+        <Button
+            success
+            small
+            onPress={navigateToCreateCategoryPage}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ADD_BUTTON}
+            icon={icons.Plus}
+            text={translate('workspace.categories.addCategory')}
+        />
+    ) : undefined;
 
     const isLoading = !isOffline && policyCategories === undefined;
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceCategoriesPage', isOffline, isPolicyCategoriesUndefined: policyCategories === undefined};
@@ -715,6 +717,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                             shouldShowApproverColumn={shouldShowApproverColumn}
                             onRowSelectionChange={setSelectedCategoryKeys}
+                            headerButton={addCategoryButton}
                         />
                     </>
                 )}

@@ -30,9 +30,12 @@ type WorkspaceRoomsTableProps = {
 
     /** The reportID of the room that should play the highlight animation (e.g. when it was just created) */
     highlightedReportID?: string;
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
-function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerButton}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -110,7 +113,7 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRo
             title={translate('workspace.common.rooms')}
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
         >
-            <Table.FilterBar label={translate('workspace.common.findRoom')} />
+            <Table.FilterBar label={translate('workspace.common.findRoom')}>{headerButton}</Table.FilterBar>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />

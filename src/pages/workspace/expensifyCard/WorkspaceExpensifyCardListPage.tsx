@@ -233,34 +233,36 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             );
         }
 
+        if (secondaryActions.length === 0) {
+            return null;
+        }
         return (
             <View style={headerButtonsRowStyle}>
-                {!isCardListEmpty && (
-                    <Button
-                        success
-                        onPress={handleIssueCardPress}
-                        icon={icons.Plus}
-                        text={translate('workspace.expensifyCard.issueCard')}
-                        style={shouldDisplayButtonsInSeparateLine && styles.flex1}
-                        innerStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
-                        hoverStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
-                    />
-                )}
-                {secondaryActions.length > 0 && (
-                    <ButtonWithDropdownMenu
-                        onPress={() => {}}
-                        customText={translate('common.more')}
-                        options={secondaryActions}
-                        isSplitButton={false}
-                        shouldUseOptionIcon
-                        wrapperStyle={isCardListEmpty && !isInLandscapeMode ? styles.flexGrow1 : styles.flexGrow0}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
-                    />
-                )}
+                <ButtonWithDropdownMenu
+                    onPress={() => {}}
+                    customText={translate('common.more')}
+                    options={secondaryActions}
+                    isSplitButton={false}
+                    shouldUseOptionIcon
+                    wrapperStyle={isCardListEmpty && !isInLandscapeMode ? styles.flexGrow1 : styles.flexGrow0}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
+                />
             </View>
         );
     };
+
+    const issueCardButton = !isCardListEmpty ? (
+        <Button
+            success
+            small
+            onPress={handleIssueCardPress}
+            icon={icons.Plus}
+            text={translate('workspace.expensifyCard.issueCard')}
+            innerStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
+            hoverStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
+        />
+    ) : undefined;
 
     const handleBackButtonPress = () => {
         if (isMobileSelectionModeEnabled) {
@@ -353,6 +355,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         listFooterComponent={disclaimerFooter}
                         listFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
                         listContentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
+                        headerButton={issueCardButton}
                     />
                 </View>
             )}

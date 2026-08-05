@@ -47,6 +47,9 @@ type WorkspaceCategoriesTableProps = {
     emptyStateSubtitleText: React.ReactNode;
     emptyStateButtons: EmptyStateButton[] | undefined;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
 export default function WorkspaceCategoriesTable({
@@ -59,6 +62,7 @@ export default function WorkspaceCategoriesTable({
     emptyStateSubtitleText,
     emptyStateButtons,
     onRowSelectionChange,
+    headerButton,
 }: WorkspaceCategoriesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -160,7 +164,7 @@ export default function WorkspaceCategoriesTable({
             keyExtractor={(category) => category.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.categories.findCategory')} />
+            <Table.FilterBar label={translate('workspace.categories.findCategory')}>{headerButton}</Table.FilterBar>
             <Table.EmptyState
                 title={translate('workspace.categories.emptyCategories.title')}
                 subtitleText={emptyStateSubtitleText}

@@ -300,23 +300,22 @@ function ReportFieldsListValuesPage({
                 />
             );
         }
-
-        if (canWriteReportFields && !hasAccountingConnections) {
-            return (
-                <Button
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                    success
-                    icon={icons.Plus}
-                    text={translate('workspace.reportFields.addValue')}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_ADD_VALUE.getRoute(policyID, reportFieldID))}
-                />
-            );
-        }
     };
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
     const headerButtons = getHeaderButtons();
+
+    const addValueButton =
+        canWriteReportFields && !hasAccountingConnections ? (
+            <Button
+                success
+                small
+                icon={icons.Plus}
+                text={translate('workspace.reportFields.addValue')}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_ADD_VALUE.getRoute(policyID, reportFieldID))}
+            />
+        ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -353,6 +352,7 @@ function ReportFieldsListValuesPage({
                     selectionEnabled={canWriteReportFields}
                     selectedKeys={selectedKeys}
                     onRowSelectionChange={setSelectedKeys}
+                    headerButton={addValueButton}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

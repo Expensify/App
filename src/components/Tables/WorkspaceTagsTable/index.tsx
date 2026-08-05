@@ -55,6 +55,9 @@ type WorkspaceTagsTableProps = {
     shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
     emptyState: TableEmptyStateProps;
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
 export default function WorkspaceTagsTable({
@@ -67,6 +70,7 @@ export default function WorkspaceTagsTable({
     hasDependentTags,
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
+    headerButton,
 }: WorkspaceTagsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -213,7 +217,7 @@ export default function WorkspaceTagsTable({
             keyExtractor={(tag) => tag.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.tags.findTag')} />
+            <Table.FilterBar label={translate('workspace.tags.findTag')}>{headerButton}</Table.FilterBar>
             <Table.EmptyState {...emptyState} />
             <Table.NoResultsState />
             <Table.Header />

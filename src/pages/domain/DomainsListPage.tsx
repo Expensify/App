@@ -84,6 +84,7 @@ function DomainsListPage() {
     const headerButton = !!domainRows.length && (
         <Button
             success
+            small
             accessibilityLabel={translate('common.new')}
             text={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_DOMAIN_BUTTON}
@@ -93,10 +94,7 @@ function DomainsListPage() {
     );
 
     return (
-        <WorkspaceListLayout
-            activeTabKey="domains"
-            headerButton={headerButton}
-        >
+        <WorkspaceListLayout activeTabKey="domains">
             <View style={styles.flex1}>
                 {shouldShowLoadingIndicator && (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
@@ -107,7 +105,12 @@ function DomainsListPage() {
                     </View>
                 )}
 
-                {!shouldShowLoadingIndicator && <DomainListTable domains={domainRows} />}
+                {!shouldShowLoadingIndicator && (
+                    <DomainListTable
+                        domains={domainRows}
+                        headerButton={headerButton}
+                    />
+                )}
             </View>
         </WorkspaceListLayout>
     );

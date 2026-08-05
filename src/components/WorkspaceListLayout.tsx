@@ -1,7 +1,6 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -11,7 +10,6 @@ import SCREENS from '@src/SCREENS';
 
 import type {PropsWithChildren} from 'react';
 
-import React from 'react';
 import {View} from 'react-native';
 
 import NAVIGATION_TABS from './Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -22,17 +20,15 @@ import ScreenWrapper from './ScreenWrapper';
 import TabSelectorBase from './TabSelector/TabSelectorBase';
 
 type WorkspaceListLayoutProps = PropsWithChildren<{
-    headerButton?: React.ReactNode;
     activeTabKey: 'workspaces' | 'domains';
 }>;
 
-export default function WorkspaceListLayout({children, activeTabKey, headerButton}: WorkspaceListLayoutProps) {
+export default function WorkspaceListLayout({children, activeTabKey}: WorkspaceListLayoutProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const isWorkspacesListPage = activeTabKey === 'workspaces';
     const testID = isWorkspacesListPage ? 'WorkspacesListPage' : 'DomainsListPage';
@@ -79,9 +75,7 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
                     <TopBarWithLoadingBar
                         shouldDisplayHelpButton
                         breadcrumbLabel={activeTabLabel}
-                    >
-                        <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>
-                    </TopBarWithLoadingBar>
+                    />
 
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
                         <TabSelectorBase
@@ -89,7 +83,6 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
                             activeTabKey={activeTabKey}
                             onTabPress={onTabPress}
                         />
-                        {shouldDisplayButtonsInSeparateLine && headerButton}
                     </View>
 
                     {children}

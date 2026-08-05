@@ -32,6 +32,9 @@ type WorkspaceDistanceRatesTableProps = {
     selectedKeys: string[];
     canWriteDistanceRates: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
 const STATUS_ORDER: Record<string, number> = {
@@ -41,7 +44,7 @@ const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: 3,
 };
 
-function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, selectedKeys, canWriteDistanceRates, onRowSelectionChange}: WorkspaceDistanceRatesTableProps) {
+function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, selectedKeys, canWriteDistanceRates, onRowSelectionChange, headerButton}: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
@@ -161,7 +164,7 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.distanceRates')}
         >
-            <Table.FilterBar label={translate('workspace.distanceRates.findRate')} />
+            <Table.FilterBar label={translate('workspace.distanceRates.findRate')}>{headerButton}</Table.FilterBar>
             <Table.EmptyState
                 title={translate('workspace.distanceRates.emptyRates.title')}
                 subtitle={translate('workspace.distanceRates.emptyRates.subtitle')}

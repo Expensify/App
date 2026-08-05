@@ -571,30 +571,20 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         const selectedTagLists = selectedTagKeys.map((selectedTag) => policyTagLists.find((policyTagList) => policyTagList.name === selectedTag));
 
         if (!canWriteTags || (shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedTagKeys.length === 0)) {
-            const hasPrimaryActions = canWriteTags && !hasAccountingConnections && !isMultiLevelTags && hasVisibleTags;
+            if (secondaryActions.length === 0) {
+                return null;
+            }
             return (
                 <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-                    {hasPrimaryActions && (
-                        <Button
-                            success
-                            onPress={navigateToCreateTagPage}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ADD_BUTTON}
-                            icon={expensifyIcons.Plus}
-                            text={translate('workspace.tags.addTag')}
-                            style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                        />
-                    )}
-                    {secondaryActions.length > 0 && (
-                        <ButtonWithDropdownMenu
-                            onPress={() => {}}
-                            shouldAlwaysShowDropdownMenu
-                            customText={translate('common.more')}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_DROPDOWN}
-                            options={secondaryActions}
-                            isSplitButton={false}
-                            wrapperStyle={isInLandscapeMode || hasPrimaryActions ? styles.flexGrow0 : styles.flexGrow1}
-                        />
-                    )}
+                    <ButtonWithDropdownMenu
+                        onPress={() => {}}
+                        shouldAlwaysShowDropdownMenu
+                        customText={translate('common.more')}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_DROPDOWN}
+                        options={secondaryActions}
+                        isSplitButton={false}
+                        wrapperStyle={isInLandscapeMode ? styles.flexGrow0 : styles.flexGrow1}
+                    />
                 </View>
             );
         }
@@ -826,6 +816,18 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 : undefined,
     };
 
+    const hasPrimaryActions = canWriteTags && !hasAccountingConnections && !isMultiLevelTags && hasVisibleTags;
+    const addTagButton = hasPrimaryActions ? (
+        <Button
+            success
+            small
+            onPress={navigateToCreateTagPage}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ADD_BUTTON}
+            icon={expensifyIcons.Plus}
+            text={translate('workspace.tags.addTag')}
+        />
+    ) : undefined;
+
     return (
         <>
             <AccessOrNotFoundWrapper
@@ -888,6 +890,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                                 emptyState={tagsTableEmptyState}
                                 onRowSelectionChange={setSelectedTagKeys}
+                                headerButton={addTagButton}
                             />
                         </>
                     )}

@@ -10,8 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasDomainGroupDetailsErrors} from '@libs/DomainUtils';
 import {getLatestError} from '@libs/ErrorUtils';
@@ -35,7 +33,6 @@ import type {DomainSecurityGroupWithID} from '@selectors/Domain';
 
 import {defaultSecurityGroupIDSelector, domainNameSelector, groupsSelector, isSecurityGroupPendingDeleteSelector} from '@selectors/Domain';
 import React from 'react';
-import {View} from 'react-native';
 
 type DomainGroupsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.GROUPS>;
 
@@ -44,12 +41,10 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     useDomainDocumentTitle(domainName, 'domain.groups.title');
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Members']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const [groups = getEmptyArray<DomainSecurityGroupWithID>()] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
     const [defaultGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
@@ -96,9 +91,8 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_GROUP_BUTTON}
             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID))}
             icon={icons.Plus}
-            innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-            style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
             success
+            small
         />
     );
 
@@ -116,14 +110,12 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                     icon={illustrations.Members}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
-                >
-                    {!shouldDisplayButtonsInSeparateLine && <View style={[styles.flexRow, styles.gap2]}>{createGroupHeaderButton}</View>}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{createGroupHeaderButton}</View>}
+                />
 
                 <DomainGroupsTable
                     domainAccountID={domainAccountID}
                     groups={groupRows}
+                    headerButton={createGroupHeaderButton}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
