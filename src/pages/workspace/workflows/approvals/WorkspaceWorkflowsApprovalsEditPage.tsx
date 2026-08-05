@@ -112,11 +112,10 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         Navigation.dismissModal({
             afterTransition: () => {
                 // Remove the approval workflow using the initial data as it could be already edited
-                if (useRulesBackend) {
-                    removeApprovalWorkflowRules(initialApprovalWorkflow, policy, rulesCollection);
-                } else {
-                    removeApprovalWorkflow(initialApprovalWorkflow, policy);
+                if (useRulesBackend && removeApprovalWorkflowRules(initialApprovalWorkflow, policy, rulesCollection)) {
+                    return;
                 }
+                removeApprovalWorkflow(initialApprovalWorkflow, policy);
             },
         });
     };
