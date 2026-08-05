@@ -4766,16 +4766,16 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 accountSelectDescription: ({integrationName = 'QuickBooks Online'} = {}) => `选择用于支付账单的来源，我们会在 ${integrationName} 中创建这笔付款。`,
                 invoiceAccountSelectorDescription: ({integrationName = 'QuickBooks Online'} = {}) => `选择接收发票付款的账户，我们会在 ${integrationName} 中创建这笔付款。`,
             },
+            debitCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `我们会自动将借记卡交易中的商户名称与 ${integrationName} 中任何相应的供应商进行匹配。如果不存在对应供应商，我们会创建一个名为“Debit Card Misc.”的供应商以供关联。`,
+            creditCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `我们会自动将信用卡交易中的商户名称与 ${integrationName} 中对应的供应商进行匹配。如果不存在相应供应商，我们将创建一个名为“Credit Card Misc.”的供应商用于关联。`,
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: '借记卡',
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: '信用卡',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: '供应商账单',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: '日记账分录',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: '支票',
-                debitCardDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
-                    `我们会自动将借记卡交易中的商户名称与 ${integrationName} 中任何相应的供应商进行匹配。如果不存在对应供应商，我们会创建一个名为“Debit Card Misc.”的供应商以供关联。`,
-                creditCardDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
-                    `我们会自动将信用卡交易中的商户名称与 ${integrationName} 中对应的供应商进行匹配。如果不存在相应供应商，我们将创建一个名为“Credit Card Misc.”的供应商用于关联。`,
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     '我们会为每份 Expensify 报告创建一张分项供应商账单，日期为最后一笔报销的日期，并将其记入下方的科目。如果该会计期间已结账，我们会将其记入下一个未结期间的第一天。',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: '选择借记卡交易的导出位置。',

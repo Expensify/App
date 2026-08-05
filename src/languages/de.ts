@@ -4950,16 +4950,16 @@ ${amount} für ${merchant} – ${date}`,
                 invoiceAccountSelectorDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
                     `Wähle aus, wo Rechnungszahlungen eingehen sollen, und wir erstellen die Zahlung in ${integrationName}.`,
             },
+            debitCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Wir gleichen den Händlernamen der Debitkartentransaktion automatisch mit allen entsprechenden Lieferanten in ${integrationName} ab. Falls keine Lieferanten vorhanden sind, erstellen wir zur Zuordnung einen Lieferanten „Debit Card Misc.“.`,
+            creditCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Wir gleichen den Händlernamen der Kreditkartentransaktion automatisch mit allen entsprechenden Lieferanten in ${integrationName} ab. Falls keine Lieferanten vorhanden sind, erstellen wir für die Verknüpfung einen Lieferanten „Credit Card Misc.“.`,
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Debitkarte',
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: 'Kreditkarte',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Lieferantenrechnung',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Buchung',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Prüfen',
-                debitCardDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
-                    `Wir gleichen den Händlernamen der Debitkartentransaktion automatisch mit allen entsprechenden Lieferanten in ${integrationName} ab. Falls keine Lieferanten vorhanden sind, erstellen wir zur Zuordnung einen Lieferanten „Debit Card Misc.“.`,
-                creditCardDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
-                    `Wir gleichen den Händlernamen der Kreditkartentransaktion automatisch mit allen entsprechenden Lieferanten in ${integrationName} ab. Falls keine Lieferanten vorhanden sind, erstellen wir für die Verknüpfung einen Lieferanten „Credit Card Misc.“.`,
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Wir erstellen für jeden Expensify-Bericht eine detaillierte Lieferantenrechnung mit dem Datum der letzten Ausgabe und fügen sie dem untenstehenden Konto hinzu. Ist dieser Zeitraum abgeschlossen, buchen wir auf den 1. Tag der nächsten offenen Periode.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Wähle aus, wohin Debitkartentransaktionen exportiert werden sollen.',

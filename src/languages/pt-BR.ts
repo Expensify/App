@@ -4915,16 +4915,16 @@ ${amount} para ${merchant} - ${date}`,
                 invoiceAccountSelectorDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
                     `Escolha onde receber os pagamentos de fatura e nós criaremos o pagamento no ${integrationName}.`,
             },
+            debitCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Vamos combinar automaticamente o nome do comerciante na transação do cartão de débito com quaisquer fornecedores correspondentes no ${integrationName}. Se não houver fornecedores existentes, criaremos um fornecedor "Despesas diversas – cartão de débito" para associação.`,
+            creditCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Vamos corresponder automaticamente o nome do estabelecimento na transação do cartão de crédito a quaisquer fornecedores correspondentes no ${integrationName}. Se não houver fornecedores, criaremos um fornecedor “Cartão de Crédito – Diversos” para associação.`,
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Cartão de débito',
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: 'Cartão de crédito',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Fatura de fornecedor',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Lançamento contábil',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Verificar',
-                debitCardDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
-                    `Vamos combinar automaticamente o nome do comerciante na transação do cartão de débito com quaisquer fornecedores correspondentes no ${integrationName}. Se não houver fornecedores existentes, criaremos um fornecedor "Despesas diversas – cartão de débito" para associação.`,
-                creditCardDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
-                    `Vamos corresponder automaticamente o nome do estabelecimento na transação do cartão de crédito a quaisquer fornecedores correspondentes no ${integrationName}. Se não houver fornecedores, criaremos um fornecedor “Cartão de Crédito – Diversos” para associação.`,
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Vamos criar uma conta detalhada de fornecedor para cada relatório do Expensify com a data da última despesa e adicioná-la à conta abaixo. Se este período estiver encerrado, lançaremos no dia 1º do próximo período em aberto.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Escolha para onde exportar as transações do cartão de débito.',

@@ -49,9 +49,9 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!qboConfig?.autoCreateVendor);
     let nonReimbursableExportDescription;
     if (qboNonReimbursableDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD) {
-        nonReimbursableExportDescription = translate('workspace.qbo.accounts.creditCardDescription', {integrationName});
+        nonReimbursableExportDescription = translate('workspace.qbo.creditCardExportDescription', {integrationName});
     } else if (qboNonReimbursableDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD) {
-        nonReimbursableExportDescription = translate('workspace.qbo.accounts.debitCardDescription', {integrationName});
+        nonReimbursableExportDescription = translate('workspace.qbo.debitCardExportDescription', {integrationName});
     } else if (qboNonReimbursableDestination) {
         nonReimbursableExportDescription = translate(`workspace.qbo.accounts.${qboNonReimbursableDestination}Description`);
     }

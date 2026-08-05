@@ -4959,16 +4959,16 @@ ${amount} pour ${merchant} - ${date}`,
                 invoiceAccountSelectorDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
                     `Choisissez où recevoir les paiements de factures et nous créerons le paiement dans ${integrationName}.`,
             },
+            debitCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Nous associerons automatiquement le nom du commerçant sur la transaction par carte de débit à tous les fournisseurs correspondants dans ${integrationName}. Si aucun fournisseur n’existe, nous créerons un fournisseur « Debit Card Misc. » pour l’association.`,
+            creditCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Nous ferons automatiquement correspondre le nom du commerçant sur la transaction par carte de crédit aux fournisseurs correspondants dans ${integrationName}. S’il n’existe aucun fournisseur, nous créerons un fournisseur « Dépenses carte de crédit diverses » pour l’association.`,
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Carte de débit',
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: 'Carte de crédit',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Facture fournisseur',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Écriture comptable',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Vérifier',
-                debitCardDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
-                    `Nous associerons automatiquement le nom du commerçant sur la transaction par carte de débit à tous les fournisseurs correspondants dans ${integrationName}. Si aucun fournisseur n’existe, nous créerons un fournisseur « Debit Card Misc. » pour l’association.`,
-                creditCardDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
-                    `Nous ferons automatiquement correspondre le nom du commerçant sur la transaction par carte de crédit aux fournisseurs correspondants dans ${integrationName}. S’il n’existe aucun fournisseur, nous créerons un fournisseur « Dépenses carte de crédit diverses » pour l’association.`,
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Nous créerons une facture fournisseur détaillée pour chaque note de frais Expensify avec la date de la dernière dépense, et nous l’ajouterons au compte ci-dessous. Si cette période est clôturée, nous comptabiliserons au 1er jour de la prochaine période ouverte.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Choisissez où exporter les transactions de carte de débit.',

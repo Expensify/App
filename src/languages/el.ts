@@ -5032,16 +5032,16 @@ ${amount} για ${merchant} - ${date}`,
                 invoiceAccountSelectorDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
                     `Επιλέξτε πού θα λαμβάνετε τις πληρωμές τιμολογίων και θα δημιουργήσουμε την πληρωμή στο ${integrationName}.`,
             },
+            debitCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Θα αντιστοιχίσουμε αυτόματα το όνομα εμπόρου στη συναλλαγή χρεωστικής κάρτας με τυχόν αντίστοιχους προμηθευτές στο ${integrationName}. Αν δεν υπάρχουν προμηθευτές, θα δημιουργήσουμε έναν προμηθευτή «Debit Card Misc.» για τη συσχέτιση.`,
+            creditCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Θα αντιστοιχίσουμε αυτόματα το όνομα εμπόρου στη συναλλαγή της πιστωτικής κάρτας με τυχόν αντίστοιχους προμηθευτές στο ${integrationName}. Αν δεν υπάρχουν προμηθευτές, θα δημιουργήσουμε έναν προμηθευτή «Credit Card Misc.» για τη συσχέτιση.`,
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Χρεωστική κάρτα',
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: 'Πιστωτική κάρτα',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Τιμολόγιο προμηθευτή',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Λογιστική εγγραφή',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Επιταγή',
-                debitCardDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
-                    `Θα αντιστοιχίσουμε αυτόματα το όνομα εμπόρου στη συναλλαγή χρεωστικής κάρτας με τυχόν αντίστοιχους προμηθευτές στο ${integrationName}. Αν δεν υπάρχουν προμηθευτές, θα δημιουργήσουμε έναν προμηθευτή «Debit Card Misc.» για τη συσχέτιση.`,
-                creditCardDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
-                    `Θα αντιστοιχίσουμε αυτόματα το όνομα εμπόρου στη συναλλαγή της πιστωτικής κάρτας με τυχόν αντίστοιχους προμηθευτές στο ${integrationName}. Αν δεν υπάρχουν προμηθευτές, θα δημιουργήσουμε έναν προμηθευτή «Credit Card Misc.» για τη συσχέτιση.`,
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Θα δημιουργούμε μια αναλυτική προμηθευτική χρέωση για κάθε αναφορά Expensify με την ημερομηνία της τελευταίας δαπάνης και θα τη προσθέτουμε στον παρακάτω λογαριασμό. Αν αυτή η περίοδος είναι κλειστή, θα καταχωρούμε την κίνηση στην 1η της επόμενης ανοιχτής περιόδου.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές χρεωστικής κάρτας.',
