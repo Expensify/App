@@ -1,5 +1,6 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import usePrevious from '@hooks/usePrevious';
 
 // eslint-disable-next-line @dword-design/import-alias/prefer-alias
@@ -54,7 +55,13 @@ import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils
 
 import {getBankName, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithExplicitCurrency, convertToShortDisplayString} from './CurrencyUtils';
+import {
+    convertAmountToDisplayString,
+    convertToBackendAmount,
+    convertToDisplayString as convertToDisplayStringUtil,
+    convertToDisplayStringWithExplicitCurrency,
+    convertToShortDisplayString,
+} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
@@ -490,7 +497,7 @@ function getCrossBorderReimbursedMessage(
     }
 
     return translate('iou.reimbursedCrossBorder', {
-        amount: convertToDisplayString(creditedAmount, creditedCurrency),
+        amount: convertToDisplayStringUtil(creditedAmount, creditedCurrency),
         debitBankAccount: originalMessage.debitBankAccountLast4 ?? fallbackDebitBankAccountLast4 ?? '',
         creditBankAccount: originalMessage.creditBankAccountLast4 ?? '',
     });
@@ -3594,7 +3601,7 @@ function getCategoryTaxRateMessage(translate: LocalizedTranslate, action: Report
     });
 }
 
-function getAutoReimbursementMessage(translate: LocalizedTranslate, action: ReportAction): string {
+function getAutoReimbursementMessage(translate: LocalizedTranslate, action: ReportAction, convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']): string {
     const {oldLimit, newLimit, currency} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT>) ?? {};
 
     if ((oldLimit === undefined || oldLimit === null || oldLimit === 0) && typeof newLimit === 'number' && newLimit !== 0) {
@@ -3793,7 +3800,11 @@ function getUpdateACHAccountMessage(translate: LocalizedTranslate, action: Repor
     return getReportActionText(action);
 }
 
-function getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate: LocalizedTranslate, action: ReportAction): string {
+function getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(
+    translate: LocalizedTranslate,
+    action: ReportAction,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+): string {
     const {oldMaxExpenseAmountNoReceipt, newMaxExpenseAmountNoReceipt, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT>) ?? {};
 
@@ -3817,7 +3828,11 @@ function getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate: Localized
     return getReportActionText(action);
 }
 
-function getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translate: LocalizedTranslate, action: ReportAction): string {
+function getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(
+    translate: LocalizedTranslate,
+    action: ReportAction,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+): string {
     const {oldMaxExpenseAmountNoItemizedReceipt, newMaxExpenseAmountNoItemizedReceipt, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT>) ?? {};
 
@@ -3841,7 +3856,11 @@ function getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translate: L
     return getReportActionText(action);
 }
 
-function getPolicyChangeLogMaxExpenseAmountMessage(translate: LocalizedTranslate, action: ReportAction): string {
+function getPolicyChangeLogMaxExpenseAmountMessage(
+    translate: LocalizedTranslate,
+    action: ReportAction,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+): string {
     const {oldMaxExpenseAmount, newMaxExpenseAmount, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT>) ?? {};
 
@@ -4098,6 +4117,7 @@ function getActionableCardFraudAlertMessage(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT>>,
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ) {
     const fraudMessage = getOriginalMessage(reportAction);
     const cardLastFour = fraudMessage?.maskedCardNumber?.slice(-4) ?? '';
@@ -4137,7 +4157,11 @@ function getUpdatedAuditRateMessage(translate: LocalizedTranslate, reportAction:
     return translate('workspaceActions.updatedAuditRate', oldAuditRate, newAuditRate);
 }
 
-function getUpdatedManualApprovalThresholdMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
+function getUpdatedManualApprovalThresholdMessage(
+    translate: LocalizedTranslate,
+    reportAction: OnyxEntry<ReportAction>,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+) {
     const {
         oldLimit,
         newLimit,
@@ -4244,7 +4268,7 @@ function getUpdatedTimeEnabledMessage(translate: LocalizedTranslate, reportActio
     return getReportActionText(reportAction);
 }
 
-function getUpdatedTimeRateMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
+function getUpdatedTimeRateMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']) {
     const {newRate, oldRate, currency} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE>) ?? {};
 
     const newRateText = newRate !== undefined ? convertToDisplayString(convertToBackendAmount(newRate), currency) : undefined;

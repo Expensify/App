@@ -23,7 +23,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 Onyx.init({keys: ONYXKEYS});
@@ -1215,7 +1215,18 @@ describe('libs/NextStepUtils', () => {
                 message: [{text: 'Current next step'}],
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false);
+            const result = getReportNextStep({
+                currentNextStep,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy: undefined,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+                isTrackIntentUser: false,
+                translate: translateLocal,
+            });
             expect(result).toBe(currentNextStep);
         });
 
@@ -1252,17 +1263,18 @@ describe('libs/NextStepUtils', () => {
                 ],
             };
 
-            const result = getReportNextStep(
-                undefined,
-                report,
-                currentUserEmail,
-                [transaction] as Array<OnyxEntry<Transaction>>,
-                undefined,
+            const result = getReportNextStep({
+                currentNextStep: undefined,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [transaction] as Array<OnyxEntry<Transaction>>,
+                policy: undefined,
                 transactionViolations,
                 currentUserEmail,
                 currentUserAccountID,
-                false,
-            );
+                isTrackIntentUser: false,
+                translate: translateLocal,
+            });
 
             expect(result).toEqual({
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -1312,7 +1324,18 @@ describe('libs/NextStepUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
-            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, false);
+            const result = getReportNextStep({
+                currentNextStep: undefined,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+                isTrackIntentUser: false,
+                translate: translateLocal,
+            });
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
 
@@ -1373,17 +1396,18 @@ describe('libs/NextStepUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
-            const result = getReportNextStep(
-                undefined,
-                report,
-                currentUserEmail,
-                [transaction] as Array<OnyxEntry<Transaction>>,
+            const result = getReportNextStep({
+                currentNextStep: undefined,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [transaction] as Array<OnyxEntry<Transaction>>,
                 policy,
                 transactionViolations,
                 currentUserEmail,
                 currentUserAccountID,
-                false,
-            );
+                isTrackIntentUser: false,
+                translate: translateLocal,
+            });
 
             expect(result).toEqual({
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
@@ -1420,7 +1444,19 @@ describe('libs/NextStepUtils', () => {
                 actorAccountID: currentUserAccountID,
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
+            const result = getReportNextStep({
+                currentNextStep,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy: undefined,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+                isTrackIntentUser: false,
+                translate: translateLocal,
+                reportNextStep,
+            });
             expect(result).toBe(reportNextStep);
         });
 
@@ -1452,7 +1488,19 @@ describe('libs/NextStepUtils', () => {
                 actorAccountID: currentUserAccountID,
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
+            const result = getReportNextStep({
+                currentNextStep,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy: undefined,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+                isTrackIntentUser: false,
+                translate: translateLocal,
+                reportNextStep,
+            });
             expect(result).toBe(currentNextStep);
         });
 
@@ -1485,7 +1533,19 @@ describe('libs/NextStepUtils', () => {
                 message: [{text: 'Stale deprecated message'}],
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, report.nextStep);
+            const result = getReportNextStep({
+                currentNextStep,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy: undefined,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+                isTrackIntentUser: false,
+                translate: translateLocal,
+                reportNextStep: report.nextStep,
+            });
             expect(result).toBe(embeddedNextStep);
         });
 
@@ -1538,7 +1598,19 @@ describe('libs/NextStepUtils', () => {
             await waitForBatchedUpdates();
 
             // Even though a translatable next step is supplied, the prevent-self-approval override must still win.
-            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
+            const result = getReportNextStep({
+                currentNextStep: undefined,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+                isTrackIntentUser: false,
+                translate: translateLocal,
+                reportNextStep,
+            });
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
     });
@@ -1566,8 +1638,32 @@ describe('libs/NextStepUtils', () => {
             };
 
             // A currentUserAccountID different from the actor renders the actor as an OTHER_USER, so its name appears in the message.
-            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, 999999);
+            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, 999999, formatPhoneNumber);
             expect(message).toBe('<next-step>Waiting for HiddenMarker to submit expenses.</next-step>');
+        });
+
+        it('uses the provided phone number formatter when resolving an SMS actor login', async () => {
+            const phoneActorAccountID = 780071;
+            const phoneActorLogin = '18332403628@expensify.sms';
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[phoneActorAccountID]: {accountID: phoneActorAccountID, login: phoneActorLogin}});
+            await waitForBatchedUpdates();
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: phoneActorAccountID,
+            };
+            const translateWithActorName: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'nextStep.message.waitingToSubmit') {
+                    return `Waiting for ${String(parameters.at(0))} to submit expenses.`;
+                }
+                return translateLocal(path, ...parameters);
+            };
+            const formatPhoneNumberMock = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
+
+            const message = buildNextStepMessage(nextStep, translateWithActorName, 999999, formatPhoneNumberMock);
+
+            expect(formatPhoneNumberMock).toHaveBeenCalledWith(phoneActorLogin);
+            expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
         });
     });
 
