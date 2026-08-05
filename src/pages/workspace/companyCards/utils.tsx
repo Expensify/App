@@ -5,7 +5,9 @@ import {sortDefaultToTop} from '@libs/ListUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
+import {getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
+
+import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 
 import type {ThemeStyles} from '@styles/index';
 
@@ -39,7 +41,7 @@ function getExportMenuItem(
     backTo?: string | undefined,
 ): ExportIntegration | undefined {
     const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
-    const currentConnectionName = getCurrentConnectionName(policy);
+    const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const defaultVendor = translate('workspace.accounting.defaultVendor');
     const defaultAccount = translate('workspace.accounting.defaultAccount');

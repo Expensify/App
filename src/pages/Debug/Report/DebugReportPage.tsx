@@ -21,7 +21,7 @@ import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import {getViolatingReportIDForRBRInLHN, resolveHasGuidesEmails} from '@libs/ReportUtils';
+import {getViolatingReportIDForRBRInLHN} from '@libs/ReportUtils';
 
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
@@ -33,7 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ReportAttributesDerivedValue, PersonalDetailsList} from '@src/types/onyx';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -88,15 +88,10 @@ function DebugReportPage({
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
-    const participantAccountIDs = useMemo(() => Object.keys(report?.participants ?? {}).map(Number), [report?.participants]);
-    const guidesEmailsSelector = useCallback(
-        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => hasExpensifyGuidesEmailsSelector(participantAccountIDs)(personalDetailsList),
-        [participantAccountIDs],
-    );
+    const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
     const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: guidesEmailsSelector,
+        selector: hasExpensifyGuidesEmailsSelector(participantAccountIDs),
     });
-    const resolvedHasGuidesEmails = useMemo(() => resolveHasGuidesEmails({participantAccountIDs, hasGuidesEmails}), [participantAccountIDs, hasGuidesEmails]);
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
@@ -134,7 +129,7 @@ function DebugReportPage({
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
             conciergeReportID,
-            hasGuidesEmails: resolvedHasGuidesEmails,
+            hasGuidesEmails: hasGuidesEmails ?? false,
         });
 
         return [
@@ -196,7 +191,7 @@ function DebugReportPage({
         draftComment,
         translate,
         conciergeReportID,
-        resolvedHasGuidesEmails,
+        hasGuidesEmails,
     ]);
 
     const icons = useMemoizedLazyExpensifyIcons(['Eye']);

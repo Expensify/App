@@ -1,12 +1,13 @@
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canAccessReport, resolveHasGuidesEmails} from '@libs/ReportUtils';
+import {canAccessReport} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import type {
@@ -32,7 +33,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import {hasExpensifyGuidesEmailsSelector} from '@selectors/PersonalDetails';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 
 type WithReportOrNotFoundOnyxProps = {
     /** The report currently being looked at */
@@ -93,15 +94,15 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
             const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
             const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+            const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+            const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+            // This component does not compile with React Compiler (the `contentShown` ref is read during
+            // render), so the selector has to be memoized manually to keep its identity stable.
             const participantAccountIDs = useMemo(() => Object.keys(report?.participants ?? {}).map(Number), [report?.participants]);
-            const guidesEmailsSelector = useCallback(
-                (personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>) => hasExpensifyGuidesEmailsSelector(participantAccountIDs)(personalDetailsList),
-                [participantAccountIDs],
-            );
+            const guidesEmailsSelector = useMemo(() => hasExpensifyGuidesEmailsSelector(participantAccountIDs), [participantAccountIDs]);
             const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 selector: guidesEmailsSelector,
             });
-            const resolvedHasGuidesEmails = useMemo(() => resolveHasGuidesEmails({participantAccountIDs, hasGuidesEmails}), [participantAccountIDs, hasGuidesEmails]);
             const isFocused = useIsFocused();
             const contentShown = React.useRef(false);
             const isReportIdInRoute = !!reportID?.length;
@@ -118,17 +119,19 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     return;
                 }
 
-                openReport({reportID, introSelected, betas, hasReportActions});
+                openReport({reportID, introSelected, betas, hasReportActions, currentUserAccountID});
                 // eslint-disable-next-line react-hooks/exhaustive-deps
-            }, [shouldFetchReport, isReportLoaded, reportID]);
+            }, [shouldFetchReport, isReportLoaded, reportID, currentUserAccountID]);
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);
-                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, betas, resolvedHasGuidesEmails, isReportArchived);
+                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, betas, hasGuidesEmails ?? false, isReportArchived);
 
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
-                if (shouldShowNotFoundPage && contentShown.current && !isFocused) {
+                // We also suppress the NotFound page while a delete-transaction navigation is in flight (e.g. deleting an invoice
+                // navigates back to the invoice room without synchronously removing focus from this details RHP), mirroring ReportNotFoundGuard.
+                if (shouldShowNotFoundPage && contentShown.current && (!isFocused || !!deleteTransactionNavigateBackUrl)) {
                     return null;
                 }
 

@@ -49,7 +49,7 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import PusherHelper from '../../utils/PusherHelper';
 import * as TestHelper from '../../utils/TestHelper';
-import {formatPhoneNumber, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -384,6 +384,7 @@ describe('actions/IOU/TrackExpense', () => {
             const reportActionableTrackExpense = Object.values(selfDMReportActions ?? {}).find((reportAction) => isActionableTrackExpense(reportAction));
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
+                reportActions: selfDMReportActions,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: reportActionableTrackExpense?.reportActionID,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -1271,8 +1272,6 @@ describe('actions/IOU/TrackExpense', () => {
 
         it('should post onboarding tasks to the threaded conciergeChat instead of the deprecated CONCIERGE_REPORT_ID fallback when tracking to a draft workspace', async () => {
             mockFetch?.pause?.();
-            // Given the deprecated Onyx.connect fallback points at a DIFFERENT report than the threaded param,
-            // so the assertions below fail if trackExpense stops forwarding conciergeChat to buildPolicyData (#66411)
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'deprecated-fallback-track');
 
             // And a draft workspace expense chat (getTrackExpenseInformation only creates the workspace for draft reports)
@@ -1467,6 +1466,7 @@ describe('actions/IOU/TrackExpense', () => {
             // When a draft is created for categorization
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
+                reportActions: selfDMReportActions,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: actionableWhisper?.reportActionID,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -2697,6 +2697,7 @@ describe('actions/IOU/TrackExpense', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             const result = deleteTrackExpense({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 chatReportID: selfDMReport.reportID,
                 chatReport: selfDMReport,
                 chatReportActions: undefined,
