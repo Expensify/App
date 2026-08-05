@@ -95,6 +95,23 @@ describe('OFXUtils', () => {
             ]);
         });
 
+        it('reads comma decimal separators and thousands grouping', () => {
+            const statement = `<OFX><BANKTRANLIST>
+<STMTTRN><DTPOSTED>20260101<TRNAMT>-24,99<NAME>COMMA DECIMAL</STMTTRN>
+<STMTTRN><DTPOSTED>20260102<TRNAMT>-1.234,56<NAME>EURO GROUPING</STMTTRN>
+<STMTTRN><DTPOSTED>20260103<TRNAMT>-1,234.56<NAME>US GROUPING</STMTTRN>
+<STMTTRN><DTPOSTED>20260104<TRNAMT>-1,234<NAME>NO DECIMALS</STMTTRN>
+</BANKTRANLIST></OFX>`;
+
+            expect(parseOFXToSpreadsheetRows(statement)).toEqual([
+                ['Date', 'Merchant', 'Amount'],
+                ['2026-01-01', 'COMMA DECIMAL', '24.99'],
+                ['2026-01-02', 'EURO GROUPING', '1234.56'],
+                ['2026-01-03', 'US GROUPING', '1234.56'],
+                ['2026-01-04', 'NO DECIMALS', '1234'],
+            ]);
+        });
+
         it('returns null when the file holds no transaction', () => {
             expect(parseOFXToSpreadsheetRows('Date,Merchant,Amount\n2026-01-01,Store,10.00')).toBeNull();
         });
