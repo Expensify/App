@@ -1,7 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LoadingIndicator from '@components/LoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useImportPersonalPlaidAccounts from '@hooks/useImportPersonalPlaidAccounts';
@@ -55,7 +55,7 @@ function BankConnection() {
         isNewCardError,
     };
 
-    const renderLoading = () => <FullScreenLoadingIndicator reasonAttributes={fullscreenReasonAttributes} />;
+    const renderLoading = () => <LoadingIndicator reasonAttributes={fullscreenReasonAttributes} />;
 
     const handleBackButtonPress = () => {
         setAddNewPersonalCardStepAndData({step: CONST.PERSONAL_CARDS.STEP.SELECT_BANK});

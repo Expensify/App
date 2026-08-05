@@ -1,4 +1,5 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import LoadingIndicator from '@components/LoadingIndicator';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -50,7 +51,6 @@ function CardAuthenticationView({onAuthenticationComplete, onClose}: CardAuthent
 
     return (
         <View style={[styles.flex1]}>
-            {isLoading && <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />}
             <iframe
                 src={authenticationLink}
                 title={translate('subscription.authenticatePaymentCard')}
@@ -60,6 +60,7 @@ function CardAuthenticationView({onAuthenticationComplete, onClose}: CardAuthent
                 style={{border: 'none'}}
                 onLoad={() => setIsLoading(false)}
             />
+            {isLoading && <LoadingIndicator reasonAttributes={reasonAttributes} />}
         </View>
     );
 }

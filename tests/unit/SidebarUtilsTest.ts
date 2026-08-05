@@ -43,7 +43,7 @@ import {createSidebarReportsCollection, createSidebarTestData} from '../utils/co
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -380,6 +380,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction: undefined,
                 lastActionReport: undefined,
@@ -402,6 +403,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction: undefined,
                 lastActionReport: undefined,
@@ -1497,6 +1499,82 @@ describe('SidebarUtils', () => {
             expect(result.messageHtml).toContain('HiddenMarker');
         });
 
+        it('resolves the policy expense chat workspace name through the provided translate function', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'non-existent-policy-id',
+            };
+
+            await waitForBatchedUpdates();
+
+            // A translate that tags the "unavailable" workspace copy so we can prove getPolicyName used the provided translate
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithUnavailableMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
+            expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
+        });
+
+        it('resolves the admin room workspace name through the provided translate function', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'non-existent-policy-id',
+            };
+
+            await waitForBatchedUpdates();
+
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithUnavailableMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
+            expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
+        });
+
+        it('resolves the invoice room receiver name through the provided translate function', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'non-existent-policy-id',
+            };
+
+            await waitForBatchedUpdates();
+
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithUnavailableMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
+            expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
+        });
+
         it('do not return pronouns in the welcome message text when it is group chat', async () => {
             const MOCK_REPORT: Report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -1658,11 +1736,6 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        const reportAttributes: Record<string, ReportAttributes> = {
-                            [MOCK_REPORT.reportID]: createMock<ReportAttributes>({
-                                reportName: 'Report (archived)',
-                            }),
-                        };
                         return SidebarUtils.getWelcomeMessage({
                             report: MOCK_REPORT,
                             policy: undefined,
@@ -1671,7 +1744,7 @@ describe('SidebarUtils', () => {
                             translate: translateLocal,
                             localeCompare,
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
-                            reportAttributes,
+                            derivedReportName: 'Report (archived)',
                             isReportArchived: isReportArchived.current,
                         });
                     })
@@ -1858,12 +1931,6 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const reportAttributes: Record<string, ReportAttributes> = {
-                [archivedInvoiceRoom.reportID]: createMock<ReportAttributes>({
-                    reportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`,
-                }),
-            };
-
             const result = SidebarUtils.getWelcomeMessage({
                 report: archivedInvoiceRoom,
                 policy: senderPolicy,
@@ -1872,7 +1939,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
-                reportAttributes,
+                derivedReportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`,
                 isReportArchived: true,
                 reportDetailsLink: 'https://example.com/report',
             });
@@ -2233,6 +2300,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2299,6 +2367,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2340,6 +2409,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2380,6 +2450,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2420,6 +2491,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2466,6 +2538,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2506,6 +2579,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction: enabledAction,
                 lastActionReport: undefined,
@@ -2539,6 +2613,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction: disabledAction,
                 lastActionReport: undefined,
@@ -2579,6 +2654,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2619,6 +2695,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2659,6 +2736,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2699,6 +2777,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2739,6 +2818,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2779,6 +2859,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2819,6 +2900,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2887,6 +2969,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2942,6 +3025,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -2986,6 +3070,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     isReportArchived: true,
                     lastActionReport: undefined,
@@ -3029,6 +3114,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -3169,6 +3255,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -3218,6 +3305,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -3292,6 +3380,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -3356,6 +3445,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -3410,6 +3500,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction: undefined,
                     lastActionReport: undefined,
@@ -3502,6 +3593,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -3630,6 +3722,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -3720,6 +3813,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -3822,6 +3916,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: lastReportPreviewAction,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -3932,6 +4027,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: lastReportPreviewAction,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -3972,6 +4068,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction: undefined,
                     lastActionReport: undefined,
@@ -4004,6 +4101,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction: undefined,
                     lastActionReport: undefined,
@@ -4035,6 +4133,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction: undefined,
                     lastActionReport: undefined,
@@ -4084,6 +4183,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -4869,6 +4969,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
