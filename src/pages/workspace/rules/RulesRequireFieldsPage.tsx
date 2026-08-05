@@ -16,7 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {hasDependentTags as hasDependentTagsUtil, isMultiLevelTags as isMultiLevelTagsUtil} from '@libs/PolicyUtils';
+import {hasAccountingConnections, hasDependentTags as hasDependentTagsUtil, isMultiLevelTags as isMultiLevelTagsUtil} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -48,7 +48,9 @@ function RulesRequireFieldsPage({
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
-    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    // Match the Categories/Tags toggles on WorkspaceMoreFeaturesPage: only an accounting connection owns these
+    // features. policy.connections also holds HR connections, which must not lock the Required toggles.
+    const isConnectedToAccounting = hasAccountingConnections(policy);
     const hasEnabledCategories = hasEnabledOptions(policyData.categories);
     const isCategoryFeatureDisabled = !policy?.areCategoriesEnabled;
     const isCategoryToggleDisabled = isCategoryFeatureDisabled || !hasEnabledCategories || isConnectedToAccounting;

@@ -36,7 +36,6 @@ import {
     hasAccountingConnections,
     hasAccountingFeatureConnection,
     hasVendorFeature,
-    isCollectPolicy,
     isControlPolicy,
     isPerDiemEnabled,
     isTimeTrackingEnabled,
@@ -521,7 +520,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 // else (Submit) can't hold Rules at all — arePolicyRulesEnabled would keep reading
                                 // false — so it has to keep going to the upgrade page rather than writing a flag that
                                 // never takes effect.
-                                if (isEnabled && !isControlPolicy(policy) && (!isRulesRevampEnabled || !isCollectPolicy(policy))) {
+                                if (isEnabled && !canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, isRulesRevampEnabled)) {
                                     Navigation.navigate(
                                         ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
                                     );
