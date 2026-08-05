@@ -13,6 +13,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useMemo, useState} from 'react';
 
@@ -48,6 +50,22 @@ type RecentlyAddedExpense = {
     /** The expense's parent report, from the snapshot */
     report?: Report;
 };
+
+/** Selecting inside the subscription scans the (very large) collection once per update rather than once per render. */
+const pendingTransactionIDsSelector = (transactions: OnyxCollection<Transaction>): {added: string[]; deleted: string[]} => {
+    const added: string[] = [];
+    const deleted: string[] = [];
+    for (const transaction of Object.values(transactions ?? {})) {
+        if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            added.push(transaction.transactionID);
+        } else if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            deleted.push(transaction.transactionID);
+        }
+    }
+    return {added, deleted};
+};
+
+const getLocalTransaction = (localTransactions: OnyxCollection<Transaction>, transactionID: string) => localTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
 /**
  * Returns the signed-in user's most recently added expenses, ordered by insertion timestamp (most recent first)
@@ -87,20 +105,9 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
     const hash = queryJSON?.hash;
 
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    // Read by key only, never iterated: the collection holds tens of thousands of entries.
     const [localTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-
-    // Maps transactionID -> local `transactions_` copy. When present it carries the freshest optimistic state
-    // (edited values and `pendingFields`) for an offline edit, which the server-backed snapshot doesn't yet reflect.
-    const localTransactionByID = useMemo(() => {
-        const map = new Map<string, Transaction>();
-        for (const [key, transaction] of Object.entries(localTransactions ?? {})) {
-            if (!transaction) {
-                continue;
-            }
-            map.set(transaction.transactionID ?? key.slice(ONYXKEYS.COLLECTION.TRANSACTION.length), transaction);
-        }
-        return map;
-    }, [localTransactions]);
+    const [pendingTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: pendingTransactionIDsSelector});
 
     // Holding a just-created expense here keeps it in the slot after `pendingAction` clears on sync but before the
     // refreshed snapshot arrives (otherwise it briefly disappears and reappears).
@@ -179,41 +186,30 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
         // Merge in locally-pending expenses, skipping any already in the snapshot so a row never appears twice.
         // A local optimistic ADD always belongs to the current user, so no ownership check is needed (unlike the snapshot path).
         const snapshotTransactionIDs = new Set(snapshotTransactions.map((transaction) => transaction.transactionID));
-        const pendingAddIDs = Object.values(localTransactions ?? {}).reduce<string[]>((ids, transaction) => {
-            if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                ids.push(transaction.transactionID);
-            }
-            return ids;
-        }, []);
-        const nextUnconfirmed = new Set([...unconfirmedTransactionIDs, ...pendingAddIDs].filter((transactionID) => !snapshotTransactionIDs.has(transactionID)));
+        const nextUnconfirmed = new Set([...unconfirmedTransactionIDs, ...(pendingTransactionIDs?.added ?? [])].filter((transactionID) => !snapshotTransactionIDs.has(transactionID)));
 
         // A locally-deleted expense stays suppressed only while the snapshot still lists it. An ID is released once
         // the snapshot drops it (the delete is fully reflected) or once a local copy reappears without a DELETE
         // pending action, which is how a failed delete rolls the expense back.
-        const pendingDeleteIDs = Object.values(localTransactions ?? {}).reduce<string[]>((ids, transaction) => {
-            if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                ids.push(transaction.transactionID);
-            }
-            return ids;
-        }, []);
-
         const nextDeleted = new Set(
-            [...deletedTransactionIDs, ...pendingDeleteIDs].filter((transactionID) => {
+            [...deletedTransactionIDs, ...(pendingTransactionIDs?.deleted ?? [])].filter((transactionID) => {
                 if (!snapshotTransactionIDs.has(transactionID)) {
                     return false;
                 }
-                const localTransaction = localTransactionByID.get(transactionID);
+                const localTransaction = getLocalTransaction(localTransactions, transactionID);
                 return !localTransaction || localTransaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             }),
         );
 
         const combined = [
             ...filtered,
-            ...Object.values(localTransactions ?? {}).filter(
-                (transaction): transaction is Transaction & {reportID: string} => !!transaction?.reportID && nextUnconfirmed.has(transaction.transactionID),
-            ),
+            // Resolved by key, not from `pendingTransactionIDs.added`: an ID held over from `unconfirmedTransactionIDs` may
+            // have had its `pendingAction` cleared by a sync.
+            ...[...nextUnconfirmed]
+                .map((transactionID) => getLocalTransaction(localTransactions, transactionID))
+                .filter((transaction): transaction is Transaction & {reportID: string} => !!transaction?.reportID),
         ].filter((transaction) => {
-            const localTransaction = localTransactionByID.get(transaction.transactionID);
+            const localTransaction = getLocalTransaction(localTransactions, transaction.transactionID);
 
             // When an expense is split, its (local) copy is reassigned to the synthetic SPLIT_REPORT_ID and the
             // resulting split children are added as new expenses. Drop the now-orphaned original so the slot shows
@@ -242,7 +238,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                 // An offline edit only mutates the local `transactions_` copy (updated values + `pendingFields`); the
                 // snapshot keeps the stale, pre-edit copy. Prefer the local copy when present so the row reflects the
                 // edit and can render the offline pending treatment, matching how the Search transaction list behaves.
-                const sourceTransaction = localTransactionByID.get(transaction.transactionID) ?? transaction;
+                const sourceTransaction = getLocalTransaction(localTransactions, transaction.transactionID) ?? transaction;
                 const reportType = reportByReportID.get(transaction.reportID)?.type;
                 const isFromExpenseReport = reportType === CONST.REPORT.TYPE.EXPENSE;
                 // Self-DM and unreported (tracked) expenses support signed amounts like expense reports, so their
@@ -269,7 +265,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             });
 
         return {transactions: transactionsList, nextUnconfirmedTransactionIDs: nextUnconfirmed, nextDeletedTransactionIDs: nextDeleted};
-    }, [snapshotData, unconfirmedTransactionIDs, deletedTransactionIDs, accountID, localTransactions, localTransactionByID, translate]);
+    }, [snapshotData, unconfirmedTransactionIDs, deletedTransactionIDs, accountID, localTransactions, pendingTransactionIDs?.added, pendingTransactionIDs?.deleted, translate]);
 
     const hasSameUnconfirmedIDs =
         nextUnconfirmedTransactionIDs.size === unconfirmedTransactionIDs.size && [...nextUnconfirmedTransactionIDs].every((id) => unconfirmedTransactionIDs.has(id));

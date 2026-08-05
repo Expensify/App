@@ -405,6 +405,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: 'ID report dettagliato',
         withdrawalID: 'ID prelievo',
         internationalReimbursementIDs: 'ID di rimborso internazionale',
+        amountDebited: 'Importo addebitato',
+        amountReimbursed: 'Importo rimborsato',
         withdrawalStatus: 'Stato del prelievo',
         paidStatus: 'Stato di pagamento',
         bankAccounts: 'Conti bancari',
@@ -2018,21 +2020,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `In attesa che un admin rimborsi le spese.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `In attesa che <strong>tu</strong> finisca di configurare un conto bancario aziendale.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `In attesa che <strong>${actor}</strong> completi la configurazione di un conto bancario aziendale.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `In attesa che un amministratore completi la configurazione di un conto bancario aziendale.`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2477,7 +2464,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'La tua carta di debito è stata aggiunta con successo',
         expensifyPassword: 'Password Expensify',
         error: {
-            invalidName: 'Il nome può includere solo lettere',
+            invalidName: 'Il nome sulla carta non può contenere &lt; o &gt;',
             addressZipCode: 'Inserisci un codice postale valido',
             debitCardNumber: 'Inserisci un numero di carta di debito valido',
             expirationDate: 'Seleziona una data di scadenza valida',
@@ -2500,7 +2487,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'La tua carta di pagamento è stata aggiunta correttamente',
         expensifyPassword: 'Password Expensify',
         error: {
-            invalidName: 'Il nome può includere solo lettere',
+            invalidName: 'Il nome sulla carta non può contenere &lt; o &gt;',
             addressZipCode: 'Inserisci un codice postale valido',
             paymentCardNumber: 'Inserisci un numero di carta valido',
             expirationDate: 'Seleziona una data di scadenza valida',
