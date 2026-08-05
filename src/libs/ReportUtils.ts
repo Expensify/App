@@ -3146,7 +3146,7 @@ function getAddExpenseDropdownOptions({
     lastDistanceExpenseType,
     currentUserAccountID,
 }: GetAddExpenseDropdownOptionsParams): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
-    const moneyRequestIOUType = isTeachersUnitePolicyID(policy?.id) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
+    const moneyRequestIOUType = getMoneyRequestIOUType(policy?.id);
     return [
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
@@ -10351,6 +10351,14 @@ function isTeachersUniteReport(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * The Teachers Unite workspace doesn't support reimbursement, so "Add expense" entry points must start a
+ * TRACK request instead of a SUBMIT request when targeting a report on that policy.
+ */
+function getMoneyRequestIOUType(policyID: string | undefined): IOUType {
+    return isTeachersUnitePolicyID(policyID) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
+}
+
+/**
  * Helper method to define what expense options we want to show for particular method.
  * There are 4 expense options: Submit, Split, Pay and Track expense:
  * - Submit option should show for:
@@ -14053,6 +14061,7 @@ export {
     getRouteFromLink,
     canDeleteCardTransactionByLiabilityType,
     getAddExpenseDropdownOptions,
+    getMoneyRequestIOUType,
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
     getTransactionReportName,
@@ -14152,8 +14161,6 @@ export {
     isSettled,
     isSystemChat,
     isTaskReport,
-    isTeachersUnitePolicyID,
-    isTeachersUniteReport,
     isThread,
     isTrackExpenseReport,
     isUnread,

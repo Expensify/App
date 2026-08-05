@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {canAddTransaction, isArchivedReport, isTeachersUniteReport} from '@libs/ReportUtils';
+import {canAddTransaction, getMoneyRequestIOUType, isArchivedReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 
@@ -44,7 +44,7 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
     const canAddTransactionToReport = canAddTransaction(report, isReportArchived);
-    const moneyRequestIOUType = isTeachersUniteReport(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
+    const moneyRequestIOUType = getMoneyRequestIOUType(report.policyID);
     const addExpenseDropdownOptions = [
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
