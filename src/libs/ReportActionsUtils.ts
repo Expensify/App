@@ -4088,7 +4088,7 @@ function getUpdatedApprovalRuleMessage(translate: LocalizedTranslate, reportActi
 }
 
 function getRemovedFromApprovalChainMessage(translate: LocalizedTranslate, submittersNames: string[]) {
-    return translate('workspaceActions.removedFromApprovalWorkflow', {count: submittersNames.length}, submittersNames);
+    return translate('workspaceActions.removedFromApprovalWorkflow', {submittersNames, count: submittersNames.length});
 }
 
 function getActionableCardFraudAlertMessage(

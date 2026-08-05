@@ -73,7 +73,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
 
     const [selectedBotAvatar, setSelectedBotAvatar] = useState<AgentAvatarID | null>(() => initialBotAvatar);
     const [imageData, setImageData] = useState<ImageData>(EMPTY_IMAGE_DATA);
-    const [errorData, setErrorData] = useState<{validationError: TranslationPaths | null; phraseArgs: unknown[]}>({validationError: null, phraseArgs: []});
+    const [errorData, setErrorData] = useState<{validationError: TranslationPaths | null; phraseParam: Record<string, unknown>}>({validationError: null, phraseParam: {}});
 
     const isDirty = selectedBotAvatar !== initialBotAvatar || imageData.uri !== '';
 
@@ -104,14 +104,14 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
         validateAvatarImage(image)
             .then((result) => {
                 if (!result.isValid) {
-                    setErrorData({validationError: result.errorKey ?? null, phraseArgs: result.errorArgs ?? []});
+                    setErrorData({validationError: result.errorKey ?? null, phraseParam: result.errorParams ?? {}});
                     return;
                 }
-                setErrorData({validationError: null, phraseArgs: []});
+                setErrorData({validationError: null, phraseParam: {}});
                 openCropper(image);
             })
             .catch(() => {
-                setErrorData({validationError: 'attachmentPicker.errorWhileSelectingCorruptedAttachment', phraseArgs: []});
+                setErrorData({validationError: 'attachmentPicker.errorWhileSelectingCorruptedAttachment', phraseParam: {}});
             });
     };
 
@@ -216,7 +216,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
             </ScrollView>
             <AvatarPageFooter
                 validationError={errorData.validationError}
-                phraseArgs={errorData.phraseArgs}
+                phraseParam={errorData.phraseParam}
                 isDirty={isDirty}
                 onSave={handleSave}
             />

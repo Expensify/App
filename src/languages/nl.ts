@@ -892,15 +892,16 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Deze chatruimte is gearchiveerd.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName: string) => `Deze chat is niet meer actief omdat ${displayName} de account heeft gesloten.`,
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: (displayName: string, oldDisplayName: string) =>
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: {displayName: string}) => `Deze chat is niet meer actief omdat ${displayName} de account heeft gesloten.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: {displayName: string; oldDisplayName: string}) =>
             `Deze chat is niet langer actief omdat ${oldDisplayName} zijn of haar account heeft samengevoegd met ${displayName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: (displayName: string, policyName: string, shouldUseYou = false) =>
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: {displayName: string; policyName: string; shouldUseYou?: boolean}) =>
             shouldUseYou
                 ? `Deze chat is niet meer actief omdat <strong>je</strong> geen lid meer bent van de ${policyName}-werkruimte.`
                 : `Deze chat is niet meer actief omdat ${displayName} geen lid meer is van de ${policyName}-werkruimte.`,
-        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: (policyName: string) => `Deze chat is niet langer actief omdat ${policyName} geen actief werkruimte meer is.`,
-        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: (policyName: string) => `Deze chat is niet langer actief omdat ${policyName} geen actief werkruimte meer is.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `Deze chat is niet langer actief omdat ${policyName} geen actief werkruimte meer is.`,
+        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
+            `Deze chat is niet langer actief omdat ${policyName} geen actief werkruimte meer is.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Deze boeking is gearchiveerd.',
     },
     writeCapabilityPage: {
@@ -1810,10 +1811,10 @@ const translations: TranslationDeepObject<typeof en> = {
         viewPhoto: 'Foto bekijken',
         imageUploadFailed: 'Uploaden van afbeelding is mislukt',
         deleteWorkspaceError: 'Sorry, er is een onverwacht probleem opgetreden bij het verwijderen van je workspace-avatar',
-        sizeExceeded: (maxUploadSizeInMB: number) => `De geselecteerde afbeelding overschrijdt de maximale uploadgrootte van ${maxUploadSizeInMB} MB.`,
-        resolutionConstraints: (minHeightInPx: number, minWidthInPx: number, maxHeightInPx: number, maxWidthInPx: number) =>
+        sizeExceeded: ({maxUploadSizeInMB}: {maxUploadSizeInMB: number}) => `De geselecteerde afbeelding overschrijdt de maximale uploadgrootte van ${maxUploadSizeInMB} MB.`,
+        resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number}) =>
             `Upload een afbeelding die groter is dan ${minHeightInPx}x${minWidthInPx} pixels en kleiner dan ${maxHeightInPx}x${maxWidthInPx} pixels.`,
-        notAllowedExtension: (allowedExtensions: string[]) => `Profielfoto moet een van de volgende typen zijn: ${allowedExtensions.join(', ')}.`,
+        notAllowedExtension: ({allowedExtensions}: {allowedExtensions: string[]}) => `Profielfoto moet een van de volgende typen zijn: ${allowedExtensions.join(', ')}.`,
     },
     avatarPage: {
         title: 'Profielfoto bewerken',
@@ -7988,7 +7989,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             description: 'Kies een abonnement dat bij je past.',
             subscriptionLink: 'Meer informatie',
-            lockedPlanDescription: ({count}: {count: number}, annualSubscriptionEndDate: string) => ({
+            lockedPlanDescription: ({count, annualSubscriptionEndDate}: {count: number; annualSubscriptionEndDate: string}) => ({
                 one: `Je hebt je vastgelegd op 1 actief lid in het Control-abonnement tot je jaarlijkse abonnement afloopt op ${annualSubscriptionEndDate}. Je kunt overstappen op een pay-per-use-abonnement en downgraden naar het Collect-abonnement vanaf ${annualSubscriptionEndDate} door automatisch verlengen uit te schakelen in`,
                 other: `Je hebt je vastgelegd op ${count} actieve leden op het Control-abonnement totdat je jaarlijkse abonnement eindigt op ${annualSubscriptionEndDate}. Je kunt overschakelen naar een betaling-per-gebruik-abonnement en downgraden naar het Collect-abonnement vanaf ${annualSubscriptionEndDate} door automatisch verlengen uit te schakelen in`,
             }),
@@ -8300,7 +8301,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             !oldDescription
                 ? `stel de beschrijving van deze workspace in op "${newDescription}"`
                 : `heeft de beschrijving van deze workspace bijgewerkt naar „${newDescription}” (voorheen „${oldDescription}”)`,
-        removedFromApprovalWorkflow: ({count: _count}: {count: number}, submittersNames: string[]) => {
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';
@@ -10120,9 +10121,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         nothingToPreview: 'Niets om te bekijken',
         editJson: 'JSON bewerken:',
         preview: 'Voorbeeld:',
-        missingProperty: (propertyName: string) => `${propertyName} ontbreekt`,
-        invalidProperty: (propertyName: string, expectedType: string) => `Ongeldige eigenschap: ${propertyName} - Verwacht: ${expectedType}`,
-        invalidValue: (expectedValues: string) => `Ongeldige waarde - Verwacht: ${expectedValues}`,
+        missingProperty: ({propertyName}: {propertyName: string}) => `${propertyName} ontbreekt`,
+        invalidProperty: ({propertyName, expectedType}: {propertyName: string; expectedType: string}) => `Ongeldige eigenschap: ${propertyName} - Verwacht: ${expectedType}`,
+        invalidValue: ({expectedValues}: {expectedValues: string}) => `Ongeldige waarde - Verwacht: ${expectedValues}`,
         missingValue: 'Ontbrekende waarde',
         createReportAction: 'Actie rapport maken',
         reportAction: 'Rapportactie',

@@ -883,15 +883,16 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'このチャットルームはアーカイブされました。',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName: string) => `${displayName} がアカウントを閉鎖したため、このチャットは現在利用できません。`,
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: (displayName: string, oldDisplayName: string) =>
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: {displayName: string}) => `${displayName} がアカウントを閉鎖したため、このチャットは現在利用できません。`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: {displayName: string; oldDisplayName: string}) =>
             `このチャットは、${oldDisplayName} が自分のアカウントを ${displayName} と統合したため、現在はアクティブではありません。`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: (displayName: string, policyName: string, shouldUseYou = false) =>
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: {displayName: string; policyName: string; shouldUseYou?: boolean}) =>
             shouldUseYou
                 ? `このチャットは、<strong>あなた</strong>が${policyName}ワークスペースのメンバーではなくなったため、これ以上利用できません。`
                 : `${displayName}さんが${policyName}ワークスペースのメンバーではなくなったため、このチャットはこれ以上利用できません。`,
-        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: (policyName: string) => `このチャットは、${policyName} がアクティブなワークスペースではなくなったため、これ以上利用できません。`,
-        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: (policyName: string) =>
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) =>
+            `このチャットは、${policyName} がアクティブなワークスペースではなくなったため、これ以上利用できません。`,
+        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `このチャットは、${policyName} がアクティブなワークスペースではなくなったため、これ以上利用できません。`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'この予約はアーカイブされています。',
     },
@@ -1796,10 +1797,10 @@ const translations: TranslationDeepObject<typeof en> = {
         viewPhoto: '写真を見る',
         imageUploadFailed: '画像のアップロードに失敗しました',
         deleteWorkspaceError: '申し訳ありません、ワークスペースのアバターを削除する際に予期せぬ問題が発生しました',
-        sizeExceeded: (maxUploadSizeInMB: number) => `選択された画像は、アップロード可能な最大サイズ ${maxUploadSizeInMB} MB を超えています。`,
-        resolutionConstraints: (minHeightInPx: number, minWidthInPx: number, maxHeightInPx: number, maxWidthInPx: number) =>
+        sizeExceeded: ({maxUploadSizeInMB}: {maxUploadSizeInMB: number}) => `選択された画像は、アップロード可能な最大サイズ ${maxUploadSizeInMB} MB を超えています。`,
+        resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number}) =>
             `${minHeightInPx}x${minWidthInPx}ピクセルより大きく、${maxHeightInPx}x${maxWidthInPx}ピクセルより小さい画像をアップロードしてください。`,
-        notAllowedExtension: (allowedExtensions: string[]) => `プロフィール写真は次のいずれかのタイプである必要があります：${allowedExtensions.join(', ')}。`,
+        notAllowedExtension: ({allowedExtensions}: {allowedExtensions: string[]}) => `プロフィール写真は次のいずれかのタイプである必要があります：${allowedExtensions.join(', ')}。`,
     },
     avatarPage: {
         title: 'プロフィール写真を編集',
@@ -7912,7 +7913,7 @@ ${reportName}`,
             },
             description: '自分に合ったプランをお選びください。',
             subscriptionLink: '詳しく見る',
-            lockedPlanDescription: ({count}: {count: number}, annualSubscriptionEndDate: string) => ({
+            lockedPlanDescription: ({count, annualSubscriptionEndDate}: {count: number; annualSubscriptionEndDate: string}) => ({
                 one: `${annualSubscriptionEndDate} までの年間サブスクリプション期間中、Control プランでアクティブメンバー 1 名を利用することに同意しています。${annualSubscriptionEndDate} 以降、 自動更新を無効にすることで、従量課金サブスクリプションに切り替え、Collect プランへダウングレードできます。`,
                 other: `あなたは、年間サブスクリプションが${annualSubscriptionEndDate}に終了するまで、Controlプランでアクティブメンバー${count}名を契約しています。${annualSubscriptionEndDate}以降は、自動更新を無効にすることで、従量課金制サブスクリプションに切り替え、Collectプランへダウングレードできます。その操作は、`,
             }),
@@ -8223,7 +8224,7 @@ ${reportName}`,
         renamedWorkspaceNameAction: (oldName: string, newName: string) => `このワークスペースの名前を「${newName}」（以前は「${oldName}」）に更新しました`,
         updateWorkspaceDescription: (newDescription: string, oldDescription: string) =>
             !oldDescription ? `このワークスペースの説明を「${newDescription}」に設定する` : `このワークスペースの説明を「${newDescription}」（以前は「${oldDescription}」）に更新しました`,
-        removedFromApprovalWorkflow: ({count: _count}: {count: number}, submittersNames: string[]) => {
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';
@@ -10013,9 +10014,9 @@ ${reportName}`,
         nothingToPreview: 'プレビューするものはありません',
         editJson: 'JSON を編集:',
         preview: 'プレビュー:',
-        missingProperty: (propertyName: string) => `${propertyName} がありません`,
-        invalidProperty: (propertyName: string, expectedType: string) => `無効なプロパティ: ${propertyName} - 期待される型: ${expectedType}`,
-        invalidValue: (expectedValues: string) => `無効な値です - 期待される値: ${expectedValues}`,
+        missingProperty: ({propertyName}: {propertyName: string}) => `${propertyName} がありません`,
+        invalidProperty: ({propertyName, expectedType}: {propertyName: string; expectedType: string}) => `無効なプロパティ: ${propertyName} - 期待される型: ${expectedType}`,
+        invalidValue: ({expectedValues}: {expectedValues: string}) => `無効な値です - 期待される値: ${expectedValues}`,
         missingValue: '値がありません',
         createReportAction: 'レポート作成アクション',
         reportAction: 'レポートアクション',

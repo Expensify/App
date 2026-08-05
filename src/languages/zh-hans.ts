@@ -868,12 +868,13 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: '此聊天室已被归档。',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName: string) => `此聊天已不再活动，因为 ${displayName} 已关闭其账户。`,
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: (displayName: string, oldDisplayName: string) => `此聊天已不再活跃，因为${oldDisplayName}已将其账户与${displayName}合并。`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: (displayName: string, policyName: string, shouldUseYou = false) =>
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: {displayName: string}) => `此聊天已不再活动，因为 ${displayName} 已关闭其账户。`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: {displayName: string; oldDisplayName: string}) =>
+            `此聊天已不再活跃，因为${oldDisplayName}已将其账户与${displayName}合并。`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: {displayName: string; policyName: string; shouldUseYou?: boolean}) =>
             shouldUseYou ? `此聊天已不再活跃，因为<strong>你</strong>已不再是 ${policyName} 工作区的成员。` : `此聊天已不再活动，因为${displayName}已不再是${policyName}工作区的成员。`,
-        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: (policyName: string) => `此聊天已不再活动，因为 ${policyName} 已不再是一个活跃的工作区。`,
-        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: (policyName: string) => `此聊天已不再活动，因为 ${policyName} 已不再是一个活跃的工作区。`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `此聊天已不再活动，因为 ${policyName} 已不再是一个活跃的工作区。`,
+        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) => `此聊天已不再活动，因为 ${policyName} 已不再是一个活跃的工作区。`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: '此预订已归档。',
     },
     writeCapabilityPage: {
@@ -1741,10 +1742,10 @@ const translations: TranslationDeepObject<typeof en> = {
         viewPhoto: '查看照片',
         imageUploadFailed: '图片上传失败',
         deleteWorkspaceError: '抱歉，删除您的工作区头像时出现了意外问题',
-        sizeExceeded: (maxUploadSizeInMB: number) => `所选图片超过了最大上传大小 ${maxUploadSizeInMB} MB。`,
-        resolutionConstraints: (minHeightInPx: number, minWidthInPx: number, maxHeightInPx: number, maxWidthInPx: number) =>
+        sizeExceeded: ({maxUploadSizeInMB}: {maxUploadSizeInMB: number}) => `所选图片超过了最大上传大小 ${maxUploadSizeInMB} MB。`,
+        resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number}) =>
             `请上传尺寸大于 ${minHeightInPx}x${minWidthInPx} 像素且小于 ${maxHeightInPx}x${maxWidthInPx} 像素的图片。`,
-        notAllowedExtension: (allowedExtensions: string[]) => `头像必须为以下类型之一：${allowedExtensions.join(', ')}。`,
+        notAllowedExtension: ({allowedExtensions}: {allowedExtensions: string[]}) => `头像必须为以下类型之一：${allowedExtensions.join(', ')}。`,
     },
     avatarPage: {
         title: '编辑头像',
@@ -7713,7 +7714,7 @@ ${reportName}`,
             },
             description: '选择适合你的方案。',
             subscriptionLink: '了解详情',
-            lockedPlanDescription: ({count}: {count: number}, annualSubscriptionEndDate: string) => ({
+            lockedPlanDescription: ({count, annualSubscriptionEndDate}: {count: number; annualSubscriptionEndDate: string}) => ({
                 one: `在 Control 方案中，你已承诺在年度订阅到期（${annualSubscriptionEndDate}）前保持 1 位活跃成员。你可以在 ${annualSubscriptionEndDate} 起关闭自动续订，以改为按使用付费订阅并降级到 Collect 方案，操作入口在`,
                 other: `在年费订阅于${annualSubscriptionEndDate}结束之前，你已承诺在 Control 方案中保留 ${count} 名活跃成员。你可以在${annualSubscriptionEndDate}起，通过关闭自动续订，改为按使用量付费订阅并降级到 Collect 方案，操作入口在`,
             }),
@@ -8018,7 +8019,7 @@ ${reportName}`,
         renamedWorkspaceNameAction: (oldName: string, newName: string) => `已将此工作区的名称更新为“${newName}”（原为“${oldName}”）`,
         updateWorkspaceDescription: (newDescription: string, oldDescription: string) =>
             !oldDescription ? `将此工作区的描述设置为“${newDescription}”` : `已将此工作区的描述更新为“${newDescription}”（之前为“${oldDescription}”）`,
-        removedFromApprovalWorkflow: ({count: _count}: {count: number}, submittersNames: string[]) => {
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';
@@ -9771,9 +9772,9 @@ ${reportName}`,
         nothingToPreview: '无可预览内容',
         editJson: '编辑 JSON：',
         preview: '预览：',
-        missingProperty: (propertyName: string) => `缺少 ${propertyName}`,
-        invalidProperty: (propertyName: string, expectedType: string) => `无效属性：${propertyName} - 预期：${expectedType}`,
-        invalidValue: (expectedValues: string) => `无效的值 - 预期为：${expectedValues}`,
+        missingProperty: ({propertyName}: {propertyName: string}) => `缺少 ${propertyName}`,
+        invalidProperty: ({propertyName, expectedType}: {propertyName: string; expectedType: string}) => `无效属性：${propertyName} - 预期：${expectedType}`,
+        invalidValue: ({expectedValues}: {expectedValues: string}) => `无效的值 - 预期为：${expectedValues}`,
         missingValue: '缺少值',
         createReportAction: '创建报表操作',
         reportAction: '报告操作',

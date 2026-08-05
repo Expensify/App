@@ -17,6 +17,7 @@ import DebugUtils from '@libs/DebugUtils';
 import Debug from '@userActions/Debug';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
 import type {Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -117,25 +118,7 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                     }
 
                     const {message, cause} = e;
-                    if (message === 'debug.missingProperty' && typeof cause === 'object' && cause !== null && 'propertyName' in cause && typeof cause.propertyName === 'string') {
-                        newErrors[key] = translate('debug.missingProperty', cause.propertyName);
-                    } else if (
-                        message === 'debug.invalidProperty' &&
-                        typeof cause === 'object' &&
-                        cause !== null &&
-                        'propertyName' in cause &&
-                        'expectedType' in cause &&
-                        typeof cause.propertyName === 'string' &&
-                        typeof cause.expectedType === 'string'
-                    ) {
-                        newErrors[key] = translate('debug.invalidProperty', cause.propertyName, cause.expectedType);
-                    } else if (message === 'debug.invalidValue' && typeof cause === 'object' && cause !== null && 'expectedValues' in cause && typeof cause.expectedValues === 'string') {
-                        newErrors[key] = translate('debug.invalidValue', cause.expectedValues);
-                    } else if (message === 'debug.missingValue') {
-                        newErrors[key] = translate('debug.missingValue');
-                    } else {
-                        newErrors[key] = message;
-                    }
+                    newErrors[key] = cause || message === 'debug.missingValue' ? translate(message as TranslationPaths, cause as never) : message;
                 }
             }
             return newErrors;

@@ -872,14 +872,16 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Esta sala de chat ha sido eliminada.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName) => `Este chat está desactivado porque ${displayName} ha cerrado tu cuenta.`,
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: (displayName, oldDisplayName) => `Este chat está desactivado porque ${oldDisplayName} ha combinado tu cuenta con ${displayName}`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: (displayName, policyName, shouldUseYou = false) =>
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: {displayName: string}) => `Este chat está desactivado porque ${displayName} ha cerrado tu cuenta.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: {displayName: string; oldDisplayName: string}) =>
+            `Este chat está desactivado porque ${oldDisplayName} ha combinado tu cuenta con ${displayName}`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: {displayName: string; policyName: string; shouldUseYou?: boolean}) =>
             shouldUseYou
                 ? `Este chat ya no está activo porque <strong>tu</strong> ya no eres miembro del espacio de trabajo ${policyName}.`
                 : `Este chat está desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: (policyName) => `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
-        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: (policyName) => `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
+            `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Esta reserva está archivada.',
     },
     writeCapabilityPage: {
@@ -1806,10 +1808,10 @@ const translations: TranslationDeepObject<typeof en> = {
         viewPhoto: 'Ver foto',
         imageUploadFailed: 'Error al cargar la imagen',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de tu espacio de trabajo',
-        sizeExceeded: (maxUploadSizeInMB) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB} MB.`,
-        resolutionConstraints: (minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx) =>
+        sizeExceeded: ({maxUploadSizeInMB}: {maxUploadSizeInMB: number}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB} MB.`,
+        resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number}) =>
             `Por favor, elige una imagen más grande que ${minHeightInPx}x${minWidthInPx} píxeles y más pequeña que ${maxHeightInPx}x${maxWidthInPx} píxeles.`,
-        notAllowedExtension: (allowedExtensions) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
+        notAllowedExtension: ({allowedExtensions}: {allowedExtensions: string[]}) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
     },
     avatarPage: {
         title: 'Editar foto de perfil',
@@ -7185,7 +7187,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             },
             description: 'Elige el plan adecuado para ti.',
             subscriptionLink: 'Más información',
-            lockedPlanDescription: ({count}, annualSubscriptionEndDate) => ({
+            lockedPlanDescription: ({count, annualSubscriptionEndDate}: {count: number; annualSubscriptionEndDate: string}) => ({
                 one: `Tienes un compromiso anual de 1 miembro activo en el plan Controlar hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
                 other: `Tienes un compromiso anual de ${count} miembros activos en el plan Controlar hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
             }),
@@ -8275,7 +8277,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 ? `estableció la descripción de este espacio de trabajo como "${newDescription}"`
                 : `actualizó la descripción de este espacio de trabajo a "${newDescription}" (previamente "${oldDescription}")`,
         renamedWorkspaceNameAction: (oldName, newName) => `actualizó el nombre de este espacio de trabajo a "${newName}" (previamente "${oldName}")`,
-        removedFromApprovalWorkflow: ({count: _count}: {count: number}, submittersNames: string[]) => {
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';
@@ -10367,9 +10369,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         nothingToPreview: 'Nada que previsualizar',
         editJson: 'Editar JSON:',
         preview: 'Previa:',
-        missingProperty: (propertyName) => `Falta ${propertyName}`,
-        invalidProperty: (propertyName, expectedType) => `Propiedad inválida: ${propertyName} - Esperado: ${expectedType}`,
-        invalidValue: (expectedValues) => `Valor inválido - Esperado: ${expectedValues}`,
+        missingProperty: ({propertyName}: {propertyName: string}) => `Falta ${propertyName}`,
+        invalidProperty: ({propertyName, expectedType}: {propertyName: string; expectedType: string}) => `Propiedad inválida: ${propertyName} - Esperado: ${expectedType}`,
+        invalidValue: ({expectedValues}: {expectedValues: string}) => `Valor inválido - Esperado: ${expectedValues}`,
         missingValue: 'Valor en falta',
         createReportAction: 'Crear acción de informe',
         reportAction: 'Acciones del informe',

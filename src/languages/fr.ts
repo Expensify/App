@@ -896,15 +896,16 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Ce salon de discussion a été archivé.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName: string) => `Cette discussion n’est plus active, car ${displayName} a fermé son compte.`,
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: (displayName: string, oldDisplayName: string) =>
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: {displayName: string}) => `Cette discussion n’est plus active, car ${displayName} a fermé son compte.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: {displayName: string; oldDisplayName: string}) =>
             `Cette discussion n’est plus active, car ${oldDisplayName} a fusionné son compte avec ${displayName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: (displayName: string, policyName: string, shouldUseYou = false) =>
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: {displayName: string; policyName: string; shouldUseYou?: boolean}) =>
             shouldUseYou
                 ? `Cette discussion n’est plus active, car <strong>vous</strong> n’êtes plus membre de l’espace de travail ${policyName}.`
                 : `Cette discussion n’est plus active, car ${displayName} n’est plus membre de l’espace de travail ${policyName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: (policyName: string) => `Cette discussion n’est plus active, car ${policyName} n’est plus un espace de travail actif.`,
-        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: (policyName: string) => `Cette discussion n’est plus active, car ${policyName} n’est plus un espace de travail actif.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `Cette discussion n’est plus active, car ${policyName} n’est plus un espace de travail actif.`,
+        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
+            `Cette discussion n’est plus active, car ${policyName} n’est plus un espace de travail actif.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Cette réservation est archivée.',
     },
     writeCapabilityPage: {
@@ -1823,10 +1824,10 @@ const translations: TranslationDeepObject<typeof en> = {
         viewPhoto: 'Voir la photo',
         imageUploadFailed: 'Échec du téléversement de l’image',
         deleteWorkspaceError: 'Désolé, un problème inattendu est survenu lors de la suppression de l’avatar de votre espace de travail',
-        sizeExceeded: (maxUploadSizeInMB: number) => `L’image sélectionnée dépasse la taille maximale de téléversement de ${maxUploadSizeInMB} Mo.`,
-        resolutionConstraints: (minHeightInPx: number, minWidthInPx: number, maxHeightInPx: number, maxWidthInPx: number) =>
+        sizeExceeded: ({maxUploadSizeInMB}: {maxUploadSizeInMB: number}) => `L’image sélectionnée dépasse la taille maximale de téléversement de ${maxUploadSizeInMB} Mo.`,
+        resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number}) =>
             `Veuillez téléverser une image plus grande que ${minHeightInPx}x${minWidthInPx} pixels et plus petite que ${maxHeightInPx}x${maxWidthInPx} pixels.`,
-        notAllowedExtension: (allowedExtensions: string[]) => `La photo de profil doit être de l’un des types suivants : ${allowedExtensions.join(', ')}.`,
+        notAllowedExtension: ({allowedExtensions}: {allowedExtensions: string[]}) => `La photo de profil doit être de l’un des types suivants : ${allowedExtensions.join(', ')}.`,
     },
     avatarPage: {
         title: 'Modifier la photo de profil',
@@ -8066,7 +8067,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
             description: 'Choisissez l’offre qui vous convient.',
             subscriptionLink: 'En savoir plus',
-            lockedPlanDescription: ({count}: {count: number}, annualSubscriptionEndDate: string) => ({
+            lockedPlanDescription: ({count, annualSubscriptionEndDate}: {count: number; annualSubscriptionEndDate: string}) => ({
                 one: `Vous vous êtes engagé à 1 membre actif sur le plan Control jusqu'à la fin de votre abonnement annuel, le ${annualSubscriptionEndDate}. Vous pourrez passer à un abonnement à l’usage et rétrograder vers le plan Collect à partir du ${annualSubscriptionEndDate} en désactivant le renouvellement automatique dans`,
                 other: `Vous vous êtes engagé·e à avoir ${count} membres actifs sur le forfait Control jusqu’à la fin de votre abonnement annuel le ${annualSubscriptionEndDate}. Vous pouvez passer à un abonnement à l’usage et rétrograder vers le forfait Collect à partir du ${annualSubscriptionEndDate} en désactivant le renouvellement automatique dans`,
             }),
@@ -8387,7 +8388,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             !oldDescription
                 ? `définir la description de cet espace de travail sur « ${newDescription} »`
                 : `a mis à jour la description de cet espace de travail en « ${newDescription} » (auparavant « ${oldDescription} »)`,
-        removedFromApprovalWorkflow: ({count: _count}: {count: number}, submittersNames: string[]) => {
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';
@@ -10208,9 +10209,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         nothingToPreview: 'Rien à prévisualiser',
         editJson: 'Modifier le JSON :',
         preview: 'Aperçu :',
-        missingProperty: (propertyName: string) => `${propertyName} manquant`,
-        invalidProperty: (propertyName: string, expectedType: string) => `Propriété non valide : ${propertyName} - Attendu : ${expectedType}`,
-        invalidValue: (expectedValues: string) => `Valeur non valide - Valeurs attendues : ${expectedValues}`,
+        missingProperty: ({propertyName}: {propertyName: string}) => `${propertyName} manquant`,
+        invalidProperty: ({propertyName, expectedType}: {propertyName: string; expectedType: string}) => `Propriété non valide : ${propertyName} - Attendu : ${expectedType}`,
+        invalidValue: ({expectedValues}: {expectedValues: string}) => `Valeur non valide - Valeurs attendues : ${expectedValues}`,
         missingValue: 'Valeur manquante',
         createReportAction: 'Créer une note de frais',
         reportAction: 'Action sur la note de frais',

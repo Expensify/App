@@ -62,7 +62,7 @@ function UserProfileAvatar() {
 
             <AvatarPageFooter
                 validationError={errorData.validationError}
-                phraseArgs={errorData.phraseArgs}
+                phraseParam={errorData.phraseParam}
                 isDirty={isDirty}
                 onSave={save}
             />

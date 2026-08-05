@@ -893,15 +893,16 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Ten czat został zarchiwizowany.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName: string) => `Ten czat nie jest już aktywny, ponieważ ${displayName} zamknął(-ęła) swoje konto.`,
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: (displayName: string, oldDisplayName: string) =>
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: {displayName: string}) => `Ten czat nie jest już aktywny, ponieważ ${displayName} zamknął(-ęła) swoje konto.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: {displayName: string; oldDisplayName: string}) =>
             `Ten czat nie jest już aktywny, ponieważ ${oldDisplayName} połączył(-a) swoje konto z ${displayName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: (displayName: string, policyName: string, shouldUseYou = false) =>
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: {displayName: string; policyName: string; shouldUseYou?: boolean}) =>
             shouldUseYou
                 ? `Ten czat nie jest już aktywny, ponieważ <strong>nie jesteś</strong> już członkiem przestrzeni roboczej ${policyName}.`
                 : `Ten czat nie jest już aktywny, ponieważ ${displayName} nie jest już członkiem przestrzeni roboczej ${policyName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: (policyName: string) => `Ten czat nie jest już aktywny, ponieważ ${policyName} nie jest już aktywnym obszarem roboczym.`,
-        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: (policyName: string) =>
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) =>
+            `Ten czat nie jest już aktywny, ponieważ ${policyName} nie jest już aktywnym obszarem roboczym.`,
+        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `Ten czat nie jest już aktywny, ponieważ ${policyName} nie jest już aktywnym obszarem roboczym.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Ta rezerwacja jest zarchiwizowana.',
     },
@@ -1808,10 +1809,10 @@ const translations: TranslationDeepObject<typeof en> = {
         viewPhoto: 'Zobacz zdjęcie',
         imageUploadFailed: 'Nie udało się przesłać obrazu',
         deleteWorkspaceError: 'Przepraszamy, wystąpił nieoczekiwany problem podczas usuwania awatara Twojego przestrzeni roboczej',
-        sizeExceeded: (maxUploadSizeInMB: number) => `Wybrany obraz przekracza maksymalny rozmiar przesyłania ${maxUploadSizeInMB} MB.`,
-        resolutionConstraints: (minHeightInPx: number, minWidthInPx: number, maxHeightInPx: number, maxWidthInPx: number) =>
+        sizeExceeded: ({maxUploadSizeInMB}: {maxUploadSizeInMB: number}) => `Wybrany obraz przekracza maksymalny rozmiar przesyłania ${maxUploadSizeInMB} MB.`,
+        resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number}) =>
             `Prześlij obraz o rozmiarze większym niż ${minHeightInPx}x${minWidthInPx} pikseli i mniejszym niż ${maxHeightInPx}x${maxWidthInPx} pikseli.`,
-        notAllowedExtension: (allowedExtensions: string[]) => `Zdjęcie profilowe musi być jednym z następujących typów: ${allowedExtensions.join(', ')}.`,
+        notAllowedExtension: ({allowedExtensions}: {allowedExtensions: string[]}) => `Zdjęcie profilowe musi być jednym z następujących typów: ${allowedExtensions.join(', ')}.`,
     },
     avatarPage: {
         title: 'Edytuj zdjęcie profilowe',
@@ -7968,7 +7969,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             },
             description: 'Wybierz plan odpowiedni dla siebie.',
             subscriptionLink: 'Dowiedz się więcej',
-            lockedPlanDescription: ({count}: {count: number}, annualSubscriptionEndDate: string) => ({
+            lockedPlanDescription: ({count, annualSubscriptionEndDate}: {count: number; annualSubscriptionEndDate: string}) => ({
                 one: `Zobowiązałeś(-aś) się do 1 aktywnego członka w planie Control do końca rocznej subskrypcji ${annualSubscriptionEndDate}. Możesz przejść na subskrypcję z rozliczaniem za użycie i zmienić plan na Collect od ${annualSubscriptionEndDate}, wyłączając automatyczne odnawianie w`,
                 other: `Zobowiązałeś(-aś) się do ${count} aktywnych członków w planie Control do końca rocznej subskrypcji ${annualSubscriptionEndDate}. Możesz przejść na subskrypcję płatną za użycie i zmienić plan na Collect od ${annualSubscriptionEndDate}, wyłączając automatyczne odnawianie w`,
             }),
@@ -8281,7 +8282,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         renamedWorkspaceNameAction: (oldName: string, newName: string) => `zaktualizowano nazwę tego obszaru roboczego na „${newName}” (wcześniej „${oldName}”)`,
         updateWorkspaceDescription: (newDescription: string, oldDescription: string) =>
             !oldDescription ? `ustaw opis tego obszaru roboczego na „${newDescription}”` : `zaktualizowano opis tego workspace’u na „${newDescription}” (wcześniej „${oldDescription}”)`,
-        removedFromApprovalWorkflow: ({count: _count}: {count: number}, submittersNames: string[]) => {
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';
@@ -10091,9 +10092,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         nothingToPreview: 'Brak podglądu',
         editJson: 'Edytuj JSON:',
         preview: 'Podgląd:',
-        missingProperty: (propertyName: string) => `Brak pola ${propertyName}`,
-        invalidProperty: (propertyName: string, expectedType: string) => `Nieprawidłowa właściwość: ${propertyName} – Oczekiwano: ${expectedType}`,
-        invalidValue: (expectedValues: string) => `Nieprawidłowa wartość – oczekiwano: ${expectedValues}`,
+        missingProperty: ({propertyName}: {propertyName: string}) => `Brak pola ${propertyName}`,
+        invalidProperty: ({propertyName, expectedType}: {propertyName: string; expectedType: string}) => `Nieprawidłowa właściwość: ${propertyName} – Oczekiwano: ${expectedType}`,
+        invalidValue: ({expectedValues}: {expectedValues: string}) => `Nieprawidłowa wartość – oczekiwano: ${expectedValues}`,
         missingValue: 'Brak wartości',
         createReportAction: 'Utwórz działanie raportu',
         reportAction: 'Działanie raportu',

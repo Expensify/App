@@ -933,15 +933,16 @@ const translations = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'This chat room has been archived.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName: string) => `This chat is no longer active because ${displayName} closed their account.`,
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: (displayName: string, oldDisplayName: string) =>
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: {displayName: string}) => `This chat is no longer active because ${displayName} closed their account.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: {displayName: string; oldDisplayName: string}) =>
             `This chat is no longer active because ${oldDisplayName} has merged their account with ${displayName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: (displayName: string, policyName: string, shouldUseYou = false) =>
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: {displayName: string; policyName: string; shouldUseYou?: boolean}) =>
             shouldUseYou
                 ? `This chat is no longer active because <strong>you</strong> are no longer a member of the ${policyName} workspace.`
                 : `This chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
-        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: (policyName: string) => `This chat is no longer active because ${policyName} is no longer an active workspace.`,
-        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: (policyName: string) => `This chat is no longer active because ${policyName} is no longer an active workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `This chat is no longer active because ${policyName} is no longer an active workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
+            `This chat is no longer active because ${policyName} is no longer an active workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'This booking is archived.',
     },
     writeCapabilityPage: {
@@ -1882,10 +1883,10 @@ const translations = {
         viewPhoto: 'View photo',
         imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar',
-        sizeExceeded: (maxUploadSizeInMB: number) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB} MB.`,
-        resolutionConstraints: (minHeightInPx: number, minWidthInPx: number, maxHeightInPx: number, maxWidthInPx: number) =>
+        sizeExceeded: ({maxUploadSizeInMB}: {maxUploadSizeInMB: number}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB} MB.`,
+        resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number}) =>
             `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels and smaller than ${maxHeightInPx}x${maxWidthInPx} pixels.`,
-        notAllowedExtension: (allowedExtensions: string[]) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
+        notAllowedExtension: ({allowedExtensions}: {allowedExtensions: string[]}) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
     },
     avatarPage: {
         title: 'Edit profile picture',
@@ -8218,7 +8219,7 @@ const translations = {
             },
             description: "Choose a plan that's right for you.",
             subscriptionLink: 'Learn more',
-            lockedPlanDescription: ({count}: {count: number}, annualSubscriptionEndDate: string) => ({
+            lockedPlanDescription: ({count, annualSubscriptionEndDate}: {count: number; annualSubscriptionEndDate: string}) => ({
                 one: `You've committed to 1 active member on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
                 other: `You've committed to ${count} active members on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
             }),
@@ -8554,7 +8555,7 @@ const translations = {
             !oldDescription
                 ? `set the description of this workspace to "${newDescription}"`
                 : `updated the description of this workspace to "${newDescription}" (previously "${oldDescription}")`,
-        removedFromApprovalWorkflow: ({count: _count}: {count: number}, submittersNames: string[]) => {
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';
@@ -10313,9 +10314,9 @@ const translations = {
         nothingToPreview: 'Nothing to preview',
         editJson: 'Edit JSON:',
         preview: 'Preview:',
-        missingProperty: (propertyName: string) => `Missing ${propertyName}`,
-        invalidProperty: (propertyName: string, expectedType: string) => `Invalid property: ${propertyName} - Expected: ${expectedType}`,
-        invalidValue: (expectedValues: string) => `Invalid value - Expected: ${expectedValues}`,
+        missingProperty: ({propertyName}: {propertyName: string}) => `Missing ${propertyName}`,
+        invalidProperty: ({propertyName, expectedType}: {propertyName: string; expectedType: string}) => `Invalid property: ${propertyName} - Expected: ${expectedType}`,
+        invalidValue: ({expectedValues}: {expectedValues: string}) => `Invalid value - Expected: ${expectedValues}`,
         missingValue: 'Missing value',
         createReportAction: 'Create Report Action',
         reportAction: 'Report Action',

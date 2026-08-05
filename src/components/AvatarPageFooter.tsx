@@ -14,7 +14,7 @@ type AvatarPageFooterProps = {
     validationError?: TranslationPaths | null | '';
 
     /** Standalone params for the validation error translation */
-    phraseArgs?: unknown[];
+    phraseParam?: Record<string, unknown>;
 
     /** Whether the save button is enabled */
     isDirty: boolean;
@@ -23,7 +23,7 @@ type AvatarPageFooterProps = {
     onSave: () => void;
 };
 
-function AvatarPageFooter({validationError, phraseArgs = [], isDirty, onSave}: AvatarPageFooterProps) {
+function AvatarPageFooter({validationError, phraseParam = {}, isDirty, onSave}: AvatarPageFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -32,10 +32,8 @@ function AvatarPageFooter({validationError, phraseArgs = [], isDirty, onSave}: A
             {!!validationError && (
                 <DotIndicatorMessage
                     style={styles.mv5}
-                    // `phraseArgs` is an open list but `translate` accepts only the params shape for the
-                    // given key; the cast is safe because callers always pass params matching `validationError`.
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-                    messages={{validationError: (translate as (key: TranslationPaths, ...args: unknown[]) => string)(validationError, ...phraseArgs)}}
+                    messages={{validationError: translate(validationError, phraseParam as never)}}
                     type="error"
                 />
             )}

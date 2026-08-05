@@ -22,7 +22,7 @@ const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
 function useProfileAvatarForm() {
     const [errorData, setErrorData] = useState<ErrorData>({
         validationError: null,
-        phraseArgs: [],
+        phraseParam: {},
     });
     const [selected, setSelected] = useState<string | undefined>();
     const [imageData, setImageData] = useState<ImageData>({...EMPTY_FILE});
@@ -36,8 +36,8 @@ function useProfileAvatarForm() {
         getHasUnsavedChanges: () => isDirty,
     });
 
-    const setError = (error: TranslationPaths | null, phraseArgs: unknown[] = []) => {
-        setErrorData({validationError: error, phraseArgs});
+    const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown> = {}) => {
+        setErrorData({validationError: error, phraseParam});
     };
 
     const onImageSelected = (file: File | CustomRNImageManipulatorResult) => {

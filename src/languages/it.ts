@@ -894,15 +894,16 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Questa chat room è stata archiviata.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName: string) => `Questa chat non è più attiva perché ${displayName} ha chiuso il proprio account.`,
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: (displayName: string, oldDisplayName: string) =>
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: {displayName: string}) => `Questa chat non è più attiva perché ${displayName} ha chiuso il proprio account.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: {displayName: string; oldDisplayName: string}) =>
             `Questa chat non è più attiva perché ${oldDisplayName} ha unito il proprio account con quello di ${displayName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: (displayName: string, policyName: string, shouldUseYou = false) =>
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: {displayName: string; policyName: string; shouldUseYou?: boolean}) =>
             shouldUseYou
                 ? `Questa chat non è più attiva perché <strong>tu</strong> non fai più parte dello spazio di lavoro ${policyName}.`
                 : `Questa chat non è più attiva perché ${displayName} non fa più parte dello spazio di lavoro ${policyName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: (policyName: string) => `Questa chat non è più attiva perché ${policyName} non è più uno spazio di lavoro attivo.`,
-        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: (policyName: string) => `Questa chat non è più attiva perché ${policyName} non è più uno spazio di lavoro attivo.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `Questa chat non è più attiva perché ${policyName} non è più uno spazio di lavoro attivo.`,
+        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
+            `Questa chat non è più attiva perché ${policyName} non è più uno spazio di lavoro attivo.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Questa prenotazione è archiviata.',
     },
     writeCapabilityPage: {
@@ -1815,10 +1816,10 @@ const translations: TranslationDeepObject<typeof en> = {
         viewPhoto: 'Vedi foto',
         imageUploadFailed: 'Caricamento immagine non riuscito',
         deleteWorkspaceError: 'Spiacenti, si è verificato un problema imprevisto durante l’eliminazione dell’avatar del tuo workspace',
-        sizeExceeded: (maxUploadSizeInMB: number) => `L'immagine selezionata supera la dimensione massima di caricamento di ${maxUploadSizeInMB} MB.`,
-        resolutionConstraints: (minHeightInPx: number, minWidthInPx: number, maxHeightInPx: number, maxWidthInPx: number) =>
+        sizeExceeded: ({maxUploadSizeInMB}: {maxUploadSizeInMB: number}) => `L'immagine selezionata supera la dimensione massima di caricamento di ${maxUploadSizeInMB} MB.`,
+        resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number}) =>
             `Carica un'immagine più grande di ${minHeightInPx}x${minWidthInPx} pixel e più piccola di ${maxHeightInPx}x${maxWidthInPx} pixel.`,
-        notAllowedExtension: (allowedExtensions: string[]) => `L’immagine del profilo deve essere di uno dei seguenti tipi: ${allowedExtensions.join(', ')}.`,
+        notAllowedExtension: ({allowedExtensions}: {allowedExtensions: string[]}) => `L’immagine del profilo deve essere di uno dei seguenti tipi: ${allowedExtensions.join(', ')}.`,
     },
     avatarPage: {
         title: 'Modifica immagine del profilo',
@@ -8008,7 +8009,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             },
             description: 'Scegli il piano più adatto a te.',
             subscriptionLink: 'Scopri di più',
-            lockedPlanDescription: ({count}: {count: number}, annualSubscriptionEndDate: string) => ({
+            lockedPlanDescription: ({count, annualSubscriptionEndDate}: {count: number; annualSubscriptionEndDate: string}) => ({
                 one: `Ti sei impegnato per 1 membro attivo nel piano Control fino al termine dell’abbonamento annuale, il ${annualSubscriptionEndDate}. Puoi passare all’abbonamento a consumo e effettuare il downgrade al piano Collect a partire dal ${annualSubscriptionEndDate} disattivando il rinnovo automatico in`,
                 other: `Ti sei impegnato per ${count} membri attivi nel piano Control fino alla fine dell’abbonamento annuale, il ${annualSubscriptionEndDate}. Puoi passare all’abbonamento a consumo e effettuare il downgrade al piano Collect a partire dal ${annualSubscriptionEndDate} disattivando il rinnovo automatico in`,
             }),
@@ -8323,7 +8324,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             !oldDescription
                 ? `imposta la descrizione di questo spazio di lavoro su "${newDescription}"`
                 : `ha aggiornato la descrizione di questo spazio di lavoro in "${newDescription}" (in precedenza "${oldDescription}")`,
-        removedFromApprovalWorkflow: ({count: _count}: {count: number}, submittersNames: string[]) => {
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames.at(0) ?? '';
@@ -10151,9 +10152,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         nothingToPreview: 'Niente da visualizzare',
         editJson: 'Modifica JSON:',
         preview: 'Anteprima:',
-        missingProperty: (propertyName: string) => `${propertyName} mancante`,
-        invalidProperty: (propertyName: string, expectedType: string) => `Proprietà non valida: ${propertyName} - Previsto: ${expectedType}`,
-        invalidValue: (expectedValues: string) => `Valore non valido - previsto: ${expectedValues}`,
+        missingProperty: ({propertyName}: {propertyName: string}) => `${propertyName} mancante`,
+        invalidProperty: ({propertyName, expectedType}: {propertyName: string; expectedType: string}) => `Proprietà non valida: ${propertyName} - Previsto: ${expectedType}`,
+        invalidValue: ({expectedValues}: {expectedValues: string}) => `Valore non valido - previsto: ${expectedValues}`,
         missingValue: 'Valore mancante',
         createReportAction: 'Azione Crea Report',
         reportAction: 'Azione report',
