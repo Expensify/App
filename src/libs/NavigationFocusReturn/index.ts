@@ -4,6 +4,8 @@ import hasFocusableAttributes from '@libs/focusGuards';
 import {KEYBOARD_TRIGGER_TTL_MS, MAX_RESTORE_FRAMES, MOUSE_TRIGGER_TTL_MS, RETURN_HOLD_MS, TRIGGER_MAP_MAX} from '@libs/focusReturnTimings';
 import getHadTabNavigation from '@libs/hadTabNavigation';
 import isEffectivelyVisible from '@libs/isEffectivelyVisible';
+import isHTMLElement from '@libs/isHTMLElement';
+import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from '@libs/LauncherStack';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -20,9 +22,6 @@ import type {RefObject} from 'react';
 import type {View} from 'react-native';
 
 import setFifoEntry from './fifoMap';
-import isActivatableTarget from './isActivatableTarget';
-import isActivationKeydown from './isActivationKeydown';
-import isFocusMovingKeydown from './isFocusMovingKeydown';
 
 /** focusin tracks the last keyboard-focused element; a nav state listener captures it against the outgoing route and restores it on backward nav. */
 
@@ -31,6 +30,64 @@ type TriggerEntry = {primary: HTMLElement; fallback?: HTMLElement};
 
 const triggerMap = new Map<string, TriggerEntry>();
 const MOUSE_ACTIVATION_EVENTS = ['pointerdown', 'mousedown', 'click'] as const;
+const TEXT_INPUT_TYPES = new Set(['text', 'search', 'email', 'password', 'tel', 'url', 'number', 'date', 'datetime-local', 'month', 'time', 'week']);
+const BUTTON_INPUT_TYPES = new Set(['button', 'submit', 'reset', 'image']);
+const INTERACTIVE_TAGS = new Set(['BUTTON', 'SELECT']);
+const INTERACTIVE_ROLES = new Set(['button', 'link', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'tab', 'switch', 'option', 'row', 'gridcell', 'treeitem', 'searchbox', 'combobox']);
+const FOCUS_MOVING_KEYS = new Set(['Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown', 'Escape']);
+
+type ActivationKey = 'Enter' | 'Space';
+
+/** True when a keydown activates a Pressable (Enter/Space, no repeat, no IME). Modifiers pass through — RNW's onPress accepts them; text-editable targets are filtered by isActivatableTarget. */
+function isActivationKeydown(e: KeyboardEvent): boolean {
+    if (e.repeat || e.isComposing) {
+        return false;
+    }
+    // Safari's IME-Enter reports isComposing=false; the helper catches it via keyCode===229.
+    if (isEnterWhileComposition(e)) {
+        return false;
+    }
+    // Space requires both `.code` and `.key === ' '`: OS remaps can produce a printable char on the Space code.
+    return e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || (e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey && e.key === CONST.KEYBOARD_SHORTCUTS.SPACE.trigger.DEFAULT.input);
+}
+
+/** True when a keydown moves focus context and invalidates a stale activation latch. Standalone modifiers / typing must NOT count. */
+function isFocusMovingKeydown(e: KeyboardEvent): boolean {
+    return FOCUS_MOVING_KEYS.has(e.key);
+}
+
+/** Native tags or ARIA roles that make an element user-activatable regardless of tab order. */
+function isInteractive(el: HTMLElement): boolean {
+    if (INTERACTIVE_TAGS.has(el.tagName)) {
+        return true;
+    }
+    if (el.tagName === 'A' && el.hasAttribute('href')) {
+        return true;
+    }
+    const role = el.getAttribute('role');
+    return role !== null && INTERACTIVE_ROLES.has(role);
+}
+
+/** True when this key would activate a control, not type text. Text inputs accept Enter only; textarea/contenteditable reject both; other `<input>`s activate only when button-like. */
+function isActivatableTarget(el: Element, key: ActivationKey): el is HTMLElement {
+    if (!isHTMLElement(el)) {
+        return false;
+    }
+    if (el instanceof HTMLTextAreaElement) {
+        return false;
+    }
+    if (el instanceof HTMLInputElement) {
+        if (TEXT_INPUT_TYPES.has(el.type)) {
+            return key === 'Enter';
+        }
+        return BUTTON_INPUT_TYPES.has(el.type);
+    }
+    // Attribute fallback for jsdom where isContentEditable isn't implemented.
+    if (el.isContentEditable || el.getAttribute('contenteditable') === 'true' || el.getAttribute('contenteditable') === '') {
+        return false;
+    }
+    return isInteractive(el);
+}
 
 // Cross-modality: mouse-click-forward → keyboard-back still needs focus returned (WCAG 2.4.3).
 let lastMouseTrigger: HTMLElement | null = null;
