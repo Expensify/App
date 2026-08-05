@@ -30,6 +30,7 @@ import {
     getDistanceRateTaxUpdates,
     getMerchant,
     getUpdatedTransaction,
+    hasLocallyKnownDistance,
     hasSubmissionBlockingViolationInReport,
     haveWaypointAddressesChanged,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -1718,7 +1719,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     // When distance is provided alongside waypoints (route was already calculated), we have valid
     // merchant/amount data to build the optimistic report action instead of waiting for the server.
     const hasDistanceWithWaypoints = hasPendingWaypoints && 'distance' in transactionChanges;
-    const hasLocallyKnownDistance = !!transaction?.comment?.customUnit?.quantity || !!transaction?.routes?.route0?.distance;
     if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
@@ -1765,7 +1765,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         : null;
     if (
         (!hasPendingWaypoints || hasSplitDistanceMessageFields || hasDistanceWithWaypoints) &&
-        !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction) && !hasLocallyKnownDistance) &&
+        !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction) && !hasLocallyKnownDistance(transaction)) &&
         updatedReportAction
     ) {
         apiParams.reportActionID = updatedReportAction.reportActionID;
@@ -2315,7 +2315,6 @@ function getUpdateTrackExpenseParams(
     const hasModifiedDistanceRate = 'customUnitRateID' in transactionChanges;
     const hasModifiedCreated = 'created' in transactionChanges;
     const hasModifiedDate = 'date' in transactionChanges;
-    const hasLocallyKnownDistance = !!transaction?.comment?.customUnit?.quantity || !!transaction?.routes?.route0?.distance;
 
     let syncedOptimisticViolations: OnyxTypes.TransactionViolations | undefined;
     let currentTransactionViolationsForFailure: OnyxTypes.TransactionViolations | undefined;
@@ -2368,7 +2367,7 @@ function getUpdateTrackExpenseParams(
     const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
         ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy, delegateAccountID, updatedTransaction, allowNegative)
         : null;
-    if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction) && !hasLocallyKnownDistance) && updatedReportAction) {
+    if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction) && !hasLocallyKnownDistance(transaction)) && updatedReportAction) {
         apiParams.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({
