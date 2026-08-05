@@ -1199,7 +1199,7 @@ function authenticatePusher(socketID: string, channelName: string, callback?: Ch
 /**
  * Request a new validation link / validateCode to unlink an unvalidated secondary login from a primary login
  */
-function requestUnlinkValidationLink() {
+function requestUnlinkValidationLink(login: string | undefined) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1234,7 +1234,7 @@ function requestUnlinkValidationLink() {
         },
     ];
 
-    const params: RequestUnlinkValidationLinkParams = {email: credentials.login};
+    const params: RequestUnlinkValidationLinkParams = {email: login};
 
     API.write(WRITE_COMMANDS.REQUEST_UNLINK_VALIDATION_LINK, params, {optimisticData, successData, failureData});
 }
