@@ -5,6 +5,7 @@ import {generateCardID} from '@libs/CardUtils';
 import parseCSVDate from '@libs/CSVDateUtils';
 import DateUtils from '@libs/DateUtils';
 import {rand64} from '@libs/NumberUtils';
+import {isOFXStatement} from '@libs/OFXUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -253,7 +254,9 @@ async function importTransactionsFromCSV(
     existingCardID?: number,
     previouslySavedLayout?: SavedCSVColumnLayoutData,
 ): Promise<ImportFinalModal> {
-    const settings = spreadsheet.importTransactionSettings ?? {};
+    // OFX already signs a charge, so the manual flip is dropped for this import without touching the saved preference.
+    const storedSettings = spreadsheet.importTransactionSettings ?? {};
+    const settings = isOFXStatement(spreadsheet.fileName ?? '') ? {...storedSettings, flipAmountSign: false} : storedSettings;
     const {cardDisplayName = 'Imported Card', currency = CONST.CURRENCY.USD, isReimbursable = true, flipAmountSign = false} = settings;
 
     // Build transaction list from spreadsheet
