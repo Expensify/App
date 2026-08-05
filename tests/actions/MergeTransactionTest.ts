@@ -66,13 +66,13 @@ function createAllTransactionViolations(
     return allViolations;
 }
 
-function isIOUActionForTransaction(reportAction: OnyxEntry<ReportAction>, transactionID: string): boolean {
+function isIOUActionForTransaction(reportAction: OnyxEntry<ReportAction>, transactionID: string, type: OriginalMessageIOU['type'] = CONST.IOU.REPORT_ACTION_TYPE.CREATE): boolean {
     if (!isMoneyRequestAction(reportAction)) {
         return false;
     }
 
     const originalMessage = getOriginalMessage(reportAction);
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE && originalMessage?.IOUTransactionID === transactionID;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage?.type === type && originalMessage?.IOUTransactionID === transactionID;
 }
 
 type CrossReportMergeToSourceReportFixtures = {
@@ -1035,9 +1035,12 @@ describe('mergeTransactionRequest', () => {
             });
         });
 
-        const newIOUAction = Object.values(selfDMReportActions ?? {}).find((action) => isIOUActionForTransaction(action, targetTransaction.transactionID));
+        const newIOUAction = Object.values(selfDMReportActions ?? {}).find((action) =>
+            isIOUActionForTransaction(action, targetTransaction.transactionID, CONST.IOU.REPORT_ACTION_TYPE.TRACK),
+        );
 
         expect(newIOUAction?.childReportID).toBe(targetTransactionThreadID);
+        expect(isIOUActionForTransaction(newIOUAction, targetTransaction.transactionID, CONST.IOU.REPORT_ACTION_TYPE.TRACK)).toBe(true);
         expect(unreportedReportActions).toBeNull();
 
         const updatedTargetTransactionThread = await new Promise<Report | null>((resolve) => {

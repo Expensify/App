@@ -664,8 +664,9 @@ function mergeTransactionRequest({
     // Move the surviving expense (targetTransaction) onto the destination report. For unreported
     // expenses, the API uses reportID "0", but optimistic UI must attach to the real self-DM report.
     if (mergeTransaction.reportID !== targetTransaction.reportID) {
+        const newIOUActionType = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE;
         const newIOUAction = buildOptimisticIOUReportAction({
-            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            type: newIOUActionType,
             amount: mergeTransaction.amount,
             currency: mergeTransaction.currency,
             comment: mergeTransaction.description,
