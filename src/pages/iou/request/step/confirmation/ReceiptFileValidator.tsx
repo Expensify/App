@@ -76,7 +76,6 @@ function ReceiptFileValidator({
         Promise.all(
             transactions.map((item) => {
                 const itemReceiptFilename = item.receipt?.filename;
-                // Resolve at the moment of use. The stored source can name a container this launch no longer has.
                 const itemReceiptPath = ReceiptStorage.resolve(item.receipt?.source);
                 const itemReceiptType = item.receipt?.type;
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);

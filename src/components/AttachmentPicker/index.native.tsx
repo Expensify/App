@@ -134,10 +134,8 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
               return fileResult;
           });
 
-    // Move the file out of the cache directory, which the OS can purge, into durable storage. The file
-    // then survives an app force-kill while the upload waits in the offline queue. `source` is what
-    // prepareRequestPayload re-resolves on offline replay, so it must point into the receipts folder.
-    // A failed adopt leaves the file at the ephemeral path, so the upload still runs this session.
+    // `source` is what prepareRequestPayload re-resolves on offline replay, so it must point into the
+    // receipts folder too, not just `uri`.
     return fileWithSize.then((file) =>
         ReceiptStorage.adopt(file.uri ?? '', file.name ?? CONST.DEFAULT_ATTACHMENT_FILENAME)
             .then((durableName) => {

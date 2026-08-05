@@ -35,8 +35,6 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         return Promise.resolve();
                     }
 
-                    // Re-root onto the receipts folder for this launch. The container in the stored path
-                    // can move while the request waits in the queue.
                     const localUri = ReceiptStorage.resolve(source) ?? String(source);
 
                     return checkFileExists(localUri).then((exists) => {

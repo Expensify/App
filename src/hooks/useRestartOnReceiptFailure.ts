@@ -32,7 +32,6 @@ const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportI
             return;
         }
         const itemReceiptFilename = transaction.receipt?.filename;
-        // Resolve at the moment of use. A stale stored path here restarts the whole request.
         const itemReceiptPath = ReceiptStorage.resolve(transaction.receipt?.source);
         const itemReceiptType = transaction.receipt?.type;
         const isLocalFile = isLocalFileUtil(itemReceiptPath);

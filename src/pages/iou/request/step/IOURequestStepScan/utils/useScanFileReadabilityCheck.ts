@@ -27,7 +27,6 @@ function useScanFileReadabilityCheck(transactions: Array<Partial<Transaction>>, 
 
         Promise.all(
             transactions.map((item) => {
-                // Resolve at the moment of use. A stale stored path here deletes a good draft.
                 const itemReceiptPath = ReceiptStorage.resolve(item.receipt?.source);
                 const isLocal = isLocalFile(itemReceiptPath);
 

@@ -7,14 +7,9 @@ import RNFS from 'react-native-fs';
 
 import type ReceiptStorage from './types';
 
-/**
- * A durable name is the bare filename inside the receipts folder. Never store a full path.
- *
- * iOS moves the app data container on most upgrades. An absolute path stored before the upgrade names
- * a directory the device no longer has. iOS carries the file itself across to the new container.
- * react-native-blob-util documents the behavior: "On iOS platform the directory path will be changed
- * every time you access to the file system."
- */
+// A durable name is the bare filename inside the receipts folder. Never store a full path: iOS moves
+// the app data container on most upgrades, so an absolute path stored before the upgrade names a
+// directory the device no longer has, even though iOS carried the file itself across.
 
 async function verify(dir: string, name: string): Promise<string> {
     if (!name || !(await RNFS.exists(`${dir}/${name}`))) {
@@ -56,14 +51,9 @@ const adopt: ReceiptStorage['adopt'] = async (uriOrPath, fileName) => {
 const toLocalUri: ReceiptStorage['toLocalUri'] = (durableName) => `file://${getReceiptsUploadFolderPath()}/${durableName}`;
 
 /**
- * The durable name of a stored receipt: the bare filename inside the receipts folder.
- *
  * Matches on the folder name and ignores the container prefix. The app reads this directory through
- * two filesystem libraries, and their absolute forms can differ (/private/var and /var). The trailing
+ * two filesystem libraries whose absolute forms can differ (/private/var and /var), but the trailing
  * segments stay stable.
- *
- * Returns undefined when the path never named the receipts folder. A purged cache file and a
- * share-extension file both return undefined, so neither reads as a misaddressed receipt.
  */
 function toDurableName(storedPath: string): string | undefined {
     const dirName = getReceiptsUploadFolderPath().split('/').pop();

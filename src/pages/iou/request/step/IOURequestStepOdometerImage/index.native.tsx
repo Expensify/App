@@ -134,7 +134,6 @@ function IOURequestStepOdometerImage({
         ReceiptStorage.adopt(sourceUri, filename)
             .then((durableName) => ReceiptStorage.toLocalUri(durableName))
             .catch((error: unknown) => {
-                // A failed adopt leaves the file at the ephemeral path, so the image still works this session.
                 Log.alert('Failed to adopt odometer receipt into durable storage, using original URI', {error: error instanceof Error ? error.message : String(error)});
                 return sourceUri;
             })

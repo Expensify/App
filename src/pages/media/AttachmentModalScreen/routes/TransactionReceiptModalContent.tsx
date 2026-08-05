@@ -302,7 +302,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             return ReceiptStorage.adopt(imageUri, filename)
                 .then((durableName) => ReceiptStorage.toLocalUri(durableName))
                 .catch((error: unknown) => {
-                    // A failed adopt leaves the file at the ephemeral path, so the edited receipt still applies this session.
                     Log.alert('Failed to adopt edited receipt into durable storage, using original URI', {error: error instanceof Error ? error.message : String(error)});
                     return imageUri;
                 })

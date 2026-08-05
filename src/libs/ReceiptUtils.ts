@@ -68,7 +68,6 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
 
     // For local files, use the pre-generated thumbnail if available for fast preview
     if ((isReceiptImage || isReceiptPDF) && typeof path === 'string' && (path.startsWith('blob:') || path.startsWith('file:'))) {
-        // Resolve at the moment of use. The stored path can name a container this launch no longer has.
         return {thumbnail: transaction?.receipt?.thumbnail, image: ReceiptStorage.resolve(path) ?? path, isLocalFile: true, filename};
     }
 

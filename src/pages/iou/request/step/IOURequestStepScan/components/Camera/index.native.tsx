@@ -164,8 +164,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         const path = getReceiptsUploadFolderPath();
 
         captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode})
-            // vision-camera writes into the receipts folder, so `adopt` only verifies the write landed.
-            // The check runs before the app builds an expense around the file.
             .then((photo: PhotoFile) => ReceiptStorage.adopt(photo.path))
             .then((durableName) => {
                 endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
