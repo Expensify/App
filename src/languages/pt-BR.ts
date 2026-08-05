@@ -1456,7 +1456,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `aprovado por meio das <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>`,
         forwarded: (memo?: string) => `aprovado${memo ? `, dizendo ${memo}` : ''}`,
         rejectedThisReport: 'rejeitou',
-        waitingOnBankAccount: (submitterDisplayName: string) => `iniciou o pagamento, mas está aguardando ${submitterDisplayName} adicionar uma conta bancária.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `iniciou o pagamento, mas está aguardando ${submitterDisplayName} adicionar uma conta bancária pessoal.`,
         adminCanceledRequest: 'cancelou o pagamento',
         canceledRequest: (amount: string, submitterDisplayName: string) => `cancelou o pagamento de ${amount} porque ${submitterDisplayName} não ativou a Carteira Expensify em 30 dias`,
         settledAfterAddedBankAccount: (submitterDisplayName: string, amount: string) => `${submitterDisplayName} adicionou uma conta bancária. O pagamento de ${amount} foi efetuado.`,
@@ -6097,6 +6097,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         subsections: {
                             currentTravelSpendLabel: 'Gasto atual com viagens',
                             currentTravelSpendPaymentQueued: (amount: string) => `O pagamento de ${amount} está na fila e será processado em breve.`,
+                            currentTravelSpendInvoiceQueued: 'Uma nova fatura dos seus gastos de viagem será criada e enviada para você em breve.',
+                            currentTravelSpendInvoicePending: (amount: string) => `Uma fatura de ${amount} foi enviada e está aguardando pagamento.`,
                             currentTravelSpendCta: 'Pagar saldo',
                             viewOnSpend: 'Ver em Gastos',
                             currentTravelLimitLabel: 'Limite de viagem atual',
@@ -6110,6 +6112,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             reduceLimitWarning: 'Se você reduzir o limite, os membros que já gastaram mais do que esse valor não poderão fazer novas reservas de viagem até o próximo mês.',
                             provisioningError:
                                 'Não foi possível provisionar alguns membros do seu workspace para o Faturamento Consolidado de Viagens. Tente novamente mais tarde ou entre em contato com o Concierge para obter ajuda.',
+                            sendInvoiceNowCta: 'Enviar fatura agora',
                         },
                     },
                     disableModal: {
@@ -6132,6 +6135,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     invalidDateRangeError: 'A data de início deve ser anterior à data de término',
                     enabled: 'Faturamento de viagem consolidado ativado!',
                     enabledDescription: 'Todos os gastos de viagem neste workspace agora serão centralizados em uma fatura mensal.',
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Enviar fatura de ${amount}?`,
+                        body: 'Vamos criar uma fatura para seus gastos atuais de viagem. Seu limite de viagem será liberado assim que a fatura for paga.',
+                    },
                 },
                 personalDetailsDescription: 'Para reservar viagens, insira seu nome legal exatamente como consta no documento de identificação emitido pelo governo.',
             },
@@ -7461,8 +7468,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 note: 'Você perderá acesso aos seguintes recursos',
                 benefits: {
                     confirm: 'Você precisará alterar o “Tipo de plano” de todos os espaços de trabalho para “Collect” para garantir a tarifa Collect.',
-                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
-                    benefit2: 'Workday, Certinia',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics, Certinia',
+                    benefit2: 'Gusto, TriNet, Workday',
                     benefit3: 'SSO/SAML',
                     benefit4: 'Regras inteligentes de despesas, diárias, aprovações em vários níveis, relatórios personalizados e orçamento',
                     headsUp: 'Atenção!',
@@ -8008,6 +8015,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 thenFlagForReview: 'Então sinalizar para revisão quando:',
             },
             agentRulesEmptyState: {title: 'Nenhuma regra de agente adicionada', subtitle: 'Crie uma regra para automatizar as políticas do seu workspace.', cta: 'Adicionar regra de IA'},
+            categoriesDisabledEmptyState: {title: 'Categorias não estão ativadas', subtitle: 'Ative categorias para ter mais controle sobre seus gastos.'},
         },
         planTypePage: {
             planTypes: {
@@ -9964,8 +9972,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 benefit1: 'Tudo no plano Collect',
                 benefit2: 'Fluxos de aprovação em múltiplos níveis',
                 benefit3: 'Regras de despesa personalizadas',
-                benefit4: 'Integrações com ERP (NetSuite, Sage Intacct, Oracle)',
-                benefit5: 'Integrações de RH (Workday, Certinia)',
+                benefit4: 'Integrações com ERP (NetSuite, Sage Intacct, Oracle, Certinia)',
+                benefit5: 'Integrações de RH (Gusto, TriNet, Workday)',
                 benefit6: 'SAML/SSO',
                 benefit7: 'Insights e relatórios personalizados',
                 benefit8: 'Orçamento',
@@ -10250,6 +10258,15 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             buildReports: 'Crie relatórios de despesas em segundos',
             categorize: 'Categorize suas despesas',
             inviteBoss: 'Convide seu chefe quando estiver pronto',
+        },
+    },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Novos tipos de função para administradores',
+                body: 'Dê à sua equipe permissões mais granulares com novos papéis de administrador para cartões, pessoas e pagamentos.',
+                cta: 'Experimente',
+            },
         },
     },
     productTrainingTooltip: {

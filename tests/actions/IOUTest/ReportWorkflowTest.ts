@@ -200,6 +200,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
@@ -350,6 +351,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
@@ -431,6 +433,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
                                     payeeEmail: RORY_EMAIL,
@@ -479,6 +482,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
                                     payeeEmail: RORY_EMAIL,
@@ -705,6 +709,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
                                     payeeEmail: RORY_EMAIL,
@@ -753,6 +758,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
                                     payeeEmail: RORY_EMAIL,
@@ -948,6 +954,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
@@ -1157,6 +1164,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             if (chatReport) {
                 requestMoney({
+                    conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: RORY_EMAIL,

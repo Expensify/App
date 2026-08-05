@@ -56,6 +56,7 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCa
     return (
         <PDFDownloadModal
             isVisible={isVisible}
+            shouldTreatModalAsCovering
             onClose={handleClose}
             onModalHide={onModalHide}
             hasFinishedPDFDownload={hasFinishedPDFDownload}
