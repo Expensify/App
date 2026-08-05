@@ -79,7 +79,7 @@ import type {MenuItemData, PolicyAccountingPageProps} from './types';
 
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
 import {isCertiniaSRPConnection} from './certinia/utils';
-import {getAccountingIntegrationData, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from './utils';
+import {getAccountingIntegrationData, getAccountingIntegrationDisplayName, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from './utils';
 
 type RouteParams = {
     newConnectionName?: ConnectionName;
@@ -152,6 +152,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const isIntuitEnterpriseSuiteSyncInProgress = isSyncInProgress && activeIntegration?.name === CONST.POLICY.CONNECTIONS.NAME.QBO && activeIntegration.isIntuitEnterpriseSuite === true;
     const isConnectedToIntuitEnterpriseSuite =
         connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBO && (isIntuitEnterpriseSuiteConnection(policy) || isIntuitEnterpriseSuiteSyncInProgress);
+    const connectedIntegrationDisplayName = connectedIntegration ? getAccountingIntegrationDisplayName(policy, connectedIntegration, translate) : undefined;
     const hasAccountingConnection = hasAccountingConnections(policy);
     const {canWrite: canWriteAccounting, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
@@ -230,8 +231,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 text: translate('workspace.accounting.disconnect'),
                 onSelected: () => {
                     showConfirmModal({
-                        title: translate('workspace.accounting.disconnectTitle', {connectionName: connectedIntegration}),
-                        prompt: translate('workspace.accounting.disconnectPrompt', {connectionName: connectedIntegration}),
+                        title: translate('workspace.accounting.disconnectTitle', {connectionName: connectedIntegrationDisplayName}),
+                        prompt: translate('workspace.accounting.disconnectPrompt', {connectionName: connectedIntegrationDisplayName}),
                         confirmText: translate('workspace.accounting.disconnect'),
                         cancelText: translate('common.cancel'),
                         danger: true,
@@ -257,6 +258,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             isOffline,
             policy,
             connectedIntegration,
+            connectedIntegrationDisplayName,
             startIntegrationFlow,
             isSageIntacct,
             hasAuthError,

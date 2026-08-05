@@ -6553,26 +6553,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncNow: '立即同步',
             disconnect: '断开连接',
             reinstall: '重新安装连接器',
-            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName = connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : '集成';
-                return `断开连接 ${integrationName}`;
-            },
+            disconnectTitle: ({connectionName = '集成'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `断开连接 ${connectionName}`,
             connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `连接 ${connectionName}`,
-            syncError: ({connectionName}: ConnectionNameParams) => {
-                switch (connectionName) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return '无法连接到 QuickBooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return '无法连接到 Xero';
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return '无法连接到 NetSuite';
-                    case CONST.POLICY.CONNECTIONS.NAME.QBD:
-                        return '无法连接到 QuickBooks Desktop';
-                    default: {
-                        return '无法连接到集成';
-                    }
-                }
-            },
+            syncError: ({connectionName}: ConnectionDisplayNameParams) => `无法连接到 ${connectionName}`,
             accounts: '会计科目表',
             taxes: '税费',
             imported: '已导入',
@@ -6587,11 +6570,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: '已作为报表字段导入',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite 员工默认值',
             },
-            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : '此集成';
-                return `你确定要断开与 ${integrationName} 的连接吗？`;
-            },
+            disconnectPrompt: ({connectionName = '此集成'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `你确定要断开与 ${connectionName} 的连接吗？`,
             connectPrompt: ({connectionName}: ConnectionDisplayNameParams) => `确定要连接 ${connectionName} 吗？这将删除所有现有的会计连接。`,
             enterCredentials: '请输入您的凭证',
             reconnect: '重新连接',

@@ -6776,27 +6776,9 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             syncNow: 'Sincronizar agora',
             disconnect: 'Desconectar',
             reinstall: 'Reinstalar conector',
-            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integração';
-                return `Desconectar ${integrationName}`;
-            },
+            disconnectTitle: ({connectionName = 'integração'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `Desconectar ${connectionName}`,
             connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `Conectar ${connectionName}`,
-            syncError: ({connectionName}: ConnectionNameParams) => {
-                switch (connectionName) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Não é possível conectar ao QuickBooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Não é possível conectar ao Xero';
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return 'Não é possível conectar ao NetSuite';
-                    case CONST.POLICY.CONNECTIONS.NAME.QBD:
-                        return 'Não é possível conectar ao QuickBooks Desktop';
-                    default: {
-                        return 'Não é possível conectar à integração';
-                    }
-                }
-            },
+            syncError: ({connectionName}: ConnectionDisplayNameParams) => `Não é possível conectar ao ${connectionName}`,
             accounts: 'Plano de contas',
             taxes: 'Impostos',
             imported: 'Importado',
@@ -6811,11 +6793,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado como campos de relatório',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Padrão de funcionário do NetSuite',
             },
-            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'esta integração';
-                return `Tem certeza de que deseja desconectar ${integrationName}?`;
-            },
+            disconnectPrompt: ({connectionName = 'esta integração'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `Tem certeza de que deseja desconectar ${connectionName}?`,
             connectPrompt: ({connectionName}: ConnectionDisplayNameParams) => `Tem certeza de que deseja conectar ${connectionName}? Isso removerá quaisquer conexões contábeis existentes.`,
             enterCredentials: 'Insira suas credenciais',
             reconnect: 'Reconectar',

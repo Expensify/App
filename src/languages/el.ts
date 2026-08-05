@@ -6968,27 +6968,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncNow: 'Συγχρονισμός τώρα',
             disconnect: 'Αποσύνδεση',
             reinstall: 'Επανεγκατάσταση συνδέτη',
-            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'ενσωμάτωση';
-                return `Αποσύνδεση ${integrationName}`;
-            },
+            disconnectTitle: ({connectionName = 'ενσωμάτωση'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `Αποσύνδεση ${connectionName}`,
             connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `Συνδέστε ${connectionName}`,
-            syncError: ({connectionName}: ConnectionNameParams) => {
-                switch (connectionName) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Δεν είναι δυνατή η σύνδεση με το QuickBooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Αδυναμία σύνδεσης στο Xero';
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return 'Δεν είναι δυνατή η σύνδεση με το NetSuite';
-                    case CONST.POLICY.CONNECTIONS.NAME.QBD:
-                        return 'Δεν είναι δυνατή η σύνδεση με το QuickBooks Desktop';
-                    default: {
-                        return 'Δεν είναι δυνατή η σύνδεση με την ενοποίηση';
-                    }
-                }
-            },
+            syncError: ({connectionName}: ConnectionDisplayNameParams) => `Δεν είναι δυνατή η σύνδεση με το ${connectionName}`,
             accounts: 'Λογιστικό σχέδιο',
             taxes: 'Φόροι',
             imported: 'Εισαγόμενα',
@@ -7003,11 +6985,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Έγινε εισαγωγή ως πεδία αναφοράς',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Προεπιλογή εργαζομένου NetSuite',
             },
-            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'αυτή η ενοποίηση';
-                return `Είστε βέβαιοι ότι θέλετε να αποσυνδέσετε το ${integrationName};`;
-            },
+            disconnectPrompt: ({connectionName = 'αυτή η ενοποίηση'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `Είστε βέβαιοι ότι θέλετε να αποσυνδέσετε το ${connectionName};`,
             connectPrompt: ({connectionName}: ConnectionDisplayNameParams) =>
                 `Είστε βέβαιοι ότι θέλετε να συνδέσετε το ${connectionName}; Αυτό θα αφαιρέσει τυχόν υπάρχουσες λογιστικές συνδέσεις.`,
             reconnect: 'Επανασύνδεση',

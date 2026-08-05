@@ -6842,27 +6842,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             syncNow: 'Synchroniser maintenant',
             disconnect: 'Déconnecter',
             reinstall: 'Réinstaller le connecteur',
-            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'intégration';
-                return `Déconnecter ${integrationName}`;
-            },
+            disconnectTitle: ({connectionName = 'intégration'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `Déconnecter ${connectionName}`,
             connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `Connecter ${connectionName}`,
-            syncError: ({connectionName}: ConnectionNameParams) => {
-                switch (connectionName) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Impossible de se connecter à QuickBooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Connexion à Xero impossible';
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return 'Impossible de se connecter à NetSuite';
-                    case CONST.POLICY.CONNECTIONS.NAME.QBD:
-                        return 'Impossible de se connecter à QuickBooks Desktop';
-                    default: {
-                        return 'Impossible de se connecter à l’intégration';
-                    }
-                }
-            },
+            syncError: ({connectionName}: ConnectionDisplayNameParams) => `Impossible de se connecter à ${connectionName}`,
             accounts: 'Plan comptable',
             taxes: 'Taxes',
             imported: 'Importé',
@@ -6877,11 +6859,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importé en tant que champs de note de frais',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Par défaut employé NetSuite',
             },
-            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'cette intégration';
-                return `Voulez-vous vraiment déconnecter ${integrationName} ?`;
-            },
+            disconnectPrompt: ({connectionName = 'cette intégration'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `Voulez-vous vraiment déconnecter ${connectionName} ?`,
             connectPrompt: ({connectionName}: ConnectionDisplayNameParams) =>
                 `Voulez-vous vraiment connecter ${connectionName} ? Cette action supprimera toutes les connexions comptables existantes.`,
             enterCredentials: 'Saisissez vos identifiants',

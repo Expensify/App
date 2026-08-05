@@ -62,6 +62,13 @@ function getQuickbooksOnlineIntegrationName(policy: OnyxEntry<Policy>, translate
     return translate(isIntuitEnterpriseSuiteConnection(policy) ? 'workspace.accounting.intuitEnterpriseSuite' : 'workspace.accounting.qbo');
 }
 
+function getAccountingIntegrationDisplayName(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, translate: LocaleContextProps['translate']): string {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
+        return getQuickbooksOnlineIntegrationName(policy, translate);
+    }
+    return CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+}
+
 function getCurrentAccountingIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string | undefined {
     const currentConnectionName = getCurrentConnectionName(policy);
     return currentConnectionName === CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline ? getQuickbooksOnlineIntegrationName(policy, translate) : currentConnectionName;
@@ -506,10 +513,11 @@ function getSynchronizationErrorMessage(
     translate: LocaleContextProps['translate'],
     styles?: ThemeStyles,
 ): React.ReactNode | undefined {
+    const connectionDisplayName = getAccountingIntegrationDisplayName(policy, connectionName, translate);
     if (isAuthenticationError(policy, connectionName)) {
         return (
             <Text style={[styles?.formError]}>
-                <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName])} </Text>
+                <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', connectionDisplayName)} </Text>
                 {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
                     <>
                         <TextLink
@@ -525,7 +533,7 @@ function getSynchronizationErrorMessage(
         );
     }
 
-    const syncError = translate('workspace.accounting.syncError', {connectionName});
+    const syncError = translate('workspace.accounting.syncError', {connectionName: connectionDisplayName});
 
     const connection = policy?.connections?.[connectionName];
     if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {
@@ -566,6 +574,7 @@ export {
     getAccountingIntegrationData,
     getCurrentAccountingIntegrationName,
     getSynchronizationErrorMessage,
+    getAccountingIntegrationDisplayName,
     getQBDReimbursableAccounts,
     getQuickbooksOnlineIntegrationName,
     isIntuitEnterpriseSuiteConnection,

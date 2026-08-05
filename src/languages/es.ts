@@ -6596,27 +6596,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
             reinstall: 'Reinstalar el conector',
-            disconnectTitle: ({connectionName} = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integración';
-                return `Desconectar ${integrationName}`;
-            },
+            disconnectTitle: ({connectionName = 'integración'} = {}) => `Desconectar ${connectionName}`,
             connectTitle: ({connectionName}) => `Conectar ${connectionName}`,
-            syncError: ({connectionName}) => {
-                switch (connectionName) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'No se puede conectar a QuickBooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'No se puede conectar a Xero';
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return 'No se puede conectar a NetSuite';
-                    case CONST.POLICY.CONNECTIONS.NAME.QBD:
-                        return 'No se puede conectar a QuickBooks Desktop';
-                    default: {
-                        return 'No se ha podido conectar a la integración';
-                    }
-                }
-            },
+            syncError: ({connectionName}) => `No se puede conectar a ${connectionName}`,
             accounts: 'Plan de cuentas',
             taxes: 'Impuestos',
             imported: 'Importado',
@@ -6631,11 +6613,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado como campos de informe',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Predeterminado del empleado NetSuite',
             },
-            disconnectPrompt: ({connectionName} = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integración';
-                return `¿Estás seguro de que quieres desconectar ${integrationName}?`;
-            },
+            disconnectPrompt: ({connectionName = 'integración'} = {}) => `¿Estás seguro de que quieres desconectar ${connectionName}?`,
             connectPrompt: ({connectionName}) => `¿Estás seguro de que quieres conectar a ${connectionName}? Esto eliminará cualquier conexión contable existente.`,
             enterCredentials: 'Ingresa tus credenciales',
             reconnect: 'Reconectar',

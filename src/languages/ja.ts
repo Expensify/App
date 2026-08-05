@@ -6711,26 +6711,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             syncNow: '今すぐ同期',
             disconnect: '切断',
             reinstall: 'コネクタを再インストール',
-            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName = connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : '連携';
-                return `${integrationName}の接続を解除`;
-            },
+            disconnectTitle: ({connectionName = '連携'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `${connectionName}の接続を解除`,
             connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `${connectionName} を接続`,
-            syncError: ({connectionName}: ConnectionNameParams) => {
-                switch (connectionName) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'QuickBooks Online に接続できません';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Xero に接続できません';
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return 'NetSuite に接続できません';
-                    case CONST.POLICY.CONNECTIONS.NAME.QBD:
-                        return 'QuickBooks Desktop に接続できません';
-                    default: {
-                        return '連携に接続できません';
-                    }
-                }
-            },
+            syncError: ({connectionName}: ConnectionDisplayNameParams) => `${connectionName} に接続できません`,
             accounts: '勘定科目表',
             taxes: '税金',
             imported: 'インポート済み',
@@ -6745,11 +6728,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'レポートフィールドとしてインポート済み',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite 従業員のデフォルト',
             },
-            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'この連携';
-                return `${integrationName} の接続を本当に解除しますか？`;
-            },
+            disconnectPrompt: ({connectionName = 'この連携'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `${connectionName} の接続を本当に解除しますか？`,
             connectPrompt: ({connectionName}: ConnectionDisplayNameParams) => `${connectionName} を接続してもよろしいですか？これにより、既存の会計連携はすべて削除されます。`,
             enterCredentials: '認証情報を入力してください',
             reconnect: '再接続',

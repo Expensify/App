@@ -6930,28 +6930,10 @@ const translations = {
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
             reinstall: 'Reinstall connector',
-            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integration';
-                return `Disconnect ${integrationName}`;
-            },
+            disconnectTitle: ({connectionName = 'integration'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `Disconnect ${connectionName}`,
             connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `Connect ${connectionName}`,
 
-            syncError: ({connectionName}: ConnectionNameParams) => {
-                switch (connectionName) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return "Can't connect to QuickBooks Online";
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return "Can't connect to Xero";
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return "Can't connect to NetSuite";
-                    case CONST.POLICY.CONNECTIONS.NAME.QBD:
-                        return "Can't connect to QuickBooks Desktop";
-                    default: {
-                        return "Can't connect to integration";
-                    }
-                }
-            },
+            syncError: ({connectionName}: ConnectionDisplayNameParams) => `Can't connect to ${connectionName}`,
             accounts: 'Chart of accounts',
             taxes: 'Taxes',
             imported: 'Imported',
@@ -6966,11 +6948,7 @@ const translations = {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported as report fields',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite employee default',
             },
-            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'this integration';
-                return `Are you sure you want to disconnect ${integrationName}?`;
-            },
+            disconnectPrompt: ({connectionName = 'this integration'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `Are you sure you want to disconnect ${connectionName}?`,
             connectPrompt: ({connectionName}: ConnectionDisplayNameParams) => `Are you sure you want to connect ${connectionName}? This will remove any existing accounting connections.`,
             reconnect: 'Reconnect',
             enterCredentials: 'Enter your credentials',

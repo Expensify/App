@@ -6817,27 +6817,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             syncNow: 'Jetzt synchronisieren',
             disconnect: 'Trennen',
             reinstall: 'Connector neu installieren',
-            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'Integration';
-                return `${integrationName} trennen`;
-            },
+            disconnectTitle: ({connectionName = 'Integration'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `${connectionName} trennen`,
             connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `${connectionName} verbinden`,
-            syncError: ({connectionName}: ConnectionNameParams) => {
-                switch (connectionName) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Verbindung zu QuickBooks Online nicht möglich';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Verbindung mit Xero nicht möglich';
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return 'Verbindung mit NetSuite nicht möglich';
-                    case CONST.POLICY.CONNECTIONS.NAME.QBD:
-                        return 'Verbindung mit QuickBooks Desktop nicht möglich';
-                    default: {
-                        return 'Verbindung zur Integration kann nicht hergestellt werden';
-                    }
-                }
-            },
+            syncError: ({connectionName}: ConnectionDisplayNameParams) => `Verbindung mit ${connectionName} nicht möglich`,
             accounts: 'Kontenplan',
             taxes: 'Steuern',
             imported: 'Importiert',
@@ -6852,11 +6834,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Als Berichtsfelder importiert',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Standardmäßige NetSuite-Mitarbeiterperson',
             },
-            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'diese Integration';
-                return `Möchtest du ${integrationName} wirklich trennen?`;
-            },
+            disconnectPrompt: ({connectionName = 'diese Integration'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `Möchtest du ${connectionName} wirklich trennen?`,
             connectPrompt: ({connectionName}: ConnectionDisplayNameParams) =>
                 `Sind Sie sicher, dass Sie ${connectionName} verbinden möchten? Dadurch werden alle bestehenden Buchhaltungsverbindungen entfernt.`,
             enterCredentials: 'Gib deine Anmeldedaten ein',

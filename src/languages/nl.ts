@@ -6778,27 +6778,9 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             syncNow: 'Nu synchroniseren',
             disconnect: 'Verbinding verbreken',
             reinstall: 'Connector opnieuw installeren',
-            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integratie';
-                return `Verbinding met ${integrationName} verbreken`;
-            },
+            disconnectTitle: ({connectionName = 'integratie'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `Verbinding met ${connectionName} verbreken`,
             connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `Verbind ${connectionName}`,
-            syncError: ({connectionName}: ConnectionNameParams) => {
-                switch (connectionName) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Kan geen verbinding maken met QuickBooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Kan geen verbinding maken met Xero';
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return 'Kan geen verbinding maken met NetSuite';
-                    case CONST.POLICY.CONNECTIONS.NAME.QBD:
-                        return 'Kan geen verbinding maken met QuickBooks Desktop';
-                    default: {
-                        return 'Kan geen verbinding maken met integratie';
-                    }
-                }
-            },
+            syncError: ({connectionName}: ConnectionDisplayNameParams) => `Kan geen verbinding maken met ${connectionName}`,
             accounts: 'Rekeningschema',
             taxes: 'Belastingen',
             imported: 'Geïmporteerd',
@@ -6813,11 +6795,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Geïmporteerd als rapportvelden',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Standaard NetSuite-medewerker',
             },
-            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'deze integratie';
-                return `Weet je zeker dat je ${integrationName} wilt ontkoppelen?`;
-            },
+            disconnectPrompt: ({connectionName = 'deze integratie'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `Weet je zeker dat je ${connectionName} wilt ontkoppelen?`,
             connectPrompt: ({connectionName}: ConnectionDisplayNameParams) =>
                 `Weet je zeker dat je ${connectionName} wilt koppelen? Hierdoor worden alle bestaande boekhoudkundige koppelingen verwijderd.`,
             enterCredentials: 'Voer je inloggegevens in',
