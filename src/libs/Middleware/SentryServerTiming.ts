@@ -1,4 +1,5 @@
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {readUpdateIDFrom} from '@libs/actions/RequestConflictUtils';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {cancelSpan, endSpanWithAttributes, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
@@ -39,6 +40,11 @@ const TRACKED_COMMAND_GROUPS: TrackedCommandGroup[] = [
         spanOp: CONST.TELEMETRY.SPAN_EXPENSE_SERVER_RESPONSE,
         spanName: 'expense-server-response',
     },
+    {
+        commands: new Set<string>([SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES]),
+        spanOp: CONST.TELEMETRY.SPAN_RECONNECT_SERVER_RESPONSE,
+        spanName: 'reconnect-server-response',
+    },
 ];
 
 /**
@@ -46,6 +52,26 @@ const TRACKED_COMMAND_GROUPS: TrackedCommandGroup[] = [
  */
 function findTrackedGroup(command: string): TrackedCommandGroup | undefined {
     return TRACKED_COMMAND_GROUPS.find((group) => group.commands.has(command));
+}
+
+/**
+ * Distinguishes the spans of overlapping requests. `requestIndex` only exists on persisted write requests, so
+ * side-effect commands like GetMissingOnyxMessages would otherwise all share one span id, and starting the next
+ * span would cancel the one still in flight.
+ */
+let spanSequence = 0;
+
+/**
+ * Whether a reconnect response carried a newer update ceiling than the request asked to catch up from.
+ * A request with no `updateIDFrom` refetches everything, so there is nothing to advance past and the
+ * answer is left off the span. Sentry cannot compare one attribute against another, so this verdict has
+ * to be computed here rather than left to a query.
+ */
+function didResponseAdvance(updateIDFrom: number | undefined, lastUpdateID: number | string | undefined): boolean | undefined {
+    if (updateIDFrom === undefined) {
+        return undefined;
+    }
+    return Number(lastUpdateID ?? CONST.DEFAULT_NUMBER_ID) > updateIDFrom;
 }
 
 /**
@@ -60,12 +86,15 @@ const SentryServerTiming: Middleware = (response, request) => {
         return response;
     }
 
-    const spanId = `${group.spanOp}_${request.requestIndex}`;
+    const updateIDFrom = readUpdateIDFrom(request.data);
+    spanSequence += 1;
+    const spanId = `${group.spanOp}_${spanSequence}`;
     startSpan(spanId, {
         name: group.spanName,
         op: group.spanOp,
         attributes: {
             [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: request.command,
+            [CONST.TELEMETRY.ATTRIBUTE_UPDATE_ID_FROM]: updateIDFrom,
         },
     });
 
@@ -73,6 +102,7 @@ const SentryServerTiming: Middleware = (response, request) => {
         .then((data) => {
             const attributes: SpanAttributes = {
                 [CONST.TELEMETRY.ATTRIBUTE_JSON_CODE]: data?.jsonCode,
+                [CONST.TELEMETRY.ATTRIBUTE_RESPONSE_ADVANCED]: didResponseAdvance(updateIDFrom, data?.lastUpdateID),
             };
             endSpanWithAttributes(spanId, attributes);
             return data;
