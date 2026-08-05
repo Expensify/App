@@ -13,6 +13,7 @@ import {setDefaultOptions} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import type de from './de';
+import type el from './el';
 import type en from './en';
 import type es from './es';
 import type fr from './fr';
@@ -60,6 +61,17 @@ class IntlStore {
                       }),
                       import('date-fns/locale/de').then((module) => {
                           this.dateUtilsCache.set(LOCALES.DE, module.de);
+                      }),
+                  ]),
+        [LOCALES.EL]: () =>
+            this.cache.has(LOCALES.EL)
+                ? Promise.all([Promise.resolve(), Promise.resolve()])
+                : Promise.all([
+                      import('./el').then((module: DynamicModule<typeof el>) => {
+                          this.cache.set(LOCALES.EL, flattenObject(extractModuleDefaultExport(module)));
+                      }),
+                      import('date-fns/locale/el').then((module) => {
+                          this.dateUtilsCache.set(LOCALES.EL, module.el);
                       }),
                   ]),
         [LOCALES.EN]: () =>

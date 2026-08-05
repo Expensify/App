@@ -382,6 +382,7 @@ describe('actions/IOU/TrackExpense', () => {
             const reportActionableTrackExpense = Object.values(selfDMReportActions ?? {}).find((reportAction) => isActionableTrackExpense(reportAction));
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
+                reportActions: selfDMReportActions,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: reportActionableTrackExpense?.reportActionID,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -1463,6 +1464,7 @@ describe('actions/IOU/TrackExpense', () => {
             // When a draft is created for categorization
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
+                reportActions: selfDMReportActions,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: actionableWhisper?.reportActionID,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},

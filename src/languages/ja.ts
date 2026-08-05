@@ -404,6 +404,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: '長いレポートID',
         withdrawalID: '出金ID',
         internationalReimbursementIDs: '国際払い戻しID',
+        amountDebited: '引き落とし額',
+        amountReimbursed: '精算済み金額',
         withdrawalStatus: '出金ステータス',
         paidStatus: '支払済みステータス',
         bankAccounts: '銀行口座',
@@ -1440,7 +1442,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>により承認済み`,
         forwarded: (memo?: string) => `承認済み${memo ? `、メモ: ${memo}` : ''}`,
         rejectedThisReport: '却下しました',
-        waitingOnBankAccount: (submitterDisplayName: string) => `支払いを開始しましたが、${submitterDisplayName}が銀行口座を追加するのを待っています。`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `支払いを開始しましたが、${submitterDisplayName} が個人の銀行口座を追加するのを待っています。`,
         adminCanceledRequest: '支払いをキャンセルしました',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${submitterDisplayName} が30日以内に Expensify Wallet を有効化しなかったため、${amount} の支払いをキャンセルしました`,
@@ -1998,21 +2000,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `管理者が経費を支払うのを待っています。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `ビジネス銀行口座の設定が完了するのを<strong>お客様</strong>の操作待ちです。`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> がビジネス銀行口座の設定を完了するのを待っています。`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者がビジネス銀行口座の設定を完了するのを待っています。`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2458,7 +2445,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'デビットカードが正常に追加されました',
         expensifyPassword: 'Expensify のパスワード',
         error: {
-            invalidName: '名前には文字のみ使用できます',
+            invalidName: 'カード名義に「<」または「>」を含めることはできません',
             addressZipCode: '有効な郵便番号を入力してください',
             debitCardNumber: '有効なデビットカード番号を入力してください',
             expirationDate: '有効な有効期限を選択してください',
@@ -2481,7 +2468,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: '支払いカードが正常に追加されました',
         expensifyPassword: 'Expensify のパスワード',
         error: {
-            invalidName: '名前には文字のみ使用できます',
+            invalidName: 'カード名義に「<」または「>」を含めることはできません',
             addressZipCode: '有効な郵便番号を入力してください',
             paymentCardNumber: '有効なカード番号を入力してください',
             expirationDate: '有効な有効期限を選択してください',
@@ -7398,8 +7385,8 @@ ${reportName}`,
                 note: '次の機能へのアクセス権がなくなります',
                 benefits: {
                     confirm: 'Collect レートを適用するには、すべてのワークスペースの「プランタイプ」を「Collect」に変更する必要があります。',
-                    benefit1: 'NetSuite、Sage Intacct、QuickBooks Desktop、Oracle、Microsoft Dynamics',
-                    benefit2: 'Workday、Certinia',
+                    benefit1: 'NetSuite、Sage Intacct、QuickBooks Desktop、Oracle、Microsoft Dynamics、Certinia',
+                    benefit2: 'Gusto、TriNet、Workday',
                     benefit3: 'SSO/SAML',
                     benefit4: 'スマート経費ルール、日当、マルチレベル承認、カスタムレポート、予算管理',
                     headsUp: 'ご注意ください！',
@@ -7942,6 +7929,7 @@ ${reportName}`,
                 thenFlagForReview: '次の条件で確認フラグを付けます：',
             },
             agentRulesEmptyState: {title: 'エージェントルールが追加されていません', subtitle: 'ワークスペースのポリシーを自動化するルールを作成します。', cta: 'AIルールを追加'},
+            categoriesDisabledEmptyState: {title: 'カテゴリが有効になっていません', subtitle: 'カテゴリを有効にして、支出をより細かく管理しましょう。'},
         },
         planTypePage: {
             planTypes: {
@@ -9876,8 +9864,8 @@ ${reportName}`,
                 benefit1: 'Collect プランのすべての内容',
                 benefit2: '多段階承認ワークフロー',
                 benefit3: 'カスタム経費ルール',
-                benefit4: 'ERP連携（NetSuite、Sage Intacct、Oracle）',
-                benefit5: '人事統合（Workday、Certinia）',
+                benefit4: 'ERP連携（NetSuite、Sage Intacct、Oracle、Certinia）',
+                benefit5: '人事統合（Gusto、TriNet、Workday）',
                 benefit6: 'SAML/SSO',
                 benefit7: 'カスタム分析とレポート作成',
                 benefit8: '予算管理',
@@ -10004,7 +9992,7 @@ ${reportName}`,
         switch: '切り替え',
         copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot：代理アクセス',
-        copilotDelegatedAccessDescription: '他のメンバーがあなたのアカウントにアクセスできるようにする',
+        copilotDelegatedAccessDescription: '他のメンバーや担当者があなたのアカウントにアクセスできるようにします。',
         learnMoreAboutDelegatedAccess: '代理アクセスの詳細',
         addCopilot: 'コパイロットを追加',
         membersCanAccessYourAccount: '次のメンバーがあなたのアカウントにアクセスできます:',
@@ -10160,6 +10148,15 @@ ${reportName}`,
             buildReports: '数秒で経費レポートを作成',
             categorize: '経費を分類する',
             inviteBoss: '準備ができたら上司を招待しましょう',
+        },
+    },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: '管理者向けの新しいロールタイプ',
+                body: '新しいカード、メンバー、支払いの各管理者ロールで、チームにより細かな権限を付与できます。',
+                cta: '試してみる',
+            },
         },
     },
     productTrainingTooltip: {

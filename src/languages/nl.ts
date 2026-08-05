@@ -404,6 +404,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: 'Lang rapport-ID',
         withdrawalID: 'Opname-ID',
         internationalReimbursementIDs: 'Internationale terugbetalings-ID’s',
+        amountDebited: 'Afgeschreven bedrag',
+        amountReimbursed: 'Terugbetaald bedrag',
         withdrawalStatus: 'Opnamestatus',
         paidStatus: 'Betaald-status',
         bankAccounts: 'Bankrekeningen',
@@ -1456,7 +1458,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `goedgekeurd via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimteregels</a>`,
         forwarded: (memo?: string) => `goedgekeurd${memo ? `, met de omschrijving ${memo}` : ''}`,
         rejectedThisReport: 'afgekeurd',
-        waitingOnBankAccount: (submitterDisplayName: string) => `is een betaling gestart, maar wacht tot ${submitterDisplayName} een bankrekening toevoegt.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `is met de betaling begonnen, maar wacht tot ${submitterDisplayName} een persoonlijke bankrekening toevoegt.`,
         adminCanceledRequest: 'heeft de betaling geannuleerd',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `heeft de betaling van ${amount} geannuleerd, omdat ${submitterDisplayName} hun Expensify Wallet niet binnen 30 dagen heeft geactiveerd`,
@@ -2014,21 +2016,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Wachten tot een beheerder de onkosten betaalt.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Wachten tot <strong>je</strong> klaar bent met het instellen van een zakelijke bankrekening.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Wachten tot <strong>${actor}</strong> klaar is met het instellen van een zakelijke bankrekening.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten tot een beheerder klaar is met het instellen van een zakelijke bankrekening.`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2477,7 +2464,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Je betaalpas is succesvol toegevoegd',
         expensifyPassword: 'Expensify-wachtwoord',
         error: {
-            invalidName: 'Naam mag alleen letters bevatten',
+            invalidName: 'Naam op kaart mag geen < of > bevatten',
             addressZipCode: 'Voer een geldige postcode in',
             debitCardNumber: 'Voer een geldig debitcardnummer in',
             expirationDate: 'Selecteer een geldige vervaldatum',
@@ -2500,7 +2487,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Je betalingskaart is succesvol toegevoegd',
         expensifyPassword: 'Expensify-wachtwoord',
         error: {
-            invalidName: 'Naam mag alleen letters bevatten',
+            invalidName: 'Naam op kaart mag geen < of > bevatten',
             addressZipCode: 'Voer een geldige postcode in',
             paymentCardNumber: 'Voer een geldig kaartnummer in',
             expirationDate: 'Selecteer een geldige vervaldatum',
@@ -7473,8 +7460,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 note: 'Je verliest toegang tot de volgende functies',
                 benefits: {
                     confirm: 'Je moet het “Plan type” van elke workspace wijzigen naar “Collect” om het Collect-tarief veilig te stellen.',
-                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
-                    benefit2: 'Workday, Certinia',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics, Certinia',
+                    benefit2: 'Gusto, TriNet, Workday',
                     benefit3: 'SSO/SAML',
                     benefit4: 'Slimme onkostregels, dagvergoedingen, goedkeuring op meerdere niveaus, aangepaste rapportage en budgettering',
                     headsUp: 'Let op!',
@@ -8021,6 +8008,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 thenFlagForReview: 'Vlag dan voor controle wanneer:',
             },
             agentRulesEmptyState: {title: 'Geen agentregels toegevoegd', subtitle: 'Maak een regel om je werkruimtebeleid te automatiseren.', cta: 'AI-regel toevoegen'},
+            categoriesDisabledEmptyState: {title: 'Categorieën zijn niet ingeschakeld', subtitle: 'Schakel categorieën in om meer controle te krijgen over je uitgaven.'},
         },
         planTypePage: {
             planTypes: {
@@ -9983,8 +9971,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 benefit1: 'Alles in het Collect-abonnement',
                 benefit2: 'Meerlagige goedkeuringsworkflows',
                 benefit3: 'Aangepaste onkostregels',
-                benefit4: 'ERP-integraties (NetSuite, Sage Intacct, Oracle)',
-                benefit5: 'HR-integraties (Workday, Certinia)',
+                benefit4: 'ERP-integraties (NetSuite, Sage Intacct, Oracle, Certinia)',
+                benefit5: 'HR-integraties (Gusto, TriNet, Workday)',
                 benefit6: 'SAML/SSO',
                 benefit7: 'Aangepaste inzichten en rapportage',
                 benefit8: 'Budgettering',
@@ -10112,7 +10100,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         switch: 'Wisselen',
         copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Gedelegeerde toegang',
-        copilotDelegatedAccessDescription: 'Sta andere leden toe toegang te krijgen tot je account.',
+        copilotDelegatedAccessDescription: 'Andere leden en medewerkers toegang geven tot je account.',
         learnMoreAboutDelegatedAccess: 'Meer informatie over gedelegeerde toegang',
         addCopilot: 'Co-piloot toevoegen',
         membersCanAccessYourAccount: 'Deze leden hebben toegang tot je account:',
@@ -10270,6 +10258,15 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             buildReports: 'Maak onkostenrapporten in enkele seconden',
             categorize: 'Categoriseer je uitgaven',
             inviteBoss: 'Nodig je baas uit wanneer je er klaar voor bent',
+        },
+    },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nieuwe roltypen voor beheerders',
+                body: 'Geef je team meer gedetailleerde toegangsrechten met nieuwe kaart-, personen- en betalingsbeheerrollen.',
+                cta: 'Probeer het uit',
+            },
         },
     },
     productTrainingTooltip: {

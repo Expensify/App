@@ -211,7 +211,7 @@ describe('ModifiedExpenseMessage', () => {
                     [mockAccountID]: {accountID: mockAccountID, login: CURRENT_USER_LOGIN},
                 });
 
-                (ReportNameUtils.buildReportNameFromParticipantNames as jest.Mock).mockImplementation(({currentUserAccountID}) => {
+                jest.mocked(ReportNameUtils.buildReportNameFromParticipantNames).mockImplementation(({currentUserAccountID}) => {
                     if (currentUserAccountID === mockAccountID) {
                         return dmReportName;
                     }
@@ -1031,6 +1031,33 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the description is changed to a URL', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldComment: '<a href="https://old.example.com" target="_blank">https://old.example.com</a>',
+                    newComment: '<a href="https://new.example.com" target="_blank">https://new.example.com</a>',
+                },
+            };
+
+            it('keeps the stored HTML link instead of converting it to Markdown', () => {
+                const expectedResult =
+                    'changed the description to "<a href="https://new.example.com" target="_blank">https://new.example.com</a>" (previously "<a href="https://old.example.com" target="_blank">https://old.example.com</a>")';
+
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the category is changed with AI attribution', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
@@ -1232,11 +1259,11 @@ describe('ModifiedExpenseMessage', () => {
                 environmentURL = await getEnvironmentURL();
             });
 
-            const policyRulesPolicy = {id: policyRulesPolicyId, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE} as Policy;
+            const policyRulesPolicy = createMock<Policy>({id: policyRulesPolicyId, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE});
 
             beforeEach(() => {
                 // Default: current user has policy rule access (admin + rules enabled), so link points to workspace rules
-                (PolicyUtils.isPolicyAdmin as jest.Mock).mockReturnValue(true);
+                jest.mocked(PolicyUtils.isPolicyAdmin).mockReturnValue(true);
             });
 
             it('returns the correct text message with multiple overrides', () => {
@@ -1305,12 +1332,12 @@ describe('ModifiedExpenseMessage', () => {
                 const reportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                    originalMessage: {
+                    originalMessage: createMock<OriginalMessageModifiedExpense>({
                         policyID: '1234',
                         policyRulesModifiedFields: {
                             tax: {},
                         },
-                    } as OriginalMessageModifiedExpense,
+                    }),
                 };
 
                 const result = getForReportAction({
@@ -1407,7 +1434,7 @@ describe('ModifiedExpenseMessage', () => {
             });
 
             it('returns the correct text message with help link for non-admin', () => {
-                (PolicyUtils.isPolicyAdmin as jest.Mock).mockReturnValue(false);
+                jest.mocked(PolicyUtils.isPolicyAdmin).mockReturnValue(false);
 
                 const reportAction = {
                     ...createRandomReportAction(1),
@@ -2269,7 +2296,7 @@ describe('ModifiedExpenseMessage', () => {
             // chat entries keep rendering the vendor name after an admin switches export modes away
             // from CC/DC. The fourth case below omits a vendor from the list to exercise the
             // externalID fallback path.
-            const policyWithVendors: Policy = {
+            const policyWithVendors = createMock<Policy>({
                 id: 'p-1',
                 name: 'My Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
@@ -2287,7 +2314,7 @@ describe('ModifiedExpenseMessage', () => {
                         },
                     },
                 },
-            } as Policy;
+            });
 
             describe('when the vendor is set for the first time (oldVendor key stripped by Onyx null-merge)', () => {
                 // Onyx merges with `shouldRemoveNestedNulls: true`, so the optimistic

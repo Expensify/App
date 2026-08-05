@@ -405,6 +405,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: 'Langer Bericht-ID',
         withdrawalID: 'Auszahlungs-ID',
         internationalReimbursementIDs: 'Internationale Erstattungs-IDs',
+        amountDebited: 'Belasteter Betrag',
+        amountReimbursed: 'Erstatteter Betrag',
         withdrawalStatus: 'Auszahlungsstatus',
         paidStatus: 'Status: Bezahlt',
         bankAccounts: 'Bankkonten',
@@ -1458,7 +1460,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `über Genehmigung durch <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a>`,
         forwarded: (memo?: string) => `genehmigt${memo ? `, mit dem Vermerk ${memo}` : ''}`,
         rejectedThisReport: 'abgelehnt',
-        waitingOnBankAccount: (submitterDisplayName: string) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein Bankkonto hinzufügt.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein persönliches Bankkonto hinzufügt.`,
         adminCanceledRequest: 'hat die Zahlung storniert',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${amount} Zahlung storniert, weil ${submitterDisplayName} ihr Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
@@ -2022,21 +2024,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten darauf, dass eine Adminperson Spesen bezahlt.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten darauf, dass <strong>Sie</strong> die Einrichtung eines Geschäftskontos abschließen.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten darauf, dass <strong>${actor}</strong> die Einrichtung eines Geschäftskontos abschließt.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf eine Administration, um das Einrichten eines geschäftlichen Bankkontos abzuschließen.`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2484,7 +2471,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Ihre Debitkarte wurde erfolgreich hinzugefügt',
         expensifyPassword: 'Expensify-Passwort',
         error: {
-            invalidName: 'Name darf nur Buchstaben enthalten',
+            invalidName: 'Name auf der Karte darf kein < oder > enthalten',
             addressZipCode: 'Bitte eine gültige Postleitzahl eingeben',
             debitCardNumber: 'Bitte gib eine gültige Debitkartennummer ein',
             expirationDate: 'Bitte wähle ein gültiges Ablaufdatum aus',
@@ -2507,7 +2494,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Ihre Zahlungskarte wurde erfolgreich hinzugefügt',
         expensifyPassword: 'Expensify-Passwort',
         error: {
-            invalidName: 'Name darf nur Buchstaben enthalten',
+            invalidName: 'Name auf der Karte darf kein < oder > enthalten',
             addressZipCode: 'Bitte eine gültige Postleitzahl eingeben',
             paymentCardNumber: 'Bitte gib eine gültige Kartennummer ein',
             expirationDate: 'Bitte wähle ein gültiges Ablaufdatum aus',
@@ -7518,8 +7505,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 note: 'Sie verlieren den Zugriff auf die folgenden Funktionen',
                 benefits: {
                     confirm: 'Sie müssen den „Plantyp“ jedes Arbeitsbereichs auf „Collect“ ändern, um den Collect-Tarif zu sichern.',
-                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
-                    benefit2: 'Workday, Certinia',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics, Certinia',
+                    benefit2: 'Gusto, TriNet, Workday',
                     benefit3: 'SSO/SAML',
                     benefit4: 'Intelligente Spesenregeln, Tagegelder, Genehmigungen mit mehreren Ebenen, benutzerdefinierte Berichte und Budgetierung',
                     headsUp: 'Achtung!',
@@ -8071,6 +8058,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 subtitle: 'Erstellen Sie eine Regel, um Ihre Arbeitsbereichsrichtlinien zu automatisieren.',
                 cta: 'KI-Regel hinzufügen',
             },
+            categoriesDisabledEmptyState: {title: 'Kategorien sind nicht aktiviert', subtitle: 'Aktivieren Sie Kategorien, um Ihre Ausgaben besser zu kontrollieren.'},
         },
         planTypePage: {
             planTypes: {
@@ -10038,8 +10026,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 benefit1: 'Alles im Collect-Tarif',
                 benefit2: 'Genehmigungs-Workflows mit mehreren Ebenen',
                 benefit3: 'Benutzerdefinierte Ausgabenregeln',
-                benefit4: 'ERP-Integrationen (NetSuite, Sage Intacct, Oracle)',
-                benefit5: 'HR-Integrationen (Workday, Certinia)',
+                benefit4: 'ERP-Integrationen (NetSuite, Sage Intacct, Oracle, Certinia)',
+                benefit5: 'HR-Integrationen (Gusto, TriNet, Workday)',
                 benefit6: 'SAML/SSO',
                 benefit7: 'Individuelle Einblicke und Berichte',
                 benefit8: 'Budgetierung',
@@ -10167,7 +10155,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         switch: 'Wechseln',
         copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Delegierter Zugriff',
-        copilotDelegatedAccessDescription: 'Anderen Mitgliedern erlauben, auf dein Konto zuzugreifen.',
+        copilotDelegatedAccessDescription: 'Anderen Mitgliedern und Agenten den Zugriff auf Ihr Konto erlauben.',
         learnMoreAboutDelegatedAccess: 'Mehr über delegierten Zugriff erfahren',
         addCopilot: 'Copilot hinzufügen',
         membersCanAccessYourAccount: 'Diese Mitglieder haben Zugriff auf Ihr Konto:',
@@ -10324,6 +10312,15 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             buildReports: 'Erstelle Ausgabenberichte in Sekunden',
             categorize: 'Kategorisiere deine Ausgaben',
             inviteBoss: 'Lade deinen Chef ein, wenn du bereit bist',
+        },
+    },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Neue Rollentypen für Admins',
+                body: 'Geben Sie Ihrem Team detailliertere Berechtigungen mit neuen Administratorrollen für Karten, Personen und Zahlungen.',
+                cta: 'Ausprobieren',
+            },
         },
     },
     productTrainingTooltip: {
