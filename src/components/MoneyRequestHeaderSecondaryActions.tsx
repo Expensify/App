@@ -504,6 +504,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             currentUserAccountID: accountID,
                             currentUserEmail: currentUserLogin ?? '',
                             policy: iouPolicy,
+                            getCurrencyDecimals,
                         });
                     } else {
                         if (shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID])) {
