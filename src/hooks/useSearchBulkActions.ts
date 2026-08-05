@@ -38,6 +38,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
 import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
+import Log from '@libs/Log';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -405,7 +406,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     } = usePaymentContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const selfDMReport = useSelfDMReport();
@@ -951,7 +951,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             const reportPolicy = getPolicyFromSearchSnapshot(expenseReport.policyID, searchData, policies);
-            const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`];
             const hasViolations = hasViolationsReportUtils(reportID, allTransactionViolations, accountID, email ?? '');
             const policyToUpgrade = reportPolicy;
             const wouldNavigateToUpgrade = isSubmitPolicy(policyToUpgrade) && !!policyToUpgrade?.id;
@@ -965,7 +964,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 currentUserEmailParam: email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: nextStep,
                 betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
@@ -1008,7 +1006,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         email,
         searchResults?.data,
         allReports,
-        allNextSteps,
         allTransactionViolations,
         isBetaEnabled,
         betas,
@@ -1164,6 +1161,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const onBulkPaySelected = useCallback(
         (paymentMethod?: PaymentMethodType, additionalData?: BulkPaySelectionData) => {
             if (!hash) {
+                Log.info('[BulkPay] Dropping bulk pay: no search hash');
                 return;
             }
             if (isOffline) {
@@ -1181,6 +1179,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
             if (restrictedPolicyID) {
+                Log.info('[BulkPay] Blocking bulk pay: billable actions are restricted', false, {policyID: restrictedPolicyID});
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
                 return;
             }
@@ -1193,6 +1192,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const itemPolicyID = item.policyID;
                 const itemReportID = item.reportID;
                 if (!itemReportID) {
+                    Log.info('[BulkPay] Dropping bulk pay: selected item has no reportID');
                     return;
                 }
                 const itemReport = getReportFromSearchSnapshot(itemReportID, searchData, allReports);
@@ -1202,6 +1202,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const lastPolicyPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(itemPolicyID, personalPolicyID, lastPaymentMethods, reportType, isIOUReport);
 
                 if (!lastPolicyPaymentMethod) {
+                    Log.info('[BulkPay] Aborting bulk pay: no last payment method for policy, redirecting to the report', false, {policyID: itemPolicyID, reportID: itemReportID});
                     Navigation.navigate(
                         ROUTES.SEARCH_REPORT.getRoute({
                             reportID: itemReportID,
@@ -1220,6 +1221,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const hasSelectedBusinessBankAccount = expenseReportBankAccountID != null;
 
                 if (isExpenseReport && lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA && !hasSelectedBusinessBankAccount) {
+                    Log.info('[BulkPay] Aborting bulk pay: policy has no VBBA and no bank account was selected, redirecting to the report', false, {
+                        policyID: itemPolicyID,
+                        reportID: itemReportID,
+                    });
                     Navigation.navigate(
                         ROUTES.SEARCH_REPORT.getRoute({
                             reportID: item.reportID,
@@ -1232,6 +1237,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 if (isPolicyPaymentMethod && isIOUReport) {
                     const adminPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${lastPolicyPaymentMethod}`];
                     if (!adminPolicy) {
+                        Log.info('[BulkPay] Aborting bulk pay: last payment method points to an unknown policy, redirecting to the report', false, {reportID: item.reportID});
                         Navigation.navigate(
                             ROUTES.SEARCH_REPORT.getRoute({
                                 reportID: item.reportID,
@@ -1318,7 +1324,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                 const chatReportPolicy = getPolicyFromSearchSnapshot(chatReport.policyID, searchData, policies);
                 const reportPolicy = workspacePayPolicy ?? getPolicyFromSearchSnapshot(item.policyID, searchData, policies);
-                const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.reportID}`];
                 const additionalOnyxData = getSearchPayOnyxData(hash, item.reportID, currentSearchKey);
                 const isItemInvoice = isInvoiceReport(item.reportID);
 
@@ -1339,7 +1344,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
                         invoiceReport: iouReport,
-                        invoiceReportCurrentNextStepDeprecated: nextStep,
                         introSelected,
                         currentUserAccountIDParam: accountID,
                         currentUserEmailParam: email ?? '',
@@ -1368,7 +1372,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     chatReport,
                     iouReport,
                     introSelected,
-                    iouReportCurrentNextStepDeprecated: nextStep,
                     currentUserAccountID: accountID,
                     currentUserLogin: currentUserLogin ?? '',
                     activePolicy,
@@ -1410,7 +1413,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             showDelegateNoAccessModal,
             allReports,
             allReportActions,
-            allNextSteps,
             personalPolicyID,
             lastPaymentMethods,
             allTransactions,

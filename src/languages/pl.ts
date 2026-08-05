@@ -1452,7 +1452,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `zatwierdzone przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reguły przestrzeni roboczej</a>`,
         forwarded: (memo?: string) => `zatwierdzono${memo ? `, wpisując ${memo}` : ''}`,
         rejectedThisReport: 'odrzucono',
-        waitingOnBankAccount: (submitterDisplayName: string) => `rozpoczęto płatność, ale oczekuje na to, aż ${submitterDisplayName} doda konto bankowe.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `rozpoczął(-ęła) płatność, ale czeka, aż ${submitterDisplayName} doda osobiste konto bankowe.`,
         adminCanceledRequest: 'anulowano płatność',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `anulowano płatność ${amount}, ponieważ ${submitterDisplayName} nie aktywował(-a) swojego portfela Expensify w ciągu 30 dni`,
@@ -2011,21 +2011,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Oczekiwanie na opłacenie wydatków przez administratora.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Czekamy, aż <strong>Ty</strong> skończysz zakładać firmowe konto bankowe.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Oczekiwanie, aż <strong>${actor}</strong> zakończy konfigurowanie firmowego konta bankowego.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Czekanie, aż administrator skończy konfigurować firmowe konto bankowe.`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2473,7 +2458,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Twoja karta debetowa została pomyślnie dodana',
         expensifyPassword: 'Hasło do Expensify',
         error: {
-            invalidName: 'Imię może zawierać tylko litery',
+            invalidName: 'Imię i nazwisko na karcie nie może zawierać znaków „<” ani „>”',
             addressZipCode: 'Wpisz prawidłowy kod pocztowy',
             debitCardNumber: 'Wprowadź prawidłowy numer karty debetowej',
             expirationDate: 'Wybierz poprawną datę ważności',
@@ -2496,7 +2481,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Twoja karta płatnicza została pomyślnie dodana',
         expensifyPassword: 'Hasło do Expensify',
         error: {
-            invalidName: 'Imię może zawierać tylko litery',
+            invalidName: 'Imię i nazwisko na karcie nie może zawierać znaków „<” ani „>”',
             addressZipCode: 'Wpisz prawidłowy kod pocztowy',
             paymentCardNumber: 'Wprowadź prawidłowy numer karty',
             expirationDate: 'Wybierz poprawną datę ważności',
@@ -7455,8 +7440,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 note: 'Stracisz dostęp do następujących funkcji',
                 benefits: {
                     confirm: 'Musisz zmienić „Typ planu” każdego obszaru roboczego na „Collect”, aby uzyskać stawkę Collect.',
-                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
-                    benefit2: 'Workday, Certinia',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics, Certinia',
+                    benefit2: 'Gusto, TriNet, Workday',
                     benefit3: 'SSO/SAML',
                     benefit4: 'Inteligentne reguły wydatków, diety, wielopoziomowe zatwierdzanie, raportowanie niestandardowe i budżetowanie',
                     headsUp: 'Uwaga!',
@@ -7999,6 +7984,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 thenFlagForReview: 'Następnie oznacz do przejrzenia, gdy:',
             },
             agentRulesEmptyState: {title: 'Nie dodano reguł agenta', subtitle: 'Utwórz regułę, żeby zautomatyzować zasady swojego workspace’u.', cta: 'Dodaj regułę AI'},
+            categoriesDisabledEmptyState: {title: 'Kategorie nie są włączone', subtitle: 'Włącz kategorie, żeby mieć większą kontrolę nad wydatkami.'},
         },
         planTypePage: {
             planTypes: {
@@ -9953,8 +9939,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 benefit1: 'Wszystko w pakiecie Collect',
                 benefit2: 'Wielopoziomowe przepływy zatwierdzania',
                 benefit3: 'Niestandardowe zasady wydatków',
-                benefit4: 'Integracje ERP (NetSuite, Sage Intacct, Oracle)',
-                benefit5: 'Integracje HR (Workday, Certinia)',
+                benefit4: 'Integracje ERP (NetSuite, Sage Intacct, Oracle, Certinia)',
+                benefit5: 'Integracje HR (Gusto, TriNet, Workday)',
                 benefit6: 'SAML/SSO',
                 benefit7: 'Niestandardowe analizy i raportowanie',
                 benefit8: 'Budżetowanie',
@@ -10238,6 +10224,15 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             buildReports: 'Twórz raporty wydatków w kilka sekund',
             categorize: 'Kategoryzuj swoje wydatki',
             inviteBoss: 'Zaproś swojego szefa, gdy będziesz gotowy',
+        },
+    },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Nowe typy ról dla administratorów',
+                body: 'Daj swojemu zespołowi bardziej szczegółowe uprawnienia dzięki nowym rolom administratora kart, osób i płatności.',
+                cta: 'Wypróbuj to',
+            },
         },
     },
     productTrainingTooltip: {
