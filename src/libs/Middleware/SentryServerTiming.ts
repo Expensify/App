@@ -56,18 +56,15 @@ function findTrackedGroup(command: string): TrackedCommandGroup | undefined {
     return TRACKED_COMMAND_GROUPS.find((group) => group.commands.has(command));
 }
 
-// `requestIndex` only exists on persisted write requests, so side-effect commands would otherwise share one
-// span id, and starting the next span cancels the one still in flight.
+// `requestIndex` is unset on side-effect requests, so keying spans off it collides and cancels one still in flight.
 let spanSequence = 0;
 
-// `getMissingOnyxUpdates` types its target as `number | string`.
 function readUpdateIDTo(data: Request<OnyxKey>['data']): number | undefined {
     const updateIDTo = Number(data?.updateIDTo);
     return Number.isFinite(updateIDTo) ? updateIDTo : undefined;
 }
 
-// Sentry cannot compare one attribute against another, so this verdict has to be computed at write time
-// rather than left to a query.
+// Sentry cannot compare one attribute against another, so the verdict cannot be left to a query.
 function didResponseAdvance(updateIDFrom: number | undefined, lastUpdateID: number | string | undefined): boolean | undefined {
     if (updateIDFrom === undefined) {
         return undefined;
