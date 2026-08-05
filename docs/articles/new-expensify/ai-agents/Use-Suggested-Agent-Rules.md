@@ -23,6 +23,8 @@ Each suggested Agent rule includes a predefined set of natural-language instruct
 
 When you create a rule from a suggestion, you can review and edit its instructions before saving. After it's created, you can continue editing it like any other Agent rule.
 
+For guidance on writing clear, effective instructions, see [How to Write Agent Instructions](/articles/new-expensify/ai-agents/How-to-Write-Agent-Instructions).
+
 ---
 
 ## What amount and spending rules are available
@@ -129,8 +131,20 @@ After you save a Suggested Agent rule:
 - The rule behaves like any other Agent rule.
 
 ---
+# FAQ
 
-## Related articles
+## Can I edit a Suggested Agent rule?
 
-- [Automate Workflows with Agent Rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules)
-- [How to Write Agent Instructions](/articles/new-expensify/ai-agents/How-to-Write-Agent-Instructions)
+Yes. Suggested Agent rules are starting points. You can review and edit the instructions before saving the rule, and you can update the instructions at any time after it's created.
+
+## Do Suggested Agent rules work differently from custom Agent rules?
+
+No. After you save a Suggested Agent rule, it behaves like any other Agent rule. RuleBot enforces it using the instructions you've configured.
+
+## Can I create multiple Suggested Agent rules?
+
+Yes. You can create as many Agent rules as your workspace needs. Each rule evaluates the conditions described in its own instructions.
+
+## What if none of the Suggested Agent rules matches my workflow?
+
+Create a custom Agent rule instead. You can write your own natural-language instructions to automate workflows that aren't covered by the suggested rules.
