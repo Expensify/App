@@ -1,5 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {translate} from '@libs/Localize';
 import {
     buildReportNameFromParticipantNames,
@@ -10,7 +11,8 @@ import {
     getInvoicesChatName,
     getMoneyRequestReportName,
     getPolicyExpenseChatName,
-    getReportName as getSimpleReportName,
+    getReportName,
+    deprecatedGetReportName,
 } from '@libs/ReportNameUtils';
 
 import CONST from '@src/CONST';
@@ -25,6 +27,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import {createAdminRoom, createExpenseReport, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -43,6 +46,7 @@ describe('ReportNameUtils', () => {
         currentUserID = currentUserAccountID,
     ) =>
         computeReportNameOriginal({
+            conciergeReportID: undefined,
             report,
             reports,
             policies,
@@ -292,6 +296,7 @@ describe('ReportNameUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'lagertha2@vikings.net', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
             const translateWithYouMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.you' ? 'You Marker' : translateLocal(path, ...parameters));
             const name = computeReportNameOriginal({
+                conciergeReportID: undefined,
                 report,
                 reports: emptyCollections.reports,
                 policies: emptyCollections.policies,
@@ -465,6 +470,50 @@ describe('ReportNameUtils', () => {
             );
             expect(name).toBe(expected);
         });
+        test('Cross-border pay parent action', () => {
+            // Given a thread on a payment that converted currency for the employee
+            const thread: Report = createWorkspaceThread(60);
+            const parentAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                    creditedAmount: 1340,
+                    creditedCurrency: 'GBP',
+                    debitBankAccountLast4: '6789',
+                    creditBankAccountLast4: '3335',
+                },
+            };
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
+                    [actionId]: parentAction,
+                },
+            };
+
+            // When the thread is named
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+
+            // Then it names the credited amount and both accounts rather than only the company account
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'iou.reimbursedCrossBorder', {amount: convertToDisplayString(1340, 'GBP'), debitBankAccount: '6789', creditBankAccount: '3335'}));
+        });
         test('Hold parent action', () => {
             const thread: Report = createWorkspaceThread(52);
             const parentAction: ReportAction = {
@@ -579,6 +628,7 @@ describe('ReportNameUtils', () => {
             } as OnyxCollection<PolicyTagLists>;
 
             const name = computeReportNameOriginal({
+                conciergeReportID: undefined,
                 report: thread,
                 reports: emptyCollections.reports,
                 policies: emptyCollections.policies,
@@ -975,7 +1025,7 @@ describe('ReportNameUtils', () => {
         });
     });
 
-    describe('getReportName (derived value vs fallback)', () => {
+    describe('deprecatedGetReportName (resolves the name out of the attributes Record)', () => {
         test('Returns derived value when provided', () => {
             const report: Report = {
                 ...createPolicyExpenseChat(60, true),
@@ -993,7 +1043,7 @@ describe('ReportNameUtils', () => {
                 },
             };
 
-            expect(getSimpleReportName(report, derived)).toBe("Ragnar Lothbrok's expenses");
+            expect(deprecatedGetReportName(report, derived)).toBe("Ragnar Lothbrok's expenses");
         });
 
         test('Falls back to report.reportName when derived missing', () => {
@@ -1004,7 +1054,7 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            expect(getSimpleReportName(report, {} as never)).toBe('Custom Report Name');
+            expect(deprecatedGetReportName(report, {} as never)).toBe('Custom Report Name');
         });
 
         test('Returns empty string when neither present', () => {
@@ -1015,7 +1065,69 @@ describe('ReportNameUtils', () => {
                 reportName: undefined,
             };
 
-            expect(getSimpleReportName(report, {} as never)).toBe('');
+            expect(deprecatedGetReportName(report, {} as never)).toBe('');
+        });
+    });
+
+    describe('getReportName (derived name vs fallback)', () => {
+        test('Returns the derived name when provided', () => {
+            const report: Report = {
+                ...createPolicyExpenseChat(70, true),
+                reportID: '70',
+                reportName: 'Raw Report Name',
+                ownerAccountID: 1,
+            };
+
+            expect(getReportName(report, "Ragnar Lothbrok's expenses")).toBe("Ragnar Lothbrok's expenses");
+        });
+
+        test('Falls back to report.reportName when no derived name is passed', () => {
+            const report: Report = {
+                ...createRegularChat(71, [currentUserAccountID, 1]),
+                reportID: '71',
+                reportName: 'Custom Report Name',
+                ownerAccountID: currentUserAccountID,
+            };
+
+            expect(getReportName(report)).toBe('Custom Report Name');
+            expect(getReportName(report, undefined)).toBe('Custom Report Name');
+        });
+
+        test('Returns empty string when neither the derived name nor report.reportName is present', () => {
+            const report: Report = {
+                ...createRegularChat(72, [currentUserAccountID, 1]),
+                reportID: '72',
+                ownerAccountID: currentUserAccountID,
+                reportName: undefined,
+            };
+
+            expect(getReportName(report)).toBe('');
+        });
+
+        test('Returns empty string when the report is missing or has no reportID', () => {
+            const reportWithoutID: Report = {
+                ...createRegularChat(74, [currentUserAccountID, 1]),
+                reportID: '',
+                reportName: 'Custom Report Name',
+                ownerAccountID: currentUserAccountID,
+            };
+
+            expect(getReportName(undefined, 'Derived Name')).toBe('');
+            // reportID is the lookup key, so a report without one has no name even if it carries a reportName
+            expect(getReportName(reportWithoutID, 'Derived Name')).toBe('');
+        });
+
+        test('Keeps an empty derived name rather than falling back to report.reportName', () => {
+            const report: Report = {
+                ...createRegularChat(73, [currentUserAccountID, 1]),
+                reportID: '73',
+                reportName: 'Custom Report Name',
+                ownerAccountID: currentUserAccountID,
+            };
+
+            // `??` only falls through on null/undefined, so a derived empty name wins. This mirrors the
+            // pre-migration behavior of indexing the attributes Record inline.
+            expect(getReportName(report, '')).toBe('');
         });
     });
 
@@ -1051,7 +1163,7 @@ describe('ReportNameUtils', () => {
                 ...createRegularChat(1000, [currentUserAccountID, 1, 2]),
             };
 
-            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID});
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal});
             expect(name).toBe('Ragnar, floki@vikings.net');
         });
 
@@ -1060,8 +1172,23 @@ describe('ReportNameUtils', () => {
                 ...createRegularChat(1001, [currentUserAccountID, 1]),
             };
 
-            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID});
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal});
             expect(name).toBe('Ragnar Lothbrok');
+        });
+
+        test('resolves a hidden participant name through the provided translate function', () => {
+            const hiddenAccountID = 987654;
+            const report = {...createRegularChat(1002, [currentUserAccountID, hiddenAccountID])};
+            // The lone remaining participant has empty personal details, so its name resolves via translate('common.hidden').
+            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
+
+            const name = buildReportNameFromParticipantNames({
+                report,
+                personalDetailsList: {[hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''}},
+                currentUserAccountID,
+                translate: translateWithHiddenMarker,
+            });
+            expect(name).toBe('HiddenMarker');
         });
     });
 
@@ -1213,7 +1340,7 @@ describe('ReportNameUtils', () => {
                 reportName: 'Fallback Report Name',
             } as unknown as Report;
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'Ragnar Lothbrok'));
         });
 
@@ -1223,7 +1350,7 @@ describe('ReportNameUtils', () => {
                 reportName: 'Fallback Report Name',
             } as unknown as Report;
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'floki'));
         });
 
@@ -1233,8 +1360,18 @@ describe('ReportNameUtils', () => {
                 reportName: 'Fallback Report Name',
             } as unknown as Report;
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: {}});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: {}, translate: translateLocal});
             expect(name).toBe('Fallback Report Name');
+        });
+
+        it('builds the policy expense chat name through the provided translate function', () => {
+            const report = createMock<Report>({ownerAccountID: 1, reportName: 'Fallback Report Name'});
+            // The workspace.common.policyExpenseChatName label is produced by the provided translate function.
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.policyExpenseChatName' ? `PolicyMarker:${String(parameters.at(0))}` : translateLocal(path, ...parameters);
+
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateWithMarker});
+            expect(name).toBe('PolicyMarker:Ragnar Lothbrok');
         });
     });
 
@@ -1262,27 +1399,27 @@ describe('ReportNameUtils', () => {
         describe('When participantAccountIDs is passed to getGroupChatName', () => {
             it('shows all participants when count <= 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, fourParticipants)).toEqual('Four, One, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('shows all participants when count <= 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, fourParticipants, true)).toEqual('Four, One, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, fourParticipants, true)).toEqual('Four, One, Three, Two');
             });
 
             it('shows 5 participants with ellipsis when count > 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
             });
 
             it('shows all participants when count > 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
 
             it('uses correct display names for participants', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
             });
         });
 
@@ -1295,7 +1432,7 @@ describe('ReportNameUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report)).toEqual("Let's talk");
             });
 
             it('uses report name when available (limit true)', async () => {
@@ -1306,7 +1443,7 @@ describe('ReportNameUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, undefined, true, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, true, report)).toEqual("Let's talk");
             });
 
             it('uses report name when >5 participants and limit true', async () => {
@@ -1317,7 +1454,7 @@ describe('ReportNameUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, undefined, true, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, true, report)).toEqual("Let's talk");
             });
 
             it('uses report name when >5 participants and limit false', async () => {
@@ -1328,7 +1465,7 @@ describe('ReportNameUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report)).toEqual("Let's talk");
             });
 
             it('falls back to participant names when report name is empty', async () => {
@@ -1339,8 +1476,18 @@ describe('ReportNameUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
+        });
+
+        it('builds the single-participant default name through the provided translate function', async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            // A single participant produces the groupChat.defaultReportName label from the provided translate function.
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'groupChat.defaultReportName' ? `GroupMarker:${String(parameters.at(0))}` : translateLocal(path, ...parameters);
+
+            const name = getGroupChatName(formatPhoneNumber, translateWithMarker, [{accountID: 1, login: 'ragnar@vikings.net'}]);
+            expect(name).toContain('GroupMarker:');
         });
     });
 
@@ -1430,6 +1577,55 @@ describe('ReportNameUtils', () => {
 
             // Then it should NOT return empty string — it should fall through to dynamic name computation
             expect(reportName).not.toBe('');
+        });
+
+        it('resolves the expense report workspace name through the provided translate function', () => {
+            // Given an OPEN expense report whose policy cannot resolve a name (empty policy name)
+            const expenseReport: Report = {
+                ...createExpenseReport(202),
+                reportID: '202',
+                reportName: '',
+                policyName: '',
+                oldPolicyName: '',
+                policyID: '202',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 0,
+                currency: 'USD',
+            };
+
+            // And a policy with a non-empty fieldList (so we skip the "New Report" shortcut) but no resolvable name
+            const policyWithoutName: Policy = {
+                ...createRandomPolicy(202, CONST.POLICY.TYPE.TEAM),
+                id: '202',
+                name: '',
+                fieldList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    text_title: {
+                        defaultValue: '{report:type} {report:startdate}',
+                        deletable: false,
+                        externalIDs: [],
+                        fieldID: 'text_title',
+                        isTax: false,
+                        name: 'title',
+                        orderWeight: 0,
+                        type: 'formula',
+                        target: 'expense',
+                        values: [],
+                        disabledOptions: [],
+                        keys: [],
+                    },
+                },
+            };
+
+            // A translate that tags the "unavailable" workspace copy so we can prove getPolicyName used the provided translate
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithoutName, translate: translateWithUnavailableMarker});
+
+            expect(reportName).toContain('UnavailableWorkspaceMarker');
         });
     });
 
@@ -1558,6 +1754,38 @@ describe('ReportNameUtils', () => {
             );
 
             expect(name).toBe(translate(CONST.LOCALES.EN, 'iou.expense'));
+        });
+    });
+    describe('concierge chat name', () => {
+        it('names the chat Concierge only when the threaded conciergeReportID matches the report', () => {
+            const report: Report = {
+                ...createRegularChat(1, [currentUserAccountID, 1]),
+                reportID: 'concierge-name-1',
+            };
+
+            // When the threaded conciergeReportID matches the report
+            const nameWithMatchingID = computeReportNameOriginal({
+                conciergeReportID: 'concierge-name-1',
+                report,
+                transactions: undefined,
+                currentUserAccountID,
+                currentUserLogin,
+                translate: translateLocal,
+                isTrackIntentUser: false,
+            });
+            expect(nameWithMatchingID).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+
+            // And an identical report with a non-matching conciergeReportID keeps its regular name
+            const nameWithDifferentID = computeReportNameOriginal({
+                conciergeReportID: 'a-different-report-id',
+                report,
+                transactions: undefined,
+                currentUserAccountID,
+                currentUserLogin,
+                translate: translateLocal,
+                isTrackIntentUser: false,
+            });
+            expect(nameWithDifferentID).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
     });
 });

@@ -11,6 +11,11 @@ import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayou
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
+import {getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall} from '../utils/TestHelper';
+
+let writeSpy: jest.SpiedFunction<typeof API.write>;
+
 describe('ImportTransactions', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -262,7 +267,7 @@ describe('ImportTransactions', () => {
 
     describe('buildTransactionListFromSpreadsheet', () => {
         it('should return empty array when data is empty', () => {
-            const spreadsheet = {
+            const spreadsheet = createMock<ImportedSpreadsheet>({
                 data: [],
                 columns: {
                     0: 'date',
@@ -270,7 +275,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+            });
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -278,7 +283,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should build transactions from valid spreadsheet data', () => {
-            const spreadsheet = {
+            const spreadsheet = createMock<ImportedSpreadsheet>({
                 data: [
                     ['Date', '2024-01-15', '2024-01-20'],
                     ['Merchant', 'Coffee Shop', 'Restaurant'],
@@ -290,7 +295,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+            });
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -314,7 +319,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should include category when provided', () => {
-            const spreadsheet = {
+            const spreadsheet = createMock<ImportedSpreadsheet>({
                 data: [
                     ['Date', '2024-01-15'],
                     ['Merchant', 'Store'],
@@ -328,7 +333,7 @@ describe('ImportTransactions', () => {
                     3: 'category',
                 },
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+            });
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -337,7 +342,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should skip rows with missing required fields (date or amount)', () => {
-            const spreadsheet = {
+            const spreadsheet = createMock<ImportedSpreadsheet>({
                 data: [
                     ['Date', '2024-01-15', '', '2024-01-20'],
                     ['Merchant', 'Store A', 'Store B', 'Store C'],
@@ -349,7 +354,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+            });
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -359,7 +364,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should flip amount sign when flipAmountSign is true', () => {
-            const spreadsheet = {
+            const spreadsheet = createMock<ImportedSpreadsheet>({
                 data: [
                     ['Date', '2024-01-15'],
                     ['Merchant', 'Store'],
@@ -371,7 +376,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+            });
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {flipAmountSign: true});
 
@@ -380,7 +385,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should handle amounts with currency symbols and commas', () => {
-            const spreadsheet = {
+            const spreadsheet = createMock<ImportedSpreadsheet>({
                 data: [
                     ['Date', '2024-01-15', '2024-01-16'],
                     ['Merchant', 'Store A', 'Store B'],
@@ -392,7 +397,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+            });
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -402,7 +407,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should handle negative amounts', () => {
-            const spreadsheet = {
+            const spreadsheet = createMock<ImportedSpreadsheet>({
                 data: [
                     ['Date', '2024-01-15'],
                     ['Merchant', 'Refund'],
@@ -414,7 +419,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+            });
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -423,7 +428,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should work with containsHeader false', () => {
-            const spreadsheet = {
+            const spreadsheet = createMock<ImportedSpreadsheet>({
                 data: [
                     ['2024-01-15', '2024-01-16'],
                     ['Store A', 'Store B'],
@@ -435,7 +440,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: false,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+            });
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -448,7 +453,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should handle various date formats', () => {
-            const spreadsheet = {
+            const spreadsheet = createMock<ImportedSpreadsheet>({
                 data: [
                     ['Date', '2024-01-15', '01/20/2024', '20-01-2024', 'Jan 25, 2024'],
                     ['Merchant', 'A', 'B', 'C', 'D'],
@@ -460,7 +465,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+            });
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -472,7 +477,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should skip rows with invalid dates', () => {
-            const spreadsheet = {
+            const spreadsheet = createMock<ImportedSpreadsheet>({
                 data: [
                     ['Date', '2024-01-15', 'invalid-date', '2024-01-20'],
                     ['Merchant', 'Store A', 'Store B', 'Store C'],
@@ -484,7 +489,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+            });
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -494,7 +499,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should handle missing merchant gracefully', () => {
-            const spreadsheet = {
+            const spreadsheet = createMock<ImportedSpreadsheet>({
                 data: [
                     ['Date', '2024-01-15'],
                     ['Amount', '10.00'],
@@ -506,7 +511,7 @@ describe('ImportTransactions', () => {
                     // No merchant column mapped
                 },
                 containsHeader: true,
-            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
+            });
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -521,10 +526,10 @@ describe('ImportTransactions', () => {
                 ['Date', '2024-01-01'],
                 ['Merchant', 'Store'],
             ];
-            const savedLayout = {
+            const savedLayout = createMock<SavedCSVColumnLayoutData>({
                 name: 'Test',
                 columnMapping: {},
-            } as SavedCSVColumnLayoutData;
+            });
 
             applySavedColumnMappings(spreadsheetData, savedLayout);
 
@@ -536,12 +541,12 @@ describe('ImportTransactions', () => {
                 ['Date', '2024-01-01'],
                 ['Merchant', 'Store'],
             ];
-            const savedLayout = {
+            const savedLayout = createMock<SavedCSVColumnLayoutData>({
                 name: 'Test',
                 columnMapping: {
                     indexes: {},
                 },
-            } as SavedCSVColumnLayoutData;
+            });
 
             applySavedColumnMappings(spreadsheetData, savedLayout);
 
@@ -917,7 +922,7 @@ describe('ImportTransactions', () => {
 
     describe('importTransactionsFromCSV', () => {
         const CURRENT_USER_ACCOUNT_ID = 12345;
-        const validSpreadsheet = {
+        const validSpreadsheet = createMock<ImportedSpreadsheet>({
             data: [
                 ['Date', '2024-01-15', '2024-01-20'],
                 ['Merchant', 'Coffee Shop', 'Restaurant'],
@@ -929,9 +934,7 @@ describe('ImportTransactions', () => {
                 2: 'amount',
             },
             containsHeader: true,
-        } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
-
-        let writeSpy: jest.SpyInstance;
+        });
 
         beforeEach(() => {
             writeSpy = jest.spyOn(API, 'write').mockRejectedValue(new Error('forced'));
@@ -952,9 +955,9 @@ describe('ImportTransactions', () => {
             await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID);
 
             expect(writeSpy).toHaveBeenCalledTimes(1);
-            const [command, , onyxData] = writeSpy.mock.calls.at(0) as [string, unknown, {optimisticData: Array<{key: string}>}];
+            const [command, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
             expect(command).toBe('ImportCSVTransactions');
-            expect(onyxData.optimisticData.some((entry) => entry.key === ONYXKEYS.CARD_LIST)).toBe(true);
+            getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.CARD_LIST, Onyx.METHOD.MERGE);
         });
 
         it('reuses an existingCardID without queuing an optimistic card', async () => {
@@ -962,9 +965,10 @@ describe('ImportTransactions', () => {
 
             await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, existingCardID);
 
-            const [, params, onyxData] = writeSpy.mock.calls.at(0) as [string, {cardID: number}, {optimisticData: Array<{key: string}>}];
+            const [, params, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
             expect(params.cardID).toBe(existingCardID);
-            expect(onyxData.optimisticData.some((entry) => entry.key === ONYXKEYS.CARD_LIST)).toBe(false);
+            const optimisticData = getRequiredOnyxUpdates(onyxData, 'optimisticData');
+            expect(optimisticData).not.toEqual(expect.arrayContaining([expect.objectContaining({key: ONYXKEYS.CARD_LIST})]));
         });
     });
 });

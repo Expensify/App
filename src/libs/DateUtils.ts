@@ -991,6 +991,23 @@ function formatUTCDateTimeToDateInTimezone(utcDateTime: string, timeZone: Select
 }
 
 /**
+ * Formats the violation snapshot start date for display in the user's timezone.
+ */
+function formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt: string, timeZone: SelectedTimezone | undefined): string {
+    if (!violationSnapshotStartedAt || !timeZone) {
+        return '';
+    }
+
+    try {
+        const date = violationSnapshotStartedAt.includes(' ') ? toDate(violationSnapshotStartedAt, {timeZone: 'UTC'}) : parse(violationSnapshotStartedAt, 'yyyy-MM-dd', new Date());
+        return formatInTimeZoneWithFallback(date, timeZone, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT);
+    } catch (error) {
+        Log.warn('[DateUtils] Failed to format violation snapshot started at date', {violationSnapshotStartedAt, timeZone, error});
+        return '';
+    }
+}
+
+/**
  * Backend expects datetime format without milliseconds in some cases (yyyy-MM-dd HH:mm:ss)
  */
 function formatDBTimeWithoutMilliseconds(timestamp: number): string {
@@ -1105,6 +1122,22 @@ function getFormattedQuarterForSearch(year: number, quarter: number): string {
     const quarterEnd = set(new Date(), {year, month: endMonth, date: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
     return `Q${quarter} ${year} (${format(quarterStart, 'MMM d')} - ${format(quarterEnd, 'MMM d')})`;
 }
+
+function getNextNthOfMonth(nth: number) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const day = now.getDate();
+
+    // If today is before the nth day, return the nth of this month.
+    if (day < nth) {
+        return new Date(year, month, nth);
+    }
+
+    // Otherwise, return the nth of next month.
+    return new Date(year, month + 1, nth);
+}
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
@@ -1166,6 +1199,7 @@ const DateUtils = {
     getFormattedSplitDateRange,
     formatInTimeZoneWithFallback,
     formatUTCDateTimeToDateInTimezone,
+    formatViolationSnapshotStartedAtDate,
     normalizeDateToStartOfDay,
     normalizeDateToEndOfDay,
     getMonthDateRange,
@@ -1175,6 +1209,7 @@ const DateUtils = {
     getYearDateRange,
     getQuarterDateRange,
     getFormattedQuarterForSearch,
+    getNextNthOfMonth,
 };
 
 export default DateUtils;

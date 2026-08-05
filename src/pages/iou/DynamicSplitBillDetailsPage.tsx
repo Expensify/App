@@ -48,7 +48,7 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & Plat
 
 function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
@@ -76,7 +76,16 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     if (isPolicyExpenseChat(report)) {
         participants = [
             getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails, translate),
-            getPolicyExpenseReportOption({...report, selected: true, reportID}, privateIsArchived, personalDetails, report, policy, reportAttributesDerived),
+            getPolicyExpenseReportOption(
+                {...report, selected: true, reportID},
+                privateIsArchived,
+                personalDetails,
+                report,
+                policy,
+                translate,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                reportAttributesDerived,
+            ),
         ];
     } else {
         participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails, translate));
@@ -110,6 +119,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
             delegateAccountID,
             isTrackIntentUser,
             sessionEmail: session?.email,
+            formatPhoneNumber,
         });
     }, [
         reportID,
@@ -124,6 +134,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
     ]);
 
     return (

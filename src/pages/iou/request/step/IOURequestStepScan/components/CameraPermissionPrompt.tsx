@@ -44,7 +44,7 @@ function CameraPermissionPrompt({isInLandscapeMode, onPress}: CameraPermissionPr
                     accessibilityLabel={translate('common.continue')}
                     style={[styles.p9, styles.pt5]}
                     onPress={onPress}
-                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
+                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_CAMERA_PERMISSION_PROMPT_BUTTON}
                 />
             </View>
         </ScrollView>
