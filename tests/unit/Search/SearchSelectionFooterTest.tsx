@@ -42,7 +42,12 @@ jest.mock('@components/Search/SearchPageFooter', () => ({
 // from any wrong fallback source is easy to spot.
 const SELECTED_EXPENSE_CURRENCY = 'JPY';
 
+// The Preferences > Payment currency setting, stored as the personal policy's output currency. Deliberately not USD
+// so the test can tell the real fallback apart from the USD last resort.
+const PAYMENT_CURRENCY = CONST.CURRENCY.GBP;
+
 const ACCOUNT_ID = 1;
+const PERSONAL_POLICY_ID = 'personalPolicy1';
 
 function buildSearchResults(currency: string | undefined): SearchResults {
     return {
@@ -91,7 +96,8 @@ describe('SearchSelectionFooter', () => {
         mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY)};
         mockCapturedFooterProps.current = undefined;
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, localCurrencyCode: CONST.CURRENCY.USD}});
+        await Onyx.merge(ONYXKEYS.PERSONAL_POLICY_ID, PERSONAL_POLICY_ID);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${PERSONAL_POLICY_ID}`, {id: PERSONAL_POLICY_ID, outputCurrency: PAYMENT_CURRENCY});
         await waitForBatchedUpdates();
     });
 
@@ -102,13 +108,13 @@ describe('SearchSelectionFooter', () => {
 
     it("falls back to the user's live payment currency when the search snapshot has no currency yet", async () => {
         // A fresh no-workspace account: the Expenses search snapshot has not populated search.currency yet, and the
-        // only selected expense happens to be in a different currency (JPY) from the live payment currency (USD).
+        // only selected expense happens to be in a different currency (JPY) from the live payment currency (GBP).
         render(<SearchSelectionFooter searchResults={buildSearchResults(undefined)} />);
         await waitForBatchedUpdates();
 
-        // The footer's Reset/default currency follows the live USD payment currency, not the selected expense's own
-        // (stale) currency.
-        expect(mockCapturedFooterProps.current?.defaultCurrency).toBe(CONST.CURRENCY.USD);
+        // The footer's Reset/default currency follows the live payment currency (the personal policy's output
+        // currency), not the selected expense's own (stale) currency.
+        expect(mockCapturedFooterProps.current?.defaultCurrency).toBe(PAYMENT_CURRENCY);
     });
 
     it('prefers the search snapshot currency when one is already available', async () => {

@@ -1,6 +1,6 @@
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePreferredCurrency from '@hooks/usePreferredCurrency';
+import usePolicy from '@hooks/usePolicy';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
@@ -89,7 +89,11 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true, areAllMatchingItemsSelected);
     const {isOffline} = useNetwork();
-    const preferredCurrency = usePreferredCurrency();
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const personalPolicy = usePolicy(personalPolicyID);
+    // The Preferences > Payment currency setting; the server converts search totals to this same currency when a
+    // search has no explicit target, so it's the footer's conversion target whenever the snapshot carries none.
+    const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
     const [footerCurrencyState, setFooterCurrencyState] = useState<FooterCurrencyState>({
         searchHash: undefined,
         selectedCurrency: undefined,
@@ -244,8 +248,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // to the whole-search grand total, which every search type now returns converted, keyed by the search hash.
     const shouldUseClientTotal = !metadataCount || hasPartialSelection;
     // metadataCurrency is unset for a fresh no-workspace account until a search populates search.currency (e.g. after
-    // visiting Reports), so fall back to the user's live payment currency instead of an arbitrary selected expense's currency.
-    const effectiveDefaultCurrency = defaultFooterCurrency ?? metadataCurrency ?? preferredCurrency;
+    // visiting Reports), so fall back to the live payment currency instead of an arbitrary selected expense's currency.
+    const effectiveDefaultCurrency = defaultFooterCurrency ?? metadataCurrency ?? paymentCurrency;
     const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== effectiveDefaultCurrency;
 
     // The most recent conversion request for this currency failed, so stop waiting on a converted value that isn't coming.
