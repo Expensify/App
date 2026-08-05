@@ -128,7 +128,6 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isTrackIntentUser: false,
         });
 
@@ -166,7 +165,6 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isTrackIntentUser: false,
         });
 
@@ -209,7 +207,6 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isTrackIntentUser: false,
         });
 
@@ -253,7 +250,6 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isTrackIntentUser: false,
         });
 
@@ -286,7 +282,6 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isTrackIntentUser: false,
         });
 
@@ -305,7 +300,6 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isTrackIntentUser: false,
         });
 

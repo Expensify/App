@@ -405,6 +405,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: 'ID report dettagliato',
         withdrawalID: 'ID prelievo',
         internationalReimbursementIDs: 'ID di rimborso internazionale',
+        amountDebited: 'Importo addebitato',
+        amountReimbursed: 'Importo rimborsato',
         withdrawalStatus: 'Stato del prelievo',
         paidStatus: 'Stato di pagamento',
         bankAccounts: 'Conti bancari',
@@ -2016,21 +2018,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `In attesa che <strong>${actor}</strong> rimborsi le spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `In attesa che un admin rimborsi le spese.`;
-                }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `In attesa che <strong>tu</strong> finisca di configurare un conto bancario aziendale.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `In attesa che <strong>${actor}</strong> completi la configurazione di un conto bancario aziendale.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `In attesa che un amministratore completi la configurazione di un conto bancario aziendale.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (

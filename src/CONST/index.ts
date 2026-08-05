@@ -1978,7 +1978,6 @@ const CONST = {
             WAITING_TO_FIX_ISSUES: 'waitingToFixIssues',
             WAITING_TO_APPROVE: 'waitingToApprove',
             WAITING_TO_PAY: 'waitingToPay',
-            WAITING_FOR_POLICY_BANK_ACCOUNT: 'waitingForPolicyBankAccount',
             WAITING_FOR_PAYMENT: 'waitingForPayment',
             WAITING_TO_EXPORT: 'waitingToExport',
             SUBMITTING_TO_SELF: 'submittingToSelf',
@@ -1988,7 +1987,6 @@ const CONST = {
             HOURGLASS: 'hourglass',
             CHECKMARK: 'checkmark',
             STOPWATCH: 'stopwatch',
-            DOT_INDICATOR: 'dotIndicator',
         },
         ETA_KEY: {
             SHORTLY: 'shortly',
@@ -7079,6 +7077,8 @@ const CONST = {
                     BANK_ACCOUNT: this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
                     WITHDRAWAL_ID: this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    AMOUNT_DEBITED: this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+                    AMOUNT_REIMBURSED: this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
                 CATEGORY: {
@@ -7157,6 +7157,8 @@ const CONST = {
                     this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
                     this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
                     this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+                    this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
                     this.TABLE_COLUMNS.GROUP_TOTAL,
                 ],
                 CATEGORY: [this.TABLE_COLUMNS.GROUP_CATEGORY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
@@ -7277,6 +7279,8 @@ const CONST = {
             GROUP_YEAR: 'groupyear',
             GROUP_QUARTER: 'groupquarter',
             GROUP_WITHDRAWAL_STATUS: 'groupWithdrawalStatus',
+            GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
+            GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7502,6 +7506,8 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_YEAR]: 'group-year',
                 [this.TABLE_COLUMNS.GROUP_QUARTER]: 'group-quarter',
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
+                [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
+                [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
             };
         },
         NOT_PREFIX: '-',
