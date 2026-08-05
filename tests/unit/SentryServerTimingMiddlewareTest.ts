@@ -50,6 +50,30 @@ describe('SentryServerTiming middleware', () => {
         expect(endSpanWithAttributes).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({[CONST.TELEMETRY.ATTRIBUTE_RESPONSE_ADVANCED]: undefined}));
     });
 
+    it('stamps the range a GetMissingOnyxMessages request asked for, parsing the string form of the target', async () => {
+        const request = buildRequest('GetMissingOnyxMessages', {updateIDFrom: 8102, updateIDTo: '8200'});
+
+        await SentryServerTiming(Promise.resolve(buildResponse(8200)), request, false);
+
+        expect(startSpan).toHaveBeenCalledWith(
+            expect.any(String),
+            expect.objectContaining({
+                attributes: expect.objectContaining({
+                    [CONST.TELEMETRY.ATTRIBUTE_UPDATE_ID_FROM]: 8102,
+                    [CONST.TELEMETRY.ATTRIBUTE_UPDATE_ID_TO]: 8200,
+                }),
+            }),
+        );
+    });
+
+    it('leaves the target off a ReconnectApp, which has no update ID to catch up to', async () => {
+        const request = buildRequest('ReconnectApp', {updateIDFrom: 8102});
+
+        await SentryServerTiming(Promise.resolve(buildResponse(8200)), request, false);
+
+        expect(startSpan).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({attributes: expect.objectContaining({[CONST.TELEMETRY.ATTRIBUTE_UPDATE_ID_TO]: undefined})}));
+    });
+
     it('gives overlapping reconnect requests their own span, so one does not cancel the other', async () => {
         const first = SentryServerTiming(Promise.resolve(buildResponse(8102)), buildRequest('GetMissingOnyxMessages', {updateIDFrom: 8102}), false);
         const second = SentryServerTiming(Promise.resolve(buildResponse(8200)), buildRequest('ReconnectApp', {updateIDFrom: 8102}), false);

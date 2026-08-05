@@ -3,8 +3,10 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {cancelSpan, endSpanWithAttributes, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
+import type Request from '@src/types/onyx/Request';
 
 import type {SpanAttributes} from '@sentry/core';
+import type {OnyxKey} from 'react-native-onyx';
 
 import type Middleware from './types';
 
@@ -62,6 +64,15 @@ function findTrackedGroup(command: string): TrackedCommandGroup | undefined {
 let spanSequence = 0;
 
 /**
+ * The update ID a request asked to catch up to. `getMissingOnyxUpdates` types this as `number | string`, so a
+ * string that does not parse is dropped rather than stamped as NaN.
+ */
+function readUpdateIDTo(data: Request<OnyxKey>['data']): number | undefined {
+    const updateIDTo = Number(data?.updateIDTo);
+    return Number.isFinite(updateIDTo) ? updateIDTo : undefined;
+}
+
+/**
  * Whether a reconnect response carried a newer update ceiling than the request asked to catch up from.
  * A request with no `updateIDFrom` refetches everything, so there is nothing to advance past and the
  * answer is left off the span. Sentry cannot compare one attribute against another, so this verdict has
@@ -95,6 +106,7 @@ const SentryServerTiming: Middleware = (response, request) => {
         attributes: {
             [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: request.command,
             [CONST.TELEMETRY.ATTRIBUTE_UPDATE_ID_FROM]: updateIDFrom,
+            [CONST.TELEMETRY.ATTRIBUTE_UPDATE_ID_TO]: readUpdateIDTo(request.data),
         },
     });
 
