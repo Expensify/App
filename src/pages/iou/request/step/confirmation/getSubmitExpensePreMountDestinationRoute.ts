@@ -23,6 +23,7 @@ type GetSubmitExpensePreMountDestinationRouteParams = {
     iouType: IOUType;
     isCreatingTrackExpense: boolean;
     isSelfDMDestination: boolean;
+    isOptimisticNewChatDestination: boolean;
 };
 
 /**
@@ -38,6 +39,7 @@ function getSubmitExpensePreMountDestinationRoute({
     iouType,
     isCreatingTrackExpense,
     isSelfDMDestination,
+    isOptimisticNewChatDestination,
 }: GetSubmitExpensePreMountDestinationRouteParams): Route | undefined {
     // Unlike getSkipConfirmationPreMountDestinationRoute (which lets usePreMountDestination own the narrow gate), this builder
     // returns undefined on wide up front - it avoids the nav reads below, and reveal() would never consume a wide result anyway.
@@ -78,7 +80,17 @@ function getSubmitExpensePreMountDestinationRoute({
     // draft is available, so it satisfies this check on the render after that promotion runs. Passing an empty draft to
     // getReportOrDraftReport skips its REPORT_DRAFT fallback while keeping the module-cache fallback for real reports
     // that useOnyx hasn't hydrated yet.
-    const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID;
+    //
+    // isOptimisticNewChatDestination is a separate, deliberately unloaded case: a brand-new 1:1 chat that has no
+    // report row anywhere yet (not even a draft). destinationReportID is the reportID useParticipantSubmission
+    // already committed to the draft transaction (setTransactionReport) when the user picked this brand-new
+    // recipient, and the submit-time builders (see requestMoney/submitPerDiemExpense in useExpenseSubmission.ts)
+    // reuse that same ID for the real chat, so the pre-inserted Report screen just sits in its own internal loading
+    // state until submit completes (ReportNotFoundGuard never fires "not found" for it - its
+    // RAM_ONLY_REPORT_LOADING_STATE key is never populated because nothing ever fetches a client-only ID). No row is
+    // written to COLLECTION.REPORT before submit, so there's no data to strand on a back-out.
+    const isDestinationReportLoaded =
+        isOptimisticNewChatDestination || (!!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID);
     const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded;
 
     if (!shouldPreInsertSearch && !shouldPreInsertReport) {
@@ -91,7 +103,10 @@ function getSubmitExpensePreMountDestinationRoute({
         });
     }
 
-    return ROUTES.REPORT_WITH_ID.getRoute(destinationReportID);
+    // isPendingCreation tells ReportFetchHandler to skip openReport for this ID until the real report exists locally
+    // (see the isOptimisticNewChatDestination comment above) - openReport would 403 against a client-only ID and
+    // latch the not-found page instead of leaving the pre-inserted screen in its normal loading state.
+    return ROUTES.REPORT_WITH_ID.getRoute(destinationReportID, undefined, undefined, undefined, undefined, isOptimisticNewChatDestination);
 }
 
 export default getSubmitExpensePreMountDestinationRoute;

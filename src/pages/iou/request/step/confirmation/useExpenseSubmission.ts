@@ -404,7 +404,15 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
-        const optimisticChatReportID = generateReportID();
+        // For a brand-new P2P recipient (no existing chat), the confirmation screen has already committed the draft
+        // transaction to a freshly generated optimistic reportID via setTransactionReport. Build the optimistic chat
+        // report at that same ID so the report the screen subscribes to is the one that actually gets created.
+        // Otherwise the builder mints a different ID and the screen hangs waiting on a report that never materializes.
+        // Keyed off the selected participant's own chat linkage, not the page-level `report` - that prop can stay
+        // bound to a previously-selected participant's chat when the user swaps recipients without remounting.
+        const isBrandNewP2PRecipient = !participant.isPolicyExpenseChat && !participant.reportID;
+        const optimisticChatReportID =
+            isBrandNewP2PRecipient && !!transaction?.reportID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? transaction.reportID : generateReportID();
         const optimisticCreatedReportActionID = rand64();
         const optimisticReportPreviewActionID = rand64();
         let existingIOUReport: Report | undefined;
@@ -604,10 +612,18 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
                 existingChatReport = getReportOrDraftReport(participant.reportID);
             }
-            const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID(
-                [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID],
-                existingChatReport,
-            );
+            // For a brand-new P2P recipient (no existing chat), the confirmation screen has already committed the
+            // draft transaction to a freshly generated optimistic reportID via setTransactionReport. Reuse that same
+            // ID here so the report the screen subscribes to is the one that actually gets created - otherwise
+            // resolveOptimisticChatReportID mints a different random ID and the screen hangs on a report that never
+            // materializes. Keyed off the selected participant's own chat linkage, not `existingChatReport` - that
+            // can stay bound to a previously-selected participant's chat when the user swaps recipients without
+            // remounting.
+            const isBrandNewP2PRecipient = !isExpenseReport && !participant.isPolicyExpenseChat && !participant.reportID;
+            const {optimisticChatReportID, chatReportID} =
+                isBrandNewP2PRecipient && !!transaction.reportID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID
+                    ? {optimisticChatReportID: transaction.reportID, chatReportID: transaction.reportID}
+                    : resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], existingChatReport);
             const activeReportID = isExpenseReport ? report?.reportID : chatReportID;
 
             const result = submitPerDiemExpenseIOUActions({

@@ -2130,7 +2130,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string, isPendingCreation?: boolean) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
                 return getUrlWithBackToParam(ROUTES.HOME, backTo);
@@ -2144,6 +2144,12 @@ const ROUTES = {
             // Submit-via-PDF secure access link: lets an approver who opens the PDF link join and claim the report.
             if (secureKey) {
                 queryParams.push(`secureKey=${encodeURIComponent(secureKey)}`);
+            }
+            // The reportID is a client-generated optimistic ID for a chat that doesn't exist on the server yet (e.g.
+            // pre-mounting the destination for a brand-new 1:1 recipient before submit). Calling openReport for it
+            // would 403 and latch the not-found page - see ReportFetchHandler's isPendingCreationFromRoute guard.
+            if (isPendingCreation) {
+                queryParams.push('isPendingCreation=true');
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
