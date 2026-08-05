@@ -72,7 +72,7 @@ function HelpPage() {
               shouldShowRightIcon: !partnerManagerCalendarLink,
               shouldShowRightComponent: !!partnerManagerCalendarLink,
 
-              // Disable the row's accessibility grouping so screen readers can reach the nested Book a call button as its own element
+              // Ungroup the row so native (iOS/Android) screen readers announce the nested Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
               shouldBeAccessible: !partnerManagerCalendarLink,
               rightComponent: partnerManagerCalendarLink ? (
                   <BookCallButton
@@ -106,7 +106,7 @@ function HelpPage() {
               shouldShowRightIcon: !guideCalendarLink,
               shouldShowRightComponent: !!guideCalendarLink,
 
-              // Disable the row's accessibility grouping so screen readers can reach the nested Book a call button as its own element
+              // Ungroup the row so native (iOS/Android) screen readers announce the nested Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
               shouldBeAccessible: !guideCalendarLink,
               rightComponent: guideCalendarLink ? (
                   <BookCallButton
@@ -140,7 +140,7 @@ function HelpPage() {
               shouldShowRightIcon: !accountManagerCalendarLink,
               shouldShowRightComponent: !!accountManagerCalendarLink,
 
-              // Disable the row's accessibility grouping so screen readers can reach the nested Book a call button as its own element
+              // Ungroup the row so native (iOS/Android) screen readers announce the nested Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
               shouldBeAccessible: !accountManagerCalendarLink,
               rightComponent: accountManagerCalendarLink ? (
                   <BookCallButton
