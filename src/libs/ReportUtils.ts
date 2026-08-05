@@ -14196,6 +14196,7 @@ export {
     isThread,
     isTrackExpenseReport,
     isUnread,
+    hasUnseenActionInUnconfirmedReadWindow,
     isUnreadWithMention,
     isUserCreatedPolicyRoom,
     isValidReport,
