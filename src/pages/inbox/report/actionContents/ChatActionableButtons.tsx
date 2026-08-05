@@ -41,6 +41,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
@@ -53,6 +54,16 @@ type ChatActionableButtonsProps = {
     reportID: string | undefined;
     hasPendingFollowupListSkeleton: boolean;
 };
+
+type ConciergeOptionsActionName = typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS | typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS;
+
+type ConciergeOptionsAction = OnyxTypes.ReportAction<ConciergeOptionsActionName>;
+
+type ConciergeOptionsCheck = (action: OnyxEntry<OnyxTypes.ReportAction>) => action is ConciergeOptionsAction;
+
+type ConciergeOptionsResolutionCheck = typeof isResolvedConciergeCategoryOptions;
+
+type ConciergeOptionsResolver = typeof resolveConciergeCategoryOptions;
 
 function ChatActionableButtons({action, originalReportID, reportID, hasPendingFollowupListSkeleton}: ChatActionableButtonsProps) {
     const styles = useThemeStyles();
@@ -85,6 +96,32 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const delegateAccountID = useDelegateAccountID();
 
+    /**
+     * @returns `undefined` when the action is not of the handled Concierge options type, so the caller can keep looking for other actionable items
+     */
+    function getConciergeOptionButtons(
+        isConciergeOptions: ConciergeOptionsCheck,
+        isResolved: ConciergeOptionsResolutionCheck,
+        resolve: ConciergeOptionsResolver,
+    ): ActionableItem[] | undefined {
+        if (!isConciergeOptions(action)) {
+            return undefined;
+        }
+
+        const options = getOriginalMessage<ConciergeOptionsActionName>(action)?.options;
+        if (!options || isResolved(action) || !actionOwnerReport) {
+            return [];
+        }
+
+        return options.map((option, i) => ({
+            text: `${i + 1} - ${option}`,
+            key: `${action.reportActionID}-conciergeOptions-${option}`,
+            onPress: () => {
+                resolve(actionOwnerReport, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, personalDetail.accountID, delegateAccountID);
+            },
+        }));
+    }
+
     const actionableItemButtons = ((): ActionableItem[] => {
         if (isActionableAddPaymentCard(action) && !doesUserHavePaymentCardAdded(userBillingFundID) && shouldRenderAddPaymentCard()) {
             return [
@@ -99,67 +136,16 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
             ];
         }
 
-        if (isConciergeCategoryOptions(action)) {
-            const options = getOriginalMessage(action)?.options;
-            if (!options) {
-                return [];
-            }
-
-            if (isResolvedConciergeCategoryOptions(action)) {
-                return [];
-            }
-
-            if (!actionOwnerReport) {
-                return [];
-            }
-
-            return options.map((option, i) => ({
-                text: `${i + 1} - ${option}`,
-                key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
-                onPress: () => {
-                    resolveConciergeCategoryOptions(
-                        actionOwnerReport,
-                        reportID,
-                        action.reportActionID,
-                        option,
-                        personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
-                        personalDetail.accountID,
-                        delegateAccountID,
-                    );
-                },
-            }));
+        const conciergeCategoryOptionButtons = getConciergeOptionButtons(isConciergeCategoryOptions, isResolvedConciergeCategoryOptions, resolveConciergeCategoryOptions);
+        if (conciergeCategoryOptionButtons) {
+            return conciergeCategoryOptionButtons;
         }
 
-        if (isConciergeDescriptionOptions(action)) {
-            const options = getOriginalMessage(action)?.options;
-            if (!options) {
-                return [];
-            }
-
-            if (isResolvedConciergeDescriptionOptions(action)) {
-                return [];
-            }
-
-            if (!actionOwnerReport) {
-                return [];
-            }
-
-            return options.map((option, i) => ({
-                text: `${i + 1} - ${option}`,
-                key: `${action.reportActionID}-conciergeDescriptionOptions-${option}`,
-                onPress: () => {
-                    resolveConciergeDescriptionOptions(
-                        actionOwnerReport,
-                        reportID,
-                        action.reportActionID,
-                        option,
-                        personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
-                        personalDetail.accountID,
-                        delegateAccountID,
-                    );
-                },
-            }));
+        const conciergeDescriptionOptionButtons = getConciergeOptionButtons(isConciergeDescriptionOptions, isResolvedConciergeDescriptionOptions, resolveConciergeDescriptionOptions);
+        if (conciergeDescriptionOptionButtons) {
+            return conciergeDescriptionOptionButtons;
         }
+
         const messageHtml = getReportActionMessage(action)?.html;
         if (messageHtml && actionOwnerReport) {
             const followups = parseFollowupsFromHtml(messageHtml);
