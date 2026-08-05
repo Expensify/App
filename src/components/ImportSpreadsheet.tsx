@@ -132,9 +132,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                     if (!rows) {
                         throw new Error('No transactions found in the statement');
                     }
-                    // OFX fixes the sign of an amount, so the manual flip the user picked for spreadsheets must not apply.
-                    const importTransactionSettings = {...importedSpreadsheet?.importTransactionSettings, flipAmountSign: false};
-                    return setSpreadsheetData(rows, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false, importTransactionSettings, getOFXColumnRoles());
+                    return setSpreadsheetData(rows, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false, importedSpreadsheet?.importTransactionSettings, getOFXColumnRoles());
                 })
                 .then(() => {
                     Navigation.navigate(goTo, {forceReplace: shouldForceReplaceNavigation});
