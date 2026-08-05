@@ -2477,6 +2477,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescriptionWithRecovery: 'Εισαγάγετε έναν έγκυρο κωδικό ανάκτησης για να επιβεβαιώσετε ότι έχετε πρόσβαση στον λογαριασμό σας.',
         verifyNewDeviceTitle: 'Ρύθμιση νέας συσκευής',
         verifyNewDeviceDescription: 'Σαρώστε τον κωδικό QR με τη νέα σας συσκευή και κατόπιν εισαγάγετε τον κωδικό για να ολοκληρώσετε τη ρύθμιση.',
+        twoFactorAuthIsRequiredNetSuiteDescription: 'Για λόγους ασφαλείας, το NetSuite απαιτεί έλεγχο ταυτότητας δύο παραγόντων για τη σύνδεση της ενοποίησης.',
     },
     recoveryCodeForm: {
         error: {
@@ -5531,6 +5532,15 @@ ${amount} για ${merchant} - ${date}`,
                             netSuiteTokenSecret: 'Μυστικό διακριτικού',
                         },
                         netSuiteAccountIDDescription: 'Στο NetSuite, μεταβείτε στο *Setup > Integration > SOAP Web Services Preferences*.',
+                    },
+                    enableOAuth: {
+                        title: 'Ενεργοποίηση OAuth 2.0',
+                        description: 'Στο NetSuite, μεταβείτε στο *Setup > Company > Enable Features > SuiteCloud* > κάτω από το *Manage Authentication*, ενεργοποιήστε το *OAuth 2.0*.',
+                    },
+                    enableRestWebServices: {
+                        title: 'Ενεργοποίηση υπηρεσιών ιστού REST',
+                        description:
+                            'Στο NetSuite, μεταβείτε στο *Setup > Company > Enable Features > SuiteCloud* > κάτω από *SuiteTalk (Web Services)*, ενεργοποιήστε το *REST Web Services*.',
                     },
                 },
             },
