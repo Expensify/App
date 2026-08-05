@@ -19,7 +19,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 // Capture the inner focus function so we can assert the exact args the component invokes it with.
 const mockFocusFn = jest.fn();
-const mockFocusComposerFactory = jest.fn((..._factoryArgs: unknown[]) => mockFocusFn);
+const mockFocusComposerFactory = jest.fn(() => mockFocusFn);
 jest.mock('@libs/focusComposerWithDelay', () => ({
     __esModule: true,
     default: (...factoryArgs: unknown[]) => mockFocusComposerFactory(...factoryArgs),
