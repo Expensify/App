@@ -132,23 +132,25 @@ function IOURequestStepOdometerImage({
         }
 
         ReceiptStorage.adopt(sourceUri, filename)
-            .then((durableName) => {
-                const durableUri = ReceiptStorage.toLocalUri(durableName);
+            .then((durableName) => ReceiptStorage.toLocalUri(durableName))
+            .catch((error: unknown) => {
+                // A failed adopt leaves the file at the ephemeral path, so the image still works this session.
+                Log.alert('Failed to adopt odometer receipt into durable storage, using original URI', {error: error instanceof Error ? error.message : String(error)});
+                return sourceUri;
+            })
+            .then((uri) => {
                 setMoneyRequestOdometerImage(
                     transaction,
                     imageType,
                     {
-                        uri: durableUri,
+                        uri,
                         name: filename,
-                        type: file.type ?? getMimeTypeFromUri(durableUri) ?? 'image/jpeg',
+                        type: file.type ?? getMimeTypeFromUri(uri) ?? 'image/jpeg',
                         size: file.size,
                     },
                     isTransactionDraft,
                     false,
                 );
-            })
-            .catch((error: unknown) => {
-                Log.warn('Failed to move odometer receipt to durable storage', error instanceof Error ? error.message : String(error));
             })
             .finally(() => {
                 navigateBack();

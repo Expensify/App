@@ -10,6 +10,7 @@ import {Str} from 'expensify-common';
 import findLast from 'lodash/findLast';
 
 import {isLocalFile as isLocalFileUtils, splitExtensionFromFileName} from './fileDownload/FileUtils';
+import ReceiptStorage from './ReceiptStorage';
 import {hasReceipt, hasReceiptSource, isFetchingWaypointsFromServer} from './TransactionUtils';
 
 type ThumbnailAndImageURI = {
@@ -67,7 +68,8 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
 
     // For local files, use the pre-generated thumbnail if available for fast preview
     if ((isReceiptImage || isReceiptPDF) && typeof path === 'string' && (path.startsWith('blob:') || path.startsWith('file:'))) {
-        return {thumbnail: transaction?.receipt?.thumbnail, image: path, isLocalFile: true, filename};
+        // Resolve at the moment of use. The stored path can name a container this launch no longer has.
+        return {thumbnail: transaction?.receipt?.thumbnail, image: ReceiptStorage.resolve(path) ?? path, isLocalFile: true, filename};
     }
 
     if (isReceiptImage) {

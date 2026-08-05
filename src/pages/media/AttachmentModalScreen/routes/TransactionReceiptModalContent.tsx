@@ -19,6 +19,7 @@ import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
@@ -298,26 +299,32 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             if (!transaction?.transactionID) {
                 return Promise.resolve();
             }
-            return ReceiptStorage.adopt(imageUri, filename).then((durableName) => {
-                const durableUri = ReceiptStorage.toLocalUri(durableName);
-                const durableFile = Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri});
-                if (isOdometerImage) {
-                    setMoneyRequestOdometerImage(transaction, imageType, durableFile, isDraftTransaction, !isEditingConfirmation);
-                } else if (isDraftTransaction) {
-                    setMoneyRequestReceipt(transaction.transactionID, durableUri, filename, isDraftTransaction, fileType);
-                } else {
-                    replaceReceipt({
-                        transaction,
-                        file: durableFile,
-                        source: durableUri,
-                        transactionPolicyCategories: policyCategories,
-                        transactionPolicy: policy,
-                        transactionPolicyTagList: policyTagList,
-                        transactionViolations,
-                        ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
-                    });
-                }
-            });
+            return ReceiptStorage.adopt(imageUri, filename)
+                .then((durableName) => ReceiptStorage.toLocalUri(durableName))
+                .catch((error: unknown) => {
+                    // A failed adopt leaves the file at the ephemeral path, so the edited receipt still applies this session.
+                    Log.alert('Failed to adopt edited receipt into durable storage, using original URI', {error: error instanceof Error ? error.message : String(error)});
+                    return imageUri;
+                })
+                .then((durableUri) => {
+                    const durableFile = Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri});
+                    if (isOdometerImage) {
+                        setMoneyRequestOdometerImage(transaction, imageType, durableFile, isDraftTransaction, !isEditingConfirmation);
+                    } else if (isDraftTransaction) {
+                        setMoneyRequestReceipt(transaction.transactionID, durableUri, filename, isDraftTransaction, fileType);
+                    } else {
+                        replaceReceipt({
+                            transaction,
+                            file: durableFile,
+                            source: durableUri,
+                            transactionPolicyCategories: policyCategories,
+                            transactionPolicy: policy,
+                            transactionPolicyTagList: policyTagList,
+                            transactionViolations,
+                            ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
+                        });
+                    }
+                });
         },
         [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList, transactionViolations],
     );

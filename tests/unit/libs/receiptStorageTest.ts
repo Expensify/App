@@ -4,15 +4,10 @@ const mockExists = jest.fn<Promise<boolean>, [string]>();
 const mockMv = jest.fn<Promise<void>, [string, string]>();
 const mockMkdir = jest.fn<Promise<void>, [string]>();
 
-jest.mock('react-native-blob-util', () => ({
-    __esModule: true,
-    default: {
-        fs: {
-            exists: (path: string) => mockExists(path),
-            mv: (from: string, to: string) => mockMv(from, to),
-            mkdir: (path: string) => mockMkdir(path),
-        },
-    },
+jest.mock('react-native-fs', () => ({
+    exists: (path: string) => mockExists(path),
+    moveFile: (from: string, to: string) => mockMv(from, to),
+    mkdir: (path: string) => mockMkdir(path),
 }));
 
 jest.mock('@libs/NumberUtils', () => ({rand64: () => '1234'}));
@@ -49,6 +44,12 @@ describe('ReceiptStorage', () => {
             expect(name).toBe('CAM-1.jpg');
             expect(mockMv).not.toHaveBeenCalled();
             expect(mockExists).toHaveBeenCalledWith(`${FOLDER}/CAM-1.jpg`);
+        });
+
+        it('appends the unique suffix at the end when the filename has no extension', async () => {
+            const name = await ReceiptStorage.adopt('file:///cache/img', 'receipt');
+
+            expect(name).toBe('receipt_1234');
         });
 
         it('rejects when the move fails, instead of handing back the ephemeral path', async () => {

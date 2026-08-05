@@ -3,7 +3,7 @@ import fileURIToPath from '@libs/fileURIToPath';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {rand64} from '@libs/NumberUtils';
 
-import ReactNativeBlobUtil from 'react-native-blob-util';
+import RNFS from 'react-native-fs';
 
 import type ReceiptStorage from './types';
 
@@ -17,7 +17,7 @@ import type ReceiptStorage from './types';
  */
 
 async function verify(dir: string, name: string): Promise<string> {
-    if (!name || !(await ReactNativeBlobUtil.fs.exists(`${dir}/${name}`))) {
+    if (!name || !(await RNFS.exists(`${dir}/${name}`))) {
         throw new Error('[ReceiptStorage] file is not in durable storage');
     }
     return name;
@@ -37,7 +37,7 @@ const adopt: ReceiptStorage['adopt'] = async (uriOrPath, fileName) => {
         return verify(dir, sourcePath.slice(dir.length + 1));
     }
 
-    await ReactNativeBlobUtil.fs.mkdir(dir).catch(() => {});
+    await RNFS.mkdir(dir);
 
     // Strip the characters (#, %, space) that make percent-encoding of the on-disk name ambiguous.
     // The user-visible filename travels on the file object `name` field and stays unchanged.
@@ -45,9 +45,10 @@ const adopt: ReceiptStorage['adopt'] = async (uriOrPath, fileName) => {
     const dotIndex = safeName.lastIndexOf('.');
     const uniqueName = dotIndex > 0 ? `${safeName.slice(0, dotIndex)}_${rand64()}${safeName.slice(dotIndex)}` : `${safeName}_${rand64()}`;
 
-    // Both directories live on one volume, so `mv` is a rename. The file stays at the old name or
-    // lands at the new name. No intermediate state loses the file.
-    await ReactNativeBlobUtil.fs.mv(sourcePath, `${dir}/${uniqueName}`);
+    // On Android the receipts folder sits on external storage while picked and cropped files sit in
+    // the app cache, so this move can cross filesystems. RNFS falls back to copy-then-delete when the
+    // rename fails, which react-native-blob-util's `mv` does not.
+    await RNFS.moveFile(sourcePath, `${dir}/${uniqueName}`);
 
     return verify(dir, uniqueName);
 };
