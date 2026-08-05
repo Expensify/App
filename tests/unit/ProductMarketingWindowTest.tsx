@@ -219,7 +219,7 @@ describe('ProductMarketingWindowManager', () => {
         await act(async () => {
             // Match the deployed race: policies and IS_LOADING_APP can become usable before this NVP
             // finishes rehydrating. The transition gate must keep the missing key from meaning "show".
-            await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'delegate-reset', readyIDs: {}});
+            await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'delegateReset', readyIDs: {}});
             await Onyx.set(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, null);
             await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
             await waitForBatchedUpdatesWithAct();
@@ -228,7 +228,7 @@ describe('ProductMarketingWindowManager', () => {
 
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, announcement.updateKey);
-            await Onyx.merge(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {readyIDs: {'delegate-reset': true}});
+            await Onyx.merge(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {readyIDs: {delegateReset: true}});
             await waitForBatchedUpdatesWithAct();
         });
         expect(screen.queryByText(adminHeading)).toBeNull();
@@ -237,7 +237,7 @@ describe('ProductMarketingWindowManager', () => {
     it('shows an eligible announcement only after the current account-reset generation becomes ready', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true});
-            await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'eligible-reset', readyIDs: {}});
+            await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'eligibleReset', readyIDs: {}});
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -246,7 +246,7 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.queryByText(adminHeading)).toBeNull();
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {readyIDs: {'eligible-reset': true}});
+            await Onyx.merge(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {readyIDs: {eligibleReset: true}});
             await waitForBatchedUpdatesWithAct();
         });
         expect(screen.getByText(adminHeading)).toBeOnTheScreen();

@@ -7,6 +7,8 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {OnyxValue} from 'react-native-onyx';
+
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
@@ -14,6 +16,13 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
+
+function isCurrentProductMarketingWindowDataReady(dataState: OnyxValue<typeof ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE>): boolean {
+    if (!dataState?.resetID) {
+        throw new Error('Expected a product marketing data generation');
+    }
+    return dataState.readyIDs?.[dataState.resetID] === true;
+}
 
 describe('IS_LOADING_APP stranded true', () => {
     beforeAll(() => {
@@ -79,7 +88,7 @@ describe('IS_LOADING_APP stranded true', () => {
     });
 
     it('marks product marketing data ready after a successful OpenApp queue flush', async () => {
-        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'open-app-reset', readyIDs: {}});
+        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'openAppReset', readyIDs: {}});
         await waitForBatchedUpdates();
 
         App.openApp();
@@ -87,7 +96,7 @@ describe('IS_LOADING_APP stranded true', () => {
         await waitForBatchedUpdates();
 
         const dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.readyIDs?.[dataState?.resetID ?? '']).toBe(true);
+        expect(isCurrentProductMarketingWindowDataReady(dataState)).toBe(true);
     });
 
     it('stays gated when OpenApp fails and reopens after a successful full ReconnectApp', async () => {
@@ -104,7 +113,7 @@ describe('IS_LOADING_APP stranded true', () => {
         await waitForBatchedUpdates();
 
         let dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.readyIDs?.[dataState?.resetID ?? '']).not.toBe(true);
+        expect(isCurrentProductMarketingWindowDataReady(dataState)).toBe(false);
 
         failedFetch.succeed();
         App.reconnectApp();
@@ -113,13 +122,13 @@ describe('IS_LOADING_APP stranded true', () => {
         await waitForBatchedUpdates();
 
         dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.readyIDs?.[dataState?.resetID ?? '']).toBe(true);
+        expect(isCurrentProductMarketingWindowDataReady(dataState)).toBe(true);
     });
 
     it('keeps product marketing gated after a successful partial ReconnectApp', async () => {
         await Onyx.multiSet({
             [ONYXKEYS.HAS_LOADED_APP]: true,
-            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'partial-reset', readyIDs: {}},
+            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'partialReset', readyIDs: {}},
         });
         await waitForBatchedUpdates();
 
@@ -129,14 +138,14 @@ describe('IS_LOADING_APP stranded true', () => {
         await waitForBatchedUpdates();
 
         const dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.readyIDs?.[dataState?.resetID ?? '']).not.toBe(true);
+        expect(isCurrentProductMarketingWindowDataReady(dataState)).toBe(false);
     });
 
     it('does not let an OpenApp from before a reset ready the pending generation, which recovers through its own OpenApp', async () => {
         const delayedFetch = TestHelper.createGlobalFetchMock();
         delayedFetch.pause();
         global.fetch = delayedFetch;
-        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'old-pending-reset', readyIDs: {'old-pending-reset': true}});
+        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'oldPendingReset', readyIDs: {oldPendingReset: true}});
         await waitForBatchedUpdates();
 
         App.openApp();
@@ -144,28 +153,32 @@ describe('IS_LOADING_APP stranded true', () => {
         await clearOnyxAndSeedFullReconnect([]);
         await waitForBatchedUpdates();
         const stateAfterReset = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(stateAfterReset?.resetID).toEqual(expect.any(String));
-        expect(stateAfterReset?.resetID).not.toBe('');
-        expect(stateAfterReset?.readyIDs?.[stateAfterReset?.resetID ?? '']).not.toBe(true);
+        const pendingResetID = stateAfterReset?.resetID;
+        expect(pendingResetID).toEqual(expect.any(String));
+        expect(pendingResetID).not.toBe('');
+        expect(isCurrentProductMarketingWindowDataReady(stateAfterReset)).toBe(false);
+        if (!pendingResetID) {
+            throw new Error('Expected the account reset to create a product marketing data generation');
+        }
 
         await delayedFetch.resume();
         await waitForIdle();
         await waitForBatchedUpdates();
         let dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.readyIDs?.[stateAfterReset?.resetID ?? '']).not.toBe(true);
+        expect(dataState?.readyIDs?.[pendingResetID]).not.toBe(true);
 
         App.openApp();
         await waitForIdle();
         await waitForBatchedUpdates();
         dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.readyIDs?.[stateAfterReset?.resetID ?? '']).toBe(true);
+        expect(dataState?.readyIDs?.[pendingResetID]).toBe(true);
     });
 
     it('does not let an OpenApp that began before an account reset close a newer ready generation', async () => {
         const delayedFetch = TestHelper.createGlobalFetchMock();
         delayedFetch.pause();
         global.fetch = delayedFetch;
-        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'old-reset', readyIDs: {'old-reset': true}});
+        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'oldReset', readyIDs: {oldReset: true}});
         await waitForBatchedUpdates();
 
         App.openApp();
@@ -175,8 +188,11 @@ describe('IS_LOADING_APP stranded true', () => {
         const stateAfterReset = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
         expect(stateAfterReset?.resetID).toEqual(expect.any(String));
         expect(stateAfterReset?.resetID).not.toBe('');
-        expect(stateAfterReset?.resetID).not.toBe('old-reset');
-        await Onyx.merge(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {readyIDs: {[stateAfterReset?.resetID ?? '']: true}});
+        expect(stateAfterReset?.resetID).not.toBe('oldReset');
+        if (!stateAfterReset?.resetID) {
+            throw new Error('Expected the account reset to create a product marketing data generation');
+        }
+        await Onyx.merge(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {readyIDs: {[stateAfterReset.resetID]: true}});
         await waitForBatchedUpdates();
 
         await delayedFetch.resume();
@@ -185,6 +201,6 @@ describe('IS_LOADING_APP stranded true', () => {
 
         const stateAfterStaleSuccess = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
         expect(stateAfterStaleSuccess?.resetID).toBe(stateAfterReset?.resetID);
-        expect(stateAfterStaleSuccess?.readyIDs?.[stateAfterStaleSuccess?.resetID ?? '']).toBe(true);
+        expect(isCurrentProductMarketingWindowDataReady(stateAfterStaleSuccess)).toBe(true);
     });
 });

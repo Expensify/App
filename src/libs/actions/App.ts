@@ -83,11 +83,11 @@ Onyx.connectWithoutView({
 
 // Full account requests capture this generation when they are created. Their success handoff only
 // marks that captured generation ready, so a response that finishes after another reset stays stale.
-let productMarketingWindowDataResetID = '';
+let productMarketingWindowDataResetID: string | undefined;
 Onyx.connectWithoutView({
     key: ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE,
     callback: (value) => {
-        productMarketingWindowDataResetID = value?.resetID ?? '';
+        productMarketingWindowDataResetID = value?.resetID;
     },
 });
 
@@ -373,7 +373,7 @@ function getOnyxDataForOpenOrReconnect(
     // Every account-scoped reset through clearOnyxAndSeedFullReconnect starts a new generation. Queued
     // requests mark their captured generation ready after the complete queue flush. Full side-effect
     // reconnects bypass that queue, so their successData does the same after the HTTPS payload is applied.
-    if (isOpenApp || isFullReconnect) {
+    if ((isOpenApp || isFullReconnect) && productMarketingWindowDataResetID) {
         const productMarketingWindowDataReadyUpdate: OnyxUpdate<typeof ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE> = {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE,
@@ -449,14 +449,21 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     // The imported state already contains all the data, so we just need to mark the app as loaded
     // Exception: When forceRun is true (exiting imported state), always make the API call
     if (isUsingImportedState && !forceRun) {
-        Onyx.multiSet({
-            [ONYXKEYS.IS_LOADING_APP]: false,
-            [ONYXKEYS.HAS_LOADED_APP]: true,
-            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {
-                resetID: productMarketingWindowDataResetID,
-                readyIDs: {[productMarketingWindowDataResetID]: true},
-            },
-        });
+        if (productMarketingWindowDataResetID) {
+            Onyx.multiSet({
+                [ONYXKEYS.IS_LOADING_APP]: false,
+                [ONYXKEYS.HAS_LOADED_APP]: true,
+                [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {
+                    resetID: productMarketingWindowDataResetID,
+                    readyIDs: {[productMarketingWindowDataResetID]: true},
+                },
+            });
+        } else {
+            Onyx.multiSet({
+                [ONYXKEYS.IS_LOADING_APP]: false,
+                [ONYXKEYS.HAS_LOADED_APP]: true,
+            });
+        }
         return Promise.resolve();
     }
 

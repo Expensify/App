@@ -10,7 +10,7 @@ import '@libs/Navigation/AppNavigator/AuthScreens';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxValue} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -26,6 +26,13 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 OnyxUpdateManager();
+
+function isCurrentProductMarketingWindowDataReady(dataState: OnyxValue<typeof ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE>): boolean {
+    if (!dataState?.resetID) {
+        throw new Error('Expected a product marketing data generation');
+    }
+    return dataState.readyIDs?.[dataState.resetID] === true;
+}
 
 describe('actions/App', () => {
     let mockFetch: MockFetch;
@@ -105,25 +112,25 @@ describe('actions/App', () => {
     test('reconnectAppWithSideEffects reopens product marketing readiness only after a full reconnect', async () => {
         await Onyx.multiSet({
             [ONYXKEYS.HAS_LOADED_APP]: true,
-            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'side-effect-reset', readyIDs: {}},
+            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'sideEffectReset', readyIDs: {}},
         });
         await waitForBatchedUpdates();
 
         await App.reconnectAppWithSideEffects(123);
         await waitForBatchedUpdates();
         let dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.readyIDs?.[dataState?.resetID ?? '']).not.toBe(true);
+        expect(isCurrentProductMarketingWindowDataReady(dataState)).toBe(false);
 
         await App.reconnectAppWithSideEffects();
         await waitForBatchedUpdates();
         dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.readyIDs?.[dataState?.resetID ?? '']).toBe(true);
+        expect(isCurrentProductMarketingWindowDataReady(dataState)).toBe(true);
     });
 
     test('a full side-effect reconnect cannot mark a newer account-reset generation ready', async () => {
         await Onyx.multiSet({
             [ONYXKEYS.HAS_LOADED_APP]: true,
-            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'old-side-effect-reset', readyIDs: {'old-side-effect-reset': true}},
+            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'oldSideEffectReset', readyIDs: {oldSideEffectReset: true}},
         });
         await waitForBatchedUpdates();
         mockFetch.pause();
@@ -131,7 +138,7 @@ describe('actions/App', () => {
         const reconnectPromise = App.reconnectAppWithSideEffects();
         await waitForBatchedUpdates();
         // Simulate the replacement generation finishing before this older side-effect response.
-        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'new-side-effect-reset', readyIDs: {'new-side-effect-reset': true}});
+        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'newSideEffectReset', readyIDs: {newSideEffectReset: true}});
         await waitForBatchedUpdates();
 
         await mockFetch.resume();
@@ -139,21 +146,21 @@ describe('actions/App', () => {
         await waitForBatchedUpdates();
 
         const dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.resetID).toBe('new-side-effect-reset');
-        expect(dataState?.readyIDs?.['new-side-effect-reset']).toBe(true);
+        expect(dataState?.resetID).toBe('newSideEffectReset');
+        expect(dataState?.readyIDs?.newSideEffectReset).toBe(true);
     });
 
     test('a stale full side-effect reconnect leaves a newer generation pending until its own full reconnect succeeds', async () => {
         await Onyx.multiSet({
             [ONYXKEYS.HAS_LOADED_APP]: true,
-            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'old-pending-reset', readyIDs: {'old-pending-reset': true}},
+            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'oldPendingReset', readyIDs: {oldPendingReset: true}},
         });
         await waitForBatchedUpdates();
         mockFetch.pause();
 
         const staleReconnectPromise = App.reconnectAppWithSideEffects();
         await waitForBatchedUpdates();
-        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'new-pending-reset', readyIDs: {}});
+        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'newPendingReset', readyIDs: {}});
         await waitForBatchedUpdates();
 
         await mockFetch.resume();
@@ -161,12 +168,12 @@ describe('actions/App', () => {
         await waitForBatchedUpdates();
 
         let dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.readyIDs?.['new-pending-reset']).not.toBe(true);
+        expect(dataState?.readyIDs?.newPendingReset).not.toBe(true);
 
         await App.reconnectAppWithSideEffects();
         await waitForBatchedUpdates();
         dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.readyIDs?.['new-pending-reset']).toBe(true);
+        expect(dataState?.readyIDs?.newPendingReset).toBe(true);
     });
 
     test('a failed full side-effect reconnect leaves the current product marketing generation pending', async () => {
@@ -175,7 +182,7 @@ describe('actions/App', () => {
         global.fetch = failedFetch;
         await Onyx.multiSet({
             [ONYXKEYS.HAS_LOADED_APP]: true,
-            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'failed-side-effect-reset', readyIDs: {}},
+            [ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE]: {resetID: 'failedSideEffectReset', readyIDs: {}},
         });
         await waitForBatchedUpdates();
 
@@ -183,12 +190,12 @@ describe('actions/App', () => {
         await waitForBatchedUpdates();
 
         const dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.readyIDs?.['failed-side-effect-reset']).not.toBe(true);
+        expect(dataState?.readyIDs?.failedSideEffectReset).not.toBe(true);
     });
 
     test('openApp immediately marks product marketing data ready when using imported state', async () => {
         await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
-        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'imported-reset', readyIDs: {}});
+        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'importedReset', readyIDs: {}});
         await waitForBatchedUpdates();
 
         await App.openApp();
@@ -196,7 +203,7 @@ describe('actions/App', () => {
 
         expect(mockFetch).not.toHaveBeenCalled();
         const dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-        expect(dataState?.readyIDs?.[dataState?.resetID ?? '']).toBe(true);
+        expect(isCurrentProductMarketingWindowDataReady(dataState)).toBe(true);
     });
 
     test('trigger full reconnect', async () => {
@@ -277,7 +284,7 @@ describe('actions/App', () => {
 
     test('clearOnyxAndResetApp keeps product marketing gated while account data is rehydrating', async () => {
         jest.spyOn(Navigation, 'clearPreloadedRoutes').mockImplementation(() => {});
-        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'loaded-reset', readyIDs: {'loaded-reset': true}});
+        await Onyx.set(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE, {resetID: 'loadedReset', readyIDs: {loadedReset: true}});
         mockFetch.pause();
 
         try {
@@ -285,17 +292,12 @@ describe('actions/App', () => {
             await waitForBatchedUpdates();
 
             const dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-            expect(dataState?.resetID).not.toBe('loaded-reset');
-            expect(dataState?.readyIDs?.[dataState?.resetID ?? '']).not.toBe(true);
+            expect(dataState?.resetID).not.toBe('loadedReset');
+            expect(isCurrentProductMarketingWindowDataReady(dataState)).toBe(false);
         } finally {
             await mockFetch.resume();
         }
-
         await waitForIdle();
-        await waitFor(async () => {
-            const dataState = await getOnyxValue(ONYXKEYS.PRODUCT_MARKETING_WINDOW_DATA_STATE);
-            expect(dataState?.readyIDs?.[dataState?.resetID ?? '']).toBe(true);
-        });
     });
 
     describe('getNonOptimisticPolicyIDs', () => {

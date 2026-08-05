@@ -280,7 +280,10 @@ describe('actions/Delegate', () => {
                     callback: (value) => {
                         expect(value?.resetID).toEqual(expect.any(String));
                         expect(value?.resetID).not.toBe('');
-                        expect(value?.readyIDs?.[value?.resetID ?? '']).not.toBe(true);
+                        if (!value?.resetID) {
+                            throw new Error('Expected the delegate transition to create a product marketing data generation');
+                        }
+                        expect(value.readyIDs?.[value.resetID]).not.toBe(true);
                         Onyx.disconnect(conn);
                         resolve();
                     },
