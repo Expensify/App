@@ -1,4 +1,5 @@
 import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
+import {getIsOffline} from '@libs/NetworkState';
 
 import CONST from '@src/CONST';
 
@@ -21,7 +22,7 @@ const usePageRefresh: UsePageRefresh = () => {
         }
 
         sessionStorage.removeItem(CONST.SESSION_STORAGE_KEYS.LAST_REFRESH_TIMESTAMP);
-        if (isChunkLoadError && navigator.onLine) {
+        if (isChunkLoadError && !getIsOffline()) {
             // The error page is shown after lazyRetry has already done a plain reload and it did
             // not fix the problem. When online, clear the service worker cache so the next load
             // fetches a fresh app shell from the CDN. When offline we must not clear it: the

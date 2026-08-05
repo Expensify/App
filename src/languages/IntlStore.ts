@@ -167,7 +167,14 @@ class IntlStore {
         return this.currentLocale;
     }
 
-    public static load(locale: Locale) {
+    /**
+     * An empty cache is never treated as final, because `translate()` would then render its raw key
+     * forever.
+     *
+     * NetworkState is imported lazily: it pulls in the whole network stack, and IntlStore is imported
+     * almost everywhere, so a static import would load that onto graphs that never fetch a locale.
+     */
+    public static load(locale: Locale): Promise<void> {
         if (this.currentLocale === locale) {
             return Promise.resolve();
         }
@@ -184,7 +191,26 @@ class IntlStore {
             });
         }
 
-        return loaderPromise()
+        const loadWithOfflineRetry = async (): Promise<void> => {
+            try {
+                await loaderPromise();
+            } catch (error) {
+                const {getIsOffline, onReachabilityConfirmed} = await import('@libs/NetworkState');
+                if (!getIsOffline()) {
+                    throw error;
+                }
+                console.error('Failed to load translations while offline, waiting for the internet to come back.', error);
+                await new Promise<void>((resolve) => {
+                    const unsubscribe = onReachabilityConfirmed(() => {
+                        unsubscribe();
+                        resolve();
+                    });
+                });
+                await loadWithOfflineRetry();
+            }
+        };
+
+        return loadWithOfflineRetry()
             .then(() => {
                 this.currentLocale = locale;
                 // Set the default date-fns locale
