@@ -7622,7 +7622,6 @@ describe('ReportUtils', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
             await waitForBatchedUpdates();
 
-            // Threading the conciergeReportID is what keeps the empty concierge chat visible
             expect(
                 reasonForReportToBeInOptionList({
                     report,
