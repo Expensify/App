@@ -1,12 +1,12 @@
 import useOnyx from '@hooks/useOnyx';
 
 import {clearExportDownload} from '@libs/actions/Export';
-import {useOpenExportModalIDs} from '@libs/OpenExportModalsStore';
+import {getOpenExportModalIDs, subscribeToOpenExportModals} from '@libs/OpenExportModalsStore';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React from 'react';
+import React, {useSyncExternalStore} from 'react';
 
 import ExportDownloadStatusModal from './ExportDownloadStatusModal';
 
@@ -20,7 +20,7 @@ import ExportDownloadStatusModal from './ExportDownloadStatusModal';
  */
 function ExportDownloadReloadHandler() {
     const [exportDownloads] = useOnyx(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD);
-    const openExportModalIDs = useOpenExportModalIDs();
+    const openExportModalIDs = useSyncExternalStore(subscribeToOpenExportModals, getOpenExportModalIDs, getOpenExportModalIDs);
 
     const reloadEntry = Object.entries(exportDownloads ?? {}).find(([key, exportDownload]) => {
         const exportID = key.replace(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD, '');
