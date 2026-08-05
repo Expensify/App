@@ -1004,7 +1004,6 @@ describe('mergeTransactionRequest', () => {
             targetTransactionThreadReport: targetTransactionThread,
             targetTransactionThreadParentReport: undefined,
             reportPolicyTags: undefined,
-            targetTransactionThreadParentReportNextStep: undefined,
             currentUserAccountIDParam: 123,
             currentUserEmailParam: 'existing@example.com',
             isASAPSubmitBetaEnabled: false,
