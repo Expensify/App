@@ -134,9 +134,10 @@ function TransactionPreviewContent({
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
 
-    // Inside a report preview the header already reports a cancelled payment next to the expense count. Standalone previews
-    // (an expense report with a single expense, a self-DM, a split) have no such header, so they have to report it themselves.
-    const shouldShowCanceledStatus = !useContext(ReportPreviewDataContext);
+    // Raw useContext (not the useReportPreviewData slice hook, which throws when absent): a missing provider means this is a
+    // standalone preview with no report header to carry the status, so the preview has to report a cancelled payment itself.
+    const isInsideReportPreview = !!useContext(ReportPreviewDataContext);
+    const shouldShowCanceledStatus = !isInsideReportPreview;
 
     const isIOUActionType = isMoneyRequestAction(action);
     const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, isChatReportArchived, report, policy);

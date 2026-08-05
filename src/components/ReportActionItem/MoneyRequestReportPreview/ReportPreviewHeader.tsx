@@ -68,10 +68,7 @@ function ReportPreviewHeader() {
     );
 
     // A cancelled payment is a report level event and it isn't surfaced by the status badge, so we show it next to the expense count.
-    const supportingText = useMemo(
-        () => (iouReport?.isCancelledIOU ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${expenseCount}` : expenseCount),
-        [iouReport?.isCancelledIOU, translate, expenseCount],
-    );
+    const supportingText = iouReport?.isCancelledIOU ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${expenseCount}` : expenseCount;
 
     const reportStateNum = iouReport?.stateNum ?? action?.childStateNum;
     const reportStatusNum = iouReport?.statusNum ?? action?.childStatusNum;
