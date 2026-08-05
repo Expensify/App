@@ -120,7 +120,7 @@ describe('prepareRequestPayload (native)', () => {
 
     it('should not check the filesystem for a bundled placeholder receipt', async () => {
         // Distance and per diem expenses carry a require() asset id. No file exists on disk.
-        const receipt = {source: '686', name: 'receipt-generic.png', type: 'image/png'};
+        const receipt = {source: 686, name: 'receipt-generic.png', type: 'image/png'};
 
         const formData = await prepareRequestPayload('AddTrackedExpenseToPolicy', {receipt, amount: '100'}, false);
 

@@ -25,17 +25,17 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
             }
 
             if (key === 'receipt') {
-                const {source, name, type, receiptTraceId} = value as File & Pick<Receipt, 'receiptTraceId'>;
+                const {source, name, type, receiptTraceId} = value as Omit<File, 'source'> & Pick<Receipt, 'receiptTraceId' | 'source'>;
 
                 if (source) {
-                    // Distance and per diem expenses carry a bundled placeholder image. The source holds a
+                    // Distance and per diem expenses carry a bundled placeholder image, so the source is a
                     // require() asset id. No file exists on disk and the server receives nothing, so a
                     // filesystem check here only logs a false drop.
-                    if (/^\d+$/.test(String(source))) {
+                    if (typeof source === 'number') {
                         return Promise.resolve();
                     }
 
-                    const localUri = ReceiptStorage.resolve(source) ?? String(source);
+                    const localUri = ReceiptStorage.resolve(source) ?? source;
 
                     return checkFileExists(localUri).then((exists) => {
                         if (!exists) {
