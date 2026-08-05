@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
+import {doesContainReservedWord, isRequiredFulfilled, isValidDisplayName} from '@libs/ValidationUtils';
 
 import {updateDisplayName as updateDisplayNamePersonalDetails} from '@userActions/PersonalDetails';
 
@@ -58,7 +58,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
             addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
         } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
             addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
-        } else if (values.firstName.length === 0) {
+        } else if (!isRequiredFulfilled(values.firstName)) {
             addErrorMessage(errors, 'firstName', translate('personalDetails.error.requiredFirstName'));
         }
         if (doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {

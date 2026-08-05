@@ -66,6 +66,7 @@ import {
     getMerchant,
     getRateID,
     getWaypoints,
+    hasUploadedReceipt,
     isCustomUnitRateIDForP2P,
     isDistanceExpenseType,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -185,7 +186,7 @@ type GetTrackExpenseInformationParams = {
     currentUserEmailParam: string;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
-    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
@@ -1648,6 +1649,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         existingTransactionDraft,
         existingTransaction: explicitExistingTransaction,
         isSelfTourViewed,
+        conciergeChat,
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
@@ -1791,7 +1793,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             const workspaceParams =
                 isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
                     ? {
-                          receipt: isFileUploadable(receipt) ? receipt : undefined,
+                          receipt:
+                              isFileUploadable(receipt) && !hasUploadedReceipt(getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`])
+                                  ? receipt
+                                  : undefined,
                           category,
                           tag,
                           taxCode,
@@ -1855,6 +1860,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       onboardingMessage: getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
                       companySize: undefined,
                       isSelfTourViewed,
+                      conciergeChat,
                   })?.guidedSetupData
                 : undefined;
 
@@ -2435,6 +2441,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         merchant = '',
         comment = '',
         distance,
+        modifiedDistance,
         receipt,
         category,
         tag,
@@ -2484,6 +2491,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             merchant,
             comment,
             distance,
+            modifiedDistance,
             receipt: undefined,
             category,
             tag,
@@ -2546,7 +2554,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         transactionParams: {
             comment,
             amount,
-            distance,
+            distance: modifiedDistance ?? distance,
             currency,
             created,
             merchant,
@@ -2589,6 +2597,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
+    const sourceTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`];
 
     const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
@@ -2647,7 +2656,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 billable,
                 reimbursable,
-                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) && !hasUploadedReceipt(sourceTransaction) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
@@ -2700,7 +2709,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 billable,
                 reimbursable,
-                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) && !hasUploadedReceipt(sourceTransaction) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
@@ -2752,7 +2761,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 billable,
                 reimbursable,
-                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) && !hasUploadedReceipt(sourceTransaction) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
@@ -2803,6 +2812,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 currency,
                 comment,
                 distance: distance !== undefined ? roundToTwoDecimalPlaces(distance) : undefined,
+                modifiedDistance: modifiedDistance !== undefined ? roundToTwoDecimalPlaces(modifiedDistance) : undefined,
                 created,
                 merchant,
                 iouReportID: iouReport?.reportID,
