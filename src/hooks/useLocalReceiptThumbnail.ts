@@ -1,4 +1,8 @@
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
 import {generateThumbnail} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+
+import CONST from '@src/CONST';
 
 import {useEffect, useRef, useState, useTransition} from 'react';
 import {Image} from 'react-native';
@@ -30,11 +34,25 @@ function precacheReceiptImage(sourceUri: string): Promise<string | undefined> {
         return Promise.resolve(thumbnailCache.get(sourceUri));
     }
     thumbnailCache.set(sourceUri, sourceUri);
+
+    startSpan(CONST.TELEMETRY.SPAN_THUMBNAIL_GATE, {
+        name: CONST.TELEMETRY.SPAN_THUMBNAIL_GATE,
+        op: CONST.TELEMETRY.SPAN_THUMBNAIL_GATE,
+        parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+    });
+
     // Pre-decode the image in the native image pipeline so the
     // confirmation screen can display it instantly without decode latency.
     return Image.prefetch(sourceUri)
-        .then(() => sourceUri)
-        .catch(() => sourceUri);
+        .then(() => {
+            endSpan(CONST.TELEMETRY.SPAN_THUMBNAIL_GATE);
+            return sourceUri;
+        })
+        .catch(() => {
+            // The prefetch failure is swallowed and navigation still happens, so the span has to close here too.
+            endSpan(CONST.TELEMETRY.SPAN_THUMBNAIL_GATE);
+            return sourceUri;
+        });
 }
 
 /**
