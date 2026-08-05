@@ -21,7 +21,7 @@ Both use natural-language instructions to determine how they should behave.
 
 ---
 
-## What are Agents?
+## What are Agents
 
 Agents are AI assistants that work on your behalf in Expensify. Each Agent is created as its own Expensify account and uses your personal account context together with the instructions you provide to determine what actions to take.
 
@@ -29,7 +29,7 @@ You can create multiple Agents with different responsibilities, chat with them, 
 
 ---
 
-## What are Agent rules?
+## What are Agent rules
 
 Agent rules let Workspace Admins automate how AI handles expenses and reports in a workspace.
 
@@ -39,7 +39,7 @@ These rules can review reports, request additional information, update expenses,
 
 ---
 
-## What is RuleBot?
+## What is RuleBot
 
 RuleBot is the AI Agent that enforces Agent rules.
 
@@ -49,7 +49,7 @@ You don't create or manage RuleBot directly. Instead, you create and manage the 
 
 ---
 
-## What are Agent templates?
+## What are Agent templates
 
 Agent templates are prebuilt personal Agents with instructions already written for common tasks.
 
@@ -59,7 +59,7 @@ To learn about the available templates, see [Use Agent Templates](/articles/new-
 
 ---
 
-## What are suggested rules? 
+## What are suggested rules?
 
 Suggested rules are pre-written Agent rules for common workspace workflows.
 
@@ -67,7 +67,7 @@ Instead of starting with a blank Agent rule, you can choose a suggested rule and
 
 ---
 
-## How do Agents and Agent rules use instructions?
+## How do Agents and Agent rules use instructions
 
 Both personal Agents and Agent rules use natural-language instructions to determine how they behave.
 
@@ -81,7 +81,7 @@ To learn more, see [Write Effective Agent Instructions](/articles/new-expensify/
 
 ---
 
-## When should I use an Agent or an Agent rule?
+## When should I use an Agent or an Agent rule
 
 Use an Agent when you want AI to help manage your own work.
 
