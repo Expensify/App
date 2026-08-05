@@ -624,62 +624,62 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     });
                 }
             }
-            if (Permissions.canUseTrackFlows()) {
-                items.push({
-                    key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.CATEGORIZE,
-                    translationKey: 'actionableMentionTrackExpense.categorize',
-                    icon: expensifyIcons.Folder,
-                    isAnonymousAction: false,
-                    shouldShowRightIcon: true,
-                    action: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector({
-                            reportID: actionReportID,
-                            reportActions: actionReportActions,
-                            actionName: CONST.IOU.ACTION.CATEGORIZE,
-                            reportActionID: actionableWhisperReportActionID,
-                            introSelected,
-                            draftTransactionIDs,
-                            activePolicy,
-                            userBillingGracePeriodEnds,
-                            amountOwed,
-                            ownerBillingGracePeriodEnd,
-                            transaction: iouTransaction,
-                            currentUserAccountID: currentUserPersonalDetails.accountID,
-                            currentUserEmail: currentUserPersonalDetails.email ?? '',
-                            currentUserLocalCurrency,
-                            filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
-                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
-                        });
-                    },
-                });
-                items.push({
-                    key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SHARE,
-                    translationKey: 'actionableMentionTrackExpense.share',
-                    icon: expensifyIcons.UserPlus,
-                    isAnonymousAction: false,
-                    shouldShowRightIcon: true,
-                    action: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector({
-                            reportID: actionReportID,
-                            reportActions: actionReportActions,
-                            actionName: CONST.IOU.ACTION.SHARE,
-                            reportActionID: actionableWhisperReportActionID,
-                            introSelected,
-                            draftTransactionIDs,
-                            activePolicy,
-                            userBillingGracePeriodEnds,
-                            amountOwed,
-                            ownerBillingGracePeriodEnd,
-                            transaction: iouTransaction,
-                            currentUserAccountID: currentUserPersonalDetails.accountID,
-                            currentUserEmail: currentUserPersonalDetails.email ?? '',
-                            currentUserLocalCurrency,
-                            filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
-                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
-                        });
-                    },
-                });
-            }
+
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.CATEGORIZE,
+                translationKey: 'actionableMentionTrackExpense.categorize',
+                icon: expensifyIcons.Folder,
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+                action: () => {
+                    createDraftTransactionAndNavigateToParticipantSelector({
+                        reportID: actionReportID,
+                        reportActions: actionReportActions,
+                        actionName: CONST.IOU.ACTION.CATEGORIZE,
+                        reportActionID: actionableWhisperReportActionID,
+                        introSelected,
+                        draftTransactionIDs,
+                        activePolicy,
+                        userBillingGracePeriodEnds,
+                        amountOwed,
+                        ownerBillingGracePeriodEnd,
+                        transaction: iouTransaction,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        currentUserEmail: currentUserPersonalDetails.email ?? '',
+                        currentUserLocalCurrency,
+                        filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                        firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+                    });
+                },
+            });
+
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SHARE,
+                translationKey: 'actionableMentionTrackExpense.share',
+                icon: expensifyIcons.UserPlus,
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+                action: () => {
+                    createDraftTransactionAndNavigateToParticipantSelector({
+                        reportID: actionReportID,
+                        reportActions: actionReportActions,
+                        actionName: CONST.IOU.ACTION.SHARE,
+                        reportActionID: actionableWhisperReportActionID,
+                        introSelected,
+                        draftTransactionIDs,
+                        activePolicy,
+                        userBillingGracePeriodEnds,
+                        amountOwed,
+                        ownerBillingGracePeriodEnd,
+                        transaction: iouTransaction,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        currentUserEmail: currentUserPersonalDetails.email ?? '',
+                        currentUserLocalCurrency,
+                        filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+                        firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+                    });
+                },
+            });
         }
 
         // Prevent displaying private notes option for threads and task reports, or when the feature is disabled
