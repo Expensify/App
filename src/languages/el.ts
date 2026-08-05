@@ -2073,21 +2073,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Αναμονή διαχειριστή για την πληρωμή εξόδων.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένουμε από <strong>εσάς</strong> να ολοκληρώσετε τη ρύθμιση επαγγελματικού τραπεζικού λογαριασμού.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για τον/την <strong>${actor}</strong> να ολοκληρώσει τη ρύθμιση επαγγελματικού τραπεζικού λογαριασμού.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για διαχειριστή ώστε να ολοκληρώσει τη ρύθμιση εταιρικού τραπεζικού λογαριασμού.`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,

@@ -2022,21 +2022,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten darauf, dass eine Adminperson Spesen bezahlt.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten darauf, dass <strong>Sie</strong> die Einrichtung eines Geschäftskontos abschließen.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten darauf, dass <strong>${actor}</strong> die Einrichtung eines Geschäftskontos abschließt.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf eine Administration, um das Einrichten eines geschäftlichen Bankkontos abzuschließen.`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2484,7 +2469,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Ihre Debitkarte wurde erfolgreich hinzugefügt',
         expensifyPassword: 'Expensify-Passwort',
         error: {
-            invalidName: 'Name darf nur Buchstaben enthalten',
+            invalidName: 'Name auf der Karte darf kein < oder > enthalten',
             addressZipCode: 'Bitte eine gültige Postleitzahl eingeben',
             debitCardNumber: 'Bitte gib eine gültige Debitkartennummer ein',
             expirationDate: 'Bitte wähle ein gültiges Ablaufdatum aus',
@@ -2507,7 +2492,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Ihre Zahlungskarte wurde erfolgreich hinzugefügt',
         expensifyPassword: 'Expensify-Passwort',
         error: {
-            invalidName: 'Name darf nur Buchstaben enthalten',
+            invalidName: 'Name auf der Karte darf kein < oder > enthalten',
             addressZipCode: 'Bitte eine gültige Postleitzahl eingeben',
             paymentCardNumber: 'Bitte gib eine gültige Kartennummer ein',
             expirationDate: 'Bitte wähle ein gültiges Ablaufdatum aus',

@@ -1998,21 +1998,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `管理者が経費を支払うのを待っています。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `ビジネス銀行口座の設定が完了するのを<strong>お客様</strong>の操作待ちです。`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> がビジネス銀行口座の設定を完了するのを待っています。`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者がビジネス銀行口座の設定を完了するのを待っています。`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2458,7 +2443,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'デビットカードが正常に追加されました',
         expensifyPassword: 'Expensify のパスワード',
         error: {
-            invalidName: '名前には文字のみ使用できます',
+            invalidName: 'カード名義に「<」または「>」を含めることはできません',
             addressZipCode: '有効な郵便番号を入力してください',
             debitCardNumber: '有効なデビットカード番号を入力してください',
             expirationDate: '有効な有効期限を選択してください',
@@ -2481,7 +2466,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: '支払いカードが正常に追加されました',
         expensifyPassword: 'Expensify のパスワード',
         error: {
-            invalidName: '名前には文字のみ使用できます',
+            invalidName: 'カード名義に「<」または「>」を含めることはできません',
             addressZipCode: '有効な郵便番号を入力してください',
             paymentCardNumber: '有効なカード番号を入力してください',
             expirationDate: '有効な有効期限を選択してください',
