@@ -1,5 +1,4 @@
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
-import ReceiptStorage from '@libs/ReceiptStorage';
 
 import {checkIfLocalFileIsAccessible} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
@@ -27,7 +26,7 @@ function useScanFileReadabilityCheck(transactions: Array<Partial<Transaction>>, 
 
         Promise.all(
             transactions.map((item) => {
-                const itemReceiptPath = ReceiptStorage.resolve(item.receipt?.source);
+                const itemReceiptPath = item.receipt?.source;
                 const isLocal = isLocalFile(itemReceiptPath);
 
                 if (!isLocal) {

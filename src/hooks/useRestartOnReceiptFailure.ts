@@ -2,7 +2,6 @@ import {checkIfLocalFileIsAccessible, setMoneyRequestReceipt} from '@libs/action
 import {removeDraftTransactionsByIDs} from '@libs/actions/TransactionEdit';
 import {isLocalFile as isLocalFileUtil} from '@libs/fileDownload/FileUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
-import ReceiptStorage from '@libs/ReceiptStorage';
 import {getRequestType} from '@libs/TransactionUtils';
 
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -32,7 +31,7 @@ const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportI
             return;
         }
         const itemReceiptFilename = transaction.receipt?.filename;
-        const itemReceiptPath = ReceiptStorage.resolve(transaction.receipt?.source);
+        const itemReceiptPath = transaction.receipt?.source;
         const itemReceiptType = transaction.receipt?.type;
         const isLocalFile = isLocalFileUtil(itemReceiptPath);
 

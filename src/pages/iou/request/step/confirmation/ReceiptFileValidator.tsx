@@ -2,7 +2,6 @@ import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils'
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import ReceiptStorage from '@libs/ReceiptStorage';
 
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
@@ -76,7 +75,7 @@ function ReceiptFileValidator({
         Promise.all(
             transactions.map((item) => {
                 const itemReceiptFilename = item.receipt?.filename;
-                const itemReceiptPath = ReceiptStorage.resolve(item.receipt?.source);
+                const itemReceiptPath = item.receipt?.source;
                 const itemReceiptType = item.receipt?.type;
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
 
