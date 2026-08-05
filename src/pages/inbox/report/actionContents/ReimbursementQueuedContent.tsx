@@ -72,7 +72,7 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
                         ref={kycWallRef}
                         onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                        addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
+                        addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL.getRoute()}
                         addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                         chatReportID={targetReport?.reportID}
                         iouReport={iouReport}
