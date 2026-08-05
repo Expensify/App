@@ -144,7 +144,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
                 <Avatar
                     source={icons.DualEntrySquare}
                     type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    size={CONST.AVATAR_SIZE.XXX_SMALL}
                 />
             )}
             {isExportedToBillCom && (
