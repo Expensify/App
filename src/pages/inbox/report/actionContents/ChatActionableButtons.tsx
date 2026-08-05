@@ -16,7 +16,6 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     getOriginalMessage,
