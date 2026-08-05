@@ -115,8 +115,6 @@ function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrN
             context: 'withFullTransactionOrNotFound',
             isLoadingTransaction,
         };
-        // When embedded (shouldHideHeader), the parent page's header stays visible, so per UI-1 use ActivityIndicator
-        // (the user can still go back). Standalone RHP routes render this before their own header, so keep the fullscreen loader.
         return shouldHideHeader ? (
             <View style={[styles.flex1, styles.fullScreenLoading]}>
                 <ActivityIndicator
@@ -125,7 +123,6 @@ function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrN
                 />
             </View>
         ) : (
-            // Standalone RHP route: no navigation chrome renders behind this, so per UI-1 enable the emergency "Go Back" button in case the load hangs.
             <FullScreenLoadingIndicator
                 reasonAttributes={reasonAttributes}
                 shouldUseGoBackButton
