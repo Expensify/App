@@ -76,11 +76,11 @@ After tracking an expense, it also appears in an **Expense Chat** in the left-ha
 
 When you create a tracked expense, Concierge will show an actionable message with options in the Expense Chat:
    - **Submit it to someone** – Send it for approval or reimbursement.
+   - **Categorize it** – Assign the expense to a workspace category.
+   - **Share it with my accountant** – Give your accountant access to the expense.
    - **Nothing for now** – Leave it stored for later.
 
-If you belong to a workspace, you can also click into the expense to:
-   - **Categorize** – Assign to a workspace category.
-   - **Share with your accountant** – Give access to financial contacts.
+You can also click into the expense to:
    - **Move expense(s)** – Add the expense to an existing report or create a new report on the spot.
 
 ---
