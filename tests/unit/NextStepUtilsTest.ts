@@ -840,6 +840,12 @@ describe('libs/NextStepUtils', () => {
         });
 
         it('returns the current next step when no special conditions are met', () => {
+            const currentNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-1',
@@ -853,13 +859,8 @@ describe('libs/NextStepUtils', () => {
                 managerID: currentUserAccountID,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                nextStep: currentNextStep,
             } as Report;
-
-            const currentNextStep: ReportNextStep = {
-                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                actorAccountID: currentUserAccountID,
-            };
 
             const result = getReportNextStep({
                 moneyRequestReport: report,
