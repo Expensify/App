@@ -861,7 +861,15 @@ describe('libs/NextStepUtils', () => {
                 actorAccountID: currentUserAccountID,
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID);
+            const result = getReportNextStep({
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy: undefined,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+            });
             expect(result).toBe(currentNextStep);
         });
 
@@ -898,16 +906,15 @@ describe('libs/NextStepUtils', () => {
                 ],
             };
 
-            const result = getReportNextStep(
-                undefined,
-                report,
-                currentUserEmail,
-                [transaction] as Array<OnyxEntry<Transaction>>,
-                undefined,
+            const result = getReportNextStep({
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [transaction] as Array<OnyxEntry<Transaction>>,
+                policy: undefined,
                 transactionViolations,
                 currentUserEmail,
                 currentUserAccountID,
-            );
+            });
 
             expect(result).toEqual({
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -957,7 +964,15 @@ describe('libs/NextStepUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
-            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID);
+            const result = getReportNextStep({
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+            });
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
 
@@ -1018,75 +1033,21 @@ describe('libs/NextStepUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
-            const result = getReportNextStep(
-                undefined,
-                report,
-                currentUserEmail,
-                [transaction] as Array<OnyxEntry<Transaction>>,
+            const result = getReportNextStep({
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [transaction] as Array<OnyxEntry<Transaction>>,
                 policy,
                 transactionViolations,
                 currentUserEmail,
                 currentUserAccountID,
-            );
+            });
 
             expect(result).toEqual({
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 actorAccountID: report.ownerAccountID,
             });
-        });
-
-        it('prioritizes a higher-priority override over the new translatable next step', async () => {
-            const overridePolicyID = 'policy-override';
-            const policy: Policy = {
-                id: overridePolicyID,
-                name: 'Policy',
-                role: CONST.POLICY.ROLE.ADMIN,
-                type: CONST.POLICY.TYPE.TEAM,
-                owner: currentUserEmail,
-                outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-                approver: currentUserEmail,
-                preventSelfApproval: true,
-                employeeList: {
-                    [currentUserEmail]: {
-                        email: currentUserEmail,
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        submitsTo: currentUserEmail,
-                    },
-                },
-            };
-
-            const report: Report = {
-                ...buildOptimisticExpenseReport({
-                    chatReportID: 'chat-7',
-                    policyID: overridePolicyID,
-                    payeeAccountID: 1,
-                    total: -500,
-                    currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
-                }),
-                ownerAccountID: currentUserAccountID,
-                policyID: overridePolicyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            } as Report;
-
-            const reportNextStep: ReportNextStep = {
-                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                actorAccountID: currentUserAccountID,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${overridePolicyID}`, policy);
-            await waitForBatchedUpdates();
-
-            // Even though a translatable next step is supplied, the prevent-self-approval override must still win.
-            const result = getReportNextStep(reportNextStep, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID);
-            expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
     });
 

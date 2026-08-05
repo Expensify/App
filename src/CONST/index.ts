@@ -406,6 +406,7 @@ const CONST = {
             MULTIPLE_DIAGONAL: 'multipleDiagonal',
             MULTIPLE_HORIZONTAL: 'multipleHorizontal',
             SUBSCRIPT: 'subscript',
+            SUBSCRIPT_CARD_FEED: 'subscriptCardFeed',
             SINGLE: 'single',
         },
         SORT_BY: {
@@ -1947,7 +1948,6 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             REPORT_LEVEL_EXPORT: 'report_level_export',
             EXPENSE_LEVEL_EXPORT: 'detailed_export',
-            MULTIPLE_TAX_EXPORT: 'multiple_tax_export',
         },
         EXPORT_OPTION_LABELS: {
             REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
@@ -2553,6 +2553,12 @@ const CONST = {
         SUSTAINED_FAILURE_WINDOW_MS: 10 * 1000,
         RECONNECT_STAMPEDE_JITTER_MS: 5000,
         STALLED_UPDATES_FETCH_BACKOFF_TIME_MS: 60 * 1000,
+        MAX_PAUSE_WATCHDOG_TIME_MS: 60 * 1000,
+        MAX_PAUSE_WATCHDOG_ESCALATION_TIME_MS: 15 * 1000,
+        // Hard ceiling on a single pause, measured from pause() and not extendable by progress. The re-arm signal
+        // ("some update was applied") can keep firing while the gap that paused us stays open, so the per-window
+        // timer alone doesn't actually bound how long the queue can sit paused.
+        MAX_PAUSE_WATCHDOG_ABSOLUTE_TIME_MS: 2 * 60 * 1000,
     },
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
@@ -4668,7 +4674,7 @@ const CONST = {
             COPY_EXISTING: 'copy',
             CREATE_NEW: 'create',
         },
-        MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
+        MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card-US',
         PIN: {
             LENGTH: 4,
             INVALID_PINS: [
@@ -8360,6 +8366,10 @@ const CONST = {
             CTA: 'AgentsRulesBanner-CTA',
             DISMISS: 'AgentsRulesBanner-Dismiss',
         },
+        PRODUCT_MARKETING_WINDOW: {
+            CTA: 'ProductMarketingWindow-CTA',
+            DISMISS: 'ProductMarketingWindow-Dismiss',
+        },
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
             INBOX: 'NavigationTabBar-Inbox',
@@ -8744,6 +8754,9 @@ const CONST = {
             PARTICIPANTS_IMPORT_CONTACTS_ITEM: 'MoneyRequest-ParticipantsImportContacts',
             ATTENDEES_SAVE_BUTTON: 'MoneyRequest-AttendeesSaveButton',
             CONFIRMATION_SUBMIT_BUTTON: 'MoneyRequest-ConfirmationSubmitButton',
+            CONFIRMATION_SPLIT_BUTTON: 'MoneyRequest-ConfirmationSplitButton',
+            CONFIRMATION_TRACK_BUTTON: 'MoneyRequest-ConfirmationTrackButton',
+            CONFIRMATION_INVOICE_BUTTON: 'MoneyRequest-ConfirmationInvoiceButton',
             CONFIRMATION_REMOVE_EXPENSE_BUTTON: 'MoneyRequest-ConfirmationRemoveExpenseButton',
             CONFIRMATION_PAY_BUTTON: 'MoneyRequest-ConfirmationPayButton',
             GOOGLE_MERCHANT_SEARCH_BUTTON: 'MoneyRequest-GoogleMerchantSearchButton',
@@ -8779,7 +8792,9 @@ const CONST = {
             EDIT_TAGS_BUTTON: 'IOURequestStep-TagEditButton',
             EDIT_PER_DIEM_RATES_BUTTON: 'IOURequestStep-EditPerDiemRatesButton',
             HOURS_NEXT_BUTTON: 'IOURequestStep-HoursNextButton',
-            SCAN_SUBMIT_BUTTON: 'IOURequestStep-ScanSubmitButton',
+            SCAN_FILE_UPLOAD_BUTTON: 'IOURequestStep-ScanFileUploadButton',
+            SCAN_CAMERA_PERMISSION_BUTTON: 'IOURequestStep-ScanCameraPermissionButton',
+            SCAN_CAMERA_PERMISSION_PROMPT_BUTTON: 'IOURequestStep-ScanCameraPermissionPromptButton',
             RECEIPT_DELETE_BUTTON: 'IOURequestStep-ReceiptDeleteButton',
             RECEIPT_PREVIEW_ITEM: 'IOURequestStep-ReceiptPreviewItem',
             RECEIPT_PREVIEW_SUBMIT_BUTTON: 'IOURequestStep-ReceiptPreviewSubmitButton',

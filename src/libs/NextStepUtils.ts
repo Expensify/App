@@ -43,6 +43,17 @@ type BuildNextStepNewParams = {
      */
     bypassNextApproverID?: number;
     isTrackIntentUser: boolean | undefined;
+    translate?: LocaleContextProps['translate'];
+};
+
+type GetReportNextStepParams = {
+    moneyRequestReport: OnyxEntry<Report>;
+    moneyRequestReportOwnerLogin: string | undefined;
+    transactions: Array<OnyxEntry<Transaction>>;
+    policy: OnyxEntry<Policy>;
+    transactionViolations: OnyxCollection<TransactionViolations>;
+    currentUserEmail: string;
+    currentUserAccountID: number;
 };
 
 function buildNextStepMessage(
@@ -295,16 +306,7 @@ function buildOptimisticFixIssueNextStep(ownerAccountID: number): ReportNextStep
     };
 }
 
-function getReportNextStep(
-    currentNextStep: ReportNextStep | undefined,
-    moneyRequestReport: OnyxEntry<Report>,
-    moneyRequestReportOwnerLogin: string | undefined,
-    transactions: Array<OnyxEntry<Transaction>>,
-    policy: OnyxEntry<Policy>,
-    transactionViolations: OnyxCollection<TransactionViolations>,
-    currentUserEmail: string,
-    currentUserAccountID: number,
-) {
+function getReportNextStep({moneyRequestReport, moneyRequestReportOwnerLogin, transactions, policy, transactionViolations, currentUserEmail, currentUserAccountID}: GetReportNextStepParams) {
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const shouldShowNoFurtherAction =
         reimbursableSpend === 0 &&
@@ -338,7 +340,7 @@ function getReportNextStep(
         };
     }
 
-    return currentNextStep;
+    return moneyRequestReport?.nextStep;
 }
 
 /**
