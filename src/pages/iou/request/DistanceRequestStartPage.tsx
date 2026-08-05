@@ -60,8 +60,8 @@ function DistanceRequestStartPage({
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.trackDistance'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', getPayeeName(report)),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', getPayeeName(report)),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', getPayeeName(report, translate)),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', getPayeeName(report, translate)),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.trackDistance'),
@@ -71,7 +71,10 @@ function DistanceRequestStartPage({
 
     const transactionRequestType = useMemo(() => {
         if (!transaction?.iouRequestType) {
-            return lastDistanceExpenseType ?? selectedTab ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+            // The tab navigator renders whichever tab was last selected, so the draft has to be typed from that
+            // same value. Preferring the last-created distance type instead rebuilds the draft as Odometer under
+            // a visible Map tab, leaving it without waypoints so tapping one opens the "Not here" page.
+            return selectedTab ?? lastDistanceExpenseType ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
         }
 
         return transaction.iouRequestType;

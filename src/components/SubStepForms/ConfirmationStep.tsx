@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -18,15 +18,17 @@ import React from 'react';
 import {View} from 'react-native';
 
 type SummaryItem = {
+    id: string;
     description: string;
     title: string;
     shouldShowRightIcon: boolean;
     onPress: () => void;
     brickRoadIndicator?: BrickRoad;
     errorText?: string;
+    testID?: string;
 };
 
-type ConfirmationStepProps = SubStepProps &
+type ConfirmationStepProps = SubPageProps &
     ForwardedFSClassProps & {
         /** The title of the step */
         pageTitle: string;
@@ -73,9 +75,10 @@ function ConfirmationStep({
             contentContainerStyle={[styles.flexGrow1, shouldApplySafeAreaPaddingBottom && {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
-            {summaryItems.map(({description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText}) => (
+            {summaryItems.map(({id, description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText, testID}) => (
                 <MenuItemWithTopDescription
-                    key={`${title}_${description}`}
+                    key={id}
+                    pressableTestID={testID ?? id}
                     description={description}
                     title={title}
                     shouldShowRightIcon={shouldShowRightIcon}

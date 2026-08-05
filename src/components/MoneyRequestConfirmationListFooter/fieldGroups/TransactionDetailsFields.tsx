@@ -65,8 +65,20 @@ function TransactionDetailsFields({
     fieldVisibility,
     isParticipantPickerVisible,
 }: TransactionDetailsFieldsProps) {
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isPolicyExpenseChat, isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest} =
-        useConfirmationFields();
+    const {
+        action,
+        iouType,
+        transactionID,
+        reportID,
+        reportActionID,
+        isReadOnly,
+        didConfirm,
+        isNewManualExpenseFlowEnabled,
+        isPolicyExpenseChat,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+        isGPSDistanceRequest,
+    } = useConfirmationFields();
     const shouldAutoFocusAmountField = !canUseTouchScreen();
 
     return (
@@ -79,6 +91,7 @@ function TransactionDetailsFields({
                     distanceRateCurrency={distanceData.distanceRateCurrency}
                     iouCurrencyCode={iouCurrencyCode}
                     isDistanceRequest={fieldVisibility.distance}
+                    isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
                     didConfirm={didConfirm}
                     isReadOnly={isReadOnly}
                     shouldShowTimeRequestFields={fieldVisibility.time}
@@ -99,6 +112,7 @@ function TransactionDetailsFields({
             {!isCompactMode && fieldVisibility.merchant && (
                 <MerchantField
                     isMerchantRequired={requiredFlags.isMerchantRequired}
+                    isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
                     isReadOnly={isReadOnly}
                     didConfirm={didConfirm}
                     shouldDisplayFieldError={errorState.shouldDisplayFieldError}
@@ -112,6 +126,7 @@ function TransactionDetailsFields({
             )}
 
             <DescriptionField
+                isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
                 isReadOnly={isReadOnly}
                 didConfirm={didConfirm}
                 isDescriptionRequired={requiredFlags.isDescriptionRequired}

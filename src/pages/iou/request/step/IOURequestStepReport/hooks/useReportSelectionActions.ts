@@ -2,11 +2,13 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
@@ -15,7 +17,7 @@ import {getReportOrDraftReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
 
@@ -68,8 +70,8 @@ type UseReportSelectionActionsParams = {
     /** ID of the user's personal policy — used by `removeFromReport` to look up the personal-policy tag list. */
     personalPolicyID: string | undefined;
 
-    /** Optional route to return to instead of the default back navigation. */
-    backTo: Route | undefined;
+    /** Path of the screen this dynamic route was opened from (the dynamic base path, i.e. the current URL without the suffix). */
+    backPath: Route;
 
     /** Caller-provided back-navigation handler — `handleRegularReportSelection` calls this before scheduling the change. */
     handleGoBack: () => void;
@@ -100,7 +102,7 @@ function useReportSelectionActions({
     action,
     reportIDFromRoute,
     personalPolicyID,
-    backTo,
+    backPath,
     handleGoBack,
 }: UseReportSelectionActionsParams): UseReportSelectionActionsResult {
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -110,6 +112,8 @@ function useReportSelectionActions({
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const {removeTransaction} = useSearchSelectionActions();
+    const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];
@@ -159,12 +163,22 @@ function useReportSelectionActions({
             clearSubrates(transaction.transactionID);
 
             const newChatReportID = reportOrDraftReportFromValue?.chatReportID ?? reportIDFromRoute;
-            const destinationRoute = ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, newChatReportID);
+            const destinationRoute = createDynamicRoute(
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
+                ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, newChatReportID),
+            );
             Navigation.goBack(destinationRoute, {compareParams: false});
             return;
         }
 
-        Navigation.goBack(backTo);
+        if (isNewManualExpenseFlowEnabled) {
+            Navigation.goBack(backPath);
+            return;
+        }
+
+        const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportOrDraftReportFromValue?.chatReportID);
+        // `goBack` replaces the current route when the confirmation screen isn't on the stack.
+        Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
     };
 
     const handleRegularReportSelection = (item: TransactionGroupListItem, report: OnyxEntry<Report>) => {

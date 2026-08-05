@@ -42,7 +42,6 @@ let allReportDraftComments: Record<string, string | undefined> = {};
 // Draft comments are cached only for transferring to the preexisting report; no UI subscribes, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    waitForCollectionCallback: true,
     callback: (value) => (allReportDraftComments = value ?? {}),
 });
 
@@ -56,16 +55,12 @@ Onyx.connectWithoutView({
     },
 });
 
-const allReportActions: OnyxCollection<ReportActions> = {};
+let allReportActions: OnyxCollection<ReportActions> = {};
 // Report actions are cached only to resolve parent actions for IOU cleanup; no UI subscribes, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
-            return;
-        }
-        const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-        allReportActions[reportID] = actions;
+    callback: (value) => {
+        allReportActions = value ?? {};
     },
 });
 
@@ -88,7 +83,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
     // If an optimistic IOU action was created before we knew a preexisting IOU action for the thread existed,
     // remove it to avoid duplicate IOU report actions
     if (isMoneyRequest(report) && parentReportID && parentReportActionID) {
-        const parentReportAction = allReportActions?.[parentReportID]?.[parentReportActionID];
+        const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID];
         if (parentReportAction?.isOptimisticAction) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentReportActionID]: null,
@@ -127,7 +122,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                     });
                     // Non-optimistic parent actions already exist, so we update their childReportID;
                     // optimistic actions were already cleaned up above
-                    const parentReportAction = parentReportID ? allReportActions?.[parentReportID]?.[parentReportActionID] : null;
+                    const parentReportAction = parentReportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID] : null;
                     if (parentReportAction && !parentReportAction.isOptimisticAction) {
                         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                             [parentReportActionID]: {childReportID: preexistingReportID},
@@ -214,7 +209,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                 isParentOneTransactionReport &&
                 (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(parentReportID)) || activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID})))
             ) {
-                const hasReportActions = !!allReportActions?.[parentReportID];
+                const hasReportActions = !!allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
                 if (draftReportComment) {
                     // Draft must be saved first because the callback will clear the optimistic report and its associated draft
                     saveReportDraftComment(parentReportID, draftReportComment, () => {
@@ -253,7 +248,6 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
 // Reports are observed only to detect preexistingReportID and run replacement; no UI subscribes, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value: OnyxCollection<Report>) => {
         allReports = value;
 

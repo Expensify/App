@@ -58,7 +58,8 @@ function SearchTransactionsChangeReport() {
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
-    const hasUnreportedManagedCardTransactions = transactions.some((transaction) => isUnreportedManagedCardTransaction(transaction));
+    const managedCardTransactionID = transactions.find((transaction) => isUnreportedManagedCardTransaction(transaction))?.transactionID;
+    const hasUnreportedManagedCardTransactions = !!managedCardTransactionID;
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {isBetaEnabled} = usePermissions();
@@ -157,6 +158,7 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             false,
             shouldDismissEmptyReportsConfirmation,
+            {managedCardTransactionID},
         );
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         const policyTagList = policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : {};
@@ -195,13 +197,15 @@ function SearchTransactionsChangeReport() {
             const firstTransactionID = selectedTransactionsKeys.at(0);
             if (firstTransactionID) {
                 Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.EDIT,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                        transactionID: firstTransactionID,
-                        reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
-                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                    }),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.EDIT,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: firstTransactionID,
+                            reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                        }),
+                    ),
                 );
             }
             return;
@@ -213,13 +217,15 @@ function SearchTransactionsChangeReport() {
         }
         if (shouldNavigateToUpgradePath) {
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                    action: CONST.IOU.ACTION.CREATE,
-                    iouType: CONST.IOU.TYPE.CREATE,
-                    transactionID: generateReportID(),
-                    reportID: generateReportID(),
-                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                }),
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.CREATE,
+                        iouType: CONST.IOU.TYPE.CREATE,
+                        transactionID: generateReportID(),
+                        reportID: generateReportID(),
+                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                    }),
+                ),
             );
             return;
         }
