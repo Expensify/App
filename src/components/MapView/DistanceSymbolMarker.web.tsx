@@ -7,7 +7,7 @@ import {Marker} from 'react-map-gl/mapbox';
 
 import type {DistanceSymbolMarkerProps} from './MapViewTypes';
 
-function DistanceSymbolMarker({distanceSymbolCoordinate, children, toggleDistanceUnit}: DistanceSymbolMarkerProps) {
+function DistanceSymbolMarker({distanceSymbolCoordinate, children, onPress}: DistanceSymbolMarkerProps) {
     return (
         <Marker
             longitude={distanceSymbolCoordinate.at(0) ?? 0}
@@ -17,7 +17,7 @@ function DistanceSymbolMarker({distanceSymbolCoordinate, children, toggleDistanc
                 sentryLabel="MapView-ToggleDistanceUnit"
                 accessibilityLabel="distance-label"
                 role={CONST.ROLE.BUTTON}
-                onPress={toggleDistanceUnit}
+                onPress={onPress}
             >
                 {children}
             </PressableWithoutFeedback>

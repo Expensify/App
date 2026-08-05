@@ -10,7 +10,7 @@ import type {DistanceSymbolMarkerProps} from './MapViewTypes';
 
 import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
 
-function DistanceSymbolMarker({distanceSymbolCoordinate, children, toggleDistanceUnit}: DistanceSymbolMarkerProps) {
+function DistanceSymbolMarker({distanceSymbolCoordinate, children, onPress}: DistanceSymbolMarkerProps) {
     const styles = useThemeStyles();
 
     return (
@@ -22,7 +22,7 @@ function DistanceSymbolMarker({distanceSymbolCoordinate, children, toggleDistanc
                 <ToggleDistanceUnitButton
                     accessibilityRole={CONST.ROLE.BUTTON}
                     accessibilityLabel="distance-label"
-                    onPress={toggleDistanceUnit}
+                    onPress={onPress}
                 >
                     {children}
                 </ToggleDistanceUnitButton>

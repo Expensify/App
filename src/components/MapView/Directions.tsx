@@ -34,6 +34,7 @@ function Directions({directionCoordinates, alternateDirection, setIsAlternateDir
                         directionCoordinates={utils.convertSegmentedRouteToSingleSegmentRoute(alternateDirectionCoordinates)}
                         waypoints={waypoints}
                         isSelected={isAlternateDirectionSelected}
+                        selectDirection={() => setIsAlternateDirectionSelected?.(true)}
                     />
                 </>
             ) : (
@@ -46,6 +47,7 @@ function Directions({directionCoordinates, alternateDirection, setIsAlternateDir
                 directionCoordinates={utils.convertSegmentedRouteToSingleSegmentRoute(directionCoordinates)}
                 waypoints={waypoints}
                 isSelected={!isAlternateDirectionSelected}
+                selectDirection={() => setIsAlternateDirectionSelected?.(false)}
             />
         </>
     );

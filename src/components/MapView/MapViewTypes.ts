@@ -128,6 +128,9 @@ type DistanceSymbolProps = {
      * Should be used if alternative directions are available. Determines what style to apply to the symbol.
      */
     isSelected?: boolean;
+
+    /** Selects the direction to which the symbol is assigned to. Called instead of toggling the unit when the direction is not selected. */
+    selectDirection?: () => void;
 };
 
 type DirectionProps = {
@@ -213,7 +216,7 @@ type MapViewHandle = {
     fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
-type DistanceSymbolMarkerProps = {distanceSymbolCoordinate: Coordinate; children: React.ReactNode; toggleDistanceUnit: () => void};
+type DistanceSymbolMarkerProps = {distanceSymbolCoordinate: Coordinate; children: React.ReactNode; onPress: () => void};
 
 type AlternateDirectionsProps = Required<Pick<DirectionsProps, 'directionCoordinates' | 'alternateDirection'>> & Pick<DirectionsProps, 'setIsAlternateDirectionSelected'>;
 

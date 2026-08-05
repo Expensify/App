@@ -13,7 +13,7 @@ import type {DistanceSymbolProps} from './MapViewTypes';
 import DistanceSymbolMarker from './DistanceSymbolMarker';
 import utils from './utils';
 
-function DistanceSymbol({distanceInMeters, distanceUnit, toggleDistanceUnit, directionCoordinates, waypoints, isSelected = true}: DistanceSymbolProps) {
+function DistanceSymbol({distanceInMeters, distanceUnit, toggleDistanceUnit, directionCoordinates, waypoints, isSelected = true, selectDirection}: DistanceSymbolProps) {
     const styles = useThemeStyles();
 
     const distanceLabelText = DistanceRequestUtils.getDistanceForDisplayLabel(distanceInMeters ?? 0, distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
@@ -37,10 +37,19 @@ function DistanceSymbol({distanceInMeters, distanceUnit, toggleDistanceUnit, dir
         return null;
     }
 
+    // Pressing a symbol of an unselected direction selects that direction instead of toggling the unit.
+    const onPress = () => {
+        if (!isSelected && selectDirection) {
+            selectDirection();
+            return;
+        }
+        toggleDistanceUnit();
+    };
+
     return (
         <DistanceSymbolMarker
             distanceSymbolCoordinate={distanceSymbolCoordinate}
-            toggleDistanceUnit={toggleDistanceUnit}
+            onPress={onPress}
         >
             <View style={[isSelected ? styles.distanceLabelWrapper : styles.alternativeDistanceLabelWrapper]}>
                 <Text style={isSelected ? styles.distanceLabelText : styles.alternativeDistanceLabelText}> {distanceLabelText}</Text>
