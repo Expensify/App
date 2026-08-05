@@ -5860,7 +5860,8 @@ const translations = {
         dualentry: {
             dualentrySetup: 'DualEntry setup',
             enterCredentials: 'Enter your DualEntry API key',
-            howToFindAPIKey: '<strong>Finding your API key.</strong><ol><li>Log in to DualEntry</li><li>Navigate to Account -> Settings</li><li>Copy the API key below</li></ol>',
+            howToFindAPIKey:
+                '<strong>Finding your API key.</strong><ol><li>Log in to DualEntry</li><li>Navigate to [organization name] -> Settings -> Developer access -> API keys</li><li>Create API key</li><li>Paste the API key below</li></ol>',
             company: 'Company',
             companySelectDescription: "Choose the company in DualEntry that you'd like to import data from.",
             noCompaniesFound: 'No companies found',
