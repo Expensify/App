@@ -9,7 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import type {PromotedAction} from '@components/PromotedActionsBar';
 import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
-import ReportActionAvatars from '@components/ReportActionAvatars';
+import ReportHeaderAvatars from '@components/ReportHeaderAvatars';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -19,6 +19,7 @@ import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_R
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
@@ -141,6 +142,7 @@ import type {ValueOf} from 'type-fest';
 
 import {StackActions, useFocusEffect} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
@@ -214,6 +216,10 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
     const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
+    // The report from which a tracked expense would be submitted/categorized/shared, and its actions -
+    // createDraftTransactionAndNavigateToParticipantSelector uses them to find the linked track-expense action
+    const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID);
+    const [actionReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionReportID}`);
 
     const {removeTransaction} = useSearchSelectionActions();
 
@@ -225,11 +231,13 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const filteredPoliciesInfoSelector = useMemo(() => createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email), [currentUserPersonalDetails?.email]);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
     const {showConfirmModal} = useConfirmModal();
@@ -383,13 +391,32 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     const leaveChat = useCallback(() => {
         if (isRootGroupChat) {
-            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, betas);
+            leaveGroupChat(
+                report,
+                quickAction?.chatReportID?.toString() === report.reportID,
+                currentUserPersonalDetails.accountID,
+                conciergeReportID,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+            );
             return;
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, betas, isWorkspaceMemberLeavingWorkspaceRoom);
-    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, betas]);
+        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, isSelfTourViewed, betas, isWorkspaceMemberLeavingWorkspaceRoom);
+    }, [
+        isRootGroupChat,
+        isPolicyEmployee,
+        isPolicyAdmin,
+        quickAction?.chatReportID,
+        report,
+        currentUserPersonalDetails.accountID,
+        conciergeReportID,
+        introSelected,
+        isSelfTourViewed,
+        betas,
+    ]);
 
     const showLastMemberLeavingModal = useCallback(async () => {
         const {action} = await showConfirmModal({
@@ -516,7 +543,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         }
 
         if (isTrackExpenseReport && !isDeletedParentAction) {
-            const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID);
             const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID, moneyRequestReportActions);
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
             const currentUserLocalCurrency = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
@@ -526,6 +552,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             if (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo) {
                 const baseSubmitParams = {
                     reportID: actionReportID,
+                    reportActions: actionReportActions,
                     reportActionID: actionableWhisperReportActionID,
                     introSelected,
                     draftTransactionIDs,
@@ -607,6 +634,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     action: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
                             reportID: actionReportID,
+                            reportActions: actionReportActions,
                             actionName: CONST.IOU.ACTION.CATEGORIZE,
                             reportActionID: actionableWhisperReportActionID,
                             introSelected,
@@ -633,6 +661,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     action: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
                             reportID: actionReportID,
+                            reportActions: actionReportActions,
                             actionName: CONST.IOU.ACTION.SHARE,
                             reportActionID: actionableWhisperReportActionID,
                             introSelected,
@@ -769,8 +798,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         styles.ph2,
         shouldOpenRoomMembersPage,
         navigateBackFromReportDetailsPath,
-        parentReportAction,
-        reportActionsForOriginalReportID,
+        actionReportID,
+        actionReportActions,
         iouTransactionID,
         moneyRequestReport?.reportID,
         moneyRequestReportActions,
@@ -826,13 +855,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         if (!isGroupChat || isThread) {
             return (
                 <View style={styles.mb3}>
-                    <ReportActionAvatars
-                        noRightMarginOnSubscriptContainer
-                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                        useProfileNavigationWrapper
-                        singleAvatarContainerStyle={[]}
-                        reportID={report?.reportID ?? moneyRequestReport?.reportID}
-                    />
+                    <ReportHeaderAvatars reportID={report?.reportID ?? moneyRequestReport?.reportID} />
                 </View>
             );
         }
@@ -1039,6 +1062,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 currentUserEmail: currentUserPersonalDetails.email ?? '',
                 policy: iouPolicy,
+                getCurrencyDecimals,
             });
         } else if (iouTransactionID) {
             const deleteResult = deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
@@ -1077,6 +1101,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         deleteTransactions,
         removeTransaction,
         iouPolicy,
+        getCurrencyDecimals,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
@@ -1125,6 +1150,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     iouReport,
                     chatIOUReport,
                     isChatIOUReportArchived,
+                    getCurrencyDecimals,
                     isSingleTransactionView,
                 );
             } else {
@@ -1135,6 +1161,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     iouReport,
                     chatIOUReport,
                     isChatIOUReportArchived,
+                    getCurrencyDecimals,
                     isSingleTransactionView,
                 );
             }
@@ -1156,6 +1183,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         isChatIOUReportArchived,
         isSingleTransactionView,
         requestParentReportActionChildReport,
+        getCurrencyDecimals,
     ]);
 
     const showDeleteModal = useCallback(async () => {

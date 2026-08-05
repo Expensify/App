@@ -405,6 +405,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: 'Langer Bericht-ID',
         withdrawalID: 'Auszahlungs-ID',
         internationalReimbursementIDs: 'Internationale Erstattungs-IDs',
+        amountDebited: 'Belasteter Betrag',
+        amountReimbursed: 'Erstatteter Betrag',
         withdrawalStatus: 'Auszahlungsstatus',
         paidStatus: 'Status: Bezahlt',
         bankAccounts: 'Bankkonten',
@@ -439,6 +441,7 @@ const translations: TranslationDeepObject<typeof en> = {
         perDiem: 'Tagegeld',
         validate: 'Validieren',
         downloadAsPDF: 'Als PDF herunterladen',
+        downloadReceipts: 'Belege herunterladen',
         downloadAsCSV: 'Als CSV herunterladen',
         submitViaPDF: 'Per PDF einreichen',
         print: 'Drucken',
@@ -1457,7 +1460,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `über Genehmigung durch <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a>`,
         forwarded: (memo?: string) => `genehmigt${memo ? `, mit dem Vermerk ${memo}` : ''}`,
         rejectedThisReport: 'abgelehnt',
-        waitingOnBankAccount: (submitterDisplayName: string) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein Bankkonto hinzufügt.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein persönliches Bankkonto hinzufügt.`,
         adminCanceledRequest: 'hat die Zahlung storniert',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${amount} Zahlung storniert, weil ${submitterDisplayName} ihr Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
@@ -2021,21 +2024,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten darauf, dass eine Adminperson Spesen bezahlt.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten darauf, dass <strong>Sie</strong> die Einrichtung eines Geschäftskontos abschließen.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten darauf, dass <strong>${actor}</strong> die Einrichtung eines Geschäftskontos abschließt.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf eine Administration, um das Einrichten eines geschäftlichen Bankkontos abzuschließen.`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2483,7 +2471,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Ihre Debitkarte wurde erfolgreich hinzugefügt',
         expensifyPassword: 'Expensify-Passwort',
         error: {
-            invalidName: 'Name darf nur Buchstaben enthalten',
+            invalidName: 'Name auf der Karte darf kein < oder > enthalten',
             addressZipCode: 'Bitte eine gültige Postleitzahl eingeben',
             debitCardNumber: 'Bitte gib eine gültige Debitkartennummer ein',
             expirationDate: 'Bitte wähle ein gültiges Ablaufdatum aus',
@@ -2506,7 +2494,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Ihre Zahlungskarte wurde erfolgreich hinzugefügt',
         expensifyPassword: 'Expensify-Passwort',
         error: {
-            invalidName: 'Name darf nur Buchstaben enthalten',
+            invalidName: 'Name auf der Karte darf kein < oder > enthalten',
             addressZipCode: 'Bitte eine gültige Postleitzahl eingeben',
             paymentCardNumber: 'Bitte gib eine gültige Kartennummer ein',
             expirationDate: 'Bitte wähle ein gültiges Ablaufdatum aus',
@@ -5961,6 +5949,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             balanceWillBeSettledOn: (settlementDate: string) => `Der Saldo wird am ${settlementDate} ausgeglichen.`,
             settleBalance: 'Saldo ausgleichen',
             cardLimit: 'Kartenlimit',
+            remaining: 'Verbleibend',
             remainingLimit: 'Verbleibendes Limit',
             requestLimitIncrease: 'Anhebung des Anfragelimits',
             remainingLimitDescription:
@@ -6133,6 +6122,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         subsections: {
                             currentTravelSpendLabel: 'Aktuelle Reisekosten',
                             currentTravelSpendPaymentQueued: (amount: string) => `Die Zahlung über ${amount} ist in der Warteschlange und wird in Kürze bearbeitet.`,
+                            currentTravelSpendInvoiceQueued: 'Eine neue Rechnung für Ihre Reisekosten wird erstellt und Ihnen in Kürze zugesandt.',
+                            currentTravelSpendInvoicePending: (amount: string) => `Eine Rechnung über ${amount} wurde gesendet und wartet auf Bezahlung.`,
                             currentTravelSpendCta: 'Saldo bezahlen',
                             viewOnSpend: 'In Ausgaben anzeigen',
                             currentTravelLimitLabel: 'Aktuelles Reisekontingent',
@@ -6146,6 +6137,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                                 'Wenn Sie das Limit reduzieren, können Mitglieder, die diesen Betrag bereits überschritten haben, bis zum nächsten Monat keine neuen Reisebuchungen vornehmen.',
                             provisioningError:
                                 'Wir konnten einige Mitglieder Ihres Arbeitsbereichs nicht für die Konsolidierte Reiseabrechnung einrichten. Bitte versuchen Sie es später erneut oder wenden Sie sich für Unterstützung an Concierge.',
+                            sendInvoiceNowCta: 'Rechnung jetzt senden',
                         },
                     },
                     disableModal: {
@@ -6168,6 +6160,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     invalidDateRangeError: 'Das Startdatum muss vor dem Enddatum liegen',
                     enabled: 'Zentrale Reiseabrechnung aktiviert!',
                     enabledDescription: 'Alle Reisekosten in diesem Workspace werden nun in einer monatlichen Rechnung zentralisiert.',
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Rechnung über ${amount} senden?`,
+                        body: 'Wir erstellen eine Rechnung für Ihre aktuellen Reisekosten. Ihr Reiselimit wird wieder frei, sobald die Rechnung bezahlt ist.',
+                    },
                 },
                 personalDetailsDescription: 'Um eine Reise zu buchen, gib bitte deinen amtlichen Namen genau so ein, wie er auf deinem amtlichen Ausweis steht.',
             },
@@ -7509,8 +7505,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 note: 'Sie verlieren den Zugriff auf die folgenden Funktionen',
                 benefits: {
                     confirm: 'Sie müssen den „Plantyp“ jedes Arbeitsbereichs auf „Collect“ ändern, um den Collect-Tarif zu sichern.',
-                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
-                    benefit2: 'Workday, Certinia',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics, Certinia',
+                    benefit2: 'Gusto, TriNet, Workday',
                     benefit3: 'SSO/SAML',
                     benefit4: 'Intelligente Spesenregeln, Tagegelder, Genehmigungen mit mehreren Ebenen, benutzerdefinierte Berichte und Budgetierung',
                     headsUp: 'Achtung!',
@@ -8061,6 +8057,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 subtitle: 'Erstellen Sie eine Regel, um Ihre Arbeitsbereichsrichtlinien zu automatisieren.',
                 cta: 'KI-Regel hinzufügen',
             },
+            categoriesDisabledEmptyState: {title: 'Kategorien sind nicht aktiviert', subtitle: 'Aktivieren Sie Kategorien, um Ihre Ausgaben besser zu kontrollieren.'},
         },
         planTypePage: {
             planTypes: {
@@ -10028,8 +10025,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 benefit1: 'Alles im Collect-Tarif',
                 benefit2: 'Genehmigungs-Workflows mit mehreren Ebenen',
                 benefit3: 'Benutzerdefinierte Ausgabenregeln',
-                benefit4: 'ERP-Integrationen (NetSuite, Sage Intacct, Oracle)',
-                benefit5: 'HR-Integrationen (Workday, Certinia)',
+                benefit4: 'ERP-Integrationen (NetSuite, Sage Intacct, Oracle, Certinia)',
+                benefit5: 'HR-Integrationen (Gusto, TriNet, Workday)',
                 benefit6: 'SAML/SSO',
                 benefit7: 'Individuelle Einblicke und Berichte',
                 benefit8: 'Budgetierung',
@@ -10157,7 +10154,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         switch: 'Wechseln',
         copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Delegierter Zugriff',
-        copilotDelegatedAccessDescription: 'Anderen Mitgliedern erlauben, auf dein Konto zuzugreifen.',
+        copilotDelegatedAccessDescription: 'Anderen Mitgliedern und Agenten den Zugriff auf Ihr Konto erlauben.',
         learnMoreAboutDelegatedAccess: 'Mehr über delegierten Zugriff erfahren',
         addCopilot: 'Copilot hinzufügen',
         membersCanAccessYourAccount: 'Diese Mitglieder haben Zugriff auf Ihr Konto:',
@@ -10316,6 +10313,15 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             inviteBoss: 'Lade deinen Chef ein, wenn du bereit bist',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Neue Rollentypen für Admins',
+                body: 'Geben Sie Ihrem Team detailliertere Berechtigungen mit neuen Administratorrollen für Karten, Personen und Zahlungen.',
+                cta: 'Ausprobieren',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Beginne <strong>hier!</strong></tooltip>',
         accountSwitcher: '<tooltip>Sie können jetzt als Copilot in ein anderes Konto einsteigen!</tooltip>',
@@ -10391,6 +10397,11 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        receiptsFailedBody: 'Ihre Belege konnten nicht heruntergeladen werden. Bitte versuchen Sie es später erneut.',
+        noReceiptsTitle: 'Keine Belege zum Herunterladen',
+        noReceiptsBody: 'Keine der Ausgaben in diesem Bericht hat herunterladbare Belege.',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} von ${total} Belegen wurden erfolgreich exportiert. Falls der Download nicht automatisch gestartet wurde, verwenden Sie die Schaltfläche unten.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',

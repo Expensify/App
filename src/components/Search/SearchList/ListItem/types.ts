@@ -561,7 +561,7 @@ type GroupChildrenContentProps = {
     newTransactionID?: string;
     bankAccountList?: OnyxEntry<BankAccountList>;
     cardFeeds?: OnyxCollection<CardFeeds>;
-    conciergeReportID?: string;
+    conciergeReportID: string | undefined;
 };
 
 type UnreportedExpenseListItemType = Transaction & {

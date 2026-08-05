@@ -434,6 +434,8 @@ const translations = {
         longReportID: 'Long Report ID',
         withdrawalID: 'Withdrawal ID',
         internationalReimbursementIDs: 'International reimbursement IDs',
+        amountDebited: 'Amount debited',
+        amountReimbursed: 'Amount reimbursed',
         withdrawalStatus: 'Withdrawal status',
         paidStatus: 'Paid status',
         bankAccounts: 'Bank accounts',
@@ -474,6 +476,7 @@ const translations = {
         perDiem: 'Per diem',
         validate: 'Validate',
         downloadAsPDF: 'Download as PDF',
+        downloadReceipts: 'Download receipts',
         downloadAsCSV: 'Download as CSV',
         submitViaPDF: 'Submit via PDF',
         print: 'Print',
@@ -1534,7 +1537,7 @@ const translations = {
         automaticallyForwarded: `approved via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
         forwarded: (memo?: string) => `approved${memo ? `, saying ${memo}` : ''}`,
         rejectedThisReport: 'rejected',
-        waitingOnBankAccount: (submitterDisplayName: string) => `started payment, but is waiting for ${submitterDisplayName} to add a bank account.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`,
         adminCanceledRequest: 'canceled the payment',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
@@ -2103,23 +2106,6 @@ const translations = {
                         return `Waiting for an admin to pay expenses.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to finish setting up a business bank account.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to finish setting up a business bank account.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to finish setting up a business bank account.`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2574,7 +2560,7 @@ const translations = {
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
-            invalidName: 'Name can only include letters',
+            invalidName: 'Name on card cannot contain tags',
             addressZipCode: 'Please enter a valid zip code',
             debitCardNumber: 'Please enter a valid debit card number',
             expirationDate: 'Please select a valid expiration date',
@@ -2597,7 +2583,7 @@ const translations = {
         growlMessageOnSave: 'Your payment card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
-            invalidName: 'Name can only include letters',
+            invalidName: 'Name on card cannot contain tags',
             addressZipCode: 'Please enter a valid zip code',
             paymentCardNumber: 'Please enter a valid card number',
             expirationDate: 'Please select a valid expiration date',
@@ -6050,6 +6036,7 @@ const translations = {
             balanceWillBeSettledOn: (settlementDate: string) => `Balance will be settled on ${settlementDate}`,
             settleBalance: 'Settle balance',
             cardLimit: 'Card limit',
+            remaining: 'Remaining',
             remainingLimit: 'Remaining limit',
             requestLimitIncrease: 'Request limit increase',
             remainingLimitDescription:
@@ -6223,7 +6210,10 @@ const translations = {
                         subsections: {
                             currentTravelSpendLabel: 'Current travel spend',
                             currentTravelSpendPaymentQueued: (amount: string) => `Payment of ${amount} is queued and will be processed soon.`,
+                            currentTravelSpendInvoiceQueued: 'A new invoice for your travel spend will be created and sent to you soon.',
+                            currentTravelSpendInvoicePending: (amount: string) => `An invoice for ${amount} has been sent and is awaiting payment.`,
                             currentTravelSpendCta: 'Pay balance',
+                            sendInvoiceNowCta: 'Send invoice now',
                             viewOnSpend: 'View on Spend',
                             currentTravelLimitLabel: 'Current travel limit',
                             settlementAccountLabel: 'Settlement account',
@@ -6250,6 +6240,10 @@ const translations = {
                     payBalanceModal: {
                         title: (amount: string) => `Pay balance of ${amount}?`,
                         body: 'The payment will be queued and processed shortly after. This action cannot be undone once started.',
+                    },
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Send invoice for ${amount}?`,
+                        body: "We'll create an invoice for your current travel spend. Your travel limit is freed up once the invoice is paid.",
                     },
                     exportToPDF: 'Export to PDF',
                     exportToCSV: 'Export to CSV',
@@ -7693,9 +7687,9 @@ const translations = {
                     important: 'IMPORTANT: ',
                     confirm: 'You\'ll need to change the "Plan type" of every workspace to "Collect" in order to secure the Collect rate.',
                     benefit1Label: 'ERP integrations',
-                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics, Certinia',
                     benefit2Label: 'HR integrations',
-                    benefit2: 'Workday, Certinia',
+                    benefit2: 'Gusto, TriNet, Workday',
                     benefit3Label: 'Security',
                     benefit3: 'SSO/SAML',
                     benefit4Label: 'Advanced',
@@ -7977,6 +7971,10 @@ const translations = {
                 title: 'Catch missing details upfront',
                 subtitle: 'Require or waive expense fields for specific categories.',
                 cta: 'Create field requirement rule',
+            },
+            categoriesDisabledEmptyState: {
+                title: 'Categories are not enabled',
+                subtitle: 'Enable categories to gain more control of your spend.',
             },
             requireFieldsRule: {
                 title: 'Field requirements',
@@ -10164,8 +10162,8 @@ const translations = {
                 benefit1: 'Everything in the Collect plan',
                 benefit2: 'Multi-level approval workflows',
                 benefit3: 'Custom expense rules',
-                benefit4: 'ERP integrations (NetSuite, Sage Intacct, Oracle)',
-                benefit5: 'HR integrations (Workday, Certinia)',
+                benefit4: 'ERP integrations (NetSuite, Sage Intacct, Oracle, Certinia)',
+                benefit5: 'HR integrations (Gusto, TriNet, Workday)',
                 benefit6: 'SAML/SSO',
                 benefit7: 'Custom insights and reporting',
                 benefit8: 'Budgeting',
@@ -10293,7 +10291,7 @@ const translations = {
         switch: 'Switch',
         copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Delegated access',
-        copilotDelegatedAccessDescription: 'Allow other members to access your account.',
+        copilotDelegatedAccessDescription: 'Allow other members and agents to access your account.',
         learnMoreAboutDelegatedAccess: 'Learn more about delegated access',
         addCopilot: 'Add a copilot',
         membersCanAccessYourAccount: 'These members can access your account:',
@@ -10468,6 +10466,15 @@ const translations = {
             description: `<muted-text>Create custom agents to review, approve, and route expenses based on rules you set. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Learn more</a>.</muted-text>`,
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'New role types for admins',
+                body: 'Give your team more granular permissions with new card, people, and payments admin roles.',
+                cta: 'Try it out',
+            },
+        },
+    },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
@@ -10543,6 +10550,11 @@ const translations = {
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        receiptsFailedBody: 'Your receipts could not be downloaded. Please try again later.',
+        noReceiptsTitle: 'No receipts to download',
+        noReceiptsBody: 'None of the expenses on this report have downloadable receipts.',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} receipts were exported successfully. If it didn't automatically download, use the button below.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',

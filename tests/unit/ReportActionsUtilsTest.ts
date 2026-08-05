@@ -71,7 +71,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {getFakeReportAction} from '../utils/ReportTestUtils';
-import {translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -2464,6 +2464,35 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
+
+        it('should return false for a whisper targeted to another user when currentUserAccountID is provided', () => {
+            const OTHER_USER_ACCOUNT_ID = 999;
+            const CURRENT_USER_ACCOUNT_ID = 123;
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'secret', type: 'COMMENT', text: 'secret', whisperedTo: [OTHER_USER_ACCOUNT_ID]}],
+                originalMessage: {html: 'secret', whisperedTo: [OTHER_USER_ACCOUNT_ID]},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, CURRENT_USER_ACCOUNT_ID);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for a whisper targeted to the current user when currentUserAccountID is provided', () => {
+            const CURRENT_USER_ACCOUNT_ID = 123;
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'secret', type: 'COMMENT', text: 'secret', whisperedTo: [CURRENT_USER_ACCOUNT_ID]}],
+                originalMessage: {html: 'secret', whisperedTo: [CURRENT_USER_ACCOUNT_ID]},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, CURRENT_USER_ACCOUNT_ID);
+            expect(actual).toBe(true);
+        });
     });
 
     describe('getPolicyChangeLogUpdateEmployee', () => {
@@ -3681,7 +3710,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('set max expense amount to "$100.00"');
         });
 
@@ -3696,7 +3725,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('removed max expense amount (previously "$100.00")');
         });
 
@@ -3711,7 +3740,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('changed max expense amount to "$500.00" (previously "$100.00")');
         });
     });
@@ -3772,7 +3801,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('set receipt required amount to "$25.00"');
         });
 
@@ -3787,7 +3816,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('removed receipt required amount (previously "$25.00")');
         });
 
@@ -3802,7 +3831,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('changed receipt required amount to "$75.00" (previously "$25.00")');
         });
     });
@@ -3819,7 +3848,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('set itemized receipt required amount to "$25.00"');
         });
 
@@ -3834,7 +3863,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('removed itemized receipt required amount (previously "$25.00")');
         });
 
@@ -3849,7 +3878,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action);
+            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('changed itemized receipt required amount to "$75.00" (previously "$25.00")');
         });
     });
@@ -4840,7 +4869,7 @@ describe('ReportActionsUtils', () => {
                 creditBankAccountLast4: '5678',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, 2);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             // Then the message shows the last 4 digits of the account that funded the payment
             const expected = `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '4321')}${translateLocal('iou.reimbursedWithACH', {
@@ -4858,7 +4887,7 @@ describe('ReportActionsUtils', () => {
                 creditBankAccountLast4: '5678',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, 2);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             expect(result).toBe(
                 `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '9999')}${translateLocal('iou.reimbursedWithACH', {
@@ -4878,7 +4907,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, convertToDisplayString);
 
             // Then the message reports the credited amount instead of the report total and names both accounts
             expect(result).toBe(translateLocal('iou.reimbursedCrossBorder', {amount: '$80.50', debitBankAccount: '9999', creditBankAccount: '5678'}));
@@ -4893,7 +4922,7 @@ describe('ReportActionsUtils', () => {
                 creditedAmount: 8050,
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, convertToDisplayString);
 
             // Then we describe the payment without an amount rather than guessing a currency
             expect(result).toBe(
@@ -4915,7 +4944,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, 'submitter@expensify.com', undefined);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, 'submitter@expensify.com', undefined, convertToDisplayString);
 
             // Then the message announces the submitter taking the report off hold rather than the credited amount
             expect(result).toBe(
@@ -4936,11 +4965,11 @@ describe('ReportActionsUtils', () => {
             const ownerAccountID = 42;
             const submitterLogin = 'submitter@example.com';
 
-            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, ownerAccountID);
+            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, ownerAccountID);
             expect(resultCurrentUser).toContain('your');
             expect(resultCurrentUser).not.toContain(submitterLogin);
 
-            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, 999);
+            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
             expect(resultOtherUser).toContain(submitterLogin);
             expect(resultOtherUser).not.toContain('your');
         });
@@ -4955,10 +4984,10 @@ describe('ReportActionsUtils', () => {
             const ownerAccountID = 42;
             const submitterLogin = 'submitter@example.com';
 
-            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, ownerAccountID);
+            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, ownerAccountID);
             expect(resultCurrentUser).toContain('your');
 
-            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, 999);
+            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
             expect(resultOtherUser).toContain(submitterLogin);
         });
     });
@@ -4977,7 +5006,7 @@ describe('ReportActionsUtils', () => {
                 message: [],
             } as ReportAction;
 
-            const result = getAutoReimbursementMessage(translateLocal, action);
+            const result = getAutoReimbursementMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('set the auto-pay approved reports threshold to "$500.00"');
         });
 
@@ -4994,7 +5023,7 @@ describe('ReportActionsUtils', () => {
                 message: [],
             } as ReportAction;
 
-            const result = getAutoReimbursementMessage(translateLocal, action);
+            const result = getAutoReimbursementMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('removed the auto-pay approved reports threshold');
         });
 
@@ -5011,7 +5040,7 @@ describe('ReportActionsUtils', () => {
                 message: [],
             } as ReportAction;
 
-            const result = getAutoReimbursementMessage(translateLocal, action);
+            const result = getAutoReimbursementMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('changed the auto-pay approved reports threshold to "$1,000.00" (previously "$500.00")');
         });
     });

@@ -70,8 +70,8 @@ type UseReportSelectionActionsParams = {
     /** ID of the user's personal policy — used by `removeFromReport` to look up the personal-policy tag list. */
     personalPolicyID: string | undefined;
 
-    /** Optional route to return to instead of the default back navigation. */
-    backTo: Route | undefined;
+    /** Path of the screen this dynamic route was opened from (the dynamic base path, i.e. the current URL without the suffix). */
+    backPath: Route;
 
     /** Caller-provided back-navigation handler — `handleRegularReportSelection` calls this before scheduling the change. */
     handleGoBack: () => void;
@@ -102,7 +102,7 @@ function useReportSelectionActions({
     action,
     reportIDFromRoute,
     personalPolicyID,
-    backTo,
+    backPath,
     handleGoBack,
 }: UseReportSelectionActionsParams): UseReportSelectionActionsResult {
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -172,17 +172,13 @@ function useReportSelectionActions({
         }
 
         if (isNewManualExpenseFlowEnabled) {
-            Navigation.goBack(backTo);
+            Navigation.goBack(backPath);
             return;
         }
 
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportOrDraftReportFromValue?.chatReportID);
-        // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
-        if (backTo) {
-            Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
-        } else {
-            Navigation.navigate(iouConfirmationPageRoute);
-        }
+        // `goBack` replaces the current route when the confirmation screen isn't on the stack.
+        Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
     };
 
     const handleRegularReportSelection = (item: TransactionGroupListItem, report: OnyxEntry<Report>) => {
@@ -214,7 +210,6 @@ function useReportSelectionActions({
                         email: session?.email ?? '',
                         newReport: report,
                         policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
-                        reportNextStep: undefined,
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                         policyTagList,
                         transactions: targetTransactions,

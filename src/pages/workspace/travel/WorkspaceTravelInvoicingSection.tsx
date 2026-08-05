@@ -35,7 +35,9 @@ import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {hasInProgressUSDVBBA} from '@libs/ReimbursementAccountUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import {
+    getIsTravelBillingPayByInvoice,
     getIsTravelInvoicingEnabled,
+    getPendingTravelInvoiceAmount,
     getTravelInvoicingCardSettingsKey,
     getTravelInvoicingFeedID,
     getTravelLimit,
@@ -109,20 +111,40 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
     const pendingSettlementAmount = travelSettings?.pendingSettlementAmount ?? 0;
     const hasPendingSettlement = pendingSettlementAmount > 0;
+
+    // Pay-by-invoice customers owe the sent invoice by wire, so it's surfaced separately from a queued ACH settlement
+    const pendingInvoiceAmount = getPendingTravelInvoiceAmount(travelSettings);
+    const hasPendingInvoice = pendingInvoiceAmount > 0;
     const travelLimit = getTravelLimit(travelSettings);
     const settlementAccount = getTravelSettlementAccount(travelSettings, bankAccountList);
     const settlementFrequency = getTravelSettlementFrequency(travelSettings);
     const isMonthlySettlementFrequency = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY;
     const localizedFrequency = isMonthlySettlementFrequency ? translate('workspace.expensifyCard.frequency.monthly') : translate('workspace.expensifyCard.frequency.daily');
 
-    const shouldShowPayButton = travelSpend > 0 && isMonthlySettlementFrequency && !hasPendingSettlement;
+    const shouldShowPayButton = travelSpend > 0 && travelSpend > pendingInvoiceAmount && isMonthlySettlementFrequency && !hasPendingSettlement;
     const formattedSpend = convertToDisplayString(travelSpend, CONST.CURRENCY.USD);
+
+    // Pay-by-invoice customers settle by wire against an invoice, so the pay CTA and modal use invoice copy
+    const isPayByInvoice = getIsTravelBillingPayByInvoice(travelSettings);
+    const payBalanceCtaText = translate(
+        isPayByInvoice
+            ? 'workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.sendInvoiceNowCta'
+            : 'workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta',
+    );
+    const payBalanceModalTitle = isPayByInvoice
+        ? translate('workspace.moreFeatures.travel.travelInvoicing.sendInvoiceModal.title', formattedSpend)
+        : translate('workspace.moreFeatures.travel.travelInvoicing.payBalanceModal.title', formattedSpend);
+    const payBalanceModalBody = translate(
+        isPayByInvoice ? 'workspace.moreFeatures.travel.travelInvoicing.sendInvoiceModal.body' : 'workspace.moreFeatures.travel.travelInvoicing.payBalanceModal.body',
+    );
 
     // The spend label and its buttons only fit on one row on large screens; stack them below otherwise
     const shouldStackButtons = !isLargeScreenWidth;
 
     // The pending settlement amount for the "payment queued" subtitle
     const formattedQueuedAmount = convertToDisplayString(pendingSettlementAmount, CONST.CURRENCY.USD);
+    // The outstanding invoice amount for the "awaiting payment" subtitle
+    const formattedPendingInvoiceAmount = convertToDisplayString(pendingInvoiceAmount, CONST.CURRENCY.USD);
     const formattedLimit = convertToDisplayString(travelLimit, CONST.CURRENCY.USD);
 
     // Settlement account display - show empty if no account is selected
@@ -341,14 +363,21 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     <MenuItemWithTopDescription
                         description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendLabel')}
                         title={formattedSpend}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, hasPendingSettlement && styles.pb1]}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, (hasPendingSettlement || hasPendingInvoice) && styles.pb1]}
                         titleStyle={[styles.textNormalThemeText, styles.headerAnonymousFooter]}
                         descriptionTextStyle={styles.textLabelSupportingNormal}
                         interactive={false}
                     />
                     {hasPendingSettlement && (
                         <Text style={[styles.textLabelSupporting, styles.pb3]}>
-                            {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendPaymentQueued', formattedQueuedAmount)}
+                            {isPayByInvoice
+                                ? translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendInvoiceQueued')
+                                : translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendPaymentQueued', formattedQueuedAmount)}
+                        </Text>
+                    )}
+                    {hasPendingInvoice && (
+                        <Text style={[styles.textLabelSupporting, styles.pb3]}>
+                            {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendInvoicePending', formattedPendingInvoiceAmount)}
                         </Text>
                     )}
                 </View>
@@ -366,7 +395,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             style={shouldStackButtons ? styles.flex1 : undefined}
                         >
-                            <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta')}</Button.Text>
+                            <Button.Text>{payBalanceCtaText}</Button.Text>
                         </Button>
                     )}
                 </View>
@@ -481,12 +510,12 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             />
 
             <ConfirmModal
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.payBalanceModal.title', formattedSpend)}
+                title={payBalanceModalTitle}
                 isVisible={isPayBalanceModalVisible}
                 onConfirm={handleConfirmPayBalance}
                 onCancel={() => setIsPayBalanceModalVisible(false)}
-                prompt={translate('workspace.moreFeatures.travel.travelInvoicing.payBalanceModal.body')}
-                confirmText={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta')}
+                prompt={payBalanceModalBody}
+                confirmText={payBalanceCtaText}
                 cancelText={translate('common.cancel')}
                 success
             />

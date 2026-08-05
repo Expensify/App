@@ -58,6 +58,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const activeAdminPolicies = useSortedActiveAdminPolicies();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -210,6 +211,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         showLockedAccountModal,
                                         policy: currentPolicy,
                                         businessBankAccountOptions,
+                                        bankAccountList,
                                         activeAdminPolicies,
                                         isUserValidated,
                                         isDelegateAccessRestricted,
@@ -253,6 +255,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         showLockedAccountModal,
                                         policy: currentPolicy,
                                         businessBankAccountOptions,
+                                        bankAccountList,
                                         activeAdminPolicies,
                                         isUserValidated,
                                         isDelegateAccessRestricted,

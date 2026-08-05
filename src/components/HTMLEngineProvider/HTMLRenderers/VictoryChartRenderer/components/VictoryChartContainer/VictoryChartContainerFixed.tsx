@@ -1,5 +1,6 @@
 import {CHART_TYPE, POLAR_CONTAINER_HEIGHT_RATIO} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import {VictoryChartLayoutScaleProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartLayoutContext';
 import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 
 import useTheme from '@hooks/useTheme';
@@ -53,7 +54,9 @@ function VictoryChartContainerFixed({children, layout, themeStyles}: VictoryChar
 
     return (
         <View style={containerStyle}>
-            <View style={contentStyle}>{children}</View>
+            <VictoryChartLayoutScaleProvider scale={scaledScale ?? 1}>
+                <View style={contentStyle}>{children}</View>
+            </VictoryChartLayoutScaleProvider>
         </View>
     );
 }
