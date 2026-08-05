@@ -17,6 +17,7 @@ import {
     REQUIRE_FIELDS_COUPLING_TOOLTIP_NAMES,
 } from '@libs/RequireFieldsRulesUtils';
 import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
+import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 
 import variables from '@styles/variables';
 
@@ -71,7 +72,10 @@ function FieldRequirementSettingRow({
     const couplingTooltipName = couplingTooltipKey ? REQUIRE_FIELDS_COUPLING_TOOLTIP_NAMES[couplingTooltipKey] : undefined;
     // Wait for the NVP so an already-dismissed tooltip doesn't flash before the dismissal arrives.
     const shouldDisplayCouplingTooltip =
-        !!couplingTooltip && !!couplingTooltipName && !isLoadingOnyxValue(dismissedProductTrainingMetadata) && !dismissedProductTraining?.[couplingTooltipName];
+        !!couplingTooltip &&
+        !!couplingTooltipName &&
+        !isLoadingOnyxValue(dismissedProductTrainingMetadata) &&
+        !isProductTrainingElementDismissed(couplingTooltipName, dismissedProductTraining);
 
     const hideCouplingTooltip = useCallback(
         (isDismissedUsingCloseButton = false) => {
