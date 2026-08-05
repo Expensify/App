@@ -329,7 +329,7 @@ describe('createAgent', () => {
         expect(failureData.some((u) => u.key === ONYXKEYS.FORMS.ADD_AGENT_FORM)).toBe(false);
     });
 
-    it('success data nulls out both optimistic entries', () => {
+    it('success data clears only the optimistic flag on the personal detail (keeping the avatar) and nulls the prompt entry', () => {
         createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
         const {optimisticData, successData} = getWriteOptions();
@@ -337,7 +337,9 @@ describe('createAgent', () => {
 
         const promptRollback = findUpdate(successData, `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
 
-        expect(getPersonalDetailValue(successData, accountID)).toBeNull();
+        // The whole detail is no longer nulled — wiping it briefly dropped the agent's avatar, causing a flicker
+        // (issue 97844). Only the transient optimistic flag is cleared so the avatar survives until the response lands.
+        expect(getPersonalDetailValue(successData, accountID)).toStrictEqual({isOptimisticPersonalDetail: null});
         expect(promptRollback?.value).toBeNull();
     });
 

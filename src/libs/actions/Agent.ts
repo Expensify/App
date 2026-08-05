@@ -112,7 +112,11 @@ function createAgent(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[optimisticAccountID]: null},
+            // Clear only the transient optimistic flag rather than nulling the whole detail. Nulling wiped the
+            // agent's `avatar` the instant CreateAgent succeeded, so for a beat its report/LHN icon fell back to
+            // a default avatar before the real (bot) avatar returned from the response — the flicker reported in
+            // issue 97844. Keeping the avatar in place lets the response overwrite the values without that gap.
+            value: {[optimisticAccountID]: {isOptimisticPersonalDetail: null}},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
