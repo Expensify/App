@@ -27,7 +27,7 @@ To learn how Agents work, how they differ from Agent rules, and how AI uses inst
 6. Review the note above the **Create agent** button, which explains that the agent will be added as a full-access Copilot of your account so it can act on your behalf.
 7. Click **Create agent**.
 
-After saving, the new agent appears in your **Agents** list with **Edit**, **Chat**, and **Copilot** options. 
+After you click **Create agent**, you're taken directly to a direct message (DM) with the new agent, where its welcome message appears once it arrives. The new agent also appears in your **Agents** list with **Edit**, **Chat**, and **Copilot** options. 
 
 ![The Agents page in Account settings, showing the New agent button and a list of created agents]({{site.url}}/assets/images/ExpensiHelp-CustomAgents-1.png){:width="100%"}
 
@@ -37,6 +37,7 @@ After saving, the new agent appears in your **Agents** list with **Edit**, **Cha
 
 After you create an agent:
 
+- You're taken directly to a DM with the agent, where its welcome message appears once it arrives.
 - A new Expensify account is created for the agent.
 - You become the agent's owner.
 - You're automatically added as a full-access Copilot on the agent's account.
@@ -103,6 +104,8 @@ Deleting an agent closes its Expensify account.
 4. Click **Delete agent**.
 5. Confirm the deletion.
 
+If the agent still has reports awaiting its approval, the deletion fails and an error appears on the agent's row asking you to review those reports first. Approve, reject, or reassign the outstanding reports, then delete the agent again.
+
 ---
 
 ## How to delete multiple agents at once
@@ -141,6 +144,10 @@ Purpose: Shows where row selection and the bulk Delete agents action appear
 ## Who can edit or delete an agent?
 
 Only the agent's owner can edit its instructions or delete it. The owner is the account that created the agent.
+
+## Why can't I delete an agent?
+
+If the agent is a workspace approver and has reports awaiting its approval, the deletion fails and an error appears on the agent's row. Review the outstanding reports (approve, reject, or reassign them to another approver), then delete the agent again.
 
 ## Can I use an Agent in a workspace?
 
