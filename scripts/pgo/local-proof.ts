@@ -1,11 +1,13 @@
 #!/usr/bin/env -S node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON
 
+import type {TupleToUnion} from 'type-fest';
+
+import CLI from 'expensify-common/CLI';
 import {spawnSync} from 'node:child_process';
 import {copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync} from 'node:fs';
 import {homedir, platform, tmpdir} from 'node:os';
-import {basename, dirname, join, resolve} from 'node:path';
+import {dirname, join, resolve} from 'node:path';
 import process from 'node:process';
-import {fileURLToPath} from 'node:url';
 
 const DEFAULT_STARTUP_RUNS = 10;
 const DEFAULT_APP_READY_TIMEOUT_SECONDS = 30;
@@ -13,6 +15,8 @@ const STARTUP_RELAUNCH_DELAY_MS = 500;
 
 type BuildKind = 'release' | 'instrumented' | 'optimized';
 type BenchmarkKind = Extract<BuildKind, 'release' | 'optimized'>;
+type PlatformName = TupleToUnion<typeof PLATFORM_NAMES>;
+type WorkflowCommand = TupleToUnion<typeof WORKFLOW_COMMANDS>;
 
 type BuildArtifactPaths = Record<BuildKind, string>;
 
@@ -49,7 +53,30 @@ type PlatformAdapter = {
     llvmTool: (name: string) => string;
 };
 
-const scriptDirectory = dirname(fileURLToPath(import.meta.url));
+const PLATFORM_NAMES = ['android', 'ios'] as const;
+const WORKFLOW_COMMANDS = [
+    'build-release',
+    'build-instrumented',
+    'build-optimized',
+    'verify-instrumented',
+    'install-release',
+    'install-instrumented',
+    'install-optimized',
+    'record-startups',
+    'benchmark-release',
+    'benchmark-optimized',
+    'benchmark',
+    'compare-benchmarks',
+    'dump',
+    'pull',
+    'merge',
+] as const;
+
+const scriptPath = process.argv.at(1);
+if (!scriptPath) {
+    throw new Error('Unable to resolve the PGO script path.');
+}
+const scriptDirectory = dirname(resolve(scriptPath));
 const rootDirectory = resolve(scriptDirectory, '../..');
 
 function fail(message: string): never {
@@ -109,16 +136,23 @@ function findFiles(directory: string, extension: string): string[] {
     });
 }
 
-function requirePositiveInteger(rawValue: string | undefined, defaultValue: number, label: string): number {
-    if (rawValue === undefined || rawValue.length === 0) {
-        return defaultValue;
-    }
-
-    const value = Number(rawValue);
+function requirePositiveInteger(value: number, label: string): number {
     if (!Number.isSafeInteger(value) || value <= 0) {
-        fail(`${label} must be a positive integer, received: ${rawValue}`);
+        fail(`${label} must be a positive integer, received: ${value}`);
     }
     return value;
+}
+
+function parsePositiveInteger(rawValue: string, label: string): number {
+    return requirePositiveInteger(Number(rawValue), label);
+}
+
+function parseChoice<T extends string>(rawValue: string, choices: readonly T[], label: string): T {
+    const choice = choices.find((candidate) => candidate === rawValue);
+    if (!choice) {
+        fail(`${label} must be one of: ${choices.join(', ')}. Received: ${rawValue}`);
+    }
+    return choice;
 }
 
 function valueAt<T>(values: T[], index: number): T {
@@ -473,31 +507,17 @@ function compareBenchmarks(adapter: PlatformAdapter): void {
     );
 }
 
-function printUsage(): void {
-    console.log(
-        `Usage: ${basename(process.argv.at(1) ?? 'local-proof.ts')} android {build-release|build-instrumented|build-optimized|verify-instrumented|install-release|install-instrumented|install-optimized|record-startups [runs] [ready-timeout-seconds]|benchmark-release [runs] [ready-timeout-seconds]|benchmark-optimized [runs] [ready-timeout-seconds]|benchmark [runs] [ready-timeout-seconds]|compare-benchmarks|dump|pull|merge}`,
-    );
-}
-
-function getAdapter(platformName: string | undefined): PlatformAdapter {
+function getAdapter(platformName: PlatformName): PlatformAdapter {
     if (platformName === 'android') {
         return createAndroidAdapter();
     }
-    if (platformName === 'ios') {
-        fail('The iOS PGO workflow is not implemented yet.');
-    }
-
-    printUsage();
-    fail(`Unsupported or missing platform: ${platformName ?? '(none)'}`);
+    fail('The iOS PGO workflow is not implemented yet.');
 }
 
-async function main(): Promise<void> {
-    const [, , platformName, command, runsArgument, timeoutArgument] = process.argv;
+async function runWorkflow(platformName: PlatformName, workflow: WorkflowCommand, runs: number, timeoutSeconds: number): Promise<void> {
     const adapter = getAdapter(platformName);
-    const runs = requirePositiveInteger(runsArgument, DEFAULT_STARTUP_RUNS, 'Startup run count');
-    const timeoutSeconds = requirePositiveInteger(timeoutArgument, DEFAULT_APP_READY_TIMEOUT_SECONDS, 'App-ready timeout');
 
-    switch (command) {
+    switch (workflow) {
         case 'build-release':
             adapter.build('release');
             return;
@@ -548,11 +568,47 @@ async function main(): Promise<void> {
             return;
         case 'merge':
             mergeProfiles(adapter);
-            return;
+            break;
         default:
-            printUsage();
-            fail(`Unsupported or missing command: ${command ?? '(none)'}`);
+            fail('Unsupported workflow.');
     }
+}
+
+async function main(): Promise<void> {
+    const cli = new CLI({
+        positionalArgs: [
+            {
+                name: 'platform',
+                description: `Native platform to target (${PLATFORM_NAMES.join(', ')})`,
+                parse: (value): PlatformName => parseChoice(value, PLATFORM_NAMES, 'Platform'),
+            },
+            {
+                name: 'workflow',
+                description: `PGO workflow to run (${WORKFLOW_COMMANDS.join(', ')})`,
+                parse: (value): WorkflowCommand => parseChoice(value, WORKFLOW_COMMANDS, 'Workflow'),
+            },
+            {
+                name: 'runs',
+                description: 'Number of measured startup runs',
+                default: DEFAULT_STARTUP_RUNS,
+                parse: (value) => parsePositiveInteger(value, 'Startup run count'),
+            },
+            {
+                name: 'timeout',
+                description: 'Seconds to wait for the app-ready marker',
+                default: DEFAULT_APP_READY_TIMEOUT_SECONDS,
+                parse: (value) => parsePositiveInteger(value, 'App-ready timeout'),
+            },
+        ],
+    });
+
+    const {platform: platformName, workflow, runs, timeout} = cli.positionalArgs;
+    await runWorkflow(
+        parseChoice(String(platformName), PLATFORM_NAMES, 'Platform'),
+        parseChoice(String(workflow), WORKFLOW_COMMANDS, 'Workflow'),
+        requirePositiveInteger(Number(runs), 'Startup run count'),
+        requirePositiveInteger(Number(timeout), 'App-ready timeout'),
+    );
 }
 
 main().catch((error: unknown) => {
