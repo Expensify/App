@@ -113,8 +113,8 @@ function prepareDualEntryOnyxData<TSettingName extends keyof DualEntryConnection
     return {optimisticData, successData, failureData};
 }
 
-function updateDualEntrySubsidiary(policyID: string, subsidiaryID: DualEntryConnectionsConfig['companyID'], oldSubsidiaryID?: DualEntryConnectionsConfig['companyID']) {
-    const onyxData = prepareDualEntryOnyxData(policyID, CONST.DUALENTRY_CONFIG.COMPANY_ID, subsidiaryID, oldSubsidiaryID ?? null);
+function updateDualEntrySubsidiary(policyID: string, subsidiaryID: DualEntryConnectionsConfig['subsidiaryID'], oldSubsidiaryID?: DualEntryConnectionsConfig['subsidiaryID']) {
+    const onyxData = prepareDualEntryOnyxData(policyID, CONST.DUALENTRY_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
     const params: UpdateDualEntrySubsidiaryParams = {
         policyID,
         subsidiaryID,

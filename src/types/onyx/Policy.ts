@@ -2211,7 +2211,7 @@ type DualEntrySync = {
 type DualEntryConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The internalID of the selected company in DualEntry */
-        companyID: string;
+        subsidiaryID: string;
 
         /** Whether the connection has been configured */
         isConfigured: boolean;

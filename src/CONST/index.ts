@@ -3550,7 +3550,7 @@ const CONST = {
     },
 
     DUALENTRY_CONFIG: {
-        COMPANY_ID: 'companyID',
+        SUBSIDIARY_ID: 'subsidiaryID',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_TAX_RATES: 'syncTaxRates',
         EXPORTER: 'exporter',

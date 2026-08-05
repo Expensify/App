@@ -406,14 +406,14 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     : {
                           description: translate('workspace.dualEntry.company'),
                           iconRight: icons.ArrowRight,
-                          title: dualEntryCompanyList?.find((company) => company.id === policy?.connections?.dualEntry?.config?.companyID)?.name ?? '',
+                          title: dualEntryCompanyList?.find((company) => company.id === policy?.connections?.dualEntry?.config?.subsidiaryID)?.name ?? '',
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: canWriteAccounting && dualEntryCompanyList && dualEntryCompanyList.length > 1,
                           shouldShowDescriptionOnTop: true,
                           interactive: canWriteAccounting,
-                          pendingAction: policy?.connections?.dualEntry?.config.pendingFields?.companyID,
-                          brickRoadIndicator: policy?.connections?.dualEntry?.config.errorFields?.companyID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          pendingAction: policy?.connections?.dualEntry?.config.pendingFields?.subsidiaryID,
+                          brickRoadIndicator: policy?.connections?.dualEntry?.config.errorFields?.subsidiaryID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                           onPress:
                               policyID && canWriteAccounting && dualEntryCompanyList && dualEntryCompanyList.length > 1
                                   ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_COMPANY_SELECTOR.getRoute(policyID))
