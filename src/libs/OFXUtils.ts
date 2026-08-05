@@ -1,3 +1,5 @@
+import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+
 import CONST from '@src/CONST';
 
 import {Str} from 'expensify-common';
@@ -91,4 +93,12 @@ function getOFXColumnRoles(): Record<number, string> {
     return Object.fromEntries(OFX_COLUMNS.map(({role}, columnIndex) => [columnIndex, role]));
 }
 
-export {parseOFXToSpreadsheetRows, getOFXColumnRoles};
+/**
+ * OFX carries its own sign convention and column layout, so both the reader and the importer key off this.
+ */
+function isOFXStatement(fileName: string): boolean {
+    const extensions: readonly string[] = CONST.OFX_STATEMENT_EXTENSIONS;
+    return extensions.includes(splitExtensionFromFileName(fileName).fileExtension.toLowerCase());
+}
+
+export {parseOFXToSpreadsheetRows, getOFXColumnRoles, isOFXStatement};
