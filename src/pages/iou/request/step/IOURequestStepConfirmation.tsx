@@ -897,16 +897,8 @@ function IOURequestStepConfirmation({
                             ) : null}
                         </HeaderWithBackButton>
                     )}
-                    {/*
-                     * Content region below the header. The loading overlay is scoped to this container (not the outer
-                     * flex1 that also holds the header), so while a scan is processing the HeaderWithBackButton above
-                     * stays interactive — the back button is not covered. Per UI-1 the user must never be trapped.
-                     */}
                     <View style={styles.flex1}>
                         {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && (
-                            // LoadingIndicator overlays the content region only. Its absolute-fill styling is relative to
-                            // this container (a sibling below the header), so the header/back button stays interactive
-                            // while loading — the user is never trapped.
                             <LoadingIndicator
                                 reasonAttributes={{
                                     context: 'IOURequestStepConfirmation',
