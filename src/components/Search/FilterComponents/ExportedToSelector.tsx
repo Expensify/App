@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getAccountingIntegrationDisplayName, getSearchValueForConnection} from '@libs/AccountingUtils';
+import {getAccountingIntegrationDisplayName, getSearchValueForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies} from '@libs/SearchQueryUtils';
 
@@ -75,7 +75,10 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
         const connectedIntegrationPickerItems = integrationConnectionNames
             .filter((connectionName) => connectedIntegrationNames.has(connectionName))
             .map((connectionName) => {
-                const connectionPolicy = policiesToLoadTemplatesFrom.find((policy) => !!policy?.connections?.[connectionName]);
+                const connectionPolicies = policiesToLoadTemplatesFrom.filter((policy) => !!policy?.connections?.[connectionName]);
+                const areAllConnectionsIES =
+                    connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO && connectionPolicies.length > 0 && connectionPolicies.every(isIntuitEnterpriseSuiteConnection);
+                const connectionPolicy = areAllConnectionsIES ? connectionPolicies.at(0) : undefined;
                 const icon = getIntegrationIcon(connectionName, expensifyIcons);
                 const leftElement = icon ? (
                     <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
