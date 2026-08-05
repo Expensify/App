@@ -21304,7 +21304,7 @@ describe('ReportUtils', () => {
                 },
             });
 
-            expect(getBankAccountRoute(report, false)).toBe(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
+            expect(getBankAccountRoute(report, false)).toBe(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute());
         });
     });
 
