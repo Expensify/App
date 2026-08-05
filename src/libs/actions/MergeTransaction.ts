@@ -34,18 +34,7 @@ import CONST from '@src/CONST';
 import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {
-    CardList,
-    MergeTransaction,
-    Policy,
-    PolicyCategories,
-    PolicyTagLists,
-    Report,
-    ReportActions,
-    ReportNextStepDeprecated,
-    Transaction,
-    TransactionViolations,
-} from '@src/types/onyx';
+import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 
@@ -257,7 +246,6 @@ function getOnyxTargetTransactionData({
     mergeTransaction,
     targetTransactionThreadReport,
     targetTransactionThreadParentReport,
-    targetTransactionThreadParentReportNextStep,
     iouReportOwnerLogin,
     policy,
     policyTags,
@@ -274,7 +262,6 @@ function getOnyxTargetTransactionData({
     mergeTransaction: MergeTransaction;
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
-    targetTransactionThreadParentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     iouReportOwnerLogin: string | undefined;
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
@@ -321,7 +308,6 @@ function getOnyxTargetTransactionData({
             transactionThreadReport: targetTransactionThreadReport,
             iouReport: targetTransactionThreadParentReport,
             iouReportOwnerLogin,
-            iouReportNextStep: targetTransactionThreadParentReportNextStep,
             transactionChanges: filteredTransactionChanges,
             policy,
             policyTagList: policyTags,
@@ -379,7 +365,6 @@ type MergeTransactionRequestParams = {
     sourceTransaction: Transaction;
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
-    targetTransactionThreadParentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     iouReportOwnerLogin: string | undefined;
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
@@ -409,7 +394,6 @@ function mergeTransactionRequest({
     sourceTransaction,
     targetTransactionThreadReport,
     targetTransactionThreadParentReport,
-    targetTransactionThreadParentReportNextStep,
     iouReportOwnerLogin,
     allTransactionViolations,
     policy,
@@ -463,7 +447,6 @@ function mergeTransactionRequest({
         mergeTransaction,
         targetTransactionThreadReport,
         targetTransactionThreadParentReport,
-        targetTransactionThreadParentReportNextStep,
         iouReportOwnerLogin,
         policy,
         policyTags,
