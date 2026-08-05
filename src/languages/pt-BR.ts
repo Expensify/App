@@ -404,6 +404,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: 'ID de relatório longo',
         withdrawalID: 'ID do saque',
         internationalReimbursementIDs: 'IDs de reembolso internacional',
+        amountDebited: 'Valor debitado',
+        amountReimbursed: 'Valor reembolsado',
         withdrawalStatus: 'Status do saque',
         paidStatus: 'Status pago',
         bankAccounts: 'Contas bancárias',
@@ -2008,21 +2010,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Aguardando um administrador pagar as despesas.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Aguardando <strong>você</strong> concluir a configuração de uma conta bancária empresarial.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Aguardando <strong>${actor}</strong> terminar de configurar uma conta bancária empresarial.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Aguardando um administrador concluir a configuração de uma conta bancária empresarial.`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2470,7 +2457,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Seu cartão de débito foi adicionado com sucesso',
         expensifyPassword: 'Senha do Expensify',
         error: {
-            invalidName: 'O nome pode conter apenas letras',
+            invalidName: 'O nome no cartão não pode conter < ou >',
             addressZipCode: 'Insira um CEP válido',
             debitCardNumber: 'Insira um número de cartão de débito válido',
             expirationDate: 'Selecione uma data de validade válida',
@@ -2493,7 +2480,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Seu cartão de pagamento foi adicionado com sucesso',
         expensifyPassword: 'Senha do Expensify',
         error: {
-            invalidName: 'O nome pode conter apenas letras',
+            invalidName: 'O nome no cartão não pode conter < ou >',
             addressZipCode: 'Insira um CEP válido',
             paymentCardNumber: 'Insira um número de cartão válido',
             expirationDate: 'Selecione uma data de validade válida',
@@ -8015,6 +8002,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 thenFlagForReview: 'Então sinalizar para revisão quando:',
             },
             agentRulesEmptyState: {title: 'Nenhuma regra de agente adicionada', subtitle: 'Crie uma regra para automatizar as políticas do seu workspace.', cta: 'Adicionar regra de IA'},
+            categoriesDisabledEmptyState: {title: 'Categorias não estão ativadas', subtitle: 'Ative categorias para ter mais controle sobre seus gastos.'},
         },
         planTypePage: {
             planTypes: {
@@ -10100,7 +10088,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         switch: 'Trocar',
         copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Acesso delegado',
-        copilotDelegatedAccessDescription: 'Permitir que outros membros acessem sua conta.',
+        copilotDelegatedAccessDescription: 'Permitir que outros membros e agentes acessem sua conta.',
         learnMoreAboutDelegatedAccess: 'Saiba mais sobre acesso delegado',
         addCopilot: 'Adicionar um copiloto',
         membersCanAccessYourAccount: 'Esses membros podem acessar sua conta:',
@@ -10259,6 +10247,15 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             inviteBoss: 'Convide seu chefe quando estiver pronto',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Novos tipos de função para administradores',
+                body: 'Dê à sua equipe permissões mais granulares com novos papéis de administrador para cartões, pessoas e pagamentos.',
+                cta: 'Experimente',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
         accountSwitcher: '<tooltip>Agora você pode fazer copiloto em outra conta!</tooltip>',
@@ -10316,7 +10313,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         basicExport: 'Exportação básica',
         reportLevelExport: 'Todos os dados - nível de relatório',
         expenseLevelExport: 'Todos os dados - nível de despesa',
-        multipleTaxExport: 'Canadian Multiple Tax Export',
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'O Concierge enviará o arquivo para você em breve.',
         currentView: 'Visualização atual',

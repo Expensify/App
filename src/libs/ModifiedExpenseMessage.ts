@@ -18,7 +18,6 @@ import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import {formatList} from './Localize';
 import Log from './Log';
-import Parser from './Parser';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {
     arePolicyRulesEnabled,
@@ -248,7 +247,7 @@ function getRulesModifiedMessage(
         }
         // The backend saves the description field as `comment` key, but we need to display it as `description` key.
         if (key === 'comment') {
-            return translate('iou.rulesModifiedFields.common', 'description', Parser.htmlToMarkdown(updatedValue), isFirst);
+            return translate('iou.rulesModifiedFields.common', 'description', updatedValue, isFirst);
         }
 
         return translate('iou.rulesModifiedFields.common', key, updatedValue, isFirst);
@@ -362,8 +361,8 @@ function getForReportAction({
 
         buildMessageFragmentForValue(
             translate,
-            Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
-            Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
+            reportActionOriginalMessage?.newComment ?? '',
+            reportActionOriginalMessage?.oldComment ?? '',
             descriptionLabel,
             true,
             setFragments,
