@@ -1385,6 +1385,7 @@ describe('actions/Task', () => {
                 delegateEmail: DELEGATE_EMAIL,
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
                 formatPhoneNumber,
+                translate: translateLocal,
             });
 
             const calls = mockWrite.mock.calls;
@@ -1416,6 +1417,7 @@ describe('actions/Task', () => {
                 delegateEmail: undefined,
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
                 formatPhoneNumber,
+                translate: translateLocal,
             });
 
             const calls = mockWrite.mock.calls;

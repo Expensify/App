@@ -152,6 +152,7 @@ function SearchAddApproverPage() {
                     reportCurrentNextStepDeprecated: reportNextStep,
                     isTrackIntentUser,
                     formatPhoneNumber,
+                    translate,
                 });
             }
 

@@ -54,7 +54,16 @@ import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {createGlobalFetchMock, formatPhoneNumber, getOnyxData, getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall, localeCompare} from '../../utils/TestHelper';
+import {
+    createGlobalFetchMock,
+    formatPhoneNumber,
+    getOnyxData,
+    getRequiredOnyxUpdate,
+    getRequiredOnyxUpdates,
+    getRequiredWriteCall,
+    localeCompare,
+    translateLocal,
+} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -3141,6 +3150,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 reportCurrentNextStepDeprecated: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber: formatPhoneNumberSpy,
+                translate: translateLocal,
             });
 
             const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls, 0);

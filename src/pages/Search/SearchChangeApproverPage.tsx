@@ -185,6 +185,7 @@ function SearchChangeApproverPage() {
                     reportNextStep,
                     isTrackIntentUser,
                     formatPhoneNumber,
+                    translate,
                 );
             }
         }

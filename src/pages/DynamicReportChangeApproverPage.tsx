@@ -99,6 +99,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             reportNextStep,
             isTrackIntentUser,
             formatPhoneNumber,
+            translate,
         );
         Navigation.dismissToPreviousRHP();
     }, [
@@ -112,6 +113,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         reportNextStep,
         isTrackIntentUser,
         formatPhoneNumber,
+        translate,
     ]);
 
     const approverTypes = useMemo(() => {

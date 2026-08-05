@@ -34,6 +34,8 @@ import {
     buildOptimisticApprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticCardAssignedReportAction,
+    buildOptimisticChangeApproverReportAction,
+    buildOptimisticChangedTaskAssigneeReportAction,
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
@@ -20283,6 +20285,54 @@ describe('ReportUtils', () => {
             const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined);
 
             expect(action.reportActionID).toBeTruthy();
+        });
+    });
+
+    describe('buildOptimisticChangedTaskAssigneeReportAction', () => {
+        it('resolves the assignee display name through the injected translate function', async () => {
+            // A nameless assignee falls back to the "hidden" copy, which is produced by the injected translate
+            const hiddenAssigneeAccountID = 445566;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [hiddenAssigneeAccountID]: {accountID: hiddenAssigneeAccountID, login: '', displayName: ''},
+            });
+            await waitForBatchedUpdates();
+
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenAssigneeMarker' : translateLocal(path, ...parameters));
+
+            const action = buildOptimisticChangedTaskAssigneeReportAction(hiddenAssigneeAccountID, currentUserAccountID, undefined, formatPhoneNumber, translateWithMarker);
+
+            // The message text resolves the assignee through the provided translate, proving the param drives output
+            const [message] = Array.isArray(action.message) ? action.message : [];
+            expect(message?.text).toBe('assigned to HiddenAssigneeMarker');
+            expect(action.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.TASK_EDITED);
+            expect(action.actorAccountID).toBe(currentUserAccountID);
+        });
+    });
+
+    describe('buildOptimisticChangeApproverReportAction', () => {
+        it('resolves the new approver display name through the injected translate function', async () => {
+            // A nameless manager falls back to the "hidden" copy, which is produced by the injected translate
+            const hiddenManagerAccountID = 445577;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [hiddenManagerAccountID]: {accountID: hiddenManagerAccountID, login: '', displayName: ''},
+            });
+            await waitForBatchedUpdates();
+
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenApproverMarker' : translateLocal(path, ...parameters));
+
+            const action = buildOptimisticChangeApproverReportAction(hiddenManagerAccountID, currentUserAccountID, formatPhoneNumber, translateWithMarker);
+
+            // The message text resolves the manager through the provided translate, proving the param drives output
+            const [message] = Array.isArray(action.message) ? action.message : [];
+            expect(message?.text).toBe('changed the approver to HiddenApproverMarker');
+            // The actor differs from the new approver, so this is a reroute rather than taking control
+            expect(action.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.REROUTE);
+        });
+
+        it('marks the action as TAKE_CONTROL when the actor assigns themselves', () => {
+            const action = buildOptimisticChangeApproverReportAction(currentUserAccountID, currentUserAccountID, formatPhoneNumber, translateLocal);
+
+            expect(action.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL);
         });
     });
 

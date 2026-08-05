@@ -177,6 +177,7 @@ function DynamicTaskAssigneeSelectorModal() {
                     assigneeChatReport,
                     isOptimisticReport,
                     formatPhoneNumber,
+                    translate,
                 });
             }
             Navigation.goBack(backPath);

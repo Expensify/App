@@ -113,6 +113,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 reportCurrentNextStepDeprecated: reportNextStep,
                 isTrackIntentUser,
                 formatPhoneNumber,
+                translate,
             });
             Navigation.dismissToPreviousRHP();
         });
