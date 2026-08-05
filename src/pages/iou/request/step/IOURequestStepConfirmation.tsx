@@ -611,6 +611,18 @@ function IOURequestStepConfirmation({
     const destinationReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${destinationReportID}`];
     const promotedDraftReportIDRef = useRef<string | undefined>(undefined);
 
+    // For a brand-new P2P recipient (no existing chat), useParticipantSubmission already committed the draft
+    // transaction to a stable optimistic reportID via setTransactionReport, before this screen even mounted (see
+    // createDistanceRequest in useExpenseSubmission.ts, which reuses this same ID for the same reason). Reusing it
+    // here lets us pre-mount the Report screen the submit will actually land on, instead of treating the destination
+    // as unknown. Keyed off the selected participant's own chat linkage, not the page-level `report` - that prop can
+    // stay bound to a previously-selected participant's chat when the user swaps recipients without remounting
+    // (e.g. "Create expense" pre-fills the last-used participant).
+    const firstParticipant = participants.at(0);
+    const isBrandNewP2PRecipient = !firstParticipant?.isPolicyExpenseChat && !firstParticipant?.reportID;
+    const optimisticP2PDestinationReportID =
+        isBrandNewP2PRecipient && !!transaction?.reportID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? transaction.reportID : undefined;
+
     // The zero-workspace "Submit to my employer" flow creates the draft policy expense chat report (with the
     // reportID the real backend commit will eventually use) before this screen mounts - see DraftWorkspaceOpener /
     // createDraftWorkspace. Copying that draft into COLLECTION.REPORT here is a client-only render aid, not a new
@@ -659,15 +671,26 @@ function IOURequestStepConfirmation({
         () =>
             getSubmitExpensePreMountDestinationRoute({
                 isTransactionReady,
-                destinationReportID,
+                destinationReportID: destinationReportID ?? optimisticP2PDestinationReportID,
                 destinationReport,
                 isFromGlobalCreate,
                 canPreInsertSearch,
                 iouType,
                 isCreatingTrackExpense,
                 isSelfDMDestination,
+                isOptimisticNewChatDestination: !destinationReportID && !!optimisticP2PDestinationReportID,
             }),
-        [isTransactionReady, destinationReportID, destinationReport, isFromGlobalCreate, canPreInsertSearch, iouType, isCreatingTrackExpense, isSelfDMDestination],
+        [
+            isTransactionReady,
+            destinationReportID,
+            optimisticP2PDestinationReportID,
+            destinationReport,
+            isFromGlobalCreate,
+            canPreInsertSearch,
+            iouType,
+            isCreatingTrackExpense,
+            isSelfDMDestination,
+        ],
     );
 
     const {reveal: revealPreMountDestination, cleanupPreMount} = usePreMountDestination(preMountDestinationRoute, {
