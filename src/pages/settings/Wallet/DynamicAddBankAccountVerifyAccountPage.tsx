@@ -24,8 +24,6 @@ function DynamicAddBankAccountVerifyAccountPage({route}: DynamicAddBankAccountVe
     const isAdmin = useMemo(() => hasActiveAdminWorkspaces(currentUserEmail ?? '', allPolicies), [currentUserEmail, allPolicies]);
     const navigateForwardTo = isAdmin && !shouldSkipPurposeSelection ? ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE : ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backPath);
 
-    console.log({backPath, route, navigateForwardTo});
-
     return (
         <VerifyAccountPageBase
             navigateBackTo={backPath}
