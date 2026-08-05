@@ -10,9 +10,10 @@ jest.mock('@libs/fileDownload/FileUtils', () => ({
     readFileAsync: jest.fn(() => Promise.resolve(null)),
 }));
 
+const mockValidateFormDataParameter = jest.fn();
 jest.mock('@libs/validateFormDataParameter', () => ({
     __esModule: true,
-    default: jest.fn(),
+    default: mockValidateFormDataParameter,
 }));
 
 const mockLogReceiptDropped = jest.fn();
@@ -97,6 +98,8 @@ describe('prepareRequestPayload (native)', () => {
 
         expect(mockCheckFileExists).toHaveBeenCalledWith(`file://${RECEIPTS_FOLDER}/receipt_9.jpg`);
         expect(formData.has('receipt')).toBe(true);
+        // The uploaded uri must be the re-rooted path, not the stale `uri` field the receipt carries.
+        expect(mockValidateFormDataParameter).toHaveBeenCalledWith('RequestMoney', 'receipt', expect.objectContaining({uri: `file://${RECEIPTS_FOLDER}/receipt_9.jpg`}));
         expect(mockLogReceiptDropped).not.toHaveBeenCalled();
     });
 

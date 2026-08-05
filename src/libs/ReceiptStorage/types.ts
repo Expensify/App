@@ -1,3 +1,5 @@
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
+
 /** Owns the receipts folder. The only code that writes a file there, names one, or resolves one. */
 type ReceiptStorage = {
     /** Moves a file into the receipts folder and returns its durable name. Rejects when the file did not land. */
@@ -7,7 +9,7 @@ type ReceiptStorage = {
     toLocalUri: (durableName: string) => string;
 
     /** Re-roots a stored source onto the current folder. A remote source passes through unchanged. */
-    resolve: (source: unknown) => string | undefined;
+    resolve: (source: ReceiptSource | undefined) => string | undefined;
 };
 
 export default ReceiptStorage;
