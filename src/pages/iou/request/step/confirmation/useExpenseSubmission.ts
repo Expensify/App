@@ -616,7 +616,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             // Keep the pre-mounted report ID aligned with the report created for a brand-new P2P recipient.
             // existingChatReport can belong to the previously selected recipient.
             const isBrandNewP2PRecipient = !isExpenseReport && !participant.isPolicyExpenseChat && !participant.reportID;
-            // Confirmation precommits this ID for new recipients.
+            // Confirmation commits this ID for new recipients.
             const transactionReportID = transaction.reportID;
             // Reuse it so the pre-mounted screen subscribes to the report created on submission.
             const shouldReuseTransactionReportID = isBrandNewP2PRecipient && !!transactionReportID && transactionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
