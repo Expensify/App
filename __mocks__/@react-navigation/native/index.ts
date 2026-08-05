@@ -44,6 +44,9 @@ const useLinkProps = isJestEnv ? realReactNavigation.useLinkProps : () => null;
 const useLinkTo = isJestEnv ? realReactNavigation.useLinkTo : () => null;
 const useScrollToTop = isJestEnv ? realReactNavigation.useScrollToTop : () => null;
 const useRoute = isJestEnv ? realReactNavigation.useRoute : () => ({params: {}});
+// The real useRoutePath throws outside a navigator (route state is undefined), which render-less tests hit.
+// Return undefined so useDynamicRoute falls back to createDynamicRoute's getActiveRoute() base.
+const useRoutePath = (): string | undefined => undefined;
 // Run callback in useEffect (like real useFocusEffect), not synchronously during render
 const useFocusEffect = isJestEnv
     ? realReactNavigation.useFocusEffect
@@ -76,6 +79,7 @@ export {
     useLinkTo,
     useScrollToTop,
     useRoute,
+    useRoutePath,
     useFocusEffect,
     usePreventRemove,
 };
