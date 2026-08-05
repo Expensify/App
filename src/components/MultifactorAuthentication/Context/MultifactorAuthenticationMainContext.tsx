@@ -17,6 +17,7 @@ import readOnyxValueOnce from '@libs/MultifactorAuthentication/shared/readOnyxVa
 import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
 
@@ -43,8 +44,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const [snapshot, send] = useInspectedMachine(MFAMachine);
     const state = snapshotToState(snapshot);
 
-    const captureCredentialsState = async (): Promise<CredentialsState> => {
-        const [hasLocalCredentials, deviceBiometrics] = await Promise.all([biometrics.areLocalCredentialsKnownToServer(), readOnyxValueOnce(getDeviceBiometricsOnyxKey(accountID))]);
+    const captureCredentialsState = async (flowAccountID: number): Promise<CredentialsState> => {
+        const [hasLocalCredentials, deviceBiometrics] = await Promise.all([biometrics.areLocalCredentialsKnownToServer(), readOnyxValueOnce(getDeviceBiometricsOnyxKey(flowAccountID))]);
         return {
             hasServerCredentials: biometrics.serverKnownCredentialIDs.length > 0,
             hasLocalCredentials,
@@ -72,7 +73,17 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        const startCredentialsState = await captureCredentialsState();
+        const flowAccountID = accountID;
+        const startCredentialsState = await captureCredentialsState(flowAccountID);
+
+        // A session switch can happen while the asynchronous credential snapshot is being read. Read
+        // the source of truth again immediately before INIT so stale account data never starts a flow.
+        const currentSession = await readOnyxValueOnce(ONYXKEYS.SESSION);
+        const currentAccountID = currentSession?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        if (currentAccountID !== flowAccountID) {
+            addMFABreadcrumb('Flow rejected: account changed during initialization', {scenario: scenarioName, flowAccountID, currentAccountID}, 'warning');
+            return;
+        }
 
         addMFABreadcrumb('Flow started', {
             scenario: scenarioName,
@@ -88,7 +99,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         send({
             type: 'INIT',
-            accountID,
+            accountID: flowAccountID,
             scenarioName,
             scenario,
             payload: params && Object.keys(params).length > 0 ? params : undefined,
