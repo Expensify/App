@@ -27,9 +27,12 @@ const adopt: ReceiptStorage['adopt'] = async (uriOrPath, fileName) => {
     const sourcePath = fileURIToPath(uriOrPath);
 
     // vision-camera writes into the receipts folder through its `path` option, so there is nothing to
-    // move. Confirm the write landed before the app builds an expense around the file.
-    if (sourcePath.startsWith(`${dir}/`)) {
-        return verify(dir, sourcePath.slice(dir.length + 1));
+    // move. Confirm the write landed before the app builds an expense around the file. Matching on the
+    // folder name rather than the full prefix keeps this working when the two filesystem libraries
+    // disagree about the container (/private/var and /var), and re-adopts a stale stored path.
+    const existingName = toDurableName(uriOrPath);
+    if (existingName) {
+        return verify(dir, existingName);
     }
 
     await RNFS.mkdir(dir);

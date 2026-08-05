@@ -52,6 +52,14 @@ describe('ReceiptStorage', () => {
             expect(name).toBe('receipt_1234');
         });
 
+        it('verifies a path that names the folder under a container the device no longer has, rather than moving from it', async () => {
+            const name = await ReceiptStorage.adopt('file:///private/var/mobile/Containers/Data/Application/BBBB-2222/Documents/Receipts-Upload/CAM-2.jpg');
+
+            expect(name).toBe('CAM-2.jpg');
+            expect(mockMv).not.toHaveBeenCalled();
+            expect(mockExists).toHaveBeenCalledWith(`${FOLDER}/CAM-2.jpg`);
+        });
+
         it('rejects when the move fails, instead of handing back the ephemeral path', async () => {
             mockMv.mockRejectedValue(new Error('no space left on device'));
 
