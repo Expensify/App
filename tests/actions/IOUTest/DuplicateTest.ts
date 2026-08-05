@@ -1240,6 +1240,7 @@ describe('actions/Duplicate', () => {
                 receiptID: 123,
                 reportID,
                 transactionThreadReportIDMap: {},
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates while the duplicate has no thread
@@ -1319,6 +1320,7 @@ describe('actions/Duplicate', () => {
                 transactionThreadReportIDMap: {
                     [duplicate1ID]: childReportID1,
                 },
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates
@@ -1389,6 +1391,7 @@ describe('actions/Duplicate', () => {
                 transactionThreadReportIDMap: {
                     [duplicate1ID]: childReportID1,
                 },
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates while the kept transaction has no thread
