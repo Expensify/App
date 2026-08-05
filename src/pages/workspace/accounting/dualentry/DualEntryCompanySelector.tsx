@@ -71,7 +71,7 @@ function DualEntryCompanySelector({policy}: WithPolicyConnectionsProps) {
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
-            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.dualEntry.companySelectDescription')}</Text>
+            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.dualEntry.subsidiarySelectDescription')}</Text>
         </View>
     );
 
@@ -88,7 +88,7 @@ function DualEntryCompanySelector({policy}: WithPolicyConnectionsProps) {
             initiallyFocusedOptionKey={dualEntryConfig?.subsidiaryID}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack()}
-            title="workspace.dualEntry.company"
+            title="workspace.dualEntry.subsidiary"
             listEmptyContent={listEmptyContent}
             pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.SUBSIDIARY_ID], dualEntryConfig?.pendingFields)}
             errors={getLatestErrorField(dualEntryConfig ?? {}, CONST.DUALENTRY_CONFIG.SUBSIDIARY_ID)}

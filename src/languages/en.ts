@@ -5847,8 +5847,8 @@ const translations = {
             enterCredentials: 'Enter your DualEntry API key',
             howToFindAPIKey:
                 '<strong>Finding your API key.</strong><ol><li>Log in to DualEntry</li><li>Navigate to [organization name] -> Settings -> Developer access -> API keys</li><li>Create API key</li><li>Paste the API key below</li></ol>',
-            company: 'Company',
-            companySelectDescription: "Choose the company in DualEntry that you'd like to import data from.",
+            subsidiary: 'Subsidiary',
+            subsidiarySelectDescription: "Choose the subsidiary in DualEntry that you'd like to import data from.",
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in DualEntry and sync the connection again',
         },

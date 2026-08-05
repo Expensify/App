@@ -404,7 +404,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 return !dualEntryCompanyList?.length
                     ? {}
                     : {
-                          description: translate('workspace.dualEntry.company'),
+                          description: translate('workspace.dualEntry.subsidiary'),
                           iconRight: icons.ArrowRight,
                           title: dualEntryCompanyList?.find((company) => company.id === policy?.connections?.dualEntry?.config?.subsidiaryID)?.name ?? '',
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
