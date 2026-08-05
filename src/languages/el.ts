@@ -682,7 +682,10 @@ const translations: TranslationDeepObject<typeof en> = {
             troubleshootBiometricsStatus: ({status}: {status?: string}) => `Βιομετρικά (${status})`,
             statusNeverRegistered: 'Ποτέ δεν έγινε εγγραφή',
             statusNotRegistered: 'Μη καταχωρισμένο',
-            statusRegisteredOtherDevice: () => ({one: 'Καταχωρίστηκε άλλη συσκευή', other: 'Άλλες καταχωρισμένες συσκευές'}),
+            statusRegisteredOtherDevice: () => ({
+                one: 'Καταχωρίστηκε άλλη συσκευή',
+                other: 'Άλλες καταχωρισμένες συσκευές',
+            }),
             statusRegisteredThisDevice: 'Εγγεγραμμένο',
             yourAttemptWasUnsuccessful: 'Η προσπάθεια ταυτοποίησής σας δεν ήταν επιτυχής.',
             youCouldNotBeAuthenticated: 'Δεν ήταν δυνατή η επιβεβαίωση της ταυτότητάς σας',
@@ -2068,21 +2071,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Αναμονή για να πληρώσει ο/η <strong>${actor}</strong> τα έξοδα.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Αναμονή διαχειριστή για την πληρωμή εξόδων.`;
-                }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένουμε από <strong>εσάς</strong> να ολοκληρώσετε τη ρύθμιση επαγγελματικού τραπεζικού λογαριασμού.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για τον/την <strong>${actor}</strong> να ολοκληρώσει τη ρύθμιση επαγγελματικού τραπεζικού λογαριασμού.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για διαχειριστή ώστε να ολοκληρώσει τη ρύθμιση εταιρικού τραπεζικού λογαριασμού.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -5773,7 +5761,14 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             noBankAccountsFound: 'Δεν βρέθηκαν τραπεζικοί λογαριασμοί',
             noBankAccountsFoundDescription: 'Παρακαλούμε προσθέστε τραπεζικούς λογαριασμούς στο Rillet και συγχρονίστε ξανά τη σύνδεση',
             exportDescription: 'Ρυθμίστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξάγονται στο Rillet.',
-            exportReimbursable: {label: 'Εξαγωγή αποζημιώσιμων εξόδων ως', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Τιμολόγια προμηθευτών'}}},
+            exportReimbursable: {
+                label: 'Εξαγωγή αποζημιώσιμων εξόδων ως',
+                values: {
+                    [CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Τιμολόγια προμηθευτών',
+                    },
+                },
+            },
             exportDate: {
                 label: 'Ημερομηνία τιμολογίου προμηθευτή',
                 description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο Rillet.',
@@ -5792,12 +5787,22 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     },
                 },
             },
-            exportCompanyCard: {label: 'Εξαγωγή εξόδων εταιρικής κάρτας ως', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'Πιστωτικές κάρτες'}}},
+            exportCompanyCard: {
+                label: 'Εξαγωγή εξόδων εταιρικής κάρτας ως',
+                values: {
+                    [CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {
+                        label: 'Πιστωτικές κάρτες',
+                    },
+                },
+            },
             defaultCompanyCardVendor: {
                 label: 'Προεπιλεγμένος προμηθευτής εταιρικής κάρτας',
                 description: 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή Rillet για έξοδα που δεν αντιστοιχίζονται αυτόματα.',
             },
-            companyCardAccount: {label: 'Λογαριασμός εταιρικής κάρτας', description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.'},
+            companyCardAccount: {
+                label: 'Λογαριασμός εταιρικής κάρτας',
+                description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.',
+            },
             autoSyncDescription: 'Συγχρονίστε αυτόματα το Rillet και το Expensify, κάθε μέρα. Οι αναφορές συγχρονίζονται σε πραγματικό χρόνο.',
             accountingMethods: {
                 label: 'Μέθοδος εξαγωγής',
@@ -5813,9 +5818,15 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             syncReimbursedReports: 'Συγχρονισμός αποζημιωμένων αναφορών',
             syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργείται μια πληρωμή τιμολογίου σε αυτόν τον λογαριασμό.',
-            billPaymentAccount: {label: 'Λογαριασμός πληρωμής λογαριασμών', description: 'Επιλέξτε από πού θα πληρώνονται οι λογαριασμοί και θα δημιουργήσουμε την πληρωμή στο Rillet.'},
+            billPaymentAccount: {
+                label: 'Λογαριασμός πληρωμής λογαριασμών',
+                description: 'Επιλέξτε από πού θα πληρώνονται οι λογαριασμοί και θα δημιουργήσουμε την πληρωμή στο Rillet.',
+            },
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών Κάρτας Expensify',
-            settlementAccount: {label: 'Λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Rillet.'},
+            settlementAccount: {
+                label: 'Λογαριασμός διακανονισμού κάρτας Expensify',
+                description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Rillet.',
+            },
             syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών τιμολόγησης ταξιδιών',
             travelInvoicingSettlementAccount: {
                 label: 'Λογαριασμός διακανονισμού τιμολόγησης ταξιδιών',
@@ -6454,7 +6465,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 subtitle: 'Ορίστε χρέωση ανά ώρα για χρονοπαρακολούθηση.',
                 defaultHourlyRate: 'Προεπιλεγμένη ωριαία χρέωση',
             },
-            vendors: {title: 'Προμηθευτές', subtitle: 'Ταιριάξτε τα έξοδα κάρτας με προμηθευτές που έχουν εισαχθεί από το λογιστικό σας λογισμικό.'},
+            vendors: {
+                title: 'Προμηθευτές',
+                subtitle: 'Ταιριάξτε τα έξοδα κάρτας με προμηθευτές που έχουν εισαχθεί από το λογιστικό σας λογισμικό.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Παραδείγματα:',
@@ -7222,12 +7236,18 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 `Είστε βέβαιοι ότι θέλετε να αλλάξετε τη λειτουργία έγκρισης για αυτόν τον χώρο εργασίας; Μάθετε περισσότερα σχετικά με τις διαφορετικές λειτουργίες ροής εργασιών με ενεργοποιημένο το ${providerName} στον <a href="${helpSiteURL}">ιστότοπο βοήθειας</a> μας.`,
             approvalModeWarningConfirm: 'Αλλαγή λειτουργίας έγκρισης',
             approvalModes: {
-                basic: {label: 'Βασική έγκριση', description: 'Όλοι οι χρήστες υποβάλλουν σε ένα μόνο άτομο για επεξεργασία και έγκριση.'},
+                basic: {
+                    label: 'Βασική έγκριση',
+                    description: 'Όλοι οι χρήστες υποβάλλουν σε ένα μόνο άτομο για επεξεργασία και έγκριση.',
+                },
                 manager: {
                     label: 'Έγκριση προϊσταμένου',
                     description: (providerName: string) => `Οι υπάλληλοι υποβάλλουν αναφορές στον άμεσο προϊστάμενό τους που έχει ρυθμιστεί στο ${providerName}.`,
                 },
-                custom: {label: 'Προσαρμοσμένη έγκριση', description: 'Θα ρυθμίσω χειροκίνητα ροές έγκρισης στο Expensify.'},
+                custom: {
+                    label: 'Προσαρμοσμένη έγκριση',
+                    description: 'Θα ρυθμίσω χειροκίνητα ροές έγκρισης στο Expensify.',
+                },
             },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
@@ -7275,7 +7295,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     title: 'Ομάδες',
                     description: 'Επιλέξτε τις ομάδες υπαλλήλων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
                 },
-                syncLimitReached: {title: 'Δοκιμάστε ξανά αύριο', prompt: 'Έχετε φτάσει το όριο συγχρονισμών σας για σήμερα.'},
+                syncLimitReached: {
+                    title: 'Δοκιμάστε ξανά αύριο',
+                    prompt: 'Έχετε φτάσει το όριο συγχρονισμών σας για σήμερα.',
+                },
             },
         },
         export: {
@@ -7335,7 +7358,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 optionFixedDistanceTitle: 'Εξαίρεση σταθερής απόστασης ανά αίτημα',
                 optionFixedDistanceHelp: 'Αφαιρέστε την ίδια απόσταση μετακίνησης από κάθε αίτημα. Ιδανικό για μέλη που υποβάλλουν ένα αίτημα ανά εργάσιμη ημέρα.',
                 distanceLabel: 'Απόσταση',
-                errors: {distanceMustBePositive: 'Η απόσταση πρέπει να είναι ένας θετικός ακέραιος αριθμός.', distanceTooLarge: 'Η απόσταση είναι πολύ μεγάλη.'},
+                errors: {
+                    distanceMustBePositive: 'Η απόσταση πρέπει να είναι ένας θετικός ακέραιος αριθμός.',
+                    distanceTooLarge: 'Η απόσταση είναι πολύ μεγάλη.',
+                },
             },
             distance: 'Απόσταση',
             centrallyManage: 'Διαχειριστείτε κεντρικά τις χρεώσεις, παρακολουθήστε σε μίλια ή χιλιόμετρα και ορίστε μια προεπιλεγμένη κατηγορία.',
@@ -7847,6 +7873,10 @@ ${reportName}`,
                 category: 'Κατηγορία',
                 tag: 'Ετικέτα',
                 save: 'Αποθήκευση κανόνα',
+            },
+            categoriesDisabledEmptyState: {
+                title: 'Οι κατηγορίες δεν είναι ενεργοποιημένες',
+                subtitle: 'Ενεργοποιήστε τις κατηγορίες για να έχετε μεγαλύτερο έλεγχο των δαπανών σας.',
             },
             individualExpenseRules: {
                 title: 'Έξοδα',
@@ -9271,7 +9301,11 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Εξαγωγή',
             },
             has: {submittedViolation: 'Υποβληθείσα παράβαση'},
-            filterType: {label: 'Τύπος φίλτρου', has: {positive: 'έχει', negative: 'δεν έχει'}, is: {positive: 'είναι', negative: 'δεν είναι'}},
+            filterType: {
+                label: 'Τύπος φίλτρου',
+                has: {positive: 'έχει', negative: 'δεν έχει'},
+                is: {positive: 'είναι', negative: 'δεν είναι'},
+            },
         },
         display: {
             label: 'Εμφάνιση',
@@ -9348,7 +9382,10 @@ ${reportName}`,
         },
         goTo: ({destination}: {destination: string}) => `Μετάβαση στο ${destination}`,
         mySavedSearch: 'Οι δαπάνες μου',
-        expensifyCardStatementPDF: {title: 'Λήψη κατάστασης', oneFeedAtATime: 'Παρακαλούμε επιλέγετε διακανονισμούς από μία ροή Κάρτας Expensify κάθε φορά.'},
+        expensifyCardStatementPDF: {
+            title: 'Λήψη κατάστασης',
+            oneFeedAtATime: 'Παρακαλούμε επιλέγετε διακανονισμούς από μία ροή Κάρτας Expensify κάθε φορά.',
+        },
     },
     genericErrorPage: {
         title: 'Ωχ, κάτι πήγε στραβά!',
@@ -9991,7 +10028,11 @@ ${reportName}`,
         markAsCashToIgnore: 'Σημειώστε ως μετρητά για να την αγνοήσετε και να ζητήσετε πληρωμή.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
-                const fieldNames: Record<string, string> = {merchant: 'έμπορος', date: 'ημερομηνία', amount: 'ποσό'};
+                const fieldNames: Record<string, string> = {
+                    merchant: 'έμπορος',
+                    date: 'ημερομηνία',
+                    amount: 'ποσό',
+                };
                 const translated = missingFields.map((f) => fieldNames[f] ?? f);
                 let fieldList = '';
                 if (translated.length === 1) {
@@ -10556,7 +10597,6 @@ ${reportName}`,
         currentView: 'Τρέχουσα προβολή',
         reportLevelExport: 'Όλα τα δεδομένα - σε επίπεδο αναφοράς',
         expenseLevelExport: 'Όλα τα δεδομένα - επίπεδο δαπάνης',
-        multipleTaxExport: 'Canadian Multiple Tax Export',
         exportInProgress: 'Εξαγωγή σε εξέλιξη',
         conciergeWillSend: 'Ο Concierge θα σας στείλει το αρχείο σύντομα.',
         downloadStatementPDF: 'Λήψη κατάστασης',
@@ -10827,6 +10867,15 @@ ${reportName}`,
         customAgents: {
             title: 'Δημιουργήστε τους δικούς σας πράκτορες',
             description: `<muted-text>Δημιουργήστε προσαρμοσμένους agents για να ελέγχετε, να εγκρίνετε και να δρομολογείτε δαπάνες με βάση κανόνες που ορίζετε εσείς. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Μάθετε περισσότερα</a>.</muted-text>`,
+        },
+    },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Νέοι τύποι ρόλων για διαχειριστές',
+                body: 'Δώστε στην ομάδα σας πιο λεπτομερή δικαιώματα με νέους ρόλους διαχειριστή καρτών, ατόμων και πληρωμών.',
+                cta: 'Δοκιμάστε το',
+            },
         },
     },
     trialPaymentReminder: {
