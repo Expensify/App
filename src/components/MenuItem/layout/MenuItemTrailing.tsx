@@ -1,4 +1,4 @@
-import useIsCompact from '@components/MenuItem/hooks/useIsCompact';
+import useIsCompactPopover from '@components/MenuItem/hooks/useIsCompactPopover';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,9 +14,9 @@ type MenuItemTrailingProps = PropsWithChildren;
 function MenuItemTrailing({children}: MenuItemTrailingProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const isCompact = useIsCompact();
+    const isCompactPopover = useIsCompactPopover();
 
-    return <View style={[styles.menuItemTrailing, StyleUtils.getMenuItemTextContainerStyle(isCompact)]}>{children}</View>;
+    return <View style={[styles.menuItemTrailing, StyleUtils.getMenuItemTextContainerStyle(isCompactPopover)]}>{children}</View>;
 }
 
 export default MenuItemTrailing;

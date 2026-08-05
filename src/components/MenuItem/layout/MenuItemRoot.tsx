@@ -1,5 +1,5 @@
 import Hoverable from '@components/Hoverable';
-import useIsCompact from '@components/MenuItem/hooks/useIsCompact';
+import useIsCompactPopover from '@components/MenuItem/hooks/useIsCompactPopover';
 import MenuItemAccessibilityContext, {useMenuItemAccessibility} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/MenuItem/MenuItemContext';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -40,7 +40,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, acces
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
-    const isCompact = useIsCompact();
+    const isCompactPopover = useIsCompactPopover();
     const isInteractive = !!onPress;
 
     const {accessibilityLabel: derivedAccessibilityLabel, accessibilityActions} = useMenuItemAccessibility();
@@ -85,7 +85,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, acces
                             [
                                 styles.popoverMenuItem,
                                 !isInteractive && styles.cursorDefault,
-                                isCompact && styles.compactPopoverMenuItemBase,
+                                isCompactPopover && styles.compactPopoverMenuItemBase,
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(isHovered, pressed, false, isDisabled, isInteractive), true),
                                 isDisabled && styles.buttonOpacityDisabled,
                                 isHovered && isInteractive && !pressed && styles.hoveredComponentBG,

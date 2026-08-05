@@ -1,4 +1,4 @@
-import useIsCompact from '@components/MenuItem/hooks/useIsCompact';
+import useIsCompactPopover from '@components/MenuItem/hooks/useIsCompactPopover';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,9 +17,9 @@ type MenuItemContentProps = PropsWithChildren;
 function MenuItemContent({children}: MenuItemContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const isCompact = useIsCompact();
+    const isCompactPopover = useIsCompactPopover();
 
-    return <View style={[styles.menuItemContent, StyleUtils.getMenuItemTextContainerStyle(isCompact)]}>{children}</View>;
+    return <View style={[styles.menuItemContent, StyleUtils.getMenuItemTextContainerStyle(isCompactPopover)]}>{children}</View>;
 }
 
 export default MenuItemContent;

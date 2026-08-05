@@ -1,5 +1,5 @@
 import Icon from '@components/Icon';
-import useIsCompact from '@components/MenuItem/hooks/useIsCompact';
+import useIsCompactPopover from '@components/MenuItem/hooks/useIsCompactPopover';
 import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -23,7 +23,7 @@ function MenuItemIcon({src}: MenuItemIconProps) {
     const StyleUtils = useStyleUtils();
     const {isDisabled, isInteractive} = useMenuItemConfig();
     const {isHovered, isPressed} = useMenuItemInteraction();
-    const isCompact = useIsCompact();
+    const isCompactPopover = useIsCompactPopover();
 
     const isComplete = false;
     const isMenuIcon = true;
@@ -31,7 +31,7 @@ function MenuItemIcon({src}: MenuItemIconProps) {
     const iconFill = StyleUtils.getIconFillColor(getButtonState(isHovered, isPressed, isComplete, isDisabled, isInteractive), isMenuIcon, isPane);
 
     return (
-        <View style={[styles.popoverMenuIcon, isCompact && styles.wAuto]}>
+        <View style={[styles.popoverMenuIcon, isCompactPopover && styles.wAuto]}>
             <Icon
                 contentFit="cover"
                 hovered={isHovered}
