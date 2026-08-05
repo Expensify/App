@@ -83,11 +83,13 @@ describe('OFXUtils', () => {
         });
 
         it('falls back to MEMO for the merchant and skips transactions missing a date or amount', () => {
+            // cspell:disable
             const statement = `<OFX><BANKTRANLIST>
 <STMTTRN><DTPOSTED>20260101<TRNAMT>-10.00<MEMO>CORNER STORE</STMTTRN>
 <STMTTRN><TRNAMT>-10.00<NAME>NO DATE</STMTTRN>
 <STMTTRN><DTPOSTED>20260102<NAME>NO AMOUNT</STMTTRN>
 </BANKTRANLIST></OFX>`;
+            // cspell:enable
 
             expect(parseOFXToSpreadsheetRows(statement)).toEqual([
                 ['Date', 'Merchant', 'Amount'],
@@ -96,12 +98,14 @@ describe('OFXUtils', () => {
         });
 
         it('reads comma decimal separators and thousands grouping', () => {
+            // cspell:disable
             const statement = `<OFX><BANKTRANLIST>
 <STMTTRN><DTPOSTED>20260101<TRNAMT>-24,99<NAME>COMMA DECIMAL</STMTTRN>
 <STMTTRN><DTPOSTED>20260102<TRNAMT>-1.234,56<NAME>EURO GROUPING</STMTTRN>
 <STMTTRN><DTPOSTED>20260103<TRNAMT>-1,234.56<NAME>US GROUPING</STMTTRN>
 <STMTTRN><DTPOSTED>20260104<TRNAMT>-1,234<NAME>NO DECIMALS</STMTTRN>
 </BANKTRANLIST></OFX>`;
+            // cspell:enable
 
             expect(parseOFXToSpreadsheetRows(statement)).toEqual([
                 ['Date', 'Merchant', 'Amount'],
