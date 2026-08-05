@@ -58,8 +58,8 @@ const loadedChildren = [
 
 const FLAT_TRANSACTION_ID = 'flat-1';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only fields read by selection builders are required
 const makeFlatExpense = (amount: number) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only fields read by selection builders are required
     ({
         transactionID: FLAT_TRANSACTION_ID,
         keyForList: FLAT_TRANSACTION_ID,
@@ -72,6 +72,7 @@ const makeFlatExpense = (amount: number) =>
     }) as unknown as TransactionListItemType;
 
 function makeFlatSearchResults(expense: TransactionListItemType | undefined): SearchResults {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only fields read by the selection reconciliation are required
     return {
         data: expense ? {[`${ONYXKEYS.COLLECTION.TRANSACTION}${FLAT_TRANSACTION_ID}`]: expense} : {},
         search: {
@@ -87,7 +88,7 @@ function makeFlatSearchResults(expense: TransactionListItemType | undefined): Se
             total: expense ? 13000 : 10000,
             currency: 'USD',
         },
-    } as SearchResults;
+    } as unknown as SearchResults;
 }
 
 let flatExpense = makeFlatExpense(-3000);
@@ -235,7 +236,7 @@ describe('Lazily loaded group selection', () => {
         flatExpense = makeFlatExpense(-5000);
         flatFilteredData = [flatExpense];
         flatSearchResults = makeFlatSearchResults(flatExpense);
-        rerender();
+        rerender({});
         await act(async () => waitForBatchedUpdatesWithAct());
 
         expect(result.current.excludedTransactions[FLAT_TRANSACTION_ID]?.groupAmount).toBe(-5000);
@@ -249,7 +250,7 @@ describe('Lazily loaded group selection', () => {
 
         flatFilteredData = [];
         flatSearchResults = makeFlatSearchResults(undefined);
-        rerender();
+        rerender({});
         await act(async () => waitForBatchedUpdatesWithAct());
 
         expect(result.current.excludedTransactions).toEqual({});

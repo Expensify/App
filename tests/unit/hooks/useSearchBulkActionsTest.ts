@@ -237,6 +237,10 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
     };
 }
 
+function hasSearchFlatFilters(value: unknown): value is {flatFilters: SearchQueryJSON['flatFilters']} {
+    return typeof value === 'object' && value !== null && 'flatFilters' in value && Array.isArray(value.flatFilters);
+}
+
 describe('useSearchBulkActions - CSV export flow', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -364,7 +368,10 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         const exportPayload = mockQueueExportSearchItemsToCSV.mock.calls.at(-1)?.at(0);
-        const exportQueryJSON = JSON.parse(exportPayload?.jsonQuery ?? '{}') as SearchQueryJSON;
+        const exportQueryJSON: unknown = JSON.parse(exportPayload?.jsonQuery ?? '{}');
+        if (!hasSearchFlatFilters(exportQueryJSON)) {
+            throw new Error('Expected the exported query to contain flat filters');
+        }
         const categoryFilters = exportQueryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY).flatMap((filter) => filter.filters);
         const includedCategoryFilters = categoryFilters.filter((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
         const excludedCategoryFilters = categoryFilters.filter((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
