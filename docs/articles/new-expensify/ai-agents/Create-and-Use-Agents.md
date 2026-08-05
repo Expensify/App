@@ -22,8 +22,8 @@ To learn how Agents work, how they differ from Agent rules, and how AI uses inst
 1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
 2. Click **Agents**.
 3. Click **New agent**.
-4. Choose **Build custom agent**, or choose one of the pre-built templates. 
-5. Type the instructions that describe what you want the agent to do.
+4. Choose **Build custom agent**, or choose one the available templates. 
+5. Edit the instructions to describe what you want the agent to do.
 6. Review the note above the **Create agent** button, which explains that the agent will be added as a full-access Copilot of your account so it can act on your behalf.
 7. Click **Create agent**.
 
@@ -52,7 +52,7 @@ You can review or remove an agent's Copilot access at any time. [Learn how to ma
 
 Agent instructions are written in natural language and determine how your Agent behaves.
 
-For best practices, examples, and guidance on writing effective instructions, see [Write Effective Agent Instructions](/articles/new-expensify/ai-agents/Write-Effective-Agent-Instructions).
+For best practices, examples, and guidance on writing effective instructions, see [How to Write Agent Instructions](docs/articles/new-expensify/ai-agents/How-to-Write-Agent-Instruction).
 
 ---
 
@@ -76,7 +76,7 @@ Use Copilot to see what the agent has done, review its activity, and inspect any
 2. Click **Agents**.
 3. Find the agent in the list and click **Copilot**.
 
-[Learn more about Copilot](/articles/new-expensify/settings/Act-as-a-Copilot).
+To learn more about Copilot access, see [Act as a Copilot](/articles/new-expensify/settings/Act-as-a-Copilot).
 
 ---
 
@@ -103,24 +103,13 @@ Deleting an agent closes its Expensify account.
 4. Click **Delete agent**.
 5. Confirm the deletion.
 
-You can also delete an agent while [Copiloting into its account](#how-to-copilot-into-an-agents-account):
-
-1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
-2. Click **Security**.
-3. Click **Close account**.
-4. In the **Delete agent?** confirmation, click **Delete**.
-
-Deleting the agent from the **Security** page also ends the Copilot session and returns you to your own account. This step requires an internet connection.
-
-Deleting an agent can't be undone.
-
 ---
 
 ## How to delete multiple agents at once
 
 You can select several agents from the **Agents** list and delete them together.
 
-**On web:**
+On web:
 
 1. In the navigation tabs on the left, click **Account** > **Agents**.
 2. Select the checkbox next to each agent you want to delete.
@@ -128,7 +117,7 @@ You can select several agents from the **Agents** list and delete them together.
 4. Select **Delete agents**.
 5. Click **Delete** to confirm.
 
-**On mobile:**
+On mobile:
 
 1. In the navigation tabs on the bottom, tap **Account** > **Agents**.
 2. Long-press an agent, then tap **Select** to enter selection mode.
