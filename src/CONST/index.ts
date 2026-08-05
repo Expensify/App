@@ -1003,6 +1003,7 @@ const CONST = {
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
+        INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
@@ -4284,6 +4285,9 @@ const CONST = {
             },
         },
         CONNECTIONS: {
+            ACCOUNTING_INTEGRATION_ALIASES: {
+                INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
+            },
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
