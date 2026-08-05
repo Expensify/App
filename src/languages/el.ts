@@ -9035,6 +9035,8 @@ ${reportName}`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `αντιγράφηκαν οι ρυθμίσεις ταξιδιού από το <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             currency: (sourcePolicyName: string, sourcePolicyURL: string) => `αντιγράφηκε το νόμισμα από την πολιτική <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updatedCurrencyConversionFee: ({preference}: {preference: 'company' | 'employee'}) =>
+            `ενημέρωσε τη ρύθμιση προμήθειας μετατροπής νομίσματος σε «πληρώνει ${preference === 'company' ? 'Εταιρεία' : 'Εργαζόμενος'}»`,
     },
     roomMembersPage: {
         memberNotFound: 'Το μέλος δεν βρέθηκε.',

@@ -8804,6 +8804,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `impostazioni fattura copiate da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `impostazioni di viaggio copiate da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updatedCurrencyConversionFee: ({preference}: {preference: 'company' | 'employee'}) =>
+            `ha aggiornato l’impostazione della commissione di conversione valuta a "${preference === 'company' ? 'Azienda' : 'Dipendente'} paga"`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',

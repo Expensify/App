@@ -8766,6 +8766,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `configurações de fatura copiadas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `configurações de viagem copiadas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updatedCurrencyConversionFee: ({preference}: {preference: 'company' | 'employee'}) =>
+            `atualizou a configuração da taxa de conversão de moeda para "${preference === 'company' ? 'Empresa' : 'Funcionário'} paga"`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',

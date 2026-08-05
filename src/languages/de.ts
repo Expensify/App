@@ -8827,6 +8827,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `Rechnungseinstellungen von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `Reiseeinstellungen von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
         },
+        updatedCurrencyConversionFee: ({preference}: {preference: 'company' | 'employee'}) =>
+            `hat die Einstellung der Währungsumrechnungsgebühr auf „${preference === 'company' ? 'Unternehmen' : 'Mitarbeiter'} zahlt“ aktualisiert`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
