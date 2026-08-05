@@ -1,3 +1,6 @@
+/**
+ * Builds the ordered Workspace menu items with their visibility and indicator states.
+ */
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/HRUtils';
 import {getObjectKeys} from '@libs/ObjectUtils';
