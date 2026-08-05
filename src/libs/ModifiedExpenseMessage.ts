@@ -1,6 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+import useLocalize from '@hooks/useLocalize';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -39,6 +40,7 @@ import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
 let environmentURL: string;
+const {formatPhoneNumber} = useLocalize();
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 /**
@@ -164,8 +166,8 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // - A 1:1 DM
     const currentUserAccountID = getPersonalDetailByEmail(currentUserLogin)?.accountID;
     const reportName = isPolicyExpenseChat(rootParentReport)
-        ? getPolicyExpenseChatName({report: rootParentReport, translate})
-        : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID, translate});
+        ? getPolicyExpenseChatName({report: rootParentReport, translate, formatPhoneNumber})
+        : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID, translate, formatPhoneNumber});
     const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true, policy});
     // If we can't determine either the report name or policy name, return the default message
     if (isEmpty(policyName) && !reportName) {
