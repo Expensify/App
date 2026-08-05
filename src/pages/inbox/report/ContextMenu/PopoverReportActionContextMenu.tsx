@@ -4,6 +4,7 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
 import useAncestors from '@hooks/useAncestors';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
@@ -356,6 +357,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {currentSearchHash} = useSearchQueryContext();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {deleteTransactions} = useDeleteTransactions({
         report,
         reportActions: reportActionRef.current ? [reportActionRef.current] : [],
@@ -396,6 +398,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     currentUserAccountID,
                     currentUserEmail: email ?? '',
                     policy: iouPolicy,
+                    getCurrencyDecimals,
                 });
             } else if (originalMessage?.IOUTransactionID) {
                 const deleteResult = deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);
@@ -464,6 +467,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         iouTransaction,
         iouOriginalTransaction,
         iouPolicy,
+        getCurrencyDecimals,
     ]);
 
     const hideDeleteModal = () => {
