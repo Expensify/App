@@ -9,9 +9,11 @@ contentType: topic
 
 # How to Write Agent Instructions
 
-Agents use natural-language instructions to determine how they should behave. Well-written instructions help Agents make more consistent decisions and reduce unexpected behavior.
+Agents use natural-language instructions to determine how they should behave. Well written instructions help Agents make more consistent decisions and reduce unexpected behavior.
 
 For personal Agents, instructions describe how the Agent should help manage your work. For Agent rules, instructions tell RuleBot how to handle expenses and reports in a workspace.
+
+To learn about how agents use instructions, see [How do Agents and Agent rules use instructions](/articles/new-expensify/ai-agents/Understand-How-AI-Agents-Work-in-Expensify#How-do-Agents-and-Agent-rules-use-instructions).
 
 ---
 
@@ -24,7 +26,6 @@ Workspace Admins can write and edit Agent rules for their workspaces.
 To learn how to create a personal Agent, see [Create and Manage Agents](/articles/new-expensify/ai-agents/Create-and-Manage-Agents).
 
 To learn how to create Agent rules, see [Automate Workflows with Agent Rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules).
-
 
 ---
 
@@ -106,6 +107,10 @@ Small changes often produce more reliable results than completely rewriting the 
 ## Should I write one large instruction or multiple smaller instructions?
 
 Multiple focused instructions are generally easier to understand, maintain, and troubleshoot than one set of instructions that handles many unrelated scenarios.
+
+## Are there pre-written agent instructions I can use?
+
+Yes. **Agent templates** are prebuilt personal Agents with pre-written instructions for common tasks. **Suggested Agent rules** are pre-written workspace Agent rules that you can use as a starting point for common workflows. You can review and customize the instructions before saving the rule.
 
 ## How specific should Agent instructions be?
 
