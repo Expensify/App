@@ -203,7 +203,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     const handleKeyPress = (e: TextInputKeyPressEvent) => {
         const event = e as unknown as KeyboardEvent;
         if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
-            // The markdown input inserts a line break for any unprevented Enter keydown, so the submit combo has to claim it first.
+            // The markdown input inserts a line break for any Enter keydown whose default is not already prevented, so the submit combo has to claim it first.
             event.preventDefault();
             handleSave();
         }
