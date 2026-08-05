@@ -11,7 +11,7 @@ import {exportReceiptsToZip} from '@libs/actions/Export';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchResults} from '@src/types/onyx';
+import type {Report, SearchResults} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -185,14 +185,15 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
 // Builds a search snapshot whose report entries carry a transactionCount, which the Reports-page action uses to
 // decide whether any selected report has expenses (and therefore receipts) to download.
 function makeReportSearchResults(reports: Array<{reportID: string; transactionCount: number}>): SearchResults {
-    const data: Record<string, unknown> = {};
+    const data: SearchResults['data'] = {};
     for (const report of reports) {
-        data[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {
+        const reportEntry: Report = {
             reportID: report.reportID,
             transactionCount: report.transactionCount,
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: `Report ${report.reportID}`,
         };
+        data[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = reportEntry;
     }
     return {
         data,
@@ -206,7 +207,7 @@ function makeReportSearchResults(reports: Array<{reportID: string; transactionCo
             sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
         },
-    } as SearchResults;
+    };
 }
 
 function getDownloadReceiptsOption(options: Array<DropdownOption<SearchHeaderOptionValue>>): DropdownOption<SearchHeaderOptionValue> | undefined {
