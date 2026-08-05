@@ -11,23 +11,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-// Export IDs currently shown by a mounted in-session status modal. The app-level reload handler skips these so
-// it doesn't duplicate a modal that's already up, and takes over surfacing an export once its owner unmounts
-// (e.g. the user navigates away before the export is ready).
-const exportIDsWithOpenModal = new Set<string>();
-
-function markExportModalOpen(exportID: string) {
-    exportIDsWithOpenModal.add(exportID);
-}
-
-function markExportModalClosed(exportID: string) {
-    exportIDsWithOpenModal.delete(exportID);
-}
-
-function isExportModalOpen(exportID: string): boolean {
-    return exportIDsWithOpenModal.has(exportID);
-}
-
 function sendExportFileFromConcierge(exportID: string, exportDownload: OnyxEntry<ExportDownload>) {
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -147,4 +130,4 @@ function exportReceiptsToZip(reportIDs: string[]): string {
     return exportID;
 }
 
-export {sendExportFileFromConcierge, clearExportDownload, clearStaleExportDownloads, exportReportsToPDF, exportReceiptsToZip, markExportModalOpen, markExportModalClosed, isExportModalOpen};
+export {sendExportFileFromConcierge, clearExportDownload, clearStaleExportDownloads, exportReportsToPDF, exportReceiptsToZip};

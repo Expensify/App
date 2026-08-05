@@ -1,6 +1,7 @@
 import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
 
-import {clearExportDownload, markExportModalClosed, markExportModalOpen} from '@libs/actions/Export';
+import {clearExportDownload} from '@libs/actions/Export';
+import {markExportModalClosed, markExportModalOpen} from '@libs/OpenExportModalsStore';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

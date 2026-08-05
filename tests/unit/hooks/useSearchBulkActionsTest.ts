@@ -16,9 +16,6 @@ const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTempl
 
 jest.mock('@libs/actions/Export', () => ({
     clearExportDownload: jest.fn(),
-    markExportModalOpen: jest.fn(),
-    markExportModalClosed: jest.fn(),
-    isExportModalOpen: jest.fn(),
 }));
 
 jest.mock('@libs/actions/Search', () => ({
