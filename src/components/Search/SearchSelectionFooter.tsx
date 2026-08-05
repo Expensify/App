@@ -91,8 +91,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {isOffline} = useNetwork();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const personalPolicy = usePolicy(personalPolicyID);
-    // The Preferences > Payment currency setting; the server converts search totals to this same currency when a
-    // search has no explicit target, so it's the footer's conversion target whenever the snapshot carries none.
+    // The Preferences > Payment currency setting. The server falls back to this same currency for search.currency,
+    // so a default derived from it won't change once a snapshot arrives carrying server totals.
     const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
     const [footerCurrencyState, setFooterCurrencyState] = useState<FooterCurrencyState>({
         searchHash: undefined,
