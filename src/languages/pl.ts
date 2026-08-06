@@ -7634,7 +7634,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 expenseLimitTypes: {
                     expense: 'Pojedynczy wydatek',
                     expenseSubtitle:
-                        'Oznaczaj kwoty wydatków według kategorii. Ta reguła zastępuje ogólną regułę maksymalnej kwoty wydatku w przestrzeni roboczej. Rezerwacje wielodniowe są oceniane na podstawie średniej za noc.',
+                        'Oznaczaj kwoty wydatków według kategorii. Ta reguła zastępuje ogólną regułę przestrzeni roboczej dotyczącą maksymalnej kwoty wydatku. Rezerwacje wielodniowe są oceniane na podstawie średniej za noc.',
                     daily: 'Suma kategorii',
                     dailySubtitle: 'Oznaczaj łączną dzienną kwotę wydatków według kategorii dla każdego raportu wydatków.',
                 },
@@ -9747,7 +9747,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Stawka jest ważna tylko do ${endDate}`,
         cannotMergeDuplicates: 'Możesz łączyć wydatki tylko w szkicach lub otwartych raportach. Wycofaj go i spróbuj ponownie.',
         overCategoryLimitPerNight: (formattedLimit: string) => `Cena za noc powyżej limitu kategorii ${formattedLimit}/osobę`,
-        overLimitPerNight: (formattedLimit: string) => `Stawka za noc powyżej limitu ${formattedLimit}/osobę`,
+        overLimitPerNight: (formattedLimit: string) => `Cena za noc powyżej limitu ${formattedLimit}/osobę`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Pole ${fieldName} jest wymagane`,

@@ -7639,7 +7639,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 expenseLimitTypes: {
                     expense: 'Gasto individual',
                     expenseSubtitle:
-                        'Marca importes de gastos por categoría. Esta regla reemplaza la regla general del espacio de trabajo para el importe máximo de gasto. Las reservas de varios días se evalúan usando la media por noche.',
+                        'Marca los importes de los gastos por categoría. Esta regla anula la regla general del espacio de trabajo sobre el importe máximo de gasto. Las reservas de varios días se evalúan usando la media por noche.',
                     daily: 'Total por categoría',
                     dailySubtitle: 'Marcar el gasto total por día por categoría en cada informe de gastos.',
                 },
@@ -9997,7 +9997,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `La tasa solo es válida desde ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `La tasa solo es válida hasta ${endDate}`,
         cannotMergeDuplicates: 'Solo puedes combinar gastos en informes en borrador o pendientes. Retíralo e inténtalo de nuevo.',
-        overCategoryLimitPerNight: (formattedLimit: string) => `Tarifa nocturna por encima del límite de categoría de ${formattedLimit}/persona`,
+        overCategoryLimitPerNight: (formattedLimit: string) => `Tarifa nocturna superior al límite de categoría de ${formattedLimit}/persona`,
         overLimitPerNight: (formattedLimit: string) => `Tarifa nocturna por encima del límite de ${formattedLimit}/persona`,
     },
     reportViolations: {

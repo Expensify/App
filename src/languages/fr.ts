@@ -7727,7 +7727,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 expenseLimitTypes: {
                     expense: 'Dépense individuelle',
                     expenseSubtitle:
-                        'Signalez les montants de dépenses par catégorie. Cette règle remplace la règle générale de l’espace de travail concernant le montant maximal de la dépense. Les réservations de plusieurs jours sont évaluées en fonction de la moyenne par nuit.',
+                        'Signaler les montants de dépenses par catégorie. Cette règle remplace la règle générale de l’espace de travail concernant le montant maximum de la dépense. Les réservations de plusieurs jours sont évaluées en utilisant la moyenne par nuit.',
                     daily: 'Total par catégorie',
                     dailySubtitle: 'Signaler le montant quotidien total par catégorie pour chaque note de frais.',
                 },
@@ -9863,7 +9863,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Le taux n’est valable que jusqu’au ${endDate}`,
         cannotMergeDuplicates: 'Vous ne pouvez fusionner des dépenses que sur des notes de frais à l’état de brouillon ou en circulation. Retirez-la puis réessayez.',
         overCategoryLimitPerNight: (formattedLimit: string) => `Tarif de nuit supérieur à la limite de catégorie de ${formattedLimit}/personne`,
-        overLimitPerNight: (formattedLimit: string) => `Tarif de nuit supérieur à la limite de ${formattedLimit}/personne`,
+        overLimitPerNight: (formattedLimit: string) => `Tarif de nuit dépassant la limite de ${formattedLimit}/personne`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} est obligatoire`,
