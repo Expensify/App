@@ -2334,6 +2334,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
         downloadCodes: '下载代码',
         copyCodes: '复制代码',
+        twoFactorAuthIsRequiredNetSuiteDescription: '出于安全考虑，NetSuite 要求使用双重身份验证来连接此集成。',
     },
     recoveryCodeForm: {
         error: {
@@ -5232,6 +5233,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                             netSuiteTokenSecret: '令牌密钥',
                         },
                         netSuiteAccountIDDescription: '在 NetSuite 中，前往 *Setup > Integration > SOAP Web Services Preferences*。',
+                    },
+                    enableOAuth: {
+                        title: '启用 OAuth 2.0',
+                        description: '在 NetSuite 中，依次前往 *Setup > Company > Enable Features > SuiteCloud*，在 *Manage Authentication* 下启用 *OAuth 2.0*。',
+                    },
+                    enableRestWebServices: {
+                        title: '启用 REST 网络服务',
+                        description: '在 NetSuite 中，依次前往 *Setup > Company > Enable Features > SuiteCloud*，在 *SuiteTalk（Web Services）* 下启用 *REST Web Services*。',
                     },
                 },
             },

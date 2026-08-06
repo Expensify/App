@@ -2393,6 +2393,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
         downloadCodes: 'コードをダウンロード',
         copyCodes: 'コードをコピー',
+        twoFactorAuthIsRequiredNetSuiteDescription: 'セキュリティ上の理由により、連携を接続するには NetSuite で二要素認証が必要です。',
     },
     recoveryCodeForm: {
         error: {
@@ -5358,6 +5359,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                             netSuiteTokenSecret: 'トークンシークレット',
                         },
                         netSuiteAccountIDDescription: 'NetSuite で、*Setup > Integration > SOAP Web Services Preferences* に移動します。',
+                    },
+                    enableOAuth: {
+                        title: 'OAuth 2.0 を有効にする',
+                        description: 'NetSuite で、*Setup > Company > Enable Features > SuiteCloud* に進み、*Manage Authentication* 内の *OAuth 2.0* を有効にします。',
+                    },
+                    enableRestWebServices: {
+                        title: 'REST Web サービスを有効にする',
+                        description: 'NetSuite で、*Setup > Company > Enable Features > SuiteCloud* に移動し、*SuiteTalk (Web Services)* セクション内で *REST Web Services* を有効にします。',
                     },
                 },
             },
