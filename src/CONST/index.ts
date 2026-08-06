@@ -750,6 +750,7 @@ const CONST = {
             OPEN: 'OPEN',
             DELETED: 'DELETED',
             LOCKED: 'LOCKED',
+            VALIDATION_FAILED: 'VALIDATION_FAILED',
         },
         MAX_LENGTH: {
             FULL_SSN: 9,
@@ -949,6 +950,7 @@ const CONST = {
             OPEN: 'OPEN',
             DELETED: 'DELETED',
             LOCKED: 'LOCKED',
+            VALIDATION_FAILED: 'VALIDATION_FAILED',
         },
     },
     ENABLE_GLOBAL_REIMBURSEMENTS: {
