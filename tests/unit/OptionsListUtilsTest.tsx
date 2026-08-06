@@ -7229,16 +7229,16 @@ describe('OptionsListUtils', () => {
                 participants: {[ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
             };
             const selfPersonalDetails = {
-                [ownerAccountID]: {accountID: ownerAccountID, displayName: 'Lullabyy', login: 'lullabyy@test.com'},
+                [ownerAccountID]: {accountID: ownerAccountID, displayName: 'Test', login: 'test@test.com'},
             };
 
-            await Onyx.merge(ONYXKEYS.SESSION, {accountID: ownerAccountID, email: 'lullabyy@test.com'});
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: ownerAccountID, email: 'test@test.com'});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
             const option = getReportOption({reportID}, undefined, undefined, selfPersonalDetails, undefined, undefined, undefined, ownerAccountID, translateLocal);
 
-            expect(option.text).toBe(`Lullabyy (${translateLocal('common.you').toLowerCase()})`);
+            expect(option.text).toBe(`Test (${translateLocal('common.you').toLowerCase()})`);
             expect(option.alternateText).toBe(translateLocal('reportActionsView.yourSpace'));
         });
 
