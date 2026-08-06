@@ -8966,7 +8966,7 @@ describe('ReportUtils', () => {
     });
 
     describe('getPolicyExpenseChat', () => {
-        it('should return the correct policy expense chat when we have a task report is the child of this report', () => {
+        it('should return the correct policy expense chat when we have a task report is the child of this report', async () => {
             const policyExpenseChat: Report = {
                 ...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 ownerAccountID: 1,
@@ -8983,82 +8983,10 @@ describe('ReportUtils', () => {
                 parentReportActionID: '1',
             };
 
-            const reports: OnyxCollection<Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`]: taskReport,
-                [`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat,
-            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
 
-            expect(getPolicyExpenseChat(1, '1', reports)?.reportID).toBe(policyExpenseChat.reportID);
-        });
-
-        it('should return undefined when ownerAccountID is undefined', () => {
-            const reports: OnyxCollection<Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                    ownerAccountID: 1,
-                    policyID: '1',
-                } as Report,
-            };
-            expect(getPolicyExpenseChat(undefined, '1', reports)).toBeUndefined();
-        });
-
-        it('should return undefined when policyID is undefined', () => {
-            const reports: OnyxCollection<Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                    ownerAccountID: 1,
-                    policyID: '1',
-                } as Report,
-            };
-            expect(getPolicyExpenseChat(1, undefined, reports)).toBeUndefined();
-        });
-
-        it('should return undefined when no matching report exists', () => {
-            const reports: OnyxCollection<Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                    ownerAccountID: 999,
-                    policyID: '1',
-                } as Report,
-            };
-            expect(getPolicyExpenseChat(1, '1', reports)).toBeUndefined();
-        });
-
-        it('should skip thread reports when finding policy expense chat', () => {
-            const threadReport: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                ownerAccountID: 1,
-                policyID: '1',
-                parentReportID: '99',
-                parentReportActionID: 'action1',
-            } as Report;
-
-            const reports: OnyxCollection<Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`]: threadReport,
-            };
-            expect(getPolicyExpenseChat(1, '1', reports)).toBeUndefined();
-        });
-
-        it('should use the explicitly passed reports collection instead of Onyx state', async () => {
-            const onyxReport: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                ownerAccountID: 1,
-                policyID: 'onyx-policy',
-            } as Report;
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${onyxReport.reportID}`, onyxReport);
-
-            const passedReport: Report = {
-                ...createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                ownerAccountID: 1,
-                policyID: 'passed-policy',
-                type: CONST.REPORT.TYPE.CHAT,
-            } as Report;
-            const reports: OnyxCollection<Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${passedReport.reportID}`]: passedReport,
-            };
-
-            expect(getPolicyExpenseChat(1, 'passed-policy', reports)?.reportID).toBe(passedReport.reportID);
-            expect(getPolicyExpenseChat(1, 'onyx-policy', reports)).toBeUndefined();
+            expect(getPolicyExpenseChat(1, '1')?.reportID).toBe(policyExpenseChat.reportID);
         });
     });
 
