@@ -1485,10 +1485,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         duplicateHandlerRef.current();
     }, []);
 
-    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id)}, [
-        currentUserPersonalDetails.accountID,
-        defaultExpensePolicy?.id,
-    ]);
+    const activePolicyExpenseChatSelector = useMemo(
+        () => policyExpenseChatSelector(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id),
+        [currentUserPersonalDetails.accountID, defaultExpensePolicy?.id],
+    );
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: activePolicyExpenseChatSelector});
 
     const allTransactionsForDuplicate = useMemo(
         () =>

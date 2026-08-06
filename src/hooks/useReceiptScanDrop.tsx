@@ -45,10 +45,7 @@ function useReceiptScanDrop() {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(currentUserPersonalDetails.accountID, activePolicy?.id)}, [
-        currentUserPersonalDetails.accountID,
-        activePolicy?.id,
-    ]);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(currentUserPersonalDetails.accountID, activePolicy?.id)});
 
     // Memoize the new report ID to avoid re-generating it on every render and cause the hook to change, which leads to performance issues.
     const newReportID = useMemo(() => generateReportID(), []);

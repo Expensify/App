@@ -45,10 +45,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id)}, [
-        currentUserPersonalDetails.accountID,
-        defaultExpensePolicy?.id,
-    ]);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id)});
 
     const handleDuplicateReports = () => {
         bulkDuplicateReports({

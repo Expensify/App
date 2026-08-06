@@ -66,7 +66,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
         sourcePolicyIDMap[transactionID] = report?.policyID;
     }
 
-    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)}, [accountID, defaultExpensePolicy?.id]);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)});
     const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
 
     const handleDuplicate = () => {
