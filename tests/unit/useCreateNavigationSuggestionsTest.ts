@@ -153,7 +153,6 @@ jest.mock('@libs/PolicyUtils', () => ({
 
 jest.mock('@libs/ReportUtils', () => ({
     generateReportID: jest.fn(() => 'draft-report'),
-    hasViolations: jest.fn(() => false),
 }));
 
 jest.mock('@navigation/helpers/isOnSearchMoneyRequestReportPage', () => ({
