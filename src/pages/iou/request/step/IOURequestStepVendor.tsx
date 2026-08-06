@@ -112,6 +112,9 @@ function IOURequestStepVendor({
             updateMoneyRequestVendor({
                 transactionID,
                 vendorID: item.value,
+                // The injected "None" row clears the vendor: its value is '' but its text is the localized "None" label.
+                // Only forward a display name for a real vendor so a clear request never persists a bogus name.
+                vendorName: item.value ? (item.text ?? '') : '',
                 transaction,
                 transactionThreadReport: report,
                 parentReport,
