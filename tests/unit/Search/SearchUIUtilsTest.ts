@@ -17,6 +17,7 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
+import type {ListItem} from '@components/SelectionList/types';
 
 import Navigation from '@navigation/Navigation';
 
@@ -11953,6 +11954,43 @@ describe('getWithdrawalStatusDisplayText', () => {
                 translateLocal,
             ),
         ).toBe('Pending, Cleared, Failed');
+    });
+});
+
+describe('isCashBackWithdrawalGroup', () => {
+    const withdrawalGroup = (overrides: Partial<TransactionWithdrawalIDGroupListItemType> = {}): TransactionWithdrawalIDGroupListItemType => ({
+        groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+        transactions: [],
+        entryID: 88002,
+        count: 0,
+        total: -2500,
+        currency: 'USD',
+        accountNumber: '4321',
+        bankName: CONST.BANK_NAMES.AMERICAN_EXPRESS,
+        debitPosted: '2025-07-20',
+        state: 8,
+        keyForList: 'group_88002',
+        ...overrides,
+    });
+
+    it('returns true for a withdrawal group flagged as cash back', () => {
+        expect(SearchUIUtils.isCashBackWithdrawalGroup(withdrawalGroup({isCashBack: true}))).toBe(true);
+    });
+
+    it('returns false for a normal settlement withdrawal group', () => {
+        expect(SearchUIUtils.isCashBackWithdrawalGroup(withdrawalGroup())).toBe(false);
+        expect(SearchUIUtils.isCashBackWithdrawalGroup(withdrawalGroup({isCashBack: false}))).toBe(false);
+    });
+
+    it('stays false for a group of another type that happens to carry the flag', () => {
+        // Guards against a future group type silently opting into cash back rendering.
+        const cardGroup = {...withdrawalGroup({isCashBack: true}), groupedBy: CONST.SEARCH.GROUP_BY.CARD};
+        expect(SearchUIUtils.isCashBackWithdrawalGroup(cardGroup)).toBe(false);
+    });
+
+    it('stays false for a row that is not a transaction group at all', () => {
+        const plainRow: ListItem = {keyForList: 'not-a-group'};
+        expect(SearchUIUtils.isCashBackWithdrawalGroup(plainRow)).toBe(false);
     });
 });
 
