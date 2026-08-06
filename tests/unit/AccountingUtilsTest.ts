@@ -5,8 +5,10 @@ import {getAccountingIntegrationDisplayName, getExportIntegrationDisplayName, ge
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 
+import createMock from '../utils/createMock';
+
 const INTUIT_ENTERPRISE_SUITE_SCOPE = 'app-foundations.custom-dimensions.read';
-const translate = ((key: string) => {
+const translate: LocaleContextProps['translate'] = (key) => {
     if (key === 'workspace.accounting.intuitEnterpriseSuite') {
         return 'Intuit Enterprise Suite';
     }
@@ -14,14 +16,14 @@ const translate = ((key: string) => {
         return 'QuickBooks Online';
     }
     return key;
-}) as LocaleContextProps['translate'];
+};
 
 function buildQBOConnectionPolicy(scope?: string): Policy {
     if (!scope) {
-        return {} as Policy;
+        return createMock<Policy>({});
     }
 
-    return {
+    return createMock<Policy>({
         connections: {
             quickbooksOnline: {
                 config: {
@@ -31,7 +33,7 @@ function buildQBOConnectionPolicy(scope?: string): Policy {
                 },
             },
         },
-    } as Policy;
+    });
 }
 
 describe('AccountingUtils', () => {

@@ -5840,7 +5840,7 @@ describe('ReportActionsUtils', () => {
                     errorMessage: 'Auth token expired',
                 },
             } as ReportAction;
-            const policy = {
+            const policy = createMock<Policy>({
                 connections: {
                     quickbooksOnline: {
                         config: {
@@ -5850,7 +5850,7 @@ describe('ReportActionsUtils', () => {
                         },
                     },
                 },
-            } as Policy;
+            });
 
             const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID, false, policy);
             expect(result).toContain('Intuit Enterprise Suite');
