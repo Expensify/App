@@ -124,6 +124,14 @@ function getWorkspaceMenuItems({
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const hasSyncError = shouldShowSyncError(policy, connectionInProgress, accountingConnectionNames);
     const hasHRError = shouldShowHRConnectionError(policy, connectionInProgress, isPolicyAdmin(policy));
+    const getHRBrickRoadIndicator = () => {
+        if (hasHRError) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
+        if (isMergeHRCompleteSetupNeeded(policy)) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        }
+    };
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError =
@@ -202,18 +210,11 @@ function getWorkspaceMenuItems({
         }
 
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED] && canReadMoreFeatures) {
-            let hrBrickRoadIndicator;
-            if (hasHRError) {
-                hrBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-            } else if (isMergeHRCompleteSetupNeeded(policy)) {
-                hrBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
-            }
-
             items.push({
                 translationKey: 'workspace.common.hr',
                 icon: icons.Users,
                 getRoute: () => ROUTES.WORKSPACE_HR.getRoute(policyID),
-                brickRoadIndicator: hrBrickRoadIndicator,
+                brickRoadIndicator: getHRBrickRoadIndicator(),
                 screenName: SCREENS.WORKSPACE.HR,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.HR,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
