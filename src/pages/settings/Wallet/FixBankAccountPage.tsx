@@ -2,6 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -21,6 +22,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
+import React, {useState} from 'react';
 
 type FixBankAccountPageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DYNAMIC_FIX_BANK_ACCOUNT>['route'];
 
@@ -71,6 +73,17 @@ function FixBankAccountPage() {
                         shouldShowButton
                         buttonText={translate('walletPage.fixBankAccount.successButton')}
                         onButtonPress={onDismiss}
+                        containerStyle={styles.flex1}
+                    />
+                )}
+                {!didSend && isInsufficientFunds && (
+                    <ConfirmationPage
+                        illustration={LottieAnimations.Fireworks}
+                        heading={translate('common.actionRequired')}
+                        description={<RenderHTML html={translate('walletPage.fixBankAccount.insufficientFundsBody')} />}
+                        shouldShowButton
+                        buttonText={translate('walletPage.fixBankAccount.resendButton')}
+                        onButtonPress={onResend}
                         containerStyle={styles.flex1}
                     />
                 )}
