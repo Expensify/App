@@ -231,8 +231,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 text: translate('workspace.accounting.disconnect'),
                 onSelected: () => {
                     showConfirmModal({
-                        title: translate('workspace.accounting.disconnectTitle', {connectionName: connectedIntegrationDisplayName}),
-                        prompt: translate('workspace.accounting.disconnectPrompt', {connectionName: connectedIntegrationDisplayName}),
+                        title: translate('workspace.accounting.disconnectTitle', connectedIntegrationDisplayName),
+                        prompt: translate('workspace.accounting.disconnectPrompt', connectedIntegrationDisplayName),
                         confirmText: translate('workspace.accounting.disconnect'),
                         cancelText: translate('common.cancel'),
                         danger: true,
@@ -551,7 +551,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
         let connectionMessage;
         if (isSyncInProgress && connectionSyncStage) {
-            connectionMessage = translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncStage, integrationName: integrationData?.title});
+            connectionMessage = translate('workspace.accounting.connections.syncStageName', connectionSyncStage, integrationData?.title);
         } else if (!isConnectionVerified) {
             connectionMessage = translate('workspace.accounting.notSync');
         } else {

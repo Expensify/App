@@ -4790,30 +4790,30 @@ ${amount} per ${merchant} - ${date}`,
         },
         qbo: {
             connectedTo: 'Collegato a',
-            importDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Scegli quali configurazioni di codifica importare da ${integrationName} in Expensify.`,
+            importDescription: (integrationName = 'QuickBooks Online') => `Scegli quali configurazioni di codifica importare da ${integrationName} in Expensify.`,
             classes: 'Classi',
             locations: 'Sedi',
             customers: 'Clienti/progetti',
             items: 'Articoli',
-            accountsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Il tuo piano dei conti di ${integrationName} verrà importato in Expensify come categorie.`,
+            accountsDescription: (integrationName = 'QuickBooks Online') => `Il tuo piano dei conti di ${integrationName} verrà importato in Expensify come categorie.`,
             accountsSwitchTitle: 'Scegli se importare i nuovi conti come categorie abilitate o disabilitate.',
             accountsSwitchDescription: 'Le categorie abilitate saranno disponibili per i membri da selezionare quando creano le loro spese.',
-            classesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Scegli come gestire le classi di ${integrationName} in Expensify.`,
-            customersDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Scegli come gestire i clienti/progetti di ${integrationName} in Expensify.`,
-            locationsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Scegli come gestire le sedi di ${integrationName} in Expensify.`,
-            itemsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Scegli come gestire gli articoli di ${integrationName} in Expensify.`,
-            taxesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Scegli come gestire le imposte di ${integrationName} in Expensify.`,
-            locationsLineItemsRestrictionDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+            classesDescription: (integrationName = 'QuickBooks Online') => `Scegli come gestire le classi di ${integrationName} in Expensify.`,
+            customersDescription: (integrationName = 'QuickBooks Online') => `Scegli come gestire i clienti/progetti di ${integrationName} in Expensify.`,
+            locationsDescription: (integrationName = 'QuickBooks Online') => `Scegli come gestire le sedi di ${integrationName} in Expensify.`,
+            itemsDescription: (integrationName = 'QuickBooks Online') => `Scegli come gestire gli articoli di ${integrationName} in Expensify.`,
+            taxesDescription: (integrationName = 'QuickBooks Online') => `Scegli come gestire le imposte di ${integrationName} in Expensify.`,
+            locationsLineItemsRestrictionDescription: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} non supporta le sedi a livello di riga per assegni o fatture fornitori. Se desideri avere le sedi a livello di riga, assicurati di utilizzare registrazioni contabili e spese con carta di credito/debito.`,
-            taxesJournalEntrySwitchNote: ({integrationName = 'QuickBooks Online'} = {}) =>
+            taxesJournalEntrySwitchNote: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} non supporta le imposte sulle registrazioni contabili. Modifica l’opzione di esportazione in fattura fornitore o assegno.`,
-            exportDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Configura come i dati di Expensify vengono esportati in ${integrationName}.`,
+            exportDescription: (integrationName = 'QuickBooks Online') => `Configura come i dati di Expensify vengono esportati in ${integrationName}.`,
             date: 'Data di esportazione',
             exportInvoices: 'Esporta fatture in',
             exportExpensifyCard: 'Esporta le transazioni Carta Expensify come',
             exportDate: {
                 label: 'Data di esportazione',
-                description: ({integrationName = 'QuickBooks Online'} = {}) => `Usa questa data quando esporti i report in ${integrationName}.`,
+                description: (integrationName = 'QuickBooks Online') => `Usa questa data quando esporti i report in ${integrationName}.`,
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: "Data dell'ultima spesa",
@@ -4821,7 +4821,7 @@ ${amount} per ${merchant} - ${date}`,
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Data di esportazione',
-                        description: ({integrationName = 'QuickBooks Online'} = {}) => `Data in cui il report è stato esportato in ${integrationName}.`,
+                        description: (integrationName = 'QuickBooks Online') => `Data in cui il report è stato esportato in ${integrationName}.`,
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Data di invio',
@@ -4831,11 +4831,11 @@ ${amount} per ${merchant} - ${date}`,
             },
             receivable: 'Crediti verso clienti',
             archive: 'Archivio crediti verso clienti',
-            exportInvoicesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Usa questo conto quando esporti le fatture in ${integrationName}.`,
-            exportCompanyCardsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Imposta come esportare gli acquisti con carta aziendale in ${integrationName}.`,
+            exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Usa questo conto quando esporti le fatture in ${integrationName}.`,
+            exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Imposta come esportare gli acquisti con carta aziendale in ${integrationName}.`,
             vendor: 'Fornitore',
             defaultVendorDescription: 'Imposta un fornitore predefinito che verrà applicato a tutte le transazioni con carta di credito al momento dell’esportazione.',
-            exportOutOfPocketExpensesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Imposta come esportare le spese anticipate in ${integrationName}.`,
+            exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Imposta come esportare le spese anticipate in ${integrationName}.`,
             exportCheckDescription: 'Creeremo un assegno dettagliato per ogni report di Expensify e lo invieremo dal conto bancario qui sotto.',
             exportJournalEntryDescription: 'Creeremo una registrazione contabile dettagliata per ogni report di Expensify e la registreremo sul conto qui sotto.',
             exportVendorBillDescription:
@@ -4848,32 +4848,30 @@ ${amount} per ${merchant} - ${date}`,
             notConfigured: 'Non configurato',
             bankAccountDescription: 'Scegli da dove inviare gli assegni.',
             creditCardAccount: 'Conto della carta di credito',
-            travelInvoicingDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+            travelInvoicingDescription: (integrationName = 'QuickBooks Online') =>
                 `Le spese di viaggio verranno esportate come addebiti su carta di credito nel conto ${integrationName} specificato di seguito.`,
-            companyCardsLocationEnabledDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+            companyCardsLocationEnabledDescription: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} non supporta le sedi nelle esportazioni di fatture fornitore quando le sedi sono importate come tag. Poiché nel tuo spazio di lavoro hai sedi importate come tag, questa opzione di esportazione non è disponibile.`,
-            outOfPocketTaxEnabledDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+            outOfPocketTaxEnabledDescription: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} non supporta le imposte nelle esportazioni delle registrazioni contabili. Poiché hai le imposte abilitate nel tuo spazio di lavoro, questa opzione di esportazione non è disponibile.`,
             outOfPocketTaxEnabledError: 'Le registrazioni contabili non sono disponibili quando le imposte sono abilitate. Scegli un’altra opzione di esportazione.',
             advancedConfig: {
-                autoSyncDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Expensify si sincronizzerà automaticamente con ${integrationName} ogni giorno.`,
+                autoSyncDescription: (integrationName = 'QuickBooks Online') => `Expensify si sincronizzerà automaticamente con ${integrationName} ogni giorno.`,
                 inviteEmployees: 'Invita dipendenti',
-                inviteEmployeesDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
-                    `Importa i record dei dipendenti da ${integrationName} e invita i dipendenti a questo workspace.`,
+                inviteEmployeesDescription: (integrationName = 'QuickBooks Online') => `Importa i record dei dipendenti da ${integrationName} e invita i dipendenti a questo workspace.`,
                 createEntities: 'Crea automaticamente le entità',
-                createEntitiesDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                createEntitiesDescription: (integrationName = 'QuickBooks Online') =>
                     `Expensify creerà automaticamente i fornitori in ${integrationName} se non esistono già e creerà automaticamente i clienti quando si esportano le fatture.`,
-                reimbursedReportsDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                reimbursedReportsDescription: (integrationName = 'QuickBooks Online') =>
                     `Ogni volta che un report viene pagato tramite Expensify ACH, il corrispondente pagamento della fattura verrà creato nell’account ${integrationName} qui sotto.`,
-                qboBillPaymentAccount: ({integrationName = 'QuickBooks Online'} = {}) => `Conto pagamenti fatture ${integrationName}`,
-                qboInvoiceCollectionAccount: ({integrationName = 'QuickBooks Online'} = {}) => `Conto incassi fatture ${integrationName}`,
-                accountSelectDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Scegli da dove pagare le fatture e creeremo il pagamento in ${integrationName}.`,
-                invoiceAccountSelectorDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
-                    `Scegli dove ricevere i pagamenti delle fatture e creeremo il pagamento in ${integrationName}.`,
+                qboBillPaymentAccount: (integrationName = 'QuickBooks Online') => `Conto pagamenti fatture ${integrationName}`,
+                qboInvoiceCollectionAccount: (integrationName = 'QuickBooks Online') => `Conto incassi fatture ${integrationName}`,
+                accountSelectDescription: (integrationName = 'QuickBooks Online') => `Scegli da dove pagare le fatture e creeremo il pagamento in ${integrationName}.`,
+                invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') => `Scegli dove ricevere i pagamenti delle fatture e creeremo il pagamento in ${integrationName}.`,
             },
-            debitCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+            debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `Abbineremo automaticamente il nome dell'esercente sulla transazione con carta di debito ai fornitori corrispondenti in ${integrationName}. Se non esistono fornitori, creeremo un fornitore “Spese varie carta di debito” per l’associazione.`,
-            creditCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+            creditCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `Abbineremo automaticamente il nome dell’esercente sulla transazione con carta di credito a qualsiasi fornitore corrispondente in ${integrationName}. Se non esistono fornitori, creeremo un fornitore “Varie carta di credito” per l’associazione.`,
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Carta di debito',
@@ -4898,15 +4896,15 @@ ${amount} per ${merchant} - ${date}`,
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Scegli un conto valido per l’esportazione degli assegni',
             },
             exportDestinationSetupAccountsInfo: {
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: (integrationName = 'QuickBooks Online') =>
                     `Per utilizzare l’esportazione delle fatture fornitore, configura un conto debiti verso fornitori in ${integrationName}`,
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: (integrationName = 'QuickBooks Online') =>
                     `Per utilizzare l’esportazione delle registrazioni contabili, configura un conto contabile in ${integrationName}`,
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: (integrationName = 'QuickBooks Online') =>
                     `Per usare l’esportazione degli assegni, configura un conto bancario in ${integrationName}`,
             },
             noAccountsFound: 'Nessun account trovato',
-            noAccountsFoundDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Aggiungi il conto in ${integrationName} e sincronizza nuovamente la connessione.`,
+            noAccountsFoundDescription: (integrationName = 'QuickBooks Online') => `Aggiungi il conto in ${integrationName} e sincronizza nuovamente la connessione.`,
             accountingMethods: {
                 label: 'Quando esportare',
                 description: 'Scegli quando esportare le spese:',
@@ -6748,9 +6746,9 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             syncNow: 'Sincronizza ora',
             disconnect: 'Disconnetti',
             reinstall: 'Reinstalla connettore',
-            disconnectTitle: ({connectionName = 'integrazione'} = {}) => `Disconnetti ${connectionName}`,
-            connectTitle: ({connectionName}) => `Collega ${connectionName}`,
-            syncError: ({connectionName}) => `Impossibile connettersi a ${connectionName}`,
+            disconnectTitle: (connectionName = 'integrazione') => `Disconnetti ${connectionName}`,
+            connectTitle: (connectionName) => `Collega ${connectionName}`,
+            syncError: (connectionName) => `Impossibile connettersi a ${connectionName}`,
             accounts: 'Piano dei conti',
             taxes: 'Tasse',
             imported: 'Importato',
@@ -6765,8 +6763,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importato come campi del report',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Impostazione predefinita dipendente NetSuite',
             },
-            disconnectPrompt: ({connectionName = 'questa integrazione'} = {}) => `Sei sicuro di voler disconnettere ${connectionName}?`,
-            connectPrompt: ({connectionName}) => `Sei sicuro di voler collegare ${connectionName}? Questo rimuoverà tutte le connessioni contabili esistenti.`,
+            disconnectPrompt: (connectionName = 'questa integrazione') => `Sei sicuro di voler disconnettere ${connectionName}?`,
+            connectPrompt: (connectionName) => `Sei sicuro di voler collegare ${connectionName}? Questo rimuoverà tutte le connessioni contabili esistenti.`,
             enterCredentials: 'Inserisci le tue credenziali',
             reconnect: 'Riconnetti',
             updateCredentials: 'Aggiorna credenziali',
@@ -6785,7 +6783,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 },
             },
             connections: {
-                syncStageName: ({stage, integrationName = 'QuickBooks Online'}) => {
+                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':

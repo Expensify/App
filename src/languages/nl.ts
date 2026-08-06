@@ -4785,30 +4785,30 @@ ${amount} voor ${merchant} - ${date}`,
         },
         qbo: {
             connectedTo: 'Verbonden met',
-            importDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Kies welke coderingsconfiguraties je wilt importeren van ${integrationName} naar Expensify.`,
+            importDescription: (integrationName = 'QuickBooks Online') => `Kies welke coderingsconfiguraties je wilt importeren van ${integrationName} naar Expensify.`,
             classes: 'Klassen',
             locations: 'Locaties',
             customers: 'Klanten/projecten',
             items: 'Artikelen',
-            accountsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Je ${integrationName}-rekeningschema wordt in Expensify geïmporteerd als categorieën.`,
+            accountsDescription: (integrationName = 'QuickBooks Online') => `Je ${integrationName}-rekeningschema wordt in Expensify geïmporteerd als categorieën.`,
             accountsSwitchTitle: 'Kies of je nieuwe rekeningen wilt importeren als ingeschakelde of uitgeschakelde categorieën.',
             accountsSwitchDescription: 'Ingeschakelde categorieën zijn beschikbaar voor leden om te selecteren wanneer zij hun declaraties aanmaken.',
-            classesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Kies hoe je ${integrationName}‑klassen in Expensify wilt verwerken.`,
-            customersDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Kies hoe je ${integrationName}-klanten/-projecten in Expensify wilt afhandelen.`,
-            locationsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Kies hoe je ${integrationName}-locaties in Expensify wilt verwerken.`,
-            itemsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Kies hoe je ${integrationName}-artikelen in Expensify wilt verwerken.`,
-            taxesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Kies hoe je ${integrationName}-belastingen in Expensify wilt afhandelen.`,
-            locationsLineItemsRestrictionDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+            classesDescription: (integrationName = 'QuickBooks Online') => `Kies hoe je ${integrationName}‑klassen in Expensify wilt verwerken.`,
+            customersDescription: (integrationName = 'QuickBooks Online') => `Kies hoe je ${integrationName}-klanten/-projecten in Expensify wilt afhandelen.`,
+            locationsDescription: (integrationName = 'QuickBooks Online') => `Kies hoe je ${integrationName}-locaties in Expensify wilt verwerken.`,
+            itemsDescription: (integrationName = 'QuickBooks Online') => `Kies hoe je ${integrationName}-artikelen in Expensify wilt verwerken.`,
+            taxesDescription: (integrationName = 'QuickBooks Online') => `Kies hoe je ${integrationName}-belastingen in Expensify wilt afhandelen.`,
+            locationsLineItemsRestrictionDescription: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} ondersteunt geen locaties op regelniveau voor cheques of leveranciersfacturen. Als je locaties op regelniveau wilt gebruiken, zorg er dan voor dat je boekingen en creditcard-/debitcarduitgaven gebruikt.`,
-            taxesJournalEntrySwitchNote: ({integrationName = 'QuickBooks Online'} = {}) =>
+            taxesJournalEntrySwitchNote: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} ondersteunt geen belastingen op journaalposten. Wijzig je exportoptie naar leveranciersfactuur of cheque.`,
-            exportDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Configureren hoe Expensify-gegevens worden geëxporteerd naar ${integrationName}.`,
+            exportDescription: (integrationName = 'QuickBooks Online') => `Configureren hoe Expensify-gegevens worden geëxporteerd naar ${integrationName}.`,
             date: 'Exportdatum',
             exportInvoices: 'Facturen exporteren naar',
             exportExpensifyCard: 'Exporteer Expensify Kaart-transacties als',
             exportDate: {
                 label: 'Exportdatum',
-                description: ({integrationName = 'QuickBooks Online'} = {}) => `Gebruik deze datum bij het exporteren van rapporten naar ${integrationName}.`,
+                description: (integrationName = 'QuickBooks Online') => `Gebruik deze datum bij het exporteren van rapporten naar ${integrationName}.`,
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Datum van laatste uitgave',
@@ -4816,7 +4816,7 @@ ${amount} voor ${merchant} - ${date}`,
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Exportdatum',
-                        description: ({integrationName = 'QuickBooks Online'} = {}) => `Datum waarop het rapport is geëxporteerd naar ${integrationName}.`,
+                        description: (integrationName = 'QuickBooks Online') => `Datum waarop het rapport is geëxporteerd naar ${integrationName}.`,
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Ingediend op datum',
@@ -4826,11 +4826,11 @@ ${amount} voor ${merchant} - ${date}`,
             },
             receivable: 'Debiteuren',
             archive: 'Archief debiteuren',
-            exportInvoicesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Gebruik deze rekening bij het exporteren van facturen naar ${integrationName}.`,
-            exportCompanyCardsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Stel in hoe aankopen met bedrijfskaarten worden geëxporteerd naar ${integrationName}.`,
+            exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Gebruik deze rekening bij het exporteren van facturen naar ${integrationName}.`,
+            exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Stel in hoe aankopen met bedrijfskaarten worden geëxporteerd naar ${integrationName}.`,
             vendor: 'Leverancier',
             defaultVendorDescription: 'Stel een standaardleverancier in die bij export op alle creditcardtransacties wordt toegepast.',
-            exportOutOfPocketExpensesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Stel in hoe contante uitgaven worden geëxporteerd naar ${integrationName}.`,
+            exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Stel in hoe contante uitgaven worden geëxporteerd naar ${integrationName}.`,
             exportCheckDescription: 'We maken een gespecificeerde cheque voor elk Expensify-rapport en versturen die vanaf de onderstaande bankrekening.',
             exportJournalEntryDescription: 'We maken een gespecificeerde journaalpost voor elk Expensify-rapport en boeken deze op de onderstaande rekening.',
             exportVendorBillDescription:
@@ -4843,31 +4843,31 @@ ${amount} voor ${merchant} - ${date}`,
             notConfigured: 'Niet geconfigureerd',
             bankAccountDescription: 'Kies vanaf waar cheques worden verzonden.',
             creditCardAccount: 'Creditcardrekening',
-            travelInvoicingDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+            travelInvoicingDescription: (integrationName = 'QuickBooks Online') =>
                 `Reiskosten worden als creditcardkosten geëxporteerd naar het hieronder opgegeven ${integrationName}-account.`,
-            companyCardsLocationEnabledDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+            companyCardsLocationEnabledDescription: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} ondersteunt geen locaties op leveranciersfactuur-exporten wanneer locaties als tags worden geïmporteerd. Omdat je in je werkruimte locaties als tags hebt geïmporteerd, is deze exportoptie niet beschikbaar.`,
-            outOfPocketTaxEnabledDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+            outOfPocketTaxEnabledDescription: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} ondersteunt geen belastingen op exports van journaalboekingen. Omdat je belastingen hebt ingeschakeld in je workspace, is deze exportoptie niet beschikbaar.`,
             outOfPocketTaxEnabledError: 'Boekingen zijn niet beschikbaar wanneer belastingen zijn ingeschakeld. Kies een andere exportoptie.',
             advancedConfig: {
-                autoSyncDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Expensify wordt elke dag automatisch gesynchroniseerd met ${integrationName}.`,
+                autoSyncDescription: (integrationName = 'QuickBooks Online') => `Expensify wordt elke dag automatisch gesynchroniseerd met ${integrationName}.`,
                 inviteEmployees: 'Werknemers uitnodigen',
-                inviteEmployeesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Import ${integrationName}-medewerkersgegevens en nodig medewerkers uit naar deze werkruimte.`,
+                inviteEmployeesDescription: (integrationName = 'QuickBooks Online') => `Import ${integrationName}-medewerkersgegevens en nodig medewerkers uit naar deze werkruimte.`,
                 createEntities: 'Entiteiten automatisch aanmaken',
-                createEntitiesDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                createEntitiesDescription: (integrationName = 'QuickBooks Online') =>
                     `Expensify maakt automatisch leveranciers aan in ${integrationName} als deze nog niet bestaan, en maakt automatisch klanten aan bij het exporteren van facturen.`,
-                reimbursedReportsDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                reimbursedReportsDescription: (integrationName = 'QuickBooks Online') =>
                     `Elke keer dat een rapport wordt betaald via Expensify ACH, wordt de bijbehorende rekeningbetaling aangemaakt in de onderstaande ${integrationName}-account.`,
-                qboBillPaymentAccount: ({integrationName = 'QuickBooks Online'} = {}) => `${integrationName}-betaalrekening voor rekeningen`,
-                qboInvoiceCollectionAccount: ({integrationName = 'QuickBooks Online'} = {}) => `${integrationName}-incassoaccount voor facturen`,
-                accountSelectDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Kies vanwaar je rekeningen wilt betalen en wij maken de betaling aan in ${integrationName}.`,
-                invoiceAccountSelectorDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                qboBillPaymentAccount: (integrationName = 'QuickBooks Online') => `${integrationName}-betaalrekening voor rekeningen`,
+                qboInvoiceCollectionAccount: (integrationName = 'QuickBooks Online') => `${integrationName}-incassoaccount voor facturen`,
+                accountSelectDescription: (integrationName = 'QuickBooks Online') => `Kies vanwaar je rekeningen wilt betalen en wij maken de betaling aan in ${integrationName}.`,
+                invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') =>
                     `Kies waar je factuurbetalingen wilt ontvangen en we maken de betaling aan in ${integrationName}.`,
             },
-            debitCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+            debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `We koppelen de naam van de handelaar op de debetkaarttransactie automatisch aan alle bijbehorende leveranciers in ${integrationName}. Als er geen leveranciers bestaan, maken we een leverancier ‘Debit Card Misc.’ aan voor de koppeling.`,
-            creditCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+            creditCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `We koppelen automatisch de naam van de handelaar op de creditcardtransactie aan de bijbehorende leveranciers in ${integrationName}. Als er geen leveranciers bestaan, maken we een leverancier ‘Credit Card Misc.’ aan voor de koppeling.`,
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Debetkaart',
@@ -4891,15 +4891,15 @@ ${amount} voor ${merchant} - ${date}`,
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Kies een geldig rekeningnummer voor het exporteren van cheques',
             },
             exportDestinationSetupAccountsInfo: {
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: (integrationName = 'QuickBooks Online') =>
                     `Om leveranciersfacturen te kunnen exporteren, moet je een crediteurenrekening instellen in ${integrationName}`,
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: (integrationName = 'QuickBooks Online') =>
                     `Om journaalboeking-export te gebruiken, stel een journaalrekening in in ${integrationName}`,
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: (integrationName = 'QuickBooks Online') =>
                     `Om de cheque-export te gebruiken, richt een bankrekening in in ${integrationName}`,
             },
             noAccountsFound: 'Geen accounts gevonden',
-            noAccountsFoundDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Voeg de rekening toe in ${integrationName} en synchroniseer de verbinding opnieuw.`,
+            noAccountsFoundDescription: (integrationName = 'QuickBooks Online') => `Voeg de rekening toe in ${integrationName} en synchroniseer de verbinding opnieuw.`,
             accountingMethods: {
                 label: 'Wanneer exporteren',
                 description: 'Kies wanneer de onkosten moeten worden geëxporteerd:',
@@ -6733,9 +6733,9 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             syncNow: 'Nu synchroniseren',
             disconnect: 'Verbinding verbreken',
             reinstall: 'Connector opnieuw installeren',
-            disconnectTitle: ({connectionName = 'integratie'} = {}) => `Verbinding met ${connectionName} verbreken`,
-            connectTitle: ({connectionName}) => `Verbind ${connectionName}`,
-            syncError: ({connectionName}) => `Kan geen verbinding maken met ${connectionName}`,
+            disconnectTitle: (connectionName = 'integratie') => `Verbinding met ${connectionName} verbreken`,
+            connectTitle: (connectionName) => `Verbind ${connectionName}`,
+            syncError: (connectionName) => `Kan geen verbinding maken met ${connectionName}`,
             accounts: 'Rekeningschema',
             taxes: 'Belastingen',
             imported: 'Geïmporteerd',
@@ -6750,8 +6750,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Geïmporteerd als rapportvelden',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Standaard NetSuite-medewerker',
             },
-            disconnectPrompt: ({connectionName = 'deze integratie'} = {}) => `Weet je zeker dat je ${connectionName} wilt ontkoppelen?`,
-            connectPrompt: ({connectionName}) => `Weet je zeker dat je ${connectionName} wilt koppelen? Hierdoor worden alle bestaande boekhoudkundige koppelingen verwijderd.`,
+            disconnectPrompt: (connectionName = 'deze integratie') => `Weet je zeker dat je ${connectionName} wilt ontkoppelen?`,
+            connectPrompt: (connectionName) => `Weet je zeker dat je ${connectionName} wilt koppelen? Hierdoor worden alle bestaande boekhoudkundige koppelingen verwijderd.`,
             enterCredentials: 'Voer je inloggegevens in',
             reconnect: 'Opnieuw verbinden',
             updateCredentials: 'Inloggegevens bijwerken',
@@ -6770,7 +6770,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 },
             },
             connections: {
-                syncStageName: ({stage, integrationName = 'QuickBooks Online'}) => {
+                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
