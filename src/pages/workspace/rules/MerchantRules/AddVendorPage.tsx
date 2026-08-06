@@ -8,7 +8,7 @@ import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {findVendorByID, getMatchingVendors, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {getMatchingVendorByID, getMatchingVendors, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -30,11 +30,13 @@ function getVendorSelectionItems(policy: Policy | undefined): VendorSelectionIte
 }
 
 /**
- * Resolves the picker's currently-selected item for a stored vendorID. Falls back to the raw external ID as the
- * label when the vendor can't be resolved (list not synced yet, or the vendor was removed from the integration).
+ * Resolves the picker's currently-selected item for a stored vendorID, scoped to the active vendor-matching
+ * integration (the same list the picker offers). Falls back to the raw external ID as the label when the vendor
+ * can't be resolved against that active list (list not synced yet, the vendor was removed, or the ID only matches
+ * a stale/inactive connection) so the selection never displays a name the active picker can't actually select.
  */
 function getSelectedVendorItem(policy: Policy | undefined, vendorID: string | undefined): VendorSelectionItem | undefined {
-    return vendorID ? {name: findVendorByID(policy, vendorID)?.name ?? vendorID, value: vendorID} : undefined;
+    return vendorID ? {name: getMatchingVendorByID(policy, vendorID)?.name ?? vendorID, value: vendorID} : undefined;
 }
 
 function AddVendorPage({route}: AddVendorPageProps) {

@@ -15,7 +15,7 @@ import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
 import {getDecodedCategoryName} from './CategoryUtils';
 import Parser from './Parser';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
-import {findVendorByID, getCommaSeparatedTagNameWithSanitizedColons, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from './PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getMatchingVendorByID, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from './PolicyUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
 
@@ -157,7 +157,8 @@ function getMerchantCodingRulesTableData({
                 actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
             }
             if (rule.vendorID) {
-                const resolvedVendorName = findVendorByID(policy, rule.vendorID)?.name;
+                // Active-scoped lookup: a vendorID that only matches a stale/inactive connection resolves to "unavailable" here.
+                const resolvedVendorName = getMatchingVendorByID(policy, rule.vendorID)?.name;
                 let vendorValue: string;
                 if (resolvedVendorName) {
                     vendorValue = resolvedVendorName;

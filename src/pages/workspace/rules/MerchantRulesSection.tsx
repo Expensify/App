@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {findVendorByID, getCommaSeparatedTagNameWithSanitizedColons, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getMatchingVendorByID, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
@@ -70,7 +70,8 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
     }
     if (rule.vendorID) {
-        const resolvedVendorName = findVendorByID(policy, rule.vendorID)?.name;
+        // Active-scoped lookup: a vendorID that only matches a stale/inactive connection resolves to "unavailable" here.
+        const resolvedVendorName = getMatchingVendorByID(policy, rule.vendorID)?.name;
         let vendorValue: string;
         if (resolvedVendorName) {
             vendorValue = resolvedVendorName;

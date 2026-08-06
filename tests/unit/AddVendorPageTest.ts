@@ -36,6 +36,22 @@ const buildXeroPolicy = (contacts: Record<string, {id: string; name: string; ema
         }),
     });
 
+/** Dual-connected policy: QBO is the active vendor-matching source, with a stale Xero connection lingering. */
+const buildQBOWithStaleXeroPolicy = (qboVendors: Array<{id: string; name: string; currency: string}>, xeroContacts: Record<string, {id: string; name: string; email: string}>): Policy =>
+    createMock<Policy>({
+        ...createRandomPolicy(0),
+        connections: createMock<Connections>({
+            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                data: {vendors: qboVendors},
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                config: {isConfigured: true},
+                data: {contacts: xeroContacts},
+            },
+        }),
+    });
+
 describe('AddVendorPage', () => {
     describe('getVendorSelectionItems', () => {
         it('maps each matching vendor to a {name, value} picker item (value is the external vendor ID)', () => {
@@ -78,6 +94,14 @@ describe('AddVendorPage', () => {
             const policy = buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
             expect(getSelectedVendorItem(policy, undefined)).toBeUndefined();
             expect(getSelectedVendorItem(policy, '')).toBeUndefined();
+        });
+
+        it('falls back to the raw ID (not the stale name) when the vendorID only resolves against an inactive connection', () => {
+            // QBO is active; the stored ID matches only the lingering Xero connection, which the active picker can't offer.
+            const policy = buildQBOWithStaleXeroPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}], {
+                xeroVendor: {id: 'xeroVendor', name: 'Stale Xero Vendor', email: 'stale@example.com'},
+            });
+            expect(getSelectedVendorItem(policy, 'xeroVendor')).toEqual({name: 'xeroVendor', value: 'xeroVendor'});
         });
     });
 

@@ -30,7 +30,7 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {findVendorByID, getCleanedTagName, getTagLists, hasVendorFeature, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {getCleanedTagName, getMatchingVendorByID, getTagLists, hasVendorFeature, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -220,11 +220,13 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
     const vendorFieldLabel = translate(isOnXero ? 'common.supplier' : 'common.vendor');
     // Mirror the rule-summary fallback so an already-stored vendor never renders as unset while the row still saves it:
     // resolved name when available, the "unavailable" copy once the vendor list has synced without a match, otherwise the raw stored ID.
+    // Scope the lookup to the active vendor-matching integration (not the permissive `findVendorByID`) so a vendorID that only
+    // resolves against a stale/inactive connection surfaces as "unavailable" here, matching how the picker and violation logic treat it.
     const getVendorDisplayName = () => {
         if (!form?.vendorID) {
             return undefined;
         }
-        const resolvedVendorName = findVendorByID(policy, form.vendorID)?.name;
+        const resolvedVendorName = getMatchingVendorByID(policy, form.vendorID)?.name;
         if (resolvedVendorName) {
             return resolvedVendorName;
         }

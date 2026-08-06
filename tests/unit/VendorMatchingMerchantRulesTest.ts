@@ -56,6 +56,25 @@ const buildXeroPolicy = (contacts: Record<string, {id: string; name: string; ema
         }),
     });
 
+/**
+ * Dual-connected policy: QBO is the active vendor-matching source (credit-card export), but a stale Xero
+ * connection lingers with its own contacts. Used to prove rule surfaces resolve against the active list only.
+ */
+const buildQBOWithStaleXeroPolicy = (qboVendors: Array<{id: string; name: string; currency: string}>, xeroContacts: Record<string, {id: string; name: string; email: string}>): Policy =>
+    createMock<Policy>({
+        ...createRandomPolicy(0),
+        connections: createMock<Connections>({
+            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                data: {vendors: qboVendors},
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                config: {isConfigured: true},
+                data: {contacts: xeroContacts},
+            },
+        }),
+    });
+
 const withCodingRules = (policy: Policy, codingRules: Record<string, CodingRule>): Policy => ({...policy, rules: {...policy.rules, codingRules}});
 
 const buildVendorRule = (vendorID: string): CodingRule => ({
@@ -113,6 +132,18 @@ describe('Vendor matching on merchant rules', () => {
         it('falls back to the raw external ID while the list is not yet loaded', () => {
             const policy = withCodingRules(buildQBOPolicy(undefined), {rule1: buildVendorRule('v-1')});
             expect(buildTableData(policy).at(0)?.ruleDescription).toContain('Update vendor to "v-1"');
+        });
+
+        it('shows "Vendor unavailable" when the vendorID only resolves against a stale/inactive connection', () => {
+            // Active source is QBO (empty vendor list, so loaded). The rule's vendorID matches only the stale Xero
+            // connection, which the active picker and violation logic ignore. The summary must not render the Xero
+            // name as if the vendor were valid — it should surface the active-scoped "unavailable" copy instead.
+            const policy = withCodingRules(buildQBOWithStaleXeroPolicy([], {xeroVendor: {id: 'xeroVendor', name: 'Stale Xero Vendor', email: 'stale@example.com'}}), {
+                rule1: buildVendorRule('xeroVendor'),
+            });
+            const description = buildTableData(policy).at(0)?.ruleDescription;
+            expect(description).toContain('Update vendor to "Vendor unavailable"');
+            expect(description).not.toContain('Stale Xero Vendor');
         });
 
         it('uses "supplier" wording and "Supplier unavailable" on Xero workspaces', () => {
