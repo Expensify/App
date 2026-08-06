@@ -103,7 +103,9 @@ type SearchOptionData = Pick<
 /**
  * The createOption inputs of one createFilteredOptionList run, captured so hydrating a lazy personal detail
  * option reproduces exactly what the eager build would have produced. One object is shared by every shell of
- * the run — these are references to app-wide Onyx snapshots, not copies.
+ * the run — these are references to app-wide Onyx snapshots, not copies. It is reachable only from the
+ * hydration closure a shell holds, never from the shell itself, so holding a contact option gives no handle
+ * on app-wide Onyx state.
  */
 type LazyHydrationContext = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -115,40 +117,27 @@ type LazyHydrationContext = {
     conciergeReportID: string | undefined;
 };
 
-type PersonalDetailLazyHydrationData = {
-    /** The 1:1 DM report mapped to the personal detail, used when building the full display option. */
-    report?: Report;
-
-    /** Build-time createOption inputs, shared across all shells of the same createFilteredOptionList run. */
-    context: LazyHydrationContext;
-};
-
 type SearchOption<T> = SearchOptionData & {
     item: T;
-
-    /**
-     * Present only on lightweight personal detail options built by createFilteredOptionList. Such options carry
-     * just the fields needed for filtering and sorting, and hydrateLazyPersonalDetailOption uses this data to
-     * build the full display option once the visible page of options has been selected.
-     */
-    lazyHydrationData?: PersonalDetailLazyHydrationData;
 };
 
 /**
  * A contact option as createFilteredOptionList produces it: the fields that filtering, ranking and de-duping
  * read, and nothing else. The display fields (icons, subtitle, lastMessageText, the display alternateText, …)
  * are deliberately absent, so reading one directly off `OptionList.personalDetails` is a compile error rather
- * than an `undefined` for code review to catch. Call hydrateLazyPersonalDetailOption to turn one into a full
- * SearchOption before rendering it. Fully built options (e.g. device contacts) are assignable and hydration
- * passes them through unchanged.
+ * than an `undefined` for code review to catch. Call hydrateLazyPersonalDetailOption to turn one into a
+ * HydratedPersonalDetailOption before rendering it.
  *
- * The compile error only guards that direct read. Every OptionData field is optional, so a shell structurally
- * satisfies SearchOptionData: once it is handed to a helper typed against SearchOptionData or
- * Partial<SearchOptionData> — mergeAndSortPersonalDetailsWithContacts, doesPersonalDetailMatchSearchTerm — the
- * display fields are back in scope and read as `undefined`. Those helpers only touch filter/rank fields today.
- * Hydrate first before passing a shell anywhere that renders it; the type will not stop you.
+ * The hydration inputs are not reachable from the shell: they live in the `hydrate` closure, so holding a
+ * contact option gives no handle on the shared Onyx snapshots the build reads.
+ *
+ * The compile error only guards the direct read. Every display field of OptionData is optional, so a shell
+ * structurally satisfies SearchOptionData: once it is handed to a helper typed against SearchOptionData or
+ * Partial<SearchOptionData> — doesPersonalDetailMatchSearchTerm, for one — the display fields are back in
+ * scope and read as `undefined`. Prefer PersonalDetailFilterRankFields for helpers that must accept either
+ * half of the union; hydrate first before passing a shell anywhere that renders it.
  */
-type LazyPersonalDetailOption = Pick<
+type PersonalDetailShell = Pick<
     SearchOptionData,
     // Identity
     | 'reportID'
@@ -164,15 +153,34 @@ type LazyPersonalDetailOption = Pick<
     | 'isSelected'
     | 'selected'
     | 'isBold'
-    | 'brickRoadIndicator'
 > & {
     item: PersonalDetails | null;
-    lazyHydrationData?: PersonalDetailLazyHydrationData;
+
+    /** Discriminant: this option carries filter/rank fields only, so the display fields must not be read off it. */
+    isHydrated: false;
+
+    /**
+     * Builds the full display option, memoizing the result so every clone of the same cached option list shares
+     * one build. Call hydrateLazyPersonalDetailOption rather than this directly — it also handles the already
+     * hydrated half of the union and returns a copy consumers may mark in place.
+     */
+    hydrate: () => HydratedPersonalDetailOption;
 };
+
+type HydratedPersonalDetailOption = SearchOption<PersonalDetails | null> & {isHydrated: true};
+
+type PersonalDetailOptionOrShell = PersonalDetailShell | HydratedPersonalDetailOption;
+
+/**
+ * The only fields filtering, ranking and de-duping read off a contact option. Both halves of
+ * PersonalDetailOptionOrShell satisfy it, so helpers typed against it accept shells without claiming the
+ * display fields exist.
+ */
+type PersonalDetailFilterRankFields = Pick<SearchOptionData, 'text' | 'displayName' | 'login' | 'accountID' | 'participantsList'>;
 
 type OptionList = {
     reports: Array<SearchOption<Report>>;
-    personalDetails: LazyPersonalDetailOption[];
+    personalDetails: PersonalDetailOptionOrShell[];
 };
 
 type Option = Partial<OptionData>;
@@ -383,8 +391,8 @@ export type {
     GetOptionsConfig,
     GetUserToInviteConfig,
     GetValidReportsConfig,
+    HydratedPersonalDetailOption,
     LazyHydrationContext,
-    LazyPersonalDetailOption,
     MemberForList,
     Option,
     OptionWithKey,
@@ -394,6 +402,9 @@ export type {
     OrderOptionsConfig,
     OrderReportOptionsConfig,
     PayeePersonalDetails,
+    PersonalDetailFilterRankFields,
+    PersonalDetailOptionOrShell,
+    PersonalDetailShell,
     PreviewConfig,
     ReportAndPersonalDetailOptions,
     SearchOption,

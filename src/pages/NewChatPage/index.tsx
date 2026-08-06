@@ -27,7 +27,7 @@ import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/acti
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {filterAndOrderOptions, getHeaderMessage, getValidOptions} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, getHeaderMessage, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
@@ -103,7 +103,11 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const allPersonalDetailOptions = listOptions?.personalDetails ?? [];
 
     // Dedupe and sort the union of Onyx personal details and imported contacts so pagination uses an alphabetical prefix.
-    const sortedPersonalDetailOptionsWithContacts = mergeAndSortPersonalDetailsWithContacts(allPersonalDetailOptions, contacts);
+    // Imported contacts arrive fully built, so they join the list as the hydrated half of the contact-option union.
+    const sortedPersonalDetailOptionsWithContacts = mergeAndSortPersonalDetailsWithContacts(
+        allPersonalDetailOptions,
+        contacts.map((contact) => ({...contact, isHydrated: true as const})),
+    );
 
     // usePaginatedData resets to page 1 whenever resetKey changes. Encode browse and search as "false" and "true", respectively,
     // so that we only reset when the user enters or leaves search, not on every debounced keystroke.
@@ -137,6 +141,13 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             betas: betas ?? [],
             includeSelfDM: true,
             shouldAlwaysIncludeDM: true,
+            // Search mode bypasses contact pagination (skipPagination below), so without this every contact on
+            // the account survives into the hydration step and pays a full createOption. filterAndOrderOptions
+            // re-filters contacts over the same fields right after, and this filter's haystack is the
+            // concatenation of those fields, so it keeps a superset — the visible contacts are unchanged and the
+            // expensive build now runs only for matches. This also pre-filters recent reports, which brings this
+            // page in line with every other picker that passes searchString.
+            searchString: getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode),
             personalDetails: allPersonalDetails,
             allPolicyTags,
             countryCode,

@@ -13,7 +13,7 @@ import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMes
 import DateUtils from '@libs/DateUtils';
 import {translate} from '@libs/Localize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import type {OptionList, Options, SearchOption, SearchOptionData} from '@libs/OptionsListUtils';
+import type {HydratedPersonalDetailOption, OptionList, Options, PersonalDetailOptionOrShell, SearchOption, SearchOptionData} from '@libs/OptionsListUtils';
 import {
     canCreateOptimisticPersonalDetailOption,
     clearFilteredOptionListCache,
@@ -1774,9 +1774,9 @@ describe('OptionsListUtils', () => {
             // Given an option list from createFilteredOptionList
             const {lazyList} = buildOptionLists();
 
-            // Then every contact option is a lightweight one: it carries lazyHydrationData and skips expensive fields like icons
+            // Then every contact option is a lightweight one: it is unhydrated and skips expensive fields like icons
             expect(lazyList.personalDetails.length).toBeGreaterThan(0);
-            expect(lazyList.personalDetails.every((option) => option.lazyHydrationData !== undefined)).toBe(true);
+            expect(lazyList.personalDetails.every((option) => !option.isHydrated)).toBe(true);
             expect(lazyList.personalDetails.every((option) => !('icons' in option))).toBe(true);
         });
 
@@ -1792,7 +1792,7 @@ describe('OptionsListUtils', () => {
             // Then the surviving contacts are hydrated (createOption ran for them) and match the eager results exactly
             expect(lazyResults.personalDetails.length).toBeGreaterThan(0);
             expect(lazyResults.personalDetails.every((option) => option.icons !== undefined)).toBe(true);
-            expect(lazyResults.personalDetails.every((option) => !('lazyHydrationData' in option))).toBe(true);
+            expect(lazyResults.personalDetails.every((option) => !('hydrate' in option))).toBe(true);
             expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
         });
 
@@ -1935,7 +1935,7 @@ describe('OptionsListUtils', () => {
             // Then filtering, ranking, and hydration match the eager path
             expect(lazyResults.personalDetails.length).toBeGreaterThan(0);
             expect(lazyResults.personalDetails.every((option) => option.icons !== undefined)).toBe(true);
-            expect(lazyResults.personalDetails.every((option) => !('lazyHydrationData' in option))).toBe(true);
+            expect(lazyResults.personalDetails.every((option) => !('hydrate' in option))).toBe(true);
             expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
         });
 
@@ -1950,8 +1950,20 @@ describe('OptionsListUtils', () => {
             });
             const eagerList = hydrateAllPersonalDetails(firstLazyList);
 
-            // Then the cache hit still returns shells with lazyHydrationData
-            expect(cachedLazyList.personalDetails.every((option) => option.lazyHydrationData !== undefined)).toBe(true);
+            // Then the cache hit still returns shells
+            expect(cachedLazyList.personalDetails.every((option) => !option.isHydrated)).toBe(true);
+
+            // And the clone from the cache hit shares each shell's hydration closure, so the expensive build is
+            // reused rather than re-run per clone. cloneOptionList allocates a new shell object on every return,
+            // so a memo keyed on shell identity would start empty here and rebuild the whole visible page.
+            const freshShell = firstLazyList.personalDetails.at(0);
+            const cachedShell = cachedLazyList.personalDetails.at(0);
+            expect(freshShell).toBeDefined();
+            expect(cachedShell).toBeDefined();
+            expect(cachedShell).not.toBe(freshShell);
+            if (freshShell && cachedShell) {
+                expect(hydrateLazyPersonalDetailOption(cachedShell).icons).toBe(hydrateLazyPersonalDetailOption(freshShell).icons);
+            }
 
             // When both the fresh and cached lazy lists go through getValidOptions
             const config = {maxElements: 3, personalDetails: PERSONAL_DETAILS};
@@ -2020,10 +2032,10 @@ describe('OptionsListUtils', () => {
         });
 
         it('should hydrate lazy shells when mixed with fully-built device contacts', () => {
-            // Given a fully-built device contact (no lazyHydrationData) appended onto eager and lazy lists,
-            // matching useSearchSelector's contactOptions concat path
+            // Given a fully-built device contact appended onto eager and lazy lists as the hydrated half of the
+            // union, matching useSearchSelector's contactOptions concat path
             const deviceContactLogin = '+15551234567';
-            const deviceContact: SearchOption<PersonalDetails> = {
+            const deviceContact: HydratedPersonalDetailOption = {
                 item: {
                     accountID: 9999,
                     displayName: 'Device Contact Jane',
@@ -2053,6 +2065,7 @@ describe('OptionsListUtils', () => {
                 isSelected: false,
                 selected: false,
                 brickRoadIndicator: null,
+                isHydrated: true,
             };
 
             const {eagerList, lazyList} = buildOptionLists();
@@ -2073,7 +2086,7 @@ describe('OptionsListUtils', () => {
             // Then the device contact survives hydrate unchanged, lazy shells hydrate, and results match eager
             expect(lazyResults.personalDetails.some((option) => option.login === deviceContactLogin)).toBe(true);
             expect(lazyResults.personalDetails.find((option) => option.login === deviceContactLogin)?.icons).toBeDefined();
-            expect(lazyResults.personalDetails.every((option) => !('lazyHydrationData' in option))).toBe(true);
+            expect(lazyResults.personalDetails.every((option) => !('hydrate' in option))).toBe(true);
             expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
         });
     });
@@ -9819,8 +9832,11 @@ describe('OptionsListUtils', () => {
             const first = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {conciergeReportID: undefined});
             const second = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {conciergeReportID: '1'});
 
-            // A cache hit would share nested objects between clones (see the pristine-cache test above).
-            expect(second.personalDetails.at(0)?.lazyHydrationData?.context).not.toBe(first.personalDetails.at(0)?.lazyHydrationData?.context);
+            // A cache hit copies each shell's `hydrate` by reference between clones (see the pristine-cache test
+            // above), so a fresh closure is what proves the entry was rebuilt rather than served.
+            const getHydrate = (option: PersonalDetailOptionOrShell | undefined) => (option && !option.isHydrated ? option.hydrate : undefined);
+            expect(getHydrate(first.personalDetails.at(0))).toBeDefined();
+            expect(getHydrate(second.personalDetails.at(0))).not.toBe(getHydrate(first.personalDetails.at(0)));
         });
 
         // The cached entry is frozen in dev, so a consumer that mutates a nested object shared with the
@@ -9840,15 +9856,18 @@ describe('OptionsListUtils', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {conciergeReportID: undefined});
             const personalDetailItem = result.personalDetails.at(0)?.item;
             const reportItem = result.reports.at(0)?.item;
-            const lazyReport = result.personalDetails.find((option) => option.lazyHydrationData?.report)?.lazyHydrationData?.report;
 
             expect(personalDetailItem).toBeDefined();
             expect(Object.isFrozen(personalDetailItem)).toBe(false);
             expect(reportItem).toBeDefined();
             expect(Object.isFrozen(reportItem)).toBe(false);
-            // lazyHydrationData.report is also a shared Onyx Report and must not be frozen.
-            expect(lazyReport).toBeDefined();
-            expect(Object.isFrozen(lazyReport)).toBe(false);
+
+            // Hydration freezes the option it memoizes, and it reads shared Onyx Reports out of its captured
+            // build inputs — those must survive unfrozen too.
+            const hydrated = result.personalDetails.map(hydrateLazyPersonalDetailOption);
+            expect(hydrated.length).toBeGreaterThan(0);
+            expect(hydrated.every((option) => !Object.isFrozen(option))).toBe(true);
+            expect(Object.values(REPORTS).every((report) => !Object.isFrozen(report))).toBe(true);
         });
     });
     describe('getValidOptions() with recentAttendees', () => {

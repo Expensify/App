@@ -236,7 +236,9 @@ function useSearchSelectorBase({
         if (!contactOptions?.length || !areOptionsInitialized) {
             return defaultOptions;
         }
-        const personalDetailsWithContacts = defaultOptions.personalDetails.concat(contactOptions);
+        // Device contacts come out of ContactUtils fully built, so they enter the list as the hydrated half of
+        // the union and hydrateLazyPersonalDetailOption passes them straight through.
+        const personalDetailsWithContacts = defaultOptions.personalDetails.concat(contactOptions.map((contact) => ({...contact, isHydrated: true as const})));
         return {
             ...defaultOptions,
             personalDetails: personalDetailsWithContacts,

@@ -208,9 +208,9 @@ import type {
     GetOptionsConfig,
     GetUserToInviteConfig,
     GetValidReportsConfig,
+    HydratedPersonalDetailOption,
     IsValidReportsConfig,
     LazyHydrationContext,
-    LazyPersonalDetailOption,
     MemberForList,
     OptionList,
     Options,
@@ -218,6 +218,9 @@ import type {
     OrderOptionsConfig,
     OrderReportOptionsConfig,
     PayeePersonalDetails,
+    PersonalDetailFilterRankFields,
+    PersonalDetailOptionOrShell,
+    PersonalDetailShell,
     PreviewConfig,
     ReportAndPersonalDetailOptions,
     SearchOption,
@@ -1675,6 +1678,9 @@ function buildFilteredOptionListCacheKey(args: Array<string | number | boolean>)
 // NOTE: this is a shallow clone — the top-level fields consumers mutate today are all scalars. Nested
 // objects (icons, participantsList, item, allReportErrors) stay shared with the cached entry, so any new
 // consumer that mutates those in place would corrupt the cache and must clone them first.
+// A contact shell's `hydrate` is copied by reference too, so every clone of one cached entry shares that
+// closure's memoized build: reopening a picker, or a second screen on the same cache entry, reuses the
+// createOption work instead of redoing it.
 function cloneOptionList(optionList: OptionList): OptionList {
     return {
         reports: optionList.reports.map((option) => ({...option})),
@@ -1687,18 +1693,18 @@ function cloneOptionList(optionList: OptionList): OptionList {
 // silently corrupting the cache for other screens. The clones' top-level objects stay mutable because
 // spreading a frozen object produces a new unfrozen one — which covers all mutations consumers do today.
 //
-// `item`, `lazyHydrationData`, and the members of `participantsList` are exempt: they hold Onyx snapshot
-// objects shared with the whole app (reports / personal details), not structures this cache created, and
-// existing code still writes to them in place (e.g. getPersonalDetailsForAccountIDs sets accountID during
-// every option build), so freezing them would crash unrelated flows in dev. Mutating them corrupts
-// app-wide Onyx state, which is beyond this cache's invariant.
+// `item` and the members of `participantsList` are exempt: they hold Onyx snapshot objects shared with the
+// whole app (reports / personal details), not structures this cache created, and existing code still writes
+// to them in place (e.g. getPersonalDetailsForAccountIDs sets accountID during every option build), so
+// freezing them would crash unrelated flows in dev. Mutating them corrupts app-wide Onyx state, which is
+// beyond this cache's invariant.
 function deepFreeze(value: unknown) {
     if (typeof value !== 'object' || value === null || Object.isFrozen(value)) {
         return;
     }
     Object.freeze(value);
     for (const [key, child] of Object.entries(value)) {
-        if (key === 'item' || key === 'lazyHydrationData') {
+        if (key === 'item') {
             continue;
         }
         if (key === 'participantsList') {
@@ -1721,76 +1727,17 @@ function clearFilteredOptionListCache() {
 registerSessionCleanupCallback(() => filteredOptionListCache.clear());
 
 /**
- * Step 5 of createFilteredOptionList: one lightweight SearchOption per personal detail.
- * Only filter/rank fields are computed here; getValidOptions hydrates survivors via hydrateLazyPersonalDetailOption.
+ * Builds the full display option for one contact. The createOption inputs are the ones captured when the shell
+ * was built, so the result is exactly what the eager build would have produced.
  */
-function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Report>, context: LazyHydrationContext): LazyPersonalDetailOption[] {
-    const {personalDetails} = context;
-    return Object.values(personalDetails ?? {}).map((personalDetail) => {
-        const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        const report = reportMapForAccountIDs[accountID];
-        // Same lookup createOption performs (also normalizes accountID in place).
-        const detail = getPersonalDetailsForAccountIDs([accountID], personalDetails)[accountID];
-        // Same text createOption computes (translateLocal — the default createOption uses when translate is omitted).
-        const text = getPersonalDetailOptionText({accountID, hasReport: !!report, personalDetails, login: detail?.login, translate: translateLocal});
-
-        return {
-            item: personalDetail,
-            lazyHydrationData: {report, context},
-            // The empty string default mirrors createOption, as many places test for reportID existence with truthiness operators.
-            // eslint-disable-next-line rulesdir/no-default-id-values
-            reportID: report?.reportID ?? '',
-            keyForList: report ? String(report.reportID) : String(accountID),
-            text,
-            login: detail?.login,
-            accountID: Number(detail?.accountID),
-            participantsList: detail ? [detail] : [],
-            isSelected: false,
-            selected: false,
-            brickRoadIndicator: null,
-        };
-    });
-}
-
-// A shell's hydration inputs are fixed at build time (they live in its lazyHydrationData), so one shell always
-// hydrates to the same option and the result can be cached against the shell itself. Screens that call
-// getValidOptions on every render or keystroke (NewChatPage, whose search bypasses contact pagination and passes
-// no maxElements) would otherwise rebuild every surviving contact each time, which is slower than the eager build
-// they replaced: that one ran once per option list and was reused from the createFilteredOptionList cache.
-// A new option list produces new shells, so entries are never reused across builds and drop out with the shells.
-//
-// The cached option is never handed out directly: consumers mark options in place (getValidOptions sets
-// isBold/isSelected/brickRoadIndicator) and list rows re-render on reference change, so every call returns a fresh
-// shallow copy, exactly like the per-call objects the eager build produced. Only the createOption work is shared.
-// The copies share nested objects (icons, participantsList, item) with the cached entry, matching the
-// cloneOptionList invariant: a consumer that mutates those must clone them first.
-const hydratedPersonalDetailOptions = new WeakMap<LazyPersonalDetailOption, SearchOption<PersonalDetails | null>>();
-
-/**
- * Builds the full display option for a lightweight personal detail option produced by createFilteredOptionList.
- * The createOption inputs come from the context captured at build time, so the result is exactly what the eager
- * build would have produced. Options without lazy hydration data are returned unchanged, so fully-built options
- * (e.g. device contacts) can be passed safely. Results are memoized per shell.
- */
-function hydrateLazyPersonalDetailOption(option: LazyPersonalDetailOption): SearchOption<PersonalDetails | null> {
-    if (!option.lazyHydrationData) {
-        return option;
-    }
-
-    const alreadyHydrated = hydratedPersonalDetailOptions.get(option);
-    if (alreadyHydrated) {
-        return {...alreadyHydrated};
-    }
-
-    const {report, context} = option.lazyHydrationData;
+function buildFullOption(accountID: number, item: PersonalDetails | null, report: Report | undefined, context: LazyHydrationContext): HydratedPersonalDetailOption {
     const {personalDetails, policiesCollection, reportAttributesDerived, policyTags, visibleReportActionsData, privateIsArchivedMap, conciergeReportID} = context;
-    const accountID = option.item?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const privateIsArchived = report ? privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] : undefined;
     const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
-    const hydrated: SearchOption<PersonalDetails | null> = {
-        item: option.item,
+    const built: HydratedPersonalDetailOption = {
+        item,
         ...createOption({
             accountIDs: [accountID],
             personalDetails,
@@ -1803,10 +1750,78 @@ function hydrateLazyPersonalDetailOption(option: LazyPersonalDetailOption): Sear
             policyTags: reportPolicyTags,
             visibleReportActionsData,
         }),
+        isHydrated: true,
     };
-    hydratedPersonalDetailOptions.set(option, hydrated);
 
-    return {...hydrated};
+    // Every caller that hydrates this contact shares this one object, so lock it the way the cached option list
+    // itself is locked: a consumer that mutates it throws here instead of silently corrupting what the next
+    // caller reads. hydrateLazyPersonalDetailOption hands out unfrozen top-level copies, so marking still works.
+    if (__DEV__) {
+        deepFreeze(built);
+    }
+
+    return built;
+}
+
+/**
+ * Step 5 of createFilteredOptionList: one lightweight shell per personal detail.
+ * Only filter/rank fields are computed here; getValidOptions hydrates survivors via hydrateLazyPersonalDetailOption.
+ */
+function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Report>, context: LazyHydrationContext): PersonalDetailShell[] {
+    const {personalDetails} = context;
+    return Object.values(personalDetails ?? {}).map((personalDetail) => {
+        const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        const report = reportMapForAccountIDs[accountID];
+        // Same lookup createOption performs (also normalizes accountID in place).
+        const detail = getPersonalDetailsForAccountIDs([accountID], personalDetails)[accountID];
+        // Same text createOption computes (translateLocal — the default createOption uses when translate is omitted).
+        const text = getPersonalDetailOptionText({accountID, hasReport: !!report, personalDetails, login: detail?.login, translate: translateLocal});
+
+        // The build inputs are fixed at this point, so one contact always hydrates to the same option and the
+        // result is memoized here. cloneOptionList copies `hydrate` by reference, so every clone of this cached
+        // option list shares the memo: reopening a picker reuses the build instead of redoing createOption.
+        //
+        // The closure captures only these immutable build-time identities, never the shell object: getValidOptions
+        // marks shells in place (isSelected/isBold), and capturing the shell would bake that transient marking
+        // state into the memoized build.
+        let built: HydratedPersonalDetailOption | undefined;
+        const hydrate = () => (built ??= buildFullOption(accountID, personalDetail, report, context));
+
+        return {
+            item: personalDetail,
+            isHydrated: false,
+            hydrate,
+            // The empty string default mirrors createOption, as many places test for reportID existence with truthiness operators.
+            // eslint-disable-next-line rulesdir/no-default-id-values
+            reportID: report?.reportID ?? '',
+            keyForList: report ? String(report.reportID) : String(accountID),
+            text,
+            login: detail?.login,
+            accountID: Number(detail?.accountID),
+            participantsList: detail ? [detail] : [],
+            isSelected: false,
+            selected: false,
+        };
+    });
+}
+
+/**
+ * Turns a contact option from createFilteredOptionList into a full display option, building the expensive
+ * display fields on the first call and reusing that build afterwards. Options that are already hydrated
+ * (e.g. device contacts) pass through unchanged.
+ *
+ * Shells return a fresh top-level copy per call: consumers mark options in place (getValidOptions sets
+ * isBold/isSelected/brickRoadIndicator) and list rows re-render on reference change, so this matches the
+ * per-call objects the eager build produced. Only the createOption work is shared. The copies share nested
+ * objects (icons, participantsList, item) with the memoized build, matching the cloneOptionList invariant:
+ * a consumer that mutates those must clone them first.
+ */
+function hydrateLazyPersonalDetailOption(option: PersonalDetailOptionOrShell): HydratedPersonalDetailOption {
+    if (option.isHydrated) {
+        return option;
+    }
+
+    return {...option.hydrate(), isHydrated: true};
 }
 
 function createFilteredOptionList(
@@ -2040,7 +2055,13 @@ function createOptionFromReport({
     };
 }
 
-function orderPersonalDetailsOptions<T extends SearchOptionData>(options: T[]): T[] {
+/**
+ * What personalDetailsComparator reads: the filter/rank subset both halves of PersonalDetailOptionOrShell
+ * satisfy, plus the `alternateText` fallback that only PersonalDetailOptionData needs.
+ */
+type PersonalDetailSortFields = PersonalDetailFilterRankFields & Pick<SearchOptionData, 'alternateText'>;
+
+function orderPersonalDetailsOptions<T extends PersonalDetailSortFields>(options: T[]): T[] {
     // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
     // Keep this aligned with `getValidOptions` ordering (`optionsOrderBy(..., personalDetailsComparator, ...)`)
     // so upstream and downstream sorting use the same key (text -> alternateText -> login).
@@ -2064,7 +2085,7 @@ function orderReportOptions(options: SearchOptionData[]) {
  * two passes cannot disagree on order. The alternateText/login fallbacks exist only for
  * PersonalDetailOptionData, which has no guaranteed `text`.
  */
-function personalDetailsComparator(personalDetail: SearchOptionData | PersonalDetailOptionData) {
+function personalDetailsComparator(personalDetail: PersonalDetailSortFields) {
     const name = personalDetail.text ?? personalDetail.alternateText ?? personalDetail.login ?? '';
     return name.toLowerCase();
 }
@@ -3748,4 +3769,17 @@ export {
     processSearchString,
 };
 
-export type {GetOptionsConfig, LazyPersonalDetailOption, MemberForList, Option, OptionList, OptionTree, Options, SearchOption, SearchOptionData} from './types';
+export type {
+    GetOptionsConfig,
+    HydratedPersonalDetailOption,
+    MemberForList,
+    Option,
+    OptionList,
+    OptionTree,
+    Options,
+    PersonalDetailFilterRankFields,
+    PersonalDetailOptionOrShell,
+    PersonalDetailShell,
+    SearchOption,
+    SearchOptionData,
+} from './types';

@@ -3,12 +3,12 @@ import {act, renderHook} from '@testing-library/react-native';
 import useOnyx from '@hooks/useOnyx';
 
 import * as OptionsListUtilsModule from '@libs/OptionsListUtils';
-import type {LazyPersonalDetailOption, SearchOption} from '@libs/OptionsListUtils';
+import type {HydratedPersonalDetailOption, PersonalDetailOptionOrShell} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
 import type * as ReactNavigation from '@react-navigation/native';
@@ -53,7 +53,7 @@ jest.mock('@react-navigation/native', () => {
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'current@test.com';
 
-function makePersonalDetailOption(accountID: number, login: string): SearchOption<PersonalDetails> {
+function makePersonalDetailOption(accountID: number, login: string): HydratedPersonalDetailOption {
     return {
         accountID,
         login,
@@ -61,6 +61,7 @@ function makePersonalDetailOption(accountID: number, login: string): SearchOptio
         keyForList: String(accountID),
         reportID: '',
         item: {accountID, login, displayName: login},
+        isHydrated: true,
     };
 }
 
@@ -106,7 +107,7 @@ describe('useGroupDraftRestore', () => {
     }
 
     function renderRestoreHook(overrides?: {
-        allPersonalDetailOptions?: LazyPersonalDetailOption[];
+        allPersonalDetailOptions?: PersonalDetailOptionOrShell[];
         areAllPersonalDetailOptionsLoaded?: boolean;
         selectedOptions?: OptionData[];
         draftParticipants?: SelectedParticipant[] | undefined;
@@ -418,7 +419,7 @@ describe('useGroupDraftRestore', () => {
             IntlStore.load(CONST.LOCALES.EN);
         });
 
-        function buildLazyShells(): LazyPersonalDetailOption[] {
+        function buildLazyShells(): PersonalDetailOptionOrShell[] {
             // isSearching skips the createFilteredOptionList cache, so shells never leak between tests.
             return OptionsListUtilsModule.createFilteredOptionList(LAZY_PERSONAL_DETAILS, {}, undefined, {}, undefined, {conciergeReportID: undefined, isSearching: true}).personalDetails;
         }
@@ -428,7 +429,7 @@ describe('useGroupDraftRestore', () => {
             const shells = buildLazyShells();
             // Guard against a vacuous pass: if these ever arrive fully built, the assertions below prove nothing.
             expect(shells).toHaveLength(2);
-            expect(shells.every((shell) => shell.lazyHydrationData !== undefined)).toBe(true);
+            expect(shells.every((shell) => !shell.isHydrated)).toBe(true);
             expect(shells.every((shell) => !('icons' in shell))).toBe(true);
 
             // When a draft participant matching one of them is restored
@@ -447,8 +448,8 @@ describe('useGroupDraftRestore', () => {
             expect(restored.at(0)?.isSelected).toBe(true);
             expect(restored.at(0)?.icons).toBeDefined();
             expect(restored.at(0)?.icons?.length).toBeGreaterThan(0);
-            // lazyHydrationData is build-time bookkeeping; it must not ride along into selected options.
-            expect('lazyHydrationData' in (restored.at(0) ?? {})).toBe(false);
+            // The hydration thunk is build-time bookkeeping; it must not ride along into selected options.
+            expect('hydrate' in (restored.at(0) ?? {})).toBe(false);
         });
 
         it('should fall back to getUserToInviteOption for a participant absent from the lazy shells', () => {
