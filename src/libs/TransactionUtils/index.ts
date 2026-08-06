@@ -485,6 +485,13 @@ function hasReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boo
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
+/**
+ * Whether the transaction already has its receipt stored server-side.
+ */
+function hasUploadedReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boolean {
+    return !!transaction?.receipt?.receiptID;
+}
+
 /** Check if the receipt has the source file */
 function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.receipt?.source;
@@ -3264,6 +3271,7 @@ export {
     getTagForDisplay,
     getTransactionViolations,
     hasReceipt,
+    hasUploadedReceipt,
     hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
