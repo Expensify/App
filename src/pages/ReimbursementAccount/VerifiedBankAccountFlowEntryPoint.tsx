@@ -124,7 +124,7 @@ function VerifiedBankAccountFlowEntryPoint({
 
     const currency = reimbursementAccount?.achData?.currency;
     // The "Change bank account" option is only offered when opening a partially setup account from the Workflows > Payments section
-    const isComingFromWorkflowsPayments = !!policyID && backTo === ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID);
+    const isComingFromWorkflowsPayments = !!policyID && backTo === ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID, CONST.TAB.WORKFLOWS.PAYMENTS);
     const shouldShowChangeBankAccount = shouldShowContinueSetupButton === true && isComingFromWorkflowsPayments;
     const handleChangeBankAccount = useChangeBankAccount(policyID, currency, reimbursementAccount?.achData?.bankAccountID);
 

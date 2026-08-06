@@ -107,7 +107,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         setIsClosing(true);
         setIsImporting(false);
         closeImportPage();
-        Navigation.goBack(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+        Navigation.goBack(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID, CONST.TAB.WORKFLOWS.APPROVALS) : ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
 
     const importMembers = async () => {

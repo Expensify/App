@@ -62,7 +62,11 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
             onToggle: (isEnabled: boolean) => {
                 if (isEnabled && !isControlPolicy(policy)) {
                     Navigation.navigate(
-                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)),
+                        ROUTES.WORKSPACE_UPGRADE.getRoute(
+                            policyID,
+                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.alias,
+                            ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID, CONST.TAB.WORKFLOWS.ADVANCED),
+                        ),
                     );
                     return;
                 }
@@ -85,7 +89,11 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
             onToggle: (isEnabled: boolean) => {
                 if (isEnabled && !isControlPolicy(policy)) {
                     Navigation.navigate(
-                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)),
+                        ROUTES.WORKSPACE_UPGRADE.getRoute(
+                            policyID,
+                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.alias,
+                            ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID, CONST.TAB.WORKFLOWS.ADVANCED),
+                        ),
                     );
                     return;
                 }
@@ -133,7 +141,11 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
             onToggle: (isEnabled: boolean) => {
                 if (isEnabled && !isControlPolicy(policy)) {
                     Navigation.navigate(
-                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)),
+                        ROUTES.WORKSPACE_UPGRADE.getRoute(
+                            policyID,
+                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias,
+                            ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID, CONST.TAB.WORKFLOWS.ADVANCED),
+                        ),
                     );
                     return;
                 }

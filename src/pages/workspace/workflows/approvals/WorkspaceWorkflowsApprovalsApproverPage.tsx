@@ -151,7 +151,10 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const goBack = useCallback(() => {
         let backToRoute;
         if (isInitialCreationFlow) {
-            backToRoute = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+            backToRoute = createDynamicRoute(
+                DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path,
+                ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID, CONST.TAB.WORKFLOWS.APPROVALS),
+            );
             clearApprovalWorkflowApprovers();
         } else if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
             backToRoute = rhpRoutes.length > 1 ? undefined : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
