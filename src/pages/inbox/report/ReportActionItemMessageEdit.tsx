@@ -91,6 +91,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
     const index = useContext(ReportActionIndexContext);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReportID)}`);
     const blockedFromConcierge = useBlockedFromConcierge();
@@ -245,9 +246,9 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
             setEditingMessage(newDraft);
 
             // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
-            saveDraft(reportID, action, newDraft);
+            saveDraft(reportID, action, reportActions, newDraft);
         },
-        [action, preferredLocale, preferredSkinTone, raiseIsScrollLayoutTriggered, reportID, selection.end, setEditingMessage, setSelection, saveDraft],
+        [action, preferredLocale, preferredSkinTone, raiseIsScrollLayoutTriggered, reportID, reportActions, selection.end, setEditingMessage, setSelection, saveDraft],
     );
 
     useEffect(() => {

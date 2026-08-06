@@ -20,6 +20,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {buildFileFromAvatarCropResult} from '@libs/AvatarCropUtils';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import {isMobile} from '@libs/Browser';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -55,7 +56,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
-    const {displayName} = useCurrentUserPersonalDetails();
+    const {accountID: ownerAccountID, login: ownerLogin, displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
@@ -111,17 +112,30 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         const firstName = values[INPUT_IDS.FIRST_NAME].trim() || defaultAgentName;
         const prompt = values[INPUT_IDS.PROMPT].trim();
 
-        // Pure optimistic flow — no waiting on the server; `createAgent` writes the optimistic agent into Onyx immediately.
-        if (uploadedAvatar?.uri) {
-            createAgent(firstName, prompt, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID);
-        } else {
-            createAgent(firstName, prompt, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
-        }
+        // Pure optimistic flow: `createAgent` writes the agent and the owner<->agent DM to Onyx under a
+        // reportID it generates client-side, and CreateAgent creates the DM under that exact ID (see
+        // CreateAgent.cpp), so we can navigate to the DM immediately, online or offline, without waiting.
+        const {optimisticReportID} = uploadedAvatar?.uri
+            ? createAgent(firstName, prompt, ownerAccountID, ownerLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID)
+            : createAgent(firstName, prompt, ownerAccountID, ownerLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
 
         clearNewAgentTemplate();
         clearNewAgentAvatarDraft();
 
-        Navigation.dismissModal();
+        // Not useResponsiveLayout: this page itself lives inside the RHP modal stack, so
+        // shouldUseNarrowLayout/isSmallScreenWidth from that hook would always read as "narrow"
+        // regardless of window size. getIsNarrowLayout() reflects the actual window width.
+        if (getIsNarrowLayout()) {
+            // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
+            // instead of dismissing to the agents list first and navigating to the DM afterward.
+            Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID));
+            return;
+        }
+
+        // On wide layouts, open the DM in a dedicated RHP screen instead of the fullscreen report split.
+        // forceReplace swaps this screen out for the DM instead of pushing on top of it, so the
+        // already-submitted form can't be reached again via the close/back button.
+        Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID), {forceReplace: true});
     };
 
     return (
@@ -186,7 +200,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                             inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                         />
                     </View>
-                    <Text style={[styles.textLabelSupporting]}>{translate('addAgentPage.copilotNote')}</Text>
+                    <Text style={[styles.textLabelSupporting]}>{`${translate('addAgentPage.copilotNote')} ${translate('workspace.rules.agentRules.disclaimer')}`}</Text>
                 </View>
             </FormProvider>
         </ScreenWrapper>
