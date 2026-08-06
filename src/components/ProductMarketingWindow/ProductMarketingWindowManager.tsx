@@ -2,7 +2,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 
-import {setNameValuePair} from '@libs/actions/User';
+import {dismissMarketingWindow, setNameValuePair} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, getProductMarketingAnnouncementVariant} from '@libs/ProductMarketingWindowUtils';
 
@@ -76,7 +76,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     }
 
     const persistDismissal = () => {
-        setNameValuePair(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, announcement.updateKey, lastDismissedMarketingWindow ?? '');
+        dismissMarketingWindow(announcement.updateKey);
     };
 
     const dismiss = () => {
