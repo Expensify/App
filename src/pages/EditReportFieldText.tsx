@@ -11,8 +11,6 @@ import {hasCircularReferences} from '@libs/Formula';
 import type {FieldList} from '@libs/Formula';
 import StringUtils from '@libs/StringUtils';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -46,7 +44,7 @@ type EditReportFieldTextPageProps = {
 function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, fieldKey, fieldList, disabled = false}: EditReportFieldTextPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const reportFieldName = Str.UCFirst(fieldName);
 
     const validate = useCallback(
@@ -99,8 +97,7 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
                     label={reportFieldName}
                     accessibilityLabel={reportFieldName}
                     role={CONST.ROLE.PRESENTATION}
-                    autoGrowHeight
-                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                    autoGrowSingleLine
                     ref={inputCallbackRef}
                     disabled={disabled}
                 />

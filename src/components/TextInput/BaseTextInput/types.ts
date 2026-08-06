@@ -89,6 +89,13 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
          */
         maxAutoGrowHeight?: number;
 
+        /**
+         * For values that must stay on a single line (titles, names) but are too long to read in a single-line box.
+         * The input wraps and grows like a multiline box, while the return key keeps its single-line meaning: it
+         * submits instead of inserting a line break, on every platform. Implies `autoGrowHeight`.
+         */
+        autoGrowSingleLine?: boolean;
+
         /** Hide the focus styles on TextInput */
         hideFocusedState?: boolean;
 
