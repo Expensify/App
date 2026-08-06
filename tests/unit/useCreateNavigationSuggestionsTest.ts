@@ -60,7 +60,25 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
-    default: () => ({translate: (key: string) => key}),
+    default: () => ({
+        translate: (key: string) => {
+            const translations = new Map([
+                ['homePage.gettingStartedSection.createExpense', 'Create an expense'],
+                ['homePage.gettingStartedSection.createWorkspace', 'Create a workspace'],
+                ['common.chat', 'Chat'],
+                ['common.new', 'New'],
+                ['iou.addExpense', 'Add expense'],
+                ['iou.createExpense', 'Create expense'],
+                ['iou.trackDistance', 'Track distance'],
+                ['onboarding.workspace.createWorkspace', 'Create workspace'],
+                ['report.newReport.createReport', 'Create report'],
+                ['sidebarScreen.fabNewChat', 'Start chat'],
+                ['workspace.invoices.sendInvoice', 'Send invoice'],
+                ['workspace.new.newWorkspace', 'New workspace'],
+            ]);
+            return translations.get(key) ?? key;
+        },
+    }),
 }));
 
 jest.mock('@hooks/useNetwork', () => ({
@@ -195,6 +213,19 @@ describe('useCreateNavigationSuggestions', () => {
             }),
         );
         expect(result.current.map((item) => item.keyForList)).toEqual(['create_expense', 'create_trackDistance', 'create_chat']);
+    });
+
+    it('uses localized aliases for Create action matching', () => {
+        mockCanSendInvoice.mockReturnValue(true);
+        mockShouldShowPolicy.mockReturnValue(false);
+        const {result} = renderHook(() => useCreateNavigationSuggestions());
+
+        expect(result.current.find((item) => item.keyForList === 'create_expense')?.matchTerms).toEqual(['Create expense', 'Add expense', 'Create an expense']);
+        expect(result.current.find((item) => item.keyForList === 'create_chat')).toMatchObject({
+            text: 'Start chat',
+            matchTerms: ['Start chat', 'New Chat'],
+        });
+        expect(result.current.find((item) => item.keyForList === 'create_workspace')?.matchTerms).toEqual(['New workspace', 'Create workspace', 'Create a workspace']);
     });
 
     it('passes Submit eligibility and exposes permission-gated actions', () => {

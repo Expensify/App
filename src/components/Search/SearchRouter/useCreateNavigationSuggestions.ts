@@ -46,17 +46,18 @@ type CreateNavigationItem = {
     icon: IconAsset;
     action: () => void;
     keyForList: string;
+    matchTerms?: string[];
 };
 
 function buildCreateNavigationItems(items: CreateNavigationItem[]): NavigationSuggestionSourceItem[] {
     return items
         .filter((item) => item.visible)
-        .map(({text, icon, action, keyForList}) => ({
+        .map(({text, icon, action, keyForList, matchTerms}) => ({
             text,
             singleIcon: icon,
             action,
             keyForList,
-            matchTerms: [text],
+            matchTerms: matchTerms ?? [text],
         }));
 }
 
@@ -140,6 +141,7 @@ function useCreateNavigationSuggestions(): NavigationSuggestionSourceItem[] {
             visible: true,
             text: translate('iou.createExpense'),
             icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
+            matchTerms: [translate('iou.createExpense'), translate('iou.addExpense'), translate('homePage.gettingStartedSection.createExpense')],
             action: () =>
                 replaceTopmostModalWithAction(() => {
                     interceptAnonymousUser(() => {
@@ -171,6 +173,7 @@ function useCreateNavigationSuggestions(): NavigationSuggestionSourceItem[] {
             visible: true,
             text: translate('sidebarScreen.fabNewChat'),
             icon: icons.ChatBubble,
+            matchTerms: [translate('sidebarScreen.fabNewChat'), `${translate('common.new')} ${translate('common.chat')}`],
             action: () => replaceTopmostModalWithAction(() => interceptAnonymousUser(startNewChat)),
             keyForList: 'create_chat',
         },
@@ -190,6 +193,7 @@ function useCreateNavigationSuggestions(): NavigationSuggestionSourceItem[] {
             visible: shouldShowNewWorkspaceButton,
             text: translate('workspace.new.newWorkspace'),
             icon: icons.NewWorkspace,
+            matchTerms: [translate('workspace.new.newWorkspace'), translate('onboarding.workspace.createWorkspace'), translate('homePage.gettingStartedSection.createWorkspace')],
             action: () =>
                 replaceTopmostModalWithAction(() => {
                     interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path)));

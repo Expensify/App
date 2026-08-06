@@ -302,12 +302,12 @@ describe('top-level Search Router navigation source', () => {
 describe('Create Search Router navigation source', () => {
     const createAction = jest.fn();
     const createItems: CreateNavigationSuggestions.CreateNavigationItem[] = [
-        {visible: true, text: 'Create expense', icon: mockIcon, action: createAction, keyForList: 'create_expense'},
+        {visible: true, text: 'Create expense', icon: mockIcon, action: createAction, keyForList: 'create_expense', matchTerms: ['Create expense', 'Add expense']},
         {visible: true, text: 'Create report', icon: mockIcon, action: createAction, keyForList: 'create_report'},
         {visible: true, text: 'Track distance', icon: mockIcon, action: createAction, keyForList: 'create_trackDistance'},
-        {visible: true, text: 'New chat', icon: mockIcon, action: createAction, keyForList: 'create_chat'},
+        {visible: true, text: 'Start chat', icon: mockIcon, action: createAction, keyForList: 'create_chat', matchTerms: ['Start chat', 'New chat screen']},
         {visible: false, text: 'Create invoice', icon: mockIcon, action: createAction, keyForList: 'create_invoice'},
-        {visible: false, text: 'New workspace', icon: mockIcon, action: createAction, keyForList: 'create_workspace'},
+        {visible: false, text: 'New workspace', icon: mockIcon, action: createAction, keyForList: 'create_workspace', matchTerms: ['New workspace', 'Create workspace']},
     ];
 
     beforeEach(() => {
@@ -317,10 +317,10 @@ describe('Create Search Router navigation source', () => {
     it('builds visible Create rows with direct action labels and excludes unavailable items', () => {
         const items = CreateNavigationSuggestions.buildCreateNavigationItems(createItems);
 
-        expect(items.map((item) => item.text)).toEqual(['Create expense', 'Create report', 'Track distance', 'New chat']);
+        expect(items.map((item) => item.text)).toEqual(['Create expense', 'Create report', 'Track distance', 'Start chat']);
         expect(items.map((item) => item.keyForList)).toEqual(['create_expense', 'create_report', 'create_trackDistance', 'create_chat']);
         expect(items.map((item) => item.singleIcon)).toEqual([mockIcon, mockIcon, mockIcon, mockIcon]);
-        expect(items.map((item) => item.matchTerms)).toEqual([['Create expense'], ['Create report'], ['Track distance'], ['New chat']]);
+        expect(items.map((item) => item.matchTerms)).toEqual([['Create expense', 'Add expense'], ['Create report'], ['Track distance'], ['Start chat', 'New chat screen']]);
         expect(items.some((item) => item.text?.startsWith('Go to'))).toBe(false);
         expect(items.some((item) => item.keyForList === 'create_invoice' || item.keyForList === 'create_workspace')).toBe(false);
         expect(items.some((item) => item.keyForList === 'create_travel' || item.keyForList === 'create_quickAction')).toBe(false);
@@ -330,8 +330,21 @@ describe('Create Search Router navigation source', () => {
         const items = CreateNavigationSuggestions.buildCreateNavigationItems(createItems);
 
         expect(buildNavigationSuggestions('expense', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_expense']);
+        expect(buildNavigationSuggestions('add expense', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_expense']);
+        expect(buildNavigationSuggestions('new chat', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_chat']);
         expect(buildNavigationSuggestions('go to track distance', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_trackDistance']);
         expect(buildNavigationSuggestions('go to create     expense', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_expense']);
+    });
+
+    it('matches hidden Create aliases without changing row text', () => {
+        const items = CreateNavigationSuggestions.buildCreateNavigationItems([
+            {visible: true, text: 'New workspace', icon: mockIcon, action: createAction, keyForList: 'create_workspace', matchTerms: ['New workspace', 'Create workspace']},
+        ]);
+
+        expect(buildNavigationSuggestions('create workspace', [items], localeCompare).at(0)).toMatchObject({
+            text: 'New workspace',
+            keyForList: 'create_workspace',
+        });
     });
 
     it('runs an action immediately when no RHP is open', () => {
