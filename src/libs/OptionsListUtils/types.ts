@@ -1,3 +1,4 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
 
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
@@ -115,6 +116,12 @@ type LazyHydrationContext = {
     visibleReportActionsData: VisibleReportActionsDerivedValue;
     privateIsArchivedMap: PrivateIsArchivedMap;
     conciergeReportID: string | undefined;
+
+    /**
+     * Bound to the locale the option list is keyed on, so the shell's display name and the hydrated option's
+     * agree. Both must use this one — the drift guard compares them field by field.
+     */
+    translate: LocalizedTranslate;
 };
 
 type SearchOption<T> = SearchOptionData & {

@@ -12,7 +12,7 @@ import filterArrayByMatch from '@libs/filterArrayByMatch';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
-import {translateLocal} from '@libs/Localize';
+import {translate as translateWithLocale, translateLocal} from '@libs/Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import MaxHeap from '@libs/MaxHeap';
 import MinHeap from '@libs/MinHeap';
@@ -1731,7 +1731,7 @@ registerSessionCleanupCallback(() => filteredOptionListCache.clear());
  * was built, so the result is exactly what the eager build would have produced.
  */
 function buildFullOption(accountID: number, item: PersonalDetails | null, report: Report | undefined, context: LazyHydrationContext): HydratedPersonalDetailOption {
-    const {personalDetails, policiesCollection, reportAttributesDerived, policyTags, visibleReportActionsData, privateIsArchivedMap, conciergeReportID} = context;
+    const {personalDetails, policiesCollection, reportAttributesDerived, policyTags, visibleReportActionsData, privateIsArchivedMap, conciergeReportID, translate} = context;
     const privateIsArchived = report ? privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] : undefined;
     const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
@@ -1749,6 +1749,7 @@ function buildFullOption(accountID: number, item: PersonalDetails | null, report
             reportAttributesDerived,
             policyTags: reportPolicyTags,
             visibleReportActionsData,
+            translate,
         }),
         isHydrated: true,
     };
@@ -1768,14 +1769,14 @@ function buildFullOption(accountID: number, item: PersonalDetails | null, report
  * Only filter/rank fields are computed here; getValidOptions hydrates survivors via hydrateLazyPersonalDetailOption.
  */
 function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Report>, context: LazyHydrationContext): PersonalDetailShell[] {
-    const {personalDetails} = context;
+    const {personalDetails, translate} = context;
     return Object.values(personalDetails ?? {}).map((personalDetail) => {
         const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const report = reportMapForAccountIDs[accountID];
         // Same lookup createOption performs (also normalizes accountID in place).
         const detail = getPersonalDetailsForAccountIDs([accountID], personalDetails)[accountID];
-        // Same text createOption computes (translateLocal — the default createOption uses when translate is omitted).
-        const text = getPersonalDetailOptionText({accountID, hasReport: !!report, personalDetails, login: detail?.login, translate: translateLocal});
+        // Same text createOption computes, using the same translate buildFullOption hands it.
+        const text = getPersonalDetailOptionText({accountID, hasReport: !!report, personalDetails, login: detail?.login, translate});
 
         // The build inputs are fixed at this point, so one contact always hydrates to the same option and the
         // result is memoized here. cloneOptionList copies `hydrate` by reference, so every clone of this cached
@@ -1877,6 +1878,12 @@ function createFilteredOptionList(
 ): OptionList {
     const {conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
 
+    // The locale the contact options are built against, and the one the cache entry is keyed on below.
+    const activeLocale = locale ?? IntlStore.getCurrentLocale();
+    // Binding translate to that locale keeps the two consistent. translateLocal would read the imperative
+    // global instead, which can disagree with an explicit `locale` while the cache key claims the explicit one.
+    const translateInActiveLocale: LocalizedTranslate = (path, ...parameters) => translateWithLocale(activeLocale, path, ...parameters);
+
     // Contacts are expensive to build on large accounts (one option per personal detail). When a screen
     // opts into deferral and is not actively searching, skip building them entirely; the empty state
     // does not display standalone contacts, and typing flips `isSearching` which rebuilds the full set.
@@ -1898,8 +1905,8 @@ function createFilteredOptionList(
         visibleReportActionsData,
         isTrackIntentUser,
         conciergeReportID,
-        // Option building translates strings imperatively (translateLocal), so the active locale is part of the output.
-        locale ?? IntlStore.getCurrentLocale(),
+        // Option building translates strings, so the active locale is part of the output.
+        activeLocale,
         // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
         // so its reference signals that the underlying report actions changed.
         sortedActions,
@@ -2002,6 +2009,7 @@ function createFilteredOptionList(
               visibleReportActionsData,
               privateIsArchivedMap,
               conciergeReportID,
+              translate: translateInActiveLocale,
           })
         : [];
 
