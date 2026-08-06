@@ -935,10 +935,7 @@ describe('ImportTransactions', () => {
             expect(params.cardName).toBe('Aussie Card');
             expect(params.currency).toBe('AUD');
             expect(params.reimbursable).toBe(false);
-            const columnLayout = JSON.parse(String(params.columnMappings)) as SavedCSVColumnLayoutData;
-            expect(columnLayout.name).toBe('Aussie Card');
-            expect(columnLayout.accountDetails.currency).toBe('AUD');
-            expect(columnLayout.flipAmountSign).toBe(true);
+            expect(params.columnMappings).toBe(JSON.stringify(buildColumnLayout(validSpreadsheet, 'Aussie Card', 'AUD', false, true)));
         });
     });
 
@@ -961,7 +958,7 @@ describe('ImportTransactions', () => {
         });
 
         it('prefers the card values over the saved layout ones', () => {
-            const card = createMock<Card>({cardName: 'Backend Card', reimbursable: true, nameValuePairs: {cardTitle: 'Card Title'} as Card['nameValuePairs']});
+            const card = createMock<Card>({cardName: 'Backend Card', reimbursable: true, nameValuePairs: {cardTitle: 'Card Title'}});
 
             const result = getExistingCardImportSettings(card, savedLayout, undefined);
 
@@ -969,7 +966,7 @@ describe('ImportTransactions', () => {
         });
 
         it('prefers the custom card name over every other name', () => {
-            const card = createMock<Card>({cardName: 'Backend Card', nameValuePairs: {cardTitle: 'Card Title'} as Card['nameValuePairs']});
+            const card = createMock<Card>({cardName: 'Backend Card', nameValuePairs: {cardTitle: 'Card Title'}});
 
             const result = getExistingCardImportSettings(card, savedLayout, 'Custom Name');
 
