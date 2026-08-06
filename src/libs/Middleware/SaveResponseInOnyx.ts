@@ -21,6 +21,13 @@ const requestsToIgnoreLastUpdateID = new Set<string>([
     SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES,
 ]);
 
+// These requests carry the state that unblocks authentication itself: a new session, plus the finallyData that clears
+// `isAuthenticatingWithShortLivedToken`. They run while the previous session's watermark is still in Onyx, so a gap parks them,
+// and a parked payload leaves that flag set, which makes `reauthenticate()` give up and every later command 407.
+// `updateAuthTokenIfNecessary` only rescues a session authToken out of `response.onyxData`, never successData/finallyData,
+// so a command whose client-side data gates authentication has to be applied on arrival and belongs here.
+const requestsToApplyWithoutAdvancingLastUpdateID = new Set<string>([READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN]);
+
 const SaveResponseInOnyx: Middleware = <TKey extends OnyxKey>(requestResponse: Promise<Response<TKey> | void>, request: OnyxRequest<TKey>) =>
     requestResponse.then((response = {}) => {
         const onyxUpdates = response?.onyxData ?? [];
@@ -39,17 +46,16 @@ const SaveResponseInOnyx: Middleware = <TKey extends OnyxKey>(requestResponse: P
             response: response ?? {},
         };
 
-        // Apply a sign-in response on arrival, without advancing the watermark. A zero lastUpdateID does both: the payload applies now,
-        // so the new session and the finallyData that clears `isAuthenticatingWithShortLivedToken` land immediately and later commands
-        // do not 407, and the watermark stays put, so the gap is still fetched by the next response that carries a previousUpdateID.
-        const isSignInCommand = request.command === READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN || request.command === READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN;
+        // Zeroing lastUpdateID does both jobs: the payload applies now, so the new session and the flags land immediately,
+        // and the watermark stays put, so the gap is still fetched by the next response that carries a previousUpdateID.
+        const shouldApplyWithoutAdvancingLastUpdateID = requestsToApplyWithoutAdvancingLastUpdateID.has(request.command);
 
         if (
-            isSignInCommand ||
+            shouldApplyWithoutAdvancingLastUpdateID ||
             requestsToIgnoreLastUpdateID.has(request.command) ||
             !OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: Number(response?.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID)})
         ) {
-            return OnyxUpdates.apply(isSignInCommand ? {...responseToApply, lastUpdateID: CONST.DEFAULT_NUMBER_ID} : responseToApply);
+            return OnyxUpdates.apply(shouldApplyWithoutAdvancingLastUpdateID ? {...responseToApply, lastUpdateID: CONST.DEFAULT_NUMBER_ID} : responseToApply);
         }
 
         // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server
