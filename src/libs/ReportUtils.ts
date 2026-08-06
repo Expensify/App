@@ -13184,8 +13184,14 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
     return chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled;
 }
 
-function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined, conciergeReportID: string | undefined, translate: LocalizedTranslate): string {
-    const reportForHeader = getReportForHeader(report);
+function getChatListItemReportName(
+    action: ReportAction & {reportName?: string},
+    report: Report | undefined,
+    parentReport: OnyxEntry<Report>,
+    conciergeReportID: string | undefined,
+    translate: LocalizedTranslate,
+): string {
+    const reportForHeader = getReportForHeader(report, parentReport);
     if (reportForHeader && isInvoiceReport(reportForHeader)) {
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
         // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
