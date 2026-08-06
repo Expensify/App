@@ -48,6 +48,7 @@ function JobTitle({onNext, onMove, isEditing}: SubPageProps) {
             inputMode={CONST.INPUT_MODE.TEXT}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
+            shouldDelayAutoFocus
         />
     );
 }
