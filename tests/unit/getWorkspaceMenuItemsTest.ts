@@ -195,6 +195,12 @@ describe('getWorkspaceMenuItems', () => {
             units: {time: {enabled: true}},
             areInvoicesEnabled: true,
             invoice: {bankAccount: {stripeConnectAccountBalance: 123}},
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                    config: {isConfigured: true},
+                    data: {contacts: {vendor1: {id: 'vendor1', name: 'Acme', email: 'vendor@example.com'}}},
+                },
+            },
         });
         const convertToDisplayString = jest.fn(() => '$1.23');
 
@@ -204,6 +210,7 @@ describe('getWorkspaceMenuItems', () => {
             currentUserLogin,
             icons,
             isRulesRevampBetaEnabled: true,
+            isVendorMatchingBetaEnabled: true,
             convertToDisplayString,
         });
 
@@ -216,6 +223,7 @@ describe('getWorkspaceMenuItems', () => {
             'workspace.common.hr',
             'workspace.common.receiptPartners',
             'workspace.common.categories',
+            'workspace.common.vendors',
             'workspace.common.tags',
             'workspace.common.taxes',
             'workspace.common.workflows',
@@ -238,6 +246,7 @@ describe('getWorkspaceMenuItems', () => {
             ROUTES.WORKSPACE_HR.getRoute(policy.id),
             ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policy.id),
             ROUTES.WORKSPACE_CATEGORIES.getRoute(policy.id),
+            ROUTES.WORKSPACE_VENDORS.getRoute(policy.id),
             ROUTES.WORKSPACE_TAGS.getRoute(policy.id),
             ROUTES.WORKSPACE_TAXES.getRoute(policy.id),
             ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id),
@@ -260,6 +269,7 @@ describe('getWorkspaceMenuItems', () => {
             SCREENS.WORKSPACE.HR,
             SCREENS.WORKSPACE.RECEIPT_PARTNERS,
             SCREENS.WORKSPACE.CATEGORIES,
+            SCREENS.WORKSPACE.VENDORS,
             SCREENS.WORKSPACE.TAGS,
             SCREENS.WORKSPACE.TAXES,
             SCREENS.WORKSPACE.WORKFLOWS,
