@@ -4763,6 +4763,7 @@ const CONST = {
 
         // Scrape result codes where the connection is broken because the user needs to re-authenticate with their bank
         REAUTH_SCRAPE_STATUSES: reauthScrapeStatuses,
+
         // After a card connection has been broken and unresolved for this many days, stop actively
         // prompting the user: the time-sensitive home task and the RBR are removed (the error itself is kept).
         BROKEN_CONNECTION_DISMISS_AFTER_DAYS: 90,

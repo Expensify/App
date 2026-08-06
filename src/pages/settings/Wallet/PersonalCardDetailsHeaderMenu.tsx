@@ -57,8 +57,8 @@ function PersonalCardDetailsHeaderMenu({
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Table', 'Trashcan']);
 
-    // Guard against an invalid scrapeMinDate: date-fns `format` throws `RangeError: Invalid time value`
-    // when `parseISO` can't parse the value, which crashes the whole page (e.g. for a broken/never-synced card)
+    // Guard against an invalid scrapeMinDate, since`format` throws `RangeError: Invalid time value`
+    // when `parseISO` can't parse the value
     const parsedScrapeMinDate = card?.scrapeMinDate ? parseISO(card.scrapeMinDate) : undefined;
     const transactionStartDateTitle = parsedScrapeMinDate && isValid(parsedScrapeMinDate) ? format(parsedScrapeMinDate, CONST.DATE.FNS_FORMAT_STRING) : '';
 
