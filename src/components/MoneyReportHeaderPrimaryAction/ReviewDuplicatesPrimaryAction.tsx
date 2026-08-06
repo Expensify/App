@@ -7,7 +7,6 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getOrCreateTransactionThreadReportID} from '@libs/TransactionThreadNavigationUtils';
@@ -51,30 +50,30 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
     );
     const duplicateIOUAction = getIOUActionForReportID(moneyRequestReport?.reportID, duplicateTransaction?.transactionID);
     const duplicateThreadReportID = duplicateIOUAction?.childReportID;
-    const [duplicateThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(duplicateThreadReportID)}`);
+    const [duplicateThreadReportExists] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(duplicateThreadReportID)}`, {selector: (report) => !!report?.reportID});
 
     return (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => {
-                let threadID = transactionThreadReportID;
-                if (!threadID && duplicateTransaction) {
-                    threadID = getOrCreateTransactionThreadReportID(
-                        {
-                            threadReportID: duplicateThreadReportID,
-                            threadReportExists: !!duplicateThreadReport?.reportID,
-                            iouReport: moneyRequestReport,
-                            iouReportAction: duplicateIOUAction,
-                            transaction: duplicateTransaction,
-                        },
-                        {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID},
-                    );
-                }
+                const threadID =
+                    transactionThreadReportID ??
+                    (duplicateTransaction
+                        ? getOrCreateTransactionThreadReportID(
+                              {
+                                  threadReportID: duplicateThreadReportID,
+                                  threadReportExists: !!duplicateThreadReportExists,
+                                  iouReport: moneyRequestReport,
+                                  iouReportAction: duplicateIOUAction,
+                                  transaction: duplicateTransaction,
+                              },
+                              {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID},
+                          )
+                        : undefined);
 
                 if (threadID) {
-                    const reportIDToNavigate = threadID;
                     // Navigate on the microtask queue so the optimistic transaction thread is committed to Onyx before we navigate.
-                    setNavigationActionToMicrotaskQueue(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.getRoute(reportIDToNavigate))));
+                    Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.getRoute(threadID))));
                 }
             }}
         >
