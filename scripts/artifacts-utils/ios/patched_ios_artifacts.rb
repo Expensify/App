@@ -8,7 +8,6 @@ require 'json'
 module PatchedIOSArtifacts
     # scripts/artifacts-utils/ios/ -> repo root is three levels up.
     NEW_DOT_ROOT = File.expand_path('../../..', __dir__)
-    GITHUB_PACKAGES_BASE = 'https://maven.pkg.github.com/Expensify/App'
 
     # Whether this install consumes a prebuilt RNCore. Defaults to false so that if
     # setup never ran, prebuilt-only pod tweaks are a no-op rather than misapplied.
@@ -30,7 +29,8 @@ module PatchedIOSArtifacts
         ENV['RCT_USE_PREBUILT_RNCORE'] = flag
 
         ReactNativeCoreUtils.class_variable_set(:@@patched_version, resolution['version'])
-        ReactNativeCoreUtils.class_variable_set(:@@patched_package_name, package_name)
+        # The resolver hands us the artifact URL prefix, so Maven coordinates live only in the resolver.
+        ReactNativeCoreUtils.class_variable_set(:@@patched_artifact_url_prefix, resolution['artifactUrlPrefix'])
         ReactNativeCoreUtils.class_variable_set(:@@patched_github_token, resolution['githubToken'])
         ReactNativeCoreUtils.class_variable_set(:@@patched_build_from_source, resolution['buildFromSource'])
     end
@@ -85,7 +85,7 @@ class ReactNativeCoreUtils
 
     def self.stable_tarball_url(_version, build_type, dsyms = false)
         classifier = "reactnative-core-#{dsyms ? 'dSYM-' : ''}#{build_type}"
-        "#{PatchedIOSArtifacts::GITHUB_PACKAGES_BASE}/com/expensify/#{@@patched_package_name}/react-native-artifacts/#{@@patched_version}/react-native-artifacts-#{@@patched_version}-#{classifier}.tar.gz"
+        "#{@@patched_artifact_url_prefix}-#{classifier}.tar.gz"
     end
 
     def self.download_rncore_tarball(_react_native_path, tarball_url, version, configuration, dsyms = false)

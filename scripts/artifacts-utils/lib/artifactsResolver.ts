@@ -1,9 +1,15 @@
+import CONST from '@github/libs/CONST';
+import GithubUtils from '@github/libs/GithubUtils';
+
 import {isRecord} from '@libs/ObjectUtils';
 
-import {getOctokit} from '@actions/github';
 import {execFileSync} from 'child_process';
 import fs from 'fs';
 import path from 'path';
+
+import type {Credentials, CredentialsWithUsername} from './credentials';
+
+import {getCredentials, getCredentialsWithUsername, initGithubClient} from './credentials';
 
 /**
  * Shared resolver for Expensify's patched React Native prebuilt artifacts.
@@ -13,13 +19,6 @@ import path from 'path';
  */
 
 type Platform = 'ios' | 'android';
-
-/** Base credentials — a token authenticates every download. */
-type Credentials = {githubToken: string};
-/** iOS's curl Bearer download needs only the token. */
-type IosCredentials = Credentials;
-/** Android's Gradle Maven `credentials {}` block additionally requires the username. */
-type AndroidCredentials = Credentials & {githubUsername: string};
 
 type ResolveOptions = {
     platform: Platform;
@@ -42,109 +41,33 @@ type Prebuilt<Creds> = {
     version: string;
     packageName: string;
     artifactId: string;
+    artifactUrlPrefix: string;
 } & Creds;
 
-type IosResult = SourceBuild | Prebuilt<IosCredentials>;
-type AndroidResult = SourceBuild | Prebuilt<AndroidCredentials>;
+type IosResult = SourceBuild | Prebuilt<Credentials>;
+type AndroidResult = SourceBuild | Prebuilt<CredentialsWithUsername>;
 type ResolveResult = IosResult | AndroidResult;
-
-const GITHUB_REPO = 'Expensify/App';
-const GITHUB_OWNER = 'Expensify';
 
 const ARTIFACT_IDS = {
     android: 'react-android',
     ios: 'react-native-artifacts',
 } satisfies Record<Platform, string>;
 
+/** The Maven repository our artifacts are published to. */
+const MAVEN_REPO_URL = `https://maven.pkg.github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
+
 /** Logs go to stderr; stdout is reserved for the JSON result. */
 function logError(message: string) {
     process.stderr.write(`[PatchedArtifacts] ${message}\n`);
 }
 
-/** Credentials as read from the source; fields are validated per platform by the callers. */
-type RawCredentials = {githubToken: string | null; githubUsername: string | null};
-
-function isCI(): boolean {
-    return process.env.CI != null;
-}
-
-/** Reads a non-empty environment variable, or null. */
-function getEnvVar(name: string): string | null {
-    const value: unknown = process.env[name];
-    return typeof value === 'string' && value.length > 0 ? value : null;
-}
-
-/** Runs a `gh` command and returns its trimmed output, or null on failure/empty. */
-function getGh(args: string[]): string | null {
-    try {
-        const output = execFileSync('gh', args, {encoding: 'utf8'}).trim();
-        return output.length > 0 ? output : null;
-    } catch {
-        return null;
-    }
-}
-
-function hasGithubCLI(): boolean {
-    try {
-        execFileSync('which', ['gh'], {stdio: 'ignore'});
-        return true;
-    } catch {
-        return false;
-    }
-}
-
-function hasRequiredScopes(): boolean {
-    try {
-        const status = execFileSync('gh', ['auth', 'status'], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe']}).toString();
-        return status.includes('read:packages');
-    } catch {
-        return false;
-    }
-}
-
 /**
- * In CI credentials come from the environment (no gh CLI). Locally they come from
- * the gh CLI, which must be installed and scoped for read:packages.
+ * Every file of an artifact version shares this prefix; a consumer only appends the extension or
+ * classifier it wants (`.pom`, `-reactnative-core-release.tar.gz`, ...). Composed here so that the
+ * native consumers never need to know our Maven coordinates.
  */
-function readCredentials(): RawCredentials | null {
-    if (isCI()) {
-        return {githubToken: getEnvVar('GITHUB_TOKEN'), githubUsername: getEnvVar('GITHUB_ACTOR')};
-    }
-    if (!hasGithubCLI()) {
-        logError('No GitHub CLI found.');
-        return null;
-    }
-    if (!hasRequiredScopes()) {
-        logError('GitHub token does not have required scope read:packages.');
-        return null;
-    }
-    return {githubToken: getGh(['auth', 'token']), githubUsername: getGh(['api', 'user', '--jq', '.login'])};
-}
-
-function getIosCredentials(): IosCredentials | null {
-    const credentials = readCredentials();
-    if (credentials == null || credentials.githubToken == null) {
-        logError('Missing GitHub token.');
-        return null;
-    }
-    return {githubToken: credentials.githubToken};
-}
-
-function getAndroidCredentials(): AndroidCredentials | null {
-    const credentials = readCredentials();
-    if (credentials == null || credentials.githubToken == null || credentials.githubUsername == null) {
-        logError('Missing GitHub credentials (username and/or token).');
-        return null;
-    }
-    return {githubToken: credentials.githubToken, githubUsername: credentials.githubUsername};
-}
-
-function mavenPomUrl(packageName: string, artifactId: string, version: string): string {
-    return `https://maven.pkg.github.com/${GITHUB_REPO}/com/expensify/${packageName}/${artifactId}/${version}/${artifactId}-${version}.pom`;
-}
-
-function buildAuthHeaders(githubToken: string | null): Record<string, string> {
-    return githubToken ? {Authorization: `Bearer ${githubToken}`} : {};
+function getArtifactUrlPrefix(packageName: string, artifactId: string, version: string): string {
+    return `${MAVEN_REPO_URL}/com/expensify/${packageName}/${artifactId}/${version}/${artifactId}-${version}`;
 }
 
 /**
@@ -152,8 +75,8 @@ function buildAuthHeaders(githubToken: string | null): Record<string, string> {
  * `fetch` follows the redirect and drops the Authorization header on the
  * cross-origin hop, so the token reaches only the initial host, never the object store.
  */
-async function fetchTokenSafe(url: string, githubToken: string | null): Promise<string> {
-    const response = await fetch(url, {headers: buildAuthHeaders(githubToken)});
+async function fetchWithToken(url: string, githubToken: string): Promise<string> {
+    const response = await fetch(url, {headers: {Authorization: `Bearer ${githubToken}`}});
     if (!response.ok) {
         throw new Error(`Request to ${url} failed with status ${response.status}`);
     }
@@ -181,12 +104,12 @@ function computePatchesHash(newDotRoot: string, isHybrid: boolean): string {
     return execFileSync('bash', args, {encoding: 'utf8'}).trim();
 }
 
-async function getArtifactsCandidates(packageName: string, artifactId: string, rnVersion: string, githubToken: string): Promise<string[]> {
-    const octokit = getOctokit(githubToken);
+/** Published versions of the package that were built from the given react-native version. Requires `initGithubClient`. */
+async function getArtifactsCandidates(packageName: string, artifactId: string, rnVersion: string): Promise<string[]> {
     /* eslint-disable @typescript-eslint/naming-convention -- GitHub REST API params are snake_case */
-    const versions = await octokit.paginate(octokit.rest.packages.getAllPackageVersionsForPackageOwnedByOrg, {
+    const versions = await GithubUtils.paginate(GithubUtils.octokit.packages.getAllPackageVersionsForPackageOwnedByOrg, {
         package_type: 'maven',
-        org: GITHUB_OWNER,
+        org: CONST.GITHUB_OWNER,
         package_name: `com.expensify.${packageName}.${artifactId}`,
         per_page: 100,
     }); /* eslint-enable @typescript-eslint/naming-convention */
@@ -194,45 +117,23 @@ async function getArtifactsCandidates(packageName: string, artifactId: string, r
 }
 
 async function getRemotePatchesHash(packageName: string, artifactId: string, version: string, githubToken: string): Promise<string | null> {
-    const pom = await fetchTokenSafe(mavenPomUrl(packageName, artifactId, version), githubToken);
+    const pom = await fetchWithToken(`${getArtifactUrlPrefix(packageName, artifactId, version)}.pom`, githubToken);
     return pom.match(/<patchesHash>([^<]+)<\/patchesHash>/)?.[1]?.trim() ?? null;
 }
 
+/** Returns null when no published artifact was built from the local patches — a legitimate result, not a failure. */
 async function findMatchingArtifactsVersion(options: ResolveOptions, artifactId: string, githubToken: string): Promise<string | null> {
     const {packageName, newDotRoot, isHybrid} = options;
-    try {
-        const localPatchesHash = computePatchesHash(newDotRoot, isHybrid);
-        const rnVersion = getReactNativeVersion(newDotRoot);
-        const candidates = await getArtifactsCandidates(packageName, artifactId, rnVersion, githubToken);
-        for (const candidate of candidates) {
-            const remoteHash = await getRemotePatchesHash(packageName, artifactId, candidate, githubToken);
-            if (remoteHash != null && remoteHash === localPatchesHash) {
-                return candidate;
-            }
+    const localPatchesHash = computePatchesHash(newDotRoot, isHybrid);
+    const rnVersion = getReactNativeVersion(newDotRoot);
+    const candidates = await getArtifactsCandidates(packageName, artifactId, rnVersion);
+    for (const candidate of candidates) {
+        const remoteHash = await getRemotePatchesHash(packageName, artifactId, candidate, githubToken);
+        if (remoteHash === localPatchesHash) {
+            return candidate;
         }
-        return null;
-    } catch (error) {
-        logError(`Failed to find matching artifacts version for ${packageName}. Reason: ${String(error)}`);
-        return null;
     }
-}
-
-async function resolveWithCredentials<Creds extends Credentials>(
-    options: ResolveOptions,
-    artifactId: string,
-    credentials: Creds | null,
-    sourceBuild: SourceBuild,
-): Promise<SourceBuild | Prebuilt<Creds>> {
-    if (!credentials) {
-        return sourceBuild;
-    }
-    const version = await findMatchingArtifactsVersion(options, artifactId, credentials.githubToken);
-    if (version == null) {
-        logError(`No matching artifacts version found for ${options.packageName}. Building react-native from source.`);
-        return sourceBuild;
-    }
-    logError(`Using patched react-native artifacts: ${options.packageName}:${version}`);
-    return {buildFromSource: false, version, packageName: options.packageName, artifactId, ...credentials};
+    return null;
 }
 
 /**
@@ -240,19 +141,43 @@ async function resolveWithCredentials<Creds extends Credentials>(
  * Returns a `SourceBuild` (no secrets) when no match is found or credentials are
  * unavailable, otherwise a `Prebuilt` carrying the credentials the native
  * download needs — token only for iOS, username + token for Android.
+ *
+ * Anything unexpected (no credentials, an API or network failure) is logged and downgraded to a
+ * source build here, so a build never dies on artifact resolution.
  */
 function resolveArtifacts(options: ResolveOptions & {platform: 'ios'}): Promise<IosResult>;
 function resolveArtifacts(options: ResolveOptions & {platform: 'android'}): Promise<AndroidResult>;
-function resolveArtifacts(options: ResolveOptions): Promise<ResolveResult> {
-    const artifactId = ARTIFACT_IDS[options.platform];
-    const sourceBuild: SourceBuild = {buildFromSource: true, version: null, packageName: options.packageName, artifactId};
+async function resolveArtifacts(options: ResolveOptions): Promise<ResolveResult> {
+    const {platform, packageName} = options;
+    const artifactId = ARTIFACT_IDS[platform];
+    const sourceBuild: SourceBuild = {buildFromSource: true, version: null, packageName, artifactId};
 
-    if (options.platform === 'ios') {
-        return resolveWithCredentials(options, artifactId, getIosCredentials(), sourceBuild);
+    try {
+        // Reading credentials validates them, so an incomplete setup fails before we spend time on API calls.
+        const credentials = platform === 'android' ? getCredentialsWithUsername() : getCredentials();
+        initGithubClient(credentials.githubToken);
+
+        const version = await findMatchingArtifactsVersion(options, artifactId, credentials.githubToken);
+        if (version == null) {
+            logError(`No matching artifacts version found for ${packageName}. Building react-native from source.`);
+            return sourceBuild;
+        }
+
+        logError(`Using patched react-native artifacts: ${packageName}:${version}`);
+        return {
+            buildFromSource: false,
+            version,
+            packageName,
+            artifactId,
+            artifactUrlPrefix: getArtifactUrlPrefix(packageName, artifactId, version),
+            ...credentials,
+        };
+    } catch (error) {
+        logError(`${error instanceof Error ? error.message : String(error)} Building react-native from source.`);
+        return sourceBuild;
     }
-    return resolveWithCredentials(options, artifactId, getAndroidCredentials(), sourceBuild);
 }
 
 export default resolveArtifacts;
 export {ARTIFACT_IDS};
-export type {Platform, ResolveOptions, ResolveResult, IosResult, AndroidResult};
+export type {AndroidResult, IosResult, Platform, ResolveOptions, ResolveResult};
