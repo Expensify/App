@@ -19,16 +19,21 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {getBillableExpensesPendingAction, setPolicyBillableMode, toggleBillableExpenses} from '@userActions/Policy/Policy';
+import {getBillableExpensesPendingAction, getPolicyBillableMode, setPolicyBillableModeChoice, toggleBillableExpenses} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
 
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type RulesBillableDefaultPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT>;
+
+type PolicyBillableMode = ValueOf<typeof CONST.POLICY_BILLABLE_MODES>;
 
 function RulesBillableDefaultPage({
     route: {
@@ -44,32 +49,23 @@ function RulesBillableDefaultPage({
     const {showConfirmModal} = useConfirmModal();
     const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
-    const [draftBillable, setDraftBillable] = useState<boolean>();
-    const persistedBillable = policy?.defaultBillable ?? false;
-    const selectedBillable = draftBillable ?? persistedBillable;
-    const hasChanges = selectedBillable !== persistedBillable;
+    const persistedBillableMode = getPolicyBillableMode(policy) ?? CONST.POLICY_BILLABLE_MODES.DISABLED;
+    const [draftBillableMode, setDraftBillableMode] = useState<PolicyBillableMode>();
+    const selectedBillableMode = draftBillableMode ?? persistedBillableMode;
+    const hasChanges = selectedBillableMode !== persistedBillableMode;
 
-    const billableModes = [
-        {
-            value: true,
-            text: translate(`workspace.rules.individualExpenseRules.billable`),
-            alternateText: translate(`workspace.rules.individualExpenseRules.billableDescription`),
-            keyForList: CONST.POLICY_BILLABLE_MODES.BILLABLE,
-            isSelected: selectedBillable,
-        },
-        {
-            value: false,
-            text: translate(`workspace.rules.individualExpenseRules.nonBillable`),
-            alternateText: translate(`workspace.rules.individualExpenseRules.nonBillableDescription`),
-            keyForList: CONST.POLICY_BILLABLE_MODES.NON_BILLABLE,
-            isSelected: !selectedBillable,
-        },
-    ];
-
-    const initiallyFocusedOptionKey = selectedBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
+    const billableModes = Object.values(CONST.POLICY_BILLABLE_MODES)
+        .filter((mode) => !isRevamp || mode !== CONST.POLICY_BILLABLE_MODES.DISABLED)
+        .map((mode) => ({
+            text: translate(`workspace.rules.individualExpenseRules.${mode}` as TranslationPaths),
+            alternateText: translate(`workspace.rules.individualExpenseRules.${mode}Description` as TranslationPaths),
+            value: mode,
+            isSelected: selectedBillableMode === mode,
+            keyForList: mode,
+        }));
 
     const saveAndGoBack = () => {
-        setPolicyBillableMode(policyID, selectedBillable, policy?.defaultBillable, policy?.disabledFields?.defaultBillable);
+        setPolicyBillableModeChoice(policyID, selectedBillableMode, policy?.defaultBillable, policy?.disabledFields?.defaultBillable);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
@@ -143,11 +139,11 @@ function RulesBillableDefaultPage({
                         data={billableModes}
                         ListItem={SingleSelectListItem}
                         onSelectRow={(item) => {
-                            setDraftBillable(item.value);
+                            setDraftBillableMode(item.value);
                         }}
                         confirmButtonOptions={confirmButtonOptions}
                         shouldSingleExecuteRowSelect
-                        initiallyFocusedItemKey={initiallyFocusedOptionKey}
+                        initiallyFocusedItemKey={persistedBillableMode}
                         addBottomSafeAreaPadding
                     />
                 )}

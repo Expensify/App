@@ -6633,6 +6633,25 @@ function getCashExpenseReimbursableMode(policy: OnyxEntry<Policy>): PolicyCashEx
     return CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_NON_REIMBURSABLE;
 }
 
+type PolicyBillableMode = ValueOf<typeof CONST.POLICY_BILLABLE_MODES>;
+
+/**
+ * Resolve the workspace billable setting into one of the three OldDot-compatible modes.
+ * Disabled: billable tracking is off (`disabledFields.defaultBillable === true`).
+ * Billable / Non-billable: tracking is on and `defaultBillable` is true / false.
+ */
+function getPolicyBillableMode(policy: OnyxEntry<Policy>): PolicyBillableMode | undefined {
+    if (!policy) {
+        return undefined;
+    }
+
+    if (policy.disabledFields?.defaultBillable) {
+        return CONST.POLICY_BILLABLE_MODES.DISABLED;
+    }
+
+    return policy.defaultBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
+}
+
 /**
  * Call the API to enable or disable the reimbursable mode for the given policy
  * @param policyID - id of the policy to enable or disable the reimbursable mode
@@ -6755,6 +6774,19 @@ function disableWorkspaceBillableExpenses(policyID: string) {
     };
 
     API.write(WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE, parameters, onyxData);
+}
+
+/**
+ * Persist a billable mode selection. Disabled turns tracking off; the other modes enable tracking
+ * and set the default billable flag.
+ */
+function setPolicyBillableModeChoice(policyID: string, billableMode: PolicyBillableMode, currentDefaultBillable: boolean | undefined, currentDefaultBillableDisabled: boolean | undefined) {
+    if (billableMode === CONST.POLICY_BILLABLE_MODES.DISABLED) {
+        disableWorkspaceBillableExpenses(policyID);
+        return;
+    }
+
+    setPolicyBillableMode(policyID, billableMode === CONST.POLICY_BILLABLE_MODES.BILLABLE, currentDefaultBillable, currentDefaultBillableDisabled);
 }
 
 /**
@@ -7926,6 +7958,8 @@ export {
     setPolicyReceiptVisibilityPublic,
     setPolicyReimbursableMode,
     getCashExpenseReimbursableMode,
+    getPolicyBillableMode,
+    setPolicyBillableModeChoice,
     clearPolicyTitleFieldError,
     inviteWorkspaceEmployeesToUber,
     setWorkspaceConfirmationCurrency,

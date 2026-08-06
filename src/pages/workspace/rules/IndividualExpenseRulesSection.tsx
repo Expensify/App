@@ -10,7 +10,13 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setPolicyRequireCompanyCardsEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {
+    getCashExpenseReimbursableMode,
+    getPolicyBillableMode,
+    setPolicyAttendeeTrackingEnabled,
+    setPolicyRequireCompanyCardsEnabled,
+    setWorkspaceEReceiptsEnabled,
+} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 
@@ -111,7 +117,8 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
 
     const reimbursableMode = getCashExpenseReimbursableMode(policy) ?? CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT;
     const reimbursableModeText = translate(`workspace.rules.individualExpenseRules.${reimbursableMode}`);
-    const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
+    const billableMode = getPolicyBillableMode(policy) ?? CONST.POLICY_BILLABLE_MODES.DISABLED;
+    const billableModeText = translate(`workspace.rules.individualExpenseRules.${billableMode}`);
 
     const prohibitedExpenses = useMemo(() => {
         // Otherwise return which expenses are prohibited comma separated

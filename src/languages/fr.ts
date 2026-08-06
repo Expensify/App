@@ -7623,6 +7623,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 billableDefault: 'Facturable par défaut',
                 billableDefaultDescription: (tagsPageLink: string) =>
                     `<muted-text>Choisissez si les dépenses en espèces et par carte de crédit doivent être facturables par défaut. Les dépenses facturables sont activées ou désactivées dans les <a href="${tagsPageLink}">tags</a>.</muted-text>`,
+                disabled: 'Désactivé',
+                disabledDescription: 'Les dépenses ne peuvent pas être marquées comme facturables',
                 billable: 'Facturable',
                 billableDescription: 'Les dépenses sont le plus souvent refacturées aux clients',
                 nonBillable: 'Non refacturable',
@@ -7999,6 +8001,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cashExpensesAlwaysReimbursable: 'Toujours remboursable',
                 cashExpensesAlwaysNonReimbursable: 'Toujours non remboursable',
                 billableExpenses: 'Dépenses refacturables',
+                billableExpensesDisabled: 'Désactivé',
                 billableExpensesBillable: 'Dépenses en espèces et par carte bancaire facturables',
                 billableExpensesNonBillable: 'Espèces et carte de crédit non facturables',
             },

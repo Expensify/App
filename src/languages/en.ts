@@ -7788,6 +7788,7 @@ const translations = {
                 cashExpensesAlwaysReimbursable: 'Always reimbursable',
                 cashExpensesAlwaysNonReimbursable: 'Always non-reimbursable',
                 billableExpenses: 'Billable expenses',
+                billableExpensesDisabled: 'Disabled',
                 billableExpensesBillable: 'Cash and credit card billable',
                 billableExpensesNonBillable: 'Cash and credit card non-billable',
             },
@@ -7839,6 +7840,8 @@ const translations = {
                 billableDefault: 'Billable default',
                 billableDefaultDescription: (tagsPageLink: string) =>
                     `<muted-text>Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in <a href="${tagsPageLink}">tags</a>.</muted-text>`,
+                disabled: 'Disabled',
+                disabledDescription: 'Expenses cannot be marked as billable',
                 billable: 'Billable',
                 billableDescription: 'Expenses are most often re-billed to clients',
                 nonBillable: 'Non-billable',

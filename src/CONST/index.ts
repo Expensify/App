@@ -222,6 +222,7 @@ const CONST = {
     DEFAULT_IMAGE_FILE_NAME: 'image',
     DISABLED_MAX_EXPENSE_VALUE: 10000000000,
     POLICY_BILLABLE_MODES: {
+        DISABLED: 'disabled',
         BILLABLE: 'billable',
         NON_BILLABLE: 'nonBillable',
     },

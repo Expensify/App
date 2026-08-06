@@ -7597,6 +7597,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 billableDefault: 'Standardmäßig verrechenbar',
                 billableDefaultDescription: (tagsPageLink: string) =>
                     `<muted-text>Wähle, ob Bar- und Kreditkartenausgaben standardmäßig verrechenbar sein sollen. Verrechenbare Ausgaben werden in <a href="${tagsPageLink}">Tags</a> aktiviert oder deaktiviert.</muted-text>`,
+                disabled: 'Deaktiviert',
+                disabledDescription: 'Spesen können nicht als verrechenbar markiert werden',
                 billable: 'Abrechenbar',
                 billableDescription: 'Spesen werden meist an Kund:innen weiterberechnet',
                 nonBillable: 'Nicht abrechenbar',
@@ -7971,6 +7973,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 cashExpensesAlwaysReimbursable: 'Immer erstattungsfähig',
                 cashExpensesAlwaysNonReimbursable: 'Immer nicht erstattungsfähig',
                 billableExpenses: 'Abrechenbare Spesen',
+                billableExpensesDisabled: 'Deaktiviert',
                 billableExpensesBillable: 'Bar auslegbar und Kreditkarte auslegbar',
                 billableExpensesNonBillable: 'Barzahlungen und Kreditkarten nicht verrechenbar',
             },

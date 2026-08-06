@@ -8,7 +8,13 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBillableExpensesPendingAction, getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {
+    getBillableExpensesPendingAction,
+    getCashExpenseReimbursableMode,
+    getPolicyBillableMode,
+    setPolicyAttendeeTrackingEnabled,
+    setWorkspaceEReceiptsEnabled,
+} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled, isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
@@ -92,8 +98,13 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
         [CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_NON_REIMBURSABLE]: translate('workspace.rules.generalTab.cashExpensesAlwaysNonReimbursable'),
     };
     const reimbursableModeText = reimbursableModeTextMap[reimbursableMode];
-    const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
-    const billableModeText = isBillableTrackingEnabled ? translate(`workspace.rules.generalTab.${policy?.defaultBillable ? 'billableExpensesBillable' : 'billableExpensesNonBillable'}`) : '';
+    const billableMode = getPolicyBillableMode(policy) ?? CONST.POLICY_BILLABLE_MODES.DISABLED;
+    const billableModeTextMap = {
+        [CONST.POLICY_BILLABLE_MODES.DISABLED]: translate('workspace.rules.generalTab.billableExpensesDisabled'),
+        [CONST.POLICY_BILLABLE_MODES.BILLABLE]: translate('workspace.rules.generalTab.billableExpensesBillable'),
+        [CONST.POLICY_BILLABLE_MODES.NON_BILLABLE]: translate('workspace.rules.generalTab.billableExpensesNonBillable'),
+    };
+    const billableModeText = billableModeTextMap[billableMode];
 
     const isCollect = isCollectPolicy(policy);
     const rulesUpgradeBackTo = ROUTES.WORKSPACE_RULES.getRoute(policyID);
