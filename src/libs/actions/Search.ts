@@ -435,7 +435,7 @@ function getLastPolicyPaymentMethod(
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
 }
 
-function getReportType(reportID?: string, report?: OnyxInputOrEntry<Report>) {
+function getReportType(reportID: string, report: OnyxInputOrEntry<Report>) {
     if (isIOUReportUtil(reportID)) {
         return CONST.REPORT.TYPE.IOU;
     }
@@ -557,11 +557,10 @@ function getPayActionCallback({
     isTrackIntentUser,
     conciergeChat,
 }: GetPayActionCallbackParams) {
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID, snapshotReport));
-
     if (!item.reportID) {
         return;
     }
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID, snapshotReport));
 
     if (!lastPolicyPaymentMethod || !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod)) {
         goToItem();
