@@ -3,6 +3,8 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
+import extractPresentNavigationKeys from '@libs/Navigation/helpers/extractPresentNavigationKeys';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import type {NavigationRoute} from '@libs/Navigation/types';
 
 import variables from '@styles/variables';
@@ -25,6 +27,7 @@ import type {RHPWidth, RHPWidthHint, WideRHPActionsContextType, WideRHPStateCont
 
 import {defaultWideRHPActionsContextValue, defaultWideRHPStateContextValue} from './default';
 import getIsRHPDisplayedBelow from './getIsRHPDisplayedBelow';
+import getRouteReportID from './getRouteReportID';
 import getVisibleRHPKeys from './getVisibleRHPRouteKeys';
 import useShouldRenderOverlay from './useShouldRenderOverlay';
 
@@ -193,10 +196,17 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      */
     const shouldRenderTertiaryOverlay = useShouldRenderOverlay(isRHPFocused && isWideRHPBelow && isSuperWideRHPBelow, thirdOverlayProgress);
 
+    // Routes currently registered as wide or super-wide, kept whole so a route closed while its screen is hidden
+    // by <Activity> can still be deregistered (with its width and its report hint) from the state listener below.
+    const registeredRHPRoutesRef = useRef<Map<string, NavigationRoute>>(new Map());
+
     /**
      * Removes the route from both wide and super-wide sets. Used on screen unmount.
      */
     const removeRHPRouteKey = (route: NavigationRoute) => {
+        if (route.key) {
+            registeredRHPRoutesRef.current.delete(route.key);
+        }
         removeWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
         removeWideRHPRoute(route, setAllWideRHPRouteKeys);
     };
@@ -206,6 +216,13 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      * route lives in at most one of {wide, super-wide} sets at any time (or neither, for 'narrow').
      */
     const setRHPWidth = (route: NavigationRoute, width: RHPWidth) => {
+        if (route.key) {
+            if (width === 'wide' || width === 'super-wide') {
+                registeredRHPRoutesRef.current.set(route.key, route);
+            } else {
+                registeredRHPRoutesRef.current.delete(route.key);
+            }
+        }
         if (width === 'super-wide') {
             removeWideRHPRoute(route, setAllWideRHPRouteKeys);
             showWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
@@ -264,6 +281,36 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     };
 
     const getReportRHPWidthHint = (reportID: string): RHPWidthHint | undefined => reportRHPWidthHints.get(reportID);
+
+    /**
+     * A screen hidden by <Activity> has no mounted effects, so when its route is closed while it is hidden, the
+     * deregistration in useRHPWidth never runs and its width (and report hint) would survive the RHP forever.
+     * This listener deregisters every registered route once it has left the navigation state; the key sync
+     * effect above then folds the RHP width when nothing wide is left.
+     */
+    useEffect(() => {
+        const unsubscribe = navigationRef.addListener('state', () => {
+            if (registeredRHPRoutesRef.current.size === 0) {
+                return;
+            }
+            const rootState = navigationRef.getRootState();
+            if (!rootState) {
+                return;
+            }
+            const presentKeys = extractPresentNavigationKeys(rootState);
+            for (const route of registeredRHPRoutesRef.current.values()) {
+                if (!route.key || presentKeys.has(route.key)) {
+                    continue;
+                }
+                removeRHPRouteKey(route);
+                const reportID = getRouteReportID(route);
+                if (reportID) {
+                    unmarkReportRHPWidth(reportID);
+                }
+            }
+        });
+        return unsubscribe;
+    }, [removeRHPRouteKey, unmarkReportRHPWidth]);
 
     /**
      * Effect that handles responsive RHP width calculation when window dimensions change.
