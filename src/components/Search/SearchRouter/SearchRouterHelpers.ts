@@ -33,9 +33,7 @@ function isNavigationIntentOnlyQuery(query: string) {
 }
 
 function toMatchKey(value: string | undefined) {
-    return StringUtils.normalizeForMatch(value ?? '')
-        .toLowerCase()
-        .trim();
+    return StringUtils.normalizeForMatch(value ?? '').toLowerCase();
 }
 
 function matchesNavigationQuery(query: string, ...values: Array<string | undefined>) {
