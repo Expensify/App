@@ -404,6 +404,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: '長いレポートID',
         withdrawalID: '出金ID',
         internationalReimbursementIDs: '国際払い戻しID',
+        amountDebited: '引き落とし額',
+        amountReimbursed: '精算済み金額',
         withdrawalStatus: '出金ステータス',
         paidStatus: '支払済みステータス',
         bankAccounts: '銀行口座',
@@ -1998,21 +2000,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `管理者が経費を支払うのを待っています。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `ビジネス銀行口座の設定が完了するのを<strong>お客様</strong>の操作待ちです。`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> がビジネス銀行口座の設定を完了するのを待っています。`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者がビジネス銀行口座の設定を完了するのを待っています。`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2406,6 +2393,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
         downloadCodes: 'コードをダウンロード',
         copyCodes: 'コードをコピー',
+        twoFactorAuthIsRequiredNetSuiteDescription: 'セキュリティ上の理由により、連携を接続するには NetSuite で二要素認証が必要です。',
     },
     recoveryCodeForm: {
         error: {
@@ -2458,7 +2446,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'デビットカードが正常に追加されました',
         expensifyPassword: 'Expensify のパスワード',
         error: {
-            invalidName: '名前には文字のみ使用できます',
+            invalidName: 'カード名義に「<」または「>」を含めることはできません',
             addressZipCode: '有効な郵便番号を入力してください',
             debitCardNumber: '有効なデビットカード番号を入力してください',
             expirationDate: '有効な有効期限を選択してください',
@@ -2481,7 +2469,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: '支払いカードが正常に追加されました',
         expensifyPassword: 'Expensify のパスワード',
         error: {
-            invalidName: '名前には文字のみ使用できます',
+            invalidName: 'カード名義に「<」または「>」を含めることはできません',
             addressZipCode: '有効な郵便番号を入力してください',
             paymentCardNumber: '有効なカード番号を入力してください',
             expirationDate: '有効な有効期限を選択してください',
@@ -4803,29 +4791,30 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         qbo: {
             connectedTo: '接続先',
-            importDescription: 'QuickBooks Online から Expensify に取り込むコード設定を選択してください。',
+            importDescription: ({integrationName = 'QuickBooks Online'} = {}) => `${integrationName} から Expensify に取り込むコード設定を選択してください。`,
             classes: 'クラス',
             locations: '場所',
             customers: '顧客／プロジェクト',
             items: 'アイテム',
-            accountsDescription: 'QuickBooks Onlineの勘定科目表は、Expensifyにカテゴリとしてインポートされます。',
+            accountsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `${integrationName}の勘定科目表は、Expensifyにカテゴリとしてインポートされます。`,
             accountsSwitchTitle: '新しい口座を有効または無効なカテゴリとして取り込むかを選択します。',
             accountsSwitchDescription: '有効なカテゴリーは、メンバーが経費を作成する際に選択できるようになります。',
-            classesDescription: 'Expensify で QuickBooks Online のクラスをどのように処理するかを選択してください。',
-            customersDescription: 'Expensify で QuickBooks Online の顧客／プロジェクトをどのように扱うかを選択してください。',
-            locationsDescription: 'Expensify で QuickBooks Online のロケーションをどのように扱うかを選択してください。',
-            itemsDescription: 'Expensify で QuickBooks Online のアイテムをどのように扱うかを選択してください。',
-            taxesDescription: 'Expensify で QuickBooks Online の税金をどのように処理するかを選択してください。',
-            locationsLineItemsRestrictionDescription:
-                'QuickBooks Online では、小切手または仕入先請求書の明細行レベルでロケーションをサポートしていません。明細行レベルでロケーションを使用したい場合は、振替伝票（仕訳）とクレジット／デビットカード経費を使用していることを確認してください。',
-            taxesJournalEntrySwitchNote: 'QuickBooks Online は仕訳伝票での税金に対応していません。エクスポートオプションをベンダー請求書または小切手に変更してください。',
-            exportDescription: 'Expensify のデータを QuickBooks Online へエクスポートする方法を設定します。',
+            classesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Expensify で ${integrationName} のクラスをどのように処理するかを選択してください。`,
+            customersDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Expensify で ${integrationName} の顧客／プロジェクトをどのように扱うかを選択してください。`,
+            locationsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Expensify で ${integrationName} のロケーションをどのように扱うかを選択してください。`,
+            itemsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Expensify で ${integrationName} のアイテムをどのように扱うかを選択してください。`,
+            taxesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Expensify で ${integrationName} の税金をどのように処理するかを選択してください。`,
+            locationsLineItemsRestrictionDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `${integrationName} では、小切手または仕入先請求書の明細行レベルでロケーションをサポートしていません。明細行レベルでロケーションを使用したい場合は、振替伝票（仕訳）とクレジット／デビットカード経費を使用していることを確認してください。`,
+            taxesJournalEntrySwitchNote: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `${integrationName} は仕訳伝票での税金に対応していません。エクスポートオプションをベンダー請求書または小切手に変更してください。`,
+            exportDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Expensify のデータを ${integrationName} へエクスポートする方法を設定します。`,
             date: 'エクスポート日',
             exportInvoices: '請求書のエクスポート先',
             exportExpensifyCard: 'Expensify カードの取引を次の形式でエクスポートします',
             exportDate: {
                 label: 'エクスポート日',
-                description: 'レポートをQuickBooks Onlineにエクスポートする際に、この日付を使用します。',
+                description: ({integrationName = 'QuickBooks Online'} = {}) => `レポートを${integrationName}にエクスポートする際に、この日付を使用します。`,
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: '最終経費の日付',
@@ -4833,7 +4822,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'エクスポート日',
-                        description: 'レポートが QuickBooks Online にエクスポートされた日付。',
+                        description: ({integrationName = 'QuickBooks Online'} = {}) => `レポートが ${integrationName} にエクスポートされた日付。`,
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: '提出日',
@@ -4843,11 +4832,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             },
             receivable: '売掛金',
             archive: '売掛金アーカイブ',
-            exportInvoicesDescription: 'QuickBooks Online に請求書をエクスポートする際は、この勘定科目を使用してください。',
-            exportCompanyCardsDescription: '会社カードでの購入をQuickBooks Onlineへどのようにエクスポートするかを設定します。',
+            exportInvoicesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `${integrationName} に請求書をエクスポートする際は、この勘定科目を使用してください。`,
+            exportCompanyCardsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `会社カードでの購入を${integrationName}へどのようにエクスポートするかを設定します。`,
             vendor: '取引先',
             defaultVendorDescription: 'エクスポート時にすべてのクレジットカード取引に適用されるデフォルトのベンダーを設定します。',
-            exportOutOfPocketExpensesDescription: '立替経費を QuickBooks Online へどのようにエクスポートするかを設定します。',
+            exportOutOfPocketExpensesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `立替経費を ${integrationName} へどのようにエクスポートするかを設定します。`,
             exportCheckDescription: '以下の銀行口座から各Expensifyレポートごとに明細付きの小切手を作成し、送金します。',
             exportJournalEntryDescription: '各Expensifyレポートごとに明細付きの仕訳を作成し、以下の勘定科目に計上します。',
             exportVendorBillDescription:
@@ -4860,34 +4849,37 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             notConfigured: '未設定',
             bankAccountDescription: '小切手の送金元を選択してください。',
             creditCardAccount: 'クレジットカード口座',
-            travelInvoicingDescription: '旅費は、以下で指定した QuickBooks Online アカウントにクレジットカード請求としてエクスポートされます。',
-            companyCardsLocationEnabledDescription:
-                'QuickBooks Online では、ロケーションをタグとして取り込んでいる場合、ベンダー請求書のエクスポートでロケーションをサポートしていません。現在このワークスペースではロケーションがタグとして取り込まれているため、このエクスポートオプションは利用できません。',
-            outOfPocketTaxEnabledDescription:
-                'QuickBooks Online は仕訳のエクスポートで税金に対応していません。ワークスペースで税金が有効になっているため、このエクスポートオプションは利用できません。',
+            travelInvoicingDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `旅費は、以下で指定した ${integrationName} アカウントにクレジットカード請求としてエクスポートされます。`,
+            companyCardsLocationEnabledDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `${integrationName} では、ロケーションをタグとして取り込んでいる場合、ベンダー請求書のエクスポートでロケーションをサポートしていません。現在このワークスペースではロケーションがタグとして取り込まれているため、このエクスポートオプションは利用できません。`,
+            outOfPocketTaxEnabledDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `${integrationName} は仕訳のエクスポートで税金に対応していません。ワークスペースで税金が有効になっているため、このエクスポートオプションは利用できません。`,
             outOfPocketTaxEnabledError: '税金が有効になっている場合、仕訳は利用できません。別のエクスポートオプションを選択してください。',
             advancedConfig: {
-                autoSyncDescription: 'Expensify は毎日、自動的に QuickBooks Online と同期します。',
+                autoSyncDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Expensify は毎日、自動的に ${integrationName} と同期します。`,
                 inviteEmployees: '従業員を招待',
-                inviteEmployeesDescription: 'QuickBooks Online の従業員レコードをインポートし、このワークスペースに従業員を招待します。',
+                inviteEmployeesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `${integrationName} の従業員レコードをインポートし、このワークスペースに従業員を招待します。`,
                 createEntities: 'エンティティを自動作成',
-                createEntitiesDescription: 'Expensify は、QuickBooks Online にまだ存在しない場合はベンダーを自動的に作成し、請求書をエクスポートする際に顧客も自動作成します。',
-                reimbursedReportsDescription: 'Expensify ACH を使用してレポートが支払われるたびに、対応する支払伝票が下記の QuickBooks Online アカウントに作成されます。',
-                qboBillPaymentAccount: 'QuickBooks 請求書支払口座',
-                qboInvoiceCollectionAccount: 'QuickBooks 請求書回収口座',
-                accountSelectDescription: '請求書の支払元を選択すると、QuickBooks Online に支払いが作成されます。',
-                invoiceAccountSelectorDescription: '請求書の入金先を選択すると、QuickBooks Online に支払いを作成します。',
+                createEntitiesDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Expensify は、${integrationName} にまだ存在しない場合はベンダーを自動的に作成し、請求書をエクスポートする際に顧客も自動作成します。`,
+                reimbursedReportsDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Expensify ACH を使用してレポートが支払われるたびに、対応する支払伝票が下記の ${integrationName} アカウントに作成されます。`,
+                qboBillPaymentAccount: ({integrationName = 'QuickBooks Online'} = {}) => `${integrationName} 請求書支払口座`,
+                qboInvoiceCollectionAccount: ({integrationName = 'QuickBooks Online'} = {}) => `${integrationName} 請求書回収口座`,
+                accountSelectDescription: ({integrationName = 'QuickBooks Online'} = {}) => `請求書の支払元を選択すると、${integrationName} に支払いが作成されます。`,
+                invoiceAccountSelectorDescription: ({integrationName = 'QuickBooks Online'} = {}) => `請求書の入金先を選択すると、${integrationName} に支払いを作成します。`,
             },
+            debitCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `デビットカード取引の加盟店名を、${integrationName} 内の対応する仕入先と自動的に照合します。該当する仕入先が存在しない場合は、関連付けのために「Debit Card Misc.」という仕入先を作成します。`,
+            creditCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `クレジットカード取引の加盟店名を、${integrationName} 内の対応する仕入先と自動的に照合します。仕入先が存在しない場合は、関連付けのために「Credit Card Misc.」という仕入先を作成します。`,
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'デビットカード',
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: 'クレジットカード',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: '仕入先請求書',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: '仕訳伝票',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'チェック',
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
-                    'デビットカード取引の加盟店名を、QuickBooks 内の対応する仕入先と自動的に照合します。該当する仕入先が存在しない場合は、関連付けのために「Debit Card Misc.」という仕入先を作成します。',
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
-                    'クレジットカード取引の加盟店名を、QuickBooks 内の対応する仕入先と自動的に照合します。仕入先が存在しない場合は、関連付けのために「Credit Card Misc.」という仕入先を作成します。',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     '各Expensifyレポートについて、最後の経費の日付を使用して項目別の仕入先請求書を作成し、以下の勘定科目に追加します。この期間が締め済みの場合は、次の未締め期間の1日付で計上します。',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'デビットカード取引のエクスポート先を選択してください。',
@@ -4903,12 +4895,15 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: '小切手のエクスポート用に有効な口座を選択してください',
             },
             exportDestinationSetupAccountsInfo: {
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'ベンダー請求書のエクスポートを使用するには、QuickBooks Online で買掛金勘定を設定してください',
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: '仕訳エクスポートを使用するには、QuickBooks Online で仕訳勘定を設定してください',
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'チェックのエクスポートを使用するには、QuickBooks Online で銀行口座を設定してください',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `ベンダー請求書のエクスポートを使用するには、${integrationName} で買掛金勘定を設定してください`,
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `仕訳エクスポートを使用するには、${integrationName} で仕訳勘定を設定してください`,
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `チェックのエクスポートを使用するには、${integrationName} で銀行口座を設定してください`,
             },
             noAccountsFound: 'アカウントが見つかりません',
-            noAccountsFoundDescription: 'QuickBooks Online に口座を追加して、もう一度同期してください。',
+            noAccountsFoundDescription: ({integrationName = 'QuickBooks Online'} = {}) => `${integrationName} に口座を追加して、もう一度同期してください。`,
             accountingMethods: {
                 label: 'エクスポートのタイミング',
                 description: '経費をエクスポートするタイミングを選択:',
@@ -5364,6 +5359,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                             netSuiteTokenSecret: 'トークンシークレット',
                         },
                         netSuiteAccountIDDescription: 'NetSuite で、*Setup > Integration > SOAP Web Services Preferences* に移動します。',
+                    },
+                    enableOAuth: {
+                        title: 'OAuth 2.0 を有効にする',
+                        description: 'NetSuite で、*Setup > Company > Enable Features > SuiteCloud* に進み、*Manage Authentication* 内の *OAuth 2.0* を有効にします。',
+                    },
+                    enableRestWebServices: {
+                        title: 'REST Web サービスを有効にする',
+                        description: 'NetSuite で、*Setup > Company > Enable Features > SuiteCloud* に移動し、*SuiteTalk (Web Services)* セクション内で *REST Web Services* を有効にします。',
                     },
                 },
             },
@@ -6660,6 +6663,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             title: '接続',
             subtitle: '会計ソフトを接続して、自動同期を行いましょう。',
             qbo: 'QuickBooks Online',
+            intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
@@ -6693,6 +6697,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 `Expensify Classic で設定されている接続にエラーがあります。[この問題を解決するには Expensify Classic に移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classic に移動してください。',
             setup: '接続',
+            connectToSandbox: 'Sandbox に接続',
             lastSync: (relativeDate: string) => `最終同期：${relativeDate}`,
             notSync: '未同期',
             import: 'インポート',
@@ -6702,26 +6707,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             syncNow: '今すぐ同期',
             disconnect: '切断',
             reinstall: 'コネクタを再インストール',
-            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName = connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : '連携';
-                return `${integrationName}の接続を解除`;
-            },
-            connectTitle: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '会計連携'} を接続`,
-            syncError: ({connectionName}: ConnectionNameParams) => {
-                switch (connectionName) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'QuickBooks Online に接続できません';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Xero に接続できません';
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return 'NetSuite に接続できません';
-                    case CONST.POLICY.CONNECTIONS.NAME.QBD:
-                        return 'QuickBooks Desktop に接続できません';
-                    default: {
-                        return '連携に接続できません';
-                    }
-                }
-            },
+            disconnectTitle: ({connectionName = '連携'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `${connectionName}の接続を解除`,
+            connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `${connectionName} を接続`,
+            syncError: ({connectionName}: ConnectionDisplayNameParams) => `${connectionName} に接続できません`,
             accounts: '勘定科目表',
             taxes: '税金',
             imported: 'インポート済み',
@@ -6736,13 +6724,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'レポートフィールドとしてインポート済み',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite 従業員のデフォルト',
             },
-            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'この連携';
-                return `${integrationName} の接続を本当に解除しますか？`;
-            },
-            connectPrompt: ({connectionName}: ConnectionNameParams) =>
-                `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'この会計連携'} を接続してもよろしいですか？これにより、既存の会計連携はすべて削除されます。`,
+            disconnectPrompt: ({connectionName = 'この連携'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `${connectionName} の接続を本当に解除しますか？`,
+            connectPrompt: ({connectionName}: ConnectionDisplayNameParams) => `${connectionName} を接続してもよろしいですか？これにより、既存の会計連携はすべて削除されます。`,
             enterCredentials: '認証情報を入力してください',
             reconnect: '再接続',
             updateCredentials: '認証情報を更新',
@@ -6762,7 +6745,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 },
             },
             connections: {
-                syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                syncStageName: ({stage, integrationName = 'QuickBooks Online'}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -6788,13 +6771,13 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         case 'quickbooksOnlineSyncTaxCodes':
                             return '税コードのインポート';
                         case 'quickbooksOnlineCheckConnection':
-                            return 'QuickBooks Online 接続を確認中';
+                            return `${integrationName} 接続を確認中`;
                         case 'quickbooksOnlineImportMain':
-                            return 'QuickBooks Online データのインポート';
+                            return `${integrationName} データのインポート`;
                         case 'startingImportXero':
                             return 'Xero データのインポート';
                         case 'startingImportQBO':
-                            return 'QuickBooks Online データのインポート';
+                            return `${integrationName} データのインポート`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'QuickBooks Desktop データのインポート';
@@ -6809,7 +6792,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'QuickBooks とデータを同期中です… Web Connector が実行中であることを確認してください';
                         case 'quickbooksOnlineSyncTitle':
-                            return 'QuickBooks Online データを同期中';
+                            return `${integrationName} データを同期中`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
@@ -7941,6 +7924,7 @@ ${reportName}`,
                 thenFlagForReview: '次の条件で確認フラグを付けます：',
             },
             agentRulesEmptyState: {title: 'エージェントルールが追加されていません', subtitle: 'ワークスペースのポリシーを自動化するルールを作成します。', cta: 'AIルールを追加'},
+            categoriesDisabledEmptyState: {title: 'カテゴリが有効になっていません', subtitle: 'カテゴリを有効にして、支出をより細かく管理しましょう。'},
         },
         planTypePage: {
             planTypes: {
@@ -10003,7 +9987,7 @@ ${reportName}`,
         switch: '切り替え',
         copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot：代理アクセス',
-        copilotDelegatedAccessDescription: '他のメンバーがあなたのアカウントにアクセスできるようにする',
+        copilotDelegatedAccessDescription: '他のメンバーや担当者があなたのアカウントにアクセスできるようにします。',
         learnMoreAboutDelegatedAccess: '代理アクセスの詳細',
         addCopilot: 'コパイロットを追加',
         membersCanAccessYourAccount: '次のメンバーがあなたのアカウントにアクセスできます:',
@@ -10161,6 +10145,15 @@ ${reportName}`,
             inviteBoss: '準備ができたら上司を招待しましょう',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: '管理者向けの新しいロールタイプ',
+                body: '新しいカード、メンバー、支払いの各管理者ロールで、チームにより細かな権限を付与できます。',
+                cta: '試してみる',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
         accountSwitcher: '<tooltip>他のアカウントにコパイロットとして入ることができるようになりました！</tooltip>',
@@ -10218,7 +10211,6 @@ ${reportName}`,
         basicExport: '基本エクスポート',
         reportLevelExport: 'すべてのデータ - レポートレベル',
         expenseLevelExport: 'すべてのデータ - 経費レベル',
-        multipleTaxExport: 'Canadian Multiple Tax Export',
         exportInProgress: 'エクスポート処理中',
         conciergeWillSend: 'Conciergeがまもなくファイルを送信します。',
         currentView: '現在のビュー',
