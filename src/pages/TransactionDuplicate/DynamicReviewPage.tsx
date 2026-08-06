@@ -1,5 +1,4 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/ButtonComposed';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
@@ -162,18 +161,6 @@ function DynamicReviewPage() {
             setActiveTransactionIDs(originalTransactionIDsListRef.current);
         }, []),
     );
-
-    if (isOffline && !reportAction?.reportActionID) {
-        return (
-            <ScreenWrapper testID="DynamicReviewPage">
-                <HeaderWithBackButton
-                    title={translate('iou.reviewDuplicates')}
-                    onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
-                />
-                <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>
-            </ScreenWrapper>
-        );
-    }
 
     const onPreviewPressed = (reportID: string) => {
         const siblingTransactionIDsList = transactions.map((transaction) => transaction.transactionID);
