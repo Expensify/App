@@ -406,6 +406,7 @@ const CONST = {
             MULTIPLE_DIAGONAL: 'multipleDiagonal',
             MULTIPLE_HORIZONTAL: 'multipleHorizontal',
             SUBSCRIPT: 'subscript',
+            SUBSCRIPT_CARD_FEED: 'subscriptCardFeed',
             SINGLE: 'single',
         },
         SORT_BY: {
@@ -495,6 +496,7 @@ const CONST = {
         TYPE: {
             CSV: 'csv',
             PDF: 'pdf',
+            RECEIPTS: 'receipts',
         },
     },
 
@@ -697,7 +699,7 @@ const CONST = {
                 ADDRESS: 'address',
                 TYPE: 'type',
                 INCORPORATION_DATE: 'start-date',
-                INCORPORATION_STATE: 'state',
+                INCORPORATION_STATE: 'incorporation-state',
                 INCORPORATION_CODE: 'code',
                 CONFIRMATION: 'confirmation',
             },
@@ -1001,11 +1003,13 @@ const CONST = {
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
+        INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
+        NETSUITE_OAUTH: 'netSuiteOAuth',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1474,6 +1478,7 @@ const CONST = {
             CANCEL_PAYMENT: 'cancelPayment',
             HOLD: 'hold',
             DOWNLOAD_PDF: 'downloadPDF',
+            DOWNLOAD_RECEIPTS: 'downloadReceipts',
             PRINT: 'print',
             CHANGE_WORKSPACE: 'changeWorkspace',
             CHANGE_APPROVER: 'changeApprover',
@@ -1975,7 +1980,6 @@ const CONST = {
             WAITING_TO_FIX_ISSUES: 'waitingToFixIssues',
             WAITING_TO_APPROVE: 'waitingToApprove',
             WAITING_TO_PAY: 'waitingToPay',
-            WAITING_FOR_POLICY_BANK_ACCOUNT: 'waitingForPolicyBankAccount',
             WAITING_FOR_PAYMENT: 'waitingForPayment',
             WAITING_TO_EXPORT: 'waitingToExport',
             SUBMITTING_TO_SELF: 'submittingToSelf',
@@ -1985,7 +1989,6 @@ const CONST = {
             HOURGLASS: 'hourglass',
             CHECKMARK: 'checkmark',
             STOPWATCH: 'stopwatch',
-            DOT_INDICATOR: 'dotIndicator',
         },
         ETA_KEY: {
             SHORTLY: 'shortly',
@@ -2552,6 +2555,12 @@ const CONST = {
         SUSTAINED_FAILURE_WINDOW_MS: 10 * 1000,
         RECONNECT_STAMPEDE_JITTER_MS: 5000,
         STALLED_UPDATES_FETCH_BACKOFF_TIME_MS: 60 * 1000,
+        MAX_PAUSE_WATCHDOG_TIME_MS: 60 * 1000,
+        MAX_PAUSE_WATCHDOG_ESCALATION_TIME_MS: 15 * 1000,
+        // Hard ceiling on a single pause, measured from pause() and not extendable by progress. The re-arm signal
+        // ("some update was applied") can keep firing while the gap that paused us stays open, so the per-window
+        // timer alone doesn't actually bound how long the queue can sit paused.
+        MAX_PAUSE_WATCHDOG_ABSOLUTE_TIME_MS: 2 * 60 * 1000,
     },
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
@@ -3219,12 +3228,15 @@ const CONST = {
         CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
         TOKEN_INPUT: {
             STEP_INDEX_LIST: ['1', '2', '3', '4'],
+            OAUTH_STEP_INDEX_LIST: ['1', '2', '3', '4'],
             PAGE_NAME: {
                 INSTALL: 'install',
                 AUTHENTICATION: 'authentication',
                 SOAP: 'soap',
                 ACCESS_TOKEN: 'access-token',
                 CREDENTIALS: 'credentials',
+                OAUTH: 'enable-oauth',
+                REST: 'enable-rest',
             },
             STEP_KEYS: {
                 install: 'installBundle',
@@ -3232,6 +3244,8 @@ const CONST = {
                 soap: 'enableSoapServices',
                 'access-token': 'createAccessToken',
                 credentials: 'enterCredentials',
+                'enable-oauth': 'enableOAuth',
+                'enable-rest': 'enableRestWebServices',
             },
         },
         IMPORT_CUSTOM_FIELDS: {
@@ -4277,6 +4291,9 @@ const CONST = {
             },
         },
         CONNECTIONS: {
+            ACCOUNTING_INTEGRATION_ALIASES: {
+                INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
+            },
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
@@ -4667,7 +4684,7 @@ const CONST = {
             COPY_EXISTING: 'copy',
             CREATE_NEW: 'create',
         },
-        MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
+        MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card-US',
         PIN: {
             LENGTH: 4,
             INVALID_PINS: [
@@ -5072,6 +5089,8 @@ const CONST = {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
+        // Matches complete tags like <script> or <123a>; lone < or > are allowed.
+        NAME_ON_CARD_INVALID_CHARS: /<[^>]*>/,
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         PMB: /\b(?:p\.?\s*m\.?\s*b|private\s*mail\s*?box)\.?\s*#?\s*(\d+)\b/i,
@@ -5167,7 +5186,7 @@ const CONST = {
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|#|\?|\\|\|/g,
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
-        OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
+        OTHER_INVISIBLE_CHARACTERS: /[\u3164\u115f\u1160\uffa0\u2800]/g,
         SHORT_MENTION_HTML: /<mention-short>(.*?)<\/mention-short>/g,
         REPORT_ID_FROM_PATH: /(?<!\/search)\/r\/(\d+)/,
         DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
@@ -6688,6 +6707,8 @@ const CONST = {
         RESULTS_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
+        // Null byte can't appear in a query, so it's safe to join query parts with it
+        QUERY_PARAMS_SEPARATOR: '\x00',
         DATA_TYPES: {
             EXPENSE: 'expense',
             EXPENSE_REPORT: 'expense-report',
@@ -7068,6 +7089,8 @@ const CONST = {
                     BANK_ACCOUNT: this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
                     WITHDRAWAL_ID: this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    AMOUNT_DEBITED: this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+                    AMOUNT_REIMBURSED: this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
                 CATEGORY: {
@@ -7146,6 +7169,8 @@ const CONST = {
                     this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
                     this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
                     this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+                    this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
                     this.TABLE_COLUMNS.GROUP_TOTAL,
                 ],
                 CATEGORY: [this.TABLE_COLUMNS.GROUP_CATEGORY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
@@ -7266,6 +7291,8 @@ const CONST = {
             GROUP_YEAR: 'groupyear',
             GROUP_QUARTER: 'groupquarter',
             GROUP_WITHDRAWAL_STATUS: 'groupWithdrawalStatus',
+            GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
+            GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7342,6 +7369,9 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'reportField',
             EXPORTED_TO: 'exportedTo',
+            SUBMITTER_USER_ID: 'submitterUserID',
+            SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
+            ORDER_DEAL_NUMBERS: 'orderDealNumbers',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field
@@ -7418,6 +7448,9 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'report-field',
             EXPORTED_TO: 'exported-to',
+            SUBMITTER_USER_ID: 'submitter-user-id',
+            SUBMITTER_PAYROLL_ID: 'submitter-payroll-id',
+            ORDER_DEAL_NUMBERS: 'order-deal-numbers',
             COLUMNS: 'columns',
             LIMIT: 'limit',
         },
@@ -7485,6 +7518,8 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_YEAR]: 'group-year',
                 [this.TABLE_COLUMNS.GROUP_QUARTER]: 'group-quarter',
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
+                [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
+                [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
             };
         },
         NOT_PREFIX: '-',
@@ -8353,6 +8388,10 @@ const CONST = {
             CTA: 'AgentsRulesBanner-CTA',
             DISMISS: 'AgentsRulesBanner-Dismiss',
         },
+        PRODUCT_MARKETING_WINDOW: {
+            CTA: 'ProductMarketingWindow-CTA',
+            DISMISS: 'ProductMarketingWindow-Dismiss',
+        },
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
             INBOX: 'NavigationTabBar-Inbox',
@@ -8586,6 +8625,7 @@ const CONST = {
             EXPORT: 'MoreMenu-Export',
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
+            DOWNLOAD_RECEIPTS: 'MoreMenu-DownloadReceipts',
             PRINT: 'MoreMenu-Print',
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
@@ -8736,6 +8776,9 @@ const CONST = {
             PARTICIPANTS_IMPORT_CONTACTS_ITEM: 'MoneyRequest-ParticipantsImportContacts',
             ATTENDEES_SAVE_BUTTON: 'MoneyRequest-AttendeesSaveButton',
             CONFIRMATION_SUBMIT_BUTTON: 'MoneyRequest-ConfirmationSubmitButton',
+            CONFIRMATION_SPLIT_BUTTON: 'MoneyRequest-ConfirmationSplitButton',
+            CONFIRMATION_TRACK_BUTTON: 'MoneyRequest-ConfirmationTrackButton',
+            CONFIRMATION_INVOICE_BUTTON: 'MoneyRequest-ConfirmationInvoiceButton',
             CONFIRMATION_REMOVE_EXPENSE_BUTTON: 'MoneyRequest-ConfirmationRemoveExpenseButton',
             CONFIRMATION_PAY_BUTTON: 'MoneyRequest-ConfirmationPayButton',
             GOOGLE_MERCHANT_SEARCH_BUTTON: 'MoneyRequest-GoogleMerchantSearchButton',
@@ -8771,7 +8814,9 @@ const CONST = {
             EDIT_TAGS_BUTTON: 'IOURequestStep-TagEditButton',
             EDIT_PER_DIEM_RATES_BUTTON: 'IOURequestStep-EditPerDiemRatesButton',
             HOURS_NEXT_BUTTON: 'IOURequestStep-HoursNextButton',
-            SCAN_SUBMIT_BUTTON: 'IOURequestStep-ScanSubmitButton',
+            SCAN_FILE_UPLOAD_BUTTON: 'IOURequestStep-ScanFileUploadButton',
+            SCAN_CAMERA_PERMISSION_BUTTON: 'IOURequestStep-ScanCameraPermissionButton',
+            SCAN_CAMERA_PERMISSION_PROMPT_BUTTON: 'IOURequestStep-ScanCameraPermissionPromptButton',
             RECEIPT_DELETE_BUTTON: 'IOURequestStep-ReceiptDeleteButton',
             RECEIPT_PREVIEW_ITEM: 'IOURequestStep-ReceiptPreviewItem',
             RECEIPT_PREVIEW_SUBMIT_BUTTON: 'IOURequestStep-ReceiptPreviewSubmitButton',

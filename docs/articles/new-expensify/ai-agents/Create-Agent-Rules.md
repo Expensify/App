@@ -1,7 +1,7 @@
 ---
 title: Create Agent Rules
 description: Create AI-powered workspace rules using natural-language instructions to automate report reviews, routing, approvals, and other actions.
-keywords: [agent rules, RuleBot, AI rules, automated approvals, report routing, workspace automation, approval automation]
+keywords: [agent rules, RuleBot, AI rules, automated approvals, report routing, workspace automation, approval automation, edit agent rule, agent rule history, admins room audit trail]
 internalScope: Audience is Workspace Admins. Covers creating, managing, and understanding Agent Rules and how RuleBot enforces them. Does not cover Agent management, personal AI features, or Concierge AI.
 ---
 
@@ -94,6 +94,16 @@ For example, RuleBot might:
    
 ---
 
+## How to edit an Agent rule
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Workspace name]**
+2. Click **Rules**.
+3. In the **Agent rules** section, select the AI rule you want to change.
+4. Update the natural-language description of the behavior you want.
+5. Click **Save**.
+
+---
+
 ## How to delete an Agent rule
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Workspace name]**
@@ -127,6 +137,8 @@ Whenever an Agent rule is added, updated, or deleted, Expensify records a system
  - **Added** and **updated** messages show the rule's title and its full prompt.
  - **Deleted** messages show the rule's title.
 
+The **#admins** room's preview in your chat list shows a concise summary, such as that someone added, updated, or deleted an Agent rule.
+
 Because the **#admins** room is visible only to Workspace Admins, this history stays private to your admin team. To review it, open your workspace's **#admins** room and find the relevant system message.
 
 Learn more about the [#admins room](/articles/new-expensify/chat/Expensify-Chat-Rooms-for-Admins).
@@ -156,3 +168,7 @@ No. RuleBot is created automatically when you add your first Agent rule and is m
 ## Why can't I remove RuleBot from the workspace?
 
 RuleBot enforces your Agent rules, so it can't be removed, demoted, or deleted while the workspace still has Agent rules. Delete every Agent rule in the workspace first, and then you can remove RuleBot, change its role, or delete the agent.
+
+## Where can I see a history of Agent rule changes?
+
+In the workspace's #admins room. Expensify posts a system message there each time an Agent rule is added, updated, or deleted.

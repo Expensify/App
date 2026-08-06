@@ -34,7 +34,7 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import PusherHelper from '../../utils/PusherHelper';
-import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -167,6 +167,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // When a submit IOU expense is made
             requestMoney({
+                conciergeChat: undefined,
                 report: chatReport,
                 participantParams: {
                     payeeEmail: TEST_USER_LOGIN,
@@ -279,6 +280,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             if (transaction && createIOUAction) {
                 // When the expense is deleted
                 deleteMoneyRequest({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction?.transactionID,
                     reportAction: createIOUAction,
                     transactions: {},
@@ -366,6 +368,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             if (transaction && createIOUAction) {
                 // When the IOU expense is deleted
                 deleteMoneyRequest({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction?.transactionID,
                     reportAction: createIOUAction,
                     transactions: {},
@@ -415,6 +418,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         it('does not delete the IOU report when there are expenses left in the IOU report', async () => {
             // Given multiple expenses on an IOU report
             requestMoney({
+                conciergeChat: undefined,
                 report: chatReport,
                 participantParams: {
                     payeeEmail: TEST_USER_LOGIN,
@@ -450,6 +454,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             mockFetch?.pause?.();
             if (transaction && createIOUAction) {
                 deleteMoneyRequest({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction?.transactionID,
                     reportAction: createIOUAction,
                     transactions: {},
@@ -566,6 +571,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             if (transaction && createIOUAction) {
                 // When Deleting an expense
                 deleteMoneyRequest({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction?.transactionID,
                     reportAction: createIOUAction,
                     transactions: {},
@@ -697,7 +703,6 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     delegateAccountID: undefined,
                     isASAPSubmitBetaEnabled: false,
                     policyRecentlyUsedCurrencies: [],
-                    parentReportNextStep: undefined,
                     isTrackIntentUser: false,
                 });
             }
@@ -723,6 +728,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             if (transaction && createIOUAction) {
                 // When Deleting an expense
                 deleteMoneyRequest({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction?.transactionID,
                     reportAction: createIOUAction,
                     transactions: {},
@@ -845,6 +851,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             if (transaction && createIOUAction) {
                 // When deleting expense
                 deleteMoneyRequest({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction?.transactionID,
                     reportAction: createIOUAction,
                     transactions: {},
@@ -1039,6 +1046,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             if (transaction && createIOUAction) {
                 // When we delete the expense
                 deleteMoneyRequest({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction.transactionID,
                     reportAction: createIOUAction,
                     transactions: {},
@@ -1105,6 +1113,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const comment2 = 'Send me money please 2';
             if (chatReport) {
                 requestMoney({
+                    conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: TEST_USER_LOGIN,
@@ -1153,6 +1162,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
                 deleteMoneyRequest({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction.transactionID,
                     reportAction: createIOUAction,
                     transactions: {},
@@ -1188,6 +1198,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         it('navigate the user correctly to the iou Report when appropriate', async () => {
             // Given multiple expenses on an IOU report
             requestMoney({
+                conciergeChat: undefined,
                 report: chatReport,
                 participantParams: {
                     payeeEmail: TEST_USER_LOGIN,
@@ -1266,6 +1277,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
                 navigateToAfterDelete = deleteMoneyRequest({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction.transactionID,
                     reportAction: createIOUAction,
                     transactions: {},
@@ -1324,6 +1336,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             if (transaction && createIOUAction) {
                 // When we delete the expense and we should delete the IOU report
                 navigateToAfterDelete = deleteMoneyRequest({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction.transactionID,
                     reportAction: createIOUAction,
                     transactions: {},
@@ -1359,6 +1372,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const comment2 = 'Send me money please 2';
             if (chatReport) {
                 requestMoney({
+                    conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: TEST_USER_LOGIN,
@@ -1499,6 +1513,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
                 deleteMoneyRequest({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction.transactionID,
                     reportAction: createIOUAction,
                     transactions: {},
@@ -1590,6 +1605,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             const selectedTransactionIDs = [transaction1.transactionID, transaction2.transactionID];
             deleteMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: transaction1.transactionID,
                 reportAction: moneyRequestAction1,
                 transactions: {},
@@ -1604,6 +1620,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 currentUserEmail: TEST_USER_LOGIN,
             });
             deleteMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: transaction2.transactionID,
                 reportAction: moneyRequestAction2,
                 transactions: {},
@@ -1684,6 +1701,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             };
 
             deleteMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: transaction1.transactionID,
                 reportAction: moneyRequestAction1,
                 transactions: {},
@@ -1749,6 +1767,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // And we call deleteMoneyRequest with empty transaction violations
             deleteMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: transaction1.transactionID,
                 reportAction: moneyRequestAction1,
                 transactions: {},
@@ -1894,6 +1913,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             mockFetch?.pause?.();
 
             deleteMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: t21.transactionID,
                 reportAction: a21,
                 transactions: {},
@@ -1919,6 +1939,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             });
 
             deleteMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: t25.transactionID,
                 reportAction: a25,
                 transactions: {},
@@ -1967,6 +1988,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Pause the fetch so the delete stays in the optimistic (offline) state.
             mockFetch?.pause?.();
             deleteMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: oldest.transactionID,
                 reportAction: oldestAction,
                 transactions: {},
@@ -2010,6 +2032,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             mockFetch?.pause?.();
             deleteMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: eurTxn.transactionID,
                 reportAction: eurAction,
                 transactions: {},
@@ -2059,6 +2082,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             mockFetch?.pause?.();
             deleteMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: t25.transactionID,
                 reportAction: a25,
                 transactions: {},
@@ -2108,6 +2132,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             mockFetch?.pause?.();
             // Iter 1: cross-currency delete → total unchanged → marker must be persisted to Onyx.
             deleteMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: eurTxn.transactionID,
                 reportAction: eurAction,
                 transactions: {},
@@ -2138,6 +2163,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Iter 2: same-currency delete. Its own totals would be computable, but the sticky marker
             // from iter 1 must make it inherit indeterminate → recompute skipped → title preserved.
             deleteMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: usdTxn.transactionID,
                 reportAction: usdAction,
                 transactions: {},
