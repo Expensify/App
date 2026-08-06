@@ -24,8 +24,6 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {ValueOf} from 'type-fest';
-
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
@@ -37,8 +35,7 @@ function SelectBankStep() {
     const {isOffline} = useNetwork();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
-    const [localBankSelected, setLocalBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null>();
-    const bankSelected = localBankSelected ?? addNewCard?.data?.selectedBank;
+    const bankSelected = addNewCard?.data?.selectedBank;
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
 
@@ -120,7 +117,7 @@ function SelectBankStep() {
                 data={data}
                 ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => {
-                    setLocalBankSelected(value);
+                    setAddNewCompanyCardStepAndData({data: {selectedBank: value}});
                     setHasError(false);
                 }}
                 initiallyFocusedItemKey={bankSelected ?? undefined}
