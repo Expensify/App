@@ -8,6 +8,7 @@ import {
     sortNavigationSuggestionItems,
     stripNavigationIntentPrefix,
 } from '@components/Search/SearchRouter/SearchRouterHelpers';
+import type {NavigationSuggestionSourceItem} from '@components/Search/SearchRouter/SearchRouterHelpers';
 import * as CreateNavigationSuggestions from '@components/Search/SearchRouter/useCreateNavigationSuggestions';
 import useNavigationSuggestions, {buildSpendNavigationItems, buildTopLevelNavigationItems} from '@components/Search/SearchRouter/useNavigationSuggestions';
 
@@ -32,6 +33,7 @@ type MockSearchTypeMenuSectionsResult = {
 
 const mockUseSearchTypeMenuSections = jest.fn<MockSearchTypeMenuSectionsResult, [queryParams: unknown, isScreenFocused: boolean]>();
 const mockUseMemoizedLazyExpensifyIcons = jest.fn<Record<string, IconAsset>, []>();
+const mockUseCreateNavigationSuggestions = jest.fn<NavigationSuggestionSourceItem[], []>(() => []);
 const mockClearSelectedTransactions = jest.fn();
 
 jest.mock('@components/Search/SearchContext', () => ({
@@ -41,7 +43,7 @@ jest.mock('@components/Search/SearchContext', () => ({
 jest.mock('@components/Search/SearchRouter/useCreateNavigationSuggestions', () => ({
     __esModule: true,
     ...jest.requireActual<typeof CreateNavigationSuggestions>('@components/Search/SearchRouter/useCreateNavigationSuggestions'),
-    default: () => [],
+    default: () => mockUseCreateNavigationSuggestions(),
 }));
 
 jest.mock('@hooks/useLazyAsset', () => ({
@@ -357,6 +359,7 @@ describe('Create Search Router navigation source', () => {
 describe('Spend Search Router navigation source', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockUseCreateNavigationSuggestions.mockReturnValue([]);
     });
 
     it('reuses Spend menu labels, icons, queries, and excludes saved searches', () => {
@@ -492,5 +495,33 @@ describe('Spend Search Router navigation source', () => {
 
         rerender({shouldWatchForApprovals: true});
         expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(undefined, true);
+    });
+
+    it('keeps Create rows reachable when top-level and Spend sources are present', () => {
+        mockUseMemoizedLazyExpensifyIcons.mockReturnValue({
+            ...spendIcons,
+            Home: mockIcon,
+            Inbox: mockIcon,
+            ReceiptMultiple: mockIcon,
+            Building: mockIcon,
+            Gear: mockIcon,
+        });
+        mockUseSearchTypeMenuSections.mockReturnValue({
+            typeMenuSections: [
+                {
+                    translationPath: 'search.tabs.expenseReports',
+                    menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
+                },
+            ],
+            activeItemIndex: -1,
+            activeKey: undefined,
+        });
+        mockUseCreateNavigationSuggestions.mockReturnValue(
+            CreateNavigationSuggestions.buildCreateNavigationItems([{visible: true, text: 'Create expense', icon: mockIcon, action: jest.fn(), keyForList: 'create_expense'}]),
+        );
+
+        const {result} = renderHook(() => useNavigationSuggestions('create expense'));
+
+        expect(result.current.map((item) => item.keyForList)).toEqual(['create_expense']);
     });
 });
