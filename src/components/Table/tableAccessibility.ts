@@ -28,7 +28,6 @@ type TableAccessibilityProps = {
     'aria-colcount'?: number;
     'aria-rowindex'?: number;
     'aria-colindex'?: number;
-    'aria-owns'?: string;
     'aria-sort'?: 'ascending' | 'descending' | 'none';
     /* eslint-enable @typescript-eslint/naming-convention */
 };
@@ -70,26 +69,12 @@ function getTableContainerAccessibilityProps(isEnabled: boolean, label: string |
 }
 
 /** Props for the element grouping rows together, i.e. the table body wrapper. */
-function getRowGroupAccessibilityProps(isEnabled: boolean, ownedRowIDs?: string[]): TableAccessibilityProps {
+function getRowGroupAccessibilityProps(isEnabled: boolean): TableAccessibilityProps {
     if (!isEnabled) {
         return {};
     }
 
-    const rowGroupProps: TableAccessibilityProps = {role: CONST.ROLE.ROWGROUP};
-    if (ownedRowIDs?.length) {
-        rowGroupProps['aria-owns'] = ownedRowIDs.join(' ');
-    }
-
-    return rowGroupProps;
-}
-
-/** Stable DOM IDs used to associate virtualized rows with a detached semantic rowgroup. */
-function getTableHeaderRowID(tableID: string): string {
-    return `${tableID}-header-row`;
-}
-
-function getTableDataRowID(tableID: string, rowIndex: number): string {
-    return `${tableID}-data-row-${rowIndex}`;
+    return {role: CONST.ROLE.ROWGROUP};
 }
 
 /**
@@ -110,16 +95,13 @@ function getRowAccessibilityProps(isEnabled: boolean, rowIndex: number, isHeader
     };
 }
 
-/**
- * Assigns a stable DOM ID only to the real FlashList cell. Measurement and sticky clones stay hidden from the semantic
- * tree so virtualization cannot expose duplicate rows or duplicate IDs.
- */
-function getVirtualizedRowSemanticID(isEnabled: boolean, target: VirtualizedRowTarget, ownedRowID?: string): string | null | undefined {
+/** Keeps real FlashList cells in the semantic tree while marking measurement and sticky clones as hidden. */
+function getVirtualizedRowSemanticID(isEnabled: boolean, target: VirtualizedRowTarget): null | undefined {
     if (!isEnabled) {
         return undefined;
     }
 
-    return target === 'Cell' ? ownedRowID : null;
+    return target === 'Cell' ? undefined : null;
 }
 
 /**
@@ -215,8 +197,6 @@ export {
     shouldUseTableSemantics,
     getTableContainerAccessibilityProps,
     getRowGroupAccessibilityProps,
-    getTableHeaderRowID,
-    getTableDataRowID,
     getRowAccessibilityProps,
     getVirtualizedRowSemanticID,
     getColumnHeaderAccessibilityProps,

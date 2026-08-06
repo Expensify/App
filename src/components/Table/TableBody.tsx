@@ -16,14 +16,7 @@ import {StyleSheet, View} from 'react-native';
 import type {TableData} from '.';
 
 import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getSyntheticRowKind} from './buildTableListData';
-import {
-    getRowGroupAccessibilityProps,
-    getTableContainerAccessibilityProps,
-    getTableDataRowID,
-    getTableHeaderRowID,
-    getVirtualizedRowSemanticID,
-    shouldUseTableSemantics,
-} from './tableAccessibility';
+import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
 import {TableRowHasHeaderContext, TableRowSemanticIDContext, useTableContext} from './TableContext';
 import TableHeader from './TableHeader';
 
@@ -39,31 +32,6 @@ type TableBodyListProps = TableBodyProps & {
     /** Message shown when the filtered table is empty. */
     emptyMessage: string;
 };
-
-type TableSemanticRowOwnerProps = {
-    isEnabled: boolean;
-    title: string | undefined;
-    rowCount: number;
-    columnCount: number;
-    hasHeaderRow: boolean;
-    ownedRowIDs: string[] | undefined;
-};
-
-/**
- * Owns virtualized table rows without wrapping their physical FlashList. Page controls render immediately before this
- * zero-layout node, while the owned header/data rows and any footer content follow it in their visual reading order.
- */
-function TableSemanticRowOwner({isEnabled, title, rowCount, columnCount, hasHeaderRow, ownedRowIDs}: TableSemanticRowOwnerProps) {
-    if (!isEnabled || rowCount === 0) {
-        return null;
-    }
-
-    return (
-        <View {...getTableContainerAccessibilityProps(true, title, rowCount, columnCount, hasHeaderRow)}>
-            <View {...getRowGroupAccessibilityProps(true, ownedRowIDs)} />
-        </View>
-    );
-}
 
 /**
  * Whether `TableBody` still renders when the table has no data rows because an empty-state or page-header list slot
@@ -108,7 +76,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = useState(false);
     const [activeStickyHeaderIndex, setActiveStickyHeaderIndex] = useState(-1);
     const {
-        semanticTableID,
         processedData: filteredAndSortedData,
         listProps,
         listRef,
@@ -159,13 +126,10 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const hasRows = filteredAndSortedData.length > 0;
     const shouldRenderFlashList = hasRows || (tableListMetadata.hasPageHeader && tableListMetadata.isEmptyResult);
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
-    const shouldOwnRowsByID = isTableSemanticsEnabled && tableListMetadata.hasPageHeader;
-    const shouldApplyBodyRowGroup = isTableSemanticsEnabled && !shouldOwnRowsByID;
+    const shouldApplyPageHeaderTable = isTableSemanticsEnabled && tableListMetadata.hasPageHeader && hasRows;
+    const shouldApplyBodyRowGroup = isTableSemanticsEnabled && !tableListMetadata.hasPageHeader;
     const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
-    const semanticOwnedRowIDs = shouldOwnRowsByID
-        ? [...(semanticTableHasHeader ? [getTableHeaderRowID(semanticTableID)] : []), ...filteredAndSortedData.map((_, rowIndex) => getTableDataRowID(semanticTableID, rowIndex))]
-        : undefined;
     const [previousHasRows, setPreviousHasRows] = useState(hasRows);
     if (previousHasRows !== hasRows) {
         setPreviousHasRows(hasRows);
@@ -219,14 +183,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         <View>
             {renderListComponent(ListHeaderComponent)}
             {headerComponent}
-            <TableSemanticRowOwner
-                isEnabled={shouldOwnRowsByID}
-                title={title}
-                rowCount={filteredAndSortedData.length}
-                columnCount={semanticColumnCount}
-                hasHeaderRow={semanticTableHasHeader}
-                ownedRowIDs={semanticOwnedRowIDs}
-            />
         </View>
     );
 
@@ -290,7 +246,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
     // Keep the page header in the same FlashList across rows -> no results -> rows transitions.
     // FlashList renders ListHeaderComponent outside its virtualized item collection, so controls such
-    // as the search input keep their identity while the semantic table owner cannot be recycled.
+    // as the search input keep their identity. The full-layout wrapper below is the semantic table ancestor;
+    // keeping rows in their physical accessibility tree avoids focus/scroll jumps caused by detached aria-owns rows.
     // A truly empty table still uses the standalone centered layout above.
     const renderedTableListMetadata = hasRows
         ? tableListMetadata
@@ -321,7 +278,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 return (
                     <TableHeader
                         isStickyListHeader
-                        id={shouldOwnRowsByID && isAccessibleTableHeader ? getTableHeaderRowID(semanticTableID) : undefined}
                         aria-hidden={isAccessibilityHidden ? true : undefined}
                         isAccessibilityHidden={isAccessibilityHidden}
                     />
@@ -330,7 +286,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             case 'data':
             default: {
                 const dataIndex = getDataIndex(info.index, renderedTableListMetadata);
-                const semanticRowID = getVirtualizedRowSemanticID(isTableSemanticsEnabled, info.target, shouldOwnRowsByID ? getTableDataRowID(semanticTableID, dataIndex) : undefined);
+                const semanticRowID = getVirtualizedRowSemanticID(isTableSemanticsEnabled, info.target);
                 return (
                     <TableRowHasHeaderContext.Provider value={semanticTableHasHeader}>
                         <TableRowSemanticIDContext.Provider value={semanticRowID}>
@@ -370,7 +326,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             ref={listContainerRef}
             style={[styles.flex1, styles.mnh0, style]}
             onLayout={onLayout}
-            {...getRowGroupAccessibilityProps(shouldApplyBodyRowGroup)}
+            {...(tableListMetadata.hasPageHeader
+                ? getTableContainerAccessibilityProps(shouldApplyPageHeaderTable, title, filteredAndSortedData.length, semanticColumnCount, semanticTableHasHeader)
+                : getRowGroupAccessibilityProps(shouldApplyBodyRowGroup))}
             {...props}
         >
             <FlashList<TableData>

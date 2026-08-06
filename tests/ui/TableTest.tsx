@@ -540,33 +540,6 @@ function getHostTableRowsWithin(container: TestInstance): TestInstance[] {
         .filter((row) => typeof row.type === 'string');
 }
 
-function expectNodeBefore(first: TestInstance, second: TestInstance) {
-    const firstAncestors = new Set<TestInstance>();
-    let ancestor = first.parent;
-    while (ancestor) {
-        firstAncestors.add(ancestor);
-        ancestor = ancestor.parent;
-    }
-
-    let commonAncestor = second.parent;
-    while (commonAncestor && !firstAncestors.has(commonAncestor)) {
-        commonAncestor = commonAncestor.parent;
-    }
-    if (!commonAncestor) {
-        throw new Error('Expected both nodes to have a common rendered ancestor');
-    }
-
-    const getBranchBelow = (node: TestInstance) => {
-        let branch = node;
-        while (branch.parent && branch.parent !== commonAncestor) {
-            branch = branch.parent;
-        }
-        return branch;
-    };
-    const siblings = commonAncestor.children.filter((child): child is TestInstance => typeof child !== 'string');
-    expect(siblings.indexOf(getBranchBelow(first))).toBeLessThan(siblings.indexOf(getBranchBelow(second)));
-}
-
 describe('Table', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -760,7 +733,7 @@ describe('Table', () => {
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
         });
 
-        it('should keep page controls outside ARIA table semantics while owning virtualized rows', () => {
+        it('should keep page-header rows in a persistent physical table ancestor', () => {
             const props = createDefaultProps();
             const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
                 <Table.Row
@@ -795,25 +768,16 @@ describe('Table', () => {
             );
 
             const table = screen.getByLabelText('Members');
-            const [rowGroup] = table.children;
-            expect(rowGroup).toBeDefined();
-            expect(typeof rowGroup).not.toBe('string');
-            if (!rowGroup || typeof rowGroup === 'string') {
-                throw new Error('Expected the semantic table to contain a rowgroup');
-            }
-            const ownedRowIDs = String(rowGroup.props['aria-owns']).split(' ');
             const rows = getHostTableRows().filter((row) => row.props['aria-hidden'] !== true);
             const pageControls = screen.getByTestId('table-header-component');
 
-            expect(within(table).queryByTestId('table-header-component')).toBeNull();
-            expect(table.props.style).toBeUndefined();
-            expectNodeBefore(pageControls, table);
-            const firstOwnedRow = rows.at(0);
-            if (!firstOwnedRow) {
-                throw new Error('Expected the semantic table to own at least one row');
-            }
-            expectNodeBefore(table, firstOwnedRow);
-            expect(ownedRowIDs).toEqual(rows.map((row) => String(row.props.id)));
+            expect(within(table).getByTestId('table-header-component')).toBe(pageControls);
+            expect(within(table).queryByRole(CONST.ROLE.ROWGROUP)).toBeNull();
+            expect(
+                within(table)
+                    .UNSAFE_getAllByProps({role: CONST.ROLE.ROW})
+                    .filter((row) => row.props['aria-hidden'] !== true),
+            ).toHaveLength(rows.length);
             expect(table.props['aria-rowcount']).toBe(props.data.length + 1);
             expect(table.props['aria-colcount']).toBe(props.columns.length);
         });
@@ -852,21 +816,15 @@ describe('Table', () => {
             );
 
             const table = screen.getByLabelText('Members');
-            const [rowGroup] = table.children;
-            if (!rowGroup || typeof rowGroup === 'string') {
-                throw new Error('Expected the semantic table to contain a rowgroup');
-            }
-            const ownedRowIDs = String(rowGroup.props['aria-owns']).split(' ');
             const rows = getHostTableRows().filter((row) => row.props['aria-hidden'] !== true);
 
-            expectNodeBefore(screen.getByTestId('table-header-component'), table);
-            expect(ownedRowIDs).toEqual(rows.map((row) => String(row.props.id)));
-            expect(ownedRowIDs.some((id) => id.endsWith('-header-row'))).toBe(false);
+            expect(within(table).getByTestId('table-header-component')).toBeTruthy();
+            expect(within(table).queryByRole(CONST.ROLE.ROWGROUP)).toBeNull();
             expect(table.props['aria-rowcount']).toBe(props.data.length);
             expect(rows.at(0)?.props['aria-rowindex']).toBe(1);
         });
 
-        it('should transfer the semantic header ID to the sticky clone without exposing a duplicate row', () => {
+        it('should expose only the active sticky semantic header', () => {
             const props = createDefaultProps();
 
             render(
@@ -888,8 +846,6 @@ describe('Table', () => {
 
             const initialHeaders = getHostTableRows().filter((row) => row.props['aria-rowindex'] === 1 && row.props['aria-hidden'] !== true);
             expect(initialHeaders).toHaveLength(1);
-            const headerID: unknown = initialHeaders.at(0)?.props.id;
-            expect(typeof headerID).toBe('string');
 
             activateStickyHeadersAfterListLoad();
             act(() => {
@@ -901,8 +857,6 @@ describe('Table', () => {
             const hiddenHeaders = allHeaders.filter((row) => row.props['aria-hidden'] === true);
             expect(accessibleHeaders).toHaveLength(1);
             expect(hiddenHeaders).toHaveLength(1);
-            const accessibleHeaderID: unknown = accessibleHeaders.at(0)?.props.id;
-            expect(accessibleHeaderID).toBe(headerID);
 
             const hiddenHeader = hiddenHeaders.at(0);
             const accessibleHeader = accessibleHeaders.at(0);
@@ -974,25 +928,19 @@ describe('Table', () => {
                 </Table>
             );
 
-            // The page controls and semantic owner live in FlashList's persistent header. Only the column header and
-            // data rows are virtualized, at indexes 0 and 1 respectively.
+            // The page controls live in FlashList's persistent header. Only the column header and data rows are
+            // virtualized, at indexes 0 and 1 respectively.
             mockFlashListMeasurementTargetIndexes = [0, 1];
             const {rerender} = render(renderTable());
 
             const table = screen.getByLabelText('Members');
-            const [rowGroup] = table.children;
-            if (!rowGroup || typeof rowGroup === 'string') {
-                throw new Error('Expected the semantic table to contain a rowgroup');
-            }
-            const ownedRowIDs = String(rowGroup.props['aria-owns']).split(' ');
             const visibleRows = getHostTableRows().filter((row) => row.props['aria-hidden'] !== true);
-            const firstOwnedRow = visibleRows.at(0);
-            if (!firstOwnedRow) {
-                throw new Error('Expected the semantic table to own at least one visible row');
-            }
-            expectNodeBefore(screen.getByTestId('table-header-component'), table);
-            expectNodeBefore(table, firstOwnedRow);
-            expect(ownedRowIDs).toEqual(visibleRows.map((row) => String(row.props.id)));
+            expect(within(table).getByTestId('table-header-component')).toBeTruthy();
+            expect(
+                within(table)
+                    .UNSAFE_getAllByProps({role: CONST.ROLE.ROW})
+                    .filter((row) => row.props['aria-hidden'] !== true),
+            ).toHaveLength(visibleRows.length);
             expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeDefined();
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
 

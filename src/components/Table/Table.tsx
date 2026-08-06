@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import type {FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 
-import React, {useId, useImperativeHandle, useRef} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
 
 import type {TableContextValue} from './TableContext';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
@@ -220,8 +220,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const isMobileSelectionEnabled = useMobileSelectionMode();
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const semanticTableID = useId();
-
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
     }
@@ -309,7 +307,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
-        semanticTableID,
         title,
         headerComponent,
         emptyStateElement,
@@ -348,7 +345,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
 
     // In the normal inline semantic layout, an empty body with a list slot still needs its enclosing table wrapper.
-    // Page-header tables place their row owner after the controls inside TableBody, preserving accessibility order.
+    // Page-header tables use TableBody's persistent full-layout wrapper as their semantic table ancestor.
     const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps, headerComponent);
 
     return (

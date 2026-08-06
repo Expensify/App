@@ -29,8 +29,6 @@ function loadModule(platform: string): TableAccessibilityModule {
 const {
     getTableContainerAccessibilityProps,
     getRowGroupAccessibilityProps,
-    getTableHeaderRowID,
-    getTableDataRowID,
     getRowAccessibilityProps,
     getVirtualizedRowSemanticID,
     getColumnHeaderAccessibilityProps,
@@ -113,20 +111,6 @@ describe('tableAccessibility', () => {
         it('exposes the rowgroup role when enabled', () => {
             expect(getRowGroupAccessibilityProps(true)).toEqual({role: CONST.ROLE.ROWGROUP});
         });
-
-        it('owns detached virtualized rows in their reading order', () => {
-            expect(getRowGroupAccessibilityProps(true, ['header-row', 'data-row-0', 'data-row-1'])).toEqual({
-                role: CONST.ROLE.ROWGROUP,
-                'aria-owns': 'header-row data-row-0 data-row-1',
-            });
-        });
-    });
-
-    describe('semantic row IDs', () => {
-        it('builds stable header and data-row IDs for a table instance', () => {
-            expect(getTableHeaderRowID(':r1:')).toBe(':r1:-header-row');
-            expect(getTableDataRowID(':r1:', 4)).toBe(':r1:-data-row-4');
-        });
     });
 
     describe('getRowAccessibilityProps', () => {
@@ -159,14 +143,14 @@ describe('tableAccessibility', () => {
     });
 
     describe('getVirtualizedRowSemanticID', () => {
-        it('assigns the owned ID only to the real cell and hides virtualization clones', () => {
-            expect(getVirtualizedRowSemanticID(true, 'Cell', 'members-data-row-0')).toBe('members-data-row-0');
-            expect(getVirtualizedRowSemanticID(true, 'Measurement', 'members-data-row-0')).toBeNull();
-            expect(getVirtualizedRowSemanticID(true, 'StickyHeader', 'members-data-row-0')).toBeNull();
+        it('keeps the real cell exposed and hides virtualization clones', () => {
+            expect(getVirtualizedRowSemanticID(true, 'Cell')).toBeUndefined();
+            expect(getVirtualizedRowSemanticID(true, 'Measurement')).toBeNull();
+            expect(getVirtualizedRowSemanticID(true, 'StickyHeader')).toBeNull();
         });
 
         it('leaves row semantics untouched when table semantics are disabled', () => {
-            expect(getVirtualizedRowSemanticID(false, 'Measurement', 'members-data-row-0')).toBeUndefined();
+            expect(getVirtualizedRowSemanticID(false, 'Measurement')).toBeUndefined();
         });
     });
 

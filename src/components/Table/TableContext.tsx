@@ -18,9 +18,6 @@ import type {SharedListProps, TableColumn, TableData, TableMethods, TableRow} fr
  * @template ColumnKey - A string literal type representing the valid column keys.
  */
 type TableContextValue<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string> = {
-    /** Stable ID used to associate virtualized rows with their ARIA table on wide web. */
-    semanticTableID: string;
-
     /** The title of the table when shown on smaller screens. */
     title?: string;
 
@@ -110,7 +107,6 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 };
 
 const defaultTableContextValue: TableContextValue<TableData, string> = {
-    semanticTableID: 'table',
     listRef: React.createRef(),
     listContainerRef: React.createRef(),
     trackScrollOffset: () => {},
