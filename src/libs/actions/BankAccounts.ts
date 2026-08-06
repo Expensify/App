@@ -1868,6 +1868,10 @@ function pressLockedBankAccount(bankAccountID: number, translate: LocalizedTrans
     });
 }
 
+function resendFailedValidationAmounts(bankAccountID: number) {
+    API.write(WRITE_COMMANDS.RESEND_FAILED_VALIDATION_AMOUNTS, {bankAccountID});
+}
+
 export {
     acceptACHContractForBankAccount,
     addBusinessWebsiteForDraft,
@@ -1929,5 +1933,6 @@ export {
     updatePersonalBankAccountInfo,
     initiateBankAccountUnlock,
     pressLockedBankAccount,
+    resendFailedValidationAmounts,
     uploadUserKYBDocs,
 };
