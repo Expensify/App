@@ -1135,6 +1135,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                             report?.ownerAccountID,
                             getLoginByAccountID(report?.ownerAccountID, personalDetails),
                             getLoginByAccountID(reportAction.actorAccountID, personalDetails),
+                            convertToDisplayString,
                             currentUserPersonalDetails.accountID,
                         ),
                     );
