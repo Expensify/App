@@ -78,7 +78,7 @@ import {View} from 'react-native';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
-import {getCertiniaSelectedCompanyID, isCertiniaFFAConnection, isCertiniaSRPConnection} from './certinia/utils';
+import {getCertiniaSelectedCompanyID, isCertiniaFFAConnection} from './certinia/utils';
 import {getAccountingIntegrationData, getAccountingIntegrationDisplayName, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from './utils';
 
 type RouteParams = {
