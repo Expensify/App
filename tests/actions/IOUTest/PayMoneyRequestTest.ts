@@ -1802,6 +1802,109 @@ describe('actions/IOU/PayMoneyRequest', () => {
             expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
             expect(updatedReport?.nextStep?.messageKey).toBe(CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION);
         });
+
+        describe('reverts to the state the report was in before it was marked as paid', () => {
+            const revertAdminEmail = 'revert-admin@expensifail.com';
+            const revertAdminAccountID = 30;
+            const revertEmployeeAccountID = 31;
+
+            /**
+             * Builds a report action fixture. The random base action is a generic ReportAction; the revert logic under
+             * test only reads actionName/created/originalMessage, so we assert the shape back to the ReportAction union.
+             */
+            function buildAction(reportActionID: string, actionName: ReportAction['actionName'], created: string, originalMessage?: Record<string, unknown>): ReportAction {
+                return {...createRandomReportAction(Number(created.at(-1) ?? 0)), reportActionID, actionName, created, ...(originalMessage ? {originalMessage} : {})} as ReportAction;
+            }
+
+            /**
+             * Seeds a paid expense report whose action history ends with the given workflow action followed by a PAY
+             * action, then cancels the payment and returns the reverted report so state can be asserted.
+             */
+            async function cancelPaidReport(reportIDSuffix: string, workflowAction: ReportAction) {
+                const reportID = `revert-${reportIDSuffix}`;
+                const chatReportID = `revert-chat-${reportIDSuffix}`;
+
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    id: `revert-policy-${reportIDSuffix}`,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    owner: revertAdminEmail,
+                    ownerAccountID: revertAdminAccountID,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                };
+
+                const expenseReport: Report = {
+                    ...createRandomReport(0),
+                    reportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: revertEmployeeAccountID,
+                    managerID: revertAdminAccountID,
+                    policyID: policy.id,
+                    // Marking as paid overwrites the report with APPROVED/REIMBURSED, so this is the starting point at cancel time.
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    parentReportID: chatReportID,
+                    chatReportID,
+                };
+
+                const chatReport: Report = {
+                    ...createRandomReport(0),
+                    reportID: chatReportID,
+                    iouReportID: reportID,
+                    policyID: policy.id,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                };
+
+                const createdAction = buildAction('created', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 00:00:00.000');
+                const payAction = buildAction('pay', CONST.REPORT.ACTIONS.TYPE.IOU, '2024-01-01 00:00:02.000', {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    IOUReportID: reportID,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                });
+                const reportActions: ReportActions = {
+                    [createdAction.reportActionID]: createdAction,
+                    [workflowAction.reportActionID]: workflowAction,
+                    [payAction.reportActionID]: payAction,
+                };
+
+                await Onyx.set(ONYXKEYS.SESSION, {email: revertAdminEmail, accountID: revertAdminAccountID});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, expenseReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActions);
+
+                mockFetch?.pause?.();
+                cancelPayment(expenseReport, chatReport, policy, true, revertAdminAccountID, revertAdminEmail, false, false);
+                await waitForBatchedUpdates();
+
+                return getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            }
+
+            it('returns an instant-submit report (paid from Outstanding) to Outstanding', async () => {
+                const workflowAction = buildAction('workflow', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, '2024-01-01 00:00:01.000');
+                const updatedReport = await cancelPaidReport('submitted', workflowAction);
+                expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+                expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+            });
+
+            it('returns a delayed-submit report (auto-closed to Done via SUBMITTED_AND_CLOSED) to Done, not Outstanding', async () => {
+                const workflowAction = buildAction('workflow', CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, '2024-01-01 00:00:01.000');
+                const updatedReport = await cancelPaidReport('closed', workflowAction);
+                expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+                expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.CLOSED);
+            });
+
+            it('returns an approved report to Approved', async () => {
+                const workflowAction = buildAction('workflow', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2024-01-01 00:00:01.000');
+                const updatedReport = await cancelPaidReport('approved', workflowAction);
+                expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+                expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+            });
+        });
     });
 
     describe('payMoneyRequest', () => {
