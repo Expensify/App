@@ -93,7 +93,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     };
 
     const navigateBackToMembers = () => {
-        const returnRoute = isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID, CONST.TAB.WORKFLOWS.APPROVALS) : ROUTES.WORKSPACE_MEMBERS.getRoute(policyID);
+        const returnRoute = isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS.getRoute(policyID);
         Navigation.goBack(returnRoute, {waitForTransition: true});
     };
 

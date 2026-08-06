@@ -35,7 +35,7 @@ function ImportWorkflowsPage({route}: ImportWorkflowsPageProps) {
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ImportSpreadsheet
-                backTo={ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID, CONST.TAB.WORKFLOWS.APPROVALS)}
+                backTo={ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}
                 goTo={ROUTES.WORKSPACE_WORKFLOWS_IMPORTED.getRoute(policyID)}
             />
         </AccessOrNotFoundWrapper>

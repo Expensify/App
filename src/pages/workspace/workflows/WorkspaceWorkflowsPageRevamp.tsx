@@ -105,6 +105,16 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
     const persistedTab: WorkflowsTab = lastSelectedTabStr && isWorkflowsTab(lastSelectedTabStr) ? lastSelectedTabStr : WORKFLOWS_TAB.SUBMISSIONS;
     const requestedTab: WorkflowsTab = routeTab && isWorkflowsTab(routeTab) ? routeTab : persistedTab;
 
+    useEffect(() => {
+        // Persist a deep-linked tab so returning here later — including via a `backTo` that intentionally carries no
+        // tab, since `goBack` compares route params and a tab param would stop it matching the mounted page — reopens it.
+        if (!routeTab || !isWorkflowsTab(routeTab)) {
+            return;
+        }
+
+        Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, routeTab);
+    }, [routeTab]);
+
     const visibleTabs: TabSelectorBaseItem[] = [
         ...(shouldShowSubmissions
             ? [
@@ -153,13 +163,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
     };
 
     const navigateToSubmitWorkspaceApprovalsUpgrade = useCallback(() => {
-        Navigation.navigate(
-            ROUTES.WORKSPACE_UPGRADE.getRoute(
-                policyID,
-                CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias,
-                ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID, CONST.TAB.WORKFLOWS.APPROVALS),
-            ),
-        );
+        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
     }, [policyID]);
 
     // Reuses the Members spreadsheet importer (it already maps the `submitsTo` / `approvesTo` columns) so approval

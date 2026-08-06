@@ -183,13 +183,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     }, [navigateToHRSettings, hrProviderName, showConfirmModal, translate]);
 
     const navigateToSubmitWorkspaceApprovalsUpgrade = useCallback(() => {
-        Navigation.navigate(
-            ROUTES.WORKSPACE_UPGRADE.getRoute(
-                policyID,
-                CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias,
-                ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID, CONST.TAB.WORKFLOWS.APPROVALS),
-            ),
-        );
+        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
     }, [policyID]);
 
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page

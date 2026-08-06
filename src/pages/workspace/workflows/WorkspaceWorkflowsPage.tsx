@@ -87,13 +87,7 @@ function WorkspaceWorkflowsPage(props: WorkspaceWorkflowsPageProps) {
     }, []);
 
     const navigateToSubmitWorkspaceApprovalsUpgrade = useCallback(() => {
-        Navigation.navigate(
-            ROUTES.WORKSPACE_UPGRADE.getRoute(
-                policyID,
-                CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias,
-                ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID, CONST.TAB.WORKFLOWS.APPROVALS),
-            ),
-        );
+        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
     }, [policyID]);
 
     // Reuses the Members spreadsheet importer (it already maps the `submitsTo` / `approvesTo` columns) so approval
