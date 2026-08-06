@@ -20,6 +20,7 @@ const WRITE_COMMANDS = {
     IMPORT_MULTI_LEVEL_TAGS: 'ImportMultiLevelTags',
     SET_WORKSPACE_AUTO_HARVESTING: 'SetWorkspaceAutoHarvesting',
     SET_WORKSPACE_AUTO_REPORTING_FREQUENCY: 'SetWorkspaceAutoReportingFrequency',
+    SET_GLOBAL_REIMBURSEMENT_FX_PREFERENCE: 'SetGlobalReimbursementFXPreference',
     SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET: 'SetWorkspaceAutoReportingOffset',
     SET_WORKSPACE_APPROVAL_MODE: 'SetWorkspaceApprovalMode',
     DISABLE_POLICY_APPROVALS: 'DisablePolicyApprovals',
@@ -139,7 +140,6 @@ const WRITE_COMMANDS = {
     ADD_EMOJI_REACTION: 'AddEmojiReaction',
     REMOVE_EMOJI_REACTION: 'RemoveEmojiReaction',
     LEAVE_ROOM: 'LeaveRoom',
-    PUSHER_PING: 'PusherPing',
     LEAVE_GROUP_CHAT: 'LeaveGroupChat',
     INVITE_TO_ROOM: 'InviteToRoom',
     INVITE_TO_GROUP_CHAT: 'InviteToGroupChat',
@@ -184,6 +184,7 @@ const WRITE_COMMANDS = {
     MOVE_IOU_REPORT_TO_EXISTING_POLICY: 'MoveIOUReportToExistingPolicy',
     EXPORT_REPORT_TO_PDF: 'ExportReportToPDF',
     EXPORT_REPORTS_TO_PDF: 'ExportReportsToPDF',
+    EXPORT_RECEIPTS_TO_ZIP: 'ExportReceiptsToZip',
     RENAME_WORKSPACE_CATEGORY: 'RenameWorkspaceCategory',
     CREATE_POLICY_TAG: 'CreatePolicyTag',
     RENAME_POLICY_TAG: 'RenamePolicyTag',
@@ -293,6 +294,7 @@ const WRITE_COMMANDS = {
     DISABLE_POLICY_BILLABLE_MODE: 'DisablePolicyBillableExpenses',
     SET_WORKSPACE_ERECEIPTS_ENABLED: 'SetWorkspaceEReceiptsEnabled',
     SET_POLICY_ATTENDEE_TRACKING_ENABLED: 'SetPolicyAttendeeTrackingEnabled',
+    SET_POLICY_PUBLIC_RECEIPT_VISIBILITY_ENABLED: 'SetPolicyPublicReceiptVisibilityEnabled',
     SET_POLICY_REQUIRE_COMPANY_CARDS_ENABLED: 'SetPolicyRequireCompanyCardsEnabled',
     SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED: 'SetPolicyCategoryDescriptionRequired',
     SET_POLICY_CATEGORY_ATTENDEES_REQUIRED: 'SetPolicyCategoryAttendeesRequired',
@@ -786,7 +788,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.INVITE_TO_GROUP_CHAT]: Parameters.InviteToGroupChatParams;
     [WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR]: Parameters.UpdateGroupChatAvatarParams;
     [WRITE_COMMANDS.UPDATE_ROOM_AVATAR]: Parameters.UpdateRoomAvatarParams;
-    [WRITE_COMMANDS.PUSHER_PING]: Parameters.PusherPingParams;
     [WRITE_COMMANDS.LEAVE_GROUP_CHAT]: Parameters.LeaveGroupChatParams;
     [WRITE_COMMANDS.REMOVE_FROM_GROUP_CHAT]: Parameters.RemoveFromGroupChatParams;
     [WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES]: Parameters.UpdateGroupChatMemberRolesParams;
@@ -826,6 +827,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.EXPORT_PER_DIEM_CSV]: Parameters.ExportPerDiemCSVParams;
     [WRITE_COMMANDS.EXPORT_REPORT_TO_PDF]: Parameters.ExportReportPDFParams;
     [WRITE_COMMANDS.EXPORT_REPORTS_TO_PDF]: Parameters.ExportReportsToPDFParams;
+    [WRITE_COMMANDS.EXPORT_RECEIPTS_TO_ZIP]: Parameters.ExportReceiptsToZipParams;
     [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES]: Parameters.DeleteWorkspaceCategoriesParams;
@@ -900,6 +902,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT]: Parameters.AcceptACHContractForBankAccount;
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_HARVESTING]: Parameters.SetWorkspaceAutoHarvestingParams;
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY]: Parameters.SetWorkspaceAutoReportingFrequencyParams;
+    [WRITE_COMMANDS.SET_GLOBAL_REIMBURSEMENT_FX_PREFERENCE]: Parameters.SetGlobalReimbursementFXPreferenceParams;
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET]: Parameters.SetWorkspaceAutoReportingMonthlyOffsetParams;
     [WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE]: Parameters.SetWorkspaceApprovalModeParams;
     [WRITE_COMMANDS.DISABLE_POLICY_APPROVALS]: Parameters.DisablePolicyApprovalsParams;
@@ -986,6 +989,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE]: Parameters.DisablePolicyBillableModeParams;
     [WRITE_COMMANDS.SET_WORKSPACE_ERECEIPTS_ENABLED]: Parameters.SetWorkspaceEReceiptsEnabled;
     [WRITE_COMMANDS.SET_POLICY_ATTENDEE_TRACKING_ENABLED]: Parameters.SetPolicyAttendeeTrackingEnabledParams;
+    [WRITE_COMMANDS.SET_POLICY_PUBLIC_RECEIPT_VISIBILITY_ENABLED]: Parameters.SetPolicyPublicReceiptVisibilityEnabledParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_ENABLE_NEW_CATEGORIES]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_AUTO_CREATE_VENDOR]: Parameters.UpdateQuickbooksOnlineAutoCreateVendorParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_TAX]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
@@ -1366,7 +1370,9 @@ const READ_COMMANDS = {
     OPEN_PLAID_BANK_ACCOUNT_SELECTOR: 'OpenPlaidBankAccountSelector',
     OPEN_SEARCH_PAGE: 'OpenSearchPage',
     OPEN_SEARCH_CARD_FILTERS_PAGE: 'OpenSearchCardFiltersPage',
+    OPEN_SEARCH_CATEGORY_FILTERS_PAGE: 'OpenSearchCategoryFiltersPage',
     SEARCH: 'Search',
+    GET_TRANSACTIONS_CONVERTED_AMOUNT: 'GetTransactionsConvertedAmount',
     GET_OLDER_ACTIONS: 'GetOlderActions',
     GET_NEWER_ACTIONS: 'GetNewerActions',
     EXPAND_URL_PREVIEW: 'ExpandURLPreview',
@@ -1490,6 +1496,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE]: null;
     [READ_COMMANDS.OPEN_SEARCH_PAGE]: Parameters.OpenSearchPageParams;
     [READ_COMMANDS.SEARCH]: Parameters.SearchParams;
+    [READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT]: Parameters.GetTransactionsConvertedAmountParams;
     [READ_COMMANDS.BEGIN_SIGNIN]: Parameters.BeginSignInParams;
     [READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN]: Parameters.SignInWithShortLivedAuthTokenParams;
     [READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN]: Parameters.SignInWithSupportAuthTokenParams;
@@ -1527,6 +1534,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_SAVE_THE_WORLD_PAGE]: null;
     [READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE]: null;
     [READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE]: null;
+    [READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE]: null;
     [READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW]: Parameters.StartIssueNewCardFlowParams;
     [READ_COMMANDS.OPEN_CARD_DETAILS_PAGE]: Parameters.OpenCardDetailsPageParams;
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
@@ -1559,6 +1567,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     IMPORT_PER_DIEM_RATES: 'ImportPerDiemRates',
     IMPORT_TAGS_SPREADSHEET: 'ImportTagsSpreadsheet',
     OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
+    PUSHER_PING: 'PusherPing',
     RECONNECT_APP: 'ReconnectApp',
     REVEAL_EXPENSIFY_TRAVEL_CARD_DETAILS: 'RevealExpensifyTravelCardDetails',
     TWO_FACTOR_AUTH_VALIDATE: 'TwoFactorAuth_Validate',
@@ -1581,6 +1590,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     COMPLETE_GUIDED_SETUP: 'CompleteGuidedSetup',
 
     GET_STATEMENT_PDF: 'GetStatementPDF',
+    GET_EXPENSIFY_CARD_STATEMENT_PDF: 'GetExpensifyCardStatementPDF',
     REGISTER_AUTHENTICATION_KEY: 'RegisterAuthenticationKey',
     TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION: 'TroubleshootMultifactorAuthentication',
     REQUEST_AUTHENTICATION_CHALLENGE: 'RequestAuthenticationChallenge',
@@ -1605,6 +1615,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_PER_DIEM_RATES]: Parameters.ImportPerDiemRatesParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_TAGS_SPREADSHEET]: Parameters.ImportTagsSpreadsheetParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK]: Parameters.OpenOldDotLinkParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.PUSHER_PING]: Parameters.PusherPingParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_TRAVEL_CARD_DETAILS]: Parameters.RevealExpensifyCardDetailsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES]: Parameters.GetMissingOnyxMessagesParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP]: Parameters.ReconnectAppParams;
@@ -1625,6 +1636,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_STATEMENT_PDF]: Parameters.GetStatementPDFParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.GET_EXPENSIFY_CARD_STATEMENT_PDF]: Parameters.GetExpensifyCardStatementPDFParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY]: Parameters.RegisterAuthenticationKeyParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION]: Parameters.TroubleshootMultifactorAuthenticationParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_AUTHENTICATION_CHALLENGE]: Parameters.RequestAuthenticationChallengeParams;

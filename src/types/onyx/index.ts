@@ -79,6 +79,7 @@ import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase, NestedExpensifyCardSettings} from './ExpensifyCardSettings';
+import type ExpensifyCardStatement from './ExpensifyCardStatement';
 import type ExportDownload from './ExportDownload';
 import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
@@ -155,7 +156,6 @@ import type ReportLoadingState from './ReportLoadingState';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
-import type ReportNextStepDeprecated from './ReportNextStepDeprecated';
 import type ReportPaginationState from './ReportPaginationState';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type ReportViolationName from './ReportViolationName';
@@ -168,6 +168,7 @@ import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchContext from './SearchContext';
+import type SearchFooterConversion from './SearchFooterConversion';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
 import type SecurityGroup from './SecurityGroup';
@@ -322,7 +323,6 @@ export type {
     ReportLastVisitTimes,
     ReportLoadingState,
     ReportMetadata,
-    ReportNextStepDeprecated,
     ReportPaginationState,
     ReportViolationName,
     ReportLayoutGroupBy,
@@ -353,6 +353,7 @@ export type {
     WalletAdditionalDetails,
     WalletAdditionalQuestionDetails,
     WalletOnfido,
+    ExpensifyCardStatement,
     TravelInvoiceStatement,
     WalletStatement,
     WalletTerms,
@@ -388,6 +389,7 @@ export type {
     SaveSearch,
     RecentSearchItem,
     SearchContext,
+    SearchFooterConversion,
     SearchSidebar,
     ImportedSpreadsheet,
     BankAccountShareDetails,

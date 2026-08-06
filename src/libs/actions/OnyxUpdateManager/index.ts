@@ -1,9 +1,9 @@
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import {setAuthToken} from '@libs/Network/NetworkStore';
-import {unpause as unpauseSequentialQueue} from '@libs/Network/SequentialQueue';
+import {registerPauseWatchdogEscalation, unpause as unpauseSequentialQueue} from '@libs/Network/SequentialQueue';
 
-import {finalReconnectAppAfterActivatingReliableUpdates, getMissingOnyxUpdates, reconnectApp} from '@userActions/App';
+import {finalReconnectAppAfterActivatingReliableUpdates, getMissingOnyxUpdates, reconnectApp, reconnectAppWithSideEffects} from '@userActions/App';
 import updateSessionAuthTokens from '@userActions/Session/updateSessionAuthTokens';
 
 import CONST from '@src/CONST';
@@ -116,6 +116,39 @@ function isFetchAlreadyStalled(lastUpdateIDFromClient: number): boolean {
     return true;
 }
 
+// Watchdog recovery: close the gap with an out-of-queue incremental ReconnectApp before unpausing.
+// Registered here because SequentialQueue can't import App (cycle). Shares the stalled-fetch back-off
+// so a client thrashing on GetMissingOnyxMessages isn't handed another reconnect.
+registerPauseWatchdogEscalation(() => {
+    const lastUpdateIDFromClient = lastUpdateIDAppliedToClient ?? CONST.DEFAULT_NUMBER_ID;
+
+    // Only the leader closes gaps over the network (see handleMissingOnyxUpdates); escalating on a follower
+    // would fire a duplicate out-of-queue ReconnectApp.
+    if (!isClientTheLeader()) {
+        Log.info('[OnyxUpdateManager] Pause watchdog escalation skipped — not the leader client', false, {lastUpdateIDFromClient});
+        return Promise.resolve();
+    }
+
+    // Without a client update ID there is no incremental range to ask for, so the reconnect would return the full app
+    // payload and apply it outside the queue with WRITEs still pending. handleMissingOnyxUpdates owns this state (its
+    // `!lastUpdateIDFromClient` flow, guarded against concurrent reconnects) — just unpause and let it run.
+    if (!lastUpdateIDFromClient) {
+        Log.info('[OnyxUpdateManager] Pause watchdog escalation skipped — no client update ID to reconnect from', false, {lastUpdateIDFromClient});
+        return Promise.resolve();
+    }
+
+    if (stalledFetch && Date.now() - stalledFetch.time < CONST.NETWORK.STALLED_UPDATES_FETCH_BACKOFF_TIME_MS) {
+        Log.info('[OnyxUpdateManager] Pause watchdog escalation skipped — within the stalled-fetch back-off window', false, {lastUpdateIDFromClient});
+        return Promise.resolve();
+    }
+
+    stalledFetch = {clientUpdateID: lastUpdateIDFromClient, time: Date.now()};
+    Log.info('[OnyxUpdateManager] Pause watchdog escalation — firing an incremental ReconnectApp outside the queue to close the update gap before unpausing', false, {
+        lastUpdateIDFromClient,
+    });
+    return reconnectAppWithSideEffects(lastUpdateIDFromClient);
+});
+
 // Fetches the missing updates and afterwards validates and applies the deferred updates, which recurses
 // while the deferred updates still have gaps. When the fetch settles without progress, escalateIfFetchStalled
 // takes over and the deferred updates are skipped: they sit behind the unclosed gap and could never apply.
@@ -154,6 +187,13 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
     // we don't have base state of the app (reports, policies, etc.) setup. If we apply this update,
     // we'll only have them overwritten by the openApp response. So let's skip it and return.
     if (isLoadingApp) {
+        // If one of these onyx updates is for the authToken, update it now because our current authToken is probably invalid.
+        updateAuthTokenIfNecessary(onyxUpdatesFromServer);
+
+        // Nothing reads this key again once we return, but it is persisted, so a restart would replay it and
+        // could write a now-stale authToken over a newer session. Drop the consumed copy.
+        Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
+
         // When ONYX_UPDATES_FROM_SERVER is set, we pause the queue. Let's unpause
         // it so the app is not stuck forever without processing requests.
         unpauseSequentialQueue();
