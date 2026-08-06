@@ -273,7 +273,7 @@ function WithdrawalIDListItemHeaderImpl({
                         )}
                         {!onDownArrowClick && isCashBack && (
                             <View style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}>
-                                <View style={{width: variables.iconSizeNormal, height: variables.iconSizeNormal}} />
+                                <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal)} />
                             </View>
                         )}
                     </View>

@@ -3449,7 +3449,7 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
             const transactionsQueryJSON =
                 queryJSON && withdrawalIDGroup.entryID ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, withdrawalIDGroup.entryID) : undefined;
 
-            if (!withdrawalIDGroup.accountNumber && !withdrawalIDGroup.isCashBack) {
+            if (!withdrawalIDGroup.accountNumber) {
                 continue;
             }
 

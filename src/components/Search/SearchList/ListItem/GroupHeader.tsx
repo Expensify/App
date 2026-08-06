@@ -431,7 +431,7 @@ function GroupHeader({
                             {isLargeScreenWidth &&
                                 (isCashBackWithdrawal ? (
                                     <View style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}>
-                                        <View style={{width: variables.iconSizeNormal, height: variables.iconSizeNormal}} />
+                                        <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal)} />
                                     </View>
                                 ) : (
                                     <PressableWithFeedback
