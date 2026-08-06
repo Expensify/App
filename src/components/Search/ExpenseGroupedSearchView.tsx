@@ -214,7 +214,10 @@ function ExpenseGroupedSearchView({
         layout.size = variables.tableRowHeight;
     };
 
-    const stickyHeaderConfig = shouldSplit ? {hideRelatedCell: true, useNativeDriver: true, zIndex: 2} : undefined;
+    // FlashList sticky headers render in a separate web layer, which breaks native multi-row text selection
+    // when dragging from the first merchant group header.
+    const shouldUseStickyGroupHeaders = shouldSplit && groupBy !== CONST.SEARCH.GROUP_BY.MERCHANT;
+    const stickyHeaderConfig = shouldUseStickyGroupHeaders ? {hideRelatedCell: true, useNativeDriver: true, zIndex: 2} : undefined;
 
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         if (isGroupHeaderItem(item)) {
@@ -353,7 +356,7 @@ function ExpenseGroupedSearchView({
                 newTransactions={newTransactions}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                stickyHeaderIndices={stickyHeaderIndices}
+                stickyHeaderIndices={shouldUseStickyGroupHeaders ? stickyHeaderIndices : undefined}
                 getItemType={getItemType}
                 stickyHeaderConfig={stickyHeaderConfig}
                 disabledIndexes={shouldSplit ? childrenContainerIndices : undefined}
