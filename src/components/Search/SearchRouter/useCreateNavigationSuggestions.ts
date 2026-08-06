@@ -1,8 +1,6 @@
 /**
  * Builds the Create/FAB navigation suggestions shown in the Search Router.
  */
-import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
-
 import useCreateReport from '@hooks/useCreateReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -73,7 +71,7 @@ function replaceTopmostModalWithAction(action: () => void) {
     Navigation.dismissModal({afterTransition: action});
 }
 
-function useCreateNavigationSuggestions(): SearchQueryItem[] {
+function useCreateNavigationSuggestions(): NavigationSuggestionSourceItem[] {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle', 'Location', 'Document', 'ChatBubble', 'InvoiceGeneric', 'NewWorkspace']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
