@@ -11,7 +11,7 @@ import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getPerDiemCustomUnit, getPerDiemRateCustomUnitRate} from '@libs/PolicyUtils';
@@ -242,8 +242,7 @@ type PerDiemExpenseInformation = {
     optimisticChatReportID?: string;
     optimisticTransactionID?: string;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -267,8 +266,7 @@ type PerDiemExpenseInformationParams = {
     optimisticChatReportID?: string;
     optimisticTransactionID?: string;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -281,8 +279,7 @@ type PerDiemExpenseInformationForSelfDM = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     /** UI-controlled id so post-submit nav lands on the report the action wrote. */
     optimisticChatReportID: string;
-    // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -514,17 +511,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
 
     const predictedNextStatus =
         iouReport.statusNum ?? (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN);
-    // buildOptimisticNextStep is used in parallel
-    const optimisticNextStepDeprecated = buildNextStepNew({
-        report: iouReport,
-        predictedNextStatus,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        policy,
-        isTrackIntentUser,
-    });
     const optimisticNextStep = buildOptimisticNextStep({
         report: iouReport,
         predictedNextStatus,
@@ -572,7 +558,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             },
             personalDetailListAction: optimisticPersonalDetailListAction,
             nextStep: optimisticNextStep,
-            nextStepDeprecated: optimisticNextStepDeprecated,
         },
         currentUserAccountIDParam,
         currentUserEmailParam,

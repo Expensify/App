@@ -13,7 +13,7 @@ type Session = {
     email?: string;
 
     /** Currently logged in user authToken */
-    authToken?: string;
+    [CONST.HTTP_HEADER_NAMES.AUTH_TOKEN]?: string;
 
     /** Currently logged in user authToken type */
     authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
