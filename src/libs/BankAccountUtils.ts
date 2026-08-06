@@ -72,6 +72,13 @@ function hasInsufficientFundsError(accountData: AccountData | undefined): boolea
     return CONST.BANK_ACCOUNT.NOC_CODE.INSUFFICIENT_FUNDS.includes(accountData.additionalData.lastNocCode);
 }
 
+function hasDebitBlockedError(accountData: AccountData | undefined): boolean {
+    if (!accountData?.additionalData?.lastNocCode) {
+        return false;
+    }
+    return CONST.BANK_ACCOUNT.NOC_CODE.DEBIT_BLOCKED.includes(accountData.additionalData.lastNocCode);
+}
+
 function getBankAccountConnectionStatus(accountData: AccountData | undefined): BankAccountConnectionStatus | undefined {
     const state = getBankAccountState(accountData);
 
@@ -112,8 +119,8 @@ function getBankAccountConnectionStatus(accountData: AccountData | undefined): B
                 tone: 'danger',
                 brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             };
-        case CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED:
-            if (hasInsufficientFundsError(accountData?.additionalData)) {
+        case CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED: {
+            if (hasInsufficientFundsError(accountData)) {
                 return {
                     labelKey: 'walletPage.bankAccountStatus.pending',
                     messageKey: 'walletPage.bankAccountStatus.insufficientFunds',
@@ -122,13 +129,17 @@ function getBankAccountConnectionStatus(accountData: AccountData | undefined): B
                     brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
                 };
             }
-            return {
-                labelKey: 'walletPage.bankAccountStatus.pending',
-                messageKey: 'walletPage.bankAccountStatus.debitBlocked',
-                actionKey: 'common.actionBadge.fix',
-                tone: 'danger',
-                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
-            };
+            if (hasDebitBlockedError(accountData)) {
+                return {
+                    labelKey: 'walletPage.bankAccountStatus.pending',
+                    messageKey: 'walletPage.bankAccountStatus.debitBlocked',
+                    actionKey: 'common.actionBadge.fix',
+                    tone: 'danger',
+                    brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                };
+            }
+            return undefined;
+        }
         default:
             return undefined;
     }
@@ -300,6 +311,8 @@ export {
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,
+    hasInsufficientFundsError,
+    hasDebitBlockedError,
     getBankAccountConnectionStatus,
     getRequiredKYBDocuments,
     getLastFourDigits,
