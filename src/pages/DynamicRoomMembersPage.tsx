@@ -224,12 +224,11 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 keyForList: String(accountID),
                 accountID,
                 login: details.login ?? '',
-                name: formatPhoneNumber(
-                    temporaryGetDisplayNameOrDefault({
-                        passedPersonalDetails: details,
-                        translate,
-                    }),
-                ),
+                name: temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: details,
+                    translate,
+                    formatPhoneNumber,
+                }),
                 email: formatPhoneNumber(details.login ?? ''),
                 disabled: isDisabled,
                 isSelectionDisabled,

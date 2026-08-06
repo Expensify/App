@@ -395,7 +395,7 @@ function SuggestionMention({
                 if (CONST.RESTRICTED_EMAILS.includes(detail.login) || CONST.RESTRICTED_ACCOUNT_IDS.includes(detail.accountID)) {
                     return false;
                 }
-                const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, translate});
+                const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, translate, formatPhoneNumber});
                 const displayText = displayName === formatPhoneNumber(detail.login) ? displayName : `${displayName} ${detail.login}`;
                 if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
                     return false;
@@ -422,7 +422,7 @@ function SuggestionMention({
 
             for (const detail of sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length)) {
                 suggestions.push({
-                    text: `${formatLoginPrivateDomain(temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, translate}), detail?.login)}`,
+                    text: `${formatLoginPrivateDomain(temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, translate, formatPhoneNumber}), detail?.login)}`,
                     alternateText: `@${formatLoginPrivateDomain(detail?.login, detail?.login)}`,
                     handle: detail?.login,
                     icons: [

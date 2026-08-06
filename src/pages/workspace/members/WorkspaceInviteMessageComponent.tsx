@@ -130,7 +130,7 @@ function WorkspaceInviteMessageComponent({
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
         .map((personalDetail) => {
-            const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate});
+            const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate, formatPhoneNumber});
             if (displayName) {
                 return displayName;
             }
@@ -342,6 +342,7 @@ function WorkspaceInviteMessageComponent({
                                         defaultValue: workspaceInviteApproverDraft,
                                         shouldFallbackToHidden: false,
                                         translate,
+                                        formatPhoneNumber,
                                     })}
                                     description={translate('workflowsPage.approver')}
                                     shouldShowRightIcon

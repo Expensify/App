@@ -131,7 +131,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const prevMember = usePrevious(member);
     const details = memberPersonalDetails ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate}));
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
     const isSelectedMemberOwner = policy?.owner === details.login;
     const isSelectedMemberCurrentUser = accountID === currentUserAccountID;
     const isCurrentUserAdmin = policy?.employeeList?.[currentUserLogin]?.role === CONST.POLICY.ROLE.ADMIN;
@@ -140,7 +140,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
-    const policyOwnerDisplayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate})) ?? policy?.owner ?? '';
+    const policyOwnerDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate, formatPhoneNumber}) ?? policy?.owner ?? '';
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const workspaceWorkflowsPageURL = `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}`;
     const isSMSLogin = Str.isSMSLogin(memberLogin);

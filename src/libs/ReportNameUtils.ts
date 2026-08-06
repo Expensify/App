@@ -361,7 +361,11 @@ function getInvoicesChatName({
     }
 
     if (isIndividual) {
-        return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: (personalDetails ?? allPersonalDetails)?.[invoiceReceiverAccountID], translate}));
+        return temporaryGetDisplayNameOrDefault({
+            passedPersonalDetails: (personalDetails ?? allPersonalDetails)?.[invoiceReceiverAccountID],
+            translate,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+        });
     }
 
     return getPolicyName({report, policy: receiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
@@ -389,7 +393,7 @@ function getInvoicePayerName(
 
     if (isIndividual) {
         const personalDetail = invoiceReceiverPersonalDetail ?? allPersonalDetails?.[invoiceReceiver.accountID];
-        return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail ?? undefined, translate}));
+        return temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail ?? undefined, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils});
     }
 
     return getPolicyName({report, policy: invoiceReceiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
