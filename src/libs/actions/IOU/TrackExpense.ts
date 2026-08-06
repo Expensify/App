@@ -2408,7 +2408,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 function trackExpense(params: CreateTrackExpenseParams) {
     const {
         report,
-        parentChatReport: parentChatReportParam,
+        parentChatReport,
         action,
         isDraftPolicy,
         participantParams,
@@ -2543,7 +2543,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         optimisticReportActionID,
         onyxData: trackExpenseInformationOnyxData,
     } = getTrackExpenseInformation({
-        parentChatReport: parentChatReportParam,
+        parentChatReport,
         moneyRequestReportID,
         existingTransaction,
         optimisticTransactionID,
