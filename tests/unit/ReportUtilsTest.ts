@@ -180,6 +180,7 @@ import {
     pushTransactionAutoSelectionsOnyxData,
     pushTransactionViolationsOnyxData,
     reasonForReportToBeInOptionList,
+    replaceLocalAttachmentReferences,
     requiresAttentionFromCurrentUser,
     shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
@@ -6259,7 +6260,7 @@ describe('ReportUtils', () => {
             expect(canEditReportAction(reportAction, transaction)).toEqual(false);
         });
 
-        it('should return false for an optimistic attachment+text action (still uploading)', () => {
+        it('should return true for an optimistic attachment+text action (text is editable while uploading)', () => {
             const transaction = createRandomTransaction(301);
             const reportAction: ReportAction = {
                 reportActionID: '301',
@@ -6277,7 +6278,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction)).toEqual(true);
         });
 
         it('should return true for a synced attachment-only action (optimistic flags cleared)', () => {
@@ -6341,6 +6342,63 @@ describe('ReportUtils', () => {
             };
 
             expect(canEditReportAction(reportAction, transaction)).toEqual(true);
+        });
+    });
+
+    describe('replaceLocalAttachmentReferences', () => {
+        const reportActionID = '6076606438659303644';
+        const syncedImageHtml = `Hello<br /><br /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg" alt="photo.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/abc.jpg" />`;
+        const uploadingImageHtml = `Hello<br /><br /><img src="blob:https://dev.new.expensify.com:8082/uuid-1" alt="photo.jpg" data-optimistic-src="blob:https://dev.new.expensify.com:8082/uuid-1" data-expensify-source="blob:https://dev.new.expensify.com:8082/uuid-1" data-name="photo.jpg" />`;
+
+        it('leaves the draft untouched while the upload is still pending', () => {
+            const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
+
+            expect(replaceLocalAttachmentReferences(draft, uploadingImageHtml, reportActionID)).toBe(draft);
+        });
+
+        it('swaps a blob: reference for the synced attachment when saved after the upload synced', () => {
+            const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
+
+            expect(replaceLocalAttachmentReferences(draft, syncedImageHtml, reportActionID)).toBe(
+                `Hello edited\n\n![photo.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg)`,
+            );
+        });
+
+        it('swaps a file: reference for the synced attachment when saved after the upload synced', () => {
+            const draft = 'Hello edited\n\n![photo.jpg](file:///var/mobile/tmp/photo.jpg)';
+
+            expect(replaceLocalAttachmentReferences(draft, syncedImageHtml, reportActionID)).toBe(
+                `Hello edited\n\n![photo.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg)`,
+            );
+        });
+
+        it('swaps a document reference for the synced attachment link', () => {
+            const syncedDocHtml = `Hello<br /><br /><a href="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc">file.doc</a>`;
+            const draft = 'Hello edited\n\n[file.doc](blob:https://dev.new.expensify.com:8082/uuid-1)';
+
+            expect(replaceLocalAttachmentReferences(draft, syncedDocHtml, reportActionID)).toBe(
+                `Hello edited\n\n[file.doc](https://www.expensify.com/chat-attachments/${reportActionID}/file.doc)`,
+            );
+        });
+
+        it('does not re-add an attachment the user intentionally removed from the draft', () => {
+            const draft = 'Hello edited, attachment deleted';
+
+            expect(replaceLocalAttachmentReferences(draft, syncedImageHtml, reportActionID)).toBe(draft);
+        });
+
+        it('never touches https references, including user-pasted images', () => {
+            const draft = 'Hello ![meme](https://example.com/meme.png)\n\n!(https://www.expensify.com/chat-attachments/999/other.jpg)';
+
+            expect(replaceLocalAttachmentReferences(draft, syncedImageHtml, reportActionID)).toBe(draft);
+        });
+
+        it('does not swap in an attachment owned by a different report action', () => {
+            const otherActionHtml =
+                'Hello<br /><br /><img src="https://www.expensify.com/chat-attachments/999/w_other.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/999/other.jpg" />';
+            const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
+
+            expect(replaceLocalAttachmentReferences(draft, otherActionHtml, reportActionID)).toBe(draft);
         });
     });
 

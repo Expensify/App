@@ -5380,15 +5380,16 @@ function canEditFieldOfMoneyRequest({
  *
  * - It was written by the current user
  * - It's an ADD_COMMENT or IOU action
- * - It's not an optimistic attachment (still uploading)
+ * - It's not an optimistic attachment-only comment (still uploading, with no text to edit)
  * - It's an expense where conditions for modifications are defined in canEditMoneyRequest method
  * - It's not pending deletion
  */
 function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linkedTransaction: OnyxEntry<Transaction>): boolean {
     const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 
-    // Block editing only while the attachment is still uploading; once synced, attachments are editable.
-    const isOptimisticAttachment = !!reportAction?.isOptimisticAction && (!!reportAction?.isAttachmentOnly || !!reportAction?.isAttachmentWithText);
+    // Block editing only while an attachment-only comment is still uploading; once synced, attachments are editable.
+    // A comment that has text alongside its attachment stays editable throughout, as the user can always edit the text.
+    const isOptimisticAttachment = !!reportAction?.isOptimisticAction && !!reportAction?.isAttachmentOnly;
 
     // For money request actions on settled/approved/closed expense reports, the action cannot be edited.
     // canEditMoneyRequest has an admin/manager bypass for field-level edits (via canEditFieldOfMoneyRequest),
@@ -6635,6 +6636,44 @@ function getUploadingAttachmentHtml(file?: FileObject, attachmentID?: string): s
 
     // For all other types, we present a generic download link
     return `<a href="${file.uri}" ${dataAttributes}>${file.name}</a>`;
+}
+
+/**
+ * An edit draft captured while the comment's attachment was still uploading references it by a local URI
+ * (blob:/file:/content:) that only the author's device can resolve. Saving that draft after the upload has
+ * synced would replace the attachment with a dead link, so swap the local reference for the synced one first.
+ * The two are matched through stable identifiers rather than filenames or positions: a comment action carries
+ * at most one sent attachment (multi-file sends are split into one action per file), and the synced source URL
+ * embeds the owning action's ID (chat-attachments/<reportActionID>/), so only this action's own attachment
+ * ever qualifies as the replacement. While the upload is still pending the draft is returned untouched —
+ * the queued Add request re-attaches the uploaded file server-side, so there is nothing to swap yet.
+ */
+function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentHtml: string | undefined, reportActionID: string): string {
+    const localAttachmentReferenceRegex = /!?\[[^\]]*\]\((?:blob:|file:|content:)[^)]*\)|!\((?:blob:|file:|content:)[^)]*\)/g;
+    const isStillUploading = !currentCommentHtml || currentCommentHtml.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE);
+    if (isStillUploading || !localAttachmentReferenceRegex.test(draftMarkdown)) {
+        return draftMarkdown;
+    }
+
+    const attachmentTags = currentCommentHtml.match(/<(?:img|video)\b[^>]*>|<a\b[^>]*data-expensify-source="[^"]*"[^>]*>[\s\S]*?<\/a>/gi) ?? [];
+    const syncedAttachmentTag = attachmentTags.find((tag) => {
+        const source = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE)?.at(2) ?? '';
+        return source.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID)?.at(1) === reportActionID;
+    });
+    if (!syncedAttachmentTag) {
+        return draftMarkdown;
+    }
+
+    const syncedAttachmentMarkdown = Parser.htmlToMarkdown(syncedAttachmentTag);
+    let isReplaced = false;
+    localAttachmentReferenceRegex.lastIndex = 0;
+    return draftMarkdown.replace(localAttachmentReferenceRegex, () => {
+        if (isReplaced) {
+            return '';
+        }
+        isReplaced = true;
+        return syncedAttachmentMarkdown;
+    });
 }
 
 function getReportDescription(report: OnyxEntry<Report>): string {
@@ -14289,6 +14328,7 @@ export {
     hasHeldExpensesFromTransactions,
     canMergeReports,
     canModifyHoldStatus,
+    replaceLocalAttachmentReferences,
 };
 
 export type {
