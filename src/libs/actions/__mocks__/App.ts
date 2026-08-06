@@ -31,6 +31,7 @@ type AppMockValues<TKey extends OnyxKey = never> = {
 type AppActionsMock<TKey extends OnyxKey = never> = typeof AppImport & {
     getMissingOnyxUpdates: jest.Mock<Promise<OnyxResponse<never> | undefined | void>, [updateIDFrom?: number, updateIDTo?: number | string]>;
     reconnectApp: jest.Mock<void, [number?]>;
+    reconnectAppWithSideEffects: jest.Mock<Promise<void>, [number?]>;
     mockValues: AppMockValues<TKey>;
 };
 
@@ -41,6 +42,7 @@ const mockValues: AppMockValues = {
 const mockValuesProxy = createProxyForObject(mockValues);
 
 const reconnectApp = jest.fn();
+const reconnectAppWithSideEffects = jest.fn(() => Promise.resolve());
 
 const getMissingOnyxUpdates = jest.fn((updateIDFrom: number, updateIDTo: number) => {
     // When a response is set, the server answers without serving the requested range: nothing is applied.
@@ -77,6 +79,7 @@ export {
     // Mocks
     getMissingOnyxUpdates,
     reconnectApp,
+    reconnectAppWithSideEffects,
     mockValuesProxy as mockValues,
 
     // Actual App implementation
