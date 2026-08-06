@@ -3,14 +3,13 @@ import Section from '@components/Section';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
-
-import type {ToggleSettingOptionRowProps} from '../ToggleSettingsOptionRow';
-
-import ToggleSettingOptionRow from '../ToggleSettingsOptionRow';
 
 /**
  * The card chrome each Workflows section renders inside. Extracted verbatim from the stacked page's `renderOptionItem`

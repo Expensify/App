@@ -10,12 +10,13 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCorrectedAutoReportingFrequency} from '@libs/PolicyUtils';
 
+import {getAutoReportingFrequencyDisplayNames} from '@pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React, {useCallback} from 'react';
 
-import {getAutoReportingFrequencyDisplayNames} from '../WorkspaceAutoReportingFrequencyPage';
 import WorkflowsSectionCard from './WorkflowsSectionCard';
 
 type WorkflowsSubmissionsTabProps = {
