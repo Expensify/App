@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
@@ -32,7 +33,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import React from 'react';
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
 
 import type {MultiSelectItem} from './MultiSelect';
 
@@ -83,7 +84,7 @@ function SectionHeader({
             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, styles.ph5]}>
                 <Text style={[styles.textLabelSupporting]}>{title}</Text>
             </View>
-            <Pressable
+            <PressableWithoutFeedback
                 style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv2]}
                 onPress={toggleSection}
                 accessibilityRole={CONST.ROLE.BUTTON}
@@ -96,7 +97,7 @@ function SectionHeader({
                     onPress={toggleSection}
                     accessibilityLabel={`${selectAllLabel} ${title}`}
                 />
-            </Pressable>
+            </PressableWithoutFeedback>
         </View>
     );
 }
