@@ -64,7 +64,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	76
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	79
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/TIMEZONES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -800,9 +800,8 @@
 "../../src/libs/actions/HybridApp/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/BulkEdit.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/BulkEdit.ts"	"no-restricted-syntax"	2
-"../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"@typescript-eslint/no-deprecated/Localize.translateLocal"	1
 "../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"no-restricted-syntax"	2
+"../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/Duplicate.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../src/libs/actions/IOU/Duplicate.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/Hold.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -1250,6 +1249,8 @@
 "../../src/pages/iou/request/step/IOURequestStepScan/utils/getFileSource.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepSubrate.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepSubrate.tsx"	"react-hooks/set-state-in-effect"	1
+"../../src/pages/iou/request/step/IOURequestStepUpgrade.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
+"../../src/pages/iou/request/step/IOURequestStepUpgrade.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/step/IOURequestStepWaypoint.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/step/IOURequestStepWaypoint.tsx"	"no-restricted-imports"	1
 "../../src/pages/iou/request/step/StepScreenWrapper.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
