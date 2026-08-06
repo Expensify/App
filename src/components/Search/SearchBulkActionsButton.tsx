@@ -1,6 +1,7 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import ExpensifyCardStatementPDFDownloadModal from '@components/ExpensifyCardStatementPDFDownloadModal';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import KYCWall from '@components/KYCWall';
@@ -56,6 +57,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const activeAdminPolicies = useSortedActiveAdminPolicies();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -72,6 +74,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
         isHoldEducationalModalVisible,
+        areAllTransactionsFromDMReports,
         rejectModalAction,
         emptyReportsCount,
         handleOfflineModalClose,
@@ -80,6 +83,12 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         setIsPdfModalVisible,
         pdfReportID,
         handlePdfModalHide,
+        isExpensifyCardStatementPDFModalVisible,
+        setIsExpensifyCardStatementPDFModalVisible,
+        expensifyCardStatementPDFParams,
+        handleExpensifyCardStatementPDFModalHide,
+        isExpensifyCardStatementMultiFeedAlertVisible,
+        handleExpensifyCardStatementMultiFeedAlertClose,
         exportDownloadStatusModal,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
@@ -189,6 +198,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         showLockedAccountModal,
                                         policy: currentPolicy,
                                         businessBankAccountOptions,
+                                        bankAccountList,
                                         activeAdminPolicies,
                                         isUserValidated,
                                         isDelegateAccessRestricted,
@@ -232,6 +242,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         showLockedAccountModal,
                                         policy: currentPolicy,
                                         businessBankAccountOptions,
+                                        bankAccountList,
                                         activeAdminPolicies,
                                         isUserValidated,
                                         isDelegateAccessRestricted,
@@ -284,6 +295,23 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     onModalHide={handlePdfModalHide}
                 />
             )}
+            {!!expensifyCardStatementPDFParams && (
+                <ExpensifyCardStatementPDFDownloadModal
+                    statementParams={expensifyCardStatementPDFParams}
+                    isVisible={isExpensifyCardStatementPDFModalVisible}
+                    onClose={() => setIsExpensifyCardStatementPDFModalVisible(false)}
+                    onModalHide={handleExpensifyCardStatementPDFModalHide}
+                />
+            )}
+            <DecisionModal
+                title={translate('search.expensifyCardStatementPDF.title')}
+                prompt={translate('search.expensifyCardStatementPDF.oneFeedAtATime')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={handleExpensifyCardStatementMultiFeedAlertClose}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={isExpensifyCardStatementMultiFeedAlertVisible}
+                onClose={handleExpensifyCardStatementMultiFeedAlertClose}
+            />
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
                     onClose={dismissRejectModalBasedOnAction}
@@ -294,6 +322,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 <HoldSubmitterEducationalModal
                     onClose={dismissModalAndUpdateUseHold}
                     onConfirm={dismissModalAndUpdateUseHold}
+                    isDM={areAllTransactionsFromDMReports}
                 />
             )}
             {exportDownloadStatusModal}
