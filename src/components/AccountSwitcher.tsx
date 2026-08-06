@@ -23,7 +23,6 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {delegateEmailSelector, delegatorsSelector} from '@src/selectors/Account';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -66,9 +65,9 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
-    const [delegate = ''] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-    const [delegators = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegatorsSelector});
 
+    const delegate = account?.delegatedAccess?.delegate;
+    const delegators = account?.delegatedAccess?.delegators ?? [];
     const personalDetailsByLogin = usePersonalDetailsByLogins([delegate, ...delegators.map((delegator) => delegator.email)]);
 
     const buttonRef = useRef<View>(null);
