@@ -49,6 +49,7 @@ function TrialPaymentReminderModal({isVisible, variant, daysRemaining, countdown
             onClose={onClose}
             onBackdropPress={() => {}}
             isVisible={isVisible}
+            shouldTreatModalAsCovering
             type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
             shouldHandleNavigationBack
