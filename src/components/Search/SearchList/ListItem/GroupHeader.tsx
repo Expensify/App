@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import {getColumnsToShow} from '@libs/SearchUIUtils';
+import {getColumnsToShow, isCashBackWithdrawalGroup} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -176,6 +176,7 @@ function GroupHeader({
     const isEmpty = groupItem.transactions.length === 0 && !hasSnapshotTransactions && !groupItem.transactionsQueryJSON;
     const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isDisabledOrEmpty = isEmpty || isDisabled;
+    const isCashBackWithdrawal = isCashBackWithdrawalGroup(groupItem);
 
     const effectiveTransactions = useMemo((): TransactionListItemType[] => {
         if (isExpenseReportType || groupItem.transactions.length > 0) {
@@ -301,6 +302,7 @@ function GroupHeader({
                     <WithdrawalIDListItemHeader
                         withdrawalID={groupItem}
                         {...commonProps}
+                        onDownArrowClick={isCashBackWithdrawal ? undefined : commonProps.onDownArrowClick}
                     />
                 );
             case CONST.SEARCH.GROUP_BY.CATEGORY:
@@ -378,7 +380,7 @@ function GroupHeader({
         if (isExpenseReportType) {
             onSelectRow(withOriginalKey(item), transactionPreviewData, event);
         }
-        if (!isExpenseReportType) {
+        if (!isExpenseReportType && !isCashBackWithdrawal) {
             onToggle();
         }
     };
@@ -424,7 +426,7 @@ function GroupHeader({
                     <View style={styles.flex1}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth && styles.tableRowHeight]}>
                             <View style={styles.flex1}>{renderHeader(hovered)}</View>
-                            {isLargeScreenWidth && (
+                            {isLargeScreenWidth && !isCashBackWithdrawal && (
                                 <PressableWithFeedback
                                     onPress={() => {
                                         if (isEmpty && !shouldDisplayEmptyView) {
