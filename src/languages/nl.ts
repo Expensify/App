@@ -2619,6 +2619,8 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Bevestig testtransacties alsjeblieft',
             accountRequiresAttention: 'Deze account vereist aandacht',
             unlock: 'Ontgrendelen',
+            debitBlocked: 'Je bank heeft testtransacties naar deze rekening geblokkeerd',
+            insufficientFunds: 'Testtransacties mislukt vanwege onvoldoende saldo',
         },
     },
     cardPage: {

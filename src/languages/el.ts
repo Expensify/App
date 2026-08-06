@@ -2685,6 +2685,8 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Παρακαλούμε επιβεβαιώστε τις δοκιμαστικές συναλλαγές',
             accountRequiresAttention: 'Αυτός ο λογαριασμός χρειάζεται προσοχή',
             unlock: 'Ξεκλείδωμα',
+            debitBlocked: 'Η τράπεζά σας μπλόκαρε τις δοκιμαστικές συναλλαγές σε αυτόν τον λογαριασμό',
+            insufficientFunds: 'Οι δοκιμαστικές συναλλαγές απέτυχαν λόγω ανεπαρκών διαθέσιμων χρημάτων',
         },
     },
     cardPage: {

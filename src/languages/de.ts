@@ -2625,6 +2625,8 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Bitte bestätigen Sie Testtransaktionen',
             accountRequiresAttention: 'Dieses Konto erfordert Ihre Aufmerksamkeit',
             unlock: 'Entsperren',
+            debitBlocked: 'Ihre Bank hat Testtransaktionen auf dieses Konto blockiert',
+            insufficientFunds: 'Testtransaktionen sind aufgrund unzureichender Deckung fehlgeschlagen',
         },
     },
     cardPage: {

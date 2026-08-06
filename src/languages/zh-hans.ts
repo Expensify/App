@@ -2527,6 +2527,8 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: '请确认测试交易',
             accountRequiresAttention: '此账户需要处理',
             unlock: '解锁',
+            debitBlocked: '您的银行已拦截向此账户发起的测试交易',
+            insufficientFunds: '测试交易因资金不足而失败',
         },
     },
     cardPage: {

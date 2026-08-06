@@ -2594,6 +2594,8 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'テスト取引を確認してください',
             accountRequiresAttention: 'このアカウントには対応が必要です',
             unlock: 'ロック解除',
+            debitBlocked: '銀行がこの口座へのテスト取引をブロックしました',
+            insufficientFunds: '残高不足のためテスト取引が失敗しました',
         },
     },
     cardPage: {
