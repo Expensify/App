@@ -11,13 +11,19 @@ import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {
+    getTransactionViolations,
+    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
+    hasOnlyPendingCardTransactions,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {TransactionViolations} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
@@ -83,10 +89,23 @@ function SubmitActionButtonContent() {
 
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
+    // The header's gate receives violations pre-filtered by useTransactionsAndViolationsForReport, which drops dismissals
+    // that are only detectable with report/owner/policy context (e.g. RTER violations dismissed under instant submit). The
+    // preview context exposes the raw slice, so apply the same filter here or the two Submit buttons disagree on dismissed
+    // violations. This stays a pure computation over data already in scope; calling the hook instead would duplicate its
+    // Onyx subscriptions for every preview on screen.
+    const filteredTransactionViolations: Record<string, TransactionViolations> = {};
+    for (const transactionViolationKey of Object.keys(transactionViolations ?? {})) {
+        const transactionID = transactionViolationKey.split('_').at(1) ?? '';
+        const transaction = transactions.find((reportTransaction) => reportTransaction.transactionID === transactionID);
+        filteredTransactionViolations[transactionViolationKey] =
+            getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, submitterLogin, policy) ?? [];
+    }
+
     const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(iouReport, policy);
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
         iouReport?.reportID,
-        transactionViolations,
+        filteredTransactionViolations,
         areStrictPolicyRulesEnabled,
         currentUserAccountID,
         currentUserEmail,

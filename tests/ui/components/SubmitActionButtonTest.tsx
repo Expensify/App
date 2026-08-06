@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasViolations, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {getTransactionViolations, hasAnyPendingRTERViolation, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 
@@ -95,6 +95,7 @@ jest.mock('@libs/PolicyUtils', () => {
 // are unavailable in the jest environment, and the component only uses these three functions.
 jest.mock('@libs/TransactionUtils', () => ({
     __esModule: true,
+    getTransactionViolations: jest.fn(),
     hasOnlyPendingCardTransactions: jest.fn(() => false),
     hasAnyPendingRTERViolation: jest.fn(() => false),
     showPendingCardTransactionsBlockModal: jest.fn(),
@@ -150,6 +151,7 @@ const mockedHasOnlyPendingCardTransactions = jest.mocked(hasOnlyPendingCardTrans
 const mockedShowPendingCardTransactionsBlockModal = jest.mocked(showPendingCardTransactionsBlockModal);
 const mockedHasViolations = jest.mocked(hasViolations);
 const mockedHasAnyPendingRTERViolation = jest.mocked(hasAnyPendingRTERViolation);
+const mockedGetTransactionViolations = jest.mocked(getTransactionViolations);
 const mockedShouldBlockSubmitDueToStrictPolicyRules = jest.mocked(shouldBlockSubmitDueToStrictPolicyRules);
 const mockedShouldBlockSubmitDueToPreventSelfApproval = jest.mocked(shouldBlockSubmitDueToPreventSelfApproval);
 
@@ -167,6 +169,9 @@ describe('SubmitActionButton', () => {
         // into every test that runs after it.
         mockedShouldBlockSubmitDueToStrictPolicyRules.mockReturnValue(false);
         mockedShouldBlockSubmitDueToPreventSelfApproval.mockReturnValue(false);
+        // Default to nothing-dismissed passthrough so the filtered collection mirrors the raw slice; individual tests
+        // override the implementation to simulate dismissals.
+        mockedGetTransactionViolations.mockImplementation((transaction, violations) => violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]);
         mockedUseOnyx.mockImplementation((key) => {
             if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_IOU_REPORT_ID}`) {
                 return createOnyxResult<Report>(iouReport);
@@ -251,6 +256,30 @@ describe('SubmitActionButton', () => {
         // Then the decision is made from the report preview's own violations and transactions rather than a separate
         // Onyx read, which is what let this button drift out of sync with the report header's submit button
         expect(mockedShouldBlockSubmitDueToStrictPolicyRules).toHaveBeenCalledWith(TEST_IOU_REPORT_ID, reportViolations, true, TEST_ACCOUNT_ID, TEST_EMAIL, reportTransactions);
+    });
+
+    it('passes dismissal-filtered violations to the strict policy rules gate', () => {
+        // Given a strict-rules domain and a report whose only violation has been dismissed — a dismissal that is only
+        // detectable with the report/owner/policy context that getTransactionViolations applies
+        mockAreStrictPolicyRulesEnabled = true;
+        mockTransactions = reportTransactions;
+        mockTransactionViolations = reportViolations;
+        mockedGetTransactionViolations.mockReturnValue([]);
+
+        // When the button renders
+        render(<SubmitActionButton />);
+
+        // Then the filter ran with the full context the report header's filter uses, and the gate received the filtered
+        // collection instead of the raw context slice, so the two Submit buttons cannot disagree on dismissed violations
+        expect(mockedGetTransactionViolations).toHaveBeenCalledWith(reportTransactions.at(0), reportViolations, TEST_EMAIL, TEST_ACCOUNT_ID, iouReport, undefined, undefined);
+        expect(mockedShouldBlockSubmitDueToStrictPolicyRules).toHaveBeenCalledWith(
+            TEST_IOU_REPORT_ID,
+            {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TEST_TRANSACTION_ID}`]: []},
+            true,
+            TEST_ACCOUNT_ID,
+            TEST_EMAIL,
+            reportTransactions,
+        );
     });
 
     it('does not open the submit-to popover on a submit policy when strict policy rules block the report', () => {
