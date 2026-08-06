@@ -1,7 +1,6 @@
 import type {MultifactorAuthenticationScenarioResponse} from '@components/MultifactorAuthentication/config/types';
 
-import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
-import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import type {AuthenticationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import type {AuthTypeInfo} from '@libs/MultifactorAuthentication/shared/types';
 
 /**
@@ -10,15 +9,6 @@ import type {AuthTypeInfo} from '@libs/MultifactorAuthentication/shared/types';
  * via `snapshotToState`.
  */
 type MultifactorAuthenticationState = {
-    /** Continuable error - displayed on current screen without stopping the flow */
-    continuableError: MFAError | undefined;
-
-    /** Validate code entered by user */
-    validateCode: string | undefined;
-
-    /** Challenge received from backend for registration (full object with user, rp, challenge) */
-    registrationChallenge: RegistrationChallenge | undefined;
-
     /** Challenge received from backend for authorization (full object with allowCredentials, rpId, challenge) */
     authorizationChallenge: AuthenticationChallenge | undefined;
 
@@ -39,9 +29,6 @@ type MultifactorAuthenticationState = {
 };
 
 const DEFAULT_STATE: MultifactorAuthenticationState = {
-    continuableError: undefined,
-    validateCode: undefined,
-    registrationChallenge: undefined,
     authorizationChallenge: undefined,
     isRegistrationComplete: false,
     isAuthorizationComplete: false,

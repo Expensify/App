@@ -221,7 +221,13 @@ const MFA_STATE = {
     CLOSING: 'closing',
     PREPARING: 'preparing',
     VALIDATING_DEVICE: 'validatingDevice',
+    DECIDING_REGISTRATION: 'decidingRegistration',
     CHECKING_SOFT_PROMPT_ACCEPTANCE: 'checkingSoftPromptAcceptance',
+    VALIDATE_CODE: 'validateCode',
+    AWAITING_VALIDATE_CODE: 'awaitingValidateCode',
+    AWAITING_INPUT: 'awaitingInput',
+    INVALID_CODE: 'invalidCode',
+    REQUESTING_REGISTRATION_CHALLENGE: 'requestingRegistrationChallenge',
     PROMPT: 'prompt',
     AWAITING_SOFT_PROMPT: 'awaitingSoftPrompt',
     OUTCOME: 'outcome',
@@ -323,6 +329,9 @@ const SHARED_VALUES = {
         OUTCOME_SCREEN: 'MultifactorAuthenticationOutcomeScreen',
         OUTCOME_CONFIRM_BUTTON: 'MultifactorAuthenticationOutcomeConfirmButton',
         PROMPT_CONFIRM_BUTTON: 'MultifactorAuthenticationPromptConfirmButton',
+        VALIDATE_CODE_INPUT: 'MultifactorAuthenticationValidateCodeInput',
+        VALIDATE_CODE_SUBMIT_BUTTON: 'MultifactorAuthenticationValidateCodeSubmitButton',
+        VALIDATE_CODE_RESEND_BUTTON: 'MultifactorAuthenticationValidateCodeResendButton',
     },
 } as const;
 

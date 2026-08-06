@@ -37,6 +37,11 @@ function usePasskeys(): UseBiometricsReturn {
 
     const hasLocalCredentials = async () => (localPasskeyCredentials?.length ?? 0) > 0;
 
+    /**
+     * Legacy compatibility path. The MFA machine uses the platform-resolved biometrics operation,
+     * while this hook keeps using reactive Onyx values for existing React consumers. Keep this
+     * comparison aligned with `operations/index.ts` until the hook is removed.
+     */
     const areLocalCredentialsKnownToServer = async () => {
         const serverSet = new Set(serverKnownCredentialIDs);
         return (localPasskeyCredentials ?? []).some((c) => serverSet.has(c.id));

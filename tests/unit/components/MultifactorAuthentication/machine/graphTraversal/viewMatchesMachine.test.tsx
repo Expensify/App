@@ -1,10 +1,8 @@
 import {act, fireEvent, screen} from '@testing-library/react-native';
 
+import type {MfaActorDoneEvent, MfaInternalEvent, MfaMachineEvent} from '@components/MultifactorAuthentication/machine/machineEvents';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
-import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
 import {mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
-
-import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,16 +13,17 @@ import type {SnapshotFrom} from 'xstate';
 
 import Onyx from 'react-native-onyx';
 import {MFA_TEST_ACCOUNT_ID} from 'tests/utils/mfa/flowFixtures';
-import getWalkedPaths, {
-    isAutoDrivenEvent,
-    READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE,
-    READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE,
-    VALIDATE_DEVICE_DONE_EVENT_TYPE,
-    VALIDATE_DEVICE_ERROR_EVENT_TYPE,
-} from 'tests/utils/mfa/flowPaths';
+import getWalkedPaths, {actorDoneEventType, actorErrorEventType, isAutoDrivenEvent} from 'tests/utils/mfa/flowPaths';
 import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
-import {pendingModalClose, readHasAcceptedSoftPromptControl, resetMfaUiMocks, validateDeviceControl} from 'tests/utils/mfa/realUi/mocks';
+import {
+    checkLocalCredentialsControl,
+    pendingModalClose,
+    readHasAcceptedSoftPromptControl,
+    requestRegistrationChallengeControl,
+    resetMfaUiMocks,
+    validateDeviceControl,
+} from 'tests/utils/mfa/realUi/mocks';
 import {translateLocal} from 'tests/utils/TestHelper';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 import {matchesState} from 'xstate';
@@ -50,34 +49,59 @@ jest.mock('@components/MultifactorAuthentication/machine/mfaActors', () => jest.
 jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').biometricsHookMock());
 // RenderHTML requires an ambient provider that this lifecycle test does not mount.
 jest.mock('@components/RenderHTML', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').renderHtmlMock());
+// The resend countdown is a real-time presentational timer; finishing it immediately keeps the resend button pressable for the walk.
+jest.mock('@components/ValidateCodeCountdown', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').validateCodeCountdownMock());
 // Browser and Android history synchronization is outside the contract between the machine and UI.
 jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').syncHistoryMock());
 // The test renderer runs no real navigation transitions, so the mock controls when the transition callbacks fire.
 jest.mock('@libs/Navigation/Navigation', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').navigationMock());
+// The validate-code email request is a backend call outside the modal lifecycle contract.
+jest.mock('@libs/actions/User', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').userActionsMock());
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
 // These UI markers distinguish the closed, closing, and outcome states. The backdrop exists only while the MFA navigator is mounted.
 const TEST_ID = CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID;
 
-type MfaEventType = MfaEvent['type'];
+/** Every event the walk drives as a gesture, which is all of them except the ones XState raises on its own. */
+type MfaDrivableEventType = Exclude<MfaMachineEvent['type'], MfaInternalEvent['type']>;
 
-type MfaInitEvent = Extract<MfaEvent, {type: 'INIT'}>;
-type MfaEventExecutorStep<Type extends MfaEventType> = {event: {type: Type}};
+/**
+ * The step an executor receives. `TestParam` types its event as the bare `{type}`, while the walk
+ * passes the fixture it actually drove. Accepting both keeps each executor assignable to what
+ * `path.test` expects and still lets it narrow back to the payload.
+ */
+type MfaExecutorStep<Type extends MfaDrivableEventType> = {event: {type: Type} | Extract<MfaMachineEvent, {type: Type}>};
+
 type MfaEventExecutors = {
-    [Type in MfaEventType]: (step: MfaEventExecutorStep<Type>) => Promise<void>;
-};
-type MfaActorEventExecutors = {
-    [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step: {event: {type: typeof VALIDATE_DEVICE_DONE_EVENT_TYPE; output: MFAResult}}) => Promise<void>;
-    [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => Promise<void>;
-    [READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE]: (step: {event: {type: typeof READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE; output: boolean}}) => Promise<void>;
-    [READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE]: () => Promise<void>;
+    [Type in MfaDrivableEventType]: (step: MfaExecutorStep<Type>) => Promise<void>;
 };
 
 type ExecuteScenario = ReturnType<typeof renderMfaUi>['executeScenario'];
 
-function isMfaInitEvent(event: {type: string}): event is MfaInitEvent {
-    return event.type === 'INIT' && 'accountID' in event && 'scenarioName' in event && 'scenario' in event && 'payload' in event;
+function getInitEvent(step: MfaExecutorStep<'INIT'>) {
+    if (!('scenario' in step.event)) {
+        throw new Error('MFA INIT executor received a path event without the scenario fixture payload.');
+    }
+    return step.event;
+}
+
+function getValidateCode(step: MfaExecutorStep<'VALIDATE_CODE_ENTERED'>) {
+    if (!('validateCode' in step.event)) {
+        throw new Error('MFA VALIDATE_CODE_ENTERED executor received a path event without the code fixture payload.');
+    }
+    return step.event.validateCode;
+}
+
+/**
+ * Reads the output an actor resolved with. The generic recovers it from the step's own fixture member,
+ * because a mapped executor type cannot infer the actor id back out of an `Extract`.
+ */
+function getActorDoneOutput<TOutput>(step: {event: {type: MfaActorDoneEvent['type']} | {type: MfaActorDoneEvent['type']; output: TOutput}}): TOutput {
+    if (!('output' in step.event)) {
+        throw new Error(`Actor done executor received event "${step.event.type}" without output.`);
+    }
+    return step.event.output;
 }
 
 /**
@@ -94,10 +118,7 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
 
     return {
         INIT: async (step) => {
-            const {event} = step;
-            if (!isMfaInitEvent(event)) {
-                throw new Error('MFA INIT executor received a path event without the scenario fixture payload.');
-            }
+            const event = getInitEvent(step);
             await act(async () => {
                 await executeScenario(event.scenarioName, event.payload);
             });
@@ -124,11 +145,29 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             fireEvent.press(screen.getByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON));
             await waitForBatchedUpdatesWithAct();
         },
-        [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step) => settleActor(() => validateDeviceControl.resolve(step.event.output)),
-        [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => settleActor(validateDeviceControl.reject),
-        [READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE]: (step) => settleActor(() => readHasAcceptedSoftPromptControl.resolve(step.event.output)),
-        [READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE]: () => settleActor(readHasAcceptedSoftPromptControl.reject),
-    } satisfies MfaEventExecutors & MfaActorEventExecutors;
+        VALIDATE_CODE_ENTERED: async (step) => {
+            fireEvent.changeText(screen.getByTestId(TEST_ID.VALIDATE_CODE_INPUT), getValidateCode(step));
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByTestId(TEST_ID.VALIDATE_CODE_SUBMIT_BUTTON));
+            await waitForBatchedUpdatesWithAct();
+        },
+        RESEND_VALIDATE_CODE: async () => {
+            fireEvent.press(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON));
+            await waitForBatchedUpdatesWithAct();
+        },
+        VALIDATE_CODE_CHANGED: async () => {
+            fireEvent.changeText(screen.getByTestId(TEST_ID.VALIDATE_CODE_INPUT), '1');
+            await waitForBatchedUpdatesWithAct();
+        },
+        [actorDoneEventType('validateDevice')]: (step) => settleActor(() => validateDeviceControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('validateDevice')]: () => settleActor(validateDeviceControl.reject),
+        [actorDoneEventType('readHasAcceptedSoftPrompt')]: (step) => settleActor(() => readHasAcceptedSoftPromptControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('readHasAcceptedSoftPrompt')]: () => settleActor(readHasAcceptedSoftPromptControl.reject),
+        [actorDoneEventType('checkLocalCredentials')]: (step) => settleActor(() => checkLocalCredentialsControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('checkLocalCredentials')]: () => settleActor(checkLocalCredentialsControl.reject),
+        [actorDoneEventType('requestRegistrationChallenge')]: (step) => settleActor(() => requestRegistrationChallengeControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('requestRegistrationChallenge')]: () => settleActor(requestRegistrationChallengeControl.reject),
+    } satisfies MfaEventExecutors;
 }
 /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -144,11 +183,56 @@ const testConfig = {
             expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.DECIDING_REGISTRATION}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
+            expect(state.context.error).toBeUndefined();
+        },
+        [`${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
+            expect(state.context.validateCode).toBeUndefined();
+            // A registration challenge means the flow re-entered this check from the validate-code
+            // screen, which stays visible while the read runs; a first pass has no challenge and
+            // runs behind the transparent initial screen.
+            if (state.context.registrationChallenge === undefined) {
+                expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
+            } else {
+                expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE);
+                // The validate-code screen stays visible during this read, but the machine no longer
+                // accepts resend requests after a valid code has advanced the flow.
+                expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON)).toBeDisabled();
+            }
             expect(state.context.accountID).toBeDefined();
+            expect(state.context.error).toBeUndefined();
+        },
+        [`${MFA_STATE.OPEN}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
+            expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE);
+            expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_INPUT)).toBeOnTheScreen();
+            expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_SUBMIT_BUTTON)).toBeOnTheScreen();
+            // The countdown mock finishes immediately, so the resend button is rendered and must be pressable while the screen waits for a code.
+            expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON)).toBeEnabled();
+            expect(screen.getByText(translateLocal('multifactorAuthentication.letsVerifyItsYou'))).toBeOnTheScreen();
+            expect(state.context.error).toBeUndefined();
+        },
+        [`${MFA_STATE.OPEN}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.AWAITING_INPUT}`]: () => {
+            expect(screen.queryByText(translateLocal('validateCodeForm.error.incorrectSecurityCode'))).not.toBeOnTheScreen();
+        },
+        [`${MFA_STATE.OPEN}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.INVALID_CODE}`]: () => {
+            expect(screen.getByText(translateLocal('validateCodeForm.error.incorrectSecurityCode'))).toBeOnTheScreen();
+        },
+        [`${MFA_STATE.OPEN}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
+            expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE);
+            expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_INPUT)).toBeOnTheScreen();
+            // The machine drops a resend while the challenge request is in flight, so the button must not offer one.
+            expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON)).toBeDisabled();
+            expect(state.context.validateCode).toBeDefined();
+            expect(state.context.registrationChallenge).toBeUndefined();
             expect(state.context.error).toBeUndefined();
         },
         // The biometrics copy is expected because the jest-expo haste config resolves the operations

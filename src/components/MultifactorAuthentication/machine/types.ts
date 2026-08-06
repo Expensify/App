@@ -6,7 +6,8 @@ import type {
     MultifactorAuthenticationScenarioParams,
 } from '@components/MultifactorAuthentication/config/types';
 
-import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import type {MFAError, MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
 import type CONST from '@src/CONST';
 
@@ -31,6 +32,12 @@ type MfaContext = {
 
     /** Additional parameters for the current scenario */
     payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
+
+    /** Validate code the user entered on this flow's validate-code screen */
+    validateCode: string | undefined;
+
+    /** Registration challenge returned after the backend accepts the validate code */
+    registrationChallenge: RegistrationChallenge | undefined;
 
     /** Whether the user approved the soft prompt during this flow. The durable acceptance lives in Onyx under the device-biometrics key. */
     softPromptApproved: boolean;
@@ -58,7 +65,14 @@ type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScena
 };
 
 /** Events handled by the MFA state machine. */
-type MfaEvent = MultifactorAuthenticationInitEvent | {type: 'CLOSE_MODAL'} | {type: 'MODAL_CLOSED'} | {type: 'SOFT_PROMPT_APPROVED'};
+type MfaEvent =
+    | MultifactorAuthenticationInitEvent
+    | {type: 'CLOSE_MODAL'}
+    | {type: 'MODAL_CLOSED'}
+    | {type: 'SOFT_PROMPT_APPROVED'}
+    | {type: 'VALIDATE_CODE_ENTERED'; validateCode: string}
+    | {type: 'RESEND_VALIDATE_CODE'}
+    | {type: 'VALIDATE_CODE_CHANGED'};
 
 /** Describes the input the machine passes to the device-check actor. */
 type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationMethods};
@@ -66,4 +80,23 @@ type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationM
 /** Identifies the per-account Onyx member read by the soft-prompt actor. */
 type ReadHasAcceptedSoftPromptInput = {accountID: number};
 
-export type {MfaContext, MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent, ReadHasAcceptedSoftPromptInput, ValidateDeviceInput};
+/** Identifies the account whose local credentials the registration-decision actor checks. */
+type CheckLocalCredentialsInput = {accountID: number};
+
+/** Validate code sent to the backend to obtain a registration challenge. */
+type RequestRegistrationChallengeInput = {validateCode: string};
+
+/** A successful response must carry the validated registration challenge. */
+type RequestRegistrationChallengeOutput = MFAResult<{challenge: RegistrationChallenge}>;
+
+export type {
+    CheckLocalCredentialsInput,
+    MfaContext,
+    MfaEvent,
+    MfaModalState,
+    MultifactorAuthenticationInitEvent,
+    ReadHasAcceptedSoftPromptInput,
+    RequestRegistrationChallengeInput,
+    RequestRegistrationChallengeOutput,
+    ValidateDeviceInput,
+};

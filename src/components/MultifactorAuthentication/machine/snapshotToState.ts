@@ -10,7 +10,18 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 type MfaSnapshot = SnapshotFrom<typeof MFAMachine>;
 
 /** The machine-derived state consumers read: the wired context subset plus the modal lifecycle state. */
-type MfaState = MfaContext & {modalState: MfaModalState};
+type MfaState = MfaContext & {
+    modalState: MfaModalState;
+
+    /** Whether the machine currently accepts a request for a fresh validate-code email. */
+    canResendValidateCode: boolean;
+
+    /** Whether the submitted validate code is currently being validated. */
+    isValidateCodeFormSubmitting: boolean;
+
+    /** Whether the validate-code screen currently shows the inline invalid-code error. */
+    showsInvalidCodeError: boolean;
+};
 
 function getModalState(snapshot: MfaSnapshot): MfaModalState {
     if (snapshot.matches(MFA_STATE.OPEN)) {
@@ -29,7 +40,23 @@ function getModalState(snapshot: MfaSnapshot): MfaModalState {
  * `@xstate/react` (a dedicated later PR), which retires this function and the `MfaState` bridge shape.
  */
 function snapshotToState(snapshot: MfaSnapshot): MfaState {
-    return {...snapshot.context, modalState: getModalState(snapshot)};
+    return {
+        ...snapshot.context,
+        modalState: getModalState(snapshot),
+        canResendValidateCode: snapshot.can({type: 'RESEND_VALIDATE_CODE'}),
+        isValidateCodeFormSubmitting: snapshot.matches({
+            [MFA_STATE.OPEN]: {
+                [MFA_STATE.VALIDATE_CODE]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE,
+            },
+        }),
+        showsInvalidCodeError: snapshot.matches({
+            [MFA_STATE.OPEN]: {
+                [MFA_STATE.VALIDATE_CODE]: {
+                    [MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE,
+                },
+            },
+        }),
+    };
 }
 
 export default snapshotToState;

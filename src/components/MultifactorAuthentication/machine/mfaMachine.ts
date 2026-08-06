@@ -5,10 +5,12 @@ import {createUnhandledExceptionMFAError, getMFAFailureError} from '@libs/Multif
 import Navigation from '@libs/Navigation/Navigation';
 
 import {markHasAcceptedSoftPrompt} from '@userActions/MultifactorAuthentication';
+import {requestValidateCodeAction} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import {assign, setup} from 'xstate';
 
 import type {MfaContext, MfaEvent} from './types';
@@ -21,6 +23,8 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 // sibling branch needs an id target rather than a relative one.
 const OUTCOME_TARGET = `#${MFA_STATE.OUTCOME}` as const;
 const PROMPT_TARGET = `#${MFA_STATE.PROMPT}` as const;
+const SOFT_PROMPT_CHECK_TARGET = `#${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}` as const;
+const VALIDATE_CODE_TARGET = `#${MFA_STATE.VALIDATE_CODE}` as const;
 
 // Which prompt variant the screen renders is a device property, resolved once per platform.
 const PROMPT_TYPE = CONST.MULTIFACTOR_AUTHENTICATION.PROMPT_TYPE_MAP[deviceVerificationType];
@@ -31,6 +35,8 @@ const DEFAULT_CONTEXT: MfaContext = {
     scenarioName: undefined,
     scenario: undefined,
     payload: undefined,
+    validateCode: undefined,
+    registrationChallenge: undefined,
     softPromptApproved: false,
     isCancelConfirmVisible: false,
 };
@@ -57,8 +63,8 @@ const MFAMachine = setup({
     },
     actions: {
         // Seeds the flow's context from the INIT event. A named action's event is typed as the full
-        // MfaEvent union, so the guard narrows it to INIT to read the scenario fields; INIT is the only
-        // transition wired here, so that early return is unreachable (it just satisfies the type checker).
+        // machine-event union, so the guard narrows it to INIT to read the scenario fields; INIT is the
+        // only transition wired here, so that early return is unreachable (it just satisfies the type checker).
         initFlow: assign(({event}) => {
             if (event.type !== 'INIT') {
                 return {};
@@ -82,6 +88,22 @@ const MFAMachine = setup({
         navigateToPrompt: () => {
             Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT, {promptType: PROMPT_TYPE}));
         },
+        navigateToValidateCode: () => {
+            Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE));
+        },
+        // Emails the user a validate code. Runs only on the decision transition into the
+        // validate-code screen and on an explicit resend request, never on (re)entry, so the
+        // invalid-code retry loop cannot resend the email.
+        requestValidateCode: () => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REGISTER_AUTHENTICATION_KEY}),
+        // Stores the submitted code. Same narrowing pattern as initFlow: only VALIDATE_CODE_ENTERED
+        // is wired here, so the early return just satisfies the type checker.
+        submitValidateCode: assign(({event}) => {
+            if (event.type !== 'VALIDATE_CODE_ENTERED') {
+                return {};
+            }
+            return {validateCode: event.validateCode};
+        }),
+        clearValidateCode: assign({validateCode: undefined}),
         approveSoftPrompt: assign({softPromptApproved: true}),
         persistSoftPromptAcceptance: ({context}) => {
             if (context.accountID === undefined) {
@@ -143,7 +165,7 @@ const MFAMachine = setup({
                                 onDone: [
                                     {guard: ({event}) => !event.output.success, target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
                                     {guard: ({context}) => context.error !== undefined, target: OUTCOME_TARGET},
-                                    {target: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE},
+                                    {target: MFA_STATE.DECIDING_REGISTRATION},
                                 ],
                                 // Expected refusals travel as failed results through onDone, so a
                                 // rejection means the platform check itself threw unexpectedly.
@@ -153,7 +175,29 @@ const MFAMachine = setup({
                                 },
                             },
                         },
+                        [MFA_STATE.DECIDING_REGISTRATION]: {
+                            invoke: {
+                                id: 'checkLocalCredentials',
+                                src: 'checkLocalCredentials',
+                                input: ({context}) => {
+                                    if (context.accountID === undefined) {
+                                        throw new Error('MFA account must be initialized before the registration decision');
+                                    }
+                                    return {accountID: context.accountID};
+                                },
+                                // A returning user's credentials are already registered, so only a fresh registration asks for a code.
+                                onDone: [
+                                    {guard: ({event}) => event.output, target: SOFT_PROMPT_CHECK_TARGET},
+                                    {target: VALIDATE_CODE_TARGET, actions: 'requestValidateCode'},
+                                ],
+                                onError: {
+                                    target: OUTCOME_TARGET,
+                                    actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Local credentials check', event.error)}),
+                                },
+                            },
+                        },
                         [MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE]: {
+                            id: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE,
                             invoke: {
                                 id: 'readHasAcceptedSoftPrompt',
                                 src: 'readHasAcceptedSoftPrompt',
@@ -167,6 +211,67 @@ const MFAMachine = setup({
                                 onError: {
                                     target: OUTCOME_TARGET,
                                     actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Soft-prompt acceptance read', event.error)}),
+                                },
+                            },
+                        },
+                    },
+                },
+                [MFA_STATE.VALIDATE_CODE]: {
+                    id: MFA_STATE.VALIDATE_CODE,
+                    entry: 'navigateToValidateCode',
+                    initial: MFA_STATE.AWAITING_VALIDATE_CODE,
+                    states: {
+                        // Waits for the emailed code. A resend is accepted only here, so one fired
+                        // while the challenge request is in flight is dropped instead of emailing a
+                        // code the pending submission ignores.
+                        [MFA_STATE.AWAITING_VALIDATE_CODE]: {
+                            initial: MFA_STATE.AWAITING_INPUT,
+                            on: {
+                                VALIDATE_CODE_ENTERED: {target: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE, actions: 'submitValidateCode'},
+                                RESEND_VALIDATE_CODE: {target: `.${MFA_STATE.AWAITING_INPUT}`, actions: 'requestValidateCode'},
+                            },
+                            states: {
+                                [MFA_STATE.AWAITING_INPUT]: {},
+                                // The backend rejected the submitted code. The screen shows the
+                                // inline error exactly while this state is active, so every way out
+                                // (typing, a resend, a new submission) drops the error by
+                                // construction and nothing stale can outlive the screen.
+                                [MFA_STATE.INVALID_CODE]: {
+                                    on: {
+                                        VALIDATE_CODE_CHANGED: MFA_STATE.AWAITING_INPUT,
+                                    },
+                                },
+                            },
+                        },
+                        [MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE]: {
+                            // The submitted code is needed only while this actor starts and runs. Clear it on
+                            // every way out so the one-time code cannot outlive the request that consumes it.
+                            exit: 'clearValidateCode',
+                            invoke: {
+                                id: 'requestRegistrationChallenge',
+                                src: 'requestRegistrationChallenge',
+                                input: ({context}) => {
+                                    if (context.validateCode === undefined) {
+                                        throw new Error('MFA validate code must be stored before requesting a registration challenge');
+                                    }
+                                    return {validateCode: context.validateCode};
+                                },
+                                onDone: [
+                                    {
+                                        guard: ({event}) => event.output.success,
+                                        target: SOFT_PROMPT_CHECK_TARGET,
+                                        actions: assign({registrationChallenge: ({event}) => (event.output.success ? event.output.challenge : undefined)}),
+                                    },
+                                    {
+                                        guard: ({event}) =>
+                                            !event.output.success && getMFAFailureError(event.output).reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE,
+                                        target: `${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.INVALID_CODE}`,
+                                    },
+                                    {target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
+                                ],
+                                onError: {
+                                    target: OUTCOME_TARGET,
+                                    actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Registration challenge request', event.error)}),
                                 },
                             },
                         },

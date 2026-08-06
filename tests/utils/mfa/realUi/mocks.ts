@@ -1,10 +1,17 @@
 import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
-import type {ReadHasAcceptedSoftPromptInput, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
+import type {
+    CheckLocalCredentialsInput,
+    ReadHasAcceptedSoftPromptInput,
+    RequestRegistrationChallengeInput,
+    RequestRegistrationChallengeOutput,
+    ValidateDeviceInput,
+} from '@components/MultifactorAuthentication/machine/types';
 
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type Navigation from '@libs/Navigation/Navigation';
 
+import {useEffect} from 'react';
 import {fromPromise} from 'xstate';
 
 // This module keeps mutable mock state and factory bodies outside the test so the test stays focused on
@@ -84,11 +91,15 @@ function createControlledActor<TOutput, TInput>(actorID: string) {
 
 const validateDeviceControl = createControlledActor<MFAResult, ValidateDeviceInput>('validateDevice');
 const readHasAcceptedSoftPromptControl = createControlledActor<boolean, ReadHasAcceptedSoftPromptInput>('readHasAcceptedSoftPrompt');
+const checkLocalCredentialsControl = createControlledActor<boolean, CheckLocalCredentialsInput>('checkLocalCredentials');
+const requestRegistrationChallengeControl = createControlledActor<RequestRegistrationChallengeOutput, RequestRegistrationChallengeInput>('requestRegistrationChallenge');
 
 function resetMfaUiMocks() {
     pendingModalClose.clear();
     validateDeviceControl.reset();
     readHasAcceptedSoftPromptControl.reset();
+    checkLocalCredentialsControl.reset();
+    requestRegistrationChallengeControl.reset();
 }
 
 /** Replaces the machine's side-effect actors with controlled test implementations. */
@@ -96,6 +107,8 @@ function mfaActorsMock() {
     const actors = {
         validateDevice: validateDeviceControl.actor,
         readHasAcceptedSoftPrompt: readHasAcceptedSoftPromptControl.actor,
+        checkLocalCredentials: checkLocalCredentialsControl.actor,
+        requestRegistrationChallenge: requestRegistrationChallengeControl.actor,
     } satisfies ReturnType<typeof createActors>;
 
     return {
@@ -111,10 +124,41 @@ function biometricsHookMock() {
     };
 }
 
+/**
+ * Stubs only the validate-code email request. It is a backend call outside the modal lifecycle
+ * contract, and the machine fires it when the walk enters the validate-code screen.
+ */
+function userActionsMock() {
+    return {
+        ...jest.requireActual<Record<string, unknown>>('@libs/actions/User'),
+        requestValidateCodeAction: jest.fn(),
+    };
+}
+
 function renderHtmlMock() {
     return {
         __esModule: true,
         default: () => null,
+    };
+}
+
+/**
+ * Replaces the resend countdown, a real-time presentational timer outside the modal lifecycle
+ * contract. Finishing it immediately keeps the resend button pressable for the walk.
+ */
+function validateCodeCountdownMock() {
+    function ImmediatelyFinishedCountdown({onCountdownFinish}: {onCountdownFinish: () => void}) {
+        // Babel memoizes this nested mock component while OXC does not detect it. Memoization is unnecessary here, so opt out to keep both compilers aligned.
+        'use no memo';
+
+        useEffect(() => {
+            onCountdownFinish();
+        }, [onCountdownFinish]);
+        return null;
+    }
+    return {
+        __esModule: true,
+        default: ImmediatelyFinishedCountdown,
     };
 }
 
@@ -153,4 +197,18 @@ function navigationMock() {
     };
 }
 
-export {pendingModalClose, validateDeviceControl, readHasAcceptedSoftPromptControl, resetMfaUiMocks, mfaActorsMock, biometricsHookMock, renderHtmlMock, syncHistoryMock, navigationMock};
+export {
+    pendingModalClose,
+    validateDeviceControl,
+    readHasAcceptedSoftPromptControl,
+    checkLocalCredentialsControl,
+    requestRegistrationChallengeControl,
+    resetMfaUiMocks,
+    mfaActorsMock,
+    userActionsMock,
+    biometricsHookMock,
+    renderHtmlMock,
+    validateCodeCountdownMock,
+    syncHistoryMock,
+    navigationMock,
+};

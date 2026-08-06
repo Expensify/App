@@ -60,6 +60,11 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
         }
     };
 
+    /**
+     * Legacy compatibility path. The MFA machine uses the platform-resolved biometrics operation,
+     * while this hook keeps using reactive Onyx values for existing React consumers. Keep this
+     * comparison aligned with `operations/index.native.ts` until the hook is removed.
+     */
     const areLocalCredentialsKnownToServer = async () => {
         const key = await getLocalCredentialID();
         return !!key && serverKnownCredentialIDs.includes(key);

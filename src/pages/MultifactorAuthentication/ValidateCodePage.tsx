@@ -2,7 +2,6 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import {useMultifactorAuthenticationInternal} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import useMFACancelOnEscape from '@components/MultifactorAuthentication/useMFACancelOnEscape';
@@ -19,20 +18,17 @@ import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
-import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 
 import {clearAccountMessages} from '@userActions/Session';
-import {clearValidateCodeActionError, requestValidateCodeAction} from '@userActions/User';
+import {clearValidateCodeActionError} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -55,11 +51,8 @@ function MultifactorAuthenticationValidateCodePage() {
     const [inputCode, setInputCode] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const {requestCancel, state} = useMultifactorAuthenticationInternal();
-
-    const {dispatch} = useMultifactorAuthenticationActions();
-    const {continuableError} = useMultifactorAuthenticationState();
-    const {isCancelConfirmVisible} = state;
+    const {requestCancel, submitValidateCode, resendValidateCode, notifyValidateCodeChanged, state} = useMultifactorAuthenticationInternal();
+    const {showsInvalidCodeError, isCancelConfirmVisible, canResendValidateCode, isValidateCodeFormSubmitting} = state;
 
     // Refs
     const inputRef = useRef<ValidateCodeInputHandle>(null);
@@ -68,12 +61,10 @@ function MultifactorAuthenticationValidateCodePage() {
 
     // Derived state
     const hasAccountError = !!account && !isEmptyObject(account?.errors);
-    const hasContinuableError = !!continuableError;
-    const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
-    const shouldDisableResendCode = isOffline ?? account?.isLoading;
+    const shouldDisableResendCode = isOffline || !canResendValidateCode;
     const validateCodeActionError = getLatestErrorField(validateActionCode, 'actionVerified');
     const hasValidateCodeActionError = !isEmptyObject(validateCodeActionError);
-    const hasError = hasAccountError || hasContinuableError || hasValidateCodeActionError;
+    const hasError = hasAccountError || showsInvalidCodeError || hasValidateCodeActionError;
     const errorMessage = getErrorMessage();
 
     function getErrorMessage() {
@@ -82,24 +73,12 @@ function MultifactorAuthenticationValidateCodePage() {
             return Object.values(validateCodeActionError).at(0);
         }
         // Invalid validate code submitted by the user
-        if (hasContinuableError) {
+        if (showsInvalidCodeError) {
             return translate('validateCodeForm.error.incorrectSecurityCode');
         }
         // Generic account/session error (e.g. stale errors from a previous flow)
         return getLatestErrorMessage(account);
     }
-
-    // Check if this page can handle the continuable error, if not convert to regular error
-    useEffect(() => {
-        if (!continuableError) {
-            return;
-        }
-
-        if (continuableError.reason !== VALUES.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE) {
-            // Cannot handle this error - convert to regular error which will stop the flow
-            dispatch({type: 'SET_ERROR', payload: continuableError});
-        }
-    }, [continuableError, dispatch]);
 
     // Auto-blur on error
     useEffect(() => {
@@ -149,9 +128,9 @@ function MultifactorAuthenticationValidateCodePage() {
             clearAccountMessages();
         }
 
-        // Clear continuable error when user starts typing after an error
-        if (continuableError) {
-            dispatch({type: 'CLEAR_CONTINUABLE_ERROR'});
+        // The machine drops the inline invalid-code error once it learns the code changed
+        if (showsInvalidCodeError) {
+            notifyValidateCodeChanged();
         }
     };
 
@@ -160,7 +139,7 @@ function MultifactorAuthenticationValidateCodePage() {
             clearValidateCodeActionError('actionVerified');
         }
         addMFABreadcrumb('Validate code resend requested');
-        requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REGISTER_AUTHENTICATION_KEY});
+        resendValidateCode();
         inputRef.current?.clear();
         setInputCode('');
         setFormError({});
@@ -173,7 +152,7 @@ function MultifactorAuthenticationValidateCodePage() {
      */
     const validateAndSubmitForm = () => {
         // Check if already loading
-        if (account?.isLoading) {
+        if (isValidateCodeFormSubmitting) {
             return;
         }
 
@@ -203,8 +182,7 @@ function MultifactorAuthenticationValidateCodePage() {
         // Clear errors before submit
         setFormError({});
 
-        // Set validate code in state context - the process function will handle the rest
-        dispatch({type: 'SET_VALIDATE_CODE', payload: inputCode});
+        submitValidateCode(inputCode);
     };
 
     const interceptFocusTrapEscape = useMFACancelOnEscape();
@@ -231,6 +209,7 @@ function MultifactorAuthenticationValidateCodePage() {
                 <View style={[styles.mh5]}>
                     <ValidateCodeInput
                         autoComplete="one-time-code"
+                        testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.VALIDATE_CODE_INPUT}
                         name="multifactorAuthenticationValidateCode"
                         value={inputCode}
                         onChangeText={onCodeInput}
@@ -258,6 +237,7 @@ function MultifactorAuthenticationValidateCodePage() {
                     <Button
                         success
                         large
+                        testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.VALIDATE_CODE_SUBMIT_BUTTON}
                         style={[styles.w100, styles.ph5, styles.pb5, styles.mt4]}
                         onPress={validateAndSubmitForm}
                         text={translate('common.verify')}

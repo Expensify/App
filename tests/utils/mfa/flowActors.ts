@@ -1,15 +1,13 @@
-import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
+import type {MfaActorOutput} from '@components/MultifactorAuthentication/machine/machineEvents';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
-import type {MfaContext, MfaEvent} from '@components/MultifactorAuthentication/machine/types';
+import type {MfaContext} from '@components/MultifactorAuthentication/machine/types';
 
-import type {OutputFrom, StateValue} from 'xstate';
+import type {StateValue} from 'xstate';
 
 import {createActor} from 'xstate';
 
 import createInitEvent from './flowFixtures';
-import {VALIDATE_DEVICE_DONE_EVENT_TYPE} from './flowPaths';
-
-type ValidateDeviceOutput = OutputFrom<ReturnType<typeof createActors>['validateDevice']>;
+import {createActorDoneEvent, mfaMachineWithLifecycleEvents} from './flowPaths';
 
 /**
  * Builds the context a flow carries right after INIT seeds it. Overrides express a spec's starting
@@ -23,6 +21,8 @@ function createFlowContext(overrides: Partial<MfaContext> = {}): MfaContext {
         scenarioName: initEvent.scenarioName,
         scenario: initEvent.scenario,
         payload: initEvent.payload,
+        validateCode: undefined,
+        registrationChallenge: undefined,
         softPromptApproved: false,
         isCancelConfirmVisible: false,
         ...overrides,
@@ -35,16 +35,21 @@ function createFlowContext(overrides: Partial<MfaContext> = {}): MfaContext {
  */
 function createActorAtState(value: StateValue, contextOverrides?: Partial<MfaContext>) {
     const snapshot = mfaMachine.resolveState({value, context: createFlowContext(contextOverrides)});
-    return createActor(mfaMachine, {snapshot});
+    return createActor(mfaMachineWithLifecycleEvents, {snapshot});
 }
 
 /**
  * Completes the invoked device-check actor by sending its done event carrying the given output.
  */
-function sendValidateDeviceDone(actor: ReturnType<typeof createActorAtState>, output: ValidateDeviceOutput) {
-    // Framework actor events are not part of the application's MfaEvent union.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    actor.send({type: VALIDATE_DEVICE_DONE_EVENT_TYPE, output} as unknown as MfaEvent);
+function sendValidateDeviceDone(actor: ReturnType<typeof createActorAtState>, output: MfaActorOutput<'validateDevice'>) {
+    actor.send(createActorDoneEvent('validateDevice', output));
 }
 
-export {createActorAtState, createFlowContext, sendValidateDeviceDone};
+/**
+ * Completes the invoked credentials-check actor by sending its done event carrying the given output.
+ */
+function sendCheckLocalCredentialsDone(actor: ReturnType<typeof createActorAtState>, output: MfaActorOutput<'checkLocalCredentials'>) {
+    actor.send(createActorDoneEvent('checkLocalCredentials', output));
+}
+
+export {createActorAtState, createFlowContext, sendCheckLocalCredentialsDone, sendValidateDeviceDone};
