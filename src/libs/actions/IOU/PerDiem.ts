@@ -51,7 +51,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -244,7 +244,6 @@ type PerDiemExpenseInformation = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    chatReportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -269,7 +268,6 @@ type PerDiemExpenseInformationParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    chatReportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -327,7 +325,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
-        chatReportActionsList,
     } = perDiemExpenseInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -484,9 +481,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             shouldGenerateTransactionThreadReport: false,
         });
 
-    let reportPreviewAction = shouldCreateNewMoneyRequestReport
-        ? null
-        : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]);
+    let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID);
 
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
@@ -931,7 +926,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
-        chatReportActionsList,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -986,7 +980,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
-        chatReportActionsList,
     });
 
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;

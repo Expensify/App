@@ -190,7 +190,6 @@ type RequestMoneyInformation = {
     shouldDeferAutoSubmit?: boolean;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    chatReportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
 };
 
 type MoneyRequestInformationParams = {
@@ -226,7 +225,6 @@ type MoneyRequestInformationParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
-    chatReportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -1269,7 +1267,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         betas,
         delegateAccountID,
         isTrackIntentUser,
-        chatReportActionsList,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -1567,9 +1564,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             delegateAccountIDParam: delegateAccountID,
         });
 
-    let reportPreviewAction = shouldCreateNewMoneyRequestReport
-        ? null
-        : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]);
+    let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID);
 
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);

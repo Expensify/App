@@ -539,7 +539,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 personalDetails,
                 isTrackIntentUser,
                 delegateAccountID,
-                chatReportActionsList: allReportActions,
             });
             existingIOUReport = iouReport;
             if (!iouReport) {
@@ -652,7 +651,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 formatPhoneNumber,
                 delegateAccountID,
                 isTrackIntentUser,
-                chatReportActionsList: allReportActions,
             });
             const targetReportID = backToReport ?? activeReportID;
             // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
@@ -869,7 +867,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             delegateAccountID,
             formatPhoneNumber,
             participantsPolicyTags,
-            chatReportActionsList: allReportActions,
         });
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
@@ -993,7 +990,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     isTrackIntentUser,
                     formatPhoneNumber,
                     participantsPolicyTags,
-                    chatReportActionsList: allReportActions,
                 });
             }
             markSubmitExpenseEnd();
@@ -1035,7 +1031,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     isTrackIntentUser,
                     formatPhoneNumber,
                     participantsPolicyTags,
-                    chatReportActionsList: allReportActions,
                 });
             }
             markSubmitExpenseEnd();

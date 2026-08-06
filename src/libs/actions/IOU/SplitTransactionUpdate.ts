@@ -774,7 +774,6 @@ function updateSplitTransactions({
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
-            chatReportActionsList: allReportActionsList,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};
@@ -1388,7 +1387,6 @@ function updateSplitTransactions({
                 updatedReportPreviewAction: (updatedReportPreviewAction ?? originalReportPreviewAction) as OnyxTypes.ReportAction,
                 shouldAddUpdatedReportPreviewActionToOnyxData: false,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
-                reportActionsList: allReportActionsList,
             });
             updatedReportPreviewAction = cleanUpTransactionThreadReportOnyxData.updatedReportPreviewAction;
         }
@@ -1639,7 +1637,6 @@ function updateSplitTransactions({
                     reportAction: iouActionToCleanUp,
                     updatedReportPreviewAction: updatedReportPreviewAction as OnyxTypes.ReportAction,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
-                    reportActionsList: allReportActionsList,
                 });
 
                 onyxData.optimisticData?.push(...optimisticData);

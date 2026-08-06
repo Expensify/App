@@ -153,7 +153,6 @@ type CreateDistanceRequestInformation = {
 
     /** Optimistic chat reportID to build the new chat report at, so it matches the ID the confirmation screen already subscribed to (brand-new P2P recipient). */
     optimisticChatReportID?: string;
-    chatReportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -180,7 +179,6 @@ type CreateSplitsAndOnyxDataParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    chatReportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
 };
 
 type StartSplitBilActionParams = {
@@ -260,7 +258,6 @@ type SplitBillActionsParams = {
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    chatReportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
 };
 
 /**
@@ -300,7 +297,6 @@ function splitBill({
     isTrackIntentUser,
     formatPhoneNumber,
     participantsPolicyTags,
-    chatReportActionsList,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -336,7 +332,6 @@ function splitBill({
         delegateAccountID,
         isTrackIntentUser,
         formatPhoneNumber,
-        chatReportActionsList,
     });
 
     const parameters: SplitBillParams = {
@@ -418,7 +413,6 @@ function splitBillAndOpenReport({
     isTrackIntentUser,
     formatPhoneNumber,
     participantsPolicyTags,
-    chatReportActionsList,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -454,7 +448,6 @@ function splitBillAndOpenReport({
         isTrackIntentUser,
         formatPhoneNumber,
         participantsPolicyTags,
-        chatReportActionsList,
     });
 
     const parameters: SplitBillParams = {
@@ -1460,7 +1453,6 @@ function createSplitsAndOnyxData({
     delegateAccountID,
     isTrackIntentUser,
     formatPhoneNumber,
-    chatReportActionsList,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -1855,11 +1847,7 @@ function createSplitsAndOnyxData({
             redundantParticipants[accountID] = null;
         }
 
-        let oneOnOneReportPreviewAction = getReportPreviewReportAction(
-            oneOnOneChatReport.reportID,
-            oneOnOneIOUReport.reportID,
-            chatReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`],
-        );
+        let oneOnOneReportPreviewAction = getReportPreviewReportAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
@@ -2002,7 +1990,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         formatPhoneNumber,
         participantsPolicyTags,
         optimisticChatReportID,
-        chatReportActionsList,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2096,7 +2083,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             delegateAccountID,
             isTrackIntentUser,
             formatPhoneNumber,
-            chatReportActionsList,
         });
         onyxData = splitOnyxData;
 
@@ -2192,7 +2178,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             delegateAccountID,
             isTrackIntentUser,
             optimisticChatReportID,
-            chatReportActionsList,
         });
 
         onyxData = moneyRequestOnyxData;

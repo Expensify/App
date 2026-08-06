@@ -304,7 +304,6 @@ function mergeDuplicates({
                 updatedReportPreviewAction,
                 shouldAddUpdatedReportPreviewActionToOnyxData: index === actions.length - 1,
                 currentUserAccountID,
-                reportActionsList: allReportActionsList,
             });
             cleanUpTransactionThreadReportsOptimisticData.push(...cleanUp.optimisticData);
             cleanUpTransactionThreadReportsSuccessData.push(...cleanUp.successData);
