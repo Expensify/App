@@ -97,8 +97,9 @@ type UseYourSpendDataReturn = {
     cardRows: YourSpendCardRow[];
     awaitingApprovalQuery: string;
     repaidLast30DaysQuery: string;
-    // True when offline with a queued change that would move this specific total,
-    // so its row renders greyed out until the next online refresh.
+    // True while a queued or in-flight change would move this specific total — offline,
+    // and after reconnect until the change is acknowledged — so its row renders greyed
+    // out instead of showing a value we know may be wrong.
     isApprovalStale: boolean;
     isPaymentStale: boolean;
 };
@@ -139,6 +140,20 @@ const YOUR_SPEND_PAYMENT_COMMANDS = new Set<string>([
     WRITE_COMMANDS.MARK_REPORT_PAYMENT_RECEIVED,
     WRITE_COMMANDS.CANCEL_PAYMENT,
 ]);
+// Commands that change a report's total without moving it between buckets, so the bucket
+// they affect is the one the report currently sits in. A same-currency edit recomputes the
+// report total client-side without marking `pendingFields.total` (only cross-currency edits
+// do), which is why these must be read from the queue rather than from the report.
+const YOUR_SPEND_AMOUNT_COMMANDS = new Set<string>([
+    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY,
+    WRITE_COMMANDS.DELETE_MONEY_REQUEST,
+    WRITE_COMMANDS.REJECT_MONEY_REQUEST,
+    WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK,
+]);
+
+function isYourSpendCommand(command: string): boolean {
+    return YOUR_SPEND_APPROVAL_COMMANDS.has(command) || YOUR_SPEND_PAYMENT_COMMANDS.has(command) || YOUR_SPEND_AMOUNT_COMMANDS.has(command);
+}
 
 type YourSpendPendingBuckets = {
     // A queued offline change would move the "Awaiting approval" (status:outstanding) total.
@@ -147,41 +162,73 @@ type YourSpendPendingBuckets = {
     payment: boolean;
 };
 
-// Which reports the user owns on a paid group workspace, plus the totals an amount
-// change (edit / delete / reject; marked by `pendingFields.total`) would move. Amount
-// changes keep a report in the same bucket, so the report's current status classifies
-// them; state transitions are handled from the queue instead.
+// The reports the user owns, split by the query scope each queued command must be checked
+// against, plus the totals a report-level pending total change would move. State transitions
+// are read from the queue; amount changes keep a report in the same bucket, so the report's
+// current status classifies them.
 //
-// Reduced to primitives (a sorted ID signature, not a per-report map) because this is
+// Reduced to primitives (sorted ID signatures, not per-report maps) because this is
 // the output Onyx deep-equals on every change to the REPORT collection.
 type YourSpendReportsSignature = {
-    // Sorted, comma-joined IDs of those reports, used to scope queued commands to them.
-    ownedReportIDs: string;
+    // Owned reports on paid group workspaces — the scope of the "Awaiting approval" query.
+    approvalScopeReportIDs: string;
+    // All owned reports — the "Repaid last 30 days" query has no policy filter, so
+    // repayments on IOU reports outside any workspace count too.
+    paymentScopeReportIDs: string;
+    // Status subsets used to bucket queued amount-affecting commands by the total they'd move.
+    submittedReportIDs: string;
+    reimbursedReportIDs: string;
     amount: YourSpendPendingBuckets;
 };
 
+const EMPTY_SPEND_REPORTS_SIGNATURE: YourSpendReportsSignature = {
+    approvalScopeReportIDs: '',
+    paymentScopeReportIDs: '',
+    submittedReportIDs: '',
+    reimbursedReportIDs: '',
+    amount: {approval: false, payment: false},
+};
+
 function getYourSpendReportsSignature(reports: OnyxCollection<Report> | undefined, paidGroupPolicyIDs: string[], accountID: number): YourSpendReportsSignature {
-    const signature: YourSpendReportsSignature = {ownedReportIDs: '', amount: {approval: false, payment: false}};
+    // Without a paid group workspace neither row renders, so skip scanning the collection.
     if (!reports || paidGroupPolicyIDs.length === 0) {
-        return signature;
+        return EMPTY_SPEND_REPORTS_SIGNATURE;
     }
+    const signature: YourSpendReportsSignature = {...EMPTY_SPEND_REPORTS_SIGNATURE, amount: {approval: false, payment: false}};
     const policyIDSet = new Set(paidGroupPolicyIDs);
-    const ids: string[] = [];
+    const approvalScope: string[] = [];
+    const paymentScope: string[] = [];
+    const submitted: string[] = [];
+    const reimbursed: string[] = [];
     for (const report of Object.values(reports)) {
-        if (report?.ownerAccountID !== accountID || !report?.policyID || !policyIDSet.has(report.policyID) || report.statusNum === undefined) {
+        if (report?.ownerAccountID !== accountID || report.statusNum === undefined) {
             continue;
         }
-        ids.push(report.reportID);
+        paymentScope.push(report.reportID);
+        const isOnPaidGroupPolicy = !!report.policyID && policyIDSet.has(report.policyID);
+        if (isOnPaidGroupPolicy) {
+            approvalScope.push(report.reportID);
+        }
+        const isSubmitted = isOnPaidGroupPolicy && report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED;
+        const isReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+        if (isSubmitted) {
+            submitted.push(report.reportID);
+        } else if (isReimbursed) {
+            reimbursed.push(report.reportID);
+        }
         if (report.pendingFields?.total == null) {
             continue;
         }
-        if (report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+        if (isSubmitted) {
             signature.amount.approval = true;
-        } else if (report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) {
+        } else if (isReimbursed) {
             signature.amount.payment = true;
         }
     }
-    signature.ownedReportIDs = ids.sort().join(',');
+    signature.approvalScopeReportIDs = approvalScope.sort().join(',');
+    signature.paymentScopeReportIDs = paymentScope.sort().join(',');
+    signature.submittedReportIDs = submitted.sort().join(',');
+    signature.reimbursedReportIDs = reimbursed.sort().join(',');
     return signature;
 }
 
@@ -197,7 +244,7 @@ function projectQueuedSpendRequests(requests: AnyRequest[] | undefined): QueuedS
     const projected: QueuedSpendRequest[] = [];
     for (const request of requests ?? []) {
         const command = request?.command;
-        if (!command || (!YOUR_SPEND_APPROVAL_COMMANDS.has(command) && !YOUR_SPEND_PAYMENT_COMMANDS.has(command))) {
+        if (!command || !isYourSpendCommand(command)) {
             continue;
         }
         // Report-level commands carry `reportID`; money-request commands (e.g. pay) carry `iouReportID`.
@@ -207,28 +254,50 @@ function projectQueuedSpendRequests(requests: AnyRequest[] | undefined): QueuedS
     return projected;
 }
 
-// Which "Your spend" totals a queued offline change would move. The totals come
-// from server-computed search snapshots we cannot recompute offline, so instead of
+// The request currently being sent is moved out of PERSISTED_REQUESTS while in flight,
+// but its total change hasn't been acknowledged yet — it must keep its row greyed.
+function projectOngoingSpendRequest(request: OnyxEntry<AnyRequest>): QueuedSpendRequest[] {
+    return projectQueuedSpendRequests(request ? [request] : undefined);
+}
+
+function toReportIDSet(signature: string): Set<string> {
+    return new Set(signature ? signature.split(',') : []);
+}
+
+// Which "Your spend" totals a queued change would move. The totals come from
+// server-computed search snapshots we cannot recompute locally, so instead of
 // patching a value we can't trust we detect that a relevant change is pending and
-// grey only the affected total until the next online refresh.
+// grey only the affected total until the change is acknowledged.
 //
 // State transitions (submit / retract / approve / unapprove / pay / cancel) are read
-// from the offline action queue: every queued command persists for the whole offline
-// session, so a report that was approved and then paid keeps BOTH signals. Amount
-// changes (edit / delete / reject) don't move a report between buckets, so they're
-// classified by the report's current status (see getYourSpendReportsSignature).
+// from the action queue: every queued command persists until it is sent, so a report
+// that was approved and then paid keeps BOTH signals. Each command is scoped to the
+// reports its query can actually contain — approval commands to paid-group reports,
+// payment commands to any owned report (the repaid query has no policy filter).
+// Amount changes (edit / delete / reject) don't move a report between buckets, so
+// they're bucketed by the report's current status (see getYourSpendReportsSignature).
 function getYourSpendPendingBuckets(reportsSignature: YourSpendReportsSignature, queuedRequests: QueuedSpendRequest[] | undefined): YourSpendPendingBuckets {
     const buckets: YourSpendPendingBuckets = {approval: reportsSignature.amount.approval, payment: reportsSignature.amount.payment};
-    const ownedReportIDs = new Set(reportsSignature.ownedReportIDs ? reportsSignature.ownedReportIDs.split(',') : []);
+    const approvalScope = toReportIDSet(reportsSignature.approvalScopeReportIDs);
+    const paymentScope = toReportIDSet(reportsSignature.paymentScopeReportIDs);
+    const submitted = toReportIDSet(reportsSignature.submittedReportIDs);
+    const reimbursed = toReportIDSet(reportsSignature.reimbursedReportIDs);
     for (const {command, reportID} of queuedRequests ?? []) {
-        // Only count commands acting on one of the user's own paid-group reports.
-        if (!reportID || !ownedReportIDs.has(reportID)) {
-            continue;
-        }
-        if (YOUR_SPEND_APPROVAL_COMMANDS.has(command)) {
-            buckets.approval = true;
+        if (YOUR_SPEND_AMOUNT_COMMANDS.has(command)) {
+            if (!reportID) {
+                // DeleteMoneyRequest carries only a transactionID. Expenses can't be deleted
+                // from paid reports, so conservatively grey the approval total — but only
+                // while an awaiting-approval report exists that the delete could be from.
+                buckets.approval ||= submitted.size > 0;
+            } else if (submitted.has(reportID)) {
+                buckets.approval = true;
+            } else if (reimbursed.has(reportID)) {
+                buckets.payment = true;
+            }
+        } else if (YOUR_SPEND_APPROVAL_COMMANDS.has(command)) {
+            buckets.approval ||= !!reportID && approvalScope.has(reportID);
         } else {
-            buckets.payment = true;
+            buckets.payment ||= !!reportID && paymentScope.has(reportID);
         }
         if (buckets.approval && buckets.payment) {
             break;
@@ -315,16 +384,19 @@ function useYourSpendData(): UseYourSpendDataReturn {
         selector: (reports) => getOutstandingReportsSignature(reports, paidGroupPolicyIDs, accountID),
     });
 
-    // Which totals a queued offline change would move. When offline we can't
-    // refresh the snapshots, so we grey only the affected total to signal it may
-    // be stale rather than showing a value we know might be wrong.
+    // Which totals a queued or in-flight change would move. We can't trust the
+    // snapshots until those changes are acknowledged, so we grey only the affected
+    // total to signal it may be stale rather than showing a value we know might be
+    // wrong. This covers the whole offline session and the queue flush after
+    // reconnecting — the grey must not clear before the totals actually refresh.
     const [reportsSignature] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports) => getYourSpendReportsSignature(reports, paidGroupPolicyIDs, accountID),
     });
     const [queuedSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {selector: projectQueuedSpendRequests});
+    const [ongoingSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {selector: projectOngoingSpendRequest});
     const pendingSpendBuckets = useMemo(
-        () => getYourSpendPendingBuckets(reportsSignature ?? {ownedReportIDs: '', amount: {approval: false, payment: false}}, queuedSpendRequests),
-        [reportsSignature, queuedSpendRequests],
+        () => getYourSpendPendingBuckets(reportsSignature ?? EMPTY_SPEND_REPORTS_SIGNATURE, [...(queuedSpendRequests ?? []), ...(ongoingSpendRequests ?? [])]),
+        [reportsSignature, queuedSpendRequests, ongoingSpendRequests],
     );
 
     // Destructure here so downstream memos depend only on the sub-records, not on
@@ -596,8 +668,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
         cardRows,
         awaitingApprovalQuery,
         repaidLast30DaysQuery,
-        isApprovalStale: isOffline && !!pendingSpendBuckets?.approval,
-        isPaymentStale: isOffline && !!pendingSpendBuckets?.payment,
+        isApprovalStale: pendingSpendBuckets.approval,
+        isPaymentStale: pendingSpendBuckets.payment,
     };
 }
 
