@@ -45,7 +45,7 @@ describe('SentryServerTiming middleware', () => {
         expect(endSpanWithAttributes).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({[CONST.TELEMETRY.ATTRIBUTE_RESPONSE_ADVANCED]: true}));
     });
 
-    it('leaves the verdict off a full ReconnectApp, which refetches everything and has nothing to advance past', async () => {
+    it('leaves the verdict off a full ReconnectApp, which fetches everything again and has nothing to advance past', async () => {
         const request = buildRequest('ReconnectApp', {});
 
         await SentryServerTiming(Promise.resolve(buildResponse(8200)), request, false);
