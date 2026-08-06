@@ -6741,7 +6741,6 @@ export {
     isTransactionMatchWithGroupItem,
     isTransactionGroupListItemType,
     isTransactionReportGroupListItemType,
-    isTransactionWithdrawalIDGroupListItemType,
     isCashBackWithdrawalGroup,
     isTransactionCategoryGroupListItemType,
     isTransactionMerchantGroupListItemType,

@@ -24,6 +24,8 @@ import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRout
 import {getColumnsToShow, isCashBackWithdrawalGroup} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
@@ -426,29 +428,34 @@ function GroupHeader({
                     <View style={styles.flex1}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth && styles.tableRowHeight]}>
                             <View style={styles.flex1}>{renderHeader(hovered)}</View>
-                            {isLargeScreenWidth && !isCashBackWithdrawal && (
-                                <PressableWithFeedback
-                                    onPress={() => {
-                                        if (isEmpty && !shouldDisplayEmptyView) {
-                                            handlePress();
-                                            return;
-                                        }
-                                        onToggle();
-                                    }}
-                                    style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}
-                                    accessibilityRole={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
-                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
-                                >
-                                    {({hovered: arrowHovered}) => (
-                                        <Icon
-                                            src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
-                                            fill={theme.icon}
-                                            additionalStyles={!arrowHovered && styles.opacitySemiTransparent}
-                                        />
-                                    )}
-                                </PressableWithFeedback>
-                            )}
+                            {isLargeScreenWidth &&
+                                (isCashBackWithdrawal ? (
+                                    <View style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}>
+                                        <View style={{width: variables.iconSizeNormal, height: variables.iconSizeNormal}} />
+                                    </View>
+                                ) : (
+                                    <PressableWithFeedback
+                                        onPress={() => {
+                                            if (isEmpty && !shouldDisplayEmptyView) {
+                                                handlePress();
+                                                return;
+                                            }
+                                            onToggle();
+                                        }}
+                                        style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}
+                                        accessibilityRole={CONST.ROLE.BUTTON}
+                                        accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
+                                    >
+                                        {({hovered: arrowHovered}) => (
+                                            <Icon
+                                                src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
+                                                fill={theme.icon}
+                                                additionalStyles={!arrowHovered && styles.opacitySemiTransparent}
+                                            />
+                                        )}
+                                    </PressableWithFeedback>
+                                ))}
                         </View>
                         {isLargeScreenWidth && subHeaderColumns.length > 0 && (
                             <Animated.View style={subHeaderAnimatedStyle}>
