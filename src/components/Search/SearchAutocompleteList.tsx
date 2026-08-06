@@ -221,6 +221,7 @@ function SearchAutocompleteList({
         isLoading: isLoadingOptions,
         loadAll: loadAllRecentReports,
         hasMore: hasMoreRecentReports,
+        getReportByID,
     } = useFilteredOptions({
         enabled: true,
         isSearching: !!autocompleteQueryValue.trim(),
@@ -279,6 +280,7 @@ function SearchAutocompleteList({
             conciergeReportID,
             isTrackIntentUser,
             translate,
+            getReportByID,
         }).options;
     }, [
         listOptions,
@@ -296,6 +298,7 @@ function SearchAutocompleteList({
         conciergeReportID,
         isTrackIntentUser,
         translate,
+        getReportByID,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -360,6 +363,7 @@ function SearchAutocompleteList({
         allCards,
         allFeeds,
         options: listOptions ?? emptyOptionList,
+        getReportByID,
         draftComments,
         betas,
         countryCode,
