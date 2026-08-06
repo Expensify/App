@@ -1945,11 +1945,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 const account = requiredDepositCurrency ? `compte bancaire en ${requiredDepositCurrency}` : 'compte bancaire';
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente que <strong>vous</strong> ajoutiez un(e) ${account}.`;
+                        return `En attente que <strong>vous</strong> ajoutiez un ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `En attente que <strong>${actor}</strong> ajoute un(e) ${account}.`;
+                        return `En attente que <strong>${actor}</strong> ajoute un ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `En attente qu’un administrateur ajoute un·e ${account}.`;
+                        return `En attente qu’un administrateur ajoute un ${account}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
