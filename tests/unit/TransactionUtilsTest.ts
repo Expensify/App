@@ -1997,6 +1997,23 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
+        it('should return true for expense report with pendingAction ADD', () => {
+            const expenseReport = {
+                reportID: 'expense123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: expenseReport.reportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, expenseReport)).toBe(true);
+        });
+
         it('should return false for invoice expenses', () => {
             const invoiceReport = {
                 reportID: 'invoice123',
