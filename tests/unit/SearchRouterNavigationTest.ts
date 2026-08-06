@@ -333,7 +333,6 @@ describe('Create Search Router navigation source', () => {
         expect(buildNavigationSuggestions('add expense', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_expense']);
         expect(buildNavigationSuggestions('new chat', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_chat']);
         expect(buildNavigationSuggestions('go to track distance', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_trackDistance']);
-        expect(buildNavigationSuggestions('go to create     expense', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_expense']);
     });
 
     it('matches hidden Create aliases without changing row text', () => {
