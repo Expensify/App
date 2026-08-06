@@ -4,7 +4,6 @@ import Log from '@libs/Log';
 
 import type {ActivityProps} from 'react';
 
-import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef, useState} from 'react';
 
 import useIsWindowSizeChanging from './useIsWindowSizeChanging';
@@ -14,8 +13,8 @@ import useIsWindowSizeChanging from './useIsWindowSizeChanging';
 const FIRST_RENDER_FALLBACK_DELAY_MS = 100;
 
 type ScreenActivityModeParams = {
-    /** Whether the screen is covered by another screen inside its own navigator */
-    isScreenBlurred: boolean;
+    /** Whether the screen is covered right now, as useIsScreenCovered reports it */
+    isScreenCovered: boolean;
 
     /** Key identifying this screen instance */
     routeKey: string;
@@ -25,9 +24,9 @@ type ScreenActivityModeParams = {
 };
 
 /**
- * Decides whether a screen is deprioritized with React <Activity>. A screen is hidden when it is covered inside its
- * own navigator (blurred) or when the whole navigator lost focus to another route higher in the tree - useIsFocused
- * is chain-aware, so e.g. the search expense list hides while an RHP is open on top of it.
+ * Decides whether a screen is deprioritized with React <Activity>. A screen is hidden as long as it is covered.
+ * The covered state is passed in rather than read here, because the accessibility state of the screen has to
+ * follow it with no delay while the mode below deliberately lags behind it on the reveal.
  *
  * Two cases keep a screen visible no matter what the navigation state says:
  *
@@ -47,8 +46,7 @@ type ScreenActivityModeParams = {
  * before it costs anything. The screen stays painted the whole time (CustomViewWrapper keeps hidden content
  * visible), so the user sees it immediately and only its updates arrive after the transition.
  */
-function useScreenActivityMode({isScreenBlurred, routeKey, routeName}: ScreenActivityModeParams): ActivityProps['mode'] {
-    const isFocused = useIsFocused();
+function useScreenActivityMode({isScreenCovered, routeKey, routeName}: ScreenActivityModeParams): ActivityProps['mode'] {
     const isWindowSizeChanging = useIsWindowSizeChanging();
     const [hasCompletedFirstRender, setHasCompletedFirstRender] = useState(false);
 
@@ -61,7 +59,7 @@ function useScreenActivityMode({isScreenBlurred, routeKey, routeName}: ScreenAct
         };
     }, []);
 
-    const navigationMode: ActivityProps['mode'] = isScreenBlurred || !isFocused ? 'hidden' : 'visible';
+    const navigationMode: ActivityProps['mode'] = isScreenCovered ? 'hidden' : 'visible';
     const isShownAfterTransition = useDeferVisibleUntilFocusTransitionEnd(navigationMode === 'visible');
     const isKeptVisible = !hasCompletedFirstRender || isWindowSizeChanging;
     const previousNavigationModeRef = useRef<ActivityProps['mode'] | null>(null);

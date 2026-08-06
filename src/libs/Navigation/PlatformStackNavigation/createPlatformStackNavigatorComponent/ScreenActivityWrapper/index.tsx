@@ -6,6 +6,7 @@ import React, {Activity} from 'react';
 
 import type ScreenActivityWrapperProps from './types';
 
+import useIsScreenCovered from './useIsScreenCovered';
 import useScreenActivityMode from './useScreenActivityMode';
 
 /**
@@ -17,14 +18,25 @@ import useScreenActivityMode from './useScreenActivityMode';
  * that a hidden Activity applies to its content, so the screen stays painted and the navigator's card visibility
  * keeps deciding what is actually shown - a covered screen that is still on screen (e.g. dimmed under the RHP
  * overlay on wide layouts) does not disappear, it only stops updating until it is revealed again.
+ *
+ * That painted content is stale for as long as the screen is covered, so it is marked inert for that whole time,
+ * which keeps it out of the accessibility tree, the tab order and the reach of the pointer. The flag follows the
+ * navigation state rather than the Activity mode, because a reveal is deferred until the transition ends and the
+ * screen the user is already looking at has to be usable right away.
  */
 function ScreenActivityWrapper({isScreenBlurred, routeKey, routeName, children}: ScreenActivityWrapperProps) {
     const styles = useThemeStyles();
-    const mode = useScreenActivityMode({isScreenBlurred, routeKey, routeName});
+    const isScreenCovered = useIsScreenCovered(isScreenBlurred);
+    const mode = useScreenActivityMode({isScreenCovered, routeKey, routeName});
 
     return (
         <Activity mode={mode}>
-            <CustomViewWrapper style={styles.flex1}>{children}</CustomViewWrapper>
+            <CustomViewWrapper
+                style={styles.flex1}
+                inert={isScreenCovered}
+            >
+                {children}
+            </CustomViewWrapper>
         </Activity>
     );
 }
