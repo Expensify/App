@@ -65,6 +65,13 @@ function hasBankAccountAllowDebit(accountData: AccountData | undefined): boolean
     return !!accountData.allowDebit;
 }
 
+function hasInsufficientFundsError(accountData: AccountData | undefined): boolean {
+    if (!accountData?.additionalData?.lastNocCode) {
+        return false;
+    }
+    return CONST.BANK_ACCOUNT.NOC_CODE.INSUFFICIENT_FUNDS.includes(accountData.additionalData.lastNocCode);
+}
+
 function getBankAccountConnectionStatus(state: string | undefined): BankAccountConnectionStatus | undefined {
     switch (state) {
         case CONST.BANK_ACCOUNT.STATE.OPEN:
