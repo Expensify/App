@@ -16,7 +16,7 @@ import type {
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {SelectedTransactionInfo} from '@components/Search/types';
+import type {SearchColumnType, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 
 import Navigation from '@navigation/Navigation';
 
@@ -6920,6 +6920,41 @@ describe('SearchUIUtils', () => {
             ).toStrictEqual(transactionWithdrawalIDGroupListItemsSorted);
         });
 
+        it('should sort withdrawal-id groups by each conversion amount, leaving the settlements that did not convert at the empty end', () => {
+            const withConversion = (keyForList: string, debitedAmount?: number, creditedAmount?: number): TransactionWithdrawalIDGroupListItemType => ({
+                bankName: CONST.BANK_NAMES.CHASE,
+                entryID,
+                accountNumber,
+                debitPosted: '2025-08-12 17:11:22',
+                count: 4,
+                currency: 'USD',
+                total: 40,
+                state: 8,
+                groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                formattedWithdrawalID: '5',
+                transactions: [],
+                transactionsQueryJSON: undefined,
+                shouldShowYearWithdrawn: true,
+                keyForList,
+                ...(debitedAmount ? {debitedAmount, debitedCurrency: 'USD'} : {}),
+                ...(creditedAmount ? {creditedAmount, creditedCurrency: 'GBP'} : {}),
+            });
+            const domestic = withConversion('group_domestic');
+            const smallConversion = withConversion('group_small', 1694, 1340);
+            const largeConversion = withConversion('group_large', 32200, 26886);
+            const groups = [smallConversion, domestic, largeConversion];
+
+            const sortGroups = (sortBy: SearchColumnType, sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, [...groups], localeCompare, translateLocal, sortBy, sortOrder, CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID).map(
+                    (group) => group.keyForList,
+                );
+
+            expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED, CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['group_domestic', 'group_small', 'group_large']);
+            expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['group_large', 'group_small', 'group_domestic']);
+            expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['group_domestic', 'group_small', 'group_large']);
+            expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['group_large', 'group_small', 'group_domestic']);
+        });
+
         it('should sort category group data when type is EXPENSE and groupBy is category', () => {
             expect(
                 SearchUIUtils.getSortedSections(
@@ -8549,6 +8584,23 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
         });
 
+        it('should reject the requested hash when the response carries conflicting sort metadata', () => {
+            const results = makeSearchResults({
+                search: {
+                    hasMoreResults: false,
+                    hasResults: true,
+                    offset: 0,
+                    hash: queryJSON?.hash ?? 0,
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+                },
+            });
+
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+
         it('should return false when searchResults is undefined', () => {
             expect(SearchUIUtils.isSearchDataLoaded(undefined, queryJSON)).toBe(false);
         });
@@ -8557,7 +8609,7 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchDataLoaded(makeSearchResults(), undefined)).toBe(false);
         });
 
-        it('should return true on a response with no data that reached a terminal loaded state (type and hash match)', () => {
+        it('should return true on a terminal response without data that only carries the requested hash', () => {
             const results = makeSearchResults({
                 data: undefined,
                 errors: undefined,
@@ -8573,13 +8625,14 @@ describe('SearchUIUtils', () => {
                     state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
                 },
             });
+            Reflect.deleteProperty(results.search, 'sortBy');
+            Reflect.deleteProperty(results.search, 'sortOrder');
+
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
         });
 
-        it('should return true when the request reached a terminal error state', () => {
+        it('should use the requested hash when a loaded request preserves cached data and stale sort metadata', () => {
             const results = makeSearchResults({
-                data: undefined,
-                errors: undefined,
                 search: {
                     hasMoreResults: false,
                     hasResults: false,
@@ -8587,9 +8640,9 @@ describe('SearchUIUtils', () => {
                     hash: queryJSON?.hash ?? 0,
                     isLoading: false,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    sortBy: queryJSON?.sortBy ?? 'date',
-                    sortOrder: queryJSON?.sortOrder ?? 'desc',
-                    state: CONST.SEARCH.SNAPSHOT_STATE.ERROR,
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
                 },
             });
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
@@ -8663,9 +8716,8 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.LOADING))).toBe(true);
         });
 
-        it('should return false for the terminal loaded and error states', () => {
+        it('should return false for the terminal loaded state', () => {
             expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.LOADED))).toBe(false);
-            expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.ERROR))).toBe(false);
         });
 
         it('should return false when the state is absent or searchResults is undefined', () => {
@@ -9531,6 +9583,45 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('Test getSuggestedSearches Card accruals feed', () => {
+        const companyFeedID = 'fund1_oauth.chase.com';
+        const activeExpensifyCardFeedID = 'fund1_Expensify Card';
+
+        const getCardAccrualsFeedValues = (activeCardFeedID?: string, defaultFeedID?: string): unknown[] => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, defaultFeedID, undefined, [], activeCardFeedID);
+            const cardAccruals = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
+            const feedFilter = cardAccruals.searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED);
+            return (feedFilter?.filters ?? []).map((f) => f.value).filter(Boolean);
+        };
+
+        test('Should default Card accruals to the Expensify Card when the active workspace has one, even alongside a company feed', () => {
+            // Reported case: workspace has both an Expensify Card and a company/bank feed.
+            expect(getCardAccrualsFeedValues(activeExpensifyCardFeedID, companyFeedID)).toEqual([activeExpensifyCardFeedID]);
+        });
+
+        test('Should keep the company feed for Card accruals when the active workspace has no Expensify Card', () => {
+            // Also guards the multi-workspace regression: the resolver (useCardFeedsForDisplay) only passes an
+            // Expensify Card feed scoped to the active workspace, so an unrelated workspace's card is undefined here.
+            expect(getCardAccrualsFeedValues(undefined, companyFeedID)).toEqual([companyFeedID]);
+        });
+
+        test('Should not select any card feed for Card accruals when there are neither Expensify Card nor company feeds', () => {
+            const values = getCardAccrualsFeedValues(undefined, undefined);
+            expect(values).not.toContain(activeExpensifyCardFeedID);
+            expect(values).not.toContain(companyFeedID);
+        });
+
+        test('Should produce the same Card accruals hash for both call sites when they pass the same active Expensify Card feed', () => {
+            // SearchQueryProvider and the type menu must agree so the Card accruals tab highlights as active. The two
+            // real call sites differ in the `defaultFeedID` and `shouldShowExpensifyCard` args, so mirror that here to
+            // prove Card accruals is driven purely by `activeExpensifyCardFeedID` and doesn't split on those inputs.
+            const otherCompanyFeedID = 'fund2_oauth.chase.com';
+            const fromProvider = SearchUIUtils.getSuggestedSearches(adminAccountID, companyFeedID, undefined, [], activeExpensifyCardFeedID);
+            const fromMenu = SearchUIUtils.getSuggestedSearches(adminAccountID, otherCompanyFeedID, true, [], activeExpensifyCardFeedID);
+            expect(fromMenu[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD].similarSearchHash).toBe(fromProvider[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD].similarSearchHash);
+        });
+    });
+
     describe('Test getSuggestedSearches sort defaults', () => {
         test('Should default Top Categories to sortBy groupTotal and sortOrder desc', () => {
             const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
@@ -9596,6 +9687,94 @@ describe('SearchUIUtils', () => {
             const result = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, groupBy: CONST.SEARCH.GROUP_BY.FROM});
             expect(result).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
             expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM);
+        });
+
+        test('Should only show the conversion amount columns for withdrawal groups that converted currencies', () => {
+            const domesticGroup = {
+                entryID: 1,
+                count: 1,
+                total: -10000,
+                currency: 'USD',
+                accountNumber: '1234',
+                bankName: CONST.BANK_NAMES.CHASE,
+                debitPosted: '2026-01-02',
+                state: 8,
+            };
+            const crossBorderGroup = {
+                ...domesticGroup,
+                entryID: 2,
+                debitedAmount: 10000,
+                debitedCurrency: 'USD',
+                creditedAmount: 9200,
+                creditedCurrency: 'EUR',
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const domesticData: OnyxTypes.SearchResults['data'] = {[`group_${domesticGroup.entryID}`]: domesticGroup};
+            const crossBorderData: OnyxTypes.SearchResults['data'] = {...domesticData, [`group_${crossBorderGroup.entryID}`]: crossBorderGroup};
+
+            const domesticColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: domesticData, visibleColumns: [], groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID});
+            expect(domesticColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
+            expect(domesticColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
+
+            const crossBorderColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: crossBorderData, visibleColumns: [], groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID});
+            expect(crossBorderColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
+            expect(crossBorderColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
+
+            // A group with no account number never reaches the list, so its amounts must not open a column either.
+            const unrenderedData: OnyxTypes.SearchResults['data'] = {...domesticData, [`group_${crossBorderGroup.entryID}`]: {...crossBorderGroup, accountNumber: ''}};
+            const unrenderedColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: unrenderedData, visibleColumns: [], groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID});
+            expect(unrenderedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
+            expect(unrenderedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
+        });
+
+        test('Should hide a conversion amount column when its currency is missing', () => {
+            const groupMissingCreditedCurrency = {
+                entryID: 3,
+                count: 1,
+                total: -10000,
+                currency: 'USD',
+                accountNumber: '1234',
+                bankName: CONST.BANK_NAMES.CHASE,
+                debitPosted: '2026-01-02',
+                state: 8,
+                debitedAmount: 10000,
+                debitedCurrency: 'USD',
+                creditedAmount: 9200,
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {[`group_${groupMissingCreditedCurrency.entryID}`]: groupMissingCreditedCurrency};
+
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data, visibleColumns: [], groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID});
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
+        });
+
+        test('Should keep the conversion amount column the groups are sorted by', () => {
+            const domesticGroup = {
+                entryID: 4,
+                count: 1,
+                total: -10000,
+                currency: 'USD',
+                accountNumber: '1234',
+                bankName: CONST.BANK_NAMES.CHASE,
+                debitPosted: '2026-01-02',
+                state: 8,
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {[`group_${domesticGroup.entryID}`]: domesticGroup};
+
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data,
+                visibleColumns: [],
+                groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+            });
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
         });
 
         test('Should hide To for strict default expense columns', () => {

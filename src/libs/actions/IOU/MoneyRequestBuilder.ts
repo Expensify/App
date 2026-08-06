@@ -5,10 +5,10 @@ import type {MinimalTransaction} from '@libs/Formula';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
-import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -99,7 +99,6 @@ type BuildOnyxDataForMoneyRequestKeys =
     | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS
     | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
     | typeof ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING
-    | typeof ONYXKEYS.COLLECTION.NEXT_STEP
     | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT;
 
@@ -188,6 +187,7 @@ type RequestMoneyInformation = {
     existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     isSelfTourViewed: boolean;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldDeferAutoSubmit?: boolean;
@@ -253,7 +253,6 @@ type MoneyRequestOptimisticParams = {
         destinations?: string[];
     };
     personalDetailListAction?: OnyxTypes.PersonalDetailsList;
-    nextStepDeprecated?: OnyxTypes.ReportNextStepDeprecated | null;
     nextStep?: ReportNextStep | null;
     testDriveCommentReportActionID?: string;
 };
@@ -456,7 +455,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         policyRecentlyUsed,
         personalDetailListAction,
         nextStep,
-        nextStepDeprecated,
         testDriveCommentReportActionID,
     } = optimisticParams;
 
@@ -786,13 +784,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    if (!isEmptyObject(nextStepDeprecated)) {
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
-            value: nextStepDeprecated,
-        });
-    }
     if (!isEmptyObject(nextStep)) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1157,22 +1148,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             isASAPSubmitBetaEnabled,
             isTrackIntentUser,
         });
-        onyxData.optimisticData?.push(violationsOnyxData, {
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
-            onyxMethod: Onyx.METHOD.SET,
-            // buildOptimisticNextStep is used in parallel
-            value: buildNextStepNew({
-                report: iou.report,
-                predictedNextStatus: iou.report.statusNum ?? CONST.REPORT.STATE_NUM.OPEN,
-                shouldFixViolations,
-                policy,
-                currentUserAccountIDParam,
-                currentUserEmailParam,
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                isTrackIntentUser,
-            }),
-        });
         onyxData.optimisticData?.push({
             key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1330,6 +1305,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         rate,
         unit,
         customUnit,
+        customUnitRateID,
         waypoints,
         odometerStart,
         odometerEnd,
@@ -1509,6 +1485,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             rate,
             unit,
             customUnit,
+            customUnitRateID,
             waypoints,
             odometerStart,
             odometerEnd,
@@ -1543,6 +1520,31 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             optimisticTransaction.merchant = preservedMerchant;
         } else {
             optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
+        }
+    }
+
+    if (action === CONST.IOU.ACTION.SUBMIT && isDistanceRequest) {
+        const workspaceDistanceCustomUnit = getDistanceRateCustomUnit(policy);
+        const workspaceDistanceUnit = workspaceDistanceCustomUnit?.attributes?.unit;
+        optimisticTransaction.comment ??= {};
+        optimisticTransaction.comment.customUnit ??= {};
+
+        optimisticTransaction.comment.customUnit.name = optimisticTransaction.comment.customUnit.name ?? existingTransaction?.comment?.customUnit?.name ?? CONST.CUSTOM_UNITS.NAME_DISTANCE;
+
+        if (workspaceDistanceCustomUnit?.customUnitID) {
+            optimisticTransaction.comment.customUnit.customUnitID = workspaceDistanceCustomUnit.customUnitID;
+        }
+        if (customUnitRateID) {
+            optimisticTransaction.comment.customUnit.customUnitRateID = customUnitRateID;
+        }
+        if (workspaceDistanceUnit) {
+            optimisticTransaction.comment.customUnit.distanceUnit = workspaceDistanceUnit;
+        }
+        if (distance !== undefined) {
+            optimisticTransaction.comment.customUnit.quantity = distance;
+        }
+        if (workspaceDistanceCustomUnit) {
+            optimisticTransaction.comment.customUnit.defaultP2PRate = null;
         }
     }
 
@@ -1636,18 +1638,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const predictedNextStatus =
         iouReport.statusNum ?? (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN);
     const hasViolations = hasViolationsReportUtils(iouReport.reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam);
-    // buildOptimisticNextStep is used in parallel
-    const optimisticNextStepDeprecated = buildNextStepNew({
-        report: iouReport,
-        predictedNextStatus,
-        policy,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        isTrackIntentUser,
-    });
-
     const optimisticNextStep = buildOptimisticNextStep({
         report: iouReport,
         predictedNextStatus,
@@ -1694,7 +1684,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 currencies: optimisticPolicyRecentlyUsedCurrencies,
             },
             personalDetailListAction: optimisticPersonalDetailListAction,
-            nextStepDeprecated: optimisticNextStepDeprecated,
             nextStep: optimisticNextStep,
             testDriveCommentReportActionID,
         },
