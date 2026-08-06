@@ -146,7 +146,8 @@ function EditAgentRulePage({
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
                     shouldRenderFooterAboveSubmit
-                    shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode
+                    submitButtonAndFooterContainerStyles={isInLandscapeMode ? [styles.flexRow, styles.gap3] : undefined}
+                    submitButtonInnerStyles={isInLandscapeMode ? styles.flex1 : undefined}
                     footerContent={
                         <Button
                             onPress={handleDelete}

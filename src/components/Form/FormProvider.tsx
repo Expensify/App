@@ -130,8 +130,11 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
 
-    /** Whether to display the submit button and footer in one row in landscape mode */
-    shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode?: boolean;
+    /** Styles for the container wrapping the submit button and footer content */
+    submitButtonAndFooterContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles for the submit button itself (`submitButtonStyles` targets the wrapping container) */
+    submitButtonInnerStyles?: StyleProp<ViewStyle>;
 };
 
 function FormProvider({
