@@ -1,6 +1,8 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
+import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -11,10 +13,19 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
+import {createTransactionThreadReport, openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
+import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
+import {
+    getIOUActionForReportID,
+    getOriginalMessage,
+    isMoneyRequestAction,
+    isSplitBillAction as isSplitBillActionReportActionsUtils,
+    isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
+} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -30,11 +41,15 @@ import type {ListRenderItem} from '@shopify/flash-list';
 import type {LayoutChangeEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/core';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import type {MoneyRequestReportPreviewProps} from './types';
 
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
+
+// Delay (ms) before the pressed expense opens on top of the report's wide RHP. Letting the report settle
+// into the wide RHP first makes the two panels open as a cascade rather than appearing at once.
+const PRESSED_EXPENSE_CASCADE_DELAY = 180;
 
 function MoneyRequestReportPreview({
     iouReportID,
@@ -53,7 +68,11 @@ function MoneyRequestReportPreview({
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
     const personalDetailsList = usePersonalDetails();
+    const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
@@ -63,6 +82,31 @@ function MoneyRequestReportPreview({
     // reimbursable derivations so they include optimistically-deleted rows, exactly as before the decomposition.
     const allReportTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const transactions = allReportTransactions.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    // IDs seeded into the expense view's prev/next carousel. Offline-deleted rows stay visible in the preview (above)
+    // but their threads are gone, so they must not be reachable through the arrows either — same filter every other
+    // seeder in the tree applies.
+    const openableTransactionIDs = transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID);
+    // Tracks how many actions the IOU report has loaded so a deferred expense press can be retried once
+    // the actions arrive (they may be missing right after a cache clear).
+    const [iouReportActionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
+        selector: (reportActions) => Object.keys(reportActions ?? {}).length,
+    });
+    // Whether the deferred press's openReport fetch is still in flight. The true -> false flip re-runs the drain
+    // effect below, so a deferred press settles even when the fetch returns the actions we already had.
+    const [isLoadingInitialIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(iouReportID)}`, {
+        selector: (loadingState) => !!loadingState?.isLoadingInitialReportActions,
+    });
+    // Holds a pressed transaction whose thread report could not be resolved yet, so the expense can be
+    // opened once the IOU report's actions have loaded instead of falling back to the parent report.
+    // The deferred press, plus the route the user was on when they made it. The route is what tells us the press is
+    // still wanted: the preview stays mounted (and focused) behind an RHP, and the "View" button is wired to a
+    // different openReportFromPreview in the provider, so neither unmounting nor our own handler can be relied on to
+    // cancel it. If the active route has moved on by the time the fetch lands, the user has chosen something else.
+    const pendingExpenseTransactionRef = useRef<{transaction: Transaction; originRoute: string} | null>(null);
+    // Handle for the wide-layout cascade's pending expense navigation, so a later press (or unmount) can cancel it.
+    // Without this a second press within the delay lets the first press's timer open the wrong expense and then run
+    // its cleanup over the expense that is actually on screen.
+    const cascadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
@@ -118,6 +162,15 @@ function MoneyRequestReportPreview({
             return;
         }
 
+        // Opening the report is an explicit choice, so it supersedes anything an earlier press staged: a deferred
+        // press would otherwise navigate away when its fetch lands, and a pending cascade would cover this report
+        // with an expense the user did not just ask for.
+        pendingExpenseTransactionRef.current = null;
+        if (cascadeTimerRef.current) {
+            clearTimeout(cascadeTimerRef.current);
+            cascadeTimerRef.current = null;
+        }
+
         startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${iouReportID}`, {
             name: 'MoneyRequestReportPreview',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
@@ -144,26 +197,227 @@ function MoneyRequestReportPreview({
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
-    const renderItem: ListRenderItem<Transaction> = ({item}) => (
-        <TransactionPreview
-            chatReport={chatReport}
-            action={getIOUActionForReportID(item.reportID, item.transactionID)}
-            contextAction={action}
-            reportID={item.reportID}
-            isBillSplit={isSplitBillAction}
-            isTrackExpense={isTrackExpenseAction}
-            isWhisper={isWhisper}
-            isHovered={isHovered}
-            iouReportID={iouReportID}
-            containerStyles={transactionPreviewContainerStyles}
-            transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
-            transactionID={item.transactionID}
-            reportPreviewAction={action}
-            onPreviewPressed={openReportFromPreview}
-            shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
-            shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
-        />
+    // Resolve the target transaction thread report. Prefer the IOU action's childReportID, then the
+    // transaction's own thread id, and finally create the thread inline so the press never lands on a dead route.
+    const resolveChildReportID = useCallback(
+        (transaction: Transaction) => {
+            const transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+            let childReportID = transactionIOUAction?.childReportID ?? transaction.transactionThreadReportID;
+            if (childReportID) {
+                // The thread already exists, but it may not be present in OnyxDB. Seed its
+                // optimistic report shell + parent linkage so navigating to it renders the expense instead of a
+                // blank/not-found screen.
+                setOptimisticTransactionThread(childReportID, iouReport?.reportID ?? transaction.reportID, transactionIOUAction?.reportActionID, iouReport?.policyID ?? policyID);
+            } else if (transactionIOUAction?.reportActionID) {
+                const transactionID = isMoneyRequestAction(transactionIOUAction) ? getOriginalMessage(transactionIOUAction)?.IOUTransactionID : undefined;
+                if (transactionID) {
+                    childReportID = createTransactionThreadReport({
+                        introSelected,
+                        currentUserLogin: currentUserEmail ?? '',
+                        currentUserAccountID,
+                        betas,
+                        iouReport,
+                        iouReportAction: transactionIOUAction,
+                    })?.reportID;
+                }
+            }
+            return childReportID;
+        },
+        [betas, currentUserAccountID, currentUserEmail, introSelected, iouReport, policyID],
     );
+
+    const navigateToExpense = useCallback(
+        (childReportID: string) => {
+            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${childReportID}`, {
+                name: 'MoneyRequestReportPreview.Transaction',
+                op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+            });
+
+            if (isSmallScreenWidth) {
+                // Narrow layouts open the pressed expense in the RHP over the chat — the same route every other
+                // narrow entry point uses (see useNavigateToTransactionThread). Back returns to the chat.
+                //
+                // Deliberately NOT as a split-navigator screen with the parent report placed beneath it. Doing that
+                // leaves the thread as a full-screen SCREENS.REPORT route inside the split stack, and the flows that
+                // clean up after a thread assume it is not there: the split-expense save path relies on
+                // removeScreenByKey, which only filters the ROOT navigator's routes and so can never remove a nested
+                // split screen, and the delete path's goBack can land on a second copy of the parent report. Keeping
+                // the expense in the RHP keeps the split stack exactly as those flows expect it.
+                setActiveTransactionIDs(openableTransactionIDs);
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
+                return;
+            }
+
+            // On wide layouts open the expense report itself in the wide RHP (super wide for multi-expense
+            // reports) and show the pressed expense on top of it — mirroring how an expense opens from the
+            // report view — rather than navigating to the report in the Inbox. Back returns to the report,
+            // and back again to the chat.
+            if (iouReportID) {
+                const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()});
+                markReportRHPWidth(iouReportID, 'super-wide');
+                Navigation.navigate(reportRoute);
+                setActiveTransactionIDs(openableTransactionIDs).then(() => {
+                    markReportRHPWidth(childReportID, 'wide');
+                    // Let the report's wide RHP settle before opening the pressed expense on top, so the two
+                    // panels open as a cascade rather than at once.
+                    cascadeTimerRef.current = setTimeout(() => {
+                        cascadeTimerRef.current = null;
+                        // The user may have closed the report's wide RHP or navigated away during the cascade delay;
+                        // don't reopen the expense over whatever screen is now active.
+                        if (!Navigation.isActiveRoute(reportRoute)) {
+                            // The expense never opened, so drop the width hint we staged for it — otherwise it would
+                            // force that thread to open wide later from an unrelated entry point.
+                            unmarkReportRHPWidth(childReportID);
+                            // Only drop the seeded sibling IDs if they are still the ones this press wrote. Another
+                            // flow may have seeded its own carousel during the delay, and clearing is global.
+                            if (getActiveTransactionIDs().ids === openableTransactionIDs) {
+                                clearActiveTransactionIDs();
+                            }
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
+                    }, PRESSED_EXPENSE_CASCADE_DELAY);
+                });
+                return;
+            }
+
+            // Fallback when the parent report is unknown: open the pressed expense alone in the wide RHP.
+            setActiveTransactionIDs(openableTransactionIDs).then(() => {
+                markReportRHPWidth(childReportID, 'wide');
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
+            });
+        },
+        [isSmallScreenWidth, iouReportID, markReportRHPWidth, unmarkReportRHPWidth, openableTransactionIDs],
+    );
+
+    const openTransactionFromPreview = useCallback(
+        (transaction: Transaction) => {
+            if (contextMenuRef.current?.isContextMenuOpening) {
+                return;
+            }
+
+            // Any new press supersedes what an earlier one staged. Without this an earlier deferred press stays
+            // armed and hijacks the navigation the moment its fetch lands, and an in-flight cascade timer opens the
+            // previously pressed expense over the one the user just chose.
+            pendingExpenseTransactionRef.current = null;
+            if (cascadeTimerRef.current) {
+                clearTimeout(cascadeTimerRef.current);
+                cascadeTimerRef.current = null;
+            }
+
+            // A report with a single expense opens the report itself, not the lone expense — opening the
+            // expense directly would skip the report the user expects to land on.
+            if (transactions.length <= 1) {
+                openReportFromPreview();
+                return;
+            }
+
+            // An expense deleted while offline stays in the carousel (see the `transactions` filter above) but its
+            // thread is already gone, so opening it lands on "It's not here". Open the parent report instead.
+            if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                openReportFromPreview();
+                return;
+            }
+
+            const isIOUActionLoaded = !!getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+            const childReportID = resolveChildReportID(transaction);
+            if (childReportID) {
+                if (!isIOUActionLoaded && iouReportID) {
+                    // The thread resolved from the transaction's own transactionThreadReportID rather than from a
+                    // loaded IOU action, so the report's actions aren't in OnyxDB. Offline we cannot fetch them, and
+                    // the thread shell we would open has no parent action to render from — open the parent report
+                    // instead, the same fallback the deferred path uses. Online, fetch them in the background: the
+                    // expense view's prev/next carousel resolves each sibling through those actions, and without
+                    // them an arrow press mints a duplicate thread with no parent.
+                    if (isOffline) {
+                        openReportFromPreview();
+                        return;
+                    }
+                    openReport({reportID: iouReportID, introSelected, betas});
+                }
+                navigateToExpense(childReportID);
+                return;
+            }
+
+            // The thread could not be resolved because this expense's IOU action isn't present in OnyxDB. Fetch the report's actions and
+            // open the expense once the fetch settles, instead of falling back to the parent
+            // report and losing the pressed expense. Skip this while offline: openReport can't fetch, so the
+            // deferred press would never fire (dead tap) — fall through to opening the cached parent report
+            // instead, matching the "View" button.
+            if (!isIOUActionLoaded && iouReportID && !isOffline) {
+                pendingExpenseTransactionRef.current = {transaction, originRoute: Navigation.getActiveRoute()};
+                openReport({reportID: iouReportID, introSelected, betas});
+                return;
+            }
+
+            openReportFromPreview();
+        },
+        [betas, introSelected, iouReportID, isOffline, navigateToExpense, openReportFromPreview, resolveChildReportID, transactions.length],
+    );
+
+    // Completes a deferred expense press once the IOU report's actions have loaded.
+    useEffect(() => {
+        const pendingPress = pendingExpenseTransactionRef.current;
+        // Hold the press while the fetch is in flight — the loading flip back to false re-runs this effect, so the
+        // press settles even when the fetched actions match the cache and the action count never changes.
+        if (!pendingPress || isLoadingInitialIOUReportActions) {
+            return;
+        }
+        // The user went somewhere else while the fetch was in flight (opened the report with "View", followed another
+        // link, changed tab). Replaying now would yank them out of the screen they chose, so drop the press.
+        if (!isFocused || Navigation.getActiveRoute() !== pendingPress.originRoute) {
+            pendingExpenseTransactionRef.current = null;
+            return;
+        }
+        const pendingTransaction = pendingPress.transaction;
+        const childReportID = resolveChildReportID(pendingTransaction);
+        if (childReportID) {
+            pendingExpenseTransactionRef.current = null;
+            navigateToExpense(childReportID);
+            return;
+        }
+        // The actions finished loading but the expense still has no resolvable thread — open the parent report.
+        if (iouReportActionCount) {
+            pendingExpenseTransactionRef.current = null;
+            openReportFromPreview();
+        }
+    }, [iouReportActionCount, isFocused, isLoadingInitialIOUReportActions, navigateToExpense, openReportFromPreview, resolveChildReportID]);
+
+    // Drop a pending cascade if this preview goes away, so its timer cannot navigate or clean up after unmount.
+    useEffect(
+        () => () => {
+            if (!cascadeTimerRef.current) {
+                return;
+            }
+            clearTimeout(cascadeTimerRef.current);
+            cascadeTimerRef.current = null;
+        },
+        [],
+    );
+
+    const renderItem: ListRenderItem<Transaction> = ({item}) => {
+        const transactionIOUAction = getIOUActionForReportID(item.reportID, item.transactionID);
+        return (
+            <TransactionPreview
+                chatReport={chatReport}
+                action={transactionIOUAction}
+                contextAction={action}
+                reportID={item.reportID}
+                isBillSplit={isSplitBillAction}
+                isTrackExpense={isTrackExpenseAction}
+                isWhisper={isWhisper}
+                isHovered={isHovered}
+                iouReportID={iouReportID}
+                containerStyles={transactionPreviewContainerStyles}
+                transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
+                transactionID={item.transactionID}
+                reportPreviewAction={action}
+                onPreviewPressed={() => openTransactionFromPreview(item)}
+                shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
+                shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
+            />
+        );
+    };
 
     return (
         <MoneyRequestReportPreviewContent
