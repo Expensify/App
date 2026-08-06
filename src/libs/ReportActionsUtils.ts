@@ -2194,7 +2194,7 @@ function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
 /**
  * Helper method to format message of OldDot Actions.
  */
-function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAction: PartialReportAction | OldDotReportAction, withMarkdown = true): string {
+function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAction: PartialReportAction | OldDotReportAction, withMarkdown = true, policy?: OnyxEntry<Policy>): string {
     if (isOldDotLegacyAction(oldDotAction)) {
         return getMessageOfOldDotLegacyAction(oldDotAction);
     }
@@ -2213,6 +2213,7 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
         case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE: {
             const {result, label} = originalMessage;
             const errorMessage = result?.messages?.join(', ') ?? '';
+            const integrationName = getExportIntegrationDisplayName(policy, label, translate) ?? label;
 
             // Reconciled results are informational (the payment already exists in the integration), so show the message without the "failed to export" framing
             if (result?.reconciled) {
@@ -2223,9 +2224,9 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
             if (errorMessage.includes(CONST.ERROR.INTEGRATION_MESSAGE_INVALID_CREDENTIALS)) {
                 const translateErrorMessage = translate('report.actions.error.invalidCredentials');
                 const translateLinkText = translate('report.connectionSettings');
-                return translate('report.actions.type.integrationsMessage', translateErrorMessage, label, translateLinkText, linkURL);
+                return translate('report.actions.type.integrationsMessage', translateErrorMessage, integrationName, translateLinkText, linkURL);
             }
-            return translate('report.actions.type.integrationsMessage', errorMessage, label, linkText, linkURL);
+            return translate('report.actions.type.integrationsMessage', errorMessage, integrationName, linkText, linkURL);
         }
         case CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT:
             return translate('report.actions.type.managerAttachReceipt');

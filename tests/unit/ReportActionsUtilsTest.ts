@@ -1654,6 +1654,36 @@ describe('ReportActionsUtils', () => {
 
             expect(message).toBe(translateLocal('report.actions.type.integrationsMessage', errorMessage, 'NetSuite', '', ''));
         });
+
+        it('should use the IES display name for an integrations error message', () => {
+            const errorMessage = 'Failed to export';
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+                originalMessage: {
+                    label: CONST.EXPORT_LABELS.QBO,
+                    result: {
+                        messages: [errorMessage],
+                    },
+                },
+            };
+            const policy = createMock<Policy>({
+                connections: {
+                    quickbooksOnline: {
+                        config: {
+                            credentials: {
+                                scope: 'app-foundations.custom-dimensions.read',
+                            },
+                        },
+                    },
+                },
+            });
+
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action, true, policy);
+
+            expect(message).toBe(translateLocal('report.actions.type.integrationsMessage', errorMessage, 'Intuit Enterprise Suite', '', ''));
+        });
     });
 
     describe('getSendMoneyFlowAction', () => {

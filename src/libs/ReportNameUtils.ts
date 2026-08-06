@@ -815,7 +815,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isOldDotReportAction(parentReportAction)) {
-        return getMessageOfOldDotReportAction(translate, parentReportAction);
+        return getMessageOfOldDotReportAction(translate, parentReportAction, true, reportPolicy);
     }
 
     if (isRenamedAction(parentReportAction)) {

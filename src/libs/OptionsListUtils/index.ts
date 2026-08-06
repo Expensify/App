@@ -887,7 +887,7 @@ function getLastMessageTextForReport({
         const missingFields = getOriginalMessage(lastReportAction)?.missingFields;
         lastMessageTextFromReport = translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields});
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
-        lastMessageTextFromReport = getMessageOfOldDotReportAction(translate, lastReportAction, false);
+        lastMessageTextFromReport = getMessageOfOldDotReportAction(translate, lastReportAction, false, policy);
     } else if (isActionableJoinRequest(lastReportAction)) {
         lastMessageTextFromReport = getJoinRequestMessage(translate, policy, lastReportAction);
     } else if (
