@@ -163,7 +163,7 @@ const getOldestPreviewActionID = (
     chatReportID: string,
     reportIDs: string[] | undefined,
     reports: OnyxCollection<Report>,
-    reportActions: OnyxCollection<ReportActions>,
+    chatReportActions: OnyxEntry<ReportActions>,
     predicate?: (childReport: OnyxEntry<Report>) => boolean,
 ) => {
     let oldestCreated: string | undefined;
@@ -172,7 +172,7 @@ const getOldestPreviewActionID = (
         if (predicate && !predicate(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`])) {
             continue;
         }
-        const reportPreviewAction = getReportPreviewReportAction(chatReportID, childReportID, reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`]);
+        const reportPreviewAction = getReportPreviewReportAction(chatReportID, childReportID, chatReportActions);
         if (!reportPreviewAction) {
             continue;
         }
@@ -686,10 +686,11 @@ export default createOnyxDerivedValueConfig({
 
             const chatAttributes = reportAttributes[chatReportID];
             let actionTargetReportActionID = chatAttributes.actionTargetReportActionID;
+            const chatReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`];
 
             actionTargetReportActionID =
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, reportActions, isActionable) ??
-                getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, reportActions, (childReport) =>
+                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, chatReportActions, isActionable) ??
+                getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, chatReportActions, (childReport) =>
                     needsViolationFix(
                         childReport,
                         getLoginByAccountID(childReport?.ownerAccountID, personalDetails),
@@ -699,7 +700,7 @@ export default createOnyxDerivedValueConfig({
                         currentUserEmail,
                     ),
                 ) ??
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, reportActions) ??
+                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, chatReportActions) ??
                 actionTargetReportActionID;
 
             // Clone the entry before mutating — it may be a reference carried over from
@@ -727,4 +728,4 @@ export default createOnyxDerivedValueConfig({
     },
 });
 
-export {hasPolicyRelevantFieldChanged};
+export {hasPolicyRelevantFieldChanged, getOldestPreviewActionID};
