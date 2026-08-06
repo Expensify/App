@@ -68,6 +68,9 @@ type WorkspaceCompanyCardsTableProps = {
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
 
+    /** Whether the narrow-layout selection mode is active */
+    isSelectionModeEnabled: boolean;
+
     /** On assign card callback */
     onAssignCard: (cardID: string, encryptedCardNumber: string) => void;
 
@@ -87,6 +90,7 @@ function WorkspaceCompanyCardsTable({
     onAssignCard,
     isAssigningCardDisabled,
     canWriteCompanyCards,
+    isSelectionModeEnabled,
     onReloadPage,
     onReloadFeed,
 }: WorkspaceCompanyCardsTableProps) {
@@ -361,17 +365,18 @@ function WorkspaceCompanyCardsTable({
         addBottomSafeAreaPadding: true,
     });
 
-    const headerButtonsComponent = showTableHeaderButtons ? (
-        <View style={styles.mb3}>
-            <WorkspaceCompanyCardsTableHeaderButtons
-                isLoading={isLoading}
-                policyID={policyID}
-                feedName={feedName}
-                canWriteCompanyCards={canWriteCompanyCards}
-                CardFeedIcon={cardFeedIcon}
-            />
-        </View>
-    ) : undefined;
+    const headerButtonsComponent =
+        showTableHeaderButtons && !isSelectionModeEnabled ? (
+            <View style={styles.mb3}>
+                <WorkspaceCompanyCardsTableHeaderButtons
+                    isLoading={isLoading}
+                    policyID={policyID}
+                    feedName={feedName}
+                    canWriteCompanyCards={canWriteCompanyCards}
+                    CardFeedIcon={cardFeedIcon}
+                />
+            </View>
+        ) : undefined;
     const tableControlsComponent = showCards ? (
         <WorkspaceCompanyCardsTableControls
             policyID={policyID}
@@ -379,6 +384,7 @@ function WorkspaceCompanyCardsTable({
             bankName={bankName}
             canWriteCompanyCards={canWriteCompanyCards}
             clearCardSelection={clearCardSelection}
+            isSelectionModeEnabled={isSelectionModeEnabled}
         />
     ) : undefined;
     const shouldShowPendingUnassignmentLoading = showCards && hasPendingUnassignment && cardsData.length === 0;
