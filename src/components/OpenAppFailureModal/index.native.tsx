@@ -1,7 +1,9 @@
-import React, {useEffect} from 'react';
-import {AppState} from 'react-native';
 import {openApp} from '@libs/actions/App';
 import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
+
+import React, {useEffect} from 'react';
+import {AppState} from 'react-native';
+
 import BaseOpenAppFailureModal from './BaseOpenAppFailureModal';
 
 /** Triggers OpenApp reconnection */

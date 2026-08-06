@@ -1,25 +1,32 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setPolicyRequireCompanyCardsEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
+import PublicReceiptVisibilityToggle from './PublicReceiptVisibilityToggle';
 
 type IndividualExpenseRulesSectionProps = {
     policyID: string;
@@ -244,7 +251,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
                     disabledAction={withReadOnlyFallback()}
                     showLockIcon={!canWriteRules || disableRequireCompanyCardToggle}
                     disabledText={translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip')}
-                    wrapperStyle={[styles.mt3]}
+                    wrapperStyle={[styles.pv3]}
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
                     isActive={requireCompanyCardsEnabled}
@@ -257,8 +264,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
                     subtitle={translate('workspace.rules.individualExpenseRules.eReceiptsHint')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
                     shouldParseSubtitle
-                    wrapperStyle={[styles.mt3]}
-                    shouldPlaceSubtitleBelowSwitch
+                    wrapperStyle={[styles.pv3]}
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
                     isActive={areEReceiptsEnabled}
@@ -272,8 +278,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
                     title={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
                     subtitle={translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
-                    wrapperStyle={[styles.mt3]}
-                    shouldPlaceSubtitleBelowSwitch
+                    wrapperStyle={[styles.pv3]}
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
                     isActive={isAttendeeTrackingEnabledForPolicy}
@@ -282,6 +287,13 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
                     showLockIcon={!canWriteRules}
                     onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
+                />
+                <PublicReceiptVisibilityToggle
+                    policyID={policyID}
+                    canWriteRules={canWriteRules}
+                    withReadOnlyFallback={withReadOnlyFallback}
+                    titleStyle={styles.pv2}
+                    subtitleStyle={styles.pt1}
                 />
             </View>
         </Section>

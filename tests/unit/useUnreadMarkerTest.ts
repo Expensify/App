@@ -1,8 +1,12 @@
 import {act, renderHook} from '@testing-library/react-native';
-import {DeviceEventEmitter} from 'react-native';
+
 import useUnreadMarker from '@hooks/useUnreadMarker';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import {DeviceEventEmitter} from 'react-native';
+
 import {getFakeReportAction} from '../utils/ReportTestUtils';
 
 const REPORT_ID = '1';

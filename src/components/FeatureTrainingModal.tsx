@@ -1,14 +1,21 @@
-import React, {useEffect, useRef, useState} from 'react';
-import type {ViewStyle} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Log from '@libs/Log';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {ViewStyle} from 'react-native';
+
+import React, {useEffect, useRef, useState} from 'react';
+
 import type {FeatureTrainingContentProps} from './FeatureTrainingContent';
+
 import FeatureTrainingContent from './FeatureTrainingContent';
 import Modal from './Modal';
 
@@ -65,6 +72,7 @@ function FeatureTrainingModal({modalInnerContainerStyle, onConfirm, onClose, sho
     return (
         <Modal
             isVisible={isModalVisible}
+            shouldTreatModalAsCovering
             type={onboardingIsMediumOrLargerScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
             onClose={closeModal}
             innerContainerStyle={{

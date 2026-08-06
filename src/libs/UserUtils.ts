@@ -1,13 +1,17 @@
-import {Str} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {LoginList, Logins, NewLogin, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import hashCode from './hashCode';
-import {formatPhoneNumber} from './LocalePhoneNumber';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+
 import type {AvatarSource} from './UserAvatarUtils';
+
+import hashCode from './hashCode';
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
@@ -93,7 +97,17 @@ function isDeviceLogin(login: NewLogin) {
 }
 
 function getDeviceLogins(logins: OnyxEntry<Logins>) {
-    return Object.values(logins ?? {})?.filter(isDeviceLogin);
+    return Object.values(logins ?? {})
+        ?.filter(isDeviceLogin)
+        .sort((a, b) => {
+            const aLastLogin = getLastLogin(a);
+            const bLastLogin = getLastLogin(b);
+            if (aLastLogin === bLastLogin) {
+                return 0;
+            }
+            // lastLogin/created are ISO datetime strings, so a lexicographic comparison sorts them chronologically. Descending puts the most recent device first.
+            return aLastLogin > bLastLogin ? -1 : 1;
+        });
 }
 
 function hasDeviceManagementError(logins: OnyxEntry<Logins>) {
@@ -212,7 +226,7 @@ function getContactMethod(primaryLogin: string | undefined, email: string | unde
 /**
  * Gets details about contact methods to be displayed as MenuItems
  */
-function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: LoginList, defaultEmail?: string) {
+function getContactMethodsOptions(translate: LocalizedTranslate, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], loginList?: LoginList, defaultEmail?: string) {
     if (!loginList) {
         return [];
     }

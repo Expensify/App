@@ -1,7 +1,10 @@
-import {useEffect, useRef, useState} from 'react';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+
 import CONST from '@src/CONST';
+
+import {useEffect, useRef, useState} from 'react';
 
 type ScrollToIndex = (index: number, animated?: boolean) => void;
 

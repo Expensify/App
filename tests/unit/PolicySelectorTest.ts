@@ -1,3 +1,5 @@
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,8 +13,9 @@ import {
 } from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
 
-// Centralizes the single unsafe cast needed to build partial Policy fixtures for these selector tests.
-const buildPolicy = (policy: Partial<Policy>): Policy => policy as Policy;
+import createMock from '../utils/createMock';
+
+const buildPolicy = (policy: Partial<Policy>): Policy => createMock<Policy>(policy);
 
 describe('lastWorkspaceNumberSelector', () => {
     const email = 'jdoe@expensify.com';
@@ -38,7 +41,7 @@ describe('lastWorkspaceNumberSelector', () => {
 
     it('should return the number when there is a matching workspace with a number', () => {
         const policies = {
-            [`${ONYXKEYS.COLLECTION.POLICY}1`]: {name: `${workspaceName} 2`} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}1`]: createMock<Policy>({name: `${workspaceName} 2`}),
         };
         expect(lastWorkspaceNumberSelector(policies, email)).toBe(2);
     });
@@ -46,8 +49,8 @@ describe('lastWorkspaceNumberSelector', () => {
     it('should return the maximum number when there are multiple matching workspaces', () => {
         const policies = {
             [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildPolicy({name: workspaceName}),
-            [`${ONYXKEYS.COLLECTION.POLICY}2`]: {name: `${workspaceName} 2`} as Policy,
-            [`${ONYXKEYS.COLLECTION.POLICY}3`]: {name: `${workspaceName} 5`} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}2`]: createMock<Policy>({name: `${workspaceName} 2`}),
+            [`${ONYXKEYS.COLLECTION.POLICY}3`]: createMock<Policy>({name: `${workspaceName} 5`}),
             [`${ONYXKEYS.COLLECTION.POLICY}4`]: buildPolicy({name: 'Other Workspace'}),
         };
         expect(lastWorkspaceNumberSelector(policies, email)).toBe(5);
@@ -58,7 +61,7 @@ describe('lastWorkspaceNumberSelector', () => {
         const smsDisplayName = 'My Group Workspace';
         const policies = {
             [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildPolicy({name: smsDisplayName}),
-            [`${ONYXKEYS.COLLECTION.POLICY}2`]: {name: `${smsDisplayName} 3`} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}2`]: createMock<Policy>({name: `${smsDisplayName} 3`}),
         };
         expect(lastWorkspaceNumberSelector(policies, smsEmail)).toBe(3);
     });
@@ -66,7 +69,7 @@ describe('lastWorkspaceNumberSelector', () => {
     it('should ignore case when matching workspace names', () => {
         const policies = {
             [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildPolicy({name: workspaceName.toLowerCase()}),
-            [`${ONYXKEYS.COLLECTION.POLICY}2`]: {name: `${workspaceName.toUpperCase()} 4`} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}2`]: createMock<Policy>({name: `${workspaceName.toUpperCase()} 4`}),
         };
         expect(lastWorkspaceNumberSelector(policies, email)).toBe(4);
     });
@@ -170,55 +173,40 @@ describe('createCopySettingsEligibleTargetsSelector', () => {
     const adminLogin = 'admin@example.com';
 
     const makePolicy = (overrides: Partial<Policy>): Policy =>
-        ({
+        createMock<Policy>({
             id: 'p1',
             name: 'Test WS',
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
             ...overrides,
-        }) as Policy;
+        });
 
-    it('includes non-personal admin policies in adminNonPersonal', () => {
-        const policies = {[`${P}p1`]: makePolicy({employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}}})};
-        const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
-        expect(result.adminNonPersonal).toContain('p1');
-    });
-
-    it('includes corporate admin policies in both adminNonPersonal and corporateOnly', () => {
+    it('includes paid group (Collect and Control) admin policies', () => {
         const policies = {
-            [`${P}p1`]: makePolicy({
-                type: CONST.POLICY.TYPE.CORPORATE,
-                employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}},
-            }),
+            [`${P}p1`]: makePolicy({type: CONST.POLICY.TYPE.TEAM, employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}}}),
+            [`${P}p2`]: makePolicy({id: 'p2', type: CONST.POLICY.TYPE.CORPORATE, employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}}}),
         };
         const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
-        expect(result.adminNonPersonal).toContain('p1');
-        expect(result.corporateOnly).toContain('p1');
-    });
-
-    it('does not include corporate policies in corporateOnly when type is TEAM', () => {
-        const policies = {
-            [`${P}p1`]: makePolicy({
-                type: CONST.POLICY.TYPE.TEAM,
-                employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}},
-            }),
-        };
-        const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
-        expect(result.adminNonPersonal).toContain('p1');
-        expect(result.corporateOnly).not.toContain('p1');
+        expect(result).toContain('p1');
+        expect(result).toContain('p2');
     });
 
     it('excludes personal policies', () => {
         const policies = {[`${P}p1`]: makePolicy({type: CONST.POLICY.TYPE.PERSONAL})};
         const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
-        expect(result.adminNonPersonal).toHaveLength(0);
-        expect(result.corporateOnly).toHaveLength(0);
+        expect(result).toHaveLength(0);
+    });
+
+    it('excludes Submit policies (not a paid group plan, cannot receive paid settings)', () => {
+        const policies = {[`${P}p1`]: makePolicy({type: CONST.POLICY.TYPE.SUBMIT, employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}}})};
+        const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
+        expect(result).toHaveLength(0);
     });
 
     it('excludes non-admin policies', () => {
         const policies = {[`${P}p1`]: makePolicy({role: CONST.POLICY.ROLE.USER})};
         const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
-        expect(result.adminNonPersonal).toHaveLength(0);
+        expect(result).toHaveLength(0);
     });
 
     it('excludes pending-delete policies', () => {
@@ -229,12 +217,12 @@ describe('createCopySettingsEligibleTargetsSelector', () => {
             }),
         };
         const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
-        expect(result.adminNonPersonal).toHaveLength(0);
+        expect(result).toHaveLength(0);
     });
 
-    it('returns empty arrays when policies is undefined', () => {
+    it('returns an empty array when policies is undefined', () => {
         const result = createCopySettingsEligibleTargetsSelector(adminLogin)(undefined);
-        expect(result).toEqual({adminNonPersonal: [], corporateOnly: []});
+        expect(result).toEqual([]);
     });
 });
 
@@ -243,7 +231,7 @@ describe('createWorkspaceListPoliciesSelector', () => {
     const userLogin = 'user@example.com';
 
     const makePolicy = (overrides: Partial<Policy>): Policy =>
-        ({
+        createMock<Policy>({
             id: 'p1',
             name: 'Test Workspace',
             role: CONST.POLICY.ROLE.ADMIN,
@@ -253,7 +241,7 @@ describe('createWorkspaceListPoliciesSelector', () => {
             pendingAction: undefined,
             errors: undefined,
             ...overrides,
-        }) as Policy;
+        });
 
     it('returns an empty array when policies is undefined', () => {
         expect(createWorkspaceListPoliciesSelector(userLogin)(undefined)).toEqual([]);
@@ -345,17 +333,18 @@ describe('createWorkspaceListPoliciesSelector', () => {
     });
 
     it('populates nonMemberDetails from the first policyDetailsForNonMembers entry when join request is pending', () => {
-        const policy = {
+        const policy = createMock<Policy>({
             isJoinRequestPending: true,
             policyDetailsForNonMembers: {
                 nonMemberPolicyID123: {
                     name: 'External WS',
                     type: CONST.POLICY.TYPE.CORPORATE,
                     ownerAccountID: 99,
+                    ownerEmail: 'owner@example.com',
                     avatar: 'https://img/ext.png',
                 },
             },
-        } as unknown as Policy;
+        });
         const result = createWorkspaceListPoliciesSelector(userLogin)({[`${P}p1`]: policy});
         expect(result).toHaveLength(1);
         expect(result.at(0)?.isJoinRequestPending).toBe(true);
@@ -364,6 +353,8 @@ describe('createWorkspaceListPoliciesSelector', () => {
             name: 'External WS',
             type: CONST.POLICY.TYPE.CORPORATE,
             ownerAccountID: 99,
+            ownerEmail: 'owner@example.com',
+            ownerDefaultAvatar: getDefaultAvatarURL({accountID: 99, accountEmail: 'owner@example.com'}),
             avatar: 'https://img/ext.png',
         });
     });
@@ -379,10 +370,11 @@ describe('createWorkspaceListPoliciesSelector', () => {
     });
 
     it('filters out null values in the policy collection', () => {
-        const policies = {
+        const policies: Record<string, Policy | null> = {
             [`${P}p1`]: null,
             [`${P}p2`]: makePolicy({id: 'p2'}),
-        } as unknown as Record<string, Policy>;
+        };
+        // @ts-expect-error -- intentionally passes a malformed null entry to exercise the selector's runtime guard.
         const result = createWorkspaceListPoliciesSelector(userLogin)(policies);
         expect(result).toHaveLength(1);
         expect(result.at(0)?.id).toBe('p2');

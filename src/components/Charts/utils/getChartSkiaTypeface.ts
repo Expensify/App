@@ -1,10 +1,14 @@
-import type {SkTypeface} from '@shopify/react-native-skia';
-import type {TextStyle} from 'react-native';
 import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
+
 // eslint-disable-next-line no-restricted-imports
 import singleFontFamily from '@styles/utils/FontUtils/fontFamily/singleFontFamily';
-import CHART_TYPEFACE_SAME_FAMILY_FALLBACKS from './chartTypefaceFallbacks';
+
+import type {SkTypeface} from '@shopify/react-native-skia';
+import type {TextStyle} from 'react-native';
+
 import type {ChartLabelFontWeight} from './normalizeChartFontWeight';
+
+import CHART_TYPEFACE_SAME_FAMILY_FALLBACKS from './chartTypefaceFallbacks';
 import normalizeChartFontWeight from './normalizeChartFontWeight';
 
 type ChartLabelFontStyle = 'normal' | 'italic';

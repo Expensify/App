@@ -1,11 +1,10 @@
-import React, {useRef} from 'react';
-import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {ListItem, ListItemProps} from '@components/SelectionList/ListItem/types';
 import TransactionItemRow from '@components/TransactionItemRow';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -13,8 +12,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {View} from 'react-native';
+
+import React, {useRef} from 'react';
 
 function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, onFocus, shouldSyncFocus, onSelectRow, isLastItem}: ListItemProps<TItem>) {
     const styles = useThemeStyles();

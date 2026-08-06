@@ -1,19 +1,24 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LoadingIndicator from '@components/LoadingIndicator';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import {clearPaymentCard3dsVerification, verifySetupIntent} from '@userActions/PaymentMethods';
 import {verifySetupIntentAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 type CardAuthenticationModalProps = {
     /** Title shown in the header of the modal */
@@ -93,7 +98,6 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                     onBackButtonPress={onModalClose}
                     shouldDisplayHelpButton={false}
                 />
-                {isLoading && <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />}
                 <View style={[styles.flex1]}>
                     <iframe
                         src={authenticationLink}
@@ -106,6 +110,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                             setIsLoading(false);
                         }}
                     />
+                    {isLoading && <LoadingIndicator reasonAttributes={reasonAttributes} />}
                 </View>
             </ScreenWrapper>
         </Modal>

@@ -1,18 +1,22 @@
-import Onyx from 'react-native-onyx';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import * as PolicyUtils from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-imports -- this is required to allow mocking
 import * as ReportNameUtils from '@libs/ReportNameUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import {translateLocal} from '../utils/TestHelper';
+import createMock from '../utils/createMock';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock PolicyUtils so isPolicyAdmin are controllable in tests. ModifiedExpenseMessage
@@ -207,7 +211,7 @@ describe('ModifiedExpenseMessage', () => {
                     [mockAccountID]: {accountID: mockAccountID, login: CURRENT_USER_LOGIN},
                 });
 
-                (ReportNameUtils.buildReportNameFromParticipantNames as jest.Mock).mockImplementation(({currentUserAccountID}) => {
+                jest.mocked(ReportNameUtils.buildReportNameFromParticipantNames).mockImplementation(({currentUserAccountID}) => {
                     if (currentUserAccountID === mockAccountID) {
                         return dmReportName;
                     }
@@ -281,6 +285,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the amount to $18.00 (previously $12.55)`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -308,6 +313,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the amount to $18.00 (previously $0.00)`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -334,6 +340,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'set the amount to $18.00';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -362,6 +369,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'set the amount to $18.00 and the merchant to "Taco Bell"';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -391,6 +399,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'changed the amount to $18.00 (previously $12.55)\nremoved the description (previously "this is for the shuttle")';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -422,6 +431,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'changed the amount to $18.00 (previously $12.55)\nset the category to "Benefits"\nremoved the description (previously "this is for the shuttle")';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -451,6 +461,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly")';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -485,6 +496,7 @@ describe('ModifiedExpenseMessage', () => {
                     'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly")\nset the category to "Benefits"\nremoved the description (previously "this is for the shuttle")';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -517,6 +529,7 @@ describe('ModifiedExpenseMessage', () => {
                     'changed the amount to $18.00 (previously $12.55), the description to "I bought it on the way" (previously "from the business trip"), and the merchant to "Taco Bell" (previously "Big Belly")';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -542,6 +555,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `removed the merchant (previously "Big Belly")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -567,6 +581,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `set the merchant to "KFC"`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -592,6 +607,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `set the merchant to "KFC"`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -617,6 +633,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `removed the merchant (previously "Old Merchant")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -642,6 +659,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the merchant to "New Merchant" (previously "Old Merchant")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -669,6 +687,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `removed the description (previously "mini shore") and the merchant (previously "Big Belly")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -698,6 +717,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `removed the description (previously "mini shore"), the merchant (previously "Big Belly"), and the category (previously "Benefits")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -723,6 +743,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `set the merchant to "Big Belly"`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -750,6 +771,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `set the description to "mini shore" and the merchant to "Big Belly"`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -779,6 +801,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `set the description to "mini shore", the merchant to "Big Belly", and the category to "Benefits"`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -804,6 +827,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'changed the date to 2023-12-27 (previously 2023-12-26)';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -828,6 +852,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'changed the expense';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -856,6 +881,7 @@ describe('ModifiedExpenseMessage', () => {
             it('then the message says the distance is changed and shows the new and old merchant and amount', () => {
                 const expectedResult = `changed the distance to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $7.00 (previously $0.70)`;
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -883,6 +909,7 @@ describe('ModifiedExpenseMessage', () => {
             it('then the message says the rate is changed and shows the new and old merchant and amount', () => {
                 const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $39.45)`;
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -912,6 +939,7 @@ describe('ModifiedExpenseMessage', () => {
             it('then the message reports both the rate change and the date change', () => {
                 const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $39.45)\nchanged the date to 2026-06-19 (previously 2025-06-19)`;
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -937,6 +965,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -963,6 +992,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'set the description based on past activity to "Flight to client meeting"';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -989,6 +1019,34 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'changed the description based on past activity to "New description" (previously "Old description")';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the description is changed to a URL', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldComment: '<a href="https://old.example.com" target="_blank">https://old.example.com</a>',
+                    newComment: '<a href="https://new.example.com" target="_blank">https://new.example.com</a>',
+                },
+            };
+
+            it('keeps the stored HTML link instead of converting it to Markdown', () => {
+                const expectedResult =
+                    'changed the description to "<a href="https://new.example.com" target="_blank">https://new.example.com</a>" (previously "<a href="https://old.example.com" target="_blank">https://old.example.com</a>")';
+
+                const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1015,6 +1073,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the category based on past activity to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1041,6 +1100,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the category based on workspace rule to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1069,6 +1129,7 @@ describe('ModifiedExpenseMessage', () => {
                 jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(true);
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: mockPolicy,
@@ -1098,6 +1159,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `set the category based on past activity to "Travel"`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1124,6 +1186,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `set the category based on past activity to "6403 Travel - Member Services"`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1149,6 +1212,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the expense`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1175,6 +1239,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `removed the category based on past activity (previously "Travel")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1194,11 +1259,11 @@ describe('ModifiedExpenseMessage', () => {
                 environmentURL = await getEnvironmentURL();
             });
 
-            const policyRulesPolicy = {id: policyRulesPolicyId, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE} as Policy;
+            const policyRulesPolicy = createMock<Policy>({id: policyRulesPolicyId, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE});
 
             beforeEach(() => {
                 // Default: current user has policy rule access (admin + rules enabled), so link points to workspace rules
-                (PolicyUtils.isPolicyAdmin as jest.Mock).mockReturnValue(true);
+                jest.mocked(PolicyUtils.isPolicyAdmin).mockReturnValue(true);
             });
 
             it('returns the correct text message with multiple overrides', () => {
@@ -1217,6 +1282,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: policyRulesPolicy,
@@ -1249,6 +1315,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: policyRulesPolicy,
@@ -1265,15 +1332,16 @@ describe('ModifiedExpenseMessage', () => {
                 const reportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                    originalMessage: {
+                    originalMessage: createMock<OriginalMessageModifiedExpense>({
                         policyID: '1234',
                         policyRulesModifiedFields: {
                             tax: {},
                         },
-                    } as OriginalMessageModifiedExpense,
+                    }),
                 };
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: policyRulesPolicy,
@@ -1299,6 +1367,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: policyRulesPolicy,
@@ -1324,6 +1393,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: policyRulesPolicy,
@@ -1350,6 +1420,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: policyRulesPolicy,
@@ -1363,7 +1434,7 @@ describe('ModifiedExpenseMessage', () => {
             });
 
             it('returns the correct text message with help link for non-admin', () => {
-                (PolicyUtils.isPolicyAdmin as jest.Mock).mockReturnValue(false);
+                jest.mocked(PolicyUtils.isPolicyAdmin).mockReturnValue(false);
 
                 const reportAction = {
                     ...createRandomReportAction(1),
@@ -1378,6 +1449,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: policyRulesPolicy,
@@ -1405,6 +1477,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the category to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1431,6 +1504,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the category to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1460,6 +1534,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the amount to $18.00 (previously $12.55)`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1474,6 +1549,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the amount to $18.00 (previously $12.55)`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: {
@@ -1508,6 +1584,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'set the amount to $18.00';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1532,6 +1609,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction: firstEditAction,
                     policy: undefined,
@@ -1555,6 +1633,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction: secondEditAction,
                     policy: undefined,
@@ -1584,6 +1663,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'changed the amount to $18.00 (previously $12.55)\nremoved the description (previously "this is for the shuttle")';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1609,6 +1689,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `set the merchant to "Big Belly"`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1634,6 +1715,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `removed the merchant (previously "Big Belly")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1659,6 +1741,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the category to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1673,6 +1756,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the category to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: {
@@ -1707,6 +1791,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the category based on past activity to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1721,6 +1806,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the category based on past activity to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: {
@@ -1755,6 +1841,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the category based on workspace rule to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1771,6 +1858,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `changed the category based on workspace rule to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: {
@@ -1803,6 +1891,7 @@ describe('ModifiedExpenseMessage', () => {
                 jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(true);
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: mockPolicy,
@@ -1834,6 +1923,7 @@ describe('ModifiedExpenseMessage', () => {
             it('then the message says the distance is changed and shows the new and old merchant and amount', () => {
                 const expectedResult = `changed the distance to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $7.00 (previously $0.70)`;
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1859,6 +1949,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     movedFromReport,
@@ -1891,6 +1982,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     movedFromReport,
@@ -1924,6 +2016,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     movedToReport,
@@ -1950,6 +2043,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     movedToReport,
@@ -1973,6 +2067,7 @@ describe('ModifiedExpenseMessage', () => {
 
             it('returns an empty string', () => {
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -1985,6 +2080,7 @@ describe('ModifiedExpenseMessage', () => {
 
             it('returns an empty string even when a valid policy is provided', () => {
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: {
@@ -2015,6 +2111,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'changed the expense';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -2029,6 +2126,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'changed the expense';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: {
@@ -2062,6 +2160,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'changed the expense to "billable" (previously "non-billable")';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -2076,6 +2175,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'changed the expense to "billable" (previously "non-billable")';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: {
@@ -2109,6 +2209,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'changed the expense to "non-reimbursable" (previously "reimbursable")';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -2123,6 +2224,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'changed the expense to "non-reimbursable" (previously "reimbursable")';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: {
@@ -2153,6 +2255,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'changed the expense based on past activity';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: undefined,
@@ -2167,6 +2270,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = 'changed the expense based on past activity';
 
                 const result = getForReportAction({
+                    convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
                     policy: {
@@ -2192,7 +2296,7 @@ describe('ModifiedExpenseMessage', () => {
             // chat entries keep rendering the vendor name after an admin switches export modes away
             // from CC/DC. The fourth case below omits a vendor from the list to exercise the
             // externalID fallback path.
-            const policyWithVendors: Policy = {
+            const policyWithVendors = createMock<Policy>({
                 id: 'p-1',
                 name: 'My Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
@@ -2210,7 +2314,7 @@ describe('ModifiedExpenseMessage', () => {
                         },
                     },
                 },
-            } as Policy;
+            });
 
             describe('when the vendor is set for the first time (oldVendor key stripped by Onyx null-merge)', () => {
                 // Onyx merges with `shouldRemoveNestedNulls: true`, so the optimistic
@@ -2227,6 +2331,7 @@ describe('ModifiedExpenseMessage', () => {
 
                 it('renders "set the vendor to X"', () => {
                     const result = getForReportAction({
+                        convertToDisplayString,
                         translate: translateLocal,
                         reportAction,
                         policy: policyWithVendors,
@@ -2249,6 +2354,7 @@ describe('ModifiedExpenseMessage', () => {
 
                 it('renders "changed the vendor to Y (previously X)"', () => {
                     const result = getForReportAction({
+                        convertToDisplayString,
                         translate: translateLocal,
                         reportAction,
                         policy: policyWithVendors,
@@ -2270,6 +2376,7 @@ describe('ModifiedExpenseMessage', () => {
 
                 it('renders "removed the vendor X"', () => {
                     const result = getForReportAction({
+                        convertToDisplayString,
                         translate: translateLocal,
                         reportAction,
                         policy: policyWithVendors,
@@ -2291,6 +2398,7 @@ describe('ModifiedExpenseMessage', () => {
 
                 it('falls back to rendering the externalID so the fragment still identifies which vendor was set', () => {
                     const result = getForReportAction({
+                        convertToDisplayString,
                         translate: translateLocal,
                         reportAction,
                         policy: policyWithVendors,
@@ -2298,6 +2406,112 @@ describe('ModifiedExpenseMessage', () => {
                         currentUserLogin: CURRENT_USER_LOGIN,
                     });
                     expect(result).toEqual('set the vendor to "v-deleted"');
+                });
+            });
+
+            describe('when the vendor is no longer in the list but a display name was persisted on the action', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        vendor: {externalID: 'v-deleted', name: 'Amazon', isManuallySet: false},
+                    },
+                };
+
+                it('renders the persisted name instead of the raw externalID', () => {
+                    const result = getForReportAction({
+                        convertToDisplayString,
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithVendors,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('set the vendor to "Amazon"');
+                });
+            });
+
+            describe('Xero supplier changes (R4)', () => {
+                // Xero policy with two named supplier contacts. The resolver reads
+                // `connections.xero.data.contacts` (keyed Record), and the label switches to
+                // "supplier" instead of "vendor" because the policy is on Xero.
+                const policyWithXeroSuppliers = createMock<Policy>({
+                    id: 'p-1',
+                    name: 'My Workspace',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    owner: 'test@example.com',
+                    outputCurrency: CONST.CURRENCY.USD,
+                    isPolicyExpenseChatEnabled: true,
+                    connections: {
+                        xero: {
+                            config: {isConfigured: true},
+                            data: {
+                                contacts: {
+                                    xcAcme: {id: 'xcAcme', name: 'Acme Xero', email: 'acme@example.com'},
+                                    xcOffice: {id: 'xcOffice', name: 'Office Supplies Xero', email: 'office@example.com'},
+                                },
+                            },
+                        },
+                    },
+                });
+
+                it('renders "set the supplier to X" for a Xero workspace when the supplier is set for the first time', () => {
+                    const reportAction = {
+                        ...createRandomReportAction(1),
+                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                        originalMessage: {
+                            vendor: {externalID: 'xcAcme', isManuallySet: true},
+                        },
+                    };
+                    const result = getForReportAction({
+                        convertToDisplayString,
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithXeroSuppliers,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('set the supplier to "Acme Xero"');
+                });
+
+                it('renders "changed the supplier to Y (previously X)" when the supplier is changed on a Xero workspace', () => {
+                    const reportAction = {
+                        ...createRandomReportAction(1),
+                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                        originalMessage: {
+                            oldVendor: {externalID: 'xcAcme', isManuallySet: false},
+                            vendor: {externalID: 'xcOffice', isManuallySet: true},
+                        },
+                    };
+                    const result = getForReportAction({
+                        convertToDisplayString,
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithXeroSuppliers,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('changed the supplier to "Office Supplies Xero" (previously "Acme Xero")');
+                });
+
+                it('falls back to rendering the externalID for a Xero supplier no longer in the contacts list', () => {
+                    const reportAction = {
+                        ...createRandomReportAction(1),
+                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                        originalMessage: {
+                            vendor: {externalID: 'xcDeleted', isManuallySet: false},
+                        },
+                    };
+                    const result = getForReportAction({
+                        convertToDisplayString,
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithXeroSuppliers,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('set the supplier to "xcDeleted"');
                 });
             });
         });

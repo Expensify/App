@@ -1,7 +1,10 @@
-import React from 'react';
-import type {ReactNode} from 'react';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import type {OptionData} from '@libs/ReportUtils';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
 
 type OfflineWrapperProps = {
     /** Pending action forwarded to OfflineWithFeedback to drive opacity and strikethrough. */

@@ -1,7 +1,10 @@
-import React from 'react';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
+
 import MerchantRulePageBase from './MerchantRulePageBase';
 
 type EditMerchantRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_EDIT>;

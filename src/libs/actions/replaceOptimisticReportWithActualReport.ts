@@ -1,14 +1,18 @@
-import {DeviceEventEmitter} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isMoneyRequest, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {DeviceEventEmitter} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import {openReport, saveReportDraftComment} from './Report';
 
 /**
@@ -37,22 +41,17 @@ let allReportDraftComments: Record<string, string | undefined> = {};
 // Draft comments are cached only for transferring to the preexisting report; no UI subscribes, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    waitForCollectionCallback: true,
     callback: (value) => (allReportDraftComments = value ?? {}),
 });
 
 let allReports: OnyxCollection<Report>;
 
-const allReportActions: OnyxCollection<ReportActions> = {};
+let allReportActions: OnyxCollection<ReportActions> = {};
 // Report actions are cached only to resolve parent actions for IOU cleanup; no UI subscribes, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
-            return;
-        }
-        const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-        allReportActions[reportID] = actions;
+    callback: (value) => {
+        allReportActions = value ?? {};
     },
 });
 
@@ -75,7 +74,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
     // If an optimistic IOU action was created before we knew a preexisting IOU action for the thread existed,
     // remove it to avoid duplicate IOU report actions
     if (isMoneyRequest(report) && parentReportID && parentReportActionID) {
-        const parentReportAction = allReportActions?.[parentReportID]?.[parentReportActionID];
+        const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID];
         if (parentReportAction?.isOptimisticAction) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentReportActionID]: null,
@@ -114,7 +113,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                     });
                     // Non-optimistic parent actions already exist, so we update their childReportID;
                     // optimistic actions were already cleaned up above
-                    const parentReportAction = parentReportID ? allReportActions?.[parentReportID]?.[parentReportActionID] : null;
+                    const parentReportAction = parentReportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID] : null;
                     if (parentReportAction && !parentReportAction.isOptimisticAction) {
                         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                             [parentReportActionID]: {childReportID: preexistingReportID},
@@ -201,6 +200,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                 isParentOneTransactionReport &&
                 (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(parentReportID)) || activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID})))
             ) {
+                const hasReportActions = !!allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
                 if (draftReportComment) {
                     // Draft must be saved first because the callback will clear the optimistic report and its associated draft
                     saveReportDraftComment(parentReportID, draftReportComment, () => {
@@ -210,7 +210,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                         // betas is safe to pass as undefined because introSelected is undefined, so the code path
                         // that uses betas is never reached. Passing it explicitly so the compiler flags this when
                         // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
-                        openReport({reportID: parentReportID, introSelected: undefined, betas: undefined});
+                        openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, hasReportActions});
                     });
                 } else {
                     callback();
@@ -219,7 +219,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                     // betas is safe to pass as undefined because introSelected is undefined, so the code path
                     // that uses betas is never reached. Passing it explicitly so the compiler flags this when
                     // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
-                    openReport({reportID: parentReportID, introSelected: undefined, betas: undefined});
+                    openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, hasReportActions});
                 }
                 return;
             }
@@ -239,7 +239,6 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
 // Reports are observed only to detect preexistingReportID and run replacement; no UI subscribes, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value: OnyxCollection<Report>) => {
         allReports = value;
 

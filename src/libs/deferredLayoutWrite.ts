@@ -1,3 +1,7 @@
+import CONST from '@src/CONST';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 /**
  * Coordinates deferred API.write() calls with screen content layout transitions.
  *
@@ -18,8 +22,7 @@
  *     item never reaches sortedData (e.g. empty list, API failure, offline).
  */
 import {AppState} from 'react-native';
-import type {OnyxKey} from 'react-native-onyx';
-import CONST from '@src/CONST';
+
 import Log from './Log';
 
 const DEFAULT_SAFETY_TIMEOUT_MS = 5000;

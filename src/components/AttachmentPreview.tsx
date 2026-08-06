@@ -1,20 +1,28 @@
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {cleanFileName, getFileName} from '@libs/fileDownload/FileUtils';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
+import type {SourceLoadEventPayload, VideoThumbnail} from 'expo-video';
+
 import {Str} from 'expensify-common';
 import {useEvent} from 'expo';
-import type {SourceLoadEventPayload, VideoThumbnail} from 'expo-video';
 import {useVideoPlayer} from 'expo-video';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanFileName, getFileName} from '@libs/fileDownload/FileUtils';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
 import {checkIsFileImage} from './Attachments/AttachmentView';
 import DefaultAttachmentView from './Attachments/AttachmentView/DefaultAttachmentView';
 import Icon from './Icon';
 import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import {PressableWithFeedback} from './Pressable';
+
+const PDF_FIT_POLICY_FIT_BOTH = 2;
 
 type AttachmentPreviewProps = {
     /** Source for file. */
@@ -120,9 +128,9 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_PREVIEW.PDF_THUMBNAIL}
             >
                 <PDFThumbnail
-                    fitPolicy={1}
+                    fitPolicy={PDF_FIT_POLICY_FIT_BOTH}
                     previewSourceURL={source}
-                    style={[styles.br4]}
+                    style={[styles.w100, styles.h100, styles.br4]}
                     onLoadError={onLoadError}
                     onPassword={() => setIsEncryptedPDF(true)}
                 />

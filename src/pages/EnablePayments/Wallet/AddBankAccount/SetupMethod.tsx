@@ -1,14 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openPersonalBankAccountSetupWithPlaid} from '@userActions/BankAccounts';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function SetupMethod() {
     const styles = useThemeStyles();

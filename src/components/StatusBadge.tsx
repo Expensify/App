@@ -1,9 +1,12 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Badge from './Badge';
 import Tooltip from './Tooltip';
 

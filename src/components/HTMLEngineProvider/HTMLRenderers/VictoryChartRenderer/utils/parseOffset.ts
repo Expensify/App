@@ -1,4 +1,5 @@
 import type {ChartBounds} from 'victory-native';
+
 import {parseAttributeAsNumber} from './parseAttribute';
 
 /**

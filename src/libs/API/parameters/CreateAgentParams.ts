@@ -7,6 +7,9 @@ type CreateAgentParams = {
     prompt: string;
     policyID?: string;
     optimisticAccountID: string;
+    isPersonalAgent: boolean;
+    optimisticReportID: string;
+    createdReportActionID: string;
 };
 
 export default CreateAgentParams;

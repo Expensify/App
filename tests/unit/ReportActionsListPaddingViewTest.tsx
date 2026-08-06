@@ -1,14 +1,19 @@
 import {render, screen} from '@testing-library/react-native';
-import React from 'react';
-import {StyleSheet} from 'react-native';
-import type {ViewStyle} from 'react-native';
+
 import Text from '@components/Text';
+
 import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
+
+import {isRecord} from '@libs/ObjectUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
+
 import ReportActionsListPaddingView from '@pages/inbox/report/ReportActionsListPaddingView';
 import useShouldShowComposerForActiveEditDraft from '@pages/inbox/report/useShouldShowComposerForActiveEditDraft';
+
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
+
+import React from 'react';
 
 const PB4_PADDING_BOTTOM = 16;
 
@@ -25,19 +30,19 @@ jest.mock('@hooks/useThemeStyles', () => () => ({
     pb4: {paddingBottom: PB4_PADDING_BOTTOM},
 }));
 
-const mockUseReportRecipientLocalTime = useReportRecipientLocalTime as jest.MockedFunction<typeof useReportRecipientLocalTime>;
-const mockUseShouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft as jest.MockedFunction<typeof useShouldShowComposerForActiveEditDraft>;
-const mockCanUserPerformWriteAction = canUserPerformWriteAction as jest.MockedFunction<typeof canUserPerformWriteAction>;
+const mockUseReportRecipientLocalTime = jest.mocked(useReportRecipientLocalTime);
+const mockUseShouldShowComposerForActiveEditDraft = jest.mocked(useShouldShowComposerForActiveEditDraft);
+const mockCanUserPerformWriteAction = jest.mocked(canUserPerformWriteAction);
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 
-const REPORT = {
+const REPORT: Report = {
     reportID: '1',
     type: CONST.REPORT.TYPE.CHAT,
     participants: {
         [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
     },
-} as Report;
+};
 
 type PaddingScenario = {
     canShowRecipientLocalTime: boolean;
@@ -87,11 +92,24 @@ function renderPaddingView(isReportArchived = false) {
 function getPaddingBottom(toJSON: ReturnType<typeof render>['toJSON']) {
     const root = toJSON();
 
-    if (!root || typeof root !== 'object' || !('props' in root)) {
+    if (!root || !isRecord(root) || !('props' in root) || !isRecord(root.props)) {
         return undefined;
     }
 
-    return StyleSheet.flatten(root.props?.style as ViewStyle)?.paddingBottom;
+    const style = root.props.style;
+    if (!Array.isArray(style)) {
+        return undefined;
+    }
+
+    for (let index = style.length - 1; index >= 0; index -= 1) {
+        const entry: unknown = style.at(index);
+        if (!isRecord(entry) || !('paddingBottom' in entry)) {
+            continue;
+        }
+        return typeof entry.paddingBottom === 'number' ? entry.paddingBottom : undefined;
+    }
+
+    return undefined;
 }
 
 describe('ReportActionsListPaddingView', () => {

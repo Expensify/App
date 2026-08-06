@@ -1,4 +1,3 @@
-import type {ParamListBase, PartialState, RouterConfigOptions} from '@react-navigation/native';
 import Log from '@libs/Log';
 import type {
     DismissModalActionType,
@@ -7,8 +6,12 @@ import type {
     RootStackNavigatorAction,
 } from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+
+import type {ParamListBase, PartialState, RouterConfigOptions} from '@react-navigation/native';
+
 import type {CustomHistoryEntry} from './types';
 
 type RootHistoryState = PlatformStackNavigationState<ParamListBase>;

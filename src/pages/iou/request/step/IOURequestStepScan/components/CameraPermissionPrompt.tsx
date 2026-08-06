@@ -1,13 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type CameraPermissionPromptProps = {
     /** Whether the device is currently in landscape orientation */
@@ -41,7 +44,7 @@ function CameraPermissionPrompt({isInLandscapeMode, onPress}: CameraPermissionPr
                     accessibilityLabel={translate('common.continue')}
                     style={[styles.p9, styles.pt5]}
                     onPress={onPress}
-                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
+                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_CAMERA_PERMISSION_PROMPT_BUTTON}
                 />
             </View>
         </ScrollView>

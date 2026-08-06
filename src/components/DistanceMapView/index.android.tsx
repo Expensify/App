@@ -1,14 +1,17 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import MapView from '@components/MapView';
 import PendingMapView from '@components/MapView/PendingMapView';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import type DistanceMapViewProps from './types';
 
 function DistanceMapView({overlayStyle, requireRouteToDisplayMap, ...rest}: DistanceMapViewProps) {

@@ -1,18 +1,34 @@
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
-import type {UseOnyxResult} from 'react-native-onyx';
+
 import PayActionButton from '@components/ReportActionItem/MoneyRequestReportPreview/PayActionButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+
 import useOnyx from '@hooks/useOnyx';
-import {hasHeldExpensesFromTransactions} from '@libs/ReportUtils';
+
+import {hasHeldExpensesFromTransactions, hasViolations} from '@libs/ReportUtils';
+
 import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, TransactionViolations} from '@src/types/onyx';
+
+import type {OnyxCollection, UseOnyxResult} from 'react-native-onyx';
+
+import React from 'react';
 
 const TEST_IOU_REPORT_ID = '1001';
 const TEST_CHAT_REPORT_ID = '2002';
+const TEST_TRANSACTION_ID = '3003';
 const SELECTED_BANK_ACCOUNT_ID = 9999;
+
+const reportViolations: OnyxCollection<TransactionViolations> = {
+    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TEST_TRANSACTION_ID}`]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}],
+};
+
+// Mutable so each test can back the mocked useReportPreviewTransactionViolations slice with a specific value.
+let mockTransactionViolations: OnyxCollection<TransactionViolations> = {};
 
 const iouReport = {
     reportID: TEST_IOU_REPORT_ID,
@@ -28,6 +44,26 @@ const chatReport = {
     type: CONST.REPORT.TYPE.CHAT,
 } as Report;
 
+// PayActionButton reads from context instead of props; these mock-prefixed objects back the mocked context slice hooks.
+const mockReportPreviewData = {iouReportID: TEST_IOU_REPORT_ID, chatReportID: TEST_CHAT_REPORT_ID, chatReport, transactions: []};
+const mockReportPreviewAnimationState = {isPaidAnimationRunning: false, isApprovedAnimationRunning: false, isSubmittingAnimationRunning: false};
+const mockReportPreviewActions = {
+    stopAnimation: jest.fn(),
+    startAnimation: jest.fn(),
+    startApprovedAnimation: jest.fn(),
+    onPaymentOptionsShow: jest.fn(),
+    onPaymentOptionsHide: jest.fn(),
+    onHoldMenuOpen: jest.fn(),
+};
+const mockReportPreviewUIState = {buttonMaxWidth: {}};
+const mockReportPreviewActionState = {
+    reportPreviewAction: CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY,
+    canIOUBePaid: true,
+    onlyShowPayElsewhere: false,
+    shouldShowPayButton: true,
+    connectedIntegration: undefined,
+};
+
 function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T> {
     return [value, {status: 'loaded'}];
 }
@@ -35,10 +71,13 @@ function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T
 // Capture the onPress (confirmPayment) handler PayActionButton passes to the settlement button so the payment can be
 // confirmed with a specific selected bank account, mirroring a user picking an account in the dropdown.
 const mockOnPressHolder: {current?: (params: PaymentActionParams) => void} = {current: undefined};
+// Also capture confirmApproval so the approval path (the only consumer of hasViolations here) can be triggered.
+const mockConfirmApprovalHolder: {current?: () => void} = {current: undefined};
 jest.mock('@components/SettlementButton/AnimatedSettlementButton', () => ({
     __esModule: true,
-    default: (props: {onPress?: (params: PaymentActionParams) => void}) => {
+    default: (props: {onPress?: (params: PaymentActionParams) => void; confirmApproval?: () => void}) => {
         mockOnPressHolder.current = props.onPress;
+        mockConfirmApprovalHolder.current = props.confirmApproval;
         return null;
     },
 }));
@@ -99,33 +138,35 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     useDelegateNoAccessActions: jest.fn(() => ({showDelegateNoAccessModal: jest.fn()})),
 }));
 
+jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
+    __esModule: true,
+    useReportPreviewData: () => mockReportPreviewData,
+    useReportPreviewTransactionViolations: () => ({transactionViolations: mockTransactionViolations}),
+    useReportPreviewAnimationState: () => mockReportPreviewAnimationState,
+    useReportPreviewActions: () => mockReportPreviewActions,
+    useReportPreviewUIState: () => mockReportPreviewUIState,
+    useReportPreviewActionState: () => mockReportPreviewActionState,
+}));
+
 const mockedUseOnyx = jest.mocked(useOnyx);
 const mockedPayMoneyRequest = jest.mocked(payMoneyRequest);
+const mockedApproveMoneyRequest = jest.mocked(approveMoneyRequest);
 const mockedHasHeldExpenses = jest.mocked(hasHeldExpensesFromTransactions);
+const mockedHasViolations = jest.mocked(hasViolations);
 
 function renderPayActionButton(onHoldMenuOpen: jest.Mock) {
-    return render(
-        <PayActionButton
-            iouReportID={TEST_IOU_REPORT_ID}
-            chatReportID={TEST_CHAT_REPORT_ID}
-            chatReport={chatReport}
-            isPaidAnimationRunning={false}
-            isApprovedAnimationRunning={false}
-            stopAnimation={jest.fn()}
-            startAnimation={jest.fn()}
-            startApprovedAnimation={jest.fn()}
-            onHoldMenuOpen={onHoldMenuOpen}
-            buttonMaxWidth={{}}
-            reportPreviewAction={CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY}
-        />,
-    );
+    mockReportPreviewActions.onHoldMenuOpen = onHoldMenuOpen;
+    return render(<PayActionButton />);
 }
 
 describe('PayActionButton', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockOnPressHolder.current = undefined;
+        mockConfirmApprovalHolder.current = undefined;
+        mockTransactionViolations = {};
         mockedHasHeldExpenses.mockReturnValue(false);
+        mockedHasViolations.mockReturnValue(false);
         mockedUseOnyx.mockImplementation((key) => {
             if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_IOU_REPORT_ID}`) {
                 return createOnyxResult<Report>(iouReport);
@@ -186,5 +227,18 @@ describe('PayActionButton', () => {
 
         expect(onHoldMenuOpen).toHaveBeenCalledWith(CONST.IOU.REPORT_ACTION_TYPE.PAY, CONST.IOU.PAYMENT_TYPE.VBBA, expect.anything(), SELECTED_BANK_ACCOUNT_ID);
         expect(mockedPayMoneyRequest).not.toHaveBeenCalled();
+    });
+
+    it('computes hasViolations from the context violations and forwards the result to approveMoneyRequest', () => {
+        mockTransactionViolations = reportViolations;
+        mockedHasViolations.mockReturnValue(true);
+        renderPayActionButton(jest.fn());
+
+        act(() => {
+            mockConfirmApprovalHolder.current?.();
+        });
+
+        expect(mockedHasViolations.mock.calls.at(-1)?.[1]).toBe(reportViolations);
+        expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({hasViolations: true}));
     });
 });

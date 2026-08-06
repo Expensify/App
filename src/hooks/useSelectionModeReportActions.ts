@@ -1,26 +1,29 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
+
 import {canIOUBePaid as canIOUBePaidAction} from '@libs/actions/IOU/ReportWorkflow';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, hasUpdatedTotal, shouldShowMarkAsDone} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {useState} from 'react';
+
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useEnvironment from './useEnvironment';
@@ -63,7 +66,7 @@ function useSelectionModeReportActions({
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
@@ -120,7 +123,7 @@ function useSelectionModeReportActions({
     const canAllowSettlement = hasUpdatedTotal(report, policy);
 
     const totalAmount = getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, shouldShowPayButton, transactions);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, shouldShowPayButton, transactions, convertToDisplayString);
 
     // Primary/secondary action detection
     const currentUserEmail = currentUserLogin ?? '';
@@ -140,6 +143,7 @@ function useSelectionModeReportActions({
         isChatReportArchived,
         invoiceReceiverPolicy,
         ownerLogin: submitterLogin,
+        isOffline,
     });
 
     const secondaryActions = (() => {
@@ -164,6 +168,7 @@ function useSelectionModeReportActions({
             outstandingReportsByPolicyID,
             isChatReportArchived,
             isProduction,
+            isOffline,
         });
     })();
 
@@ -181,10 +186,11 @@ function useSelectionModeReportActions({
     // Shared payment hook
     const {
         confirmPayment,
-        shouldBlockAction,
-        onSelectionModePaymentSelect: basePaymentSelect,
+        runPaymentAction,
+        invokePaymentSelect,
         selectionModeKYCSuccess,
         paymentSubMenuItems,
+        handleWorkspaceSelected,
         hasPayInSelectionMode,
         isAnyTransactionOnHold,
         isInvoiceReport,
@@ -201,11 +207,7 @@ function useSelectionModeReportActions({
             setRequestType(rt);
             setPaymentType(pt);
             setSelectedVBBAToPayFromHoldMenu(methodID);
-            if (getPlatform() === CONST.PLATFORM.IOS) {
-                InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
-            } else {
-                setIsHoldMenuVisible(true);
-            }
+            setIsHoldMenuVisible(true);
         },
         onPaymentComplete: () => {
             clearSelectedTransactions(true);
@@ -214,15 +216,14 @@ function useSelectionModeReportActions({
         confirmApproval,
     });
 
-    // Wrap payment select with InteractionManager for mobile performance
-    // Note: shouldBlockAction is checked synchronously for immediate modal feedback,
-    // and also inside basePaymentSelect (for the desktop path that uses it directly).
+    // Defer payment select until the popover dismiss animation completes. Blocking modals are shown
+    // synchronously inside the callback (popover already closed) to avoid double-defer on Android.
     const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        if (shouldBlockAction(iouPaymentType)) {
-            return;
-        }
-        InteractionManager.runAfterInteractions(() => {
-            basePaymentSelect(event, iouPaymentType, triggerKYCFlow);
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                runPaymentAction(iouPaymentType, false, () => invokePaymentSelect(event, iouPaymentType, triggerKYCFlow));
+            },
+            waitForUpcomingTransition: true,
         });
     };
 
@@ -285,7 +286,6 @@ function useSelectionModeReportActions({
         handleHoldMenuConfirm,
         confirmPayment,
         confirmApproval,
-        shouldBlockAction,
 
         // Pay-related
         hasPayAction,
@@ -305,6 +305,7 @@ function useSelectionModeReportActions({
         // KYC dropdown integration
         onSelectionModePaymentSelect,
         selectionModeKYCSuccess,
+        handleWorkspaceSelected,
 
         // Data for external use
         primaryAction,

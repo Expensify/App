@@ -1,8 +1,11 @@
-import React from 'react';
+import EmojiWithTooltip from '@components/EmojiWithTooltip';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import EmojiWithTooltip from '@components/EmojiWithTooltip';
-import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
 
 function EmojiRenderer({tnode, style: styleProp}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();

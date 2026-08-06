@@ -1,4 +1,3 @@
-import React, {useCallback, useMemo} from 'react';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -6,12 +5,19 @@ import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Fo
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getFieldRequiredErrors, isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
+
 import {clearErrors} from '@userActions/FormActions';
+
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
+
+import React, {useCallback, useMemo} from 'react';
 
 function IsAuthorizedToUseBankAccountLabel() {
     const {translate} = useLocalize();

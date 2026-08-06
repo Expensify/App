@@ -1,14 +1,17 @@
+import Git from '@scripts/utils/Git';
+
 /**
  * @jest-environment node
  */
 import {execSync} from 'child_process';
+import {Str} from 'expensify-common';
 import fs from 'fs';
-import dedent from '@libs/StringUtils/dedent';
-import Git from '@scripts/utils/Git';
+
+import createMock from '../utils/createMock';
 
 // Mock execSync to control git diff output
 jest.mock('child_process');
-const mockExecSync = execSync as jest.MockedFunction<typeof execSync>;
+const mockExecSync = jest.mocked(execSync);
 
 // Test constants for untracked files tests
 const MOCK_COMPONENT_CONTENT = 'const Component = () => null;\n';
@@ -94,7 +97,7 @@ describe('Git', () => {
         });
 
         it('handles simple single file diff with additions and removals', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/src/file.ts b/src/file.ts
                 index 1234567..abcdefg 100644
                 --- a/src/file.ts
@@ -155,7 +158,7 @@ describe('Git', () => {
         });
 
         it('handles multiple hunks in a single file', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/src/file.ts b/src/file.ts
                 index 1234567..abcdefg 100644
                 --- a/src/file.ts
@@ -207,7 +210,7 @@ describe('Git', () => {
         });
 
         it('handles multiple files in diff', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/src/file1.ts b/src/file1.ts
                 index 1234567..abcdefg 100644
                 --- a/src/file1.ts
@@ -251,7 +254,7 @@ describe('Git', () => {
         });
 
         it('handles diff with specific file path', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/src/languages/en.ts b/src/languages/en.ts
                 index 1234567..abcdefg 100644
                 --- a/src/languages/en.ts
@@ -282,9 +285,7 @@ describe('Git', () => {
 
         it('throws error when git command fails with invalid ref', () => {
             mockExecSync.mockImplementation(() => {
-                const error = new Error("fatal: bad revision 'invalid-ref'") as Error & {status: number};
-                // Simulate execSync behavior with non-zero exit code
-                error.status = 128;
+                const error = Object.assign(new Error("fatal: bad revision 'invalid-ref'"), {status: 128});
                 throw error;
             });
 
@@ -293,8 +294,7 @@ describe('Git', () => {
 
         it('throws error when git command fails with other errors', () => {
             mockExecSync.mockImplementation(() => {
-                const error = new Error('fatal: not a git repository') as Error & {status: number};
-                error.status = 128;
+                const error = Object.assign(new Error('fatal: not a git repository'), {status: 128});
                 throw error;
             });
 
@@ -303,8 +303,7 @@ describe('Git', () => {
 
         it('throws error when file path does not exist', () => {
             mockExecSync.mockImplementation(() => {
-                const error = new Error("fatal: pathspec 'nonexistent.ts' did not match any files") as Error & {status: number};
-                error.status = 1;
+                const error = Object.assign(new Error("fatal: pathspec 'nonexistent.ts' did not match any files"), {status: 1});
                 throw error;
             });
 
@@ -312,7 +311,7 @@ describe('Git', () => {
         });
 
         it('handles unified diff format without context lines', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/test.ts b/test.ts
                 index 1234567..abcdefg 100644
                 --- a/test.ts
@@ -363,7 +362,7 @@ describe('Git', () => {
 
         it('calculates modified lines correctly when lines are replaced', () => {
             // 2 lines removed, 2 lines added = 2 modified lines
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/test.ts b/test.ts
                 index 1234567..abcdefg 100644
                 --- a/test.ts
@@ -392,7 +391,7 @@ describe('Git', () => {
 
         it('calculates modified lines with net additions', () => {
             // 1 line removed, 3 lines added = 1 modified line + 2 added lines
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/test.ts b/test.ts
                 index 1234567..abcdefg 100644
                 --- a/test.ts
@@ -421,7 +420,7 @@ describe('Git', () => {
 
         it('calculates modified lines with net removals', () => {
             // 3 lines removed, 1 line added = 1 modified line + 2 removed lines
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/test.ts b/test.ts
                 index 1234567..abcdefg 100644
                 --- a/test.ts
@@ -450,7 +449,7 @@ describe('Git', () => {
 
         it('handles pure additions correctly', () => {
             // 0 lines removed, 2 lines added = 0 modified lines + 2 added lines
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/test.ts b/test.ts
                 index 1234567..abcdefg 100644
                 --- a/test.ts
@@ -476,7 +475,7 @@ describe('Git', () => {
 
         it('handles pure removals correctly', () => {
             // 2 lines removed, 0 lines added = 0 modified lines + 2 removed lines
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/test.ts b/test.ts
                 index 1234567..abcdefg 100644
                 --- a/test.ts
@@ -502,7 +501,7 @@ describe('Git', () => {
 
         it('handles interleaved additions and removals correctly', () => {
             // Non-consecutive additions and removals within a hunk (with -U0, they're in separate hunks)
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/test.ts b/test.ts
                 index 1234567..abcdefg 100644
                 --- a/test.ts
@@ -532,7 +531,7 @@ describe('Git', () => {
         });
 
         it('handles "No newline at end of file" markers correctly', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/file.ts b/file.ts
                 index 1234567..abcdefg 100644
                 --- a/file.ts
@@ -562,7 +561,7 @@ describe('Git', () => {
 
     describe('fileDiffType', () => {
         it('returns "added" for newly added files with single hunk starting at line 0', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/new-file.ts b/new-file.ts
                 new file mode 100644
                 index 0000000..1234567
@@ -587,7 +586,7 @@ describe('Git', () => {
         });
 
         it('returns "added" for newly added files with single line', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/single-line.ts b/single-line.ts
                 new file mode 100644
                 index 0000000..1234567
@@ -610,7 +609,7 @@ describe('Git', () => {
         });
 
         it('returns "added" for files with multiple hunks that are completely new', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/multi-hunk.ts b/multi-hunk.ts
                 new file mode 100644
                 index 0000000..1234567
@@ -637,7 +636,7 @@ describe('Git', () => {
         });
 
         it('returns "modified" for files with modified lines', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/modified.ts b/modified.ts
                 index 1234567..abcdefg 100644
                 --- a/modified.ts
@@ -660,7 +659,7 @@ describe('Git', () => {
         });
 
         it('returns "modified" for files with removed lines', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/removed.ts b/removed.ts
                 index 1234567..abcdefg 100644
                 --- a/removed.ts
@@ -683,7 +682,7 @@ describe('Git', () => {
         });
 
         it('returns "modified" for files with both added and modified lines', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/mixed.ts b/mixed.ts
                 index 1234567..abcdefg 100644
                 --- a/mixed.ts
@@ -707,7 +706,7 @@ describe('Git', () => {
         });
 
         it('returns "modified" for files with both added and removed lines', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/mixed.ts b/mixed.ts
                 index 1234567..abcdefg 100644
                 --- a/mixed.ts
@@ -732,7 +731,7 @@ describe('Git', () => {
         });
 
         it('returns "modified" for files with added lines but oldStart !== 0', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/inserted.ts b/inserted.ts
                 index 1234567..abcdefg 100644
                 --- a/inserted.ts
@@ -755,7 +754,7 @@ describe('Git', () => {
         });
 
         it('returns "modified" for files with added lines but oldCount !== 0', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/partial.ts b/partial.ts
                 index 1234567..abcdefg 100644
                 --- a/partial.ts
@@ -778,7 +777,7 @@ describe('Git', () => {
         });
 
         it('returns "modified" for files with no added lines', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/no-additions.ts b/no-additions.ts
                 index 1234567..abcdefg 100644
                 --- a/no-additions.ts
@@ -801,7 +800,7 @@ describe('Git', () => {
         });
 
         it('returns "modified" for files with only modified lines and no additions', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/modified-only.ts b/modified-only.ts
                 index 1234567..abcdefg 100644
                 --- a/modified-only.ts
@@ -824,7 +823,7 @@ describe('Git', () => {
         });
 
         it('returns "modified" for existing files with a single line added at the beginning', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/existing-file.ts b/existing-file.ts
                 index 1234567..abcdefg 100644
                 --- a/existing-file.ts
@@ -847,7 +846,7 @@ describe('Git', () => {
         });
 
         it('returns "removed" for completely removed files', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/removed-file.ts b/removed-file.ts
                 deleted file mode 100644
                 index 1234567..0000000
@@ -872,7 +871,7 @@ describe('Git', () => {
         });
 
         it('returns "removed" for single-line files that are deleted', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/single-line-file.ts b/single-line-file.ts
                 deleted file mode 100644
                 index 1234567..0000000
@@ -896,7 +895,7 @@ describe('Git', () => {
         });
 
         it('returns "removed" for files with multiple hunks that are deleted', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/multi-hunk-removed.ts b/multi-hunk-removed.ts
                 deleted file mode 100644
                 index 1234567..0000000
@@ -926,7 +925,7 @@ describe('Git', () => {
         });
 
         it('uses the old file path for removed files (not /dev/null)', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/src/utils/helper.ts b/src/utils/helper.ts
                 deleted file mode 100644
                 index 1234567..0000000
@@ -952,7 +951,7 @@ describe('Git', () => {
         });
 
         it('correctly populates removedLines for deleted files', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/deleted.ts b/deleted.ts
                 deleted file mode 100644
                 index 1234567..0000000
@@ -985,7 +984,7 @@ describe('Git', () => {
     describe('parseDiff with context lines', () => {
         it('calculates correct line numbers when context lines are present', () => {
             // GitHub API diffs include 3 context lines by default
-            const diffWithContext = dedent(`
+            const diffWithContext = Str.dedent(`
                 diff --git a/src/languages/en.ts b/src/languages/en.ts
                 --- a/src/languages/en.ts
                 +++ b/src/languages/en.ts
@@ -1033,7 +1032,7 @@ describe('Git', () => {
 
         it('calculates correct line numbers with zero context lines', () => {
             // Local git diff uses -U0
-            const diffWithoutContext = dedent(`
+            const diffWithoutContext = Str.dedent(`
                 diff --git a/src/languages/en.ts b/src/languages/en.ts
                 --- a/src/languages/en.ts
                 +++ b/src/languages/en.ts
@@ -1055,7 +1054,7 @@ describe('Git', () => {
         });
 
         it('handles context lines interleaved with additions and removals', () => {
-            const diff = dedent(`
+            const diff = Str.dedent(`
                 diff --git a/file.ts b/file.ts
                 --- a/file.ts
                 +++ b/file.ts
@@ -1086,7 +1085,7 @@ describe('Git', () => {
 
         it('produces same line numbers for -U0 and context diffs', () => {
             // Same logical change, different context levels
-            const withContext = dedent(`
+            const withContext = Str.dedent(`
                 diff --git a/file.ts b/file.ts
                 --- a/file.ts
                 +++ b/file.ts
@@ -1098,7 +1097,7 @@ describe('Git', () => {
                  line11
             `);
 
-            const withoutContext = dedent(`
+            const withoutContext = Str.dedent(`
                 diff --git a/file.ts b/file.ts
                 --- a/file.ts
                 +++ b/file.ts
@@ -1118,7 +1117,7 @@ describe('Git', () => {
         });
 
         it('calculates correct removed line numbers with context lines', () => {
-            const diff = dedent(`
+            const diff = Str.dedent(`
                 diff --git a/file.ts b/file.ts
                 --- a/file.ts
                 +++ b/file.ts
@@ -1149,7 +1148,7 @@ describe('Git', () => {
         });
 
         it('tracks contextLineCount independently per hunk', () => {
-            const diff = dedent(`
+            const diff = Str.dedent(`
                 diff --git a/file.ts b/file.ts
                 --- a/file.ts
                 +++ b/file.ts
@@ -1230,7 +1229,7 @@ describe('Git', () => {
         beforeEach(() => {
             jest.clearAllMocks();
             mockExistsSync = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-            jest.spyOn(fs, 'statSync').mockReturnValue({isFile: () => true} as fs.Stats);
+            jest.spyOn(fs, 'statSync').mockReturnValue(createMock<fs.Stats>({isFile: () => true}));
             mockReadFileSync = jest.spyOn(fs, 'readFileSync');
         });
 
@@ -1283,7 +1282,7 @@ describe('Git', () => {
         });
 
         it('merges tracked changes with untracked files', () => {
-            const mockDiffOutput = dedent(`
+            const mockDiffOutput = Str.dedent(`
                 diff --git a/src/tracked.ts b/src/tracked.ts
                 index 1234567..abcdefg 100644
                 --- a/src/tracked.ts
