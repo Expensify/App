@@ -9,7 +9,6 @@ import {useSearchResultsContext} from '@components/Search/SearchContext';
 import type {ReportFieldKey, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useExportedToFilterOptions from '@hooks/useExportedToFilterOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -145,7 +144,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {isOffline} = useNetwork();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
-    const {exportedToFilterDisplayNames} = useExportedToFilterOptions();
     const {setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const filters = mapFiltersFormToLabelValueList(
         searchAdvancedFiltersForm,
@@ -199,15 +197,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
             },
         }),
     );
-
-    for (const filter of filters) {
-        if (filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
-            continue;
-        }
-        filter.value = Array.isArray(filter.value)
-            ? filter.value.map((value) => exportedToFilterDisplayNames.get(value) ?? value)
-            : (exportedToFilterDisplayNames.get(filter.value) ?? filter.value);
-    }
 
     const clearFilters = () => {
         setFilterQueryParams(getAdvancedFiltersToReset(searchAdvancedFiltersForm ?? {}));

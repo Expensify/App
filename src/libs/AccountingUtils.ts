@@ -48,7 +48,10 @@ function getRouteParamForConnection(connectionName: ConnectionName) {
     return NAME_ROUTE_MAPPING[connectionName];
 }
 
-function getSearchValueForConnection(connectionName: ConnectionName): string {
+function getSearchValueForConnection(connectionName: ConnectionName, policy?: OnyxEntry<Policy>): string {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO && isIntuitEnterpriseSuiteConnection(policy)) {
+        return CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE;
+    }
     return CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
 }
 

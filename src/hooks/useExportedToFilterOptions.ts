@@ -1,6 +1,6 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
-import {getAccountingIntegrationDisplayName, getStandardExportTemplateDisplayName, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
+import {getSearchValueForConnection, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies, getFilterFromQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -10,14 +10,12 @@ import type {ExportTemplate, Policy} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import useCombinedExportTemplates from './useCombinedExportTemplates';
-import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 type UseExportedToFilterDataResult = {
     exportedToFilterOptions: string[];
     combinedUniqueExportTemplates: ExportTemplate[];
     connectedIntegrationNames: Set<string>;
-    exportedToFilterDisplayNames: Map<string, string>;
 };
 
 /**
@@ -44,7 +42,6 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
  * When currentSearchQueryJSON has policyID, options are scoped to those workspaces so form hydration and autocomplete stay consistent.
  */
 export default function useExportedToFilterOptions(): UseExportedToFilterDataResult {
-    const {translate} = useLocalize();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const policyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
 
@@ -70,26 +67,24 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
 
     const connectedIntegrationNames = policyIDs.value?.length === 0 ? new Set<string>() : getConnectedIntegrationNamesForPolicies(policies, policyIDs);
 
-    const displayNameToConnectionName = new Map<string, string>(
-        Object.entries(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY).map(([connectionName, displayName]) => [displayName, connectionName]),
-    );
+    const connectedIntegrationSearchValues = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.flatMap((connectionName) => {
+        if (!connectedIntegrationNames.has(connectionName)) {
+            return [];
+        }
 
-    const connectedIntegrationDisplayNames = CONST.POLICY.CONNECTIONS.EXPORTED_TO_INTEGRATION_DISPLAY_NAMES.filter((displayName) => {
-        const connectionName = displayNameToConnectionName.get(displayName);
-        return connectionName && connectedIntegrationNames.has(connectionName);
+        const connectionPolicies = policiesToUse.filter((policy) => !!policy?.connections?.[connectionName]);
+        if (connectionPolicies.length === 0) {
+            return [getSearchValueForConnection(connectionName)];
+        }
+        return [...new Set(connectionPolicies.map((policy) => getSearchValueForConnection(connectionName, policy)))];
     });
 
-    const exportedToFilterOptions = [...new Set([...connectedIntegrationDisplayNames, ...standardAndCustomExportTemplates])];
-    const quickbooksPolicies = policiesToUse.filter((policy) => !!policy?.connections?.quickbooksOnline);
-    const areAllQuickbooksConnectionsIES = quickbooksPolicies.length > 0 && quickbooksPolicies.every(isIntuitEnterpriseSuiteConnection);
-    const quickbooksDisplayName = getAccountingIntegrationDisplayName(areAllQuickbooksConnectionsIES ? quickbooksPolicies.at(0) : undefined, CONST.POLICY.CONNECTIONS.NAME.QBO, translate);
-    const exportedToFilterDisplayNames = new Map([[CONST.EXPORT_LABELS.QBO, quickbooksDisplayName]]);
+    const exportedToFilterOptions = [...new Set([...connectedIntegrationSearchValues, ...standardAndCustomExportTemplates])];
 
     return {
         exportedToFilterOptions,
         combinedUniqueExportTemplates,
         connectedIntegrationNames,
-        exportedToFilterDisplayNames,
     };
 }
 

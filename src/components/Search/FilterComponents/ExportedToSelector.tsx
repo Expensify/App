@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getAccountingIntegrationDisplayName, getSearchValueForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
+import {getSearchValueForConnection} from '@libs/AccountingUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies} from '@libs/SearchQueryUtils';
 
@@ -35,7 +35,7 @@ const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
 
 function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: ExportedToSelectorProps) {
     const styles = useThemeStyles();
-    const {localeCompare, translate} = useLocalize();
+    const {localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -74,29 +74,29 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
 
         const connectedIntegrationPickerItems = integrationConnectionNames
             .filter((connectionName) => connectedIntegrationNames.has(connectionName))
-            .map((connectionName) => {
+            .flatMap((connectionName) => {
                 const connectionPolicies = policiesToLoadTemplatesFrom.filter((policy) => !!policy?.connections?.[connectionName]);
-                const areAllConnectionsIES =
-                    connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO && connectionPolicies.length > 0 && connectionPolicies.every(isIntuitEnterpriseSuiteConnection);
-                const connectionPolicy = areAllConnectionsIES ? connectionPolicies.at(0) : undefined;
+                const searchValues =
+                    connectionPolicies.length > 0
+                        ? [...new Set(connectionPolicies.map((policy) => getSearchValueForConnection(connectionName, policy)))]
+                        : [getSearchValueForConnection(connectionName)];
                 const icon = getIntegrationIcon(connectionName, expensifyIcons);
-                const leftElement = icon ? (
-                    <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <Icon
-                            src={icon}
-                            width={variables.iconSizeXLarge}
-                            height={variables.iconSizeXLarge}
-                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)]}
-                        />
-                    </View>
-                ) : (
-                    tableIconForExportOption(expensifyIcons.Table)
-                );
-                return {
-                    text: getAccountingIntegrationDisplayName(connectionPolicy, connectionName, translate),
-                    value: getSearchValueForConnection(connectionName),
-                    leftElement,
-                };
+                return searchValues.map((searchValue) => ({
+                    text: searchValue,
+                    value: searchValue,
+                    leftElement: icon ? (
+                        <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <Icon
+                                src={icon}
+                                width={variables.iconSizeXLarge}
+                                height={variables.iconSizeXLarge}
+                                additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)]}
+                            />
+                        </View>
+                    ) : (
+                        tableIconForExportOption(expensifyIcons.Table)
+                    ),
+                }));
             });
 
         const usedPickerValueKeys = new Set(connectedIntegrationPickerItems.map((item) => item.value));
