@@ -1210,7 +1210,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getDismissedViolationMessageText(translate, originalMessage));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
                     Clipboard.setString(translate('violations.resolvedDuplicates'));
-                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
                     const integrationName = getExportIntegrationDisplayName(policy, getOriginalMessage(reportAction)?.label, translate);
                     setClipboardMessage(getExportIntegrationMessageHTML(translate, reportAction, integrationName));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
