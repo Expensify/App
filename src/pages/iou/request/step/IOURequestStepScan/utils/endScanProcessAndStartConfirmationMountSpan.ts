@@ -3,12 +3,12 @@ import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 
 /**
- * Hands the shutter -> confirmation chain over from the navigate step to the mount step: ends the
+ * Hands the shutter to confirmation chain over from the navigate step to the mount step: ends the
  * scan-process span and starts the confirmation-mount span as a child of the same parent.
  *
  * `navigateToConfirmationPage` in IOUUtils already does this, but the global-create scan route calls
- * `Navigation.navigate` directly, so without this the mount segment goes unmeasured — the single
- * largest part of ManualShutterToConfirmation on that route.
+ * `Navigation.navigate` directly, so without this the mount segment goes unmeasured. It is the
+ * single largest part of ManualShutterToConfirmation on that route.
  *
  * Call immediately before `Navigation.navigate`.
  */

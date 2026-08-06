@@ -44,7 +44,7 @@ function precacheReceiptImage(sourceUri: string): Promise<string | undefined> {
     // Warm up the image decode so the confirmation screen doesn't have to do it on mount.
     // We navigate as soon as this resolves, so don't let a slow decode hold the user on the camera:
     // after THUMBNAIL_NAV_TIMEOUT_MS we move on and let the prefetch finish in the background.
-    // Either way the confirm screen shows `sourceUri` — generating a thumbnail instead would just
+    // Either way the confirm screen shows `sourceUri`. Generating a thumbnail instead would just
     // trade a fast decode for a slow encode, which is what we're trying to avoid here.
     return Promise.race([
         // The catch matters: callers gate navigation on this promise, so a prefetch failure must not reject the race.
