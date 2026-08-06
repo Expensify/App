@@ -609,7 +609,10 @@ function IOURequestStepDistanceOdometer({
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
         >
-            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}>
+            <ScrollView
+                keyboardShouldPersistTaps="always"
+                contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
+            >
                 <View>
                     {/* Start Reading */}
                     <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
