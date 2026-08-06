@@ -9,6 +9,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import Text from '@components/Text';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -24,7 +25,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import FLAG_FOR_REVIEW_RULE_INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleMaxAmountForm';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
@@ -35,9 +36,13 @@ import {View} from 'react-native';
 type FlagForReviewRuleAmountPageBaseProps = {
     policyID: string;
     categoryName?: string;
+    /** When true, return to the edit screen with the category field still locked. */
+    isCategoryLocked?: boolean;
+    /** When true, back navigation uses the category dynamic route stack. */
+    isCategoryScopedFlow?: boolean;
 };
 
-function FlagForReviewRuleAmountPageBase({policyID, categoryName}: FlagForReviewRuleAmountPageBaseProps) {
+function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLocked, isCategoryScopedFlow = false}: FlagForReviewRuleAmountPageBaseProps) {
     const isEditing = !!categoryName;
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
@@ -47,6 +52,7 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName}: FlagForReview
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+    const categoryScopedBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT.path);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
     const defaultValue = form?.[FLAG_FOR_REVIEW_RULE_INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '';
@@ -54,7 +60,16 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName}: FlagForReview
     const [expenseLimitType, setExpenseLimitType] = useState<PolicyCategoryExpenseLimitType>(draftExpenseLimitType);
     const selectedExpenseLimitType = expenseLimitType ?? draftExpenseLimitType;
 
-    const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
+    let backToRoute;
+    if (isCategoryScopedFlow) {
+        backToRoute = categoryScopedBackPath;
+    } else if (isEditing) {
+        backToRoute = ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName, isCategoryLocked);
+    } else {
+        // Only preserve ?categoryName= when create started category-scoped (locked). Never inject the
+        // draft-selected category — that remounts Rules-tab create and locks the field.
+        backToRoute = ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, isCategoryLocked ? form?.[FLAG_FOR_REVIEW_RULE_INPUT_IDS.CATEGORY] : undefined);
+    }
 
     const expenseLimitTypes = useMemo(
         () =>
@@ -88,14 +103,14 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName}: FlagForReview
             [FLAG_FOR_REVIEW_RULE_INPUT_IDS.MAX_EXPENSE_AMOUNT]: values.maxAmount.trim(),
             [FLAG_FOR_REVIEW_RULE_INPUT_IDS.EXPENSE_LIMIT_TYPE]: selectedExpenseLimitType,
         });
-        goBack();
+        Navigation.goBack(backToRoute, {shouldSkipFocusRestore: true});
     };
 
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
             shouldBeBlocked={!isRulesRevampEnabled || !canWriteRules}
         >

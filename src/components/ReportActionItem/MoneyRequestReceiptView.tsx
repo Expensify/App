@@ -139,7 +139,7 @@ function MoneyRequestReceiptView({
 }: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {getReportRHPActiveRoute} = useActiveRoute();
@@ -154,10 +154,8 @@ function MoneyRequestReceiptView({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
-    const reportOwnerSelector = useMemo(() => personalDetailsSelector(report?.ownerAccountID), [report?.ownerAccountID]);
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
-    const chatReportOwnerSelector = useMemo(() => personalDetailsSelector(chatReport?.ownerAccountID), [chatReport?.ownerAccountID]);
-    const [chatReportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: chatReportOwnerSelector}, [chatReportOwnerSelector]);
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
+    const [chatReportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(chatReport?.ownerAccountID)});
     const delegateAccountID = useDelegateAccountID();
 
     const [isLoading, setIsLoading] = useState(true);
@@ -177,6 +175,7 @@ function MoneyRequestReceiptView({
     }, [parentReportAction]);
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
@@ -383,7 +382,11 @@ function MoneyRequestReceiptView({
     const shouldShowReceiptAudit = !isInvoice && (shouldShowReceiptEmptyState || hasReceipt || hasReceiptUploadError);
 
     const fallbackReceiptError = useMemo(() => {
-        if (hasReceiptUploadError || isEmptyObject(reportCreationError) || !hasReceipt || !transaction?.receipt) {
+        // Map/route distance expenses carry a generated map e-receipt (no real uploaded file), so they should not
+        // surface a receipt-upload error on a create/report failure - the transaction's own generic error should be
+        // shown instead. Odometer / pure-manual distance flows can have a real uploaded file, so the fallback is kept
+        // for them (isMapBasedDistanceRequest is false for those).
+        if (hasReceiptUploadError || isEmptyObject(reportCreationError) || !hasReceipt || !transaction?.receipt || isMapDistanceRequest) {
             return {};
         }
 
@@ -392,7 +395,7 @@ function MoneyRequestReceiptView({
             source: transaction.receipt.source?.toString() ?? '',
             filename: transaction.receipt.filename ?? '',
         });
-    }, [hasReceiptUploadError, reportCreationError, hasReceipt, transaction]);
+    }, [hasReceiptUploadError, reportCreationError, hasReceipt, transaction, isMapDistanceRequest]);
 
     const errors = useMemo(() => {
         if (hasReceiptUploadError) {
@@ -474,18 +477,19 @@ function MoneyRequestReceiptView({
             if (parentReportAction) {
                 const backToRoute = routeBackTo ?? Navigation.getActiveRoute();
                 setDeleteTransactionNavigateBackUrl(backToRoute);
-                cleanUpMoneyRequest(
-                    transaction?.transactionID ?? linkedTransactionID,
-                    parentReportAction,
-                    report.reportID,
-                    parentReportActionChildReport,
+                cleanUpMoneyRequest({
+                    transactionID: transaction?.transactionID ?? linkedTransactionID,
+                    reportAction: parentReportAction,
+                    reportID: report.reportID,
+                    transactionThreadReport: parentReportActionChildReport,
                     iouReport,
-                    chatIOUReport,
+                    chatReport: chatIOUReport,
                     isChatIOUReportArchived,
                     originalReportID,
-                    true,
+                    getCurrencyDecimals,
+                    isSingleTransactionView: true,
                     policy,
-                );
+                });
                 return;
             }
         }
@@ -566,6 +570,7 @@ function MoneyRequestReceiptView({
             transactionPolicyCategories: policyCategories,
             transactionPolicyTagList: policyTagList,
             transactionViolations: rawTransactionViolations,
+            transactionReport,
         });
     };
 

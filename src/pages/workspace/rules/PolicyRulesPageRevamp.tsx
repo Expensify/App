@@ -11,7 +11,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -24,10 +23,10 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {openPolicyRulesPage} from '@libs/actions/Policy/Rules';
 import Tab from '@libs/actions/Tab';
-import {getVisibleAgentRules} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -82,7 +81,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isOffline} = useNetwork();
     const illustrations = useMemoizedLazyIllustrations(['Flash']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Bot', 'Trashcan', 'Table']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
@@ -105,6 +103,16 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         // Fetch once on mount (and when policyID changes). setPolicyCodingRule already updates Onyx — refetching after saves can overwrite a newly added rule with stale data.
         openPolicyRulesPage(policyID);
     }, [policyID]);
+
+    useEffect(() => {
+        // Collect can only use the General tab; keep them there if a non-General tab is persisted.
+        // Wait until policy is loaded so we do not reset Control users while Onyx is still hydrating.
+        if (!isCollectPolicy(policy) || activeTab === RULES_TAB.GENERAL) {
+            return;
+        }
+
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, RULES_TAB.GENERAL);
+    }, [activeTab, policy]);
 
     const clearAllTableSelection = useCallback(() => {
         setSelectedRuleKeysByTab((prev) => (Object.keys(prev).length > 0 ? {} : prev));
@@ -157,8 +165,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const isTableTab =
         activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS || activeTab === RULES_TAB.REQUIRE_FIELDS || activeTab === RULES_TAB.FLAG_FOR_REVIEW;
     const isAgentsTab = activeTab === RULES_TAB.AGENTS;
-    const hasAgentRules = isAgentsTab && getVisibleAgentRules(policy?.rules?.agentRules, isOffline).length > 0;
-    const shouldUseFullWidthAgentsTabLayout = isAgentsTab && !hasAgentRules;
     const shouldShowBulkActions = canWriteRules && isTableTab && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : hasSelectedRules);
     const shouldShowAddRuleButton = activeTab === RULES_TAB.GENERAL || !shouldShowBulkActions;
 
@@ -235,12 +241,32 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             : []),
     ];
 
+    const rulesUpgradeAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias;
+    const rulesUpgradeBackTo = ROUTES.WORKSPACE_RULES.getRoute(policyID);
+
     const handleNewRule = () => {
         if (!canWriteRules) {
             showReadOnlyModal();
             return;
         }
+        if (tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, rulesUpgradeBackTo)) {
+            return;
+        }
         Navigation.navigate(ROUTES.RULES_NEW.getRoute(policyID));
+    };
+
+    const handleTabPress = (key: string) => {
+        if (!isRulesTab(key)) {
+            return;
+        }
+
+        if (key !== RULES_TAB.GENERAL && tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, rulesUpgradeBackTo)) {
+            return;
+        }
+
+        setSelectedRuleKeysByTab({});
+        turnOffMobileSelectionMode();
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
     };
 
     const getHeaderContent = () => {
@@ -339,14 +365,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                 <TabSelectorBase
                                     tabs={tabs}
                                     activeTabKey={activeTab}
-                                    onTabPress={(key) => {
-                                        if (!isRulesTab(key)) {
-                                            return;
-                                        }
-                                        setSelectedRuleKeysByTab({});
-                                        turnOffMobileSelectionMode();
-                                        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
-                                    }}
+                                    onTabPress={handleTabPress}
                                 />
                             </TabSelectorContextProvider>
                         </View>
@@ -358,7 +377,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                             styles.mnh0,
                             styles.w100,
                             shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
-                            (isTableTab || shouldUseFullWidthAgentsTabLayout) && styles.mw100,
+                            (isTableTab || isAgentsTab) && styles.mw100,
                         ]}
                     >
                         {activeTab === RULES_TAB.GENERAL && (
@@ -366,6 +385,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                 policyID={policyID}
                                 canWriteRules={canWriteRules}
                                 isAgentsRulesBannerDismissed={isAgentsRulesBannerDismissed}
+                                onOpenAgentsTab={() => handleTabPress(RULES_TAB.AGENTS)}
                             />
                         )}
                         {isTableTab && (

@@ -7,6 +7,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
@@ -50,6 +51,7 @@ import type {SearchQueryItem, SearchQueryListItemProps} from './SearchList/ListI
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 import type {UserFriendlyKey} from './types';
 
+import AvatarWithTextCell from './SearchList/ListItem/AvatarWithTextCell';
 import SearchQueryListItem, {isSearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 
@@ -185,6 +187,10 @@ function SearchAutocompleteList({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addOfflineIndicatorBottomSafeAreaPadding: true,
+        style: styles.pb2,
+    });
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
@@ -218,7 +224,9 @@ function SearchAutocompleteList({
     } = useFilteredOptions({
         enabled: true,
         isSearching: !!autocompleteQueryValue.trim(),
-        betas: betas ?? [],
+        // The empty-query state renders only recent searches and recent reports (no standalone contacts),
+        // so contacts can be deferred until the user types a query.
+        deferContactsUntilSearch: true,
         maxRecentReports: INITIAL_MAX_RECENT_REPORTS,
         batchSize: RECENT_REPORTS_BATCH_SIZE,
     });
@@ -270,6 +278,7 @@ function SearchAutocompleteList({
             sortedActions,
             conciergeReportID,
             isTrackIntentUser,
+            translate,
         }).options;
     }, [
         listOptions,
@@ -286,6 +295,7 @@ function SearchAutocompleteList({
         sortedActions,
         conciergeReportID,
         isTrackIntentUser,
+        translate,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -587,7 +597,7 @@ function SearchAutocompleteList({
         }
 
         if (autocompleteSuggestions.length > 0) {
-            const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
+            const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey, workspaceIcon}) => {
                 return {
                     text: getAutocompleteDisplayText(filterKey, text),
                     mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
@@ -596,6 +606,15 @@ function SearchAutocompleteList({
                     autocompleteID,
                     keyForList: autocompleteID ?? text, // in case we have a unique identifier then use it because text might not be unique
                     searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
+                    // For report-backed `in:` suggestions, show the owning workspace on the right of the row so identically
+                    // named rooms (e.g. #admins) in different workspaces can be told apart.
+                    rightElement: workspaceIcon ? (
+                        <AvatarWithTextCell
+                            reportName={workspaceIcon.name}
+                            icon={workspaceIcon}
+                            textStyle={styles.textLabelSupporting}
+                        />
+                    ) : undefined,
                 };
             });
 
@@ -716,7 +735,7 @@ function SearchAutocompleteList({
             style={{
                 containerStyle: [styles.mh100],
                 listStyle: [styles.ph2, styles.overscrollBehaviorContain],
-                contentContainerStyle: styles.pb2,
+                contentContainerStyle,
                 listItemWrapperStyle: [styles.pr0, styles.pl0],
                 sectionTitleStyles: styles.mhn2,
             }}

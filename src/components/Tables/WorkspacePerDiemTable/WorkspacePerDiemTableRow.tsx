@@ -1,5 +1,6 @@
 import Icon from '@components/Icon';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -30,6 +31,8 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const accessibilityLabel = [item.destination, item.subRateName, item.formattedAmount].filter(Boolean).join(', ');
 
@@ -65,7 +68,10 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1]}>
+                        <View
+                            style={[styles.flex1]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -76,7 +82,10 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1]}>
+                        <View
+                            style={[styles.flex1]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -87,7 +96,10 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1, styles.alignItemsEnd]}>
+                        <View
+                            style={[styles.flex1, styles.alignItemsEnd]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -97,13 +109,15 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                         </View>
                     )}
 
-                    <Icon
-                        src={icons.ArrowRight}
-                        fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
+                        <Icon
+                            src={icons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </View>
                 </>
             )}
         </Table.Row>

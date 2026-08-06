@@ -52,6 +52,8 @@ type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentV
 
 type ViolationsIncreasedDistanceParams = {formattedRouteDistance?: string};
 
+type ViolationsInactiveVendorParams = {isSupplier?: boolean};
+
 type OptionalParam<T> = Partial<T>;
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
@@ -64,6 +66,7 @@ type IntegrationsMessageParams = {
         code?: number;
         messages?: string[];
         title?: string;
+        reconciled?: boolean;
         link?: {
             url: string;
             text: string;
@@ -85,6 +88,14 @@ type ConnectionNameParams = {
     connectionName: AllConnectionName;
 };
 
+type ConnectionDisplayNameParams = {
+    connectionName: string;
+};
+
+type DefaultVendorHelperTextParams = {
+    isSet: boolean;
+};
+
 type ExportAgainModalDescriptionParams = {
     reportName: string;
     connectionName: ConnectionName;
@@ -98,7 +109,9 @@ type ExportIntegrationSelectedParams = {connectionName: ConnectionName};
 
 type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
 
-type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
+type AccountingIntegrationNameParams = {integrationName?: string};
+
+type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage; integrationName?: string};
 
 type DelegateRoleParams = {role: DelegateRole};
 
@@ -131,6 +144,10 @@ type ConciergeBrokenCardConnectionParams = {
     connectionLink?: string;
 };
 
+type EmptyViolationSnapshotResultsSubtitleParams = {
+    formattedDate: string;
+};
+
 export type {
     MissingPropertyParams,
     InvalidPropertyParams,
@@ -138,6 +155,7 @@ export type {
     RemovedFromApprovalWorkflowParams,
     DelegateRoleParams,
     RemoveCopilotAccessConfirmationParams,
+    AccountingIntegrationNameParams,
     SyncStageNameConnectionsParams,
     IntacctMappingTitleParams,
     ExportIntegrationSelectedParams,
@@ -150,6 +168,7 @@ export type {
     ParentNavigationSummaryParams,
     PaidElsewhereParams,
     ConciergeBrokenCardConnectionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -159,6 +178,7 @@ export type {
     StepCounterParams,
     ViolationsModifiedAmountParams,
     ViolationsIncreasedDistanceParams,
+    ViolationsInactiveVendorParams,
     ChangeFieldParams,
     ExportedToIntegrationParams,
     IntegrationsMessageParams,
@@ -167,6 +187,8 @@ export type {
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
     ConnectionNameParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ExportAgainModalDescriptionParams,
     UpdateRoleParams,
     OptionalParam,
