@@ -4,6 +4,7 @@ import {write as apiWrite} from '@libs/API';
 import type {RevertSplitTransactionParams, SplitTransactionParams, SplitTransactionSplitsParam} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import {deferOrExecuteWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -1947,6 +1948,7 @@ function updateSplitTransactions({
         }
     }
 
+    let write: () => void;
     if (isReverseSplitOperation) {
         const parameters = {
             ...splits.at(0),
@@ -1954,7 +1956,7 @@ function updateSplitTransactions({
             waypoints: splits.at(0)?.waypoints ? JSON.stringify(splits.at(0)?.waypoints) : undefined,
             copiedComments: splits.at(0)?.copiedComments ? JSON.stringify(splits.at(0)?.copiedComments) : undefined,
         } as RevertSplitTransactionParams;
-        apiWrite(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters, onyxData);
+        write = () => apiWrite(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters, onyxData);
     } else {
         // Prepare splitApiParams for the Transaction_Split API call which requires a specific format for the splits
         // The format is: splits[0][amount], splits[0][category], splits[0][tag] etc.
@@ -1970,11 +1972,22 @@ function updateSplitTransactions({
             transactionID: originalTransactionID,
         };
 
-        if (isCreationOfSplits) {
-            apiWrite(WRITE_COMMANDS.SPLIT_TRANSACTION, splitParameters, onyxData);
-        } else {
-            apiWrite(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, splitParameters, onyxData);
-        }
+        const command = isCreationOfSplits ? WRITE_COMMANDS.SPLIT_TRANSACTION : WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION;
+        write = () => apiWrite(command, splitParameters, onyxData);
+    }
+
+    // API.write() applies optimisticData synchronously, so the destination screen re-renders from the
+    // transaction, report and report-action collections this write touches while the press is still
+    // trying to paint. Park it on the channel the destination flushes once its real content has laid
+    // out, the same way the other IOU write-then-navigate flows do (Split, TrackExpense, SendMoney,
+    // SendInvoice, PerDiem). Outside the split-expenses flow there is no navigation to hide behind.
+    if (isFromSplitExpensesFlow) {
+        deferOrExecuteWrite(write, {
+            shouldDeferForSearch: isSearchTopmostFullScreenRoute(),
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
+        });
+    } else {
+        write();
     }
     TransitionTracker.runAfterTransitions({callback: () => removeDraftSplitTransaction(originalTransactionID), waitForUpcomingTransition: true});
 }
@@ -2039,6 +2052,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // briefly see FullPageNotFoundView before the pop landed them on selfDM.
     const selfDMReportID = params.transactionReport?.reportID;
     if (isSelfDMSplit && selfDMReportID) {
+        // Reserve before navigating so a flush fired by the destination's layout is remembered until
+        // the write registers, instead of arriving first and being dropped.
+        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: selfDMReportID});
         popReportsSplitNavigatorToReport(selfDMReportID);
         Navigation.dismissModal();
         requestAnimationFrame(() => {
@@ -2088,11 +2104,18 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
         registerSearchRouteHighlight();
-        updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
+
+        // Reserve before navigating so a flush fired by the destination's layout is remembered until
+        // the write registers, instead of arriving first and being dropped.
+        if (isSearchPageTopmostFullScreenRoute) {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        }
 
         if (!isSelfDMSplit) {
             Navigation.navigateBackToLastSuperWideRHPScreen();
         }
+
+        updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
 
         // After the modal is dismissed, remove the transaction thread report screen
         // to avoid navigating back to a report removed by the split transaction.
@@ -2111,10 +2134,14 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // (dismissToSuperWideRHP + goBack) instead of dismissModalWithReport. This naturally pops
     // stale screens from the stack instead of leaving them behind.
     if (isLastTransactionInReport && fallbackReportID) {
-        updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
+        // Reserve before navigating so a flush fired by the destination's layout is remembered until
+        // the write registers, instead of arriving first and being dropped.
+        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: fallbackReportID});
 
         const backRoute = ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID);
         navigateBackOnDeleteTransaction(backRoute);
+
+        updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
 
         // Remove the transaction thread report screen to avoid navigating back to a removed report
         requestAnimationFrame(() => {
@@ -2142,6 +2169,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, targetReportID);
     }
 
+    // Reserve before navigating so a flush fired by the destination's layout is remembered until
+    // the write registers, instead of arriving first and being dropped.
+    reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: targetReportID});
     popReportsSplitNavigatorToReport(targetReportID);
     Navigation.dismissModalWithReport({reportID: targetReportID});
     requestAnimationFrame(() => {
