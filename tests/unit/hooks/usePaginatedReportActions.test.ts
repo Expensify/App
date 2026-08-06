@@ -121,15 +121,15 @@ describe('usePaginatedReportActions', () => {
         });
     });
 
-    describe('when the linked action is NOT in this report (the fix)', () => {
+    describe('when the linked action lives in the merged transaction thread (the fix)', () => {
         it('falls back to the newest window instead of returning an empty list, with pages absent', () => {
             const actions = makeActions(['c', 'b', 'a']);
             wireOnyx({report: makeReport(), actions, pages: []});
 
-            // SIBLING_ACTION_ID lives in the transaction thread, not in this report's own actions.
-            const {result} = renderHook(() => usePaginatedReportActions(REPORT_ID, SIBLING_ACTION_ID));
+            // SIBLING_ACTION_ID lives in the transaction thread; the caller confirms this via the flag.
+            const {result} = renderHook(() => usePaginatedReportActions(REPORT_ID, SIBLING_ACTION_ID, {isLinkedActionInMergedTransactionThread: true}));
 
-            // Before the fix this was [] (getContinuousChain empty-array behavior); now it is the newest window.
+            // Without dropping the anchor this was [] (getContinuousChain empty-array behavior); now it is the newest window.
             expect(actionIds(result.current.reportActions)).toEqual(['c', 'b', 'a']);
             // No linked action is surfaced from this report — the host screen merges the thread separately.
             expect(result.current.linkedAction).toBeUndefined();
@@ -140,9 +140,24 @@ describe('usePaginatedReportActions', () => {
             const pages: Pages = [['e', 'd', 'c']];
             wireOnyx({report: makeReport(), actions, pages});
 
-            const {result} = renderHook(() => usePaginatedReportActions(REPORT_ID, SIBLING_ACTION_ID));
+            const {result} = renderHook(() => usePaginatedReportActions(REPORT_ID, SIBLING_ACTION_ID, {isLinkedActionInMergedTransactionThread: true}));
 
             expect(result.current.reportActions.length).toBeGreaterThan(0);
+            expect(result.current.linkedAction).toBeUndefined();
+        });
+    });
+
+    describe('when the linked action is absent but NOT confirmed in the merged thread (regression guard)', () => {
+        it('keeps the anchor so the not-yet-loaded action still positions the list once it hydrates', () => {
+            // Simulates a report whose older page holding SIBLING_ACTION_ID has not been fetched yet. Because the action is
+            // not confirmed to live in a merged transaction thread, the anchor is kept — getContinuousChain returns an empty
+            // window (loading state) rather than the newest window, preserving the initial scroll-to once OpenReport hydrates.
+            const actions = makeActions(['c', 'b', 'a']);
+            wireOnyx({report: makeReport(), actions, pages: []});
+
+            const {result} = renderHook(() => usePaginatedReportActions(REPORT_ID, SIBLING_ACTION_ID));
+
+            expect(result.current.reportActions).toEqual([]);
             expect(result.current.linkedAction).toBeUndefined();
         });
     });
