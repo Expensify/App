@@ -13,16 +13,16 @@ import BaseTextInputImplementation from './implementation';
 /**
  * A single-line input cannot wrap - on web it renders as `<input>` and on native as `UITextField` /
  * a single-line `EditText`, none of which have a wrapping mode. Wrapping therefore requires the
- * multiline rendering path, which brings newline affordances a single-line value must not have.
+ * multiline rendering path, which brings newline behaviors a single-line value must not have.
  *
- * `autoGrowSingleLine` bundles the growth with those affordances turned back off, so the input looks
+ * `autoGrowSingleLine` bundles the growth with those behaviors turned back off, so the input looks
  * like a growing text box but still behaves like the single-line field it replaces:
  * - grows with the content up to `variables.textInputAutoGrowMaxHeight`, then scrolls internally
  * - the return key submits and blurs rather than inserting a line break, including on touch devices
  *   (see `computeComponentSpecificRegistrationParams` in `Form/InputWrapper`)
  * - Shift+Enter submits too, since a line break is never a valid value here
  *
- * Pass `useAutoFocusInput(true)` when the input is autofocused, so the caret lands after an existing value
+ * Pass `useAutoFocusInput(true)` when the input is focused automatically, so the caret lands after an existing value
  * instead of before it.
  */
 function BaseTextInput({ref, autoGrowSingleLine = false, ...props}: BaseTextInputProps) {
