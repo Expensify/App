@@ -1,5 +1,7 @@
 import {waitFor} from '@testing-library/react-native';
 
+import * as API from '@libs/API';
+import {READ_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -108,6 +110,27 @@ describe('actions/App', () => {
 
         // Then a full reconnect should NOT be triggered
         expect(triggerFullReconnect).toHaveBeenCalledTimes(0);
+    });
+
+    test('a reconnect the queue drops as a duplicate sends no SearchForTodos', async () => {
+        const read = jest.spyOn(API, 'read').mockImplementation(() => {});
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+
+        // Offline holds the queue, so the first reconnect is still in it when the second arrives
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+
+        App.reconnectApp();
+        await waitForBatchedUpdates();
+
+        expect(PersistedRequests.getAll()).toHaveLength(1);
+        expect(read).toHaveBeenCalledTimes(1);
+        expect(read).toHaveBeenCalledWith(READ_COMMANDS.SEARCH_FOR_TODOS, null);
+
+        App.reconnectApp();
+        await waitForBatchedUpdates();
+
+        expect(PersistedRequests.getAll()).toHaveLength(1);
+        expect(read).toHaveBeenCalledTimes(1);
     });
 
     test('clearOnyxAndResetApp preserves rolled-back ongoing requests across reset', async () => {

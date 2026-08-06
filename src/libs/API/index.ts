@@ -25,7 +25,7 @@ import {getAll, getOngoingRequest, getLength as getPersistedRequestsLength} from
 
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {AnyRequest, OnyxData, PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
+import type {AnyRequest, ConflictData, OnyxData, PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 
 import type {OnyxKey} from 'react-native-onyx';
@@ -219,19 +219,25 @@ function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand, TKey
 /**
  * Writes a ReconnectApp through the coverage-based reconnect resolver. See the Conflict Resolution section
  * of contributingGuides/SEQUENTIAL_QUEUE.md. getOngoingRequest() is read inside the closure so both
- * evaluation passes see the same in-flight request.
+ * evaluation passes see the same in-flight request. Resolves with the outcome of the second pass, in
+ * SequentialQueue.push, which is the one that decides whether this reconnect reaches the wire.
  */
 function writeWithNoDuplicatesReconnectConflictAction<TCommand extends WriteCommand, TKey extends OnyxKey>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey> = {},
-): Promise<void | Response<TKey>> {
+): Promise<ConflictData['type']> {
     const incomingRequest: AnyRequest = {command, data: {updateIDFrom: readUpdateIDFrom(apiCommandParameters)}};
+    let conflictActionType: ConflictData['type'] = 'push';
     const conflictResolver = {
-        checkAndFixConflictingRequest: (persistedRequests: AnyRequest[]) => resolveReconnectDuplicationConflictAction(persistedRequests, getOngoingRequest(), incomingRequest),
+        checkAndFixConflictingRequest: (persistedRequests: AnyRequest[]) => {
+            const resolution = resolveReconnectDuplicationConflictAction(persistedRequests, getOngoingRequest(), incomingRequest);
+            conflictActionType = resolution.conflictAction.type;
+            return resolution;
+        },
     };
 
-    return write(command, apiCommandParameters, onyxData, conflictResolver);
+    return write(command, apiCommandParameters, onyxData, conflictResolver).then(() => conflictActionType);
 }
 
 /**

@@ -501,9 +501,12 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
 
-        loadPostDataForOpenOrReconnect();
-
-        return reconnectAppPromise;
+        return reconnectAppPromise.then((conflictActionType) => {
+            if (conflictActionType === 'noAction') {
+                return;
+            }
+            loadPostDataForOpenOrReconnect();
+        });
     });
 }
 
