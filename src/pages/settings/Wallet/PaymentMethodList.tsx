@@ -580,7 +580,7 @@ function PaymentMethodList({
             };
             const existingBrickRoadIndicator = (paymentMethod as Partial<PaymentMethodItem>).brickRoadIndicator;
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
-            const bankConnectionStatus = shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(getBankAccountState(paymentMethod.accountData)) : undefined;
+            const bankConnectionStatus = shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(paymentMethod.accountData) : undefined;
             const paymentMethodPress = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                 pressHandler({
                     event: e,
