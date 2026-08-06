@@ -1081,6 +1081,7 @@ describe('libs/NextStepUtils', () => {
 
         it.each([
             {requiredDepositCurrency: CONST.CURRENCY.USD, expectedAccount: 'USD bank account'},
+            {requiredDepositCurrency: '<strong>USD</strong>', expectedAccount: '&lt;strong&gt;USD&lt;/strong&gt; bank account'},
             {requiredDepositCurrency: undefined, expectedAccount: 'bank account'},
         ])('renders the required deposit currency when it is available', ({requiredDepositCurrency, expectedAccount}) => {
             const currentUserAccountID = 780071;
