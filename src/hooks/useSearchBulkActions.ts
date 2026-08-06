@@ -1309,7 +1309,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     reportID: item.reportID,
                     amount: item.amount,
                     paymentType: resolvedPaymentType,
-                    ...(isInvoiceReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`])
+                    ...(isInvoiceReport(iouReport)
                         ? getPayMoneyOnSearchInvoiceParams(
                               item.policyID,
                               additionalData?.payAsBusiness ?? isBusinessInvoiceRoom(item.chatReportID),
@@ -1325,7 +1325,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const chatReportPolicy = getPolicyFromSearchSnapshot(chatReport.policyID, searchData, policies);
                 const reportPolicy = workspacePayPolicy ?? getPolicyFromSearchSnapshot(item.policyID, searchData, policies);
                 const additionalOnyxData = getSearchPayOnyxData(hash, item.reportID, currentSearchKey);
-                const isItemInvoice = isInvoiceReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`]);
+                const isItemInvoice = isInvoiceReport(iouReport);
 
                 if (isItemInvoice) {
                     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
