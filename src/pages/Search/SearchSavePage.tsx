@@ -1,5 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -25,6 +26,7 @@ import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +34,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchSaveForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 
 type FilterValueProps = {
@@ -164,10 +166,15 @@ function SearchSavePage() {
             return;
         }
 
-        const newName = name.trim() || currentSearchQueryJSON?.inputQuery;
-        saveSearch({queryJSON: currentSearchQueryJSON, newName});
+        saveSearch({queryJSON: currentSearchQueryJSON, newName: name.trim()});
         Navigation.goBack();
     };
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM> =>
+            getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate),
+        [translate],
+    );
 
     const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);
     const appliedDisplays = getAppliedDisplays(searchAdvancedFiltersForm, currentSearchQueryJSON, translate);
@@ -184,6 +191,7 @@ function SearchSavePage() {
                 formID={ONYXKEYS.FORMS.SEARCH_SAVE_FORM}
                 submitButtonText={translate('search.saveView')}
                 onSubmit={onSaveSearch}
+                validate={validate}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert

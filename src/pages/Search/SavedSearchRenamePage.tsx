@@ -1,5 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -12,13 +13,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SearchSavedSearchRenameForm';
 
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 
 function SavedSearchRenamePage({route}: {route: {params: {q: string; name: string}}}) {
     const {translate} = useLocalize();
@@ -44,11 +46,17 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
 
         saveSearch({
             queryJSON,
-            newName: newName?.trim() || q,
+            newName: newName?.trim(),
         });
 
         applyFiltersAndNavigate();
     };
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM> =>
+            getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate),
+        [translate],
+    );
 
     return (
         <ScreenWrapper
@@ -62,6 +70,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                 formID={ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM}
                 submitButtonText={translate('common.save')}
                 onSubmit={onSaveSearch}
+                validate={validate}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
