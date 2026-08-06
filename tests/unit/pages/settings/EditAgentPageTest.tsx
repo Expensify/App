@@ -110,6 +110,10 @@ jest.mock('@components/MenuItem', () => {
     return MockMenuItem;
 });
 
+jest.mock('@components/MenuItem/presets/MenuItemStandard', () => {
+    return ({title}: {title: string}) => title ?? null;
+});
+
 jest.mock('@components/MenuItemWithTopDescription', () => {
     function MockMenuItemWithTopDescription({title, description}: {title: string; description: string}) {
         return `${description}::${title}`;

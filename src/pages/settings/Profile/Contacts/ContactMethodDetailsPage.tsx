@@ -4,7 +4,7 @@ import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
-import MenuItem from '@components/MenuItem';
+import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -278,7 +278,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     errorRowStyles={[themeStyles.ml8, themeStyles.mr5]}
                     onClose={() => clearContactMethodErrors(contactMethod, 'defaultLogin')}
                 >
-                    <MenuItem
+                    <MenuItemStandard
                         title={translate('contacts.setAsDefault')}
                         icon={icons.Star}
                         onPress={isAccountLocked ? showLockedAccountModal : navigateToSetDefaultConfirm}
@@ -303,7 +303,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     errorRowStyles={[themeStyles.mt6, themeStyles.ph5]}
                     onClose={() => clearContactMethodErrors(contactMethod, 'deletedLogin')}
                 >
-                    <MenuItem
+                    <MenuItemStandard
                         title={translate('common.remove')}
                         icon={icons.Trashcan}
                         onPress={() => {

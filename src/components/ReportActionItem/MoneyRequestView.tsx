@@ -1,7 +1,7 @@
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
 import Icon from '@components/Icon';
-import MenuItem from '@components/MenuItem';
+import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -1628,7 +1628,7 @@ function MoneyRequestView({
                 )}
                 {/* Note: "View trip details" should be always the last item */}
                 {shouldShowViewTripDetails && (
-                    <MenuItem
+                    <MenuItemStandard
                         title={translate('travel.viewTripDetails')}
                         icon={icons.Suitcase}
                         onPress={() => {

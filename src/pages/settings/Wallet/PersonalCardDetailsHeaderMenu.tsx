@@ -1,4 +1,5 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
@@ -116,16 +117,16 @@ function PersonalCardDetailsHeaderMenu({
             )}
             <View style={styles.mt4}>
                 {isCSVImportedPersonalCard && (
-                    <MenuItem
+                    <MenuItemStandard
                         icon={icons.Table}
                         title={translate('spreadsheet.importSpreadsheet')}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(cardID)))}
                     />
                 )}
                 {shouldShowBreakConnection && (
-                    <MenuItem
+                    <MenuItemStandard
                         icon={icons.Trashcan}
-                        disabled={isOffline || card?.isLoadingLastUpdated}
+                        isDisabled={isOffline || card?.isLoadingLastUpdated}
                         title="Break connection (Testing)"
                         onPress={onBreakConnection}
                     />

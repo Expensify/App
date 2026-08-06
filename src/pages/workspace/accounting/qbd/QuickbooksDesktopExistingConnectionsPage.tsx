@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -17,8 +17,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,11 +74,10 @@ function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExis
             />
             <ScrollView style={[styles.flex1]}>
                 <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', {connectionName: CONST.POLICY.CONNECTIONS.NAME.QBD})}</Text>
-                <MenuItem
+                <MenuItemStandard
                     title={translate('workspace.common.createNewConnection')}
                     icon={icons.LinkCopy}
-                    iconStyles={{borderRadius: variables.componentBorderRadiusNormal}}
-                    shouldShowRightIcon
+                    shouldShowChevron
                     onPress={() => Navigation.navigate(getQuickbooksDesktopSetupEntryRoute(policyID))}
                 />
                 <Text style={[styles.sectionTitle, styles.pl5, styles.pr5, styles.pb2, styles.mt3]}>{translate('workspace.common.existingConnections')}</Text>

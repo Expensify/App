@@ -6,6 +6,7 @@ import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
+import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -439,7 +440,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                     </OfflineWithFeedback>
                     <View style={styles.mt6}>
                         {canEditSpendRules && (
-                            <MenuItem
+                            <MenuItemStandard
                                 icon={expensifyIcons.CreditCardLock}
                                 title={translate('cardPage.editSpendRules')}
                                 onPress={navigateToSpendRules}

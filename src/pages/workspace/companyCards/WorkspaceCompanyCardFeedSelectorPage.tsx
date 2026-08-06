@@ -1,6 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import MenuItem from '@components/MenuItem';
+import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -175,7 +175,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const otherMenuItemFeeds = canWriteCompanyCards ? (
         <View style={[styles.w100, styles.flexColumn]}>
-            <MenuItem
+            <MenuItemStandard
                 title={translate('workspace.companyCards.addCards')}
                 icon={icons.Plus}
                 onPress={onAddCardsPress}

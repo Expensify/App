@@ -1,5 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -428,7 +429,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                         </>
                     )}
                     {canWriteCategories && !isThereAnyAccountingConnection && (
-                        <MenuItem
+                        <MenuItemStandard
                             icon={expensifyIcons.Trashcan}
                             title={translate('workspace.categories.deleteCategory')}
                             onPress={async () => {
