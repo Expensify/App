@@ -53,6 +53,7 @@ import Onyx from 'react-native-onyx';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 
+import {getExportIntegrationDisplayName} from './AccountingUtils';
 import {getBankName, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayStringWithExplicitCurrency, convertToShortDisplayString} from './CurrencyUtils';
@@ -4741,7 +4742,13 @@ function wasMessageReceivedWhileOffline(
     return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);
 }
 
-function getIntegrationSyncFailedMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>, policyID?: string, shouldShowOldDotLink = false): string {
+function getIntegrationSyncFailedMessage(
+    translate: LocalizedTranslate,
+    action: OnyxEntry<ReportAction>,
+    policyID?: string,
+    shouldShowOldDotLink = false,
+    policy?: OnyxEntry<Policy>,
+): string {
     const {label, errorMessage, recurrenceCount} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED>) ?? {
         label: '',
         errorMessage: '',
@@ -4749,7 +4756,8 @@ function getIntegrationSyncFailedMessage(translate: LocalizedTranslate, action: 
 
     const param = encodeURIComponent(`{"policyID": "${policyID}"}`);
     const workspaceAccountingLink = shouldShowOldDotLink ? `${oldDotEnvironmentURL}/policy?param=${param}#connections` : `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`;
-    let message = translate('report.actions.type.integrationSyncFailed', label, errorMessage, workspaceAccountingLink);
+    const integrationName = getExportIntegrationDisplayName(policy, label, translate);
+    let message = translate('report.actions.type.integrationSyncFailed', integrationName ?? label, errorMessage, workspaceAccountingLink);
     if (recurrenceCount && recurrenceCount > 1) {
         message += ` ${translate('report.actions.type.integrationSyncFailedRecurrence', {count: recurrenceCount})}`;
     }

@@ -11,7 +11,7 @@ import ROUTES from '@src/ROUTES';
 import Onyx from 'react-native-onyx';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
-import type {Card, DecisionName, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {Card, DecisionName, PersonalDetailsList, Policy, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
 import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '../../src/types/onyx/ReportAction';
@@ -5825,6 +5825,36 @@ describe('ReportActionsUtils', () => {
             const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID);
             expect(result).toContain('Auth token expired');
             expect(result).not.toContain('Repeated');
+        });
+
+        it('should use the IES display name for an IES workspace', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+                reportActionID: 'sync-fail-ies',
+                actorAccountID: 1,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    label: CONST.EXPORT_LABELS.QBO,
+                    source: 'NEWEXPENSIFY',
+                    errorMessage: 'Auth token expired',
+                },
+            } as ReportAction;
+            const policy = {
+                connections: {
+                    quickbooksOnline: {
+                        config: {
+                            credentials: {
+                                scope: 'app-foundations.custom-dimensions.read',
+                            },
+                        },
+                    },
+                },
+            } as Policy;
+
+            const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID, false, policy);
+            expect(result).toContain('Intuit Enterprise Suite');
+            expect(result).not.toContain('QuickBooks Online');
         });
 
         it('should append recurrence text when recurrenceCount > 1', () => {

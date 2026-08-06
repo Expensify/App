@@ -785,7 +785,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
-        return Parser.htmlToText(getIntegrationSyncFailedMessage(translate, parentReportAction, report?.policyID));
+        return Parser.htmlToText(getIntegrationSyncFailedMessage(translate, parentReportAction, report?.policyID, false, reportPolicy));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {

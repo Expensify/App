@@ -1621,6 +1621,50 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/QuickBooks Online/)).toBeOnTheScreen();
         });
 
+        it('INTEGRATION_SYNC_FAILED action uses the IES display name', async () => {
+            const policyID = 'iesPolicy';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    id: policyID,
+                    connections: {
+                        quickbooksOnline: {
+                            config: {
+                                credentials: {
+                                    scope: 'app-foundations.custom-dimensions.read',
+                                },
+                            },
+                        },
+                    },
+                });
+            });
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED, {
+                label: CONST.EXPORT_LABELS.QBO,
+                errorMessage: 'Token expired',
+            });
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', policyID}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Intuit Enterprise Suite/)).toBeOnTheScreen();
+            expect(screen.queryByText(/QuickBooks Online/)).not.toBeOnTheScreen();
+        });
+
         it('COMPANY_CARD_CONNECTION_BROKEN action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN, {
                 feedName: 'Chase Visa',
