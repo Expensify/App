@@ -1711,16 +1711,14 @@ function clearFilteredOptionListCache() {
 // account, so drop them on sign-out instead of holding them until the next call.
 registerSessionCleanupCallback(() => filteredOptionListCache.clear());
 
-// TODO: Refactor to use options object parameter to reduce parameter count. Link to issue: https://github.com/Expensify/App/issues/66408
-// eslint-disable-next-line @typescript-eslint/max-params
 function createFilteredOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reports: OnyxCollection<Report>,
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     privateIsArchivedMap: PrivateIsArchivedMap,
     policiesCollection: OnyxCollection<Policy>,
-    currentUserAccountID: number,
     options: {
+        currentUserAccountID: number;
         conciergeReportID: string | undefined;
         maxRecentReports?: number;
         includeP2P?: boolean;
@@ -1740,7 +1738,7 @@ function createFilteredOptionList(
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>,
 ): OptionList {
-    const {conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
+    const {currentUserAccountID, conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
 
     // Contacts are expensive to build on large accounts (one option per personal detail). When a screen
     // opts into deferral and is not actively searching, skip building them entirely; the empty state
