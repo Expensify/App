@@ -2,7 +2,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 
-import {dismissMarketingWindow, setNameValuePair} from '@libs/actions/User';
+import {dismissMarketingWindow} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, getProductMarketingAnnouncementVariant} from '@libs/ProductMarketingWindowUtils';
 
