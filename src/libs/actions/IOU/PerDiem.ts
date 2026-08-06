@@ -64,7 +64,7 @@ import {getAllPersonalDetails, getAllReports, getPolicyTags} from '.';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
-    getReportPreviewAction,
+    getReportPreviewReportAction,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
@@ -486,7 +486,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport
         ? null
-        : getReportPreviewAction(chatReport.reportID, iouReport.reportID, chatReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]);
+        : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]);
 
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);

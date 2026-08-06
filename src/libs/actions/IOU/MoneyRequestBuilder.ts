@@ -311,7 +311,7 @@ function buildMinimalTransactionForFormula(
     };
 }
 
-function getReportPreviewAction(
+function getReportPreviewReportAction(
     chatReportID: string | undefined,
     iouReportID: string | undefined,
     chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>,
@@ -1569,7 +1569,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport
         ? null
-        : getReportPreviewAction(chatReport.reportID, iouReport.reportID, chatReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]);
+        : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]);
 
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
@@ -1825,7 +1825,7 @@ export {
     calculateDiffAmount,
     getMoneyRequestInformation,
     getReceiptError,
-    getReportPreviewAction,
+    getReportPreviewReportAction,
     getTransactionWithPreservedLocalReceiptSource,
     getUpdatedMoneyRequestReportData,
     maybeUpdateReportNameForFormulaTitle,

@@ -1,6 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
@@ -172,7 +172,7 @@ const getOldestPreviewActionID = (
         if (predicate && !predicate(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`])) {
             continue;
         }
-        const reportPreviewAction = getReportPreviewAction(chatReportID, childReportID, reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`]);
+        const reportPreviewAction = getReportPreviewReportAction(chatReportID, childReportID, reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`]);
         if (!reportPreviewAction) {
             continue;
         }

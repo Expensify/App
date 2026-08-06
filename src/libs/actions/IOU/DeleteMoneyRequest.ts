@@ -42,7 +42,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
 import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
-import {getReportPreviewAction, maybeUpdateReportNameForFormulaTitle} from './MoneyRequestBuilder';
+import {getReportPreviewReportAction, maybeUpdateReportNameForFormulaTitle} from './MoneyRequestBuilder';
 
 type PrepareToCleanUpMoneyRequestResult = {
     shouldDeleteTransactionThread: boolean;
@@ -98,7 +98,11 @@ function prepareToCleanUpMoneyRequest(
 
     // STEP 1: Get all collections we're updating
     const iouReportID = iouReport?.reportID;
-    const reportPreviewAction = getReportPreviewAction(iouReport?.chatReportID, iouReport?.reportID, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.chatReportID}`]);
+    const reportPreviewAction = getReportPreviewReportAction(
+        iouReport?.chatReportID,
+        iouReport?.reportID,
+        allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.chatReportID}`],
+    );
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTransactionOnHold = isOnHold(transaction);
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -649,7 +653,7 @@ function getCleanUpTransactionThreadReportOnyxData({
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
     const originalReportPreviewAction =
-        getReportPreviewAction(chatReport?.reportID, iouReport?.reportID, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`]) ?? undefined;
+        getReportPreviewReportAction(chatReport?.reportID, iouReport?.reportID, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`]) ?? undefined;
     let reportPreviewAction = updatedReportPreviewAction ?? originalReportPreviewAction;
     if (
         originalReportPreviewAction?.reportActionID &&

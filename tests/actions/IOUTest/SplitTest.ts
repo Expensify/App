@@ -3,7 +3,7 @@
 import type {RenderAPI} from '@testing-library/react-native';
 
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
@@ -5686,7 +5686,7 @@ describe('updateSplitTransactions', () => {
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, originalTransactionID);
-        const iouPreview = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
+        const iouPreview = getReportPreviewReportAction(expenseReport?.chatReportID, expenseReport?.reportID);
         expect(iouAction?.childVisibleActionCount).toEqual(1);
         expect(iouPreview?.childVisibleActionCount).toEqual(1);
 
@@ -5708,7 +5708,7 @@ describe('updateSplitTransactions', () => {
         expect(Object.values(split2ReportActions ?? {}).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT)).toBe(true);
 
         // The report preview should reflect both held child threads.
-        const updatedReportPreviewAction = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
+        const updatedReportPreviewAction = getReportPreviewReportAction(expenseReport?.chatReportID, expenseReport?.reportID);
         expect(updatedReportPreviewAction).toBeTruthy();
         expect(updatedReportPreviewAction?.childVisibleActionCount).toEqual(2);
     });
@@ -5738,7 +5738,7 @@ describe('updateSplitTransactions', () => {
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, originalTransactionID);
-        const iouPreview = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
+        const iouPreview = getReportPreviewReportAction(expenseReport?.chatReportID, expenseReport?.reportID);
         expect(iouAction?.childVisibleActionCount).toEqual(1);
         expect(iouPreview?.childVisibleActionCount).toEqual(1);
 
@@ -5772,7 +5772,7 @@ describe('updateSplitTransactions', () => {
         writeSpy.mockRestore();
 
         // The report preview should reflect both held child threads.
-        const updatedReportPreviewAction = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
+        const updatedReportPreviewAction = getReportPreviewReportAction(expenseReport?.chatReportID, expenseReport?.reportID);
         expect(updatedReportPreviewAction).toBeTruthy();
         expect(updatedReportPreviewAction?.childVisibleActionCount).toEqual(2);
     });
@@ -5801,7 +5801,7 @@ describe('updateSplitTransactions', () => {
         await waitForBatchedUpdates();
 
         const originalIOUAction = getIOUActionForReportID(expenseReport?.reportID, originalTransactionID);
-        const originalReportPreviewAction = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
+        const originalReportPreviewAction = getReportPreviewReportAction(expenseReport?.chatReportID, expenseReport?.reportID);
         expect(originalIOUAction?.childVisibleActionCount).toEqual(1);
         expect(originalReportPreviewAction?.childVisibleActionCount).toEqual(1);
 
@@ -5812,7 +5812,7 @@ describe('updateSplitTransactions', () => {
         const {splitTransactionID1, splitTransactionID2} = await splitToTwo(expenseReport, originalTransactionID, originalIOUAction);
         const splitIOUAction1 = getIOUActionForReportID(expenseReport?.reportID, splitTransactionID1);
         const splitIOUAction2 = getIOUActionForReportID(expenseReport?.reportID, splitTransactionID2);
-        const updatedReportPreviewAction = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
+        const updatedReportPreviewAction = getReportPreviewReportAction(expenseReport?.chatReportID, expenseReport?.reportID);
 
         // Ensure childVisibleActionCount updates correctly
         expect(splitIOUAction1?.childVisibleActionCount).toEqual(1);
@@ -5853,7 +5853,7 @@ describe('updateSplitTransactions', () => {
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, splitTransactionID1);
-        const iouPreview = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
+        const iouPreview = getReportPreviewReportAction(expenseReport?.chatReportID, expenseReport?.reportID);
         expect(iouAction?.childVisibleActionCount).toEqual(2);
         expect(iouPreview?.childVisibleActionCount).toEqual(2);
 
@@ -5932,7 +5932,7 @@ describe('updateSplitTransactions', () => {
         );
 
         // The report preview must reflect these changes.
-        const updatedReportPreviewAction = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID);
+        const updatedReportPreviewAction = getReportPreviewReportAction(chatReport?.reportID, expenseReport?.reportID);
         expect(updatedReportPreviewAction?.childVisibleActionCount).toEqual(2);
     });
 
@@ -6050,7 +6050,7 @@ describe('updateSplitTransactions', () => {
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, originalTransactionID);
-        const iouPreview = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
+        const iouPreview = getReportPreviewReportAction(expenseReport?.chatReportID, expenseReport?.reportID);
         expect(iouAction?.childVisibleActionCount).toEqual(1);
         expect(iouPreview?.childVisibleActionCount).toEqual(1);
 
@@ -6096,7 +6096,7 @@ describe('updateSplitTransactions', () => {
         });
         await waitForBatchedUpdates();
 
-        const updatedReportPreviewAction = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID);
+        const updatedReportPreviewAction = getReportPreviewReportAction(chatReport?.reportID, expenseReport?.reportID);
         expect(updatedReportPreviewAction?.childVisibleActionCount).toEqual(2);
     });
 
@@ -6166,7 +6166,7 @@ describe('updateSplitTransactions', () => {
         });
         await waitForBatchedUpdates();
 
-        const updatedReportPreviewAction = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID);
+        const updatedReportPreviewAction = getReportPreviewReportAction(chatReport?.reportID, expenseReport?.reportID);
         expect(updatedReportPreviewAction?.childVisibleActionCount).toEqual(2);
     });
 
@@ -6199,9 +6199,9 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
 
         // Capture the preview action's count after the split-to-three setup, before our isolated call.
-        const countBeforeUpdate = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID)?.childVisibleActionCount;
+        const countBeforeUpdate = getReportPreviewReportAction(chatReport?.reportID, expenseReport?.reportID)?.childVisibleActionCount;
 
-        // Provide a non-nullish but empty actions slice for the chat report. getReportPreviewAction
+        // Provide a non-nullish but empty actions slice for the chat report. getReportPreviewReportAction
         // uses the param directly (no legacy fallback), finds no preview action, and skips the update.
         const emptyChatReportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.chatReportID}`]: {}};
 
@@ -6244,7 +6244,7 @@ describe('updateSplitTransactions', () => {
         // Because no preview action was found via the param, the update is skipped and the count stays unchanged.
         // (The test 'should resolve the report preview action from the allReportActionsList param' proves the
         // same scenario bumps the count to 2 when the param supplies the preview action.)
-        const reportPreviewAction = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID);
+        const reportPreviewAction = getReportPreviewReportAction(chatReport?.reportID, expenseReport?.reportID);
         expect(reportPreviewAction?.childVisibleActionCount).toEqual(countBeforeUpdate);
         expect(reportPreviewAction?.childVisibleActionCount).not.toEqual(2);
     });
