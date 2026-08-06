@@ -6566,7 +6566,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
             talkToConcierge: 'Chatear con Concierge.',
             needAnotherAccounting: '¿Necesitas otro software de contabilidad? ',
-            connectionName: ({connectionName}) => {
+            connectionName: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'QuickBooks Online';
@@ -6578,6 +6578,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DobleEntrada';
                     default: {
                         return '';
                     }
@@ -6635,7 +6637,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 },
             },
             connections: {
-                syncStageName: ({stage, integrationName = 'QuickBooks Online'}) => {
+                syncStageName: ({stage, integrationName = 'QuickBooks Online'}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -6650,27 +6652,27 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                             return 'Importando cuentas';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Importando clases';
+                            return 'Importar clases';
                         case 'quickbooksOnlineImportLocations':
-                            return 'Importando localidades';
+                            return 'Importando ubicaciones';
                         case 'quickbooksOnlineImportProcessing':
                             return 'Procesando datos importados';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return 'Sincronizando reportes reembolsados y facturas pagadas';
+                            return 'Sincronizar informes reembolsados y pagos de facturas';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Importando tipos de impuestos';
+                            return 'Importando códigos de impuestos';
                         case 'quickbooksOnlineCheckConnection':
-                            return `Revisando conexión a ${integrationName}`;
+                            return `Comprobando la conexión de ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
-                            return `Importando datos desde ${integrationName}`;
+                            return `Importando datos de ${integrationName}`;
                         case 'startingImportXero':
-                            return 'Importando datos desde Xero';
+                            return 'Importando datos de Xero';
                         case 'startingImportQBO':
-                            return `Importando datos desde ${integrationName}`;
+                            return `Importando datos de ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
-                            return 'Importando datos desde QuickBooks Desktop';
+                            return 'Importar datos de QuickBooks Desktop';
                         case 'quickbooksDesktopImportTitle':
                             return 'Importando título';
                         case 'quickbooksDesktopImportApproveCertificate':
@@ -6680,9 +6682,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'quickbooksDesktopImportSavePolicy':
                             return 'Importando política de guardado';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Aún sincronizando datos con QuickBooks... Por favor, asegúrate de que el Conector Web esté en funcionamiento';
+                            return 'Todavía se están sincronizando datos con QuickBooks... Por favor, asegúrate de que el Web Connector esté en ejecución';
                         case 'quickbooksOnlineSyncTitle':
-                            return `Sincronizando datos desde ${integrationName}`;
+                            return `Sincronizando datos de ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
@@ -6692,43 +6694,43 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'quickbooksOnlineSyncApplyCustomers':
                             return 'Actualizando clientes/proyectos';
                         case 'quickbooksOnlineSyncApplyEmployees':
-                            return 'Actualizando empleados';
+                            return 'Actualizando la lista de personas';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
-                            return 'Actualizando clases';
+                            return 'Actualizando campos del informe';
                         case 'jobDone':
                             return 'Esperando a que se carguen los datos importados';
                         case 'xeroSyncImportChartOfAccounts':
-                            return 'Sincronizando plan de cuentas';
+                            return 'Sincronizando el plan de cuentas';
                         case 'xeroSyncImportCategories':
-                            return 'Sincronizando categorias';
+                            return 'Sincronizando categorías';
                         case 'xeroSyncImportCustomers':
                             return 'Sincronizando clientes';
                         case 'xeroSyncXeroReimbursedReports':
                             return 'Marcar los informes de Expensify como reembolsados';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Marcar facturas y recibos de Xero como pagados';
+                            return 'Marcar las facturas y recibos de Xero como pagados';
                         case 'xeroSyncImportTrackingCategories':
                             return 'Sincronizando categorías de seguimiento';
                         case 'xeroSyncImportBankAccounts':
                             return 'Sincronizando cuentas bancarias';
                         case 'xeroSyncImportTaxRates':
-                            return 'Sincronizando las tasas de impuesto';
+                            return 'Sincronizando tasas de impuestos';
                         case 'xeroCheckConnection':
-                            return 'Comprobando la conexión a Xero';
+                            return 'Comprobando la conexión con Xero';
                         case 'xeroSyncTitle':
-                            return 'Sincronizando los datos de Xero';
+                            return 'Sincronizando datos de Xero';
                         case 'netSuiteSyncConnection':
-                            return 'Iniciando conexión a NetSuite';
+                            return 'Iniciando conexión con NetSuite';
                         case 'netSuiteSyncCustomers':
                             return 'Importando clientes';
                         case 'netSuiteSyncInitData':
                             return 'Recuperando datos de NetSuite';
                         case 'netSuiteSyncImportTaxes':
-                            return 'Importando impuestos';
+                            return 'Importar impuestos';
                         case 'netSuiteSyncImportItems':
-                            return 'Importando artículos';
+                            return 'Importando elementos';
                         case 'netSuiteSyncData':
-                            return 'Importando datos a Expensify';
+                            return 'Importar datos en Expensify';
                         case 'netSuiteSyncAccounts':
                             return 'Sincronizando cuentas';
                         case 'netSuiteSyncCurrencies':
@@ -6736,36 +6738,36 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'netSuiteSyncCategories':
                             return 'Sincronizando categorías';
                         case 'netSuiteSyncReportFields':
-                            return 'Importando datos como campos de informe de Expensify';
+                            return 'Importar datos como campos de informe de Expensify';
                         case 'netSuiteSyncTags':
-                            return 'Importando datos como etiquetas de Expensify';
+                            return 'Importar datos como etiquetas de Expensify';
                         case 'netSuiteSyncUpdateConnectionData':
-                            return 'Actualizando información de conexión';
+                            return 'Actualizando la información de conexión';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Marcando informes de Expensify como reembolsados';
+                            return 'Marcar los informes de Expensify como reembolsados';
+                        case 'netSuiteSyncExpensifyReimbursedReports':
+                            return 'Marcar las facturas y notas de cargo de NetSuite como pagadas';
+                        case 'netSuiteImportVendorsTitle':
+                            return 'Importando proveedores';
+                        case 'netSuiteImportCustomListsTitle':
+                            return 'Importar listas personalizadas';
                         case 'netSuiteSyncImportCustomLists':
-                            return 'Importando listas personalizadas';
+                            return 'Importar listas personalizadas';
                         case 'netSuiteSyncImportSubsidiaries':
                             return 'Importando subsidiarias';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
                             return 'Importando proveedores';
-                        case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'Marcando facturas y recibos de NetSuite como pagados';
-                        case 'netSuiteImportVendorsTitle':
-                            return 'Importando proveedores';
-                        case 'netSuiteImportCustomListsTitle':
-                            return 'Importando listas personalizadas';
                         case 'intacctCheckConnection':
-                            return 'Comprobando la conexión a Sage Intacct';
+                            return 'Comprobando la conexión con Sage Intacct';
                         case 'intacctImportDimensions':
-                            return 'Importando dimensiones';
+                            return 'Importando dimensiones de Sage Intacct';
                         case 'intacctImportTitle':
-                            return 'Importando datos desde Sage Intacct';
+                            return 'Importar datos de Sage Intacct';
                         case 'financialForceSyncTitle':
                             return 'Sincronizando datos de Certinia';
                         case 'financialForceSyncStep':
-                            return 'Sincronizando la conexión de Certinia';
+                            return 'Sincronizando conexión con Certinia';
                         case 'financialForceSyncCategories':
                             return 'Importando categorías';
                         case 'financialForceSyncTags':
@@ -6777,19 +6779,25 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'financialForceSyncCompanies':
                             return 'Importando empresas';
                         case 'financialForceSyncUsers':
-                            return 'Importando usuarios';
+                            return 'Importación de usuarios';
                         case 'financialForceSyncDimensions':
                             return 'Importando dimensiones';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Marcando informes como reembolsados';
+                            return 'Marcar los informes como reembolsados';
                         case 'rilletSyncTitle':
                             return 'Sincronizando datos de Rillet';
                         case 'rilletSyncConnection':
-                            return 'Iniciando conexión con Rillet';
+                            return 'Inicializando la conexión con Rillet';
                         case 'rilletSyncImportData':
                             return 'Cargando datos';
+                        case 'dualEntrySyncTitle':
+                            return 'Sincronizando datos de DualEntry';
+                        case 'dualEntrySyncConnection':
+                            return 'Iniciando conexión con DualEntry';
+                        case 'dualEntrySyncImportData':
+                            return 'Cargando datos';
                         default: {
-                            return `Translation missing for stage: ${stage}`;
+                            return `Falta la traducción para la etapa: ${stage}`;
                         }
                     }
                 },
@@ -6829,6 +6837,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                     `Asegúrate de que esta cuenta coincida con tu cuenta de liquidación de Facturación Consolidada de Viajes (terminada en ${lastFourPAN}) para que la Reconciliación Continua funcione correctamente.`,
             },
             syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
+            dualEntry: 'DobleEntrada',
         },
         card: {
             issueCard: 'Emitir tarjeta',
@@ -7203,40 +7212,46 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                     `<muted-text>Los campos de informe sólo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                title: 'NetSuite',
-                description: `Disfruta de la sincronización automática y reduce las entradas manuales con la integración Expensify + NetSuite. Obtén información financiera en profundidad y en tiempo real con la compatibilidad nativa y personalizada con segmentos, incluida la asignación de proyectos y clientes.`,
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
-                    `<muted-text>Nuestra integración NetSuite sólo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                title: 'Varios niveles de aprobación',
+                description:
+                    'Los niveles de aprobación múltiples son una herramienta de flujo de trabajo para empresas que necesitan que más de una persona apruebe un informe antes de que pueda ser reembolsado.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Los niveles múltiples de aprobación solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                title: 'Sage Intacct',
-                description: `Disfruta de una sincronización automatizada y reduce las entradas manuales con la integración Expensify + Sage Intacct. Obtén información financiera en profundidad y en tiempo real con dimensiones definidas por el usuario, así como codificación de gastos por departamento, clase, ubicación, cliente y proyecto (trabajo).`,
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
-                    `<muted-text>Nuestra integración Sage Intacct sólo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                title: 'Varios niveles de aprobación',
+                description:
+                    'Los niveles de aprobación múltiples son una herramienta de flujo de trabajo para empresas que necesitan que más de una persona apruebe un informe antes de que pueda ser reembolsado.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Los niveles múltiples de aprobación solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: 'QuickBooks Desktop',
-                description: `Disfruta de la sincronización automática y reduce las entradas manuales con la integración de Expensify + QuickBooks Desktop. Obtén la máxima eficiencia con una conexión bidireccional en tiempo real y la codificación de gastos por clase, artículo, cliente y proyecto.`,
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
-                    `<muted-text>Nuestra integración con QuickBooks Desktop solo está disponible en el plan Controlar, que comienza en <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                title: 'Varios niveles de aprobación',
+                description:
+                    'Los niveles de aprobación múltiples son una herramienta de flujo de trabajo para empresas que necesitan que más de una persona apruebe un informe antes de que pueda ser reembolsado.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Los niveles múltiples de aprobación solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                title: 'Certinia',
-                description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Certinia. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Certinia para una visibilidad financiera más clara.`,
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
-                    `<muted-text>Nuestra integración con Certinia solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                title: 'Varios niveles de aprobación',
+                description:
+                    'Los niveles de aprobación múltiples son una herramienta de flujo de trabajo para empresas que necesitan que más de una persona apruebe un informe antes de que pueda ser reembolsado.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Los niveles múltiples de aprobación solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
-                title: 'Rillet',
-                description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Rillet. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Rillet para una visibilidad financiera más clara.`,
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
-                    `<muted-text>Nuestra integración con Rillet solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                title: 'Varios niveles de aprobación',
+                description:
+                    'Los niveles de aprobación múltiples son una herramienta de flujo de trabajo para empresas que necesitan que más de una persona apruebe un informe antes de que pueda ser reembolsado.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Los niveles múltiples de aprobación solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
-                title: 'Aprobaciones anticipadas',
-                description: `Si quieres añadir más niveles de aprobación, o simplemente asegurarte de que los gastos más importantes reciben otro vistazo, no hay problema. Las aprobaciones avanzadas ayudan a realizar las comprobaciones adecuadas a cada nivel para mantener los gastos de tu equipo bajo control.`,
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
-                    `<muted-text>Las aprobaciones avanzadas sólo están disponibles en el plan Controlar, con precios desde <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                title: 'Varios niveles de aprobación',
+                description:
+                    'Los niveles de aprobación múltiples son una herramienta de flujo de trabajo para empresas que necesitan que más de una persona apruebe un informe antes de que pueda ser reembolsado.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Los niveles múltiples de aprobación solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             approvalSubmit: {
                 title: 'Aprobaciones',
@@ -7342,11 +7357,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                     `<muted-text>Las tasas de distancia están disponibles en el plan Recopilar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
-                title: 'Múltiples niveles de aprobación',
+                title: 'Varios niveles de aprobación',
                 description:
-                    'Los múltiples niveles de aprobación son una herramienta de flujo de trabajo para empresas que requieren que más de una persona apruebe un informe antes de que pueda ser reembolsado.',
-                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
-                    `<muted-text>Los múltiples niveles de aprobación solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                    'Los niveles de aprobación múltiples son una herramienta de flujo de trabajo para empresas que necesitan que más de una persona apruebe un informe antes de que pueda ser reembolsado.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Los niveles múltiples de aprobación solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             roles: {
                 title: 'Roles',
@@ -7433,6 +7448,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La visibilidad pública de recibos solo está disponible en el plan Controlar, desde <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
+            title: 'Varios niveles de aprobación',
+            description:
+                'Los niveles de aprobación múltiples son una herramienta de flujo de trabajo para empresas que necesitan que más de una persona apruebe un informe antes de que pueda ser reembolsado.',
+            onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                `<muted-text>Los niveles múltiples de aprobación solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
         },
         downgrade: {
             commonFeatures: {
@@ -7968,6 +7988,16 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         emptyDomain: {
             title: 'Mejora tu seguridad con dominios',
             subtitle: 'Exige que los miembros de tu dominio inicien sesión mediante inicio de sesión único, restrinjan la creación de espacios de trabajo y más.',
+        },
+        dualEntry: {
+            dualEntrySetup: 'Configuración de DualEntry',
+            enterCredentials: 'Introduce tu clave de API de DualEntry',
+            howToFindAPIKey:
+                '<strong>Encontrar tu clave de API.</strong><ol><li>Inicia sesión en DualEntry</li><li>Ve a [organization name] -> Settings -> Developer access -> API keys</li><li>Crea una clave de API</li><li>Pega la clave de API abajo</li></ol>',
+            subsidiary: 'Filial',
+            subsidiarySelectDescription: 'Elige la filial en DualEntry de la que te gustaría importar datos.',
+            noCompaniesFound: 'No se han encontrado empresas',
+            noCompaniesFoundDescription: 'Por favor, añade una empresa en DualEntry y sincroniza la conexión de nuevo',
         },
     },
     getAssistancePage: {

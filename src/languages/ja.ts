@@ -6688,6 +6688,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return '複式仕訳';
                     default: {
                         return '';
                     }
@@ -6749,7 +6751,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
-                            return '顧客のインポート';
+                            return '顧客をインポートしています';
                         case 'quickbooksOnlineImportEmployees':
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
@@ -6762,7 +6764,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         case 'quickbooksDesktopImportClasses':
                             return 'クラスのインポート';
                         case 'quickbooksOnlineImportLocations':
-                            return '場所をインポート中';
+                            return '所在地をインポートしています';
                         case 'quickbooksOnlineImportProcessing':
                             return 'インポートしたデータを処理しています';
                         case 'quickbooksOnlineSyncBillPayments':
@@ -6771,24 +6773,24 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         case 'quickbooksOnlineSyncTaxCodes':
                             return '税コードのインポート';
                         case 'quickbooksOnlineCheckConnection':
-                            return `${integrationName} 接続を確認中`;
+                            return `${integrationName} との接続を確認しています`;
                         case 'quickbooksOnlineImportMain':
-                            return `${integrationName} データのインポート`;
+                            return `${integrationName} データをインポートしています`;
                         case 'startingImportXero':
                             return 'Xero データのインポート';
                         case 'startingImportQBO':
-                            return `${integrationName} データのインポート`;
+                            return `${integrationName} データをインポートしています`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'QuickBooks Desktop データのインポート';
                         case 'quickbooksDesktopImportTitle':
                             return 'タイトルをインポート中';
                         case 'quickbooksDesktopImportApproveCertificate':
-                            return '承認証明書をインポート中';
+                            return '承認証明書をインポート中です';
                         case 'quickbooksDesktopImportDimensions':
                             return 'ディメンションをインポート中';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return '保存ポリシーのインポート';
+                            return '保存ポリシーをインポートしています';
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'QuickBooks とデータを同期中です… Web Connector が実行中であることを確認してください';
                         case 'quickbooksOnlineSyncTitle':
@@ -6798,39 +6800,39 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         case 'intacctImportData':
                             return 'データを読み込んでいます';
                         case 'quickbooksOnlineSyncApplyCategories':
-                            return 'カテゴリを更新中';
+                            return 'カテゴリを更新しています';
                         case 'quickbooksOnlineSyncApplyCustomers':
-                            return '顧客／プロジェクトの更新';
+                            return '顧客／プロジェクトを更新中';
                         case 'quickbooksOnlineSyncApplyEmployees':
-                            return 'メンバー一覧を更新中';
+                            return 'メンバーリストを更新しています';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
-                            return 'レポートフィールドを更新中';
+                            return 'レポート項目を更新しています';
                         case 'jobDone':
-                            return 'インポートしたデータの読み込みを待っています';
+                            return 'インポートされたデータの読み込みを待機しています';
                         case 'xeroSyncImportChartOfAccounts':
-                            return '勘定科目表を同期中';
+                            return '勘定科目表を同期しています';
                         case 'xeroSyncImportCategories':
                             return 'カテゴリを同期しています';
                         case 'xeroSyncImportCustomers':
-                            return '顧客を同期中';
+                            return '顧客を同期しています';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Expensifyレポートを精算済みとしてマークする';
+                            return 'Expensify レポートを精算済みにする';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Xero の請求書とインボイスを支払済みにする';
+                            return 'Xero の請求書および請求書を書類済みにする';
                         case 'xeroSyncImportTrackingCategories':
-                            return 'トラッキングカテゴリを同期中';
+                            return 'トラッキングカテゴリを同期しています';
                         case 'xeroSyncImportBankAccounts':
-                            return '銀行口座を同期中';
+                            return '銀行口座を同期しています';
                         case 'xeroSyncImportTaxRates':
                             return '税率を同期しています';
                         case 'xeroCheckConnection':
-                            return 'Xero 接続を確認中';
+                            return 'Xero との接続を確認しています';
                         case 'xeroSyncTitle':
-                            return 'Xero データを同期中';
+                            return 'Xero データを同期しています';
                         case 'netSuiteSyncConnection':
-                            return 'NetSuite への接続を初期化中';
+                            return 'NetSuite への接続を初期化しています';
                         case 'netSuiteSyncCustomers':
-                            return '顧客のインポート';
+                            return '顧客をインポートしています';
                         case 'netSuiteSyncInitData':
                             return 'NetSuite からデータを取得しています';
                         case 'netSuiteSyncImportTaxes':
@@ -6840,23 +6842,23 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         case 'netSuiteSyncData':
                             return 'Expensify へのデータのインポート';
                         case 'netSuiteSyncAccounts':
-                            return 'アカウントを同期中';
+                            return 'アカウントを同期しています';
                         case 'netSuiteSyncCurrencies':
-                            return '通貨を同期中';
+                            return '通貨を同期しています';
                         case 'netSuiteSyncCategories':
                             return 'カテゴリを同期しています';
                         case 'netSuiteSyncReportFields':
-                            return 'データをExpensifyのレポートフィールドとしてインポートする';
+                            return 'Expensify レポートフィールドとしてデータをインポートする';
                         case 'netSuiteSyncTags':
-                            return 'Expensify タグとしてデータをインポート';
+                            return 'データを Expensify のタグとしてインポートします';
                         case 'netSuiteSyncUpdateConnectionData':
                             return '接続情報を更新しています';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Expensifyレポートを精算済みとしてマークする';
+                            return 'Expensify レポートを精算済みにする';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'NetSuite の請求書とインボイスを支払済みにマークする';
+                            return 'NetSuite の請求書とインボイスを支払済みにする';
                         case 'netSuiteImportVendorsTitle':
-                            return '仕入先のインポート';
+                            return '仕入先をインポート中';
                         case 'netSuiteImportCustomListsTitle':
                             return 'カスタムリストのインポート';
                         case 'netSuiteSyncImportCustomLists':
@@ -6865,41 +6867,47 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return '子会社のインポート';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
-                            return '仕入先のインポート';
+                            return '仕入先をインポート中';
                         case 'intacctCheckConnection':
-                            return 'Sage Intacct 接続を確認しています';
+                            return 'Sage Intacct との接続を確認しています';
                         case 'intacctImportDimensions':
                             return 'Sage Intacct ディメンションのインポート';
                         case 'intacctImportTitle':
                             return 'Sage Intacct データのインポート';
                         case 'financialForceSyncTitle':
-                            return 'Certinia データを同期中';
+                            return 'Certinia データを同期しています';
                         case 'financialForceSyncStep':
-                            return 'Certinia 接続を同期中';
+                            return 'Certinia 接続を同期しています';
                         case 'financialForceSyncCategories':
                             return 'カテゴリをインポート中';
                         case 'financialForceSyncTags':
-                            return 'タグをインポート中';
+                            return 'タグのインポート';
                         case 'financialForceSyncVendors':
-                            return 'ベンダーをインポート中';
+                            return '仕入先をインポート中';
                         case 'financialForceSyncContacts':
-                            return '連絡先をインポート中';
+                            return '連絡先のインポート';
                         case 'financialForceSyncCompanies':
-                            return '会社をインポート中';
+                            return '会社のインポート';
                         case 'financialForceSyncUsers':
-                            return 'ユーザーをインポート中';
+                            return 'ユーザーのインポート';
                         case 'financialForceSyncDimensions':
                             return 'ディメンションをインポート中';
                         case 'financialForceMarkAsReimbursed':
-                            return 'レポートを払い戻し済みにマーク中';
+                            return 'レポートを精算済みにする';
                         case 'rilletSyncTitle':
                             return 'Rillet データを同期しています';
                         case 'rilletSyncConnection':
                             return 'Rillet への接続を初期化しています';
                         case 'rilletSyncImportData':
                             return 'データを読み込んでいます';
+                        case 'dualEntrySyncTitle':
+                            return 'DualEntry データを同期しています';
+                        case 'dualEntrySyncConnection':
+                            return 'DualEntry への接続を初期化しています';
+                        case 'dualEntrySyncImportData':
+                            return 'データを読み込んでいます';
                         default: {
-                            return `ステージの翻訳が見つかりません: ${stage}`;
+                            return `ステージの翻訳が見つかりません：${stage}`;
                         }
                     }
                 },
@@ -6937,6 +6945,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                     `Continuous Reconciliation が正しく動作するように、この口座が、Consolidated Travel Billing の決済口座（末尾が ${lastFourPAN}）と一致していることをご確認ください。`,
             },
             syncTravelInvoicingSettlements: '統合トラベル請求の精算を同期する',
+            dualEntry: '複式仕訳',
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',
@@ -7147,40 +7156,40 @@ ${reportName}`,
                     `<muted-text>レポートフィールドは、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からのControlプランでのみ利用できます</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                title: 'NetSuite',
-                description: `Expensify と NetSuite の連携により、自動同期を活用して手入力を減らしましょう。プロジェクトや顧客のマッピングを含むネイティブおよびカスタムセグメントのサポートで、詳細かつリアルタイムな財務インサイトを得られます。`,
+                title: '複数の承認レベル',
+                description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>NetSuite 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
+                    `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごと／月。` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                title: 'Sage Intacct',
-                description: `Expensify と Sage Intacct の連携で同期を自動化し、手動入力を削減しましょう。ユーザー定義ディメンションに加え、部門、クラス、ロケーション、顧客、プロジェクト（ジョブ）ごとの経費コード設定により、詳細かつリアルタイムな財務インサイトを得られます。`,
+                title: '複数の承認レベル',
+                description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Sage Intacct との連携機能は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただける Control プランでのみ提供されています</muted-text>`,
+                    `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごと／月。` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: 'QuickBooks Desktop',
-                description: `Expensify と QuickBooks Desktop の連携により、自動同期を活用して手入力を削減しましょう。リアルタイムの双方向接続と、クラス、品目、顧客、プロジェクト別の経費コード設定で、究極の効率性を実現できます。`,
+                title: '複数の承認レベル',
+                description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>QuickBooks Desktop 連携機能は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からの Control プランでのみご利用いただけます</muted-text>`,
+                    `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごと／月。` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                title: 'Certinia',
-                description: `Expensify と Certinia の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションと税務同期を Certinia の設定に合わせて、財務の可視性を高めます。`,
+                title: '複数の承認レベル',
+                description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Certinia 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
+                    `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごと／月。` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
-                title: 'Rillet',
-                description: `Expensify と Rillet の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションと税務同期を Rillet の設定に合わせて、財務の可視性を高めます。`,
+                title: '複数の承認レベル',
+                description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Rillet 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
+                    `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごと／月。` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
-                title: '高度な承認',
-                description: `承認フローにさらに多くの段階を追加したい場合や、高額な経費に必ず別の承認者の目を通したい場合も、ご安心ください。高度な承認機能により、あらゆるレベルで適切なチェック体制を整え、チームの支出をしっかり管理できます。`,
+                title: '複数の承認レベル',
+                description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>高度な承認機能は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}から利用できるControlプランでのみご利用いただけます</muted-text>`,
+                    `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごと／月。` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
             },
             categories: {
                 title: 'カテゴリ',
@@ -7256,9 +7265,9 @@ ${reportName}`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: '複数の承認レベル',
-                description: '複数承認レベルは、精算前にレポートを複数人で承認する必要がある会社向けのワークフローツールです。',
+                description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>複数の承認レベルは、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}から利用できるControlプランでのみご利用いただけます</muted-text>`,
+                    `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごと／月。` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'アクティブメンバー1人あたり月額',
@@ -7374,6 +7383,10 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>領収書の公開可視性は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `有効メンバー1人あたり1か月ごとに。`}からのControlプランでのみご利用いただけます。</muted-text>`,
             },
+            title: '複数の承認レベル',
+            description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
+            onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバーごと／月。` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
         },
         downgrade: {
             commonFeatures: {
@@ -8038,6 +8051,16 @@ ${reportName}`,
         emptyDomain: {
             title: 'ドメインでセキュリティを強化しましょう',
             subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須にし、ワークスペースの作成を制限するなどの管理ができます。',
+        },
+        dualEntry: {
+            dualEntrySetup: '二重仕訳の設定',
+            enterCredentials: 'DualEntry API キーを入力してください',
+            howToFindAPIKey:
+                '<strong>API キーの確認方法</strong><ol><li>DualEntry にログインします</li><li>[organization name] -> Settings -> Developer access -> API keys の順に移動します</li><li>API キーを作成します</li><li>作成した API キーを以下に貼り付けます</li></ol>',
+            subsidiary: '子会社',
+            subsidiarySelectDescription: 'DualEntry でデータを取り込みたい子会社を選択してください。',
+            noCompaniesFound: '会社が見つかりません',
+            noCompaniesFoundDescription: 'DualEntry に会社を追加して、もう一度同期してください',
         },
     },
     getAssistancePage: {
