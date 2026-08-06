@@ -1425,7 +1425,11 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
             continue;
         }
         const ruleID = onyxKey.slice(ONYXKEYS.COLLECTION.RULE.length);
-        result[ruleID] = {triggers: rule.triggers, filters: rule.filters, actions: rule.actions};
+        result[ruleID] = {
+            triggers: toIndexMap(Object.values(rule.triggers ?? {})),
+            filters: rule.filters,
+            actions: toIndexMap(Object.values(rule.actions ?? {})),
+        };
     }
 
     return result;
