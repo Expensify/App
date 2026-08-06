@@ -411,6 +411,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: 'Μακρύ αναγνωριστικό αναφοράς',
         withdrawalID: 'Αναγνωριστικό ανάληψης',
         internationalReimbursementIDs: 'Διεθνή αναγνωριστικά αποζημιώσεων',
+        amountDebited: 'Ποσό χρέωσης',
+        amountReimbursed: 'Ποσό που αποζημιώθηκε',
         withdrawalStatus: 'Κατάσταση ανάληψης',
         paidStatus: 'Κατάσταση πληρωμής',
         bankAccounts: 'Τραπεζικοί λογαριασμοί',
@@ -2071,21 +2073,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Αναμονή για να πληρώσει ο/η <strong>${actor}</strong> τα έξοδα.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Αναμονή διαχειριστή για την πληρωμή εξόδων.`;
-                }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένουμε από <strong>εσάς</strong> να ολοκληρώσετε τη ρύθμιση επαγγελματικού τραπεζικού λογαριασμού.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για τον/την <strong>${actor}</strong> να ολοκληρώσει τη ρύθμιση επαγγελματικού τραπεζικού λογαριασμού.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για διαχειριστή ώστε να ολοκληρώσει τη ρύθμιση εταιρικού τραπεζικού λογαριασμού.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -4952,28 +4939,28 @@ ${amount} για ${merchant} - ${date}`,
         },
         qbo: {
             connectedTo: 'Συνδεδεμένο με',
-            importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θα εισαχθούν από το QuickBooks Online στο Expensify.',
+            importDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θα εισαχθούν από το ${integrationName} στο Expensify.`,
             classes: 'Κλάσεις',
             locations: 'Τοποθεσίες',
             customers: 'Πελάτες/έργα',
-            accountsDescription: 'Το διάγραμμα λογαριασμών του QuickBooks Online θα εισαχθεί στο Expensify ως κατηγορίες.',
+            accountsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Το διάγραμμα λογαριασμών του ${integrationName} θα εισαχθεί στο Expensify ως κατηγορίες.`,
             accountsSwitchTitle: 'Επιλέξτε να εισάγετε νέους λογαριασμούς ως ενεργοποιημένες ή απενεργοποιημένες κατηγορίες.',
             accountsSwitchDescription: 'Οι ενεργοποιημένες κατηγορίες θα είναι διαθέσιμες για επιλογή από τα μέλη κατά τη δημιουργία των εξόδων τους.',
-            classesDescription: 'Επιλέξτε πώς θέλετε να χειριστείτε τις κατηγορίες QuickBooks Online στο Expensify.',
-            customersDescription: 'Επιλέξτε πώς θέλετε να διαχειριστείτε τους πελάτες/έργα του QuickBooks Online στο Expensify.',
-            locationsDescription: 'Επιλέξτε πώς θα χειριστείτε τις τοποθεσίες QuickBooks Online στο Expensify.',
-            taxesDescription: 'Επιλέξτε πώς θέλετε να διαχειρίζεστε τους φόρους του QuickBooks Online στο Expensify.',
-            locationsLineItemsRestrictionDescription:
-                'Το QuickBooks Online δεν υποστηρίζει τοποθεσίες σε επίπεδο γραμμής για επιταγές ή τιμολόγια προμηθευτών. Αν θέλετε να έχετε τοποθεσίες σε επίπεδο γραμμής, βεβαιωθείτε ότι χρησιμοποιείτε ημερολογιακές εγγραφές και έξοδα με πιστωτικές/χρεωστικές κάρτες.',
-            taxesJournalEntrySwitchNote:
-                'Το QuickBooks Online δεν υποστηρίζει φόρους σε λογιστικές εγγραφές. Παρακαλούμε αλλάξτε την επιλογή εξαγωγής σας σε τιμολόγιο προμηθευτή ή επιταγή.',
-            exportDescription: 'Ρυθμίστε πώς τα δεδομένα του Expensify εξάγονται στο QuickBooks Online.',
+            classesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Επιλέξτε πώς θέλετε να χειριστείτε τις κατηγορίες ${integrationName} στο Expensify.`,
+            customersDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Επιλέξτε πώς θέλετε να διαχειριστείτε τους πελάτες/έργα του ${integrationName} στο Expensify.`,
+            locationsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Επιλέξτε πώς θα χειριστείτε τις τοποθεσίες ${integrationName} στο Expensify.`,
+            taxesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Επιλέξτε πώς θέλετε να διαχειρίζεστε τους φόρους του ${integrationName} στο Expensify.`,
+            locationsLineItemsRestrictionDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Το ${integrationName} δεν υποστηρίζει τοποθεσίες σε επίπεδο γραμμής για επιταγές ή τιμολόγια προμηθευτών. Αν θέλετε να έχετε τοποθεσίες σε επίπεδο γραμμής, βεβαιωθείτε ότι χρησιμοποιείτε ημερολογιακές εγγραφές και έξοδα με πιστωτικές/χρεωστικές κάρτες.`,
+            taxesJournalEntrySwitchNote: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Το ${integrationName} δεν υποστηρίζει φόρους σε λογιστικές εγγραφές. Παρακαλούμε αλλάξτε την επιλογή εξαγωγής σας σε τιμολόγιο προμηθευτή ή επιταγή.`,
+            exportDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Ρυθμίστε πώς τα δεδομένα του Expensify εξάγονται στο ${integrationName}.`,
             date: 'Ημερομηνία εξαγωγής',
             exportInvoices: 'Εξαγωγή τιμολογίων σε',
             exportExpensifyCard: 'Εξαγωγή συναλλαγών Κάρτας Expensify ως',
             exportDate: {
                 label: 'Ημερομηνία εξαγωγής',
-                description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο QuickBooks Online.',
+                description: ({integrationName = 'QuickBooks Online'} = {}) => `Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο ${integrationName}.`,
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Ημερομηνία τελευταίας δαπάνης',
@@ -4981,7 +4968,7 @@ ${amount} για ${merchant} - ${date}`,
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Ημερομηνία εξαγωγής',
-                        description: 'Ημερομηνία κατά την οποία η αναφορά εξαχθήκε στο QuickBooks Online.',
+                        description: ({integrationName = 'QuickBooks Online'} = {}) => `Ημερομηνία κατά την οποία η αναφορά εξαχθήκε στο ${integrationName}.`,
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Ημερομηνία υποβολής',
@@ -4991,11 +4978,11 @@ ${amount} για ${merchant} - ${date}`,
             },
             receivable: 'Εισπρακτέοι λογαριασμοί',
             archive: 'Αρχείο απαιτήσεων πελατών',
-            exportInvoicesDescription: 'Χρησιμοποιήστε αυτόν τον λογαριασμό κατά την εξαγωγή τιμολογίων στο QuickBooks Online.',
-            exportCompanyCardsDescription: 'Ορίστε πώς οι αγορές εταιρικών καρτών θα εξαχθούν στο QuickBooks Online.',
+            exportInvoicesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Χρησιμοποιήστε αυτόν τον λογαριασμό κατά την εξαγωγή τιμολογίων στο ${integrationName}.`,
+            exportCompanyCardsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Ορίστε πώς οι αγορές εταιρικών καρτών θα εξαχθούν στο ${integrationName}.`,
             vendor: 'Προμηθευτής',
             defaultVendorDescription: 'Ορίστε έναν προεπιλεγμένο προμηθευτή που θα εφαρμόζεται σε όλες τις συναλλαγές πιστωτικής κάρτας κατά την εξαγωγή.',
-            exportOutOfPocketExpensesDescription: 'Ορίστε πώς θα εξαχθούν οι εκτός τσέπης δαπάνες στο QuickBooks Online.',
+            exportOutOfPocketExpensesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Ορίστε πώς θα εξαχθούν οι εκτός τσέπης δαπάνες στο ${integrationName}.`,
             exportCheckDescription: 'Θα δημιουργήσουμε μια αναλυτική επιταγή για κάθε αναφορά Expensify και θα τη στείλουμε από τον παρακάτω τραπεζικό λογαριασμό.',
             exportJournalEntryDescription: 'Θα δημιουργούμε μια αναλυτική λογιστική εγγραφή για κάθε αναφορά Expensify και θα την καταχωρούμε στον παρακάτω λογαριασμό.',
             exportVendorBillDescription:
@@ -5008,36 +4995,40 @@ ${amount} για ${merchant} - ${date}`,
             notConfigured: 'Μη ρυθμισμένο',
             bankAccountDescription: 'Επιλέξτε από πού θα αποστέλλονται οι επιταγές.',
             creditCardAccount: 'Λογαριασμός πιστωτικής κάρτας',
-            travelInvoicingDescription: 'Τα έξοδα ταξιδιού θα εξαχθούν ως χρεώσεις πιστωτικής κάρτας στον λογαριασμό QuickBooks Online που καθορίζεται παρακάτω.',
-            companyCardsLocationEnabledDescription:
-                'Το QuickBooks Online δεν υποστηρίζει τοποθεσίες στις εξαγωγές λογαριασμών προμηθευτών όταν οι τοποθεσίες έχουν εισαχθεί ως ετικέτες. Επειδή στον χώρο εργασίας σας οι τοποθεσίες έχουν εισαχθεί ως ετικέτες, αυτή η επιλογή εξαγωγής δεν είναι διαθέσιμη.',
-            outOfPocketTaxEnabledDescription:
-                'Το QuickBooks Online δεν υποστηρίζει φόρους στις εξαγωγές εγγραφών ημερολογίου. Επειδή έχετε ενεργοποιήσει τους φόρους στον χώρο εργασίας σας, αυτή η επιλογή εξαγωγής δεν είναι διαθέσιμη.',
+            travelInvoicingDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Τα έξοδα ταξιδιού θα εξαχθούν ως χρεώσεις πιστωτικής κάρτας στον λογαριασμό ${integrationName} που καθορίζεται παρακάτω.`,
+            companyCardsLocationEnabledDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Το ${integrationName} δεν υποστηρίζει τοποθεσίες στις εξαγωγές λογαριασμών προμηθευτών όταν οι τοποθεσίες έχουν εισαχθεί ως ετικέτες. Επειδή στον χώρο εργασίας σας οι τοποθεσίες έχουν εισαχθεί ως ετικέτες, αυτή η επιλογή εξαγωγής δεν είναι διαθέσιμη.`,
+            outOfPocketTaxEnabledDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Το ${integrationName} δεν υποστηρίζει φόρους στις εξαγωγές εγγραφών ημερολογίου. Επειδή έχετε ενεργοποιήσει τους φόρους στον χώρο εργασίας σας, αυτή η επιλογή εξαγωγής δεν είναι διαθέσιμη.`,
             outOfPocketTaxEnabledError: 'Οι λογιστικές εγγραφές δεν είναι διαθέσιμες όταν οι φόροι είναι ενεργοποιημένοι. Παρακαλούμε επιλέξτε μια διαφορετική επιλογή εξαγωγής.',
             advancedConfig: {
-                autoSyncDescription: 'Το Expensify θα συγχρονίζεται αυτόματα με το QuickBooks Online κάθε μέρα.',
+                autoSyncDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Το Expensify θα συγχρονίζεται αυτόματα με το ${integrationName} κάθε μέρα.`,
                 inviteEmployees: 'Προσκαλέστε υπαλλήλους',
-                inviteEmployeesDescription: 'Εισαγάγετε τα αρχεία εργαζομένων από το QuickBooks Online και προσκαλέστε εργαζομένους σε αυτόν τον χώρο εργασίας.',
+                inviteEmployeesDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Εισαγάγετε τα αρχεία εργαζομένων από το ${integrationName} και προσκαλέστε εργαζομένους σε αυτόν τον χώρο εργασίας.`,
                 createEntities: 'Αυτόματη δημιουργία οντοτήτων',
-                createEntitiesDescription:
-                    'Η Expensify θα δημιουργεί αυτόματα προμηθευτές στο QuickBooks Online, αν δεν υπάρχουν ήδη, και θα δημιουργεί αυτόματα πελάτες κατά την εξαγωγή τιμολογίων.',
-                reimbursedReportsDescription:
-                    'Κάθε φορά που μια αναφορά πληρώνεται μέσω Expensify ACH, η αντίστοιχη πληρωμή λογαριασμού θα δημιουργείται στον παρακάτω λογαριασμό QuickBooks Online.',
-                qboBillPaymentAccount: 'λογαριασμός πληρωμής λογαριασμών QuickBooks',
-                qboInvoiceCollectionAccount: 'λογαριασμός είσπραξης τιμολογίων QuickBooks',
-                accountSelectDescription: 'Επιλέξτε από πού θα πληρώνετε τους λογαριασμούς και θα δημιουργήσουμε την πληρωμή στο QuickBooks Online.',
-                invoiceAccountSelectorDescription: 'Επιλέξτε πού θα λαμβάνετε τις πληρωμές τιμολογίων και θα δημιουργήσουμε την πληρωμή στο QuickBooks Online.',
+                createEntitiesDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Η Expensify θα δημιουργεί αυτόματα προμηθευτές στο ${integrationName}, αν δεν υπάρχουν ήδη, και θα δημιουργεί αυτόματα πελάτες κατά την εξαγωγή τιμολογίων.`,
+                reimbursedReportsDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Κάθε φορά που μια αναφορά πληρώνεται μέσω Expensify ACH, η αντίστοιχη πληρωμή λογαριασμού θα δημιουργείται στον παρακάτω λογαριασμό ${integrationName}.`,
+                qboBillPaymentAccount: ({integrationName = 'QuickBooks Online'} = {}) => `λογαριασμός πληρωμής λογαριασμών ${integrationName}`,
+                qboInvoiceCollectionAccount: ({integrationName = 'QuickBooks Online'} = {}) => `λογαριασμός είσπραξης τιμολογίων ${integrationName}`,
+                accountSelectDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Επιλέξτε από πού θα πληρώνετε τους λογαριασμούς και θα δημιουργήσουμε την πληρωμή στο ${integrationName}.`,
+                invoiceAccountSelectorDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Επιλέξτε πού θα λαμβάνετε τις πληρωμές τιμολογίων και θα δημιουργήσουμε την πληρωμή στο ${integrationName}.`,
             },
+            debitCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Θα αντιστοιχίσουμε αυτόματα το όνομα εμπόρου στη συναλλαγή χρεωστικής κάρτας με τυχόν αντίστοιχους προμηθευτές στο ${integrationName}. Αν δεν υπάρχουν προμηθευτές, θα δημιουργήσουμε έναν προμηθευτή «Debit Card Misc.» για τη συσχέτιση.`,
+            creditCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Θα αντιστοιχίσουμε αυτόματα το όνομα εμπόρου στη συναλλαγή της πιστωτικής κάρτας με τυχόν αντίστοιχους προμηθευτές στο ${integrationName}. Αν δεν υπάρχουν προμηθευτές, θα δημιουργήσουμε έναν προμηθευτή «Credit Card Misc.» για τη συσχέτιση.`,
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Χρεωστική κάρτα',
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: 'Πιστωτική κάρτα',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Τιμολόγιο προμηθευτή',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Λογιστική εγγραφή',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Επιταγή',
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
-                    'Θα αντιστοιχίσουμε αυτόματα το όνομα εμπόρου στη συναλλαγή χρεωστικής κάρτας με τυχόν αντίστοιχους προμηθευτές στο QuickBooks. Αν δεν υπάρχουν προμηθευτές, θα δημιουργήσουμε έναν προμηθευτή «Debit Card Misc.» για τη συσχέτιση.',
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
-                    'Θα αντιστοιχίσουμε αυτόματα το όνομα εμπόρου στη συναλλαγή της πιστωτικής κάρτας με τυχόν αντίστοιχους προμηθευτές στο QuickBooks. Αν δεν υπάρχουν προμηθευτές, θα δημιουργήσουμε έναν προμηθευτή «Credit Card Misc.» για τη συσχέτιση.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Θα δημιουργούμε μια αναλυτική προμηθευτική χρέωση για κάθε αναφορά Expensify με την ημερομηνία της τελευταίας δαπάνης και θα τη προσθέτουμε στον παρακάτω λογαριασμό. Αν αυτή η περίοδος είναι κλειστή, θα καταχωρούμε την κίνηση στην 1η της επόμενης ανοιχτής περιόδου.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές χρεωστικής κάρτας.',
@@ -5056,14 +5047,15 @@ ${amount} για ${merchant} - ${date}`,
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Επιλέξτε έναν έγκυρο λογαριασμό για την εξαγωγή επιταγής',
             },
             exportDestinationSetupAccountsInfo: {
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]:
-                    'Για να χρησιμοποιήσετε την εξαγωγή λογαριασμών προμηθευτών, ρυθμίστε έναν λογαριασμό πληρωτέων λογαριασμών στο QuickBooks Online',
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]:
-                    'Για να χρησιμοποιήσετε την εξαγωγή λογιστικής εγγραφής, ρυθμίστε έναν λογαριασμό ημερολογίου στο QuickBooks Online',
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Για να χρησιμοποιήσετε την εξαγωγή επιταγών, ρυθμίστε έναν τραπεζικό λογαριασμό στο QuickBooks Online',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Για να χρησιμοποιήσετε την εξαγωγή λογαριασμών προμηθευτών, ρυθμίστε έναν λογαριασμό πληρωτέων λογαριασμών στο ${integrationName}`,
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Για να χρησιμοποιήσετε την εξαγωγή λογιστικής εγγραφής, ρυθμίστε έναν λογαριασμό ημερολογίου στο ${integrationName}`,
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Για να χρησιμοποιήσετε την εξαγωγή επιταγών, ρυθμίστε έναν τραπεζικό λογαριασμό στο ${integrationName}`,
             },
             noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
-            noAccountsFoundDescription: 'Προσθέστε τον λογαριασμό στο QuickBooks Online και συγχρονίστε ξανά τη σύνδεση.',
+            noAccountsFoundDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Προσθέστε τον λογαριασμό στο ${integrationName} και συγχρονίστε ξανά τη σύνδεση.`,
             accountingMethods: {
                 label: 'Πότε να γίνει εξαγωγή',
                 description: 'Επιλέξτε πότε θα εξαχθούν οι δαπάνες:',
@@ -5077,7 +5069,7 @@ ${amount} για ${merchant} - ${date}`,
                 },
             },
             items: 'Στοιχεία',
-            itemsDescription: 'Επιλέξτε πώς θέλετε να διαχειρίζεστε τα στοιχεία του QuickBooks Online στο Expensify.',
+            itemsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Επιλέξτε πώς θέλετε να διαχειρίζεστε τα στοιχεία του ${integrationName} στο Expensify.`,
         },
         workspaceList: {
             joinNow: 'Γίνετε μέλος τώρα',
@@ -6919,6 +6911,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             title: 'Συνδέσεις',
             subtitle: 'Συνδέστε το λογιστικό σας λογισμικό για αυτόματο συγχρονισμό.',
             qbo: 'QuickBooks Online',
+            intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
@@ -6952,6 +6945,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 `Προέκυψε σφάλμα με μια σύνδεση που έχει ρυθμιστεί στο Expensify Classic. [Μεταβείτε στο Expensify Classic για να διορθώσετε αυτό το ζήτημα.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Μεταβείτε στο Expensify Classic για να διαχειριστείτε τις ρυθμίσεις σας.',
             setup: 'Σύνδεση',
+            connectToSandbox: 'Σύνδεση στο sandbox',
             lastSync: (relativeDate: string) => `Τελευταίος συγχρονισμός ${relativeDate}`,
             notSync: 'Δεν έχει γίνει συγχρονισμός',
             import: 'Εισαγωγή',
@@ -6961,27 +6955,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncNow: 'Συγχρονισμός τώρα',
             disconnect: 'Αποσύνδεση',
             reinstall: 'Επανεγκατάσταση συνδέτη',
-            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'ενσωμάτωση';
-                return `Αποσύνδεση ${integrationName}`;
-            },
-            connectTitle: ({connectionName}: ConnectionNameParams) => `Συνδέστε ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'ενσωμάτωση λογιστικής'}`,
-            syncError: ({connectionName}: ConnectionNameParams) => {
-                switch (connectionName) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Δεν είναι δυνατή η σύνδεση με το QuickBooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Αδυναμία σύνδεσης στο Xero';
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return 'Δεν είναι δυνατή η σύνδεση με το NetSuite';
-                    case CONST.POLICY.CONNECTIONS.NAME.QBD:
-                        return 'Δεν είναι δυνατή η σύνδεση με το QuickBooks Desktop';
-                    default: {
-                        return 'Δεν είναι δυνατή η σύνδεση με την ενοποίηση';
-                    }
-                }
-            },
+            disconnectTitle: ({connectionName = 'ενσωμάτωση'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `Αποσύνδεση ${connectionName}`,
+            connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `Συνδέστε ${connectionName}`,
+            syncError: ({connectionName}: ConnectionDisplayNameParams) => `Δεν είναι δυνατή η σύνδεση με το ${connectionName}`,
             accounts: 'Λογιστικό σχέδιο',
             taxes: 'Φόροι',
             imported: 'Εισαγόμενα',
@@ -6996,13 +6972,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Έγινε εισαγωγή ως πεδία αναφοράς',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Προεπιλογή εργαζομένου NetSuite',
             },
-            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'αυτή η ενοποίηση';
-                return `Είστε βέβαιοι ότι θέλετε να αποσυνδέσετε το ${integrationName};`;
-            },
-            connectPrompt: ({connectionName}: ConnectionNameParams) =>
-                `Είστε βέβαιοι ότι θέλετε να συνδέσετε το ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'αυτή την ενοποίηση λογιστικής'}; Αυτό θα αφαιρέσει τυχόν υπάρχουσες λογιστικές συνδέσεις.`,
+            disconnectPrompt: ({connectionName = 'αυτή η ενοποίηση'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `Είστε βέβαιοι ότι θέλετε να αποσυνδέσετε το ${connectionName};`,
+            connectPrompt: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Είστε βέβαιοι ότι θέλετε να συνδέσετε το ${connectionName}; Αυτό θα αφαιρέσει τυχόν υπάρχουσες λογιστικές συνδέσεις.`,
             reconnect: 'Επανασύνδεση',
             enterCredentials: 'Εισαγάγετε τα διαπιστευτήριά σας',
             updateCredentials: 'Ενημέρωση διαπιστευτηρίων',
@@ -7022,7 +6994,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
             },
             connections: {
-                syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                syncStageName: ({stage, integrationName = 'QuickBooks Online'}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -7048,13 +7020,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Εισαγωγή κωδικών φόρου';
                         case 'quickbooksOnlineCheckConnection':
-                            return 'Γίνεται έλεγχος σύνδεσης με το QuickBooks Online';
+                            return `Γίνεται έλεγχος σύνδεσης με το ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
-                            return 'Εισαγωγή δεδομένων από το QuickBooks Online';
+                            return `Εισαγωγή δεδομένων από το ${integrationName}`;
                         case 'startingImportXero':
                             return 'Εισαγωγή δεδομένων Xero';
                         case 'startingImportQBO':
-                            return 'Εισαγωγή δεδομένων από το QuickBooks Online';
+                            return `Εισαγωγή δεδομένων από το ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'Εισαγωγή δεδομένων από το QuickBooks Desktop';
@@ -7069,7 +7041,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'Συνεχίζεται ο συγχρονισμός δεδομένων με το QuickBooks... Βεβαιωθείτε ότι το Web Connector εκτελείται';
                         case 'quickbooksOnlineSyncTitle':
-                            return 'Συγχρονισμός δεδομένων QuickBooks Online';
+                            return `Συγχρονισμός δεδομένων ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
