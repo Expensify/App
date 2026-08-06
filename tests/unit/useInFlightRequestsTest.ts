@@ -29,13 +29,23 @@ const setPersistedRequests = (requests: AnyRequest[]) => Onyx.set(ONYXKEYS.PERSI
 
 const setOngoingRequest = (request: AnyRequest | null) => Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, request).then(waitForBatchedUpdates);
 
+const setIsLoadingApp = (isLoadingApp: boolean) => Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoadingApp).then(waitForBatchedUpdates);
+
+const setHasLoadedApp = (hasLoadedApp: boolean) => Onyx.set(ONYXKEYS.HAS_LOADED_APP, hasLoadedApp).then(waitForBatchedUpdates);
+
 describe('useInFlightRequests', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
 
-    beforeEach(() => {
-        return Onyx.clear().then(waitForBatchedUpdates);
+    beforeEach(async () => {
+        await Onyx.clear().then(waitForBatchedUpdates);
+        // Module-level state survives `Onyx.clear()`. Mount both hooks once so their effects reset it before each test.
+        const {unmount: unmountAppLoad} = renderHook(() => useIsAppLoadPending());
+        const {unmount: unmountReportLoad} = renderHook(() => useIsReportLoadPending('1234'));
+        await act(() => waitForBatchedUpdates());
+        unmountAppLoad();
+        unmountReportLoad();
     });
 
     describe('useIsAppLoadPending', () => {
@@ -88,6 +98,42 @@ describe('useInFlightRequests', () => {
             await act(() => setPersistedRequests([]));
             await waitFor(() => expect(result.current).toBe(false));
         });
+
+        it('stays pending across the OpenApp flush window even when the app was already loaded (account switch)', async () => {
+            // An account switch preserves HAS_LOADED_APP=true and seeds IS_LOADING_APP=true before firing OpenApp.
+            // The request's data and its IS_LOADING_APP clear are deferred until the queue drains, but the request
+            // itself leaves the queue earlier, so gating on the queue alone (or on HAS_LOADED_APP, already true here)
+            // would drop the skeleton mid-flush and render cleared account data.
+            await setHasLoadedApp(true);
+            await setIsLoadingApp(true);
+
+            // OpenApp observed in the queue.
+            await act(() => setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_APP)]));
+            const {result: queuedResult, unmount: unmountQueuedConsumer} = renderHook(() => useIsAppLoadPending());
+            await waitFor(() => expect(queuedResult.current).toBe(true));
+            unmountQueuedConsumer();
+
+            // Request removed but its deferred updates have not flushed (IS_LOADING_APP still true). A consumer that
+            // mounts now, during the flush window, must still report pending even though HAS_LOADED_APP is true.
+            await act(() => setPersistedRequests([]));
+            const {result: flushingResult} = renderHook(() => useIsAppLoadPending());
+            await act(() => waitForBatchedUpdates());
+            expect(flushingResult.current).toBe(true);
+
+            // Deferred updates flush and clear the flag: resolved.
+            await act(() => setIsLoadingApp(false));
+            await waitFor(() => expect(flushingResult.current).toBe(false));
+        });
+
+        it('ignores an IS_LOADING_APP flag stranded on disk when no OpenApp ran this session', async () => {
+            // A fresh reload after an interrupted load: IS_LOADING_APP is stranded true from a previous session,
+            // but this session runs ReconnectApp, not OpenApp, so no OpenApp is ever observed in the queue.
+            await setHasLoadedApp(true);
+            await setIsLoadingApp(true);
+            const {result} = renderHook(() => useIsAppLoadPending());
+            await act(() => waitForBatchedUpdates());
+            expect(result.current).toBe(false);
+        });
     });
 
     describe('useIsReportLoadPending', () => {
@@ -111,6 +157,74 @@ describe('useInFlightRequests', () => {
             const {result: nonMatching} = renderHook(() => useIsReportLoadPending('5678'));
             await act(() => waitForBatchedUpdates());
             expect(nonMatching.current).toBe(false);
+        });
+
+        it('returns false for an undefined reportID even when an OpenReport is queued', async () => {
+            await setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_REPORT, {reportID: '1234'})]);
+            const {result} = renderHook(() => useIsReportLoadPending(undefined));
+            await act(() => waitForBatchedUpdates());
+            expect(result.current).toBe(false);
+        });
+
+        it('waits for the terminal loading update only after observing a matching OpenReport request', async () => {
+            const loadingStateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}1234` as const;
+            await Onyx.merge(loadingStateKey, {isLoadingInitialReportActions: true}).then(waitForBatchedUpdates);
+
+            const {result} = renderHook(() => useIsReportLoadPending('1234'));
+            await act(() => waitForBatchedUpdates());
+
+            expect(result.current).toBe(false);
+
+            await act(() => setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_REPORT, {reportID: '1234'})]));
+            await waitFor(() => expect(result.current).toBe(true));
+
+            await act(() => setPersistedRequests([]));
+            await waitFor(() => expect(result.current).toBe(true));
+
+            await act(() => Onyx.merge(loadingStateKey, {isLoadingInitialReportActions: false}).then(waitForBatchedUpdates));
+            await waitFor(() => expect(result.current).toBe(false));
+        });
+
+        it('shares the observed loading lifecycle with a consumer that mounts after the request leaves the queue', async () => {
+            const loadingStateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}1234` as const;
+            await Onyx.merge(loadingStateKey, {isLoadingInitialReportActions: true}).then(waitForBatchedUpdates);
+            await setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_REPORT, {reportID: '1234'})]);
+
+            const {result: firstConsumer} = renderHook(() => useIsReportLoadPending('1234'));
+            await waitFor(() => expect(firstConsumer.current).toBe(true));
+
+            await act(() => setPersistedRequests([]));
+            await waitFor(() => expect(firstConsumer.current).toBe(true));
+
+            const {result: lateConsumer} = renderHook(() => useIsReportLoadPending('1234'));
+            await act(() => waitForBatchedUpdates());
+            expect(lateConsumer.current).toBe(true);
+
+            await act(() => Onyx.merge(loadingStateKey, {isLoadingInitialReportActions: false}).then(waitForBatchedUpdates));
+            await waitFor(() => {
+                expect(firstConsumer.current).toBe(false);
+                expect(lateConsumer.current).toBe(false);
+            });
+        });
+
+        it('does not carry an armed lifecycle to a new reportID with a stranded loading flag', async () => {
+            const firstLoadingStateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}1234` as const;
+            const secondLoadingStateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}5678` as const;
+            await Promise.all([Onyx.merge(firstLoadingStateKey, {isLoadingInitialReportActions: true}), Onyx.merge(secondLoadingStateKey, {isLoadingInitialReportActions: true})]).then(
+                waitForBatchedUpdates,
+            );
+            await setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_REPORT, {reportID: '1234'})]);
+
+            const {result, rerender} = renderHook(({reportID}: {reportID: string}) => useIsReportLoadPending(reportID), {
+                initialProps: {reportID: '1234'},
+            });
+            await waitFor(() => expect(result.current).toBe(true));
+
+            await act(() => setPersistedRequests([]));
+            await waitFor(() => expect(result.current).toBe(true));
+
+            rerender({reportID: '5678'});
+            expect(result.current).toBe(false);
         });
     });
 
