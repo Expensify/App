@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -79,13 +79,14 @@ function FixBankAccountPage() {
     const resendButton = (
         <>
             <Button
-                success
-                large
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 isLoading={isLoading}
                 isDisabled={isOffline || isLoading}
-                text={translate('walletPage.fixBankAccount.resendButton')}
                 onPress={onResend}
-            />
+            >
+                <Button.Text>{translate('walletPage.fixBankAccount.resendButton')}</Button.Text>
+            </Button>
             {!!resendErrorMessage && (
                 <FormHelpMessage
                     isError
