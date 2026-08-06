@@ -120,7 +120,7 @@ function useAutocompleteSuggestions({
     translate,
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
-    const {localeCompare} = useLocalize();
+    const {localeCompare, formatPhoneNumber} = useLocalize();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -269,6 +269,7 @@ function useAutocompleteSuggestions({
                 excludeFromSuggestionsOnly: memberExclusions,
                 isTrackIntentUser,
                 translate,
+                formatPhoneNumber,
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
@@ -308,6 +309,7 @@ function useAutocompleteSuggestions({
                 conciergeReportID,
                 isTrackIntentUser,
                 translate,
+                formatPhoneNumber,
             }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;

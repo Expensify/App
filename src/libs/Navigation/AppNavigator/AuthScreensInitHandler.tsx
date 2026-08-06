@@ -44,6 +44,7 @@ import {useEffect, useRef} from 'react';
 function initializePusher(
     currentUserAccountID: number | undefined,
     currentUserEmail: string | undefined,
+    formatPhoneNumber: (phoneNumber: string) => string,
     getTopmostOneTransactionThreadReportID: () => string | undefined,
     getReportAttributes: () => ReportAttributesDerivedValue['reports'] | undefined,
 ) {
@@ -52,7 +53,7 @@ function initializePusher(
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getTopmostOneTransactionThreadReportID, getReportAttributes);
+        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', formatPhoneNumber, getTopmostOneTransactionThreadReportID, getReportAttributes);
     });
 }
 
@@ -69,7 +70,7 @@ function AuthScreensInitHandler() {
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
     const ownerEmail = getSearchParamFromUrl(currentUrl, 'ownerEmail');
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
@@ -114,6 +115,7 @@ function AuthScreensInitHandler() {
             return initializePusher(
                 currentAccountID,
                 currentEmail,
+                formatPhoneNumber,
                 () => topmostOneTransactionThreadReportIDRef.current,
                 () => reportAttributesRef.current,
             );
@@ -129,7 +131,7 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current);
+        initializePusher(session?.accountID, session?.email, formatPhoneNumber, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current);
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
@@ -152,7 +154,7 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current).finally(() => {
+        initializePusher(session?.accountID, session?.email, formatPhoneNumber, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 

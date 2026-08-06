@@ -189,7 +189,7 @@ function useSearchSelectorBase({
     shouldKeepSelectedInAvailableOptions = false,
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -265,6 +265,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     isTrackIntentUser,
                     translate,
+                    formatPhoneNumber,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(
@@ -299,6 +300,7 @@ function useSearchSelectorBase({
                         ...getValidOptionsConfig,
                     },
                     translate,
+                    formatPhoneNumber,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
                 return getValidOptions(
@@ -334,6 +336,7 @@ function useSearchSelectorBase({
                         isTrackIntentUser,
                     },
                     translate,
+                    formatPhoneNumber,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
                 return getValidOptions(
@@ -368,6 +371,7 @@ function useSearchSelectorBase({
                         ...getValidOptionsConfig,
                     },
                     translate,
+                    formatPhoneNumber,
                 );
             default:
                 return getEmptyOptions();

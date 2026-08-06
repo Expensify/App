@@ -72,7 +72,7 @@ function IOURequestStepAmount({
     transaction,
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
@@ -212,6 +212,7 @@ function IOURequestStepAmount({
                   reportDraft,
                   currentUserPersonalDetails.accountID,
                   translate,
+                  formatPhoneNumber,
               );
     });
     const participant = participants.at(0);
@@ -255,6 +256,7 @@ function IOURequestStepAmount({
             policyTags,
             reportPolicyTags,
             ...submitData,
+            formatPhoneNumber,
         });
     };
 

@@ -231,7 +231,7 @@ function IOURequestStepConfirmation({
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isOffline} = useNetwork();
@@ -309,6 +309,7 @@ function IOURequestStepConfirmation({
                           participantReportDraft,
                           currentUserPersonalDetails.accountID,
                           translate,
+                          formatPhoneNumber,
                       );
             }) ?? [],
         [
