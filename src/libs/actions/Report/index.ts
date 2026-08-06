@@ -145,6 +145,7 @@ import {
     getReportOrDraftReport,
     getReportPreviewReportActionMessage,
     getReportTransactions,
+    getUploadingAttachmentHtmlFromComment,
     hasOutstandingChildRequest,
     isAdminRoom,
     isChatThread as isChatThreadReportUtils,
@@ -3401,8 +3402,8 @@ function editReportComment(
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = ReportActionsUtils.getReportActionHtml(originalReportAction);
     const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '').trim();
+    const shouldRemoveQueuedAttachment = isUploadingAttachmentRemovedFromDraft(textForNewComment, originalCommentHTML);
     const draftForNewComment = replaceLocalAttachmentReferences(textForNewComment, originalCommentHTML, originalReportAction.reportActionID);
-    const shouldRemoveQueuedAttachment = isUploadingAttachmentRemovedFromDraft(draftForNewComment, originalCommentHTML);
 
     // Skip the Edit if draft is not changed
     if (originalCommentMarkdown === draftForNewComment) {
@@ -3428,6 +3429,12 @@ function editReportComment(
     // Optimistically update the reportAction with the new message
     const reportActionID = originalReportAction.reportActionID;
     const originalMessage = ReportActionsUtils.getReportActionMessage(originalReportAction);
+
+    // Optimistic message only: the sent copy is stripped, so without this the attachment vanishes until upload lands.
+    const uploadingAttachmentHtml = shouldRemoveQueuedAttachment ? undefined : getUploadingAttachmentHtmlFromComment(originalCommentHTML);
+    const optimisticHtml = uploadingAttachmentHtml ? `${htmlForNewComment}<br /><br />${uploadingAttachmentHtml}` : htmlForNewComment;
+    const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml) : reportComment;
+
     const optimisticReportActions: PartialDeep<ReportActions> = {
         [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -3436,8 +3443,8 @@ function editReportComment(
                     ...originalMessage,
                     type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                     isEdited: true,
-                    html: htmlForNewComment,
-                    text: reportComment,
+                    html: optimisticHtml,
+                    text: optimisticText,
                 },
             ],
             lastModified: DateUtils.getDBTime(),

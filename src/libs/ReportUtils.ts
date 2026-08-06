@@ -5387,8 +5387,7 @@ function canEditFieldOfMoneyRequest({
 function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linkedTransaction: OnyxEntry<Transaction>): boolean {
     const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 
-    // Block editing only while an attachment-only comment is still uploading; once synced, attachments are editable.
-    // A comment that has text alongside its attachment stays editable throughout, as the user can always edit the text.
+    // Only an attachment-only comment has nothing to edit while it uploads; text keeps it editable throughout.
     const isOptimisticAttachment = !!reportAction?.isOptimisticAction && !!reportAction?.isAttachmentOnly;
 
     // For money request actions on settled/approved/closed expense reports, the action cannot be edited.
@@ -6639,17 +6638,19 @@ function getUploadingAttachmentHtml(file?: FileObject, attachmentID?: string): s
 }
 
 /**
- * Swaps the local URI (blob:/file:/content:) that a draft captured mid-upload for the attachment that has since
- * synced, so saving the draft cannot replace the attachment with a link only the author's device can resolve.
- * The replacement is matched by the action ID embedded in the synced source URL, and a comment action holds at
- * most one sent attachment because multi-file sends are split per file. Drafts are left alone while the upload
- * is pending, since the edit merges into the queued Add request which re-attaches the file server-side.
+ * Saving a draft captured mid-upload would persist a local URI only the author's device can resolve, so swap it
+ * for the synced attachment, or drop it while the upload is pending because the queued Add re-attaches the file.
  */
 function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentHtml: string | undefined, reportActionID: string): string {
-    const localAttachmentReferenceRegex = /!?\[[^\]]*\]\((?:blob:|file:|content:)[^)]*\)|!\((?:blob:|file:|content:)[^)]*\)/g;
-    const isStillUploading = !currentCommentHtml || currentCommentHtml.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE);
-    if (isStillUploading || !localAttachmentReferenceRegex.test(draftMarkdown)) {
+    const localAttachmentReferenceRegex = /\n*(?:!?\[[^\]]*\]\((?:blob:|file:|content:)[^)]*\)|!\((?:blob:|file:|content:)[^)]*\))/g;
+    if (!localAttachmentReferenceRegex.test(draftMarkdown)) {
         return draftMarkdown;
+    }
+    localAttachmentReferenceRegex.lastIndex = 0;
+
+    const isStillUploading = !currentCommentHtml || currentCommentHtml.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE);
+    if (isStillUploading) {
+        return draftMarkdown.replace(localAttachmentReferenceRegex, '').trim();
     }
 
     const attachmentTags = currentCommentHtml.match(/<(?:img|video)\b[^>]*>|<a\b[^>]*data-expensify-source="[^"]*"[^>]*>[\s\S]*?<\/a>/gi) ?? [];
@@ -6664,19 +6665,30 @@ function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentH
     const syncedAttachmentMarkdown = Parser.htmlToMarkdown(syncedAttachmentTag);
     let isReplaced = false;
     localAttachmentReferenceRegex.lastIndex = 0;
-    return draftMarkdown.replace(localAttachmentReferenceRegex, () => {
+    return draftMarkdown.replace(localAttachmentReferenceRegex, (match) => {
         if (isReplaced) {
             return '';
         }
         isReplaced = true;
-        return syncedAttachmentMarkdown;
+        return `${match.match(/^\n*/)?.at(0) ?? ''}${syncedAttachmentMarkdown}`;
     });
 }
 
+/** The still-uploading attachment tag, re-appended to an edit's optimistic message so it stays on screen. */
+function getUploadingAttachmentHtmlFromComment(currentCommentHtml: string | undefined): string | undefined {
+    if (!currentCommentHtml?.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE)) {
+        return undefined;
+    }
+    const attachmentTagRegex = new RegExp(
+        `<(?:img|video)\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>|<a\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>[\\s\\S]*?</a>`,
+        'i',
+    );
+    return currentCommentHtml.match(attachmentTagRegex)?.at(0);
+}
+
 /**
- * Whether a draft dropped the reference to an attachment that has not finished uploading. The draft is compared
- * against the local URI rather than the parsed HTML because a kept reference stays plain markdown until the
- * upload syncs, so it never parses back into an attachment tag.
+ * Whether a draft dropped a still-uploading attachment. Compared against the local URI, not the parsed HTML,
+ * because a kept reference stays plain markdown and never parses back into an attachment tag.
  */
 function isUploadingAttachmentRemovedFromDraft(draftMarkdown: string, currentCommentHtml: string | undefined): boolean {
     const localSource = currentCommentHtml?.match(new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`))?.at(1);
@@ -14337,6 +14349,7 @@ export {
     canModifyHoldStatus,
     replaceLocalAttachmentReferences,
     isUploadingAttachmentRemovedFromDraft,
+    getUploadingAttachmentHtmlFromComment,
 };
 
 export type {

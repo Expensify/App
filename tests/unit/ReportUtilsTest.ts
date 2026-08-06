@@ -134,6 +134,7 @@ import {
     getTitleFieldWithFallback,
     getTransactionDetails,
     getTransactionReportName,
+    getUploadingAttachmentHtmlFromComment,
     getTransactionSortValue,
     getTransactionsWithReceipts,
     getUnheldReimbursableTotal,
@@ -6351,10 +6352,14 @@ describe('ReportUtils', () => {
         const syncedImageHtml = `Hello<br /><br /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg" alt="photo.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/abc.jpg" />`;
         const uploadingImageHtml = `Hello<br /><br /><img src="blob:https://dev.new.expensify.com:8082/uuid-1" alt="photo.jpg" data-optimistic-src="blob:https://dev.new.expensify.com:8082/uuid-1" data-expensify-source="blob:https://dev.new.expensify.com:8082/uuid-1" data-name="photo.jpg" />`;
 
-        it('leaves the draft untouched while the upload is still pending', () => {
+        it('drops the local reference while the upload is still pending, since the queued send re-attaches the file', () => {
             const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
 
-            expect(replaceLocalAttachmentReferences(draft, uploadingImageHtml, reportActionID)).toBe(draft);
+            expect(replaceLocalAttachmentReferences(draft, uploadingImageHtml, reportActionID)).toBe('Hello edited');
+        });
+
+        it('leaves a draft with no local reference untouched while pending', () => {
+            expect(replaceLocalAttachmentReferences('Hello edited', uploadingImageHtml, reportActionID)).toBe('Hello edited');
         });
 
         it('swaps a blob: reference for the synced attachment when saved after the upload synced', () => {
@@ -6406,6 +6411,17 @@ describe('ReportUtils', () => {
 
         it('does not report a removal when the attachment already synced', () => {
             expect(isUploadingAttachmentRemovedFromDraft('Hello edited', syncedImageHtml)).toBe(false);
+        });
+
+        it('returns the uploading attachment tag so the optimistic message can keep showing it', () => {
+            const tag = getUploadingAttachmentHtmlFromComment(uploadingImageHtml);
+
+            expect(tag).toContain('data-optimistic-src="blob:https://dev.new.expensify.com:8082/uuid-1"');
+            expect(tag?.startsWith('<img')).toBe(true);
+        });
+
+        it('returns nothing to re-append once the attachment has synced', () => {
+            expect(getUploadingAttachmentHtmlFromComment(syncedImageHtml)).toBeUndefined();
         });
 
         it('does not swap in an attachment owned by a different report action', () => {
