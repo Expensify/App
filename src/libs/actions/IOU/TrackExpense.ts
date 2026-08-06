@@ -1,5 +1,7 @@
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {AddTrackedExpenseToPolicyParams, CreateWorkspaceParams, DeleteMoneyRequestParams, RequestMoneyParams, ShareTrackedExpenseParams, TrackExpenseParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -65,6 +67,7 @@ import {
     getMerchant,
     getRateID,
     getWaypoints,
+    hasUploadedReceipt,
     isCustomUnitRateIDForP2P,
     isDistanceExpenseType,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -215,6 +218,7 @@ type DeleteTrackExpenseParams = {
     currentUserAccountID: number;
     currentUserEmail: string;
     policy?: OnyxEntry<OnyxTypes.Policy>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type BuildOnyxDataForTrackExpenseParams = {
@@ -1530,6 +1534,8 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             value: {
                 parentReportActionID: iouParams.reportActionID,
                 parentReportID: iouParams.reportID,
+                chatReportID: iouParams.reportID,
+                policyID: workspaceParams?.policyID,
             },
         });
 
@@ -1539,6 +1545,8 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             value: {
                 parentReportActionID: transactionThreadReport?.parentReportActionID,
                 parentReportID: transactionThreadReport?.parentReportID,
+                chatReportID: transactionThreadReport?.chatReportID,
+                policyID: transactionThreadReport?.policyID ?? null,
             },
         });
     }
@@ -1790,7 +1798,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             const workspaceParams =
                 isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
                     ? {
-                          receipt: isFileUploadable(receipt) ? receipt : undefined,
+                          receipt:
+                              isFileUploadable(receipt) && !hasUploadedReceipt(getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`])
+                                  ? receipt
+                                  : undefined,
                           category,
                           tag,
                           taxCode,
@@ -2591,6 +2602,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
+    const sourceTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`];
 
     const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
@@ -2649,7 +2661,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 billable,
                 reimbursable,
-                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) && !hasUploadedReceipt(sourceTransaction) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
@@ -2702,7 +2714,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 billable,
                 reimbursable,
-                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) && !hasUploadedReceipt(sourceTransaction) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
@@ -2754,7 +2766,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 billable,
                 reimbursable,
-                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) && !hasUploadedReceipt(sourceTransaction) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
@@ -2887,6 +2899,7 @@ function getNavigationUrlAfterTrackExpenseDelete(
     iouReport: OnyxEntry<OnyxTypes.Report>,
     chatIOUReport: OnyxEntry<OnyxTypes.Report>,
     isChatReportArchived: boolean | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     isSingleTransactionView = false,
 ): Route | undefined {
     if (!chatReportID || !transactionID) {
@@ -2897,7 +2910,16 @@ function getNavigationUrlAfterTrackExpenseDelete(
     if (!isSelfDM(chatReport)) {
         const allReports = getAllReports();
         const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
-        return getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, transactionThreadReport, iouReport, chatIOUReport, isChatReportArchived, isSingleTransactionView);
+        return getNavigationUrlOnMoneyRequestDelete(
+            transactionID,
+            reportAction,
+            transactionThreadReport,
+            iouReport,
+            chatIOUReport,
+            isChatReportArchived,
+            getCurrencyDecimals,
+            isSingleTransactionView,
+        );
     }
 
     // Only navigate if in single transaction view and the thread will be deleted
@@ -2926,6 +2948,7 @@ function deleteTrackExpense({
     currentUserAccountID,
     currentUserEmail,
     policy,
+    getCurrencyDecimals,
 }: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
         return;
@@ -2939,6 +2962,7 @@ function deleteTrackExpense({
         iouReport,
         chatIOUReport,
         isChatIOUReportArchived,
+        getCurrencyDecimals,
         isSingleTransactionView,
     );
 
@@ -2961,6 +2985,7 @@ function deleteTrackExpense({
             currentUserAccountID,
             currentUserEmail,
             policy,
+            getCurrencyDecimals,
         });
         return urlToNavigateBack;
     }
