@@ -22,7 +22,8 @@ function WorkspaceNavigatorEffects(props: CustomEffectsHookProps) {
 
 const WorkspaceNavigatorComponent = createPlatformStackNavigatorComponent(NAVIGATORS.WORKSPACE_NAVIGATOR, {
     createRouter: WorkspaceRouter,
-    defaultScreenOptions: defaultPlatformStackScreenOptions,
+    // Covered workspace screens are deprioritized with React <Activity>. Individual screens can pick another behavior.
+    defaultScreenOptions: {...defaultPlatformStackScreenOptions, nonTopScreenBehavior: 'activity'},
     Effects: WorkspaceNavigatorEffects,
 });
 

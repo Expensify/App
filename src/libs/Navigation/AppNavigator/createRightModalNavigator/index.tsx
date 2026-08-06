@@ -20,7 +20,9 @@ function RightModalNavigatorEffects(props: CustomEffectsHookProps) {
 
 const RightModalNavigatorComponent = createPlatformStackNavigatorComponent(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, {
     createRouter: RightModalRouter,
-    defaultScreenOptions: defaultPlatformStackScreenOptions,
+    // Covered RHP screens are deprioritized with React <Activity>. A covered wide RHP stays visible behind the top
+    // card, so its content must stay painted (CustomViewWrapper). Individual screens can pick another behavior.
+    defaultScreenOptions: {...defaultPlatformStackScreenOptions, nonTopScreenBehavior: 'activity'},
     Effects: RightModalNavigatorEffects,
 });
 
