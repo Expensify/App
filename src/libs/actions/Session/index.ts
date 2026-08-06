@@ -353,7 +353,13 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
 ];
 
-function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldSignOutFromOldDot = true, shouldForceUseStashedSession?: boolean) {
+function signOutAndRedirectToSignIn(
+    shouldResetToHome?: boolean,
+    shouldStashSession?: boolean,
+    shouldSignOutFromOldDot = true,
+    shouldForceUseStashedSession?: boolean,
+    session?: OnyxEntry<Session>,
+) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 
@@ -367,7 +373,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
         return;
     }
 
-    const isSupportal = isSupportAuthToken();
+    const isSupportal = isSupportAuthToken(session);
     const shouldRestoreStashedSession = isSupportal || shouldForceUseStashedSession;
 
     if (CONFIG.IS_HYBRID_APP && shouldSignOutFromOldDot) {

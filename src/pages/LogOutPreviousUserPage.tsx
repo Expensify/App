@@ -43,7 +43,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
         if (isLoggingInAsNewUser) {
             // We don't want to close react-native app in this particular case.
-            signOutAndRedirectToSignIn(false, isSupportalLogin);
+            signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, session);
             return;
         }
 
