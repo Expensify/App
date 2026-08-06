@@ -41,10 +41,11 @@ function precacheReceiptImage(sourceUri: string): Promise<string | undefined> {
         parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
     });
 
-    // Pre-decode the image in the native image pipeline so the confirmation screen can display it
-    // instantly without decode latency. Callers await this before navigating, so the wait is capped:
-    // past THUMBNAIL_NAV_TIMEOUT_MS we resolve anyway and let `useLocalReceiptThumbnail` generate the
-    // thumbnail lazily on the confirm screen. The prefetch itself keeps running in the background.
+    // Warm up the image decode so the confirmation screen doesn't have to do it on mount.
+    // We navigate as soon as this resolves, so don't let a slow decode hold the user on the camera:
+    // after THUMBNAIL_NAV_TIMEOUT_MS we move on and let the prefetch finish in the background.
+    // Either way the confirm screen shows `sourceUri` — generating a thumbnail instead would just
+    // trade a fast decode for a slow encode, which is what we're trying to avoid here.
     return Promise.race([
         // The catch matters: callers gate navigation on this promise, so a prefetch failure must not reject the race.
         Image.prefetch(sourceUri).catch(() => false),
