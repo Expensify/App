@@ -84,7 +84,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
             return;
         }
 
-        setWorkspaceDistanceAutoUpdate(policyID, customUnit, isOn, governmentMileageRates ?? []);
+        setWorkspaceDistanceAutoUpdate(policyID, customUnit, isOn, governmentMileageRates ?? [], policy?.outputCurrency);
     };
 
     const onToggleTrackTax = (isOn: boolean) => {

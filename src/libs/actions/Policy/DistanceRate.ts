@@ -648,8 +648,18 @@ function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclu
  *
  * The distance unit is corrected in the same write when the workspace unit doesn't match the unit the government publishes
  * its rates in (e.g. the workspace tracks miles but the currency is CAD, which expects kilometers).
+ *
+ * `outputCurrency` is the policy's output currency, which is what the server derives the target country from. Reference rates
+ * for any other currency are ignored: `ONYXKEYS.GOVERNMENT_MILEAGE_RATES` is a single key shared by every workspace, so it can
+ * still hold the rates of the last workspace whose distance rates page was opened.
  */
-function setWorkspaceDistanceAutoUpdate(policyID: string, customUnit: CustomUnit, shouldAutoUpdateGovernmentDistanceRates: boolean, governmentMileageRates: GovernmentMileageRate[]) {
+function setWorkspaceDistanceAutoUpdate(
+    policyID: string,
+    customUnit: CustomUnit,
+    shouldAutoUpdateGovernmentDistanceRates: boolean,
+    governmentMileageRates: GovernmentMileageRate[],
+    outputCurrency: string | undefined,
+) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const customUnitID = customUnit.customUnitID;
 
@@ -662,6 +672,11 @@ function setWorkspaceDistanceAutoUpdate(policyID: string, customUnit: CustomUnit
         const copiedSourceRateIDs = new Set(Object.values(customUnit.rates ?? {}).map((rate) => rate.attributes?.governmentRate?.sourceRateID));
 
         for (const governmentMileageRate of governmentMileageRates) {
+            // Reference rates for another currency belong to a different workspace, so copying them here would create a rate the server never persists
+            if (governmentMileageRate.currency !== outputCurrency) {
+                continue;
+            }
+
             // The server skips reference rates the workspace already has, so we skip them optimistically too
             if (copiedSourceRateIDs.has(governmentMileageRate.sourceRateID)) {
                 continue;
@@ -693,7 +708,7 @@ function setWorkspaceDistanceAutoUpdate(policyID: string, customUnit: CustomUnit
     }
 
     const currentUnit = customUnit.attributes?.unit;
-    const expectedUnit = getExpectedUnitForCurrency(governmentMileageRates.at(0)?.currency);
+    const expectedUnit = getExpectedUnitForCurrency(outputCurrency);
     const shouldCorrectUnit = shouldAutoUpdateGovernmentDistanceRates && !!expectedUnit && !!currentUnit && currentUnit !== expectedUnit;
 
     const optimisticCustomUnit: NullishDeep<CustomUnit> = {
