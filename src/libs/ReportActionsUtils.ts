@@ -3568,7 +3568,7 @@ function getRequireCompanyCardsEnabledMessage(translate: LocalizedTranslate, act
 }
 
 function getCurrencyConversionFeeMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {preference} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE>) ?? {};
+    const preference = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE) ? getOriginalMessage(action)?.preference : undefined;
 
     return translate('workspaceActions.updatedCurrencyConversionFee', {preference: preference ?? 'employee'});
 }
