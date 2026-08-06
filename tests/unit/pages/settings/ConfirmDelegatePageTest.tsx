@@ -7,7 +7,9 @@ import SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
-const SMS_LOGIN = `2347045473755${CONST.SMS.DOMAIN}`;
+// `addSMSDomainIfPhoneNumber` builds an SMS login from the parsed e164, so a real one always carries the `+`.
+// Without it `parsePhoneNumber` has no region to work from, reports the number invalid, and no formatting happens.
+const SMS_LOGIN = `+2347045473755${CONST.SMS.DOMAIN}`;
 const FORMATTED_SMS_LOGIN = '+234 704 547 3755';
 const MOCK_ROUTE = {
     key: `${SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM}-test`,
