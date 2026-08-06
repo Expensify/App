@@ -65,8 +65,11 @@ function toDurableName(storedPath: string): string | undefined {
 }
 
 const resolve: ReceiptStorage['resolve'] = (source) => {
-    if (typeof source !== 'string' || !isLocalFile(source)) {
-        return typeof source === 'string' ? source : undefined;
+    if (typeof source !== 'string') {
+        return undefined;
+    }
+    if (!isLocalFile(source)) {
+        return source;
     }
     const durableName = toDurableName(source);
     return durableName ? toLocalUri(durableName) : source;

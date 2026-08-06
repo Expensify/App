@@ -86,6 +86,10 @@ describe('ReceiptStorage', () => {
             expect(ReceiptStorage.resolve(stale)).toBe(`file://${FOLDER}/receipt_9.jpg`);
         });
 
+        it('re-roots a stored path that carries no file:// scheme', () => {
+            expect(ReceiptStorage.resolve('/var/mobile/Containers/Data/Application/BBBB-2222/Documents/Receipts-Upload/receipt_9.jpg')).toBe(`file://${FOLDER}/receipt_9.jpg`);
+        });
+
         it('leaves a path that never belonged to the folder alone, so a purged cache file is not reported as recoverable', () => {
             const purged = 'file:///var/mobile/Library/Caches/ImageManipulator/cropped.jpg';
 
