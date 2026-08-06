@@ -60,7 +60,6 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
-import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -92,9 +91,7 @@ type MenuData = WithSentryLabel & {
     iconType?: typeof CONST.ICON_TYPE_ICON | typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
     iconStyles?: StyleProp<ViewStyle>;
     fallbackIcon?: IconAsset;
-    shouldStackHorizontally?: boolean;
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
-    floatRightAvatars?: TIcon[];
     title?: string;
     shouldShowRightIcon?: boolean;
     iconRight?: IconAsset;

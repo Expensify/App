@@ -18,6 +18,7 @@ import {deepEqual} from 'fast-equals';
 import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
+import AccountAvatar from './Avatar/connected/AccountAvatar';
 import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
@@ -140,6 +141,7 @@ function OptionRow({
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const shouldUseShortFormInTooltip = (option.participantsList?.length ?? 0) > 1;
     const firstIcon = option?.icons?.at(0);
+    const shouldShowAvatarTooltip = showTitleTooltip && shouldOptionShowTooltip(option as OptionData);
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(
@@ -201,16 +203,23 @@ function OptionRow({
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                {!!option.icons?.length && !!firstIcon && (
-                                    <ReportActionAvatars
-                                        subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
-                                        reportID={reportID}
-                                        accountIDs={!reportID && option.accountID ? [option.accountID] : []}
-                                        size={CONST.AVATAR_SIZE.DEFAULT}
-                                        secondaryAvatarContainerStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
-                                        shouldShowTooltip={showTitleTooltip && shouldOptionShowTooltip(option as OptionData)}
-                                    />
-                                )}
+                                {!!option.icons?.length &&
+                                    !!firstIcon &&
+                                    (!reportID && option.accountID ? (
+                                        <AccountAvatar
+                                            accountID={option.accountID}
+                                            size={CONST.AVATAR_SIZE.DEFAULT}
+                                            shouldShowTooltip={shouldShowAvatarTooltip}
+                                        />
+                                    ) : (
+                                        <ReportActionAvatars
+                                            subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
+                                            reportID={reportID}
+                                            size={CONST.AVATAR_SIZE.DEFAULT}
+                                            secondaryAvatarContainerStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
+                                            shouldShowTooltip={shouldShowAvatarTooltip}
+                                        />
+                                    ))}
                                 <View style={contentContainerStyles}>
                                     <DisplayNames
                                         accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}

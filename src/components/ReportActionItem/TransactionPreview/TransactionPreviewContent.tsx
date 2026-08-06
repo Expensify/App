@@ -1,7 +1,7 @@
+import AccountAvatars from '@components/Avatar/connected/AccountAvatars';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import UserInfoCellsWithArrow from '@components/Search/SearchList/ListItem/UserInfoCellsWithArrow';
 import Text from '@components/Text';
@@ -327,9 +327,9 @@ function TransactionPreviewContent({
                                         <Text style={[isDeleted && styles.lineThrough, styles.textLabelSupporting, styles.flex1, styles.lh16, previewTextMargin]}>{previewHeaderText}</Text>
                                         {isBillSplit && (
                                             <View style={styles.moneyRequestPreviewBoxAvatar}>
-                                                <ReportActionAvatars
+                                                <AccountAvatars
                                                     accountIDs={participantAccountIDs}
-                                                    horizontalStacking={{
+                                                    horizontalOptions={{
                                                         avatarBorderColor: theme.cardBG,
                                                     }}
                                                     sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.ID}

@@ -65,7 +65,6 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             isBadgeCondensed={item.isBadgeCondensed}
             fallbackIcon={item.fallbackIcon}
             brickRoadIndicator={item.brickRoadIndicator}
-            shouldStackHorizontally={item.shouldStackHorizontally}
             ref={popoverAnchor}
             shouldBlockSelection={!!item.link}
             onSecondaryInteraction={onSecondaryInteraction}

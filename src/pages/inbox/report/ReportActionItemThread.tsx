@@ -1,6 +1,6 @@
+import AccountAvatars from '@components/Avatar/connected/AccountAvatars';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -80,10 +80,10 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
                     sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_THREAD}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
-                        <ReportActionAvatars
+                        <AccountAvatars
                             size={CONST.AVATAR_SIZE.SMALL}
                             accountIDs={accountIDs}
-                            horizontalStacking={{
+                            horizontalOptions={{
                                 isHovered,
                                 isActive,
                             }}
