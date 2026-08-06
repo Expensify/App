@@ -14,7 +14,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -68,7 +67,6 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
     const illustrations = useMemoizedLazyIllustrations(['Workflows']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table', 'Send', 'ThumbsUp', 'MoneyBag', 'Gear']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
@@ -207,7 +205,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
 
     const headerButtons =
         !shouldBlockApprovalWorkflowEditing && canWriteApprovals ? (
-            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.w100]}>
+            <View style={[styles.flexRow, styles.gap2]}>
                 <ButtonWithDropdownMenu
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
@@ -230,7 +228,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
                 headerText={translate('workspace.common.workflows')}
                 icon={illustrations.Workflows}
                 route={route}
-                headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
+                headerContent={headerButtons}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldShowNotFoundPage={!isGroupPolicy || !canReadWorkflows}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS}
@@ -249,7 +247,6 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
                         />
                     </TabSelectorContextProvider>
                 </View>
-                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View>}
                 <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {activeTab === WORKFLOWS_TAB.SUBMISSIONS && <WorkflowsSubmissionsTab policyID={policyID} />}
                     {activeTab === WORKFLOWS_TAB.APPROVALS && <WorkflowsApprovalsTab policyID={policyID} />}
