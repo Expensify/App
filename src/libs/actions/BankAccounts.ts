@@ -11,6 +11,7 @@ import type {
     EnableGlobalReimbursementsForUSDBankAccountParams,
     FinishCorpayBankAccountOnboardingParams,
     OpenReimbursementAccountPageParams,
+    ResendFailedValidationAmountsParams,
     SaveCorpayOnboardingBeneficialOwnerParams,
     SendReminderForCorpaySignerInformationParams,
     ShareBankAccountAndSetPayerParams,
@@ -1869,7 +1870,56 @@ function pressLockedBankAccount(bankAccountID: number, translate: LocalizedTrans
 }
 
 function resendFailedValidationAmounts(bankAccountID: number) {
-    API.write(WRITE_COMMANDS.RESEND_FAILED_VALIDATION_AMOUNTS, {bankAccountID});
+    const parameters: ResendFailedValidationAmountsParams = {bankAccountID};
+
+    const onyxData: OnyxData<typeof ONYXKEYS.BANK_ACCOUNT_LIST> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {
+                    [bankAccountID]: {
+                        pendingFields: {accountData: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        errors: null,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {
+                    [bankAccountID]: {
+                        pendingFields: {accountData: null},
+                        accountData: {
+                            state: CONST.BANK_ACCOUNT.STATE.PENDING,
+                            additionalData: {lastNocCode: null},
+                        },
+                        errors: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {
+                    [bankAccountID]: {
+                        pendingFields: {accountData: null},
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.RESEND_FAILED_VALIDATION_AMOUNTS, parameters, onyxData);
+}
+
+function clearResendFailedValidationAmountsErrors(bankAccountID: number) {
+    Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {errors: null}});
 }
 
 export {
@@ -1934,5 +1984,6 @@ export {
     initiateBankAccountUnlock,
     pressLockedBankAccount,
     resendFailedValidationAmounts,
+    clearResendFailedValidationAmountsErrors,
     uploadUserKYBDocs,
 };
