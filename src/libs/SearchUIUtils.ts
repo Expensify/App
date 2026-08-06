@@ -374,6 +374,10 @@ const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithd
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: 'debitPosted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'state' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'formattedWithdrawalID' as const,
+    // Both the backend page selection and this local sort rank the amounts as stored, without converting between
+    // currencies, so a group can outrank one that is worth more in another currency.
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'debitedAmount' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'creditedAmount' as const,
     ...transactionGroupBaseSortingProperties,
 };
 
@@ -4569,6 +4573,10 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'common.expenses';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
             return 'common.total';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED:
+            return 'common.amountDebited';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED:
+            return 'common.amountReimbursed';
         case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
             return 'common.withdrawalID';
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
@@ -5996,6 +6004,30 @@ function getPolicyTagsForPolicyID(policyTags: PolicyTagsLookup | undefined, poli
     return policyTagsKey ? policyTags[policyTagsKey] : undefined;
 }
 
+// Only settlements that converted currencies carry these amounts, so each column stays hidden until a group reports one.
+const conversionAmountGroupColumns = {
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: {amount: 'debitedAmount', currency: 'debitedCurrency'},
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: {amount: 'creditedAmount', currency: 'creditedCurrency'},
+} as const satisfies Partial<Record<SearchColumnType, {amount: keyof SearchWithdrawalIDGroup; currency: keyof SearchWithdrawalIDGroup}>>;
+
+function isConversionAmountGroupColumn(column: SearchColumnType): column is keyof typeof conversionAmountGroupColumns {
+    return column in conversionAmountGroupColumns;
+}
+
+function hasGroupWithConversionAmount(column: keyof typeof conversionAmountGroupColumns, data: OnyxTypes.SearchResults['data']): boolean {
+    const {amount, currency} = conversionAmountGroupColumns[column];
+    return Object.keys(data).some((key) => {
+        if (!isGroupEntry(key)) {
+            return false;
+        }
+
+        const group: Partial<SearchWithdrawalIDGroup> = data[key];
+
+        // getWithdrawalIDSections drops groups without an account number, so a column keyed off one would have no row to fill it.
+        return !!group.accountNumber && !!group[amount] && !!group[currency];
+    });
+}
+
 /**
  * Determines what columns to show based on available data
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
@@ -6017,6 +6049,7 @@ function getColumnsToShow({
     shouldUseStrictDefaultExpenseColumns = false,
     isPolicyTaxEnabled = false,
     fallbackPolicyID,
+    sortBy,
 }: {
     currentAccountID: number | undefined;
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
@@ -6033,6 +6066,7 @@ function getColumnsToShow({
     shouldUseStrictDefaultExpenseColumns?: boolean;
     isPolicyTaxEnabled?: boolean;
     fallbackPolicyID?: string;
+    sortBy?: SearchSortBy;
 }): SearchColumnType[] {
     const reportCustomColumns = new Set<SearchColumnType>([
         CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
@@ -6154,7 +6188,13 @@ function getColumnsToShow({
                 result.push(col);
             }
 
-            return result;
+            if (Array.isArray(data)) {
+                return result;
+            }
+
+            // The column the results are sorted by has to stay, even with nothing to show in it. Both the header and the
+            // Sort by option come from this list, so dropping it would leave the sort applied with no way to change it.
+            return result.filter((column) => !isConversionAmountGroupColumn(column) || column === sortBy || hasGroupWithConversionAmount(column, data));
         }
     }
 

@@ -55,13 +55,7 @@ import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils
 
 import {getBankName, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {
-    convertAmountToDisplayString,
-    convertToBackendAmount,
-    convertToDisplayString as convertToDisplayStringUtil,
-    convertToDisplayStringWithExplicitCurrency,
-    convertToShortDisplayString,
-} from './CurrencyUtils';
+import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayStringWithExplicitCurrency, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
@@ -489,6 +483,7 @@ function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, o
 function getCrossBorderReimbursedMessage(
     translate: LocalizedTranslate,
     originalMessage: Pick<OriginalMessageIOU | OriginalMessageReimbursed, 'creditedAmount' | 'creditedCurrency' | 'debitBankAccountLast4' | 'creditBankAccountLast4'>,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     fallbackDebitBankAccountLast4?: string,
 ): string | undefined {
     const {creditedAmount, creditedCurrency} = originalMessage;
@@ -497,7 +492,7 @@ function getCrossBorderReimbursedMessage(
     }
 
     return translate('iou.reimbursedCrossBorder', {
-        amount: convertToDisplayStringUtil(creditedAmount, creditedCurrency),
+        amount: convertToDisplayString(creditedAmount, creditedCurrency),
         debitBankAccount: originalMessage.debitBankAccountLast4 ?? fallbackDebitBankAccountLast4 ?? '',
         creditBankAccount: originalMessage.creditBankAccountLast4 ?? '',
     });
@@ -514,6 +509,7 @@ function getReimbursedMessage(
     reportOwnerAccountID: number | undefined,
     submitterLoginParam: string | undefined,
     actorLoginParam: string | undefined,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     currentUserAccountID?: number,
 ): string {
     const effectiveCurrentUserAccountID = currentUserAccountID ?? deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -575,7 +571,7 @@ function getReimbursedMessage(
     }
 
     // The employee is credited in their own currency, so name that amount and both accounts, not the report total.
-    const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, effectiveDebitBankAccountLast4);
+    const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, effectiveDebitBankAccountLast4);
     if (crossBorderMessage) {
         return isAutomation ? `${crossBorderMessage} ${translate('iou.reimbursedOnBehalfOf', actorLogin.toLowerCase())}` : crossBorderMessage;
     }
