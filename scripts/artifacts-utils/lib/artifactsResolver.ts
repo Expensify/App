@@ -7,9 +7,7 @@ import {execFileSync} from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-import type {Credentials, CredentialsWithUsername} from './credentials';
-
-import {getCredentials, getCredentialsWithUsername, initGithubClient} from './credentials';
+import {getCredentials as getCredentialsFromCLI} from './githubCLI';
 
 /**
  * Shared resolver for Expensify's patched React Native prebuilt artifacts.
@@ -19,6 +17,11 @@ import {getCredentials, getCredentialsWithUsername, initGithubClient} from './cr
  */
 
 type Platform = 'ios' | 'android';
+
+/** A token authenticates every read; this is all iOS's curl Bearer download needs. */
+type Credentials = {githubToken: string};
+/** Android additionally needs the username, for Gradle's Maven `credentials {}` block. */
+type CredentialsWithUsername = Credentials & {githubUsername: string};
 
 type ResolveOptions = {
     platform: Platform;
@@ -59,6 +62,41 @@ const MAVEN_REPO_URL = `https://maven.pkg.github.com/${CONST.GITHUB_OWNER}/${CON
 /** Logs go to stderr; stdout is reserved for the JSON result. */
 function logError(message: string) {
     process.stderr.write(`[PatchedArtifacts] ${message}\n`);
+}
+
+/** Reads a non-empty environment variable, or null. */
+function getEnvVar(name: string): string | null {
+    const value: unknown = process.env[name];
+    return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+/**
+ * Credentials come from the environment in CI and from the gh CLI on developer machines.
+ * Reading from the CLI spawns processes, so each getter below reads exactly once.
+ */
+function readCredentials(): {githubToken: string | null; githubUsername: string | null} {
+    if (process.env.CI != null) {
+        return {githubToken: getEnvVar('GITHUB_TOKEN'), githubUsername: getEnvVar('GITHUB_ACTOR')};
+    }
+    return getCredentialsFromCLI();
+}
+
+/** Throws when no token is available. */
+function getCredentials(): Credentials {
+    const {githubToken} = readCredentials();
+    if (githubToken == null) {
+        throw new Error('Missing GitHub token (set GITHUB_TOKEN in CI, or run `gh auth login` locally).');
+    }
+    return {githubToken};
+}
+
+/** Throws when either the token or the username is unavailable. */
+function getCredentialsWithUsername(): CredentialsWithUsername {
+    const {githubToken, githubUsername} = readCredentials();
+    if (githubToken == null || githubUsername == null) {
+        throw new Error('Missing GitHub credentials (set GITHUB_TOKEN and GITHUB_ACTOR in CI, or run `gh auth login` locally).');
+    }
+    return {githubToken, githubUsername};
 }
 
 /**
@@ -155,7 +193,10 @@ async function resolveArtifacts(options: ResolveOptions): Promise<ResolveResult>
     try {
         // Reading credentials validates them, so an incomplete setup fails before we spend time on API calls.
         const credentials = platform === 'android' ? getCredentialsWithUsername() : getCredentials();
-        initGithubClient(credentials.githubToken);
+        // Initialize the shared client explicitly: the GithubUtils getters otherwise self-initialize via
+        // `initOctokit()`, which exits the process when no token is set — killing the build instead of
+        // letting us fall back to building react-native from source.
+        GithubUtils.initOctokitWithToken(credentials.githubToken);
 
         const version = await findMatchingArtifactsVersion(options, artifactId, credentials.githubToken);
         if (version == null) {
