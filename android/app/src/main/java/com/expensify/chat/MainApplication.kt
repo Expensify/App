@@ -58,12 +58,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
                     activity.setRecentsScreenshotEnabled(false)
                     // Third-party activities (e.g. Plaid) don't set our TaskDescription, so their recents fallback card would be black.
                     if (!activity.javaClass.name.startsWith("com.expensify.")) {
-                        activity.setTaskDescription(
-                            ActivityManager.TaskDescription.Builder()
-                                .setBackgroundColor(activity.getColor(R.color.bootsplash_background))
-                                .setStatusBarColor(activity.getColor(R.color.bootsplash_background))
-                                .build()
-                        )
+                        MainActivity.applyTaskDescription(activity)
                     }
                 }
                 if (activity.javaClass.name == "com.plaid.internal.link.LinkActivity") {

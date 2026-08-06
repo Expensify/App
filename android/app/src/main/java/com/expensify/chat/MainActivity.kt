@@ -1,5 +1,6 @@
 package com.expensify.chat
 
+import android.app.Activity
 import android.app.ActivityManager
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -24,6 +25,19 @@ import expo.modules.ReactActivityDelegateWrapper
 class MainActivity : ReactActivity() {
     companion object {
         private const val APP_START_TIME_PREFERENCES = "AppStartTime"
+
+        // Recents shows this card instead of a snapshot, since snapshots are disabled for privacy.
+        fun applyTaskDescription(activity: Activity) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                return
+            }
+            activity.setTaskDescription(
+                ActivityManager.TaskDescription.Builder()
+                    .setBackgroundColor(activity.getColor(R.color.bootsplash_background))
+                    .setStatusBarColor(activity.getColor(R.color.bootsplash_background))
+                    .build()
+            )
+        }
     }
 
     /**
@@ -152,13 +166,7 @@ class MainActivity : ReactActivity() {
 
     override fun onApplyThemeResource(theme: Resources.Theme, resid: Int, first: Boolean) {
         super.onApplyThemeResource(theme, resid, first)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            setTaskDescription(
-                ActivityManager.TaskDescription.Builder()
-                    .setBackgroundColor(getColor(R.color.bootsplash_background))
-                    .build()
-            )
-        }
+        applyTaskDescription(this)
     }
 
     override fun onDestroy() {
