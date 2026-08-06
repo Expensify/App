@@ -139,6 +139,9 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.DYNAMIC_FIX_BANK_ACCOUNT]: {
+        bankAccountID: string;
+    };
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
