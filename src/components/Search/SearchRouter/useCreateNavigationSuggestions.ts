@@ -100,7 +100,6 @@ function useCreateNavigationSuggestions(): SearchQueryItem[] {
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy([...groupPoliciesWithChatEnabled], activePolicy);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const isReportInSearch = isOnSearchMoneyRequestReportPage();
     const isInvoiceVisible = canSendInvoice(allPolicies ?? null, sessionEmail);
 
     const {createReport, isVisible: isCreateReportVisible} = useCreateReport({
@@ -109,6 +108,8 @@ function useCreateNavigationSuggestions(): SearchQueryItem[] {
                 return;
             }
 
+            // Read this after Search Router closes so native resolves the underlying route instead of the router screen itself.
+            const isReportInSearch = isOnSearchMoneyRequestReportPage();
             if (isReportInSearch) {
                 clearLastSearchParams();
             }
@@ -131,7 +132,7 @@ function useCreateNavigationSuggestions(): SearchQueryItem[] {
             });
         },
         groupPoliciesWithChatEnabled,
-        onNavigateToWorkspaceSelection: () => navigateToCreateReportWorkspaceSelection({forceReplace: isReportInSearch}),
+        onNavigateToWorkspaceSelection: () => navigateToCreateReportWorkspaceSelection({forceReplace: isOnSearchMoneyRequestReportPage()}),
         shouldHandleNavigationBack: false,
     });
 

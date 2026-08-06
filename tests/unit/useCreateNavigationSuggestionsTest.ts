@@ -4,6 +4,7 @@ import useCreateNavigationSuggestions from '@components/Search/SearchRouter/useC
 
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
+import {navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {clearLastSearchParams} from '@userActions/ReportNavigation';
@@ -34,6 +35,7 @@ const mockCanSendInvoice = jest.fn<boolean, unknown[]>(() => false);
 const mockGetDefaultChatEnabledPolicy = jest.fn((policies: unknown[]) => (policies.length === 1 ? policies.at(0) : undefined));
 const mockGetGroupPoliciesWhereReportCanBeCreated = jest.fn<unknown[], [policies: unknown, isSubmit2026BetaEnabled: boolean, currentUserLogin?: string]>();
 const mockShouldShowPolicy = jest.fn<boolean, unknown[]>(() => true);
+const mockIsOnSearchMoneyRequestReportPage = jest.fn(() => false);
 const mockIcon = () => null;
 
 jest.mock('@hooks/useCreateReport', () => ({
@@ -138,7 +140,7 @@ jest.mock('@libs/ReportUtils', () => ({
 
 jest.mock('@navigation/helpers/isOnSearchMoneyRequestReportPage', () => ({
     __esModule: true,
-    default: () => false,
+    default: () => mockIsOnSearchMoneyRequestReportPage(),
 }));
 
 jest.mock('@userActions/ReportNavigation', () => ({
@@ -177,6 +179,7 @@ describe('useCreateNavigationSuggestions', () => {
         mockShouldShowPolicy.mockReturnValue(true);
         mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([]);
         mockIsBetaEnabled.mockImplementation((beta) => beta !== CONST.BETAS.SUBMIT_2026);
+        mockIsOnSearchMoneyRequestReportPage.mockReturnValue(false);
         mockCreateReportIsVisible = true;
     });
 
@@ -236,5 +239,22 @@ describe('useCreateNavigationSuggestions', () => {
         expect(clearLastSearchParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: false});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: false});
+    });
+
+    it('reads the underlying search report route when Create report actions run', () => {
+        mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([submitPolicy]);
+        renderHook(() => useCreateNavigationSuggestions());
+
+        expect(mockIsOnSearchMoneyRequestReportPage).not.toHaveBeenCalled();
+        mockIsOnSearchMoneyRequestReportPage.mockReturnValue(true);
+
+        const createReportParams = mockUseCreateReport.mock.calls.at(0)?.at(0);
+        act(() => createReportParams?.onCreateReport());
+        act(() => createReportParams?.onNavigateToWorkspaceSelection());
+
+        expect(clearLastSearchParams).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: true});
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: true});
+        expect(navigateToCreateReportWorkspaceSelection).toHaveBeenCalledWith({forceReplace: true});
     });
 });
