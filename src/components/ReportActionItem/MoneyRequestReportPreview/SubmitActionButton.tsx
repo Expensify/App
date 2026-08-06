@@ -7,9 +7,10 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
@@ -50,6 +51,7 @@ function SubmitActionButtonContent() {
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
     const {isBetaEnabled} = usePermissions();
+    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
 
     const {iouReportID, transactions} = useReportPreviewData();
@@ -81,7 +83,26 @@ function SubmitActionButtonContent() {
 
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
+    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(iouReport, policy);
+    const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
+        iouReport?.reportID,
+        transactionViolations,
+        areStrictPolicyRulesEnabled,
+        currentUserAccountID,
+        currentUserEmail,
+        transactions,
+    );
+    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
+
     const handleSubmit = () => {
+        // A domain that strictly enforces workspace rules, or a workspace that prevents self-approval, makes the backend
+        // reject this submission, which the user only ever sees as a generic "Unexpected error". Bail out before any API
+        // call. The button is disabled on the same condition, so this is the second layer, and it has to run before the
+        // submit-to popover branch below, which would otherwise run the submission itself and hit the same rejection.
+        if (shouldBlockSubmit) {
+            return;
+        }
+
         if (hasOnlyPendingCardTransactions(transactions)) {
             showPendingCardTransactionsBlockModal(showConfirmModal, translate);
             return;
@@ -125,6 +146,7 @@ function SubmitActionButtonContent() {
             onPress={handleSubmit}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}
+            isDisabled={shouldBlockSubmit}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.SUBMIT_BUTTON}
             isDEWSubmission={isDEWSubmission}
             reportID={iouReportID}
