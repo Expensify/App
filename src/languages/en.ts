@@ -2678,6 +2678,8 @@ const translations = {
             confirmTestTransactions: 'Please confirm test transactions',
             accountRequiresAttention: 'This account requires attention',
             unlock: 'Unlock',
+            debitBlocked: 'Your bank blocked test transactons to this account',
+            insufficientFunds: 'Test transactions failed due to insufficient funds',
         },
         assignedCards: 'Cards',
         assignedCardsDescription: 'Transactions from assigned cards sync automatically.',
