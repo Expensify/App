@@ -3,6 +3,7 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
@@ -45,14 +46,16 @@ type TransactionGroupListItem = ListItem & {
     value: string;
 };
 
-type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT> & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT>;
+type DynamicIOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT>;
 
 const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[] => {
     return Object.values(actions ?? {}).filter(isMoneyRequestAction);
 };
 
-function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
-    const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
+function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStepReportProps) {
+    const {action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.path);
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
@@ -109,7 +112,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (isEditing) {
             Navigation.dismissToSuperWideRHP();
         } else {
-            Navigation.goBack(backTo);
+            Navigation.goBack(backPath);
         }
     };
 
@@ -127,7 +130,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         action,
         reportIDFromRoute,
         personalPolicyID,
-        backTo,
+        backPath,
         handleGoBack,
     });
 
@@ -213,7 +216,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     return (
         <IOURequestEditReportCommon
-            backTo={backTo}
+            backTo={backPath}
             selectReport={selectReport}
             transactionIDs={transaction ? [transaction.transactionID] : []}
             selectedReportID={selectedReportID}
@@ -232,4 +235,4 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     );
 }
 
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepReport));
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(DynamicIOURequestStepReport));

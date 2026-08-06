@@ -483,6 +483,7 @@ function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, o
 function getCrossBorderReimbursedMessage(
     translate: LocalizedTranslate,
     originalMessage: Pick<OriginalMessageIOU | OriginalMessageReimbursed, 'creditedAmount' | 'creditedCurrency' | 'debitBankAccountLast4' | 'creditBankAccountLast4'>,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     fallbackDebitBankAccountLast4?: string,
 ): string | undefined {
     const {creditedAmount, creditedCurrency} = originalMessage;
@@ -508,6 +509,7 @@ function getReimbursedMessage(
     reportOwnerAccountID: number | undefined,
     submitterLoginParam: string | undefined,
     actorLoginParam: string | undefined,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     currentUserAccountID?: number,
 ): string {
     const effectiveCurrentUserAccountID = currentUserAccountID ?? deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -569,7 +571,7 @@ function getReimbursedMessage(
     }
 
     // The employee is credited in their own currency, so name that amount and both accounts, not the report total.
-    const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, effectiveDebitBankAccountLast4);
+    const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, effectiveDebitBankAccountLast4);
     if (crossBorderMessage) {
         return isAutomation ? `${crossBorderMessage} ${translate('iou.reimbursedOnBehalfOf', actorLogin.toLowerCase())}` : crossBorderMessage;
     }
