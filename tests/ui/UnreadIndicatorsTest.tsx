@@ -644,7 +644,7 @@ describe('Unread Indicators', () => {
 
                     const report = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     if (lastReportAction) {
-                        deleteReportComment(report, lastReportAction, undefined, [], undefined, undefined, '');
+                        deleteReportComment(report, lastReportAction, undefined, undefined, [], undefined, undefined, '');
                     }
                     return waitForBatchedUpdates();
                 })
@@ -700,7 +700,7 @@ describe('Unread Indicators', () => {
 
             await waitForBatchedUpdates();
 
-            deleteReportComment(report, firstNewReportAction, undefined, [], undefined, undefined, '');
+            deleteReportComment(report, firstNewReportAction, undefined, undefined, [], undefined, undefined, '');
 
             await waitForBatchedUpdates();
         }
