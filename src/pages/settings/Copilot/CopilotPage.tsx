@@ -92,7 +92,7 @@ function CopilotPage() {
 
     const showRemoveDelegatorModal = (delegatorEmail: string) => {
         const personalDetail = personalDetailsByLogin[delegatorEmail.toLowerCase()];
-        const delegatorName = personalDetail?.displayName ?? formatPhoneNumber(delegatorEmail);
+        const delegatorName = formatPhoneNumber(personalDetail?.displayName ?? delegatorEmail);
 
         return showConfirmModal({
             title: translate('delegate.removeCopilotAccessTitle'),
@@ -202,7 +202,7 @@ function CopilotPage() {
 
     const delegateMenuItems: MenuItemProps[] = useMemo(() => {
         const sortedDelegates = sortAlphabetically(
-            delegates.filter((d) => !d.optimisticAccountID).map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
+            delegates.filter((d) => !d.optimisticAccountID).map((d) => ({...d, sortKey: formatPhoneNumber(personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? d.email)})),
             'sortKey',
             localeCompare,
         );
@@ -230,8 +230,10 @@ function CopilotPage() {
             };
 
             const formattedEmail = formatPhoneNumber(email);
-            const titleText = personalDetail?.displayName ?? formattedEmail;
-            const descriptionText = personalDetail?.displayName ? formattedEmail : '';
+            const titleText = formatPhoneNumber(personalDetail?.displayName ?? email);
+            // A name-less SMS account resolves to the formatted number, which is what `formattedEmail` already holds.
+            // Compare the resolved title so the row does not print the same number twice.
+            const descriptionText = titleText === formattedEmail ? '' : formattedEmail;
             return {
                 key: email,
                 titleComponent: renderTitleWithRole(titleText, descriptionText, role),
@@ -268,7 +270,7 @@ function CopilotPage() {
     ]);
 
     const sortedDelegators = sortAlphabetically(
-        delegators.map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
+        delegators.map((d) => ({...d, sortKey: formatPhoneNumber(personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? d.email)})),
         'sortKey',
         localeCompare,
     );
@@ -280,8 +282,10 @@ function CopilotPage() {
         const error = getLatestError({...connectError, ...removeDelegatorError});
         const isCurrentUser = email === session?.email;
         const isPending = !!pendingAction;
-        const titleText = personalDetail?.displayName ?? formattedEmail;
-        const descriptionText = personalDetail?.displayName ? formattedEmail : '';
+        const titleText = formatPhoneNumber(personalDetail?.displayName ?? email);
+        // A name-less SMS account resolves to the formatted number, which is what `formattedEmail` already holds.
+        // Compare the resolved title so the row does not print the same number twice.
+        const descriptionText = titleText === formattedEmail ? '' : formattedEmail;
 
         return {
             key: email,
