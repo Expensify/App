@@ -7,6 +7,7 @@ import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import ReceiptHoverZoom from '@components/ReceiptHoverZoom';
+import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
 import useActiveRoute from '@hooks/useActiveRoute';
@@ -196,6 +197,10 @@ function MoneyRequestReceiptView({
     // stale and can't be redrawn locally, so disable Expand for map distance requests until the refreshed receipt arrives.
     const shouldDisableExpandReceipt = isMapDistanceRequest && isPendingReceiptRegeneration;
     const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
+    // The thumbnail only ever renders page 1 of a PDF, so a total sitting on a later page looks like it
+    // disagrees with the expense amount. Only multi-page receipts need the badge.
+    const receiptPageCount = displayedTransaction?.receipt?.pageCount ?? 0;
+    const shouldShowReceiptPageCount = receiptPageCount > 1;
     const isTransactionScanning = isScanning(displayedTransaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
@@ -210,7 +215,7 @@ function MoneyRequestReceiptView({
     const addButtonRef = useRef<View | null>(null);
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const deviceHasHoverSupport = hasHoverSupport();
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus', 'Copy']);
 
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     // Browsers don't fire mouseenter when an element mounts under the cursor
@@ -696,6 +701,17 @@ function MoneyRequestReceiptView({
                                                 onLoadFailure={() => setIsLoading(false)}
                                             />
                                             {canShowDistanceEReceipt && isHovering && !!displayedTransaction && <HoveredDistanceEReceipt transaction={displayedTransaction} />}
+                                            {shouldShowReceiptPageCount && (
+                                                <View style={[styles.receiptPageCountBadge, styles.pointerEventsNone]}>
+                                                    <Icon
+                                                        src={lazyIcons.Copy}
+                                                        fill={theme.white}
+                                                        width={variables.iconSizeExtraSmall}
+                                                        height={variables.iconSizeExtraSmall}
+                                                    />
+                                                    <Text style={styles.receiptPageCountBadgeText}>{translate('receipt.pageCount', {pageCount: receiptPageCount})}</Text>
+                                                </View>
+                                            )}
                                         </>
                                     )}
                                 </ReceiptHoverZoom>

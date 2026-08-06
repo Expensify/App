@@ -46,6 +46,8 @@ type NotAllowedExtensionParams = {allowedExtensions: string[]};
 
 type StepCounterParams = {step: number; total?: number; text?: string};
 
+type ReceiptPageCountParams = {pageCount: number};
+
 type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: string};
 
 type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
@@ -174,6 +176,7 @@ export type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     ResolutionConstraintsParams,
+    ReceiptPageCountParams,
     SizeExceededParams,
     StepCounterParams,
     ViolationsModifiedAmountParams,
