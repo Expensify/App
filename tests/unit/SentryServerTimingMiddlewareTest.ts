@@ -53,6 +53,14 @@ describe('SentryServerTiming middleware', () => {
         expect(endSpanWithAttributes).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({[CONST.TELEMETRY.ATTRIBUTE_RESPONSE_ADVANCED]: undefined}));
     });
 
+    it('leaves the verdict off when the response carries no update ID, so an unreadable answer never reads as a stall', async () => {
+        const request = buildRequest('ReconnectApp', {updateIDFrom: 8102});
+
+        await SentryServerTiming(Promise.resolve({jsonCode: 200}), request, false);
+
+        expect(endSpanWithAttributes).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({[CONST.TELEMETRY.ATTRIBUTE_RESPONSE_ADVANCED]: undefined}));
+    });
+
     it('stamps the range a GetMissingOnyxMessages request asked for, parsing the string form of the target', async () => {
         const request = buildRequest('GetMissingOnyxMessages', {updateIDFrom: 8102, updateIDTo: '8200'});
 

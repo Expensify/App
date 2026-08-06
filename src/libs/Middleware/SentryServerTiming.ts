@@ -62,10 +62,11 @@ function readUpdateIDTo(data: Request<OnyxKey>['data']): number | undefined {
 }
 
 function didResponseAdvance(updateIDFrom: number | undefined, lastUpdateID: number | string | undefined): boolean | undefined {
-    if (updateIDFrom === undefined) {
+    const responseUpdateID = Number(lastUpdateID);
+    if (updateIDFrom === undefined || !Number.isFinite(responseUpdateID)) {
         return undefined;
     }
-    return Number(lastUpdateID ?? CONST.DEFAULT_NUMBER_ID) > updateIDFrom;
+    return responseUpdateID > updateIDFrom;
 }
 
 /**
