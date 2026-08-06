@@ -255,16 +255,16 @@ async function importTransactionsFromCSV(
 ): Promise<ImportFinalModal> {
     const settings = spreadsheet.importTransactionSettings ?? {};
 
-    // Uploading another file to an existing card skips the import settings page, so the settings from the first
-    // upload are not in Onyx anymore. Fall back to the values persisted in that card's saved layout before
-    // falling back to the hard defaults, so repeat uploads reuse the configuration the user already chose.
-    const resolvedSettings: ImportTransactionSettings = {
+    // Uploading another file to an existing card skips the import settings page, so the first upload's settings are
+    // no longer in Onyx. That card's saved layout still holds them, so prefer it over the hard defaults.
+    // Required<> keeps this exhaustive: a new import setting will not compile until it is given a fallback here.
+    const resolvedSettings: Required<ImportTransactionSettings> = {
         cardDisplayName: settings.cardDisplayName ?? previouslySavedLayout?.name ?? 'Imported Card',
         currency: settings.currency ?? previouslySavedLayout?.accountDetails?.currency ?? CONST.CURRENCY.USD,
         isReimbursable: settings.isReimbursable ?? previouslySavedLayout?.reimbursable ?? true,
         flipAmountSign: settings.flipAmountSign ?? previouslySavedLayout?.flipAmountSign ?? false,
     };
-    const {cardDisplayName = 'Imported Card', currency = CONST.CURRENCY.USD, isReimbursable = true, flipAmountSign = false} = resolvedSettings;
+    const {cardDisplayName, currency, isReimbursable, flipAmountSign} = resolvedSettings;
 
     // Build transaction list from spreadsheet
     const transactionList = buildTransactionListFromSpreadsheet(spreadsheet, resolvedSettings);

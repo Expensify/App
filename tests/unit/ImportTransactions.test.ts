@@ -939,13 +939,26 @@ describe('ImportTransactions', () => {
 
             await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, existingCardID, previouslySavedLayout);
 
-            const [, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const [, params, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
             expect(params.cardName).toBe('My Bank Card');
             expect(params.currency).toBe('EUR');
             expect(params.reimbursable).toBe(false);
             // The saved layout flips the sign, so the parsed 5.50 and 25.00 amounts import as negative
             expect(JSON.parse(String(params.transactionList))).toEqual([expect.objectContaining({amount: -550}), expect.objectContaining({amount: -2500})]);
             expect(JSON.parse(String(params.columnMappings))).toEqual(expect.objectContaining({name: 'My Bank Card', flipAmountSign: true, reimbursable: false}));
+            expect(getRequiredOnyxUpdates(onyxData, 'optimisticData')).toEqual(
+                expect.arrayContaining([expect.objectContaining({value: expect.objectContaining({amount: -550, currency: 'EUR', reimbursable: false})})]),
+            );
+        });
+
+        it('uses the hard defaults when importing a new card that has no saved layout', async () => {
+            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID);
+
+            const [, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(params.cardName).toBe('Imported Card');
+            expect(params.currency).toBe(CONST.CURRENCY.USD);
+            expect(params.reimbursable).toBe(true);
+            expect(JSON.parse(String(params.transactionList))).toEqual([expect.objectContaining({amount: 550}), expect.objectContaining({amount: 2500})]);
         });
 
         it('keeps the settings chosen on the import settings page over the previously saved layout', async () => {
