@@ -35,6 +35,8 @@ import type {
     EditActionParams,
     EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
+    ExportPartialModalTitleParams,
+    ExportPartialModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
@@ -7208,6 +7210,25 @@ Als je de facturering voor hun volledige abonnement wilt overnemen, laat hen je 
 
 ${reportName}`,
             confirmText: 'Ja, opnieuw exporteren',
+            cancelText: 'Annuleren',
+        },
+        exportPartialModal: {
+            title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
+                `${exportableCount}/${selectedCount} rapporten exporteren naar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: ({integration, hasReportsOnOtherIntegrations, hasIneligibleReports}: ExportPartialModalDescriptionParams) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Alleen rapporten die zijn verbonden met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} worden geëxporteerd.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Alleen rapporten die in aanmerking komen voor export worden geëxporteerd.`);
+                }
+                return `${reasons.join('\n\n')}\n\nDe volgende rapporten worden geëxporteerd:`;
+            },
+            confirmText: ({count}: {count: number}) => ({
+                one: `${count} rapport exporteren`,
+                other: `${count} rapporten exporteren`,
+            }),
             cancelText: 'Annuleren',
         },
         upgrade: {

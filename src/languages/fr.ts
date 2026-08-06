@@ -35,6 +35,8 @@ import type {
     EditActionParams,
     EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
+    ExportPartialModalTitleParams,
+    ExportPartialModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
@@ -7276,6 +7278,25 @@ Si vous souhaitez prendre en charge la facturation de l’ensemble de son abonne
 
 ${reportName}`,
             confirmText: 'Oui, exporter à nouveau',
+            cancelText: 'Annuler',
+        },
+        exportPartialModal: {
+            title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
+                `Exporter ${exportableCount}/${selectedCount} rapports vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} ?`,
+            description: ({integration, hasReportsOnOtherIntegrations, hasIneligibleReports}: ExportPartialModalDescriptionParams) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Seuls les rapports connectés à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} seront exportés.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Seuls les rapports éligibles à l’exportation seront exportés.`);
+                }
+                return `${reasons.join('\n\n')}\n\nLes rapports suivants seront exportés :`;
+            },
+            confirmText: ({count}: {count: number}) => ({
+                one: `Exporter ${count} rapport`,
+                other: `Exporter ${count} rapports`,
+            }),
             cancelText: 'Annuler',
         },
         upgrade: {

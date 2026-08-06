@@ -101,6 +101,18 @@ type ExportAgainModalDescriptionParams = {
     connectionName: ConnectionName;
 };
 
+type ExportPartialModalTitleParams = {
+    exportableCount: number;
+    selectedCount: number;
+    integration: ConnectionName;
+};
+
+type ExportPartialModalDescriptionParams = {
+    integration: ConnectionName;
+    hasReportsOnOtherIntegrations: boolean;
+    hasIneligibleReports: boolean;
+};
+
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
 
 type YourPlanPriceParams = {lower: string; upper: string};
@@ -190,6 +202,8 @@ export type {
     ConnectionDisplayNameParams,
     DefaultVendorHelperTextParams,
     ExportAgainModalDescriptionParams,
+    ExportPartialModalTitleParams,
+    ExportPartialModalDescriptionParams,
     UpdateRoleParams,
     OptionalParam,
     WorkspaceLockedPlanTypeParams,

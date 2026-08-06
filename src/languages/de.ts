@@ -35,6 +35,8 @@ import type {
     EditActionParams,
     EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
+    ExportPartialModalTitleParams,
+    ExportPartialModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
@@ -7252,6 +7254,25 @@ Wenn du die Abrechnung für das gesamte Abonnement übernehmen willst, bitte sie
 
 ${reportName}`,
             confirmText: 'Ja, erneut exportieren',
+            cancelText: 'Abbrechen',
+        },
+        exportPartialModal: {
+            title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
+                `${exportableCount}/${selectedCount} Berichte nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} exportieren?`,
+            description: ({integration, hasReportsOnOtherIntegrations, hasIneligibleReports}: ExportPartialModalDescriptionParams) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Nur mit ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} verbundene Berichte werden exportiert.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Nur exportierbare Berichte werden exportiert.`);
+                }
+                return `${reasons.join('\n\n')}\n\nDie folgenden Berichte werden exportiert:`;
+            },
+            confirmText: ({count}: {count: number}) => ({
+                one: `${count} Bericht exportieren`,
+                other: `${count} Berichte exportieren`,
+            }),
             cancelText: 'Abbrechen',
         },
         upgrade: {

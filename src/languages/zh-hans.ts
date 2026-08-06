@@ -35,6 +35,8 @@ import type {
     EditActionParams,
     EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
+    ExportPartialModalTitleParams,
+    ExportPartialModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
@@ -6970,6 +6972,25 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
 
 ${reportName}`,
             confirmText: '是，再次导出',
+            cancelText: '取消',
+        },
+        exportPartialModal: {
+            title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
+                `将 ${exportableCount}/${selectedCount} 份报表导出到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}？`,
+            description: ({integration, hasReportsOnOtherIntegrations, hasIneligibleReports}: ExportPartialModalDescriptionParams) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`只有连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} 的报表会被导出。`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`只有符合导出条件的报表会被导出。`);
+                }
+                return `${reasons.join('\n\n')}\n\n将导出以下报表：`;
+            },
+            confirmText: ({count}: {count: number}) => ({
+                one: `导出 ${count} 份报表`,
+                other: `导出 ${count} 份报表`,
+            }),
             cancelText: '取消',
         },
         upgrade: {

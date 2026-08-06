@@ -1634,7 +1634,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const exportOptions: PopoverMenuItem[] = [];
 
-            const connectedIntegration = getConnectedIntegration(policy);
             const isReportsTab = isExpenseReportType;
             const includesGroupExport = isGroupedSearch && Object.entries(selectedTransactions).some(([key, selectedTransaction]) => isGroupSelection(key, selectedTransaction));
 
@@ -1655,49 +1654,84 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return reportExportOptions.includes(exportOption);
             };
 
-            const canExportAllReportsToIntegration =
-                isReportsTab &&
-                selectedReportIDs.length > 0 &&
-                includeReportLevelExport &&
-                selectedReports.every((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION));
-            const canMarkAllReportsAsExported =
-                isReportsTab &&
-                selectedReportIDs.length > 0 &&
-                includeReportLevelExport &&
-                selectedReports.every((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED));
+            // Group the selected reports by their connected accounting integration. A single-workspace
+            // selection collapses to one group (unchanged behavior), while a multi-workspace selection
+            // surfaces one export + one "Mark as exported" option per integration, each scoped to the
+            // reports that belong to it.
+            const reportsByIntegration = new Map<NonNullable<ReturnType<typeof getConnectedIntegration>>, typeof selectedReports>();
+            if (isReportsTab && selectedReportIDs.length > 0 && includeReportLevelExport) {
+                for (const report of selectedReports) {
+                    const reportPolicy = report.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
+                    const reportIntegration = getConnectedIntegration(reportPolicy);
+                    if (!reportIntegration) {
+                        continue;
+                    }
+                    const reportsForIntegration = reportsByIntegration.get(reportIntegration) ?? [];
+                    reportsForIntegration.push(report);
+                    reportsByIntegration.set(reportIntegration, reportsForIntegration);
+                }
+            }
 
-            if (connectedIntegration) {
-                const connectionNameFriendly = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectedIntegration];
-                const integrationIcon = getIntegrationIcon(connectedIntegration, expensifyIcons);
+            // A partial export happens when the chosen integration's reports are only a subset of the full
+            // selection — the rest belong to other integrations (or to no integration) and are skipped.
+            const totalSelectedReportsCount = selectedReportIDs.length;
 
-                const handleExportAction = (exportAction: () => void) => {
+            // Shared confirmation flow used by BOTH "Export to <integration>" and "Mark as exported" so the
+            // two actions behave identically. When applicable, the partial-export modal is shown first and,
+            // only after it resolves, the existing "export again" modal — the two are never combined.
+            const buildIntegrationHandleExportAction =
+                (integrationReportIDs: string[], integration: NonNullable<ReturnType<typeof getConnectedIntegration>>, integrationGroupSize: number) => (exportAction: () => void) => {
+                    const runExport = () => {
+                        if (!hash) {
+                            return;
+                        }
+                        clearSelectedTransactions();
+                        exportAction();
+                    };
+
+                    const exportableReportNames: string[] = [];
                     const exportedReportNames: string[] = [];
                     let areAnyReportsExported = false;
+                    for (const reportID of integrationReportIDs) {
+                        const liveReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                        const snapshotReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                        // The live Onyx report can be an incomplete optimistic record (e.g. exported offline before
+                        // it was ever loaded) that lacks `reportName`, so fall back to the Search snapshot for the name.
+                        const reportName = liveReport?.reportName ?? snapshotReport?.reportName;
+                        if (reportName) {
+                            exportableReportNames.push(reportName);
+                        }
 
-                    for (const reportID of selectedReportIDs) {
-                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
+                        // Align already-exported detection with the backend response, which sets
+                        // `pendingFields.export`/`isExportedToIntegration` on the report itself.
+                        const report = liveReport ?? snapshotReport;
                         if (!report?.pendingFields?.export && !report?.isExportedToIntegration) {
                             continue;
                         }
 
                         areAnyReportsExported = true;
-
-                        // The live Onyx report can be an incomplete optimistic record (e.g. exported offline before it
-                        // was ever loaded) that lacks `reportName`, so fall back to the Search snapshot for the name.
-                        const reportName = report.reportName ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
                         if (reportName) {
                             exportedReportNames.push(reportName);
                         }
                     }
 
-                    if (areAnyReportsExported) {
+                    // Ask about the already-exported reports (if any) and then run the export.
+                    const confirmExportAgainThenRun = () => {
+                        if (!areAnyReportsExported) {
+                            runExport();
+                            return;
+                        }
+
                         showConfirmModal({
                             title: translate('workspace.exportAgainModal.title'),
-                            prompt: translate('workspace.exportAgainModal.description', {
-                                connectionName: connectedIntegration,
-                                reportName: exportedReportNames.join('\n'),
-                            }),
+                            // Reuse the existing description for the fixed subtitle, passing an empty report list so
+                            // only the "already exported, export again?" text remains; the report names go in the
+                            // scrollable prompt below.
+                            subtitle: translate('workspace.exportAgainModal.description', {
+                                connectionName: integration,
+                                reportName: '',
+                            }).trim(),
+                            prompt: exportedReportNames.join('\n'),
                             confirmText: translate('workspace.exportAgainModal.confirmText'),
                             cancelText: translate('workspace.exportAgainModal.cancelText'),
                             shouldEnablePromptScroll: true,
@@ -1705,23 +1739,62 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             if (result.action !== ModalActions.CONFIRM) {
                                 return;
                             }
-
-                            if (hash) {
-                                clearSelectedTransactions();
-                                exportAction();
-                            }
+                            runExport();
                         });
-                    } else if (hash) {
-                        exportAction();
-                        clearSelectedTransactions();
+                    };
+
+                    // For a partial export, confirm the partial scope first. Cancelling aborts; confirming moves
+                    // on to the export-again check. The modals are presented sequentially so they don't overlap.
+                    const isPartialExport = integrationReportIDs.length < totalSelectedReportsCount;
+                    if (!isPartialExport) {
+                        confirmExportAgainThenRun();
+                        return;
                     }
+
+                    showConfirmModal({
+                        title: translate('workspace.exportPartialModal.title', {
+                            exportableCount: integrationReportIDs.length,
+                            selectedCount: totalSelectedReportsCount,
+                            integration,
+                        }),
+                        // Fixed subtitle describes the partial scope; the scrollable prompt lists the report names
+                        // that will actually be exported for the chosen integration. A partial export can happen for
+                        // two independent reasons: part of the selection belongs to other integrations, and/or some
+                        // reports in this integration are not eligible to export.
+                        subtitle: translate('workspace.exportPartialModal.description', {
+                            integration,
+                            hasReportsOnOtherIntegrations: integrationGroupSize < totalSelectedReportsCount,
+                            hasIneligibleReports: integrationReportIDs.length < integrationGroupSize,
+                        }),
+                        prompt: exportableReportNames.join('\n'),
+                        confirmText: translate('workspace.exportPartialModal.confirmText', {count: integrationReportIDs.length}),
+                        cancelText: translate('workspace.exportPartialModal.cancelText'),
+                        shouldEnablePromptScroll: true,
+                    }).then((result) => {
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+                        confirmExportAgainThenRun();
+                    });
                 };
 
-                if (canExportAllReportsToIntegration) {
+            // Group each integration's actions together, listing its "Export to <integration>" option
+            // immediately followed by its "Mark as exported" option, before moving on to the next integration.
+            for (const [integration, reportsForIntegration] of reportsByIntegration) {
+                const integrationGroupSize = reportsForIntegration.length;
+
+                // Show the option when AT LEAST ONE report in the group is eligible, and act only on the eligible
+                // subset. Mixing eligible + ineligible reports naturally triggers the partial-export confirmation.
+                const exportableReportIDs = reportsForIntegration
+                    .filter((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION))
+                    .map((report) => report.reportID)
+                    .filter((reportID): reportID is string => reportID !== undefined);
+                if (exportableReportIDs.length > 0) {
+                    const handleExportAction = buildIntegrationHandleExportAction(exportableReportIDs, integration, integrationGroupSize);
                     exportOptions.push({
-                        text: connectionNameFriendly,
-                        icon: integrationIcon,
-                        onSelected: () => handleExportAction(() => exportToIntegrationOnSearch(hash, selectedReportIDs, connectedIntegration, currentSearchKey)),
+                        text: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration],
+                        icon: getIntegrationIcon(integration, expensifyIcons),
+                        onSelected: () => handleExportAction(() => exportToIntegrationOnSearch(hash, exportableReportIDs, integration, currentSearchKey)),
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
                         displayInDefaultIconColor: true,
@@ -1729,11 +1802,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     });
                 }
 
-                if (canMarkAllReportsAsExported) {
+                const reportIDsToMark = reportsForIntegration
+                    .filter((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED))
+                    .map((report) => report.reportID)
+                    .filter((reportID): reportID is string => reportID !== undefined);
+                if (reportIDsToMark.length > 0) {
+                    const handleMarkAction = buildIntegrationHandleExportAction(reportIDsToMark, integration, integrationGroupSize);
                     exportOptions.push({
                         text: translate('workspace.common.markAsExported'),
-                        icon: integrationIcon,
-                        onSelected: () => handleExportAction(() => markAsManuallyExported(selectedReportIDs, connectedIntegration)),
+                        // Every integration's "Mark as exported" option shares the same visible text and differs only by icon,
+                        // which screen readers can't announce. Append the integration name so assistive tech can distinguish them.
+                        accessibilityLabel: `${translate('workspace.common.markAsExported')}, ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}`,
+                        icon: getIntegrationIcon(integration, expensifyIcons),
+                        onSelected: () => handleMarkAction(() => markAsManuallyExported(reportIDsToMark, integration)),
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
                         displayInDefaultIconColor: true,

@@ -35,6 +35,8 @@ import type {
     EditActionParams,
     EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
+    ExportPartialModalTitleParams,
+    ExportPartialModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
@@ -7137,6 +7139,25 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
 
 ${reportName}`,
             confirmText: 'はい、再度エクスポートします',
+            cancelText: 'キャンセル',
+        },
+        exportPartialModal: {
+            title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
+                `${exportableCount}/${selectedCount}件のレポートを${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}にエクスポートしますか？`,
+            description: ({integration, hasReportsOnOtherIntegrations, hasIneligibleReports}: ExportPartialModalDescriptionParams) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}に接続されているレポートのみがエクスポートされます。`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`エクスポート可能なレポートのみがエクスポートされます。`);
+                }
+                return `${reasons.join('\n\n')}\n\n以下のレポートがエクスポートされます：`;
+            },
+            confirmText: ({count}: {count: number}) => ({
+                one: `${count}件のレポートをエクスポート`,
+                other: `${count}件のレポートをエクスポート`,
+            }),
             cancelText: 'キャンセル',
         },
         upgrade: {

@@ -45,6 +45,9 @@ type ConfirmContentProps = {
     /** Modal content text/element */
     prompt?: string | ReactNode;
 
+    /** Subtitle shown between the title and the prompt. Stays fixed above the prompt when the prompt is scrollable. */
+    subtitle?: string | ReactNode;
+
     /** Whether we should use the success button color */
     success?: boolean;
 
@@ -93,6 +96,9 @@ type ConfirmContentProps = {
     /** Styles for prompt */
     promptStyles?: StyleProp<TextStyle>;
 
+    /** Styles for subtitle */
+    subtitleStyles?: StyleProp<TextStyle>;
+
     /** Styles for view */
     contentStyles?: StyleProp<ViewStyle>;
 
@@ -131,6 +137,8 @@ function ConfirmContent({
     confirmText = '',
     cancelText = '',
     prompt = '',
+    subtitle,
+    subtitleStyles,
     success = true,
     danger = false,
     shouldDisableConfirmButtonWhenOffline = false,
@@ -168,6 +176,11 @@ function ConfirmContent({
     const isCentered = shouldCenterContent;
 
     const promptContent = typeof prompt === 'string' ? <Text style={[promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt;
+    // Rendered outside the (optionally scrollable) prompt so it stays fixed above the prompt.
+    let subtitleContent: ReactNode = subtitle;
+    if (typeof subtitle === 'string') {
+        subtitleContent = <Text style={[styles.mb4, subtitleStyles, isCentered ? styles.textAlignCenter : {}]}>{subtitle}</Text>;
+    }
 
     return (
         <>
@@ -226,6 +239,7 @@ function ConfirmContent({
                             />
                         )}
                     </View>
+                    {subtitleContent}
                     {shouldEnablePromptScroll ? <ScrollView style={styles.confirmModalPromptScrollable}>{promptContent}</ScrollView> : promptContent}
                 </View>
 
