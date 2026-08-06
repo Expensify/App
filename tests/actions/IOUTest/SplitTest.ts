@@ -11,6 +11,8 @@ import {addComment, notifyNewAction} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
+import {deferOrExecuteWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isAddCommentAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getAncestors, getReportOrDraftReport} from '@libs/ReportUtils';
@@ -105,7 +107,7 @@ jest.mock('@libs/deferredLayoutWrite', () => ({
     cancelDeferredWrite: jest.fn(),
     hasDeferredWrite: () => false,
     getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
+    deferOrExecuteWrite: jest.fn((apiWrite: () => void) => apiWrite()),
     reserveDeferredWriteChannel: jest.fn(),
 }));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
@@ -9488,5 +9490,146 @@ describe('startSplitBill delegateAccountID forwarding', () => {
 
         expect(splitTransactionID).toBeTruthy();
         expect(splitIOUAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+    });
+});
+
+/**
+ * Minimal fixture for the split-expenses save flow: one expense report holding one transaction,
+ * with a draft that splits it in two.
+ */
+const buildSplitFlowParams = async () => {
+    const expenseReport: Report = {
+        ...createRandomReport(9001, undefined),
+        type: CONST.REPORT.TYPE.EXPENSE,
+    };
+    const transaction: Transaction = {
+        amount: 100,
+        currency: 'USD',
+        transactionID: '9001',
+        reportID: expenseReport.reportID,
+        created: DateUtils.getDBTime(),
+        merchant: 'test',
+    };
+    const transactionThread: Report = {...createRandomReport(9002, undefined)};
+    const iouAction: ReportAction = {
+        ...buildOptimisticIOUReportAction({
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount: transaction.amount,
+            currency: transaction.currency,
+            comment: '',
+            participants: [],
+            transactionID: transaction.transactionID,
+            iouReportID: expenseReport.reportID,
+        }),
+        childReportID: transactionThread.reportID,
+    };
+
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {[iouAction.reportActionID]: iouAction});
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+    await waitForBatchedUpdates();
+
+    let allTransactions: OnyxCollection<Transaction>;
+    let allReports: OnyxCollection<Report>;
+    await getOnyxData({
+        key: ONYXKEYS.COLLECTION.TRANSACTION,
+        callback: (value) => {
+            allTransactions = value;
+        },
+    });
+    await getOnyxData({
+        key: ONYXKEYS.COLLECTION.REPORT,
+        callback: (value) => {
+            allReports = value;
+        },
+    });
+
+    const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+    const params = {
+        allTransactionsList: allTransactions,
+        allReportsList: allReports,
+        allReportActionsList: undefined,
+        allReportNameValuePairsList: undefined,
+        transactionData: {
+            reportID: expenseReport.reportID,
+            originalTransactionID: transaction.transactionID,
+            splitExpenses: [
+                {transactionID: '9003', amount: 50, currency: 'USD', description: '', category: '', tags: [''], created: transaction.created, reportID: expenseReport.reportID},
+                {transactionID: '9004', amount: 50, currency: 'USD', description: '', category: '', tags: [''], created: transaction.created, reportID: expenseReport.reportID},
+            ],
+            splitExpensesTotal: 100,
+        },
+        searchContext: {currentSearchHash: -2},
+        policyCategories: undefined,
+        policy: undefined,
+        policyRecentlyUsedCategories: [],
+        iouReport: expenseReport,
+        firstIOU: iouAction,
+        isASAPSubmitBetaEnabled: false,
+        currentUserPersonalDetails,
+        transactionViolations: {},
+        policyRecentlyUsedCurrencies: [],
+        quickAction: undefined,
+        betas: [CONST.BETAS.ALL],
+        allPolicyTags: undefined,
+        personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+        transactionReport: reports.transactionReport,
+        expenseReport: reports.expenseReport,
+        isOffline: false,
+        delegateAccountID: undefined,
+        isTrackIntentUser: false,
+    };
+
+    return {expenseReport, iouAction, params};
+};
+
+describe('split save deferred write', () => {
+    beforeEach(() => {
+        jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(false);
+    });
+
+    it('reserves the SEARCH channel and defers the write when saving from the Search page', async () => {
+        // Given a split saved while the Search page is the topmost full screen route
+        jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+        const {expenseReport, iouAction, params} = await buildSplitFlowParams();
+
+        // When the split is saved
+        updateSplitTransactionsFromSplitExpensesFlow(params);
+        await waitForBatchedUpdates();
+
+        // Then the SEARCH channel is reserved before navigating, so a flush fired by the
+        // destination's layout is remembered rather than dropped
+        expect(reserveDeferredWriteChannel).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+
+        // And the write is routed through the deferral rather than executed inline
+        expect(deferOrExecuteWrite).toHaveBeenCalledWith(expect.any(Function), expect.objectContaining({shouldDeferForSearch: true}));
+        expect(expenseReport.reportID).toBeTruthy();
+        expect(iouAction.reportActionID).toBeTruthy();
+    });
+
+    it('reserves the DISMISS_MODAL channel with the destination report when saving from a report', async () => {
+        // Given a split saved from a report rather than the Search page
+        const {params} = await buildSplitFlowParams();
+
+        // When the split is saved
+        updateSplitTransactionsFromSplitExpensesFlow(params);
+        await waitForBatchedUpdates();
+
+        // Then the write is still deferred, but never onto the SEARCH channel
+        expect(deferOrExecuteWrite).toHaveBeenCalledWith(expect.any(Function), expect.objectContaining({shouldDeferForSearch: false}));
+        expect(reserveDeferredWriteChannel).not.toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+    });
+
+    it('writes immediately when the caller is not the split-expenses flow', async () => {
+        // Given a direct updateSplitTransactions call, as useDeleteTransactions makes
+        const {params} = await buildSplitFlowParams();
+
+        // When it runs outside the split-expenses flow
+        updateSplitTransactions({...params, isFromSplitExpensesFlow: false});
+        await waitForBatchedUpdates();
+
+        // Then there is no navigation to hide behind, so the write is not deferred
+        expect(deferOrExecuteWrite).not.toHaveBeenCalled();
     });
 });
