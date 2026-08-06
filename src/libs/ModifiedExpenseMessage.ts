@@ -1,5 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
@@ -12,12 +14,10 @@ import type {Entries, ValueOf} from 'type-fest';
 import isEmpty from 'lodash/isEmpty';
 
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
-import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import {formatList} from './Localize';
 import Log from './Log';
-import Parser from './Parser';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {
     arePolicyRulesEnabled,
@@ -164,8 +164,8 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // - A 1:1 DM
     const currentUserAccountID = getPersonalDetailByEmail(currentUserLogin)?.accountID;
     const reportName = isPolicyExpenseChat(rootParentReport)
-        ? getPolicyExpenseChatName({report: rootParentReport})
-        : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID});
+        ? getPolicyExpenseChatName({report: rootParentReport, translate})
+        : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID, translate});
     const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true, policy});
     // If we can't determine either the report name or policy name, return the default message
     if (isEmpty(policyName) && !reportName) {
@@ -247,7 +247,7 @@ function getRulesModifiedMessage(
         }
         // The backend saves the description field as `comment` key, but we need to display it as `description` key.
         if (key === 'comment') {
-            return translate('iou.rulesModifiedFields.common', 'description', Parser.htmlToMarkdown(updatedValue), isFirst);
+            return translate('iou.rulesModifiedFields.common', 'description', updatedValue, isFirst);
         }
 
         return translate('iou.rulesModifiedFields.common', key, updatedValue, isFirst);
@@ -269,6 +269,7 @@ function getRulesModifiedMessage(
  */
 function getForReportAction({
     translate,
+    convertToDisplayString,
     reportAction,
     policy,
     movedFromReport,
@@ -279,6 +280,7 @@ function getForReportAction({
     reportAttributes,
 }: {
     translate: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     reportAction: OnyxEntry<ReportAction>;
     policy: OnyxEntry<Policy>;
     movedFromReport?: OnyxEntry<Report>;
@@ -359,8 +361,8 @@ function getForReportAction({
 
         buildMessageFragmentForValue(
             translate,
-            Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
-            Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
+            reportActionOriginalMessage?.newComment ?? '',
+            reportActionOriginalMessage?.oldComment ?? '',
             descriptionLabel,
             true,
             setFragments,

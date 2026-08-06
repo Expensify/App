@@ -6,7 +6,8 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {AgentRowData} from '@components/Tables/AgentsTable';
+import type {TableHandle} from '@components/Table';
+import type {AgentRowData, AgentsTableColumnKey} from '@components/Tables/AgentsTable';
 import AgentsTable from '@components/Tables/AgentsTable';
 
 import useChatWithAgent from '@hooks/useChatWithAgent';
@@ -19,12 +20,16 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -38,7 +43,7 @@ import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 function AgentsPage() {
@@ -46,6 +51,7 @@ function AgentsPage() {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const illustrations = useMemoizedLazyIllustrations(['AiBot']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
     const chatWithAgent = useChatWithAgent();
@@ -53,6 +59,7 @@ function AgentsPage() {
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const {showConfirmModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
     const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     useDocumentTitle(translate('agentsPage.title'));
@@ -117,6 +124,28 @@ function AgentsPage() {
         ];
     });
 
+    const tableRef = useRef<TableHandle<AgentRowData, AgentsTableColumnKey, string>>(null);
+    const agentKeys = agents.map((agent) => agent.keyForList);
+    const prevAgentKeys = usePrevious(agentKeys);
+
+    // Highlight (and scroll to) a newly created agent's row once it appears in the table, mirroring
+    // the same pattern used for newly-invited workspace members (see WorkspaceMembersPage). Not
+    // gated on useIsFocused: on wide layouts this page is the central pane of a split navigator and
+    // stays visible (but unfocused per react-navigation) while the new agent's DM opens in the RHP.
+    useEffect(() => {
+        const newAgentKeys = agentKeys.filter((key) => !prevAgentKeys.includes(key));
+        if (!newAgentKeys.length) {
+            return;
+        }
+
+        const tableAgents = tableRef.current?.getProcessedData() ?? [];
+        const newAgentIndex = tableAgents.findIndex((agent) => newAgentKeys.includes(agent.keyForList));
+        if (newAgentIndex !== -1) {
+            tableRef.current?.scrollToIndex({index: newAgentIndex, animated: false});
+        }
+        tableRef.current?.highlightItems(newAgentKeys);
+    }, [agentKeys, prevAgentKeys]);
+
     const agentsByAccountID = new Map(agents.map((agent) => [agent.keyForList, agent]));
     const selectedAgentKeys = selectedAgents.filter((accountIDString) => {
         const agent = agentsByAccountID.get(accountIDString);
@@ -144,6 +173,11 @@ function AgentsPage() {
     };
 
     const askForConfirmationToDelete = async () => {
+        const ruleBotEnforcedPolicy = selectedAgentKeys.map((accountIDString) => getRuleBotEnforcedPolicy(Number(accountIDString), allPolicies)).find(Boolean);
+        if (ruleBotEnforcedPolicy) {
+            showRuleBotGuardModal('deleteAgent', ruleBotEnforcedPolicy.id);
+            return;
+        }
         const result = await showConfirmModal({
             title: translate('agentsPage.deleteAgentsTitle', {count: selectedAgentKeys.length}),
             prompt: translate('agentsPage.deleteAgentsMessage', {count: selectedAgentKeys.length}),
@@ -176,7 +210,7 @@ function AgentsPage() {
     const newAgentButton = (
         <Button
             variant="success"
-            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD.getRoute())}
+            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_NEW.getRoute())}
         >
             <Button.Icon src={icons.Plus} />
             <Button.Text>{translate('agentsPage.newAgent')}</Button.Text>
@@ -228,15 +262,16 @@ function AgentsPage() {
                 shouldDisplayHelpButton
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
             >
-                {!shouldUseNarrowLayout && headerButtons}
+                {!shouldDisplayButtonsInSeparateLine && headerButtons}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
+            {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
             {hasAgents && (
                 <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
                     <RenderHTML html={translate('agentsPage.subtitle')} />
                 </View>
             )}
             <AgentsTable
+                ref={tableRef}
                 agents={agents}
                 canSelectAgents
                 selectedKeys={selectedAgentKeys}

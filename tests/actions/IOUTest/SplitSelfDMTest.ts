@@ -155,21 +155,18 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.TRANSACTION,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allTransactions = value;
             },
         });
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allReports = value;
             },
         });
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allReportNameValuePairs = value;
             },
@@ -212,7 +209,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -245,21 +241,18 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.TRANSACTION,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allTransactions = value;
             },
         });
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allReports = value;
             },
         });
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allReportNameValuePairs = value;
             },
@@ -302,7 +295,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -348,28 +340,24 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.TRANSACTION,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allTransactions = value;
             },
         });
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allReports = value;
             },
         });
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allReportNameValuePairs = value;
             },
         });
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.SNAPSHOT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allSnapshots = value as OnyxCollection<SearchResults>;
             },
@@ -413,7 +401,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -451,21 +438,18 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.TRANSACTION,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allTransactions = value;
             },
         });
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allReports = value;
             },
         });
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allReportNameValuePairs = value;
             },
@@ -509,7 +493,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -527,7 +510,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         // Step 2: Re-fetch allTransactions (now contains the created children)
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.TRANSACTION,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allTransactions = value;
             },
@@ -571,7 +553,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -604,14 +585,12 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.TRANSACTION,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allTransactions = value;
             },
         });
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allReports = value;
                 for (const key of Object.keys(value ?? {})) {
@@ -621,7 +600,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 allReportNameValuePairs = value;
             },
@@ -664,7 +642,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -682,7 +659,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         let newIouReport: OnyxEntry<Report> | undefined;
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT,
-            waitForCollectionCallback: true,
             callback: (allReportsAfter) => {
                 // Check if any NEW IOU-type report was created after the split
                 newIouReport = Object.entries(allReportsAfter ?? {})

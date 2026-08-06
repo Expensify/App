@@ -1,13 +1,17 @@
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillParams, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getCurrencyDecimals as getLegacyCurrencyDecimals, getCurrencySymbol as getLegacyCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -77,7 +81,7 @@ import type {BuildOnyxDataForMoneyRequestKeys, OneOnOneIOUReport} from './MoneyR
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 
-import {buildParticipantsPolicyTags, getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions} from './index';
+import {getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions} from './index';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -112,6 +116,7 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
     validWaypoints?: WaypointCollection;
     splitShares?: SplitShares;
     distance?: number;
+    modifiedDistance?: number;
     receipt?: Receipt;
     odometerStart?: number;
     odometerEnd?: number;
@@ -143,6 +148,8 @@ type CreateDistanceRequestInformation = {
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 
     /** Optimistic chat reportID to build the new chat report at, so it matches the ID the confirmation screen already subscribed to (brand-new P2P recipient). */
     optimisticChatReportID?: string;
@@ -168,9 +175,10 @@ type CreateSplitsAndOnyxDataParams = {
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type StartSplitBilActionParams = {
@@ -195,8 +203,9 @@ type StartSplitBilActionParams = {
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type CompleteSplitBillActionParams = {
@@ -212,6 +221,7 @@ type CompleteSplitBillActionParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     sessionEmail?: string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SplitBillActionsParams = {
@@ -245,7 +255,9 @@ type SplitBillActionsParams = {
     shouldHandleNavigation?: boolean;
     shouldDeferForSearch?: boolean;
     delegateAccountID: number | undefined;
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 /**
@@ -283,6 +295,8 @@ function splitBill({
     shouldDeferForSearch = false,
     delegateAccountID,
     isTrackIntentUser,
+    formatPhoneNumber,
+    participantsPolicyTags,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -314,10 +328,10 @@ function splitBill({
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        participantsPolicyTags: buildParticipantsPolicyTags(participants),
+        participantsPolicyTags,
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
     });
 
     const parameters: SplitBillParams = {
@@ -397,6 +411,8 @@ function splitBillAndOpenReport({
     shouldDeferForSearch = false,
     delegateAccountID,
     isTrackIntentUser,
+    formatPhoneNumber,
+    participantsPolicyTags,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -428,10 +444,10 @@ function splitBillAndOpenReport({
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        participantsPolicyTags: buildParticipantsPolicyTags(participants),
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
+        participantsPolicyTags,
     });
 
     const parameters: SplitBillParams = {
@@ -505,6 +521,7 @@ function startSplitBill({
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
     delegateAccountID,
+    formatPhoneNumber,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -696,6 +713,7 @@ function startSplitBill({
         policyRecentlyUsedTags,
         participantsPolicyTags,
         delegateAccountID,
+        formatPhoneNumber,
     };
 
     if (existingSplitChatReport) {
@@ -1268,6 +1286,10 @@ function setDraftSplitTransaction(
     transactionChanges: TransactionChanges = {},
     policy?: OnyxEntry<OnyxTypes.Policy>,
     personalPolicyOutputCurrency?: string,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
+    // Callers that don't edit amount-related fields don't have the currency context wired up yet, so fall back to the legacy helpers.
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'] = getLegacyCurrencyDecimals,
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'] = getLegacyCurrencySymbol,
 ) {
     if (!transactionID) {
         return undefined;
@@ -1285,8 +1307,11 @@ function setDraftSplitTransaction(
               isFromExpenseReport: false,
               shouldUpdateReceiptState: false,
               policy,
+              policies,
               isSplitTransaction: true,
               personalPolicyOutputCurrency,
+              getCurrencyDecimals,
+              getCurrencySymbol,
           })
         : null;
 
@@ -1427,6 +1452,7 @@ function createSplitsAndOnyxData({
     participantsPolicyTags,
     delegateAccountID,
     isTrackIntentUser,
+    formatPhoneNumber,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -1961,6 +1987,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         previousOdometerDraft,
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
+        participantsPolicyTags,
         optimisticChatReportID,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -1970,6 +1998,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         amount,
         comment,
         distance,
+        modifiedDistance,
         currency,
         created,
         category,
@@ -2050,10 +2079,10 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            participantsPolicyTags: buildParticipantsPolicyTags(participants),
+            participantsPolicyTags,
             delegateAccountID,
             isTrackIntentUser,
+            formatPhoneNumber,
         });
         onyxData = splitOnyxData;
 
@@ -2118,7 +2147,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             },
             transactionParams: {
                 amount,
-                distance,
+                distance: modifiedDistance ?? distance,
                 currency,
                 comment,
                 created,
@@ -2184,6 +2213,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             waypoints: JSON.stringify(sanitizedWaypoints),
             distance: distance !== undefined ? roundToTwoDecimalPlaces(distance) : undefined,
+            modifiedDistance: modifiedDistance !== undefined ? roundToTwoDecimalPlaces(modifiedDistance) : undefined,
             receipt,
             odometerStart,
             odometerEnd,

@@ -32,8 +32,8 @@ type ContinueActionParams = {
 };
 
 type KYCWallProps = {
-    /** Route for the Add Bank Account screen for a given navigation stack */
-    addBankAccountRoute?: Route;
+    /** Route for the Add Bank Account screen for a given navigation stack. Pass a function to defer building the route (e.g. its backTo) until the moment of the press. */
+    addBankAccountRoute?: Route | (() => Route | undefined);
 
     /** Route for the Add Debit Card screen for a given navigation stack */
     addDebitCardRoute?: Route;
