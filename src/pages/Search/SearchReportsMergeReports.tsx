@@ -34,7 +34,6 @@ function SearchReportsMergeReports() {
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
 
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
@@ -136,7 +135,6 @@ function SearchReportsMergeReports() {
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
             policy: policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined,
-            reportNextStep: allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${destinationReportID}`],
             policyCategories: policyID ? allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] : undefined,
             policyTagList: policyID ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {}) : {},
             allTransactionViolation: transactionViolations,
