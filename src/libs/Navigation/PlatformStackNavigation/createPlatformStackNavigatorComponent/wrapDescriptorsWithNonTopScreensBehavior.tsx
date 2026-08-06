@@ -1,9 +1,11 @@
 import type {NonTopScreenBehavior, PlatformSpecificNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import type {ParamListBase} from '@react-navigation/native';
-import type {ComponentType, ReactNode} from 'react';
+import type {ComponentType} from 'react';
 
 import React from 'react';
+
+import type NonTopScreenWrapperProps from './nonTopScreenWrapperTypes';
 
 import ScreenActivityWrapper from './ScreenActivityWrapper';
 import ScreenFreezeWrapper from './ScreenFreezeWrapper';
@@ -19,13 +21,6 @@ type Descriptor = {
     render: () => React.JSX.Element;
 };
 
-type NonTopScreenWrapperProps = {
-    isScreenBlurred: boolean;
-    routeKey: string;
-    routeName: string;
-    children: ReactNode;
-};
-
 const WRAPPER_FOR_BEHAVIOR: Record<Exclude<NonTopScreenBehavior, 'none'>, ComponentType<NonTopScreenWrapperProps>> = {
     freeze: ScreenFreezeWrapper,
     activity: ScreenActivityWrapper,
@@ -36,7 +31,7 @@ const WRAPPER_FOR_BEHAVIOR: Record<Exclude<NonTopScreenBehavior, 'none'>, Compon
  * (React <Activity>), depending on the behavior that screen picked through its nonTopScreenBehavior option. This
  * prevents off-screen components from re-rendering on the critical path. Screens that picked no behavior are left
  * unwrapped, and so are persistent screens (e.g. sidebar on web), because they stay visible and interactive
- * alongside the top screen, so they must never be hidden - not even when the whole navigator loses focus.
+ * alongside the top screen, so they must never be hidden. That holds even when the whole navigator loses focus.
  */
 function wrapDescriptorsWithNonTopScreensBehavior<T extends Descriptor>(
     descriptors: Record<string, T>,

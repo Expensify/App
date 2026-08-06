@@ -1,9 +1,12 @@
 import {useIsFocused} from '@react-navigation/native';
 
 /**
- * Reports whether the screen is covered right now: either another screen of its own navigator sits on top of it, or
- * the whole navigator lost focus to a route higher in the tree. useIsFocused is chain-aware, so e.g. the search
- * expense list counts as covered while an RHP is open on top of it.
+ * Reports whether the screen is covered right now, which happens in two ways. Another screen of its own navigator
+ * sits on top of it, which the caller passes in as isScreenBlurred because only the navigator knows its own top
+ * route. Or the whole navigator lost focus to a route higher in the tree, which is what this hook adds. The wrapper
+ * runs outside descriptor.render(), so its useIsFocused reads the focus of the navigator the screen belongs to
+ * rather than the screen's own, and the chain-aware answer covers e.g. the search expense list while an RHP is open
+ * on top of it.
  *
  * This follows the navigation state with no delay in either direction, which is what the accessibility state of a
  * screen has to do. The Activity mode cannot be used for it, because it defers a reveal until the navigation

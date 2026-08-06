@@ -29,7 +29,9 @@ const VIEW_CONFIG = {
 // (cloneHiddenInstance on Fabric). Processing the display attribute to always resolve to 'contents' neutralizes
 // that hiding, which keeps the underlay screen visible during swipe-back gestures and prevents a blank screen
 // flash while navigating between screens. This module is native only and must be imported from .native files.
-// Uses internal RN APIs (NativeComponentRegistry, ReactNativeStyleAttributes) - validated with RN 0.83.1. Re-verify after upgrades.
+// Uses internal RN APIs (NativeComponentRegistry, ReactNativeStyleAttributes). Validated with RN 0.83.1 on the new
+// architecture (Fabric), where the component resolves by its registered name rather than by uiViewClassName.
+// Re-verify after upgrades.
 const DisplayContentsView = NativeComponentRegistry.get<DisplayContentsViewProps>('CustomViewWrapper', () => VIEW_CONFIG);
 
 /**
