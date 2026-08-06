@@ -62,6 +62,7 @@ function WorkspaceCompanyCardsTableControls({policyID, domainOrWorkspaceAccountI
     const selectedCards = processedData.filter((card) => card.selected && !card.disabled);
     const selectedAssignedCards = selectedCards.filter((card) => card.isAssigned && !!card.assignedCard);
     const isOnlyAssignedCardsSelected = selectedCards.length > 0 && selectedAssignedCards.length === selectedCards.length;
+    const isSingleAssignedCard = selectedAssignedCards.length === 1;
 
     const exportSelectedCardsToCSV = () => {
         if (selectedCards.length === 0) {
@@ -108,8 +109,8 @@ function WorkspaceCompanyCardsTableControls({policyID, domainOrWorkspaceAccountI
 
         const {action} = await showConfirmModal({
             shouldSetModalVisibility: false,
-            title: translate('workspace.moreFeatures.companyCards.unassignCards'),
-            prompt: translate('workspace.moreFeatures.companyCards.unassignCardsDescription'),
+            title: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
+            prompt: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCardDescription' : 'workspace.moreFeatures.companyCards.unassignCardsDescription'),
             confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
             cancelText: translate('common.cancel'),
             danger: true,
@@ -145,7 +146,7 @@ function WorkspaceCompanyCardsTableControls({policyID, domainOrWorkspaceAccountI
             if (canWriteCompanyCards) {
                 options.push({
                     icon: icons.RemoveMembers,
-                    text: translate('workspace.moreFeatures.companyCards.unassignCards'),
+                    text: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
                     value: 'unassign',
                     onSelected: confirmBulkUnassign,
                 });
