@@ -1,6 +1,6 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -238,11 +238,15 @@ function IOURequestStartPage({
         // render (scan loader, reading the receipt blob), and for per diem the confirmation renders per-diem UI
         // (wrong fields, and the "Confirm page shows per diem" bug). Wait for the reset so the manual confirmation
         // mounts once against the rebuilt manual draft.
+        // The header and tab bar remain visible above this loader, so per UI-1 use ActivityIndicator (users can still go back) instead of FullScreenLoadingIndicator.
         manualTabContent = (
-            <FullScreenLoadingIndicator
-                testID="manualTabPendingReset"
-                reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}}
-            />
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                <ActivityIndicator
+                    testID="manualTabPendingReset"
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}}
+                />
+            </View>
         );
     } else {
         manualTabContent = (
