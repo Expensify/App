@@ -50,7 +50,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     const expensifyTeamExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserPersonalDetails.email);
 
     // Snapshot the pre-selected accountIDs from when the filter first opened so they can be floated to the
-    // top on first render without repinning rows that are toggled afterwards (see https://github.com/Expensify/App/issues/61414).
+    // top on first render without repinning rows that are toggled afterwards.
     const initialSelectedValues = useInitialValue(() => value);
 
     // When the workspace filter is set, only suggest the members of the selected workspaces. Users that were already
