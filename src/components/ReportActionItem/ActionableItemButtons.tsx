@@ -6,8 +6,13 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ActionableItemButtonsProps = {
+    /** The buttons to lay out */
     children: React.ReactNode;
+
+    /** Whether the buttons are laid out in a row or stacked in a column */
     layout?: 'horizontal' | 'vertical';
+
+    /** Additional styles to apply to the container */
     style?: StyleProp<ViewStyle>;
 };
 
