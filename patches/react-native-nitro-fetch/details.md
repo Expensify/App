@@ -1,6 +1,6 @@
 # `react-native-nitro-fetch` patches
 
-### [react-native-nitro-fetch+1.5.4.patch](react-native-nitro-fetch+1.5.4.patch)
+### [react-native-nitro-fetch+1.5.4+001+certificate-pinning.patch](react-native-nitro-fetch+1.5.4+001+certificate-pinning.patch)
 
 - Reason:
 
