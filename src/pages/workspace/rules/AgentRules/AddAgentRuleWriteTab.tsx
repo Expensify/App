@@ -8,23 +8,20 @@ import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/ty
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from '@pages/settings/Agents/const';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/AddAgentRuleForm';
 
-import type {StyleProp, TextInputKeyPressEvent, ViewStyle} from 'react-native';
+import type {TextInputKeyPressEvent} from 'react-native';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
+
+import useAgentPromptInputStyles from './useAgentPromptInputStyles';
 
 type AddAgentRuleFormID = typeof ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM;
 
@@ -34,15 +31,10 @@ type AddAgentRuleWriteTabProps = {
 };
 
 function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const isInLandscapeMode = useIsInLandscapeMode();
-    const {isKeyboardActive} = useKeyboardState();
-    const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !isInLandscapeMode;
     const formRef = useRef<FormRef>(null);
     const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
 
@@ -63,9 +55,7 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
         return errors;
     };
 
-    const inputWrapperStyles: StyleProp<ViewStyle> = shouldShrinkPromptInput
-        ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
-        : [styles.flex1, shouldUseExpandedRevampFormLayout && [styles.mnh0, styles.agentRulePromptInput]];
+    const inputWrapperStyles = useAgentPromptInputStyles();
 
     return (
         <FormProvider
