@@ -75,7 +75,6 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     const {reportID, backToReport} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportToConfirm] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID}`);
-    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS);
@@ -247,14 +246,13 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                 selectedIds={selectedIds}
                 report={report}
                 reportToConfirm={reportToConfirm}
-                reportNextStep={reportNextStep}
                 policy={policy}
                 policyCategories={policyCategories}
                 errorMessage={errorMessage}
                 setErrorMessage={setErrorMessage}
             />
         ),
-        [selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, errorMessage, setErrorMessage],
+        [selectedIds, report, reportToConfirm, policy, policyCategories, errorMessage, setErrorMessage],
     );
 
     const headerMessage = useMemo(() => {
