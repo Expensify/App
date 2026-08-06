@@ -1552,6 +1552,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: '終了日は開始日と同じにはできません',
             manySplitsProvided: `分割できる最大数は${CONST.IOU.SPLITS_LIMIT}件です。`,
             dateRangeExceedsMaxDays: `日付範囲は${CONST.IOU.SPLITS_LIMIT}日を超えることはできません。`,
+            changeReportMaxTransactionsExceeded: `1つのレポートあたりのトランザクションの最大数は${CONST.REPORT.MAX_TRANSACTIONS}件で、このレポートはそれを超えています。一部のトランザクションを別のレポートに移動してください。`,
             unableToSubmitReport: 'レポートを送信できません',
             allTransactionsPendingDescription: 'すべての取引が保留中のため、このレポートは提出できません。反映されるまでに数日かかる場合があります。',
             stitchOdometerImagesFailed: '走行距離計の画像を結合できませんでした。後でもう一度お試しください。',

@@ -1635,6 +1635,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'Η ημερομηνία λήξης δεν μπορεί να είναι ίδια με την ημερομηνία έναρξης',
             manySplitsProvided: `Ο μέγιστος επιτρεπόμενος αριθμός διαχωρισμών είναι ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Το εύρος ημερομηνιών δεν μπορεί να υπερβαίνει τις ${CONST.IOU.SPLITS_LIMIT} ημέρες.`,
+            changeReportMaxTransactionsExceeded: `Ο μέγιστος αριθμός συναλλαγών ανά αναφορά είναι ${CONST.REPORT.MAX_TRANSACTIONS} και αυτή η αναφορά τον υπερβαίνει. Μετακινήστε ορισμένες συναλλαγές σε άλλη αναφορά.`,
         },
         dismissReceiptError: 'Απόρριψη σφάλματος',
         dismissReceiptErrorConfirmation: 'Προσοχή! Αν απορρίψετε αυτό το σφάλμα, η ανεβασμένη απόδειξή σας θα διαγραφεί πλήρως. Είστε βέβαιοι;',

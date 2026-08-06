@@ -1577,6 +1577,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'La date de fin ne peut pas être identique à la date de début',
             manySplitsProvided: `Le nombre maximal de répartitions autorisées est de ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `La plage de dates ne peut pas dépasser ${CONST.IOU.SPLITS_LIMIT} jours.`,
+            changeReportMaxTransactionsExceeded: `Le nombre maximal de transactions par rapport est de ${CONST.REPORT.MAX_TRANSACTIONS}, et ce rapport le dépasse. Veuillez déplacer certaines transactions vers un autre rapport.`,
             unableToSubmitReport: 'Impossible de soumettre la note de frais',
             allTransactionsPendingDescription:
                 'Vous ne pouvez pas soumettre cette note de frais, car toutes les transactions sont en attente. Leur comptabilisation peut prendre quelques jours.',

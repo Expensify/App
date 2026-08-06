@@ -1514,6 +1514,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: '结束日期不能与开始日期相同',
             manySplitsProvided: `允许的最大拆分数为 ${CONST.IOU.SPLITS_LIMIT}。`,
             dateRangeExceedsMaxDays: `日期范围不能超过 ${CONST.IOU.SPLITS_LIMIT} 天。`,
+            changeReportMaxTransactionsExceeded: `每个报告的最大交易数量为 ${CONST.REPORT.MAX_TRANSACTIONS}，此报告已超出该限制。请将部分交易移动到其他报告。`,
             unableToSubmitReport: '无法提交报表',
             allTransactionsPendingDescription: '您无法提交此报表，因为所有交易都在待处理。它们可能需要几天时间才会入账。',
             stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
