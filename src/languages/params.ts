@@ -66,6 +66,7 @@ type IntegrationsMessageParams = {
         code?: number;
         messages?: string[];
         title?: string;
+        reconciled?: boolean;
         link?: {
             url: string;
             text: string;
@@ -87,6 +88,14 @@ type ConnectionNameParams = {
     connectionName: AllConnectionName;
 };
 
+type ConnectionDisplayNameParams = {
+    connectionName: string;
+};
+
+type DefaultVendorHelperTextParams = {
+    isSet: boolean;
+};
+
 type ExportAgainModalDescriptionParams = {
     reportName: string;
     connectionName: ConnectionName;
@@ -100,7 +109,9 @@ type ExportIntegrationSelectedParams = {connectionName: ConnectionName};
 
 type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
 
-type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
+type AccountingIntegrationNameParams = {integrationName?: string};
+
+type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage; integrationName?: string};
 
 type DelegateRoleParams = {role: DelegateRole};
 
@@ -144,6 +155,7 @@ export type {
     RemovedFromApprovalWorkflowParams,
     DelegateRoleParams,
     RemoveCopilotAccessConfirmationParams,
+    AccountingIntegrationNameParams,
     SyncStageNameConnectionsParams,
     IntacctMappingTitleParams,
     ExportIntegrationSelectedParams,
@@ -175,6 +187,8 @@ export type {
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
     ConnectionNameParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ExportAgainModalDescriptionParams,
     UpdateRoleParams,
     OptionalParam,
