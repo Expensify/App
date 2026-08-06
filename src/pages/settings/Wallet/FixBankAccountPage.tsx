@@ -73,7 +73,7 @@ function FixBankAccountPage() {
                         illustration={LottieAnimations.Fireworks}
                         heading={translate('walletPage.fixBankAccount.successTitle')}
                         description={translate('walletPage.fixBankAccount.successBody')}
-                        descriptionStyle={styles.mutedNormalTextLabel}
+                        descriptionStyle={styles.textSupportingNormal}
                         shouldShowButton
                         buttonText={translate('walletPage.fixBankAccount.successButton')}
                         onButtonPress={onDismiss}
@@ -84,7 +84,8 @@ function FixBankAccountPage() {
                     <ConfirmationPage
                         illustration={LottieAnimations.Fireworks}
                         heading={translate('common.actionRequired')}
-                        description={<RenderHTML html={translate('walletPage.fixBankAccount.insufficientFundsBody')} />}
+                        description={translate('walletPage.fixBankAccount.insufficientFundsBody')}
+                        descriptionStyle={styles.textSupportingNormal}
                         shouldShowButton
                         buttonText={translate('walletPage.fixBankAccount.resendButton')}
                         onButtonPress={onResend}
