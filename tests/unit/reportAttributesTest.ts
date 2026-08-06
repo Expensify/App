@@ -23,6 +23,7 @@ jest.mock('@libs/ReportUtils', () => ({
         actionTargetReportActionID: undefined,
     })),
     generateIsEmptyReport: jest.fn(() => false),
+    getPendingDeleteMemberAccountIDs: jest.fn(() => []),
     hasVisibleReportFieldViolations: jest.fn(() => false),
     isArchivedReport: jest.fn(() => false),
     isValidReport: jest.fn(() => true),

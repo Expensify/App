@@ -168,7 +168,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds] = useCardFeeds(policy?.id);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
@@ -267,12 +266,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const confirmDisableApprovals = useCallback(() => {
         setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, isTrackIntentUser, {
-            reportNextSteps: allReportNextSteps,
             transactionViolations,
             betas,
             personalDetailsList: personalDetails,
         });
-    }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser]);
+    }, [betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser]);
 
     const navigateToHRSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(route.params.policyID));
@@ -665,7 +663,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         currentUserEmail,
                         isTrackIntentUser,
                         {
-                            reportNextSteps: allReportNextSteps,
                             transactionViolations,
                             betas,
                             personalDetailsList: personalDetails,
@@ -1011,7 +1008,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         updateApprovalMode,
         currentUserAccountID,
         currentUserEmail,
-        allReportNextSteps,
         transactionViolations,
         betas,
         showConfirmModal,

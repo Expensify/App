@@ -85,7 +85,6 @@ function ReportSubmitToContent({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -299,7 +298,6 @@ function ReportSubmitToContent({
             currentUserEmailParam: currentUserDetails.email ?? '',
             hasViolations,
             isASAPSubmitBetaEnabled,
-            expenseReportCurrentNextStepDeprecated: nextStep,
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,
@@ -336,7 +334,6 @@ function ReportSubmitToContent({
         currentUserDetails.email,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        nextStep,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
