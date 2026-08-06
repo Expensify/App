@@ -33,6 +33,7 @@ import {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReportAction,
+    getTransactionThreadReportIDFromAction,
     isActionOfType,
     isMemberChangeAction,
     withDEWRoutedActionsObject,
@@ -227,36 +228,20 @@ function BaseReportActionContextMenu({
         () => getOneTransactionThreadReportAction(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
         [paginatedReportActions, isOffline, childReport, childChatReport],
     );
-    // Since we don't always create the transaction thread optimistically, we fall back to CONST.FAKE_REPORT_ID
-    const transactionThreadReportID = transactionThreadReportAction ? (transactionThreadReportAction.childReportID ?? CONST.FAKE_REPORT_ID) : undefined;
-
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+    const transactionThreadReportID = getTransactionThreadReportIDFromAction(transactionThreadReportAction);
 
     const isMoneyRequestReport = useMemo(() => ReportUtilsIsMoneyRequestReport(childReport), [childReport]);
     const isInvoiceReport = useMemo(() => ReportUtilsIsInvoiceReport(childReport), [childReport]);
 
     const requestParentReportAction = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
-            // The transaction thread report can be missing from Onyx (e.g. right after clearing the cache), so we can't look up its parent action.
-            // In that case we use the action the transaction thread was derived from, which applies the same request-action selection logic.
-            if (transactionThreadReportID === CONST.FAKE_REPORT_ID || !transactionThreadReport?.parentReportActionID) {
-                return transactionThreadReportAction;
-            }
-            if (!paginatedReportActions) {
-                return undefined;
-            }
-            return paginatedReportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
+            // The transaction thread report can be missing from Onyx (e.g. right after clearing the cache) or hold a stale
+            // parentReportActionID (e.g. during the optimistic->server reconciliation of a newly created expense), so we don't look it up.
+            // The IOU action the thread was derived from is by definition the thread's parent action, so it always resolves to the same report action.
+            return transactionThreadReportAction;
         }
         return parentReportAction;
-    }, [
-        parentReportAction,
-        isMoneyRequestReport,
-        isInvoiceReport,
-        paginatedReportActions,
-        transactionThreadReport?.parentReportActionID,
-        transactionThreadReportID,
-        transactionThreadReportAction,
-    ]);
+    }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, transactionThreadReportAction]);
 
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
     const isChildReportArchived = useReportIsArchived(childReport?.reportID);
