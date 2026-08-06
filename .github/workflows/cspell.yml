@@ -33,18 +33,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          FILES=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files --jq '.[].filename' | tr '\n' ' ')
-          echo "files=$FILES" >> "$GITHUB_OUTPUT"
-
-      - name: Filter out dot files
-        id: filtered-files
-        run: |
-          FILES=$(echo "${{ steps.changed-files.outputs.files }}" | tr ' ' '\n' | grep -v '^\.' | xargs)
-          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+          gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files --jq '.[].filename' | grep -v '^\.' > changed-files.txt || true
+          echo "count=$(wc -l < changed-files.txt)" >> "$GITHUB_OUTPUT"
 
       - name: Spell check
-        if: steps.filtered-files.outputs.files != ''
-        run: npm run spell-changed -- ${{ steps.filtered-files.outputs.files }}
+        if: steps.changed-files.outputs.count != '0'
+        run: xargs -d '\n' -a changed-files.txt npm run spell-changed --
 
       - name: Save cspell cache
         # v4

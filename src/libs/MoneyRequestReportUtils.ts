@@ -142,7 +142,13 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
     return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
 }
 
-function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportLoadingState: OnyxEntry<ReportLoadingState>, isOffline = false) {
+function shouldWaitForTransactions(
+    report: OnyxEntry<Report>,
+    transactions: Transaction[] | undefined,
+    reportLoadingState: OnyxEntry<ReportLoadingState>,
+    isReportLoadPending: boolean,
+    isOffline = false,
+) {
     if (isOffline) {
         return false;
     }
@@ -152,9 +158,7 @@ function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Tran
     // Scope the dismiss-write check to *this* report so an unrelated submit flow that's
     // mid-dismiss doesn't make every empty money-request/invoice report look like it's loading.
     const hasPendingDismissWrite = hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID);
-    const isStillLoadingData =
-        transactions?.length === 0 &&
-        ((!!reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingDismissWrite);
+    const isStillLoadingData = transactions?.length === 0 && ((isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingDismissWrite);
     return (
         (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
         (!isTransactionDataReady || isStillLoadingData) &&
@@ -180,7 +184,7 @@ const getTotalAmountForIOUReportPreviewButton = (
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ) => {
     // Determine whether the non-held amount is appropriate to display for the PAY button.
-    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, transactions);
+    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, transactions, convertToDisplayString);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const canAllowSettlement = hasUpdatedTotal(report, policy);
 

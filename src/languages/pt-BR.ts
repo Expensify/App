@@ -220,6 +220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         owner: 'Proprietário',
         dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'calendário aberto',
+        dialogOpened: 'diálogo',
         send: 'Enviar',
         na: 'N/D',
         noResultsFound: 'Nenhum resultado encontrado',
@@ -403,6 +404,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: 'ID de relatório longo',
         withdrawalID: 'ID do saque',
         internationalReimbursementIDs: 'IDs de reembolso internacional',
+        amountDebited: 'Valor debitado',
+        amountReimbursed: 'Valor reembolsado',
         withdrawalStatus: 'Status do saque',
         paidStatus: 'Status pago',
         bankAccounts: 'Contas bancárias',
@@ -437,11 +440,13 @@ const translations: TranslationDeepObject<typeof en> = {
         perDiem: 'Diária',
         validate: 'Validar',
         downloadAsPDF: 'Baixar como PDF',
+        downloadReceipts: 'Baixar recibos',
         downloadAsCSV: 'Baixar como CSV',
         submitViaPDF: 'Enviar via PDF',
         print: 'Imprimir',
         help: 'Ajuda',
         collapsed: 'Recolhido',
+        expand: 'Expandir',
         expanded: 'Expandido',
         expenseReport: 'Relatório de despesas',
         rateOutOfPolicy: 'Tarifa fora da política',
@@ -1110,7 +1115,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpend: {
             title: 'Seus gastos',
             awaitingApproval: 'Aguardando aprovação',
-            repaidLast30Days: 'Reembolsado nos últimos 30 dias',
+            repaidLast30Days: 'Reembolsado últimos 30 dias',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transações recentes • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Ver mais ${count}`,
@@ -1195,6 +1200,7 @@ const translations: TranslationDeepObject<typeof en> = {
             'O arquivo que você enviou está vazio ou contém dados inválidos. Verifique se o arquivo está formatado corretamente e contém as informações necessárias antes de enviá-lo novamente.',
         importSpreadsheetLibraryError: 'Falha ao carregar o módulo de planilha. Verifique sua conexão com a internet e tente novamente.',
         importSpreadsheet: 'Importar planilha',
+        importWorkflows: 'Importar fluxos de trabalho',
         downloadCSV: 'Baixar CSV',
         importMemberConfirmation: () => ({
             one: `Confirme os detalhes abaixo para o novo membro do espaço de trabalho que será adicionado como parte deste envio. Membros existentes não receberão atualizações de função nem mensagens de convite.`,
@@ -1452,7 +1458,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `aprovado por meio das <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>`,
         forwarded: (memo?: string) => `aprovado${memo ? `, dizendo ${memo}` : ''}`,
         rejectedThisReport: 'rejeitou',
-        waitingOnBankAccount: (submitterDisplayName: string) => `iniciou o pagamento, mas está aguardando ${submitterDisplayName} adicionar uma conta bancária.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `iniciou o pagamento, mas está aguardando ${submitterDisplayName} adicionar uma conta bancária pessoal.`,
         adminCanceledRequest: 'cancelou o pagamento',
         canceledRequest: (amount: string, submitterDisplayName: string) => `cancelou o pagamento de ${amount} porque ${submitterDisplayName} não ativou a Carteira Expensify em 30 dias`,
         settledAfterAddedBankAccount: (submitterDisplayName: string, amount: string) => `${submitterDisplayName} adicionou uma conta bancária. O pagamento de ${amount} foi efetuado.`,
@@ -1464,6 +1470,8 @@ const translations: TranslationDeepObject<typeof en> = {
         paidThisBill: 'pagou esta conta',
         reimbursedOnBehalfOf: (actor: string) => `em nome de ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `da conta bancária com final ${debitBankAccount}`,
+        reimbursedCrossBorder: ({amount, debitBankAccount, creditBankAccount}: {amount: string; debitBankAccount: string; creditBankAccount: string}) =>
+            `pagou ${amount} da conta ${debitBankAccount} para a conta ${creditBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} adicionou uma conta bancária, retirando o relatório da suspensão. O reembolso foi iniciado`,
         reimbursedWithFastACH: ({
             isCurrentUser,
@@ -1625,8 +1633,11 @@ const translations: TranslationDeepObject<typeof en> = {
         approveOnly: 'Apenas aprovar',
         holdEducationalTitle: 'Você deve reter esta despesa?',
         whatIsHoldExplain: 'Reter é como apertar “pausa” em uma despesa até que você esteja pronto para enviá-la.',
+        whatIsHoldExplainDM: "Reter e como apertar 'pausa' em uma despesa ate que voce esteja pronto para envia-la.",
         holdIsLeftBehind: 'Despesas em espera ficam de fora mesmo se você enviar um relatório inteiro.',
+        holdIsLeftBehindDM: 'Despesas retidas nao serao enviadas ate que voce remova a retencao.',
         unholdWhenReady: 'Desbloqueie as despesas quando estiver pronto para enviá-las.',
+        unholdWhenReadyDM: 'Remova a retencao das despesas quando estiver pronto para envia-las.',
         changePolicyEducational: {
             title: 'Você moveu este relatório!',
             description: 'Confira novamente estes itens, que tendem a mudar ao mover relatórios para um novo workspace.',
@@ -1997,21 +2008,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Aguardando <strong>${actor}</strong> pagar as despesas.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Aguardando um administrador pagar as despesas.`;
-                }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Aguardando <strong>você</strong> concluir a configuração de uma conta bancária empresarial.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Aguardando <strong>${actor}</strong> terminar de configurar uma conta bancária empresarial.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Aguardando um administrador concluir a configuração de uma conta bancária empresarial.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -2409,6 +2405,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Escaneie o código QR com seu novo dispositivo e depois insira o código para concluir a configuração.',
         downloadCodes: 'Baixar códigos',
         copyCodes: 'Copiar códigos',
+        twoFactorAuthIsRequiredNetSuiteDescription: 'Por motivos de segurança, o NetSuite exige autenticação em duas etapas para conectar a integração.',
     },
     recoveryCodeForm: {
         error: {
@@ -2461,7 +2458,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Seu cartão de débito foi adicionado com sucesso',
         expensifyPassword: 'Senha do Expensify',
         error: {
-            invalidName: 'O nome pode conter apenas letras',
+            invalidName: 'O nome no cartão não pode conter < ou >',
             addressZipCode: 'Insira um CEP válido',
             debitCardNumber: 'Insira um número de cartão de débito válido',
             expirationDate: 'Selecione uma data de validade válida',
@@ -2484,7 +2481,7 @@ const translations: TranslationDeepObject<typeof en> = {
         growlMessageOnSave: 'Seu cartão de pagamento foi adicionado com sucesso',
         expensifyPassword: 'Senha do Expensify',
         error: {
-            invalidName: 'O nome pode conter apenas letras',
+            invalidName: 'O nome no cartão não pode conter < ou >',
             addressZipCode: 'Insira um CEP válido',
             paymentCardNumber: 'Insira um número de cartão válido',
             expirationDate: 'Selecione uma data de validade válida',
@@ -2594,6 +2591,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Use este cartão para suas reservas no Expensify Travel. Ele aparecerá como “Travel Card” no checkout.',
         },
         chaseAccountNumberDifferent: 'Por que meu número de conta é diferente?',
+        cardLastSynced: (relativeDate: string) => `Sincronizado em ${relativeDate}`,
+        cardNeverSynced: 'Nunca sincronizado',
+        cardStatus: {
+            active: 'Ativo',
+            inactive: 'Inativo',
+            fixConnection: 'Corrija esta conexão',
+            fixConnectionIn: (companyCardsRoute: string) => `Corrija esta conexão em <a href="${companyCardsRoute}">cartões corporativos</a>`,
+            askAdminToFixConnection: 'Peça para um administrador corrigir essa conexão',
+        },
+        bankAccountStatus: {
+            active: 'Ativo',
+            incomplete: 'Incompleto',
+            pending: 'Pendente',
+            verifying: 'Verificando',
+            reviewingDocumentation: 'Estamos analisando sua documentação',
+            finishAddingBankAccount: 'Concluir adição da conta bancária',
+            finish: 'Concluir',
+            confirmTestTransactions: 'Confirme as transações de teste',
+            accountRequiresAttention: 'Esta conta precisa de atenção',
+            unlock: 'Desbloquear',
+        },
     },
     cardPage: {
         expensifyCard: 'Cartão Expensify',
@@ -2772,6 +2790,13 @@ ${amount} para ${merchant} - ${date}`,
         autoReportingFrequencyErrorMessage: 'Não foi possível alterar a frequência de envio. Tente novamente ou entre em contato com o suporte.',
         monthlyOffsetErrorMessage: 'Não foi possível alterar a frequência mensal. Tente novamente ou entre em contato com o suporte.',
     },
+    workflowsCurrencyConversionFeesPage: {
+        title: 'Taxas de conversão de moeda',
+        subtitle: 'Ao reembolsar em uma moeda diferente, taxas de conversão podem ser aplicadas. Selecione abaixo quem pagará as taxas. Isso se aplica apenas a conversões internacionais.',
+        companyPays: 'A empresa paga',
+        employeePays: 'O funcionário paga',
+        errorMessage: 'Não foi possível alterar a preferência de taxas de conversão de moeda. Tente novamente ou entre em contato com o suporte.',
+    },
     workflowsCreateApprovalsPage: {
         title: 'Confirmar',
         header: 'Adicione mais aprovadores e confirme.',
@@ -2925,8 +2950,16 @@ ${amount} para ${merchant} - ${date}`,
             updateAvatar: 'Ocorreu um problema ao atualizar o avatar deste agente',
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'Novo agente',
+        buildCustomAgent: 'Criar agente personalizado',
+        orStartWithTemplate: 'Ou comece com um modelo:',
+        role: 'Agente',
+        emptyTemplatesTitle: 'Ainda não há modelos',
+        emptyTemplatesSubtitle: 'Crie um agente personalizado para começar.',
+    },
+    addAgentPage: {
+        title: 'Criar agente personalizado',
         agentName: 'Nome do agente',
         instructions: 'Escrever instruções personalizadas',
         createAgent: 'Criar agente',
@@ -4291,7 +4324,7 @@ ${amount} para ${merchant} - ${date}`,
         toLearnMore: 'para saber mais.',
         termsAndConditions: {
             header: 'Antes de continuarmos...',
-            title: 'Termos e condições',
+            title: 'Revisar termos e condições',
             label: 'Eu concordo com os termos e condições',
             subtitle: `Concorde com os <a href="${CONST.TRAVEL_TERMS_URL}">termos e condições</a> do Expensify Travel.`,
             error: 'Você deve concordar com os termos e condições do Expensify Travel para continuar',
@@ -4366,10 +4399,12 @@ ${amount} para ${merchant} - ${date}`,
         phoneError: (phoneErrorMethodsRoute: string) =>
             `<rbr>Por favor, <a href="${phoneErrorMethodsRoute}">adicione um e-mail profissional como seu login principal</a> para reservar viagens.</rbr>`,
         domainSelector: {
+            headline: 'Qual domínio você quer configurar?',
             title: 'Domínio',
             subtitle: 'Escolha um domínio para a configuração do Expensify Travel.',
             recommended: 'Recomendado',
         },
+        workspaceAddress: {headline: 'Qual é o endereço da sua empresa?'},
         domainPermissionInfo: {
             title: 'Domínio',
             restriction: (domain: string) =>
@@ -4424,6 +4459,7 @@ ${amount} para ${merchant} - ${date}`,
         nightIn: 'noite em',
         nightsIn: 'noites em',
         taxID: {
+            headline: 'Qual é o CNPJ da sua empresa?',
             title: 'CPF/CNPJ',
             subtitle: 'Insira o CNPJ da sua empresa para que possamos configurar a cobrança de viagens na sua moeda local.',
             inputLabel: 'CNPJ da pessoa jurídica',
@@ -4665,6 +4701,11 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Diária',
                 subtitle: 'Defina taxas de diárias para controlar os gastos diários dos funcionários. Importe as taxas de uma planilha para começar.',
             },
+            requestEmptyList: {
+                title: 'Ainda não há diárias',
+                subtitle: 'Este espaço de trabalho não tem nenhuma diária definida, peça para o seu administrador adicionar algumas.',
+                adminSubtitle: 'Adicione diárias para organizar seus gastos.',
+            },
             importPerDiemRates: 'Importar tarifas de diária',
             editPerDiemRate: 'Editar diárias',
             editPerDiemRates: 'Editar diárias',
@@ -4781,29 +4822,30 @@ ${amount} para ${merchant} - ${date}`,
         },
         qbo: {
             connectedTo: 'Conectado a',
-            importDescription: 'Escolha quais configurações de codificação importar do QuickBooks Online para o Expensify.',
+            importDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Escolha quais configurações de codificação importar do ${integrationName} para o Expensify.`,
             classes: 'Aulas',
             locations: 'Locais',
             customers: 'Clientes/projetos',
             items: 'Itens',
-            accountsDescription: 'Seu plano de contas do QuickBooks Online será importado para o Expensify como categorias.',
+            accountsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Seu plano de contas do ${integrationName} será importado para o Expensify como categorias.`,
             accountsSwitchTitle: 'Escolha importar novas contas como categorias ativadas ou desativadas.',
             accountsSwitchDescription: 'As categorias ativadas estarão disponíveis para que os membros selecionem ao criar suas despesas.',
-            classesDescription: 'Escolha como lidar com as classes do QuickBooks Online no Expensify.',
-            customersDescription: 'Escolha como gerenciar clientes/projetos do QuickBooks Online no Expensify.',
-            locationsDescription: 'Escolha como lidar com os locais do QuickBooks Online no Expensify.',
-            itemsDescription: 'Escolha como lidar com os itens do QuickBooks Online no Expensify.',
-            taxesDescription: 'Escolha como lidar com os impostos do QuickBooks Online no Expensify.',
-            locationsLineItemsRestrictionDescription:
-                'O QuickBooks Online não oferece suporte a locais no nível de linha para cheques ou contas de fornecedores. Se você quiser ter locais no nível de linha, certifique-se de usar lançamentos de diário e despesas em cartão de crédito/débito.',
-            taxesJournalEntrySwitchNote: 'QuickBooks Online não oferece suporte a impostos em lançamentos de diário. Altere sua opção de exportação para conta de fornecedor ou cheque.',
-            exportDescription: 'Configure como os dados do Expensify são exportados para o QuickBooks Online.',
+            classesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Escolha como lidar com as classes do ${integrationName} no Expensify.`,
+            customersDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Escolha como gerenciar clientes/projetos do ${integrationName} no Expensify.`,
+            locationsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Escolha como lidar com os locais do ${integrationName} no Expensify.`,
+            itemsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Escolha como lidar com os itens do ${integrationName} no Expensify.`,
+            taxesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Escolha como lidar com os impostos do ${integrationName} no Expensify.`,
+            locationsLineItemsRestrictionDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `O ${integrationName} não oferece suporte a locais no nível de linha para cheques ou contas de fornecedores. Se você quiser ter locais no nível de linha, certifique-se de usar lançamentos de diário e despesas em cartão de crédito/débito.`,
+            taxesJournalEntrySwitchNote: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `${integrationName} não oferece suporte a impostos em lançamentos de diário. Altere sua opção de exportação para conta de fornecedor ou cheque.`,
+            exportDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Configure como os dados do Expensify são exportados para o ${integrationName}.`,
             date: 'Data de exportação',
             exportInvoices: 'Exportar faturas para',
             exportExpensifyCard: 'Exportar transações do Cartão Expensify como',
             exportDate: {
                 label: 'Data de exportação',
-                description: 'Use esta data ao exportar relatórios para o QuickBooks Online.',
+                description: ({integrationName = 'QuickBooks Online'} = {}) => `Use esta data ao exportar relatórios para o ${integrationName}.`,
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Data da última despesa',
@@ -4811,7 +4853,7 @@ ${amount} para ${merchant} - ${date}`,
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Data de exportação',
-                        description: 'Data em que o relatório foi exportado para o QuickBooks Online.',
+                        description: ({integrationName = 'QuickBooks Online'} = {}) => `Data em que o relatório foi exportado para o ${integrationName}.`,
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Data de envio',
@@ -4821,11 +4863,11 @@ ${amount} para ${merchant} - ${date}`,
             },
             receivable: 'Contas a receber',
             archive: 'Arquivo de contas a receber',
-            exportInvoicesDescription: 'Use esta conta ao exportar faturas para o QuickBooks Online.',
-            exportCompanyCardsDescription: 'Defina como as compras com cartão corporativo serão exportadas para o QuickBooks Online.',
+            exportInvoicesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Use esta conta ao exportar faturas para o ${integrationName}.`,
+            exportCompanyCardsDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Defina como as compras com cartão corporativo serão exportadas para o ${integrationName}.`,
             vendor: 'Fornecedor',
             defaultVendorDescription: 'Defina um fornecedor padrão que será aplicado a todas as transações de cartão de crédito na exportação.',
-            exportOutOfPocketExpensesDescription: 'Defina como as despesas reembolsáveis serão exportadas para o QuickBooks Online.',
+            exportOutOfPocketExpensesDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Defina como as despesas reembolsáveis serão exportadas para o ${integrationName}.`,
             exportCheckDescription: 'Vamos criar um cheque detalhado para cada relatório do Expensify e enviá-lo a partir da conta bancária abaixo.',
             exportJournalEntryDescription: 'Vamos criar um lançamento contábil detalhado para cada relatório do Expensify e lançá-lo na conta abaixo.',
             exportVendorBillDescription:
@@ -4838,35 +4880,39 @@ ${amount} para ${merchant} - ${date}`,
             notConfigured: 'Não configurado',
             bankAccountDescription: 'Escolha de onde enviar os cheques.',
             creditCardAccount: 'Conta de cartão de crédito',
-            travelInvoicingDescription: 'As despesas de viagem serão exportadas como cobranças de cartão de crédito para a conta do QuickBooks Online especificada abaixo.',
-            companyCardsLocationEnabledDescription:
-                'O QuickBooks Online não oferece suporte a locais em exportações de contas de fornecedor quando os locais são importados como tags. Como você tem locais importados como tags no seu workspace, essa opção de exportação não está disponível.',
-            outOfPocketTaxEnabledDescription:
-                'QuickBooks Online não oferece suporte a impostos em exportações de lançamentos contábeis. Como você tem impostos ativados no seu espaço de trabalho, essa opção de exportação não está disponível.',
+            travelInvoicingDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `As despesas de viagem serão exportadas como cobranças de cartão de crédito para a conta do ${integrationName} especificada abaixo.`,
+            companyCardsLocationEnabledDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `O ${integrationName} não oferece suporte a locais em exportações de contas de fornecedor quando os locais são importados como tags. Como você tem locais importados como tags no seu workspace, essa opção de exportação não está disponível.`,
+            outOfPocketTaxEnabledDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `${integrationName} não oferece suporte a impostos em exportações de lançamentos contábeis. Como você tem impostos ativados no seu espaço de trabalho, essa opção de exportação não está disponível.`,
             outOfPocketTaxEnabledError: 'Lançamentos de diário não estão disponíveis quando os impostos estão ativados. Escolha uma opção de exportação diferente.',
             advancedConfig: {
-                autoSyncDescription: 'O Expensify sincronizará automaticamente com o QuickBooks Online todos os dias.',
+                autoSyncDescription: ({integrationName = 'QuickBooks Online'} = {}) => `O Expensify sincronizará automaticamente com o ${integrationName} todos os dias.`,
                 inviteEmployees: 'Convidar funcionários',
-                inviteEmployeesDescription: 'Importe registros de funcionários do QuickBooks Online e convide funcionários para este workspace.',
+                inviteEmployeesDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Importe registros de funcionários do ${integrationName} e convide funcionários para este workspace.`,
                 createEntities: 'Criar entidades automaticamente',
-                createEntitiesDescription:
-                    'A Expensify criará fornecedores automaticamente no QuickBooks Online se eles ainda não existirem e criará clientes automaticamente ao exportar faturas.',
-                reimbursedReportsDescription: 'Sempre que um relatório for pago usando Expensify ACH, o pagamento de conta correspondente será criado na conta do QuickBooks Online abaixo.',
-                qboBillPaymentAccount: 'Conta de pagamento de faturas do QuickBooks',
-                qboInvoiceCollectionAccount: 'Conta de cobrança de faturas do QuickBooks',
-                accountSelectDescription: 'Escolha de onde pagar as contas e nós criaremos o pagamento no QuickBooks Online.',
-                invoiceAccountSelectorDescription: 'Escolha onde receber os pagamentos de fatura e nós criaremos o pagamento no QuickBooks Online.',
+                createEntitiesDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `A Expensify criará fornecedores automaticamente no ${integrationName} se eles ainda não existirem e criará clientes automaticamente ao exportar faturas.`,
+                reimbursedReportsDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Sempre que um relatório for pago usando Expensify ACH, o pagamento de conta correspondente será criado na conta do ${integrationName} abaixo.`,
+                qboBillPaymentAccount: ({integrationName = 'QuickBooks Online'} = {}) => `Conta de pagamento de faturas do ${integrationName}`,
+                qboInvoiceCollectionAccount: ({integrationName = 'QuickBooks Online'} = {}) => `Conta de cobrança de faturas do ${integrationName}`,
+                accountSelectDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Escolha de onde pagar as contas e nós criaremos o pagamento no ${integrationName}.`,
+                invoiceAccountSelectorDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Escolha onde receber os pagamentos de fatura e nós criaremos o pagamento no ${integrationName}.`,
             },
+            debitCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Vamos combinar automaticamente o nome do comerciante na transação do cartão de débito com quaisquer fornecedores correspondentes no ${integrationName}. Se não houver fornecedores existentes, criaremos um fornecedor "Despesas diversas – cartão de débito" para associação.`,
+            creditCardExportDescription: ({integrationName = 'QuickBooks Online'} = {}) =>
+                `Vamos corresponder automaticamente o nome do estabelecimento na transação do cartão de crédito a quaisquer fornecedores correspondentes no ${integrationName}. Se não houver fornecedores, criaremos um fornecedor “Cartão de Crédito – Diversos” para associação.`,
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Cartão de débito',
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: 'Cartão de crédito',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Fatura de fornecedor',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Lançamento contábil',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Verificar',
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
-                    'Vamos combinar automaticamente o nome do comerciante na transação do cartão de débito com quaisquer fornecedores correspondentes no QuickBooks. Se não houver fornecedores existentes, criaremos um fornecedor "Despesas diversas – cartão de débito" para associação.',
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
-                    'Vamos corresponder automaticamente o nome do estabelecimento na transação do cartão de crédito a quaisquer fornecedores correspondentes no QuickBooks. Se não houver fornecedores, criaremos um fornecedor “Cartão de Crédito – Diversos” para associação.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Vamos criar uma conta detalhada de fornecedor para cada relatório do Expensify com a data da última despesa e adicioná-la à conta abaixo. Se este período estiver encerrado, lançaremos no dia 1º do próximo período em aberto.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Escolha para onde exportar as transações do cartão de débito.',
@@ -4884,12 +4930,15 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Escolha uma conta válida para exportação de cheque',
             },
             exportDestinationSetupAccountsInfo: {
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Para usar a exportação de contas de fornecedores, configure uma conta de contas a pagar no QuickBooks Online',
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Para usar a exportação de lançamentos contábeis, configure uma conta de diário no QuickBooks Online',
-                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Para usar a exportação de cheques, configure uma conta bancária no QuickBooks Online',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Para usar a exportação de contas de fornecedores, configure uma conta de contas a pagar no ${integrationName}`,
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Para usar a exportação de lançamentos contábeis, configure uma conta de diário no ${integrationName}`,
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: ({integrationName = 'QuickBooks Online'} = {}) =>
+                    `Para usar a exportação de cheques, configure uma conta bancária no ${integrationName}`,
             },
             noAccountsFound: 'Nenhuma conta encontrada',
-            noAccountsFoundDescription: 'Adicione a conta no QuickBooks Online e sincronize a conexão novamente.',
+            noAccountsFoundDescription: ({integrationName = 'QuickBooks Online'} = {}) => `Adicione a conta no ${integrationName} e sincronize a conexão novamente.`,
             accountingMethods: {
                 label: 'Quando Exportar',
                 description: 'Escolha quando exportar as despesas:',
@@ -5357,6 +5406,14 @@ ${amount} para ${merchant} - ${date}`,
                         },
                         netSuiteAccountIDDescription: 'No NetSuite, acesse *Setup > Integration > SOAP Web Services Preferences*.',
                     },
+                    enableOAuth: {
+                        title: 'Ativar OAuth 2.0',
+                        description: 'No NetSuite, vá em *Setup > Company > Enable Features > SuiteCloud* e, em *Manage Authentication*, ative *OAuth 2.0*.',
+                    },
+                    enableRestWebServices: {
+                        title: 'Ativar serviços web REST',
+                        description: 'No NetSuite, vá para *Setup > Company > Enable Features > SuiteCloud* > em *SuiteTalk (Web Services)*, ative *REST Web Services*.',
+                    },
                 },
             },
             import: {
@@ -5571,7 +5628,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             rilletSetup: 'Configuração do Rillet',
             enterCredentials: 'Insira sua chave de API Rillet',
             howToFindAPIKey:
-                '<strong>Encontrando sua chave de API.</strong><ol><li>Faça login no Rillet</li><li>Vá para Conta -> Configurações</li><li>Copie a chave de API abaixo</li></ol>',
+                '<strong>Encontrando sua chave de API.</strong><ol><li>Faça login no Rillet</li><li>Navegue até [organization name] -> Configurações da organização -> Acesso à API</li><li>Crie a chave de API</li><li>Cole a chave de API abaixo</li></ol>',
             subsidiary: 'Subsidiária',
             subsidiarySelectDescription: 'Escolha a subsidiária no Rillet da qual você gostaria de importar dados.',
             noSubsidiariesFound: 'Nenhuma subsidiária encontrada',
@@ -5796,7 +5853,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             },
             assign: 'Atribuir',
             assignCard: 'Atribuir cartão',
-            findCard: 'Encontrar cartão',
+            findCompanyCard: 'Encontrar cartão corporativo',
             cardNumber: 'Número do cartão',
             commercialFeed: 'Feed comercial',
             feedName: (feedName: string) => `Cartões ${feedName}`,
@@ -5865,6 +5922,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             balanceWillBeSettledOn: (settlementDate: string) => `O saldo será liquidado em ${settlementDate}`,
             settleBalance: 'Quitar saldo',
             cardLimit: 'Limite do cartão',
+            remaining: 'Restante',
             remainingLimit: 'Limite restante',
             requestLimitIncrease: 'Solicitar aumento de limite',
             remainingLimitDescription:
@@ -6043,6 +6101,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         subsections: {
                             currentTravelSpendLabel: 'Gasto atual com viagens',
                             currentTravelSpendPaymentQueued: (amount: string) => `O pagamento de ${amount} está na fila e será processado em breve.`,
+                            currentTravelSpendInvoiceQueued: 'Uma nova fatura dos seus gastos de viagem será criada e enviada para você em breve.',
+                            currentTravelSpendInvoicePending: (amount: string) => `Uma fatura de ${amount} foi enviada e está aguardando pagamento.`,
                             currentTravelSpendCta: 'Pagar saldo',
                             viewOnSpend: 'Ver em Gastos',
                             currentTravelLimitLabel: 'Limite de viagem atual',
@@ -6056,6 +6116,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             reduceLimitWarning: 'Se você reduzir o limite, os membros que já gastaram mais do que esse valor não poderão fazer novas reservas de viagem até o próximo mês.',
                             provisioningError:
                                 'Não foi possível provisionar alguns membros do seu workspace para o Faturamento Consolidado de Viagens. Tente novamente mais tarde ou entre em contato com o Concierge para obter ajuda.',
+                            sendInvoiceNowCta: 'Enviar fatura agora',
                         },
                     },
                     disableModal: {
@@ -6078,6 +6139,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     invalidDateRangeError: 'A data de início deve ser anterior à data de término',
                     enabled: 'Faturamento de viagem consolidado ativado!',
                     enabledDescription: 'Todos os gastos de viagem neste workspace agora serão centralizados em uma fatura mensal.',
+                    sendInvoiceModal: {
+                        title: (amount: string) => `Enviar fatura de ${amount}?`,
+                        body: 'Vamos criar uma fatura para seus gastos atuais de viagem. Seu limite de viagem será liberado assim que a fatura for paga.',
+                    },
                 },
                 personalDetailsDescription: 'Para reservar viagens, insira seu nome legal exatamente como consta no documento de identificação emitido pelo governo.',
             },
@@ -6125,15 +6190,16 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 assignedCards: 'Atribuído',
                 unassignedCards: 'Não atribuído',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `exportação ${integration} ${type.toLowerCase()}` : `Exportação do ${integration}`),
-                integrationExportTitleXero: (integration: string) => `Escolha a conta do ${integration} para onde as transações devem ser exportadas.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Escolha a conta do ${integration} para a qual as transações devem ser exportadas. Selecione uma <a href="${exportPageLink}">opção de exportação</a> diferente para alterar as contas disponíveis.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Escolha a conta do ${integration} para a qual as transações devem ser exportadas.${exportPageLink ? ` Selecione uma <a href="${exportPageLink}">opção de exportação</a> diferente para alterar as contas disponíveis.` : ''}`,
                 lastUpdated: 'Última atualização',
                 transactionStartDate: 'Data de início da transação',
                 updateCard: 'Atualizar cartão',
                 unassignCard: 'Remover cartão',
+                unassignCards: 'Remover cartões',
                 unassign: 'Desatribuir',
                 unassignCardDescription: 'Desvincular este cartão excluirá todas as transações não enviadas.',
+                unassignCardsDescription: 'Remover a atribuição excluirá todas as transações não enviadas dos cartões selecionados.',
                 removeCard: 'Remover cartão',
                 remove: 'Remover',
                 removeCardDescription: 'Remover este cartão excluirá todas as transações não enviadas.',
@@ -6594,8 +6660,6 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             peopleAdmins: 'Administradores de pessoas',
             paymentsAdmins: 'Administradores de pagamentos',
             members: 'Membros',
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `Você não pode remover ${memberName} deste workspace enquanto essa pessoa tiver um Cartão Expensify. Desative o cartão em Workspace > Cartão Expensify e tente novamente.`,
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -6664,6 +6728,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             title: 'Conexões',
             subtitle: 'Conecte seu software de contabilidade para uma sincronização automática.',
             qbo: 'QuickBooks Online',
+            intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
@@ -6697,6 +6762,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 `Há um erro em uma conexão configurada no Expensify Classic. [Acesse o Expensify Classic para corrigir esse problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Vá para o Expensify Classic para gerenciar suas configurações.',
             setup: 'Conectar',
+            connectToSandbox: 'Conectar ao sandbox',
             lastSync: (relativeDate: string) => `Última sincronização ${relativeDate}`,
             notSync: 'Não sincronizado',
             import: 'Importar',
@@ -6706,27 +6772,9 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             syncNow: 'Sincronizar agora',
             disconnect: 'Desconectar',
             reinstall: 'Reinstalar conector',
-            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integração';
-                return `Desconectar ${integrationName}`;
-            },
-            connectTitle: ({connectionName}: ConnectionNameParams) => `Conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'integração contábil'}`,
-            syncError: ({connectionName}: ConnectionNameParams) => {
-                switch (connectionName) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Não é possível conectar ao QuickBooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Não é possível conectar ao Xero';
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return 'Não é possível conectar ao NetSuite';
-                    case CONST.POLICY.CONNECTIONS.NAME.QBD:
-                        return 'Não é possível conectar ao QuickBooks Desktop';
-                    default: {
-                        return 'Não é possível conectar à integração';
-                    }
-                }
-            },
+            disconnectTitle: ({connectionName = 'integração'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `Desconectar ${connectionName}`,
+            connectTitle: ({connectionName}: ConnectionDisplayNameParams) => `Conectar ${connectionName}`,
+            syncError: ({connectionName}: ConnectionDisplayNameParams) => `Não é possível conectar ao ${connectionName}`,
             accounts: 'Plano de contas',
             taxes: 'Impostos',
             imported: 'Importado',
@@ -6741,13 +6789,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado como campos de relatório',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Padrão de funcionário do NetSuite',
             },
-            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
-                const integrationName =
-                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'esta integração';
-                return `Tem certeza de que deseja desconectar ${integrationName}?`;
-            },
-            connectPrompt: ({connectionName}: ConnectionNameParams) =>
-                `Tem certeza de que deseja conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integração contábil'}? Isso removerá quaisquer conexões contábeis existentes.`,
+            disconnectPrompt: ({connectionName = 'esta integração'}: OptionalParam<ConnectionDisplayNameParams> = {}) => `Tem certeza de que deseja desconectar ${connectionName}?`,
+            connectPrompt: ({connectionName}: ConnectionDisplayNameParams) => `Tem certeza de que deseja conectar ${connectionName}? Isso removerá quaisquer conexões contábeis existentes.`,
             enterCredentials: 'Insira suas credenciais',
             reconnect: 'Reconectar',
             updateCredentials: 'Atualizar credenciais',
@@ -6766,7 +6809,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 },
             },
             connections: {
-                syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                syncStageName: ({stage, integrationName = 'QuickBooks Online'}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -6792,13 +6835,13 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Importando códigos de impostos';
                         case 'quickbooksOnlineCheckConnection':
-                            return 'Verificando conexão com QuickBooks Online';
+                            return `Verificando conexão com ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
-                            return 'Importando dados do QuickBooks Online';
+                            return `Importando dados do ${integrationName}`;
                         case 'startingImportXero':
                             return 'Importando dados do Xero';
                         case 'startingImportQBO':
-                            return 'Importando dados do QuickBooks Online';
+                            return `Importando dados do ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'Importando dados do QuickBooks Desktop';
@@ -6813,7 +6856,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'Ainda sincronizando dados com o QuickBooks... Certifique-se de que o Web Connector está em execução';
                         case 'quickbooksOnlineSyncTitle':
-                            return 'Sincronizando dados do QuickBooks Online';
+                            return `Sincronizando dados do ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
@@ -7243,6 +7286,8 @@ ${reportName}`,
 Exija dados de despesas como recibos e descrições, defina limites e padrões e automatize aprovações e pagamentos – tudo em um só lugar.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Regras estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+                onlyAvailableOnPlanUnlimited: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>O acesso ilimitado às regras está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
             perDiem: {
                 title: 'Diária',
@@ -7393,6 +7438,12 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     `<muted-text>Funções especializadas no espaço de trabalho estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
             unlockFeatures: 'Desbloqueie estes recursos!',
+            publicReceiptVisibility: {
+                title: 'Visibilidade pública do recibo',
+                description: 'Se você quer tornar os links dos seus recibos acessíveis para qualquer pessoa, como um cliente ou contador externo, este recurso é para você.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>A visibilidade pública de recibos está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7400,8 +7451,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 note: 'Você perderá acesso aos seguintes recursos',
                 benefits: {
                     confirm: 'Você precisará alterar o “Tipo de plano” de todos os espaços de trabalho para “Collect” para garantir a tarifa Collect.',
-                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
-                    benefit2: 'Workday, Certinia',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics, Certinia',
+                    benefit2: 'Gusto, TriNet, Workday',
                     benefit3: 'SSO/SAML',
                     benefit4: 'Regras inteligentes de despesas, diárias, aprovações em vários níveis, relatórios personalizados e orçamento',
                     headsUp: 'Atenção!',
@@ -7499,6 +7550,15 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 requireCompanyCard: 'Exigir cartões corporativos para todas as compras',
                 requireCompanyCardDescription: 'Sinalize todos os gastos em dinheiro, incluindo despesas com quilometragem e diárias.',
                 requireCompanyCardDisabledTooltip: 'Ative Cartões corporativos (em Mais recursos) para desbloquear.',
+                publicReceiptVisibility: 'Visibilidade pública do recibo',
+                publicReceiptVisibilityHintEnabled: 'Comprovantes podem ser visualizados por qualquer pessoa que tenha a URL. Não é necessário ter acesso ao relatório com o comprovante.',
+                publicReceiptVisibilityHintDisabled: 'Os recibos só podem ser vistos por membros da Expensify com acesso ao relatório que contém o recibo.',
+                enableTagsToUnlockTitle: 'Ativar tags?',
+                enableTagsToUnlockPrompt: 'Ative as Tags (em Mais recursos) para desbloquear.',
+                enableTagsAndRequirePrompt: 'Tem certeza de que quer ativar etiquetas e exigi-las para todas as despesas?',
+                enableCategoriesToUnlockTitle: 'Ativar categorias?',
+                enableCategoriesToUnlockPrompt: 'Ative Categorias (em Mais recursos) para desbloquear.',
+                enableCategoriesAndRequirePrompt: 'Tem certeza de que deseja ativar categorias e torná-las obrigatórias para todas as despesas?',
             },
             expenseReportRules: {
                 title: 'Avançado',
@@ -7608,6 +7668,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 defaultTaxRate: 'Taxa de imposto padrão',
                 enableWorkflows: (moreFeaturesLink: string) =>
                     `Vá para [Mais recursos](${moreFeaturesLink}) e ative os fluxos de trabalho, depois adicione aprovações para desbloquear este recurso.`,
+                createNewRule: 'Criar nova regra',
+                contextualFlagForReview: (amount: string) => `Se o valor for acima de ${amount}, marcar para revisão`,
+                contextualFlagForReviewDaily: (amount: string) => `Se o total diário da categoria estiver acima de ${amount}, sinalizar para revisão`,
             },
             customRules: {
                 title: 'Política de despesas',
@@ -7768,6 +7831,18 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 editRuleTitle: 'Editar regra',
                 deleteRule: 'Excluir regra',
                 deleteRuleConfirmation: 'Tem certeza de que quer excluir esta regra?',
+                unableToRemoveTitle: 'Não é possível remover',
+                unableToRemovePrompt: (rulesRoute: string) =>
+                    `As <a href="${rulesRoute}">regras de agente</a> aplicadas pelo RuleBot precisam ser removidas do seu espaço de trabalho antes que você possa remover este agente.`,
+                unableToCloseAccountTitle: 'Não é possível encerrar a conta',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `As <a href="${rulesRoute}">regras de agente</a> aplicadas pelo RuleBot precisam ser removidas do seu espaço de trabalho antes que você possa encerrar esta conta.`,
+                unableToDeleteAgentTitle: 'Não é possível excluir o agente',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `As <a href="${rulesRoute}">regras de agente</a> aplicadas pelo RuleBot precisam ser removidas do seu espaço de trabalho antes que você possa excluir este agente.`,
+                unableToChangeRoleTitle: 'Não é possível alterar a função',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `As <a href="${rulesRoute}">regras de agente</a> aplicadas pelo RuleBot precisam ser removidas do seu espaço de trabalho antes que você possa alterar a função deste agente.`,
                 describeRuleTitle: 'Descreva a regra que seu agente de IA deve seguir',
                 describeRuleHeadline: 'Descreva sua regra',
                 disclaimer: 'Os agentes de IA podem cometer erros.',
@@ -7923,6 +7998,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 thenFlagForReview: 'Então sinalizar para revisão quando:',
             },
             agentRulesEmptyState: {title: 'Nenhuma regra de agente adicionada', subtitle: 'Crie uma regra para automatizar as políticas do seu workspace.', cta: 'Adicionar regra de IA'},
+            categoriesDisabledEmptyState: {title: 'Categorias não estão ativadas', subtitle: 'Ative categorias para ter mais controle sobre seus gastos.'},
         },
         planTypePage: {
             planTypes: {
@@ -8570,6 +8646,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `alterou a categoria de gasto padrão de "${mccGroupName}" para "${newCategory}" (antes "${oldCategory}")`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} o requisito de compras com cartão corporativo`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `adicionou a regra de agente "${title}": ${prompt}` : `adicionou uma regra de agente: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) =>
+                title ? `atualizou a regra do agente "${title}" para: ${prompt}` : `atualizou uma regra de agente para: ${prompt}`,
+            deleted: ({title}: {title: string}) => (title ? `removeu a regra de agente "${title}"` : 'removeu uma regra de agente'),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'bloqueado', allow: 'permitido'},
             amountOperator: {over: 'acima', under: 'abaixo'},
@@ -8832,6 +8914,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             undelete: 'Restaurar',
             duplicateReport: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'relatório' : 'relatórios'}`,
         },
+        expensifyCardStatementPDF: {
+            title: 'Baixar extrato',
+            oneFeedAtATime: 'Selecione liquidações de um único feed do Expensify Card por vez.',
+        },
         filtersHeader: 'Filtros',
         filters: {
             date: {
@@ -8922,6 +9008,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pagar',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
+            filterType: {label: 'Tipo de filtro', has: {positive: 'tem', negative: 'não tem'}, is: {positive: 'é', negative: 'não é'}},
         },
         display: {
             label: 'Exibir',
@@ -9402,6 +9489,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         save: 'Salvar',
         resume: 'Currículo',
         discard: 'Descartar',
+        edit: 'Editar',
+        editStop: 'Editar parada',
+        totalDistance: 'Distância total',
         discardDistanceTrackingModal: {
             title: 'Descartar rastreamento de distância',
             prompt: 'Tem certeza? Isso vai descartar sua jornada atual e não poderá ser desfeito.',
@@ -9673,6 +9763,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `A tarifa só é válida de ${startDate} até ${endDate}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `A tarifa só é válida a partir de ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `A tarifa só é válida até ${endDate}`,
+        cannotMergeDuplicates: 'Você só pode mesclar despesas em relatórios rascunho ou pendentes. Retraia o relatório e tente novamente.',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} é obrigatório`,
@@ -9865,8 +9956,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 benefit1: 'Tudo no plano Collect',
                 benefit2: 'Fluxos de aprovação em múltiplos níveis',
                 benefit3: 'Regras de despesa personalizadas',
-                benefit4: 'Integrações com ERP (NetSuite, Sage Intacct, Oracle)',
-                benefit5: 'Integrações de RH (Workday, Certinia)',
+                benefit4: 'Integrações com ERP (NetSuite, Sage Intacct, Oracle, Certinia)',
+                benefit5: 'Integrações de RH (Gusto, TriNet, Workday)',
                 benefit6: 'SAML/SSO',
                 benefit7: 'Insights e relatórios personalizados',
                 benefit8: 'Orçamento',
@@ -9994,7 +10085,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         switch: 'Trocar',
         copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Acesso delegado',
-        copilotDelegatedAccessDescription: 'Permitir que outros membros acessem sua conta.',
+        copilotDelegatedAccessDescription: 'Permitir que outros membros e agentes acessem sua conta.',
         learnMoreAboutDelegatedAccess: 'Saiba mais sobre acesso delegado',
         addCopilot: 'Adicionar um copiloto',
         membersCanAccessYourAccount: 'Esses membros podem acessar sua conta:',
@@ -10153,9 +10244,18 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             inviteBoss: 'Convide seu chefe quando estiver pronto',
         },
     },
+    productMarketingWindow: {
+        roleTypes: {
+            admin: {
+                heading: 'Novos tipos de função para administradores',
+                body: 'Dê à sua equipe permissões mais granulares com novos papéis de administrador para cartões, pessoas e pagamentos.',
+                cta: 'Experimente',
+            },
+        },
+    },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
-        accountSwitcher: '<tooltip>Acesse suas <strong>contas Copilot</strong> aqui</tooltip>',
+        accountSwitcher: '<tooltip>Agora você pode fazer copiloto em outra conta!</tooltip>',
         outstandingFilter: '<tooltip>Filtrar despesas\nque <strong>precisam de aprovação</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envie este recibo para\n<strong>concluir o test drive!</strong></tooltip>',
         gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',
@@ -10206,6 +10306,7 @@ Ei! Acabei de conseguir *3 meses grátis* para a gente testar o Expensify, a man
 Aqui está um *comprovante de teste* para mostrar como funciona:`,
     },
     export: {
+        downloadStatementPDF: 'Baixar extrato',
         basicExport: 'Exportação básica',
         reportLevelExport: 'Todos os dados - nível de relatório',
         expenseLevelExport: 'Todos os dados - nível de despesa',
@@ -10227,6 +10328,11 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        receiptsFailedBody: 'Não foi possível baixar seus recibos. Tente novamente mais tarde.',
+        noReceiptsTitle: 'Nenhum recibo para baixar',
+        noReceiptsBody: 'Nenhuma das despesas neste relatório possui recibos para download.',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} de ${total} recibos foram exportados com sucesso. Se o download não iniciou automaticamente, use o botão abaixo.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
