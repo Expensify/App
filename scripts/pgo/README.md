@@ -8,7 +8,7 @@ The workflow does not publish artifacts. It uses the existing NewDot `APP_READY`
 
 - A physical arm64 Android or iOS device. Simulators are not suitable for collecting a production-device PGO profile.
 - For Android, `ANDROID_NDK_HOME` points at NDK `27.1.12297006`, the version pinned in `Mobile-Expensify/Android/build.gradle`.
-- For iOS, Xcode command-line tools, a connected and unlocked device, and locally valid Apple Development signing settings for the app and its remaining extensions. The tool respects the project development team by default; override it with `IOS_DEVELOPMENT_TEAM` and select a device with `IOS_DEVICE_ID` when necessary. It reads the locally signed bundle identifier from the archived `.app`; `IOS_BUNDLE_IDENTIFIER` is available as an explicit override.
+- For iOS, Xcode command-line tools, a connected and unlocked device, and locally valid Apple Development signing settings for the app and its remaining extensions. The tool respects the project development team by default; override it with `IOS_DEVELOPMENT_TEAM`. Select a device with `--device`; `IOS_DEVICE_ID` remains available as an environment fallback. It reads the locally signed bundle identifier from the archived `.app`; `IOS_BUNDLE_IDENTIFIER` is available as an explicit override.
 - A signed-in, seeded test account and the agreed manual NewDot journey.
 - Dependencies have had the repository's patches applied.
 
@@ -103,6 +103,18 @@ Or install and benchmark the archived release APK first, then install and benchm
 ```bash
 scripts/pgo/local-proof.ts android benchmark 10 30
 ```
+
+Select a specific connected device for install or benchmark commands with `--device`. Use an adb serial for Android and any identifier accepted by CoreDevice for iOS, such as a CoreDevice identifier, UDID, serial number, or device name:
+
+```bash
+scripts/pgo/local-proof.ts --device emulator-5554 android install-optimized
+scripts/pgo/local-proof.ts --device emulator-5554 android benchmark 10 30
+scripts/pgo/local-proof.ts --device Chris14Pro ios install-optimized
+scripts/pgo/local-proof.ts --device Chris14Pro ios benchmark 10 30
+scripts/pgo/local-proof.ts --device "Chris14Pro (26.6) (00008120-00065D541E3B401E)" ios benchmark 10 30
+```
+
+Quote selectors containing spaces or parentheses. The iOS resolver accepts either the plain device name or the complete physical-device entry printed under `== Devices ==` by `xcrun xctrace list devices`; it does not select entries from the simulator section.
 
 Raw samples are stored in `.pgo/android/benchmarks/release.csv` and `.pgo/android/benchmarks/pgo-optimized.csv`. The comparison reports the average, P50, P75, P90, P95, P99, minimum, maximum, and percentage improvements. Percentiles use linear interpolation, and positive improvement percentages mean the optimized build was faster.
 
