@@ -703,29 +703,33 @@ function mergeTransactionRequest({
             });
         }
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticDestinationReportID}`,
-            value: {
-                [newIOUAction.reportActionID]: newIOUAction,
-            },
-        });
+        // For unreported/Self-DM destinations, the server creates the TRACK action in Self DM.
+        // Writing it optimistically creates a temporary duplicate expense card until Onyx is cleared.
+        if (mergeTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticDestinationReportID}`,
+                value: {
+                    [newIOUAction.reportActionID]: newIOUAction,
+                },
+            });
 
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticDestinationReportID}`,
-            value: {
-                [newIOUAction.reportActionID]: {pendingAction: null},
-            },
-        });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticDestinationReportID}`,
+                value: {
+                    [newIOUAction.reportActionID]: {pendingAction: null},
+                },
+            });
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticDestinationReportID}`,
-            value: {
-                [newIOUAction.reportActionID]: null,
-            },
-        });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticDestinationReportID}`,
+                value: {
+                    [newIOUAction.reportActionID]: null,
+                },
+            });
+        }
 
         // Remove the surviving expense's IOU action from its original report so it does not
         // appear in both reports during offline/optimistic state.
