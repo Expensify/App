@@ -73,7 +73,7 @@ function FixBankAccountPage() {
                         illustration={LottieAnimations.Fireworks}
                         heading={translate('walletPage.fixBankAccount.successTitle')}
                         description={translate('walletPage.fixBankAccount.successBody')}
-                        descriptionStyle={styles.mutedTextLabel}
+                        descriptionStyle={styles.mutedNormalTextLabel}
                         shouldShowButton
                         buttonText={translate('walletPage.fixBankAccount.successButton')}
                         onButtonPress={onDismiss}
