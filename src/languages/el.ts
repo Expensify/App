@@ -4616,6 +4616,7 @@ ${amount} για ${merchant} - ${date}`,
             customFieldHint: 'Προσθέστε προσαρμοσμένη κωδικοποίηση που θα εφαρμόζεται σε όλες τις δαπάνες από αυτό το μέλος.',
             reports: 'Αναφορές',
             reportFields: 'Πεδία αναφοράς',
+            invoiceFields: 'Πεδία τιμολογίου',
             reportTitle: 'Τίτλος αναφοράς',
             reportField: 'Πεδίο αναφοράς',
             taxes: 'Φόροι',
@@ -7520,6 +7521,12 @@ ${reportName}`,
                 description: `Τα πεδία αναφοράς σάς επιτρέπουν να ορίζετε λεπτομέρειες σε επίπεδο κεφαλίδας, διαφορετικές από τις ετικέτες που αφορούν έξοδα σε μεμονωμένες γραμμές. Αυτές οι λεπτομέρειες μπορούν να περιλαμβάνουν συγκεκριμένα ονόματα έργων, πληροφορίες επαγγελματικών ταξιδιών, τοποθεσίες και άλλα.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Τα πεδία αναφοράς είναι διαθέσιμα μόνο στο πλάνο Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+            },
+            invoiceFields: {
+                title: 'Πεδία τιμολογίου',
+                description: `Τα πεδία τιμολογίου σάς επιτρέπουν να συμπεριλάβετε επιπλέον λεπτομέρειες σε επίπεδο τιμολογίου στα τιμολόγια.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Τα πεδία τιμολογίου είναι διαθέσιμα μόνο στο πλάνο Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
