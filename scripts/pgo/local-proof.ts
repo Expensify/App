@@ -180,7 +180,7 @@ function valueAt<T>(values: T[], index: number): T {
     return value;
 }
 
-function createAndroidAdapter(): PlatformAdapter {
+function createAndroidAdapter(configuredDeviceIdentifier?: string): PlatformAdapter {
     const ndkVersion = '27.1.12297006';
     const packageName = 'org.me.mobiexpensifyg';
     const profileDirectory = join(rootDirectory, '.pgo/android/arm64-v8a');
@@ -207,11 +207,11 @@ function createAndroidAdapter(): PlatformAdapter {
     };
 
     function adb(args: string[]): void {
-        run('adb', args);
+        run('adb', configuredDeviceIdentifier ? ['-s', configuredDeviceIdentifier, ...args] : args);
     }
 
     function adbCapture(args: string[]): string {
-        return capture('adb', args);
+        return capture('adb', configuredDeviceIdentifier ? ['-s', configuredDeviceIdentifier, ...args] : args);
     }
 
     function llvmTool(name: string): string {
@@ -393,7 +393,7 @@ function createAndroidAdapter(): PlatformAdapter {
     };
 }
 
-function createIosAdapter(): PlatformAdapter {
+function createIosAdapter(cliDeviceIdentifier?: string): PlatformAdapter {
     const profileFormat = 'ios-clang-frontend-swift-ir-v1';
     const profileDirectory = join(rootDirectory, '.pgo/ios/arm64');
     const rawProfileDirectory = join(profileDirectory, 'raw');
@@ -454,12 +454,7 @@ function createIosAdapter(): PlatformAdapter {
             return cachedDeviceIdentifier;
         }
 
-        const configuredIdentifier = environmentString('IOS_DEVICE_ID');
-        if (configuredIdentifier) {
-            cachedDeviceIdentifier = configuredIdentifier;
-            return configuredIdentifier;
-        }
-
+        const configuredIdentifier = cliDeviceIdentifier ?? environmentString('IOS_DEVICE_ID');
         const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-pgo-ios-devices-'));
         const jsonPath = join(temporaryDirectory, 'devices.json');
         try {
@@ -477,17 +472,40 @@ function createIosAdapter(): PlatformAdapter {
                 if (hardwareProperties.platform !== 'iOS' || hardwareProperties.reality !== 'physical' || deviceProperties.bootState !== 'booted') {
                     return [];
                 }
-                return typeof hardwareProperties.udid === 'string' ? [{name: String(deviceProperties.name), udid: hardwareProperties.udid}] : [];
+                if (typeof hardwareProperties.udid !== 'string' || typeof deviceProperties.name !== 'string') {
+                    return [];
+                }
+                const name = deviceProperties.name.trim();
+                const osVersion = typeof deviceProperties.osVersionNumber === 'string' ? deviceProperties.osVersionNumber : undefined;
+                const aliases = [name, hardwareProperties.udid];
+                if (typeof device.identifier === 'string') {
+                    aliases.push(device.identifier);
+                }
+                if (typeof hardwareProperties.serialNumber === 'string') {
+                    aliases.push(hardwareProperties.serialNumber);
+                }
+                if (osVersion) {
+                    aliases.push(`${name} (${osVersion})`, `${name} (${osVersion}) (${hardwareProperties.udid})`);
+                }
+                return [{aliases, name, udid: hardwareProperties.udid}];
             });
 
             if (physicalDevices.length === 0) {
                 fail('No booted physical iOS device is connected. Connect and unlock a device, or set IOS_DEVICE_ID.');
             }
-            if (physicalDevices.length > 1) {
+
+            const normalizeDeviceSelector = (value: string) => value.trim().replaceAll(/\s+/g, ' ').toLowerCase();
+            const matchingDevices = configuredIdentifier
+                ? physicalDevices.filter(({aliases}) => aliases.some((alias) => normalizeDeviceSelector(alias) === normalizeDeviceSelector(configuredIdentifier)))
+                : physicalDevices;
+            if (matchingDevices.length === 0) {
+                fail(`No connected physical iOS device matches "${configuredIdentifier}". Available devices: ${physicalDevices.map(({name, udid}) => `${name} (${udid})`).join(', ')}.`);
+            }
+            if (matchingDevices.length > 1) {
                 fail(`Multiple physical iOS devices are connected (${physicalDevices.map(({name}) => name).join(', ')}). Set IOS_DEVICE_ID to the desired UDID.`);
             }
 
-            const selectedDevice = valueAt(physicalDevices, 0);
+            const selectedDevice = valueAt(matchingDevices, 0);
             cachedDeviceIdentifier = selectedDevice.udid;
             console.log(`Using iOS device ${selectedDevice.name} (${selectedDevice.udid}).`);
             return selectedDevice.udid;
@@ -964,15 +982,15 @@ function compareBenchmarks(adapter: PlatformAdapter): void {
     );
 }
 
-function getAdapter(platformName: PlatformName): PlatformAdapter {
+function getAdapter(platformName: PlatformName, deviceIdentifier?: string): PlatformAdapter {
     if (platformName === 'android') {
-        return createAndroidAdapter();
+        return createAndroidAdapter(deviceIdentifier);
     }
-    return createIosAdapter();
+    return createIosAdapter(deviceIdentifier);
 }
 
-async function runWorkflow(platformName: PlatformName, workflow: WorkflowCommand, runs: number, timeoutSeconds: number): Promise<void> {
-    const adapter = getAdapter(platformName);
+async function runWorkflow(platformName: PlatformName, workflow: WorkflowCommand, runs: number, timeoutSeconds: number, deviceIdentifier?: string): Promise<void> {
+    const adapter = getAdapter(platformName, deviceIdentifier);
 
     switch (workflow) {
         case 'build-release':
@@ -1053,6 +1071,12 @@ async function main(): Promise<void> {
                 parse: (value) => parsePositiveInteger(value, 'App-ready timeout'),
             },
         ],
+        namedArgs: {
+            device: {
+                description: 'Device identifier to use (adb serial on Android; CoreDevice identifier, UDID, serial number, or device name on iOS)',
+                required: false,
+            },
+        },
     });
 
     const {platform: platformName, workflow, runs, timeout} = cli.positionalArgs;
@@ -1061,6 +1085,7 @@ async function main(): Promise<void> {
         parseChoice(String(workflow), WORKFLOW_COMMANDS, 'Workflow'),
         requirePositiveInteger(Number(runs), 'Startup run count'),
         requirePositiveInteger(Number(timeout), 'App-ready timeout'),
+        cli.namedArgs.device,
     );
 }
 
