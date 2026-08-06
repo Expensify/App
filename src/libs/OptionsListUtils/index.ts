@@ -795,6 +795,8 @@ function getLastMessageTextForReport({
             report?.ownerAccountID,
             getLoginByAccountID(report?.ownerAccountID, personalDetails),
             getLoginByAccountID(lastReportAction.actorAccountID, personalDetails),
+            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+            convertToDisplayStringUtil,
             currentUserAccountID,
         );
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {

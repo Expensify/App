@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -28,7 +28,7 @@ type SummaryItem = {
     testID?: string;
 };
 
-type ConfirmationStepProps = SubStepProps &
+type ConfirmationStepProps = SubPageProps &
     ForwardedFSClassProps & {
         /** The title of the step */
         pageTitle: string;

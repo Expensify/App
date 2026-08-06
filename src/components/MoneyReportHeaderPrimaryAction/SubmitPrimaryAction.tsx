@@ -79,7 +79,6 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -162,7 +161,6 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 currentUserEmailParam: email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: nextStep,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 // Open the PDF download modal only once submitReport commits to running (it fires onSubmitted after its
@@ -177,18 +175,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                                 // Stop the "Submitted" animation in lockstep with the retract so the header goes straight
                                 // back to the Submit button instead of finishing the animation on a report that is open again.
                                 stopAnimation();
-                                retractReport(
-                                    moneyRequestReport,
-                                    chatReport,
-                                    policy,
-                                    accountID,
-                                    email ?? '',
-                                    hasViolations,
-                                    isASAPSubmitBetaEnabled,
-                                    nextStep,
-                                    delegateEmail,
-                                    isTrackIntentUser,
-                                );
+                                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser);
                             },
                         });
                     }

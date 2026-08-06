@@ -4,6 +4,7 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -44,16 +45,16 @@ type TransactionGroupListItem = ListItem & {
     value: string;
 };
 
-type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.EDIT_REPORT>;
+type DynamicIOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_EDIT_REPORT>;
 
-function IOURequestEditReport({route}: IOURequestEditReportProps) {
-    const {backTo, reportID, action, shouldTurnOffSelectionMode, transactionID: transactionIDFromParams} = route.params;
+function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) {
+    const {reportID, action, shouldTurnOffSelectionMode, transactionID: transactionIDFromParams} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_EDIT_REPORT.path);
     const {selectedTransactionIDs} = useSearchSelectionContext();
     const transactionIDs = transactionIDFromParams ? [transactionIDFromParams] : selectedTransactionIDs;
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const [allReports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`);
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -107,7 +108,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 email: currentUserPersonalDetails.email ?? '',
                 newReport,
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
-                reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                 policyTagList,
                 transactions,
@@ -208,7 +208,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     return (
         <IOURequestEditReportCommon
-            backTo={backTo}
+            backTo={backPath}
             selectedReportID={reportID}
             transactionIDs={transactionIDs}
             selectReport={selectReport}
@@ -222,4 +222,4 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     );
 }
 
-export default withWritableReportOrNotFound(IOURequestEditReport);
+export default withWritableReportOrNotFound(DynamicIOURequestEditReport);

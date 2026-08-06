@@ -1,5 +1,6 @@
 import {getUpdateMoneyRequestParams} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -50,6 +51,15 @@ const TRANSACTION_ID = 'testTransactionID';
 const REPORT_ID = 'testReportID';
 const IOU_REPORT_ID = 'testIOUReportID';
 const POLICY_ID = 'testPolicyID';
+
+function isRecentlyUsedTags<TKey extends string>(value: unknown, tagListName: TKey): value is Pick<RecentlyUsedTags, TKey> {
+    if (!isRecord(value)) {
+        return false;
+    }
+
+    const tags = value[tagListName];
+    return Array.isArray(tags) && tags.every((tag: unknown): tag is string => typeof tag === 'string');
+}
 
 const transactionThreadReport: Report = {
     reportID: REPORT_ID,
@@ -117,7 +127,6 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isTrackIntentUser: false,
         });
 
@@ -155,15 +164,16 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isTrackIntentUser: false,
         });
 
         // Then the tag should appear in the recently used tags for the correct policy and tag list
         const recentlyUsedTagsEntry = onyxData.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${POLICY_ID}`);
         expect(recentlyUsedTagsEntry).toBeDefined();
-        const value = recentlyUsedTagsEntry?.value as RecentlyUsedTags;
-        expect(value[tagListName]).toContain(tag1);
+        if (!recentlyUsedTagsEntry || !isRecentlyUsedTags(recentlyUsedTagsEntry.value, tagListName)) {
+            throw new Error('Expected recently used tags for the changed tag list');
+        }
+        expect(recentlyUsedTagsEntry.value[tagListName]).toContain(tag1);
     });
 
     it('should prepend the new tag before existing recently used tags', () => {
@@ -196,16 +206,17 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isTrackIntentUser: false,
         });
 
         // Then the new tag should be first and the old tag should still be present
         const recentlyUsedTagsEntry = onyxData.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${POLICY_ID}`);
         expect(recentlyUsedTagsEntry).toBeDefined();
-        const value = recentlyUsedTagsEntry?.value as RecentlyUsedTags;
-        expect(value[tagListName].at(0)).toBe(tag2);
-        expect(value[tagListName]).toContain(tag1);
+        if (!recentlyUsedTagsEntry || !isRecentlyUsedTags(recentlyUsedTagsEntry.value, tagListName)) {
+            throw new Error('Expected recently used tags for the changed tag list');
+        }
+        expect(recentlyUsedTagsEntry.value[tagListName].at(0)).toBe(tag2);
+        expect(recentlyUsedTagsEntry.value[tagListName]).toContain(tag1);
     });
 
     it('should deduplicate when the same tag is set again', () => {
@@ -238,16 +249,17 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isTrackIntentUser: false,
         });
 
         // Then tag1 should appear exactly once and be at the front
         const recentlyUsedTagsEntry = onyxData.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${POLICY_ID}`);
         expect(recentlyUsedTagsEntry).toBeDefined();
-        const value = recentlyUsedTagsEntry?.value as RecentlyUsedTags;
-        expect(value[tagListName].filter((t) => t === tag1).length).toBe(1);
-        expect(value[tagListName].at(0)).toBe(tag1);
+        if (!recentlyUsedTagsEntry || !isRecentlyUsedTags(recentlyUsedTagsEntry.value, tagListName)) {
+            throw new Error('Expected recently used tags for the changed tag list');
+        }
+        expect(recentlyUsedTagsEntry.value[tagListName].filter((tag) => tag === tag1)).toHaveLength(1);
+        expect(recentlyUsedTagsEntry.value[tagListName].at(0)).toBe(tag1);
     });
 
     it('should fall back to the same behavior as passing an empty policyTagList when policyTagList is undefined and Onyx has no policy tags data', () => {
@@ -269,7 +281,6 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isTrackIntentUser: false,
         });
 
@@ -288,7 +299,6 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isTrackIntentUser: false,
         });
 

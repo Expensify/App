@@ -26,14 +26,12 @@ type FirstAndLastName = {
     lastName: string;
 };
 
-let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
 let allPersonalDetailLogins: string[] = [];
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         const personalDetails = Object.values(val ?? {});
-        allPersonalDetails = val;
         allPersonalDetailLogins = personalDetails.map((detail) => detail?.login ?? '');
         emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
             if (detail?.login) {
@@ -174,43 +172,6 @@ function getPersonalDetailsByID(accountID: number | undefined, personalDetailsLi
     return accountID ? (personalDetailsList?.[accountID] ?? undefined) : undefined;
 }
 
-/**
- * Given a list of account IDs (as number) it will return an array of personal details objects.
- * @param accountIDs  - Array of accountIDs
- * @param currentUserAccountID
- * @param shouldChangeUserDisplayName - It will replace the current user's personal detail object's displayName with 'You'.
- * @returns - Array of personal detail objects
- * @deprecated Don't use this. The only usage left is in deprecated NextStepUtils/buildNextStepNew which will be removed later.
- */
-function deprecatedGetPersonalDetailsByIDs({
-    accountIDs,
-    currentUserAccountID,
-    shouldChangeUserDisplayName = false,
-    personalDetailsParam = allPersonalDetails,
-}: {
-    accountIDs: number[];
-    currentUserAccountID?: number;
-    shouldChangeUserDisplayName?: boolean;
-    personalDetailsParam?: Partial<PersonalDetailsList>;
-}): PersonalDetails[] {
-    const result: PersonalDetails[] = accountIDs
-        .filter((accountID) => !!personalDetailsParam?.[accountID])
-        .map((accountID) => {
-            const detail = (personalDetailsParam?.[accountID] ?? {}) as PersonalDetails;
-
-            if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
-                return {
-                    ...detail,
-                    displayName: translateLocal('common.you'),
-                };
-            }
-
-            return detail;
-        });
-
-    return result;
-}
-
 function getPersonalDetailsByIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
     if (!accountIDs) {
         return [];
@@ -323,13 +284,6 @@ function getLoginsByAccountIDs(accountIDs: number[] | undefined, personalDetails
             return foundLogins;
         }, []) ?? []
     );
-}
-
-/**
- * @deprecated Don't use this. The only usage left is in deprecated NextStepUtils/buildNextStepNew which will be removed later.
- */
-function deprecatedGetLoginsByAccountIDs(accountIDs: number[] | undefined): string[] {
-    return getLoginsByAccountIDs(accountIDs, allPersonalDetails);
 }
 
 /**
@@ -629,8 +583,6 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
 export {
     getDisplayNameOrDefault,
     getPersonalDetailsByID,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    deprecatedGetPersonalDetailsByIDs,
     getPersonalDetailsByIDs,
     getParticipantsPersonalDetails,
     getPersonalDetailsListByIDs,
@@ -639,8 +591,6 @@ export {
     getPersonalDetailByEmail,
     getKnownAccountIDByLogin,
     getAccountIDsByLogins,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    deprecatedGetLoginsByAccountIDs,
     getLoginsByAccountIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
     getCurrentAddress,

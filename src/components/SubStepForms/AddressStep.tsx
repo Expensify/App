@@ -4,7 +4,7 @@ import PatriotActLink from '@components/PatriotActLink';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -47,7 +47,7 @@ function getStringFormValue<TFormID extends keyof OnyxFormValuesMapping>(values:
     return typeof value === 'string' ? value : '';
 }
 
-type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
+type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
     ForwardedFSClassProps & {
         /** The ID of the form */
         formID: TFormID;

@@ -520,6 +520,7 @@ export {
     anyString,
     translateLocal,
     convertToDisplayString,
+    getCurrencyDecimalsLocal,
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,

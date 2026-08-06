@@ -17,6 +17,7 @@ import {
     isPolicyAdmin,
     isPolicyExpenseChat,
     isProcessingReport,
+    getPendingDeleteMemberAccountIDs,
     isValidReport,
 } from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -232,6 +233,7 @@ export default createOnyxDerivedValueConfig({
             policyTags,
             conciergeReportID,
             introSelected,
+            reportMetadata,
         ],
         {currentValue, sourceValues, triggeredKeys},
     ) => {
@@ -597,6 +599,8 @@ export default createOnyxDerivedValueConfig({
                     actionTargetReportActionID = actionGreenTargetReportActionID;
                 }
 
+                const reportReportMetadata = reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
+                const pendingDeleteMemberAccountIDs = getPendingDeleteMemberAccountIDs(reportReportMetadata?.pendingChatMembers);
                 // Skip computeReportName when the name can't have changed (see nameSkipKeys).
                 const cachedName = currentValue?.reports?.[report.reportID]?.reportName;
                 const canReuseCachedName = cachedName !== undefined && nameSkipKeys.has(key);
@@ -619,6 +623,7 @@ export default createOnyxDerivedValueConfig({
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
                               isTrackIntentUser: isTrackIntentUserSelector(introSelected),
+                              pendingDeleteMemberAccountIDs,
                           }),
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
                     brickRoadStatus,

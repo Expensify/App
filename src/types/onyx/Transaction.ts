@@ -477,6 +477,9 @@ type TransactionCommentVendor = {
     /** External ID of the vendor in the connected accounting system */
     externalID: string;
 
+    /** Display name of the vendor persisted at match/assign time, so the title still renders a human-readable label after the vendor leaves the synced list */
+    name?: string;
+
     /** Whether the vendor was set manually by a user (vs. auto-matched by the fuzzy matcher) */
     isManuallySet: boolean;
 };

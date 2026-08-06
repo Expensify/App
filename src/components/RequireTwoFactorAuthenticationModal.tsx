@@ -51,6 +51,7 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
         <Modal
             onClose={onCancel}
             isVisible={isVisible}
+            shouldTreatModalAsCovering
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={{...styles.pb5, ...styles.pt0, ...styles.boxShadowNone}}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}

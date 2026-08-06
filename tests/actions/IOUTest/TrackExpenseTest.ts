@@ -49,7 +49,7 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import PusherHelper from '../../utils/PusherHelper';
 import * as TestHelper from '../../utils/TestHelper';
-import {formatPhoneNumber, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -2695,6 +2695,7 @@ describe('actions/IOU/TrackExpense', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             const result = deleteTrackExpense({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 chatReportID: selfDMReport.reportID,
                 chatReport: selfDMReport,
                 chatReportActions: undefined,

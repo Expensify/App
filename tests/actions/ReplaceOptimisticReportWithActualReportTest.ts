@@ -1,7 +1,10 @@
 import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 
+import type * as NavigationModule from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import {replaceOptimisticReportWithActualReport} from '@src/libs/actions/replaceOptimisticReportWithActualReport';
+import type * as ReportActions from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
@@ -13,36 +16,44 @@ import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+type Navigation = typeof NavigationModule.default;
+
 type SwitchReportEventData = {
     preexistingReportID: string;
     reportToCopyDraftTo: string;
     callback: () => void;
 };
 
-const mockNavigate = jest.fn();
-const mockSetParams = jest.fn();
+const mockNavigate = jest.fn<ReturnType<Navigation['navigate']>, Parameters<Navigation['navigate']>>();
+const mockSetParams = jest.fn<ReturnType<Navigation['setParams']>, Parameters<Navigation['setParams']>>();
 const mockIsReady = jest.fn(() => false);
 const mockGetActiveRoute = jest.fn(() => '');
 const mockGetCurrentRoute = jest.fn(() => undefined as {name: string; params: Record<string, unknown>} | undefined);
 
-jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: (...args: unknown[]) => mockNavigate(...args) as void,
-    setParams: (...args: unknown[]) => mockSetParams(...args) as void,
-    getActiveRoute: () => mockGetActiveRoute(),
-    navigationRef: {
-        isReady: () => mockIsReady(),
-        getCurrentRoute: () => mockGetCurrentRoute(),
-    },
-}));
+jest.mock('@libs/Navigation/Navigation', () => {
+    const mockNavigation = {
+        navigate: (...args: Parameters<Navigation['navigate']>): ReturnType<Navigation['navigate']> => mockNavigate(...args),
+        setParams: (...args: Parameters<Navigation['setParams']>): ReturnType<Navigation['setParams']> => mockSetParams(...args),
+        getActiveRoute: () => mockGetActiveRoute(),
+        navigationRef: {
+            isReady: () => mockIsReady(),
+            getCurrentRoute: () => mockGetCurrentRoute(),
+        },
+    };
 
-const mockOpenReport = jest.fn();
+    return {
+        __esModule: true,
+        ...mockNavigation,
+        default: mockNavigation,
+    };
+});
+
+const mockOpenReport = jest.fn<ReturnType<typeof ReportActions.openReport>, Parameters<typeof ReportActions.openReport>>();
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const originalModule = jest.requireActual<typeof ReportActions>('@src/libs/actions/Report');
     return {
         ...originalModule,
-        openReport: (...args: unknown[]) => mockOpenReport(...args) as void,
+        openReport: (...args: Parameters<typeof ReportActions.openReport>): ReturnType<typeof ReportActions.openReport> => mockOpenReport(...args),
     };
 });
 

@@ -1,9 +1,9 @@
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import {setAuthToken} from '@libs/Network/NetworkStore';
-import {unpause as unpauseSequentialQueue} from '@libs/Network/SequentialQueue';
+import {registerPauseWatchdogEscalation, unpause as unpauseSequentialQueue} from '@libs/Network/SequentialQueue';
 
-import {finalReconnectAppAfterActivatingReliableUpdates, getMissingOnyxUpdates, reconnectApp} from '@userActions/App';
+import {finalReconnectAppAfterActivatingReliableUpdates, getMissingOnyxUpdates, reconnectApp, reconnectAppWithSideEffects} from '@userActions/App';
 import updateSessionAuthTokens from '@userActions/Session/updateSessionAuthTokens';
 
 import CONST from '@src/CONST';
@@ -115,6 +115,39 @@ function isFetchAlreadyStalled(lastUpdateIDFromClient: number): boolean {
     setMissingOnyxUpdatesQueryPromise(Promise.resolve());
     return true;
 }
+
+// Watchdog recovery: close the gap with an out-of-queue incremental ReconnectApp before unpausing.
+// Registered here because SequentialQueue can't import App (cycle). Shares the stalled-fetch back-off
+// so a client thrashing on GetMissingOnyxMessages isn't handed another reconnect.
+registerPauseWatchdogEscalation(() => {
+    const lastUpdateIDFromClient = lastUpdateIDAppliedToClient ?? CONST.DEFAULT_NUMBER_ID;
+
+    // Only the leader closes gaps over the network (see handleMissingOnyxUpdates); escalating on a follower
+    // would fire a duplicate out-of-queue ReconnectApp.
+    if (!isClientTheLeader()) {
+        Log.info('[OnyxUpdateManager] Pause watchdog escalation skipped — not the leader client', false, {lastUpdateIDFromClient});
+        return Promise.resolve();
+    }
+
+    // Without a client update ID there is no incremental range to ask for, so the reconnect would return the full app
+    // payload and apply it outside the queue with WRITEs still pending. handleMissingOnyxUpdates owns this state (its
+    // `!lastUpdateIDFromClient` flow, guarded against concurrent reconnects) — just unpause and let it run.
+    if (!lastUpdateIDFromClient) {
+        Log.info('[OnyxUpdateManager] Pause watchdog escalation skipped — no client update ID to reconnect from', false, {lastUpdateIDFromClient});
+        return Promise.resolve();
+    }
+
+    if (stalledFetch && Date.now() - stalledFetch.time < CONST.NETWORK.STALLED_UPDATES_FETCH_BACKOFF_TIME_MS) {
+        Log.info('[OnyxUpdateManager] Pause watchdog escalation skipped — within the stalled-fetch back-off window', false, {lastUpdateIDFromClient});
+        return Promise.resolve();
+    }
+
+    stalledFetch = {clientUpdateID: lastUpdateIDFromClient, time: Date.now()};
+    Log.info('[OnyxUpdateManager] Pause watchdog escalation — firing an incremental ReconnectApp outside the queue to close the update gap before unpausing', false, {
+        lastUpdateIDFromClient,
+    });
+    return reconnectAppWithSideEffects(lastUpdateIDFromClient);
+});
 
 // Fetches the missing updates and afterwards validates and applies the deferred updates, which recurses
 // while the deferred updates still have gaps. When the fetch settles without progress, escalateIfFetchStalled

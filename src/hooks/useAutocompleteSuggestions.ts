@@ -513,7 +513,7 @@ function useAutocompleteSuggestions({
             // Other filters currently continue to use value-based exclusion.
             const workspaceList: Array<{id: string; name: string}> = [];
             for (const singlePolicy of Object.values(policies)) {
-                if (!singlePolicy || singlePolicy.isJoinRequestPending || !shouldShowPolicy(singlePolicy, false, currentUserEmail)) {
+                if (!singlePolicy || singlePolicy.isJoinRequestPending || !shouldShowPolicy(singlePolicy, false, currentUserEmail, true)) {
                     continue;
                 }
                 workspaceList.push({id: singlePolicy.id, name: singlePolicy.name ?? ''});

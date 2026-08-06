@@ -218,7 +218,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         (action) => action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
-    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`);
 
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
@@ -394,7 +393,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             transactionViolations,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             quickAction,
-            iouReportNextStep,
             betas,
             personalDetails,
             transactionReport: draftTransactionReport,

@@ -72,7 +72,6 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -127,7 +126,6 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         const optimisticReport = createNewReport(policyID, shouldDismissEmptyReportsConfirmation);
 
         if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
-            const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
             setNavigationActionToMicrotaskQueue(() => {
                 changeTransactionsReport({
@@ -137,7 +135,6 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     email: currentUserPersonalDetails?.email ?? '',
                     newReport: optimisticReport,
                     policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
-                    reportNextStep,
                     policyCategories: undefined,
                     policyTagList,
                     transactions,

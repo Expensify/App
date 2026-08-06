@@ -86,8 +86,8 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
                             horizontalStacking={{
                                 isHovered,
                                 isActive,
-                                sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME,
                             }}
+                            sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME}
                             isInReportAction
                         />
                         <View style={[styles.flex1, styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>

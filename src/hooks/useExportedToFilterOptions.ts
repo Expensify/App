@@ -31,7 +31,7 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
         if (!policy) {
             continue;
         }
-        result[key] = {id: policy.id, name: policy.name, connections: policy.connections, exportLayouts: policy.exportLayouts, outputCurrency: policy.outputCurrency} as Policy;
+        result[key] = {id: policy.id, name: policy.name, connections: policy.connections, exportLayouts: policy.exportLayouts} as Policy;
     }
     return result;
 }

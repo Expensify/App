@@ -6,6 +6,7 @@ import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -31,7 +32,7 @@ import {getTag, getTagArrayFromName, isPerDiemRequest} from '@libs/TransactionUt
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -47,15 +48,17 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepTagProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAG> & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAG>;
+type DynamicIOURequestStepTagProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAG> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAG>;
 
-function IOURequestStepTag({
+function DynamicIOURequestStepTag({
     report,
     route: {
-        params: {action, orderWeight: rawTagIndex, transactionID, backTo, iouType, reportActionID, reportID: reportIDFromRoute},
+        params: {action, orderWeight: rawTagIndex, transactionID, iouType, reportActionID, reportID: reportIDFromRoute},
     },
     transaction,
-}: IOURequestStepTagProps) {
+}: DynamicIOURequestStepTagProps) {
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAG.path);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
@@ -79,7 +82,6 @@ function IOURequestStepTag({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
@@ -139,11 +141,11 @@ function IOURequestStepTag({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     const saveAndNavigateBack = () => {
-        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+        Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
     };
 
     const updateTag = (selectedTag: Partial<OptionData>) => {
@@ -178,7 +180,6 @@ function IOURequestStepTag({
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
                 hash: currentSearchHash,
-                parentReportNextStep,
                 isOffline,
                 delegateAccountID,
                 reportPolicyTags,
@@ -197,7 +198,7 @@ function IOURequestStepTag({
             headerTitle={policyTagListName}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID="IOURequestStepTag"
+            testID="DynamicIOURequestStepTag"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             {!shouldShowTag && (
@@ -215,14 +216,7 @@ function IOURequestStepTag({
                                 large
                                 success
                                 style={[styles.w100]}
-                                onPress={() =>
-                                    Navigation.navigate(
-                                        ROUTES.SETTINGS_TAGS_ROOT.getRoute(
-                                            policyID,
-                                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagListIndex, transactionID, report?.reportID, backTo, reportActionID),
-                                        ),
-                                    )
-                                }
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, Navigation.getActiveRoute()))}
                                 text={translate('workspace.tags.editTags')}
                                 pressOnEnter
                                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_TAGS_BUTTON}
@@ -247,4 +241,4 @@ function IOURequestStepTag({
     );
 }
 
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepTag));
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(DynamicIOURequestStepTag));

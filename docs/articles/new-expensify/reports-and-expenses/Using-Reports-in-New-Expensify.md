@@ -1,7 +1,7 @@
 ---
 title: Using Spend in New Expensify
 description: Learn how to use Spend in New Expensify to search, filter, customize columns, and save searches for expenses, invoices, trips, and chats.
-keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code]
+keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, My expenses saved search, default saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -140,6 +140,12 @@ To view saved searches:
 Saved searches are listed in alphabetical order by name.
 
 To rename a saved search, click **Save** while viewing it and enter a new name. You can also rename, share, or delete a saved search by selecting the three dots **(⋮)** next to it. Selecting **Share** copies the search URL to your clipboard.
+
+## Why you have a My expenses saved search
+
+If you both submit and approve expenses, Expensify automatically adds a **My expenses** saved search to the **Saved** section the first time you visit **Spend**. It filters to expenses you submitted so you can quickly review your own spend.
+
+This saved search is created only once. If you rename or delete it, Expensify will not add it back.
 
 ---
 

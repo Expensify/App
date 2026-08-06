@@ -30,6 +30,7 @@ import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import {getDecodedLeafCategoryName, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
@@ -45,7 +46,7 @@ import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, isDistanceRequ
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -405,13 +406,14 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                         rightLabel={isTagRequired ? translate('common.required') : ''}
                                         onPress={() => {
                                             Navigation.navigate(
-                                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                                    CONST.IOU.ACTION.EDIT,
-                                                    CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                                    index,
-                                                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                                    reportID,
-                                                    Navigation.getActiveRoute(),
+                                                createDynamicRoute(
+                                                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                                        CONST.IOU.ACTION.EDIT,
+                                                        CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                                        index,
+                                                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                                        reportID,
+                                                    ),
                                                 ),
                                             );
                                         }}

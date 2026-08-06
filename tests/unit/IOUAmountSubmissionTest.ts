@@ -202,7 +202,6 @@ describe('AmountSubmission', () => {
                 transactionDrafts: {},
                 transactionViolations: {},
                 storedTransaction: undefined,
-                parentReportNextStep: undefined,
                 policyCategories: undefined,
                 userBillingGracePeriodEnds: {},
                 duplicateTransactions: {},

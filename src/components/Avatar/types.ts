@@ -2,7 +2,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {AvatarSizeName} from '@styles/utils';
 
-import type {AvatarType} from '@src/types/onyx/OnyxCommon';
+import type {AvatarType, Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 
@@ -40,4 +40,15 @@ type AvatarPrimitivesCommonProps = {
     type: AvatarType;
 };
 
-export type {AvatarCommonProps, AvatarPrimitivesCommonProps};
+type AvatarIcon = Icon & {
+    /** Set when a copilot took the action this avatar represents. The tooltip then reads "<copilot> (as copilot for <actedFor>)". */
+    copilot?: {
+        /** The copilot's account ID */
+        accountID: number;
+
+        /** Account the copilot acted for. Falls back to the avatar's own `id`. */
+        actedForAccountID?: number;
+    };
+};
+
+export type {AvatarCommonProps, AvatarIcon, AvatarPrimitivesCommonProps};

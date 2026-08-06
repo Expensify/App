@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
 // eslint-disable-next-line no-restricted-imports -- genuine paid-only check: copy-settings carries paid features, so only paid group (Collect/Control) workspaces are valid targets; Submit/Personal are intentionally excluded.
-import {isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isArchivedPolicy, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -58,7 +58,14 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         ? []
         : Object.values(policies)
               .filter((policy): policy is Policy => {
-                  if (!policy || policy.id === sourcePolicyID || !isPaidGroupPolicy(policy) || isPendingDeletePolicy(policy) || !isPolicyAdmin(policy, currentUserEmail)) {
+                  if (
+                      !policy ||
+                      policy.id === sourcePolicyID ||
+                      !isPaidGroupPolicy(policy) ||
+                      isPendingDeletePolicy(policy) ||
+                      isArchivedPolicy(policy) ||
+                      !isPolicyAdmin(policy, currentUserEmail)
+                  ) {
                       return false;
                   }
                   return true;

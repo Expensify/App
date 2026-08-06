@@ -122,6 +122,25 @@ describe('TransactionUtils', () => {
         return waitForBatchedUpdates();
     });
 
+    describe('hasUploadedReceipt', () => {
+        const receiptIDTransaction = generateTransaction({receipt: {receiptID: 1}});
+        const receiptIDWithLocalSourceTransaction = generateTransaction({receipt: {receiptID: 2, source: 'blob:receipt'}});
+        const remoteReceiptTransaction = generateTransaction({receipt: {source: 'https://www.expensify.com/receipts/w_abc.jpg'}});
+        const localReceiptTransaction = generateTransaction({receipt: {source: 'blob:receipt'}});
+        const transactionWithoutReceipt = generateTransaction({receipt: undefined});
+
+        test.each<[string, Transaction | undefined, boolean]>([
+            ['true when receiptID is present', receiptIDTransaction, true],
+            ['true when receiptID is present alongside a local source', receiptIDWithLocalSourceTransaction, true],
+            ['false when only a remote source is present', remoteReceiptTransaction, false],
+            ['false when only a local source is present', localReceiptTransaction, false],
+            ['false when no receipt is present', transactionWithoutReceipt, false],
+            ['false when the transaction is undefined', undefined, false],
+        ])('returns %s', (_scenario: string, transaction: Transaction | undefined, expectedResult: boolean) => {
+            expect(TransactionUtils.hasUploadedReceipt(transaction)).toBe(expectedResult);
+        });
+    });
+
     describe('hasSubmissionBlockingViolationInReport', () => {
         it('returns true when another report transaction has a submission-blocking violation and the optimistic transaction only has non-blocking violations', () => {
             const transactionWithBlockingViolation = generateTransaction({

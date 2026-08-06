@@ -20,7 +20,7 @@ import {openReport} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {isArchivedPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 
@@ -48,6 +48,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const isAdmin = isPolicyAdmin(policy);
+    const isArchived = isArchivedPolicy(policy);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rooms');
 
     const reportAttributes = useReportAttributes();
@@ -114,7 +115,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     onBackButtonPress={Navigation.goBack}
                     shouldDisplayHelpButton
                 >
-                    {!shouldUseNarrowLayout && (
+                    {!shouldUseNarrowLayout && !isArchived && (
                         <Button
                             success
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
@@ -124,7 +125,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     )}
                 </HeaderWithBackButton>
 
-                {shouldUseNarrowLayout && (
+                {shouldUseNarrowLayout && !isArchived && (
                     <View style={[styles.ph5, styles.pb3]}>
                         <Button
                             success

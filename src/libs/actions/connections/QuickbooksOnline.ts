@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import type {ConnectPolicyToAccountingIntegrationParams, UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
+import type {UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
 import type UpdateQuickbooksOnlineAutoCreateVendorParams from '@libs/API/parameters/UpdateQuickbooksOnlineAutoCreateVendorParams';
 import type UpdateQuickbooksOnlineGenericTypeParams from '@libs/API/parameters/UpdateQuickbooksOnlineGenericTypeParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -19,13 +19,19 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-function getQuickbooksOnlineSetupLink(policyID: string) {
-    const params: ConnectPolicyToAccountingIntegrationParams = {policyID};
+function getQuickbooksOnlineSetupLink(policyID: string, isIntuitEnterpriseSuite = false, isSandbox = false) {
+    const params = new URLSearchParams({policyID});
+    if (isIntuitEnterpriseSuite) {
+        params.set('isIntuitEnterpriseSuite', 'true');
+    }
+    if (isSandbox) {
+        params.set('isSandbox', 'true');
+    }
     const commandURL = getCommandURL({
         command: READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE,
         shouldSkipWebProxy: true,
     });
-    return commandURL + new URLSearchParams(params).toString();
+    return commandURL + params.toString();
 }
 
 function shouldShowQBOReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {

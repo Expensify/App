@@ -3568,11 +3568,11 @@ function getDisplayNameForParticipant({
 
     // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
-    // when searching for a new user. Imported device contacts persist a real
-    // display name on their optimistic record, so prefer that over the login.
-    if (personalDetails.isOptimisticPersonalDetail === true) {
-        const optimisticDisplayName = getDisplayNameOrDefault(personalDetails, formattedLogin, false);
-        return shouldUseShortForm && personalDetails.firstName ? personalDetails.firstName : optimisticDisplayName;
+    // when searching for a new user. Optimistic personal details that already have a known displayName
+    // (e.g. an agent pending creation, or an imported device contact) fall through to the normal name
+    // resolution below instead, so that name is shown rather than an empty/placeholder login.
+    if (personalDetails.isOptimisticPersonalDetail === true && !personalDetails.displayName) {
+        return formattedLogin;
     }
 
     // For selfDM, we display the user's displayName followed by '(you)' as a postfix
@@ -5863,7 +5863,7 @@ function getReportPreviewMessage(
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
             const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
-            const crossBorderMessage = originalMessage ? getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits) : undefined;
+            const crossBorderMessage = originalMessage ? getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits) : undefined;
             if (crossBorderMessage) {
                 return crossBorderMessage;
             }
@@ -6285,7 +6285,8 @@ function getReportSubtitlePrefix(report: OnyxEntry<Report>, currentUserEmail?: s
     const currentUserLogin = currentUserEmail ?? deprecatedCurrentUserEmail;
     let policyCount = 0;
     for (const policy of policiesArray) {
-        if (!shouldShowPolicy(policy, false, currentUserLogin)) {
+        // Archived policies count here because their rooms remain visible in the LHN and still need the workspace-name prefix to disambiguate them.
+        if (!shouldShowPolicy(policy, false, currentUserLogin, true)) {
             continue;
         }
 
@@ -6356,8 +6357,21 @@ function getChatRoomSubtitle(
  * Get pending members for reports
  */
 function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers: PendingChatMember[], pendingAction: PendingAction): PendingChatMember[] {
-    const pendingChatMembers = accountIDs.map((accountID) => ({accountID: accountID.toString(), pendingAction}));
+    const pendingChatMembers = accountIDs.filter((accountID) => accountID != null).map((accountID) => ({accountID: accountID.toString(), pendingAction}));
     return [...previousPendingChatMembers, ...pendingChatMembers];
+}
+
+/**
+ * Returns the account IDs that have a pending DELETE action.
+ * Preserves the original inline behavior (an account is included if any entry marks it DELETE).
+ * The result is not deduplicated, callers that need unique IDs should handle it (getGroupChatName already builds a Set).
+ */
+function getPendingDeleteMemberAccountIDs(pendingChatMembers: PendingChatMember[] | undefined): string[] {
+    if (!pendingChatMembers?.length) {
+        return [];
+    }
+
+    return pendingChatMembers.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID);
 }
 
 /**
@@ -6422,19 +6436,26 @@ function getParentNavigationSubtitle(
 
 /**
  * Navigate to the details page of a given report
+ *
+ * Side Panel reports use a synthetic route that is not part of the navigation state, so navigation must be anchored to the report.
+ * Otherwise, the active route is preserved to keep the details page within its originating context.
+ *
+ * @param isInSidePanel - Whether the report is rendered inside the Side Panel
  */
-function navigateToDetailsPage(report: OnyxEntry<Report>) {
+function navigateToDetailsPage(report: OnyxEntry<Report>, isInSidePanel = false) {
     const isSelfDMReport = isSelfDM(report);
     const isOneOnOneChatReport = isOneOnOneChat(report);
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
+    const basePath = isInSidePanel && report?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(report.reportID) : undefined;
+
     if (isSelfDMReport || isOneOnOneChatReport) {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0))));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0)), basePath));
         return;
     }
 
     if (report?.reportID) {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, basePath));
     }
 }
 
@@ -8108,15 +8129,11 @@ function buildOptimisticTaskReportAction(
     const effectiveDelegateEmail = delegateEmailParam ?? delegateEmail;
     const delegateAccountDetails = effectiveDelegateEmail ? getPersonalDetailByEmail(effectiveDelegateEmail) : undefined;
 
-    // Derive the avatar/person from the actor rather than the current user: onboarding tasks are completed as a
-    // side effect by Concierge (or the assigned guide), so `actorAccountID` is not always the current user.
-    const actorPersonalDetails = allPersonalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID];
-
     return {
         actionName,
         actorAccountID,
         automatic: false,
-        avatar: actorPersonalDetails?.avatar,
+        avatar: getCurrentUserAvatar(),
         isAttachmentOnly: false,
         originalMessage,
         message: [
@@ -8129,7 +8146,7 @@ function buildOptimisticTaskReportAction(
         person: [
             {
                 style: 'strong',
-                text: actorPersonalDetails?.displayName ?? String(deprecatedCurrentUserAccountID),
+                text: currentUserPersonalDetails?.displayName ?? String(deprecatedCurrentUserAccountID),
                 type: 'TEXT',
             },
         ],
@@ -10685,11 +10702,10 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived: 
 /**
  * Returns ID of the original report from which the given reportAction is first created.
  */
-function getOriginalReportID(reportID: string | undefined, reportAction: OnyxInputOrEntry<ReportAction>, reportActionsParam: OnyxEntry<ReportActions> | undefined): string | undefined {
+function getOriginalReportID(reportID: string | undefined, reportAction: OnyxInputOrEntry<ReportAction>, reportActions: OnyxEntry<ReportActions> | undefined): string | undefined {
     if (!reportID) {
         return undefined;
     }
-    const reportActions = reportActionsParam ?? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
     const currentReportAction = reportAction?.reportActionID ? reportActions?.[reportAction.reportActionID] : undefined;
     const report = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const chatReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
@@ -11007,7 +11023,7 @@ function getIOUReportActionDisplayMessage(
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, reportPolicy);
-        const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits);
+        const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -12234,7 +12250,6 @@ function prepareOnboardingOnyxData({
     let addExpenseApprovalsTaskReportID;
     let setupTagsTaskReportID;
     let setupCategoriesAndTagsTaskReportID;
-    let reviewWorkspaceSettingsTaskReportID;
     const tasks = onboardingMessage.tasks;
     const tasksData = tasks
         .filter((task) => {
@@ -12302,9 +12317,6 @@ function prepareOnboardingOnyxData({
             }
             if (task.type === CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS) {
                 setupCategoriesAndTagsTaskReportID = currentTask.reportID;
-            }
-            if (task.type === CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS) {
-                reviewWorkspaceSettingsTaskReportID = currentTask.reportID;
             }
 
             return {
@@ -12516,7 +12528,6 @@ function prepareOnboardingOnyxData({
                 addExpenseApprovals: addExpenseApprovalsTaskReportID,
                 setupTags: setupTagsTaskReportID,
                 setupCategoriesAndTags: setupCategoriesAndTagsTaskReportID,
-                reviewWorkspaceSettings: reviewWorkspaceSettingsTaskReportID,
             },
         },
     );
@@ -12592,7 +12603,6 @@ function prepareOnboardingOnyxData({
                 addExpenseApprovals: null,
                 setupCategoriesAndTags: null,
                 setupTags: null,
-                reviewWorkspaceSettings: null,
             },
         },
     );
@@ -14013,6 +14023,7 @@ export {
     getParticipantsAccountIDsForDisplay,
     getParticipantsList,
     getPendingChatMembers,
+    getPendingDeleteMemberAccountIDs,
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
     getPolicyExpenseChat,

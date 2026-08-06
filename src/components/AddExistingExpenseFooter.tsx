@@ -16,7 +16,7 @@ import {changeTransactionsReport} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Policy, PolicyCategories, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -34,8 +34,6 @@ type AddExistingExpenseFooterProps = {
     report: OnyxEntry<Report>;
     /** The report to confirm */
     reportToConfirm: OnyxEntry<Report>;
-    /** The report next step */
-    reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     /** The policy */
     policy: OnyxEntry<Policy>;
     /** The policy categories */
@@ -46,7 +44,7 @@ type AddExistingExpenseFooterProps = {
     setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
 };
 
-function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, errorMessage, setErrorMessage}: AddExistingExpenseFooterProps) {
+function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy, policyCategories, errorMessage, setErrorMessage}: AddExistingExpenseFooterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
@@ -103,7 +101,6 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         email: session?.email ?? '',
                         newReport: reportToConfirm,
                         policy,
-                        reportNextStep,
                         policyCategories,
                         policyTagList,
                         transactions,

@@ -32,7 +32,7 @@ import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -177,10 +177,20 @@ function WorkspacePageWithSections({
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
 
+    const prevPolicyID = usePrevious(policyID);
+    const [deletedPolicyID, setDeletedPolicyID] = useState<string | undefined>(undefined);
+    if (deletedPolicyID !== policyID && (isPendingDelete || (prevIsPendingDelete && isEmptyObject(policy) && prevPolicyID === policyID))) {
+        setDeletedPolicyID(policyID);
+    }
+    const hasWorkspaceBeenDeleted = deletedPolicyID !== undefined && deletedPolicyID === policyID;
+
     const shouldShow = useMemo(() => {
-        // Suppress the not-found view when the user has moved away from the workspace flow (e.g. switched
-        // to another tab and the workspace was deleted from another device) so the view doesn't bleed
-        // through over the active tab. Stays true when an RHP is open on top of a workspace screen.
+        // Keep the not-found view suppressed after the workspace is deleted so it doesn't flash during the exit animation.
+        if (hasWorkspaceBeenDeleted) {
+            return false;
+        }
+
+        // Don't show the not-found view when the user is outside the workspace flow (e.g. on another tab).
         if (!isWorkspacesTabFocused) {
             return false;
         }
@@ -196,7 +206,7 @@ function WorkspacePageWithSections({
         const shouldShowPolicyOrFeature = hasAccessToPolicyFeature ?? shouldShowPolicy;
         return (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicyOrFeature && !(isPendingDelete && !prevIsPendingDelete));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUserLogin, hasAccessToPolicyFeature, isWorkspacesTabFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
+    }, [currentUserLogin, hasAccessToPolicyFeature, hasWorkspaceBeenDeleted, isWorkspacesTabFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     const handleOnBackButtonPress = () => {
         if (shouldShow) {
