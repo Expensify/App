@@ -1,12 +1,21 @@
-import {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {getIOUReportIDFromReportActionPreview, isReportPreviewAction} from '@libs/ReportActionsUtils';
+import {getIOUReportIDFromReportActionPreview, isMoneyRequestAction, isReportPreviewAction} from '@libs/ReportActionsUtils';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SortedReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type ReportAction from '@src/types/onyx/ReportAction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useCallback} from 'react';
+
 import useOnyx from './useOnyx';
 
 const EMPTY_SORTED_ACTIONS: Record<string, ReportAction[]> = {};
+
+function filterMoneyRequestActions(actions: ReportAction[]): ReportAction[] {
+    return actions.filter((action) => isMoneyRequestAction(action) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+}
 
 /**
  * Returns only the `sortedActions` entries needed to render the last-message text for the given reports,
@@ -27,7 +36,7 @@ function useRelevantSortedActions(reportIDs: Array<string | undefined>): Record<
                 }
                 const reportActions = value.sortedActions[reportID];
                 if (reportActions) {
-                    relevant[reportID] = reportActions;
+                    relevant[reportID] = filterMoneyRequestActions(reportActions);
 
                     // Scan sorted actions for REPORT_PREVIEW actions instead of only checking
                     // lastActions — the absolute last action may be a whisper, errored, or
@@ -39,7 +48,7 @@ function useRelevantSortedActions(reportIDs: Array<string | undefined>): Record<
                         const iouReportID = getIOUReportIDFromReportActionPreview(action);
                         const iouReportActions = iouReportID ? value.sortedActions[iouReportID] : undefined;
                         if (iouReportID && iouReportActions) {
-                            relevant[iouReportID] = iouReportActions;
+                            relevant[iouReportID] = filterMoneyRequestActions(iouReportActions);
                         }
                     }
                 }
