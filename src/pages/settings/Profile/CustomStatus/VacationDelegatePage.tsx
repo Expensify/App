@@ -9,7 +9,6 @@ import useOnyx from '@hooks/useOnyx';
 
 import {clearVacationDelegateError, deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +23,6 @@ function VacationDelegatePage() {
     const {showConfirmModal} = useConfirmModal();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const vacationDelegateRef = useRef(vacationDelegate);
     useEffect(() => {
         vacationDelegateRef.current = vacationDelegate;
@@ -42,11 +40,10 @@ function VacationDelegatePage() {
     };
 
     const showWarningModal = useCallback(
-        async (delegateLogin: string, delegateAccountID: number | undefined) => {
-            const personalDetails = getPersonalDetailsByID(delegateAccountID, personalDetailsList);
+        async (delegateLogin: string, delegateDisplayName: string | undefined) => {
             const result = await showConfirmModal({
                 title: translate('common.headsUp'),
-                prompt: translate('statusPage.vacationDelegateWarning', personalDetails?.displayName ?? delegateLogin),
+                prompt: translate('statusPage.vacationDelegateWarning', delegateDisplayName ?? delegateLogin),
                 confirmText: translate('common.confirm'),
                 cancelText: translate('common.cancel'),
                 shouldShowCancelButton: true,
@@ -60,7 +57,7 @@ function VacationDelegatePage() {
 
             clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
         },
-        [showConfirmModal, translate, currentUserLogin, personalDetailsList],
+        [showConfirmModal, translate, currentUserLogin],
     );
 
     const onSelectRow = useCallback(
@@ -83,7 +80,7 @@ function VacationDelegatePage() {
                 }
 
                 if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
-                    showWarningModal(option?.login ?? '', option?.accountID);
+                    showWarningModal(option?.login ?? '', option.text);
                     return;
                 }
 
