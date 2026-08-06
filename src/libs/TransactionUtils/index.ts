@@ -87,7 +87,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {differenceInDays, format, isValid, parse} from 'date-fns';
+import {differenceInCalendarDays, format, isValid, parse, parseISO} from 'date-fns';
 import {SafeString, Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
@@ -2295,13 +2295,15 @@ function getReservationNights(transaction: OnyxEntry<Transaction>): number {
         return 0;
     }
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    // The dates are calendar days with no time component, so they are parsed as local dates and compared by calendar
+    // day. Anchoring them to UTC instead would let a DST shift within the stay swallow or invent a night.
+    const start = parseISO(startDate);
+    const end = parseISO(endDate);
+    if (!isValid(start) || !isValid(end)) {
         return 0;
     }
 
-    const nights = differenceInDays(end, start);
+    const nights = differenceInCalendarDays(end, start);
     return nights > 0 ? nights : 0;
 }
 

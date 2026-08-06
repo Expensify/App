@@ -684,9 +684,11 @@ const ViolationsUtils = {
         const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && violation.data);
         const hasCategoryReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && !violation.data);
         const hasItemizedReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
-        const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
+        const existingOverLimitViolation = transactionViolations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
+        const existingCategoryOverLimitViolation = transactionViolations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+        const hasOverLimitViolation = !!existingOverLimitViolation;
         const hasOverTripLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_TRIP_LIMIT);
-        const hasCategoryOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+        const hasCategoryOverLimitViolation = !!existingCategoryOverLimitViolation;
         const hasMissingCommentViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_COMMENT);
         const hasMissingAttendeesViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
         const hasTaxOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
@@ -716,6 +718,11 @@ const ViolationsUtils = {
         // A SmartScanned multi-day reservation is measured against its average nightly rate rather than its total
         const reservationNights = TransactionUtils.getReservationNights(updatedTransaction);
         const amountForLimitCheck = reservationNights > 0 ? expenseAmount / reservationNights : expenseAmount;
+        // The night count decides whether the violation reads as a nightly rate or a total, so an existing violation
+        // carrying a different count has to be rebuilt rather than left in place.
+        const expectedNights = reservationNights > 0 ? reservationNights : undefined;
+        const hasStaleOverLimitNights = hasOverLimitViolation && existingOverLimitViolation?.data?.nights !== expectedNights;
+        const hasStaleCategoryOverLimitNights = hasCategoryOverLimitViolation && existingCategoryOverLimitViolation?.data?.nights !== expectedNights;
 
         // The category maxExpenseAmountNoReceipt and maxExpenseAmount settings override the respective policy settings.
         const shouldShowReceiptRequiredViolation =
@@ -853,15 +860,19 @@ const ViolationsUtils = {
             });
         }
 
-        if (canCalculateAmountViolations && hasOverLimitViolation && !shouldShowOverLimitViolation) {
+        if (canCalculateAmountViolations && hasOverLimitViolation && (!shouldShowOverLimitViolation || hasStaleOverLimitNights)) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_LIMIT});
         }
 
-        if (canCalculateAmountViolations && hasCategoryOverLimitViolation && !shouldCategoryShowOverLimitViolation) {
+        if (canCalculateAmountViolations && hasCategoryOverLimitViolation && (!shouldCategoryShowOverLimitViolation || hasStaleCategoryOverLimitNights)) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_CATEGORY_LIMIT});
         }
 
-        if (canCalculateAmountViolations && ((!hasOverLimitViolation && !!shouldShowOverLimitViolation) || (!hasCategoryOverLimitViolation && shouldCategoryShowOverLimitViolation))) {
+        if (
+            canCalculateAmountViolations &&
+            (((!hasOverLimitViolation || hasStaleOverLimitNights) && !!shouldShowOverLimitViolation) ||
+                ((!hasCategoryOverLimitViolation || hasStaleCategoryOverLimitNights) && shouldCategoryShowOverLimitViolation))
+        ) {
             newTransactionViolations.push({
                 name: shouldCategoryShowOverLimitViolation ? CONST.VIOLATIONS.OVER_CATEGORY_LIMIT : CONST.VIOLATIONS.OVER_LIMIT,
                 data: {
