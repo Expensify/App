@@ -37,6 +37,11 @@ function useExportDownloadStatusModal(onCleanup?: () => void): UseExportDownload
     const [clearingExportDownload, clearingExportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${clearingExportID}`);
     const clearingExportIDRef = useRef<string | undefined>(undefined);
 
+    // Latches once the active export is shown as ready (the modal has auto-downloaded it). Used to skip the
+    // handoff to the reload handler on unmount, since re-surfacing a file the user already got would just pop a
+    // fresh modal and download it again.
+    const hasShownReadyRef = useRef(false);
+
     const handleExportModalClose = () => {
         // Keep the modal open while the export is still preparing (unless it was handed off to Concierge).
         if (activeExportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !activeExportDownload?.shouldSendFromConcierge) {
@@ -54,18 +59,29 @@ function useExportDownloadStatusModal(onCleanup?: () => void): UseExportDownload
         onCleanup?.();
     };
 
+    // Latch that the active export was shown as ready so the ownership cleanup can tell a delivered export from
+    // one the user left while it was still preparing.
+    useEffect(() => {
+        if (activeExportDownload?.state !== CONST.EXPORT_DOWNLOAD.STATE.READY) {
+            return;
+        }
+        hasShownReadyRef.current = true;
+    }, [activeExportDownload?.state]);
+
     // Register ownership while this modal shows an export so the app-level reload handler skips it and doesn't
-    // show a duplicate. On a real unmount (the user navigates away before, or right as, the export becomes ready)
-    // the cleanup releases ownership so the reload handler takes over. For a dismiss-and-clear we skip the release
-    // here and let the clearing effect below release it once the key settles.
+    // show a duplicate. On a real unmount we hand off to the reload handler only if the export was still
+    // preparing/unseen (the user left before getting the file); if it was already shown ready we keep the marker
+    // so the handler does not re-surface and re-download it. For a dismiss-and-clear we skip the release here and
+    // let the clearing effect below release it once the key settles.
     useEffect(() => {
         if (!activeExportID) {
             return;
         }
+        hasShownReadyRef.current = false;
         markExportModalOpen(activeExportID);
         const ownedExportID = activeExportID;
         return () => {
-            if (clearingExportIDRef.current === ownedExportID) {
+            if (clearingExportIDRef.current === ownedExportID || hasShownReadyRef.current) {
                 return;
             }
             markExportModalClosed(ownedExportID);
