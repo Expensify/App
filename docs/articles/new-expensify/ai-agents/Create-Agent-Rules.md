@@ -15,12 +15,9 @@ When you create your first Agent rule, Expensify automatically creates RuleBot, 
 
 ## Who can use Agent rules
 
-Agent Rules are currently available through an open beta program. If you'd like to try Agent rules and provide feedback, contact Concierge to request access.
-
 To create an Agent rule: 
 
  - You must be a Workspace Admin.
- - The workspace must have access to the Agent Rules beta.
  - **Rules** must be enabled for the workspace.
 
 ---
@@ -36,7 +33,7 @@ To create an Agent rule:
 5. On the **Edit** tab, review or edit the natural-language description of the behavior you want.
 6. Click **Save**.
 
-If no suggestions are available (for example, when you're offline), the **Suggested** tab shows **No suggestions available**. Open the **Edit** tab to write your own rule instead.
+For a list of the available suggested rules, see [Use Suggested Agent Rules](/articles/new-expensify/ai-agents/Use-Suggested-Agent-Rules).
 
 ---
 
