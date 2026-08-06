@@ -2408,6 +2408,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Zeskanuj kod QR nowym urządzeniem, a następnie wpisz ten kod, aby zakończyć konfigurację.',
         downloadCodes: 'Pobierz kody',
         copyCodes: 'Skopiuj kody',
+        twoFactorAuthIsRequiredNetSuiteDescription: 'Ze względów bezpieczeństwa NetSuite wymaga uwierzytelniania dwuskładnikowego, aby połączyć integrację.',
     },
     recoveryCodeForm: {
         error: {
@@ -5394,6 +5395,14 @@ ${amount} dla ${merchant} - ${date}`,
                             netSuiteTokenSecret: 'Sekretny token',
                         },
                         netSuiteAccountIDDescription: 'W NetSuite przejdź do *Setup > Integration > SOAP Web Services Preferences*.',
+                    },
+                    enableOAuth: {
+                        title: 'Włącz OAuth 2.0',
+                        description: 'W NetSuite przejdź do *Setup > Company > Enable Features > SuiteCloud* i w sekcji *Manage Authentication* włącz *OAuth 2.0*.',
+                    },
+                    enableRestWebServices: {
+                        title: 'Włącz usługi sieciowe REST',
+                        description: 'W NetSuite przejdź do *Setup > Company > Enable Features > SuiteCloud*, a następnie w sekcji *SuiteTalk (Web Services)* włącz *REST Web Services*.',
                     },
                 },
             },
