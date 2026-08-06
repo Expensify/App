@@ -202,7 +202,7 @@ function IOURequestStepAmount({
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(
+            : getReportOption({
                   participant,
                   privateIsArchived,
                   policy,
@@ -210,9 +210,9 @@ function IOURequestStepAmount({
                   conciergeReportID,
                   reportAttributesDerived,
                   reportDraft,
-                  currentUserPersonalDetails.accountID,
+                  currentUserAccountID: currentUserPersonalDetails.accountID,
                   translate,
-              );
+              });
     });
     const participant = participants.at(0);
     const policyTags = useMoneyRequestPolicyTags({

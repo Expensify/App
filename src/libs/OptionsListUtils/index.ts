@@ -1279,23 +1279,37 @@ function createOption({
     return result;
 }
 
+type GetReportOptionParams = {
+    participant: Participant;
+    privateIsArchived: boolean | undefined;
+    policy: OnyxEntry<Policy>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    conciergeReportID: string | undefined;
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
+    reportDraft: OnyxEntry<Report>;
+    currentUserAccountID: number;
+    translate: LocalizedTranslate;
+    policyTags?: OnyxCollection<PolicyTagLists>;
+    // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
+    sortedActions?: Record<string, ReportAction[]>;
+};
+
 /**
  * Get the option for a given report.
  */
-function getReportOption(
-    participant: Participant,
-    privateIsArchived: boolean | undefined,
-    policy: OnyxEntry<Policy>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    conciergeReportID: string | undefined,
-    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
-    reportDraft: OnyxEntry<Report>,
-    currentUserAccountID: number,
-    translate: LocalizedTranslate,
-    policyTags?: OnyxCollection<PolicyTagLists>,
-    // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
-    sortedActions?: Record<string, ReportAction[]>,
-): OptionData {
+function getReportOption({
+    participant,
+    privateIsArchived,
+    policy,
+    personalDetails,
+    conciergeReportID,
+    reportAttributesDerived,
+    reportDraft,
+    currentUserAccountID,
+    translate,
+    policyTags,
+    sortedActions,
+}: GetReportOptionParams): OptionData {
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
