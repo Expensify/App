@@ -52,7 +52,6 @@ function WorkspaceReportFieldsPage({
     const policy = usePolicy(policyID);
     const {canWrite: canWriteReportFields, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.reports');
-
     const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
 
     const {isOffline} = useNetwork();

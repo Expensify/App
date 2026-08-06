@@ -167,6 +167,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
               outstandingReportsByPolicyID,
               isChatReportArchived,
               isProduction,
+              isOffline,
           })
         : [];
 
@@ -184,7 +185,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === nonPendingDeleteTransactions.length;
 
     // Shared payment hook
-    const {shouldBlockAction, onSelectionModePaymentSelect, selectionModeKYCSuccess, paymentSubMenuItems, hasPayInSelectionMode, kycWallRef} = useSelectionModePayment({
+    const {handleWorkspaceSelected, onSelectionModePaymentSelect, selectionModeKYCSuccess, paymentSubMenuItems, hasPayInSelectionMode, kycWallRef} = useSelectionModePayment({
         reportID,
         transactions,
         formattedAmount: totalAmount,
@@ -332,12 +333,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                     chatReportID={chatReport?.reportID}
                     iouReport={moneyRequestReport}
                     onPaymentSelect={onSelectionModePaymentSelect}
-                    onWorkspacePolicySelect={(selectedPolicy, triggerKYCFlow) => {
-                        if (shouldBlockAction(undefined, true)) {
-                            return;
-                        }
-                        triggerKYCFlow({policy: selectedPolicy});
-                    }}
+                    onWorkspacePolicySelect={handleWorkspaceSelected}
                     onSuccessfulKYC={selectionModeKYCSuccess}
                     primaryAction={primaryAction}
                     applicableSecondaryActions={selectedTransactionsOptions}
