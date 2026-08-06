@@ -1,3 +1,4 @@
+import {getIsOffline} from '@libs/NetworkState';
 import {getLinkedTransactionID, getReportAction, getReportActionMessage, isCreatedTaskReportAction, isRejectedAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
@@ -137,7 +138,7 @@ function clearAllRelatedReportActionErrors(
         const parentReportAction = getReportAction(report.parentReportID, report.parentReportActionID);
         const parentErrorKeys = Object.keys(parentReportAction?.errors ?? {}).filter((err) => errorKeys.includes(err));
         const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`] ?? {};
-        const parentOriginalReportID = getOriginalReportID(report.parentReportID, parentReportAction, parentReportActions);
+        const parentOriginalReportID = getOriginalReportID(report.parentReportID, parentReportAction, parentReportActions, getIsOffline());
 
         clearAllRelatedReportActionErrors(report.parentReportID, parentReportAction, parentOriginalReportID, 'child', parentErrorKeys);
     }
@@ -146,7 +147,7 @@ function clearAllRelatedReportActionErrors(
         const childActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`] ?? {};
         for (const action of Object.values(childActions)) {
             const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
-            const childOriginalReportID = getOriginalReportID(reportAction.childReportID, action, childActions);
+            const childOriginalReportID = getOriginalReportID(reportAction.childReportID, action, childActions, getIsOffline());
             clearAllRelatedReportActionErrors(reportAction.childReportID, action, childOriginalReportID, 'parent', childErrorKeys);
         }
     }
