@@ -43,6 +43,10 @@ function buildPersonalDetailsByLogin(personalDetailsList: OnyxEntry<PersonalDeta
         if (!personalDetails?.login) {
             continue;
         }
+        const existing = personalDetailsByLogin[personalDetails.login];
+        if (existing && !existing.isClosed && !existing.isOptimisticPersonalDetail) {
+            continue;
+        }
         personalDetailsByLogin[personalDetails.login] = personalDetails;
     }
     return personalDetailsByLogin;
