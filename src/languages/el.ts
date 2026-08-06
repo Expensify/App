@@ -7529,6 +7529,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Η ενσωμάτωσή μας με το QuickBooks Desktop είναι διαθέσιμη μόνο στο πρόγραμμα Control, που ξεκινά από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                title: 'Intuit Enterprise Suite',
+                description: `Συνδέστε το Intuit Enterprise Suite με το Expensify για αυτόματο συγχρονισμό των λογιστικών δεδομένων σας και λιγότερες μη αυτόματες καταχωρίσεις.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Η ενσωμάτωση Intuit Enterprise Suite είναι διαθέσιμη μόνο στο πρόγραμμα Control, από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος τον μήνα.` : `ανά ενεργό μέλος τον μήνα.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
                 description: `Απολαύστε αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες καταχωρίσεις με την ενσωμάτωση Expensify + Certinia. Ευθυγραμμίστε τις διαστάσεις κωδικοποίησης εξόδων και τον συγχρονισμό φόρων με τη ρύθμιση Certinia σας για πιο ξεκάθαρη οικονομική εικόνα.`,

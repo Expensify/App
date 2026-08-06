@@ -187,7 +187,7 @@ function getAccountingIntegrationData(
                 ...(shouldUseIntuitEnterpriseSuite
                     ? {
                           workspaceUpgradeNavigationDetails: {
-                              integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias,
+                              integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.intuitEnterpriseSuite.alias,
                               backToAfterWorkspaceUpgradeRoute: ROUTES.POLICY_ACCOUNTING.getRoute(
                                   policyID,
                                   connectionName,

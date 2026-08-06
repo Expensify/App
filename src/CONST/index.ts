@@ -7749,6 +7749,15 @@ const CONST = {
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.QBD}.description` as const,
                 icon: 'QBDSquare',
             },
+            [this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                id: this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE,
+                alias: 'intuit-enterprise-suite',
+                name: 'Intuit Enterprise Suite',
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.description` as const,
+                icon: 'QBOSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
             [this.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 id: this.POLICY.CONNECTIONS.NAME.CERTINIA,
                 alias: 'certinia',
