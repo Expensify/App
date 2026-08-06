@@ -11027,7 +11027,7 @@ function getIOUReportActionDisplayMessage(
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-                translationKey = hasMissingInvoiceBankAccount(IOUReportID) ? 'iou.payerSettledWithMissingBankAccount' : 'iou.paidElsewhere';
+                translationKey = 'iou.paidElsewhere';
                 break;
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
             case CONST.IOU.PAYMENT_TYPE.VBBA:
@@ -11054,9 +11054,6 @@ function getIOUReportActionDisplayMessage(
         }
         if (translationKey === 'iou.paidElsewhere') {
             return getElsewherePaymentReportActionMessage(translate, originalMessage);
-        }
-        if (translationKey === 'iou.payerSettledWithMissingBankAccount') {
-            return translate(translationKey, '');
         }
     }
 
