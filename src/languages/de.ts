@@ -2625,11 +2625,11 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Bitte bestätigen Sie Testtransaktionen',
             accountRequiresAttention: 'Dieses Konto erfordert Ihre Aufmerksamkeit',
             unlock: 'Entsperren',
-            debitBlocked: 'Ihre Bank hat Testtransaktionen zu diesem Konto blockiert',
+            debitBlocked: 'Ihre Bank hat die Testtransaktionen zu diesem Konto blockiert',
             insufficientFunds: 'Testtransaktionen aufgrund unzureichender Deckung fehlgeschlagen',
         },
         fixBankAccount: {
-            title: 'Bankkonto beheben',
+            title: 'Bankkonto korrigieren',
             actionRequired: 'Handlung erforderlich',
             debitBlockedIntro: 'Ihre Bank hat die Testtransaktionen für dieses Konto blockiert.',
             debitBlockedPrompt: 'Bitte lassen Sie sie die ACH-IDs von Expensify auf die Whitelist setzen:',
@@ -2641,8 +2641,9 @@ const translations: TranslationDeepObject<typeof en> = {
             successBody: 'Prüfen Sie Ihr Bankkonto in den nächsten 1–2 Werktagen.',
             successButton: 'Verstanden',
             debitBlockedBody:
-                'Ihre Bank hat die Testtransaktionen auf dieses Konto blockiert.<br/><br/>Bitte lassen Sie die folgenden ACH-IDs von Expensify auf die Whitelist setzen:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Senden Sie anschließend die untenstehenden Testtransaktionen erneut.',
-            insufficientFundsBody: 'Testtransaktionen sind aufgrund unzureichender Deckung fehlgeschlagen.<br/>Sobald Guthaben verfügbar ist, verwenden Sie die Schaltfläche unten.',
+                'Ihre Bank hat die Testtransaktionen auf dieses Konto blockiert.<br/><br/>Bitte lassen Sie die ACH-IDs von Expensify auf die Whitelist setzen:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Senden Sie anschließend die Testtransaktionen unten erneut.',
+            insufficientFundsBody:
+                '<muted-text>Testtransaktionen sind aufgrund unzureichender Deckung fehlgeschlagen.<br/>Sobald genügend Geld vorhanden ist, verwenden Sie die Schaltfläche unten.</muted-text>',
         },
     },
     cardPage: {

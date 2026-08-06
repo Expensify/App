@@ -2611,7 +2611,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'To konto wymaga uwagi',
             unlock: 'Odblokuj',
             debitBlocked: 'Twój bank zablokował transakcje testowe na to konto',
-            insufficientFunds: 'Testowe transakcje nie powiodły się z powodu niewystarczających środków',
+            insufficientFunds: 'Transakcje testowe nie powiodły się z powodu niewystarczających środków',
         },
         fixBankAccount: {
             title: 'Napraw konto bankowe',
@@ -2621,13 +2621,13 @@ const translations: TranslationDeepObject<typeof en> = {
             debitBlockedResendPrompt: 'Następnie wyślij ponownie testowe transakcje poniżej.',
             insufficientFundsIntro: 'Próbne transakcje nie powiodły się z powodu niewystarczających środków.',
             insufficientFundsPrompt: 'Gdy środki będą dostępne, użyj przycisku poniżej.',
-            resendButton: 'Wyślij transakcje ponownie',
+            resendButton: 'Wyślij ponownie transakcje',
             successTitle: 'Transakcje wysłane!',
             successBody: 'Sprawdź swoje konto bankowe w ciągu najbliższych 1–2 dni roboczych.',
-            successButton: 'Rozumiem',
+            successButton: 'Zrozumiano',
             debitBlockedBody:
-                'Twój bank zablokował transakcje testowe na tym rachunku.<br/><br/>Poproś ich o dodanie do listy dozwolonych identyfikatorów ACH Expensify:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Następnie wyślij ponownie poniższe transakcje testowe.',
-            insufficientFundsBody: 'Testowe transakcje nie powiodły się z powodu niewystarczających środków.<br/>Gdy środki będą dostępne, użyj przycisku poniżej.',
+                'Twój bank zablokował transakcje testowe na to konto.<br/><br/>Poproś ich o dodanie do listy dozwolonych identyfikatorów ACH Expensify:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Następnie wyślij ponownie poniższe transakcje testowe.',
+            insufficientFundsBody: '<muted-text>Transakcje testowe nie powiodły się z powodu niewystarczających środków.<br/>Gdy środki będą dostępne, użyj przycisku poniżej.</muted-text>',
         },
     },
     cardPage: {

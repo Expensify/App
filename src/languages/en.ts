@@ -2685,7 +2685,7 @@ const translations = {
             title: 'Fix bank account',
             debitBlockedBody:
                 "Your bank blocked the test transactions to this account.<br/><br/>Please have them whitelist Expensify's ACH IDs:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Then, resend the test transactions below.",
-            insufficientFundsBody: 'Test transactions failed due to insufficient funds.<br/>Once funds are available, use the button below.',
+            insufficientFundsBody: '<muted-text>Test transactions failed due to insufficient funds.<br/>Once funds are available, use the button below.</muted-text>',
             resendButton: 'Resend transactions',
             successTitle: 'Transactions sent!',
             successBody: 'Check your bank account in the next 1-2 business days.',

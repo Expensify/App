@@ -2631,10 +2631,11 @@ const translations: TranslationDeepObject<typeof en> = {
             resendButton: 'Invia di nuovo le transazioni',
             successTitle: 'Transazioni inviate!',
             successBody: 'Controlla il tuo conto bancario entro 1-2 giorni lavorativi.',
-            successButton: 'Ricevuto',
+            successButton: 'Capito',
             debitBlockedBody:
                 'La tua banca ha bloccato le transazioni di prova su questo conto.<br/><br/>Chiedi loro di inserire negli elenchi consentiti gli ID ACH di Expensify:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Poi reinvia le transazioni di prova qui sotto.',
-            insufficientFundsBody: 'Le transazioni di prova non sono riuscite per fondi insufficienti.<br/>Quando i fondi saranno disponibili, usa il pulsante qui sotto.',
+            insufficientFundsBody:
+                '<muted-text>Le transazioni di prova non sono riuscite per fondi insufficienti.<br/>Quando i fondi saranno disponibili, usa il pulsante qui sotto.</muted-text>',
         },
     },
     cardPage: {

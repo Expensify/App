@@ -2541,10 +2541,10 @@ const translations: TranslationDeepObject<typeof en> = {
             resendButton: '重新发送交易',
             successTitle: '交易已发送！',
             successBody: '请在接下来的 1–2 个工作日内查看您的银行账户。',
-            successButton: '知道了',
+            successButton: '明白了',
             debitBlockedBody:
-                '您的银行拦截了发往此账户的测试交易。<br/><br/>请联系银行将 Expensify 的 ACH ID 加入白名单：<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>然后在下方重新发送测试交易。',
-            insufficientFundsBody: '测试交易因资金不足而失败。<br/>一旦资金到位，请使用下方的按钮。',
+                '您的银行拦截了发往此账户的测试交易。<br/><br/>请联系银行将 Expensify 的 ACH ID 加入白名单：<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>然后，重新发送下面的测试交易。',
+            insufficientFundsBody: '<muted-text>由于资金不足，测试交易失败。<br/>资金到位后，请使用下方按钮。</muted-text>',
         },
     },
     cardPage: {

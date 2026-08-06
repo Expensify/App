@@ -2595,7 +2595,7 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'このアカウントには対応が必要です',
             unlock: 'ロック解除',
             debitBlocked: 'この口座へのテスト取引は銀行によってブロックされました',
-            insufficientFunds: 'テスト取引は残高不足のため失敗しました',
+            insufficientFunds: '残高不足のためテスト取引に失敗しました',
         },
         fixBankAccount: {
             title: '銀行口座を修正',
@@ -2610,8 +2610,8 @@ const translations: TranslationDeepObject<typeof en> = {
             successBody: '1〜2営業日以内に銀行口座をご確認ください。',
             successButton: '了解しました',
             debitBlockedBody:
-                'この口座へのテスト取引は銀行によってブロックされました。<br/><br/>Expensify の ACH ID をホワイトリストに登録するよう、銀行に依頼してください。<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>その後、下のテスト取引を再送してください。',
-            insufficientFundsBody: '残高不足のため、テスト取引に失敗しました。<br/>残高が利用可能になりましたら、下のボタンをご利用ください。',
+                'お使いの銀行がこの口座へのテスト取引をブロックしました。<br/><br/>銀行に依頼して、Expensify の ACH ID をホワイトリストに登録してください。<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>その後、下記のテスト取引を再送してください。',
+            insufficientFundsBody: '<muted-text>残高不足のためテスト取引に失敗しました。<br/>残高が利用可能になりましたら、下のボタンを使用してください。</muted-text>',
         },
     },
     cardPage: {

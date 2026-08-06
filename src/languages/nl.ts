@@ -2623,7 +2623,7 @@ const translations: TranslationDeepObject<typeof en> = {
             insufficientFunds: 'Testtransacties mislukt vanwege onvoldoende saldo',
         },
         fixBankAccount: {
-            title: 'Bankrekening herstellen',
+            title: 'Bankrekening repareren',
             actionRequired: 'Actie vereist',
             debitBlockedIntro: 'Je bank heeft de testtransacties naar deze rekening geblokkeerd.',
             debitBlockedPrompt: "Vraag hen om de ACH-ID's van Expensify op de whitelist te zetten:",
@@ -2632,11 +2632,11 @@ const translations: TranslationDeepObject<typeof en> = {
             insufficientFundsPrompt: 'Zodra er geld beschikbaar is, gebruik je de knop hieronder.',
             resendButton: 'Transacties opnieuw verzenden',
             successTitle: 'Transacties verzonden!',
-            successBody: 'Controleer je bankrekening over 1–2 werkdagen.',
+            successBody: 'Controleer je bankrekening over 1-2 werkdagen.',
             successButton: 'Begrepen',
             debitBlockedBody:
-                "Je bank heeft de testtransacties naar deze rekening geblokkeerd.<br/><br/>Vraag hen om de ACH-ID's van Expensify op de whitelist te zetten:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Verzend daarna de onderstaande testtransacties opnieuw.",
-            insufficientFundsBody: 'Testtransacties zijn mislukt door onvoldoende saldo.<br/>Zodra er voldoende saldo is, gebruik je de knop hieronder.',
+                'Je bank heeft de testtransacties naar deze rekening geblokkeerd.<br/><br/>Laat ze alsjeblieft de ACH-ID’s van Expensify op de whitelist zetten:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Stuur daarna de onderstaande testtransacties opnieuw.',
+            insufficientFundsBody: '<muted-text>Testtransacties zijn mislukt door onvoldoende saldo.<br/>Zodra er voldoende saldo is, gebruik dan de knop hieronder.</muted-text>',
         },
     },
     cardPage: {
