@@ -2809,12 +2809,6 @@ const translations = {
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `This card was frozen by ${person}. Please contact an admin to unfreeze it.`,
     },
     workflowsPage: {
-        tabs: {
-            submissions: 'Submissions',
-            approvals: 'Approvals',
-            payments: 'Payments',
-            advanced: 'Advanced',
-        },
         workflowTitle: 'Spend',
         workflowDescription: 'Configure a workflow from the moment spend occurs, including approval and payment.',
         submissionFrequency: 'Submissions',

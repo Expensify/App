@@ -115,33 +115,34 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
         Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, routeTab);
     }, [routeTab]);
 
+    // Each tab reuses its section's existing title so the tab label and the card heading can never drift apart.
     const visibleTabs: TabSelectorBaseItem[] = [
         ...(shouldShowSubmissions
             ? [
                   {
                       key: WORKFLOWS_TAB.SUBMISSIONS,
-                      title: translate('workflowsPage.tabs.submissions'),
+                      title: translate('workflowsPage.submissionFrequency'),
                       icon: expensifyIcons.Send,
                   },
               ]
             : []),
         {
             key: WORKFLOWS_TAB.APPROVALS,
-            title: translate('workflowsPage.tabs.approvals'),
+            title: translate('workflowsPage.addApprovalsTitle'),
             icon: expensifyIcons.ThumbsUp,
         },
         ...(shouldShowPayments
             ? [
                   {
                       key: WORKFLOWS_TAB.PAYMENTS,
-                      title: translate('workflowsPage.tabs.payments'),
+                      title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
                       icon: expensifyIcons.MoneyBag,
                   },
               ]
             : []),
         {
             key: WORKFLOWS_TAB.ADVANCED,
-            title: translate('workflowsPage.tabs.advanced'),
+            title: translate('workspace.rules.expenseReportRules.title'),
             icon: expensifyIcons.Gear,
         },
     ];
