@@ -30,11 +30,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
 import {emailSelector} from '@src/selectors/Session';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
-import type * as OnyxTypes from '@src/types/onyx';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
-
-import type {OnyxCollection} from 'react-native-onyx';
 
 import {useState} from 'react';
 
@@ -92,9 +88,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     // Match Quick Creation and Search actions by using shared report eligibility rules. Unlike the FAB's
     // expense-chat filter, this intentionally includes Submit workspaces only when the beta is enabled.
-    const [groupPoliciesWithChatEnabled = getEmptyArray<OnyxTypes.Policy>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies: OnyxCollection<OnyxTypes.Policy>) => getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, sessionEmail),
-    });
+    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies ?? null, isSubmit2026BetaEnabled, sessionEmail);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
