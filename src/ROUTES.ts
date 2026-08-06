@@ -145,7 +145,7 @@ const DYNAMIC_ROUTES = {
         path: 'fix-bank-account/:bankAccountID',
         entryScreens: [
             SCREENS.SETTINGS.WALLET.ROOT,
-            SCREENS.WORKSPACE.WORKFLOWS_PAYER,
+            SCREENS.WORKSPACE.WORKFLOWS,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
