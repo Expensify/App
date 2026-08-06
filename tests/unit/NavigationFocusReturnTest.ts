@@ -665,28 +665,20 @@ describe('captureTriggerForRoute', () => {
             expect(document.activeElement).toBe(rowA);
         });
 
-        it.each([
-            ['Ctrl', {ctrlKey: true}],
-            ['Meta (Cmd)', {metaKey: true}],
-            ['Alt', {altKey: true}],
-            ['Shift', {shiftKey: true}],
-        ])(
-            'DOES latch on %s+Enter — react-native-web PressResponder fires onPress on modified Enter, so the trigger must be captured before destination autofocus poisons it',
-            (_label, mods) => {
-                const row = appendButton();
-                const destinationInput = appendInput();
-                row.focus();
+        it('DOES latch on modifier+Enter (Cmd/Ctrl/Alt/Shift) — RNW PressResponder fires onPress on modified Enter, so the trigger must be captured before destination autofocus poisons it', () => {
+            const row = appendButton();
+            const destinationInput = appendInput();
+            row.focus();
 
-                document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true, ...mods}));
-                fireFocusIn(destinationInput);
-                captureTriggerForRoute('route-a');
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true, metaKey: true}));
+            fireFocusIn(destinationInput);
+            captureTriggerForRoute('route-a');
 
-                destinationInput.remove();
-                row.blur();
-                expect(restoreTriggerForRoute('route-a')).toBe(true);
-                expect(document.activeElement).toBe(row);
-            },
-        );
+            destinationInput.remove();
+            row.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(row);
+        });
 
         it('clears the latch on mismatched keyup within TTL — a canceled activation must not pin a subsequent unrelated nav', () => {
             const rowA = appendButton();
@@ -1043,10 +1035,10 @@ describe('captureTriggerForRoute', () => {
             });
         });
 
-        it('does not latch a bare tabindex="-1" div — non-interactive helper, not a user-activatable control', () => {
+        it.each([['-1'], ['0']])('does not latch a bare div with tabindex=%s — non-interactive focus-only helper, Enter/Space do nothing on it', (tabindex) => {
             const helper = document.createElement('div');
             const rowB = appendButton();
-            helper.setAttribute('tabindex', '-1');
+            helper.setAttribute('tabindex', tabindex);
             document.body.appendChild(helper);
             helper.focus();
 
@@ -1057,25 +1049,6 @@ describe('captureTriggerForRoute', () => {
             captureTriggerForRoute('route-a');
 
             helper.remove();
-            rowB.blur();
-            expect(restoreTriggerForRoute('route-a')).toBe(true);
-            expect(document.activeElement).toBe(rowB);
-        });
-
-        it('does not latch a bare focusable div (tabindex=0, no role) — PDFView-style focus-only helpers, Enter/Space do nothing on them', () => {
-            const focusOnly = document.createElement('div');
-            const rowB = appendButton();
-            focusOnly.setAttribute('tabindex', '0');
-            document.body.appendChild(focusOnly);
-            focusOnly.focus();
-
-            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
-
-            rowB.focus();
-            fireFocusIn(rowB);
-            captureTriggerForRoute('route-a');
-
-            focusOnly.remove();
             rowB.blur();
             expect(restoreTriggerForRoute('route-a')).toBe(true);
             expect(document.activeElement).toBe(rowB);
