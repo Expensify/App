@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksOnlineSyncClasses, updateQuickbooksOnlineSyncCustomers, updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -52,7 +53,7 @@ import {
     upgradeToCorporate,
 } from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
@@ -182,6 +183,22 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
     }, [feature, policyID, route.params?.backTo, route.params?.featureName, featureNameAlias]);
+
+    // The header back button ("leave") and the confirmation button ("continue what I was doing") have
+    // different intents. The company cards upgrade is only ever reached from the "Add cards" flow, so
+    // acknowledging that upgrade should resume the flow rather than just leaving. We build the add-card
+    // route from `backTo` (always one of the dynamic route's entry screens) and replace the upgrade route,
+    // so backing out of the resumed flow lands on the originating page instead of re-opening the
+    // already-consumed confirmation screen.
+    const afterUpgradeAcknowledged = useCallback(() => {
+        if (feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id && policyID) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, route.params.backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
+                forceReplace: true,
+            });
+            return;
+        }
+        goBack();
+    }, [feature?.id, policyID, route.params.backTo, goBack]);
 
     const onUpgradeToCorporate = () => {
         if (!canPerformUpgrade || !policy) {
@@ -363,7 +380,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!policy && isUpgraded && (
                     <UpgradeConfirmation
-                        afterUpgradeAcknowledged={goBack}
+                        afterUpgradeAcknowledged={afterUpgradeAcknowledged}
                         policyName={policy.name}
                         planName={getUserFriendlyWorkspaceType(policy.type, translate)}
                     />
