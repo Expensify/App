@@ -90,7 +90,8 @@ function DynamicIOURequestStepDestination({
 }: DynamicIOURequestStepDestinationProps) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const isEditPage = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT;
-    const backPath = useDynamicBackPath(isEditPage ? DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path : DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path);
+    // `per-diem-destination-edit` sits on the confirmation base, so stripping it yields that route's own path.
+    const editBackPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -131,7 +132,11 @@ function DynamicIOURequestStepDestination({
     };
 
     const navigateBack = () => {
-        Navigation.goBack(backPath);
+        if (isEditPage) {
+            Navigation.goBack(editBackPath);
+            return;
+        }
+        Navigation.goBack();
     };
 
     const updateDestination = (destination: ListItem & {currency: string}) => {

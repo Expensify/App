@@ -92,10 +92,9 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
         setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined, getCurrencyDecimals);
 
-        // Point the start route this selector lives on at the selected target before opening the destination step. The
-        // destination and time steps are dynamic suffixes on this route's path and carry no params of their own, so the
-        // whole per diem URL is generated from the params below and must match the target the flow now points at.
-        navigation.setParams({reportID: targetReport.reportID, iouType: targetIouType});
+        // Keep the start route on the report the flow started from so Back from the destination step can pop back to the
+        // selector. The destination/time steps carry the workspace reportID on their own base, so they stay truthful
+        // without retargeting the start route (retargeting hid the selector on Back — see PR #97762 comment).
         Navigation.navigate(
             createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path, ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport.reportID)),
         );
