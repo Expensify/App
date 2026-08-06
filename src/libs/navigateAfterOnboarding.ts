@@ -116,7 +116,7 @@ function navigateAfterOnboarding(
         onboardingAdminsChatReportID,
         shouldPreventOpenAdminRoom,
     );
-    // "Something else" (LOOKING_AROUND) signups have no workspace/report, so we explicitly land them on the Home page.
+    // "Something else" (LOOKING_AROUND) users have no workspace/report, so we explicitly land them on the Home page.
     // Forcing the navigation (rather than depending on Home being the default route) guarantees they don't end up on
     // another tab such as Spend > Expenses, regardless of the navigation state left behind by onboarding.
     const isLookingAroundUser = introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
