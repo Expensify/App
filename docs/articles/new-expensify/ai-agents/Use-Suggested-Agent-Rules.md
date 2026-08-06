@@ -9,7 +9,7 @@ contentType: topic
 
 # Use Suggested Agent Rules
 
-Suggested Agent rules are prewritten Agent rules for common workspace workflows. Instead of writing a rule from scratch, you can start with a suggested rule, review its instructions, and edit them before saving.
+Suggested Agent rules are pre-written Agent rules for common workspace workflows. Instead of writing a rule from scratch, you can start with a suggested rule, review its instructions, and edit them before saving.
 
 Suggested Agent rules are enforced by RuleBot like any other Agent rule.
 
