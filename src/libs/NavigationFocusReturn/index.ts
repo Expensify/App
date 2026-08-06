@@ -568,9 +568,6 @@ function setLastMouseTriggerForTests(element: HTMLElement | null): void {
 
 type ActivationKey = 'Enter' | 'Space';
 
-// Module-scoped, since isFocusMovingKeydown runs on every keystroke.
-const FOCUS_MOVING_KEYS = new Set(['Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown', 'Escape']);
-
 /** True when a keydown activates a Pressable (Enter/Space, no repeat, no IME, any modifier). Text-editable targets are filtered downstream by isActivatableTarget. */
 function isActivationKeydown(e: KeyboardEvent): boolean {
     if (e.repeat || e.isComposing) {
@@ -586,29 +583,28 @@ function isActivationKeydown(e: KeyboardEvent): boolean {
 
 /** True when a keydown moves focus context (Tab, arrows, etc.), used to invalidate stale activation latches. Modifiers and typing don't count. */
 function isFocusMovingKeydown(e: KeyboardEvent): boolean {
-    return FOCUS_MOVING_KEYS.has(e.key);
+    const focusMovingKeys = new Set(['Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown', 'Escape']);
+    return focusMovingKeys.has(e.key);
 }
-
-const INTERACTIVE_TAGS = new Set(['BUTTON', 'SELECT']);
-const INTERACTIVE_ROLES = new Set(['button', 'link', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'tab', 'switch', 'option', 'row', 'gridcell', 'treeitem', 'searchbox', 'combobox']);
 
 /** Native tags or ARIA roles that make an element user-activatable regardless of tab order. */
 function isInteractive(el: HTMLElement): boolean {
-    if (INTERACTIVE_TAGS.has(el.tagName)) {
+    const interactiveTags = new Set(['BUTTON', 'SELECT']);
+    const interactiveRoles = new Set(['button', 'link', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'tab', 'switch', 'option', 'row', 'gridcell', 'treeitem', 'searchbox', 'combobox']);
+    if (interactiveTags.has(el.tagName)) {
         return true;
     }
     if (el.tagName === 'A' && el.hasAttribute('href')) {
         return true;
     }
     const role = el.getAttribute('role');
-    return role !== null && INTERACTIVE_ROLES.has(role);
+    return role !== null && interactiveRoles.has(role);
 }
-
-const TEXT_INPUT_TYPES = new Set(['text', 'search', 'email', 'password', 'tel', 'url', 'number', 'date', 'datetime-local', 'month', 'time', 'week']);
-const BUTTON_INPUT_TYPES = new Set(['button', 'submit', 'reset', 'image']);
 
 /** True when this key would activate a control instead of typing text. Excludes textarea, contenteditable, and non-button-typed inputs. Text inputs still accept Enter (form submit). */
 function isActivatableTarget(el: Element, key: ActivationKey): el is HTMLElement {
+    const textInputTypes = new Set(['text', 'search', 'email', 'password', 'tel', 'url', 'number', 'date', 'datetime-local', 'month', 'time', 'week']);
+    const buttonInputTypes = new Set(['button', 'submit', 'reset', 'image']);
     if (!isHTMLElement(el)) {
         return false;
     }
@@ -616,10 +612,10 @@ function isActivatableTarget(el: Element, key: ActivationKey): el is HTMLElement
         return false;
     }
     if (el instanceof HTMLInputElement) {
-        if (TEXT_INPUT_TYPES.has(el.type)) {
+        if (textInputTypes.has(el.type)) {
             return key === 'Enter';
         }
-        return BUTTON_INPUT_TYPES.has(el.type);
+        return buttonInputTypes.has(el.type);
     }
     // Attribute fallback for jsdom where isContentEditable isn't implemented.
     if (el.isContentEditable || el.getAttribute('contenteditable') === 'true' || el.getAttribute('contenteditable') === '') {
