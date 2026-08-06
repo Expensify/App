@@ -3,12 +3,11 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 
 import useOnyx from '@hooks/useOnyx';
 
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
 import type {ForwardedRef} from 'react';
 
@@ -22,11 +21,14 @@ type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLab
     /** Function to call when the user selects a value */
     onInputChange?: (value: string) => void;
 
+    /** Route to the initial value picker */
+    route: Route;
+
     /** Reference to the outer element */
     ref: ForwardedRef<View>;
 };
 
-function InitialListValueSelector({value = '', label = '', rightLabel, errorText = '', onInputChange, ref}: InitialListValueSelectorProps) {
+function InitialListValueSelector({value = '', label = '', rightLabel, errorText = '', onInputChange, route, ref}: InitialListValueSelectorProps) {
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const draftInitialValue = formDraft?.initialValue ?? '';
 
@@ -63,7 +65,7 @@ function InitialListValueSelector({value = '', label = '', rightLabel, errorText
                 rightLabel={rightLabel}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
-                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE.path))}
+                onPress={() => Navigation.navigate(route)}
             />
         </View>
     );
