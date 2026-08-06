@@ -269,6 +269,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, {nextStep: mockReportNextStep});
+            await loadReports();
 
             const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
             const allTransactions = {
@@ -319,6 +320,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_SELF_DM_REPORT_ID}`, {nextStep: mockReportNextStep});
+            await loadReports();
 
             const report = await getReportFromUseOnyx(CONST.REPORT.UNREPORTED_REPORT_ID);
             const allTransactions = {
@@ -2056,7 +2058,7 @@ describe('Transaction', () => {
                     allTransactions,
                     policyTagList: undefined,
                     transactionViolations: {},
-                    allReports: undefined,
+                    reports: undefined,
                     isTrackIntentUser: false,
                     jsonQuery: FAKE_JSON_QUERY,
                     hash: FAKE_HASH,
@@ -2100,7 +2102,7 @@ describe('Transaction', () => {
                     allTransactions,
                     policyTagList: undefined,
                     transactionViolations: {},
-                    allReports: undefined,
+                    reports: undefined,
                     isTrackIntentUser: false,
                     jsonQuery: FAKE_JSON_QUERY,
                     hash: FAKE_HASH,
@@ -2145,7 +2147,7 @@ describe('Transaction', () => {
                         allTransactions: {},
                         policyTagList: undefined,
                         transactionViolations: {},
-                        allReports: undefined,
+                        reports: undefined,
                         isTrackIntentUser: false,
                         jsonQuery: FAKE_JSON_QUERY,
                         hash: FAKE_HASH,
@@ -2185,7 +2187,7 @@ describe('Transaction', () => {
                     allTransactions,
                     policyTagList: undefined,
                     transactionViolations: {},
-                    allReports: undefined,
+                    reports: undefined,
                     isTrackIntentUser: false,
                     jsonQuery: undefined,
                     hash: FAKE_HASH,
