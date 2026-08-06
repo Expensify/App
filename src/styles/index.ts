@@ -5546,26 +5546,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: -2,
         },
 
-        headerProgressBarContainer: {
-            position: 'absolute',
-            width: '100%',
-            pointerEvents: 'none',
-        },
-
-        headerProgressBar: {
-            width: variables.componentSizeMedium,
-            height: variables.iconSizeXXXSmall,
-            borderRadius: variables.componentBorderRadiusRounded,
-            backgroundColor: theme.border,
-            alignSelf: 'center',
-        },
-
-        headerProgressBarFill: {
-            borderRadius: variables.componentBorderRadiusRounded,
-            height: '100%',
-            backgroundColor: theme.success,
-        },
-
         interactiveStepHeaderContainer: {
             flex: 1,
             alignSelf: 'center',
