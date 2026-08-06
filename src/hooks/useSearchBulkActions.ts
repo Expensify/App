@@ -38,6 +38,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
 import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
+import Log from '@libs/Log';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -405,7 +406,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     } = usePaymentContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const selfDMReport = useSelfDMReport();
@@ -494,7 +494,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'Document',
     ]);
 
-    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
 
     const selectedTransactionReportIDs = useMemo(
         () => [
@@ -951,7 +951,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             const reportPolicy = getPolicyFromSearchSnapshot(expenseReport.policyID, searchData, policies);
-            const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`];
             const hasViolations = hasViolationsReportUtils(reportID, allTransactionViolations, accountID, email ?? '');
             const policyToUpgrade = reportPolicy;
             const wouldNavigateToUpgrade = isSubmitPolicy(policyToUpgrade) && !!policyToUpgrade?.id;
@@ -965,13 +964,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 currentUserEmailParam: email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: nextStep,
                 betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 ownerLogin: getLoginByAccountID(expenseReport.ownerAccountID, personalDetails),
                 delegateEmail,
+                delegateAccountID,
                 full: true,
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
                 shouldPlaySuccessSound: false,
@@ -1007,7 +1006,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         email,
         searchResults?.data,
         allReports,
-        allNextSteps,
         allTransactionViolations,
         isBetaEnabled,
         betas,
@@ -1015,6 +1013,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchKey,
         isTrackIntentUser,
         personalDetails,
+        delegateAccountID,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -1162,6 +1161,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const onBulkPaySelected = useCallback(
         (paymentMethod?: PaymentMethodType, additionalData?: BulkPaySelectionData) => {
             if (!hash) {
+                Log.info('[BulkPay] Dropping bulk pay: no search hash');
                 return;
             }
             if (isOffline) {
@@ -1179,6 +1179,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
             if (restrictedPolicyID) {
+                Log.info('[BulkPay] Blocking bulk pay: billable actions are restricted', false, {policyID: restrictedPolicyID});
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
                 return;
             }
@@ -1191,6 +1192,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const itemPolicyID = item.policyID;
                 const itemReportID = item.reportID;
                 if (!itemReportID) {
+                    Log.info('[BulkPay] Dropping bulk pay: selected item has no reportID');
                     return;
                 }
                 const itemReport = getReportFromSearchSnapshot(itemReportID, searchData, allReports);
@@ -1200,6 +1202,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const lastPolicyPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(itemPolicyID, personalPolicyID, lastPaymentMethods, reportType, isIOUReport);
 
                 if (!lastPolicyPaymentMethod) {
+                    Log.info('[BulkPay] Aborting bulk pay: no last payment method for policy, redirecting to the report', false, {policyID: itemPolicyID, reportID: itemReportID});
                     Navigation.navigate(
                         ROUTES.SEARCH_REPORT.getRoute({
                             reportID: itemReportID,
@@ -1218,6 +1221,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const hasSelectedBusinessBankAccount = expenseReportBankAccountID != null;
 
                 if (isExpenseReport && lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA && !hasSelectedBusinessBankAccount) {
+                    Log.info('[BulkPay] Aborting bulk pay: policy has no VBBA and no bank account was selected, redirecting to the report', false, {
+                        policyID: itemPolicyID,
+                        reportID: itemReportID,
+                    });
                     Navigation.navigate(
                         ROUTES.SEARCH_REPORT.getRoute({
                             reportID: item.reportID,
@@ -1230,6 +1237,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 if (isPolicyPaymentMethod && isIOUReport) {
                     const adminPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${lastPolicyPaymentMethod}`];
                     if (!adminPolicy) {
+                        Log.info('[BulkPay] Aborting bulk pay: last payment method points to an unknown policy, redirecting to the report', false, {reportID: item.reportID});
                         Navigation.navigate(
                             ROUTES.SEARCH_REPORT.getRoute({
                                 reportID: item.reportID,
@@ -1316,7 +1324,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                 const chatReportPolicy = getPolicyFromSearchSnapshot(chatReport.policyID, searchData, policies);
                 const reportPolicy = workspacePayPolicy ?? getPolicyFromSearchSnapshot(item.policyID, searchData, policies);
-                const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.reportID}`];
                 const additionalOnyxData = getSearchPayOnyxData(hash, item.reportID, currentSearchKey);
                 const isItemInvoice = isInvoiceReport(item.reportID);
 
@@ -1337,7 +1344,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
                         invoiceReport: iouReport,
-                        invoiceReportCurrentNextStepDeprecated: nextStep,
                         introSelected,
                         currentUserAccountIDParam: accountID,
                         currentUserEmailParam: email ?? '',
@@ -1366,7 +1372,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     chatReport,
                     iouReport,
                     introSelected,
-                    iouReportCurrentNextStepDeprecated: nextStep,
                     currentUserAccountID: accountID,
                     currentUserLogin: currentUserLogin ?? '',
                     activePolicy,
@@ -1385,6 +1390,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`],
                     delegateAccountID,
                     isTrackIntentUser,
+                    conciergeChat,
                 });
                 paidReportCount += 1;
             }
@@ -1407,7 +1413,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             showDelegateNoAccessModal,
             allReports,
             allReportActions,
-            allNextSteps,
             personalPolicyID,
             lastPaymentMethods,
             allTransactions,
@@ -1828,8 +1833,50 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                   subMenuItems,
               };
 
+        // Move-eligibility (single owner + every expense has `canChangeReport`) only sees the loaded page, so for a
+        // "select all matching" selection this gate is best-effort — the backend enforces it on the full set
+        const moveOwnerAccountIDs = new Set<number>();
+        let moveHasUnknownOwner = false;
+        for (const id of selectedTransactionsKeys) {
+            const transactionEntry = selectedTransactions[id];
+            if (!transactionEntry) {
+                continue;
+            }
+            const ownerAccountID =
+                transactionEntry.ownerAccountID ??
+                getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
+            if (typeof ownerAccountID === 'number') {
+                moveOwnerAccountIDs.add(ownerAccountID);
+                if (moveOwnerAccountIDs.size > 1) {
+                    break;
+                }
+            } else {
+                moveHasUnknownOwner = true;
+            }
+        }
+        const moveHasMultipleOwners = moveOwnerAccountIDs.size > 1 || (moveHasUnknownOwner && (moveOwnerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
+        // `every` is vacuously true on an empty selection, and the destination page bails out when nothing is selected
+        const canAllTransactionsBeMoved = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+        const canMoveExpenses = canAllTransactionsBeMoved && !moveHasMultipleOwners && !isExpenseReportType;
+
+        const moveExpensesOption: DropdownOption<SearchHeaderOptionValue> = {
+            text: translate('iou.moveExpenses'),
+            icon: expensifyIcons.DocumentMerge,
+            value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                // A queued all-matching move would carry a query that is stale by the time it is sent, so ask the
+                // user to reconnect instead, the same way the all-matching export does
+                if (areAllMatchingItemsSelected && isOffline) {
+                    setIsOfflineModalVisible(true);
+                    return;
+                }
+                Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.getRoute());
+            },
+        };
+
         if (areAllMatchingItemsSelected) {
-            return [exportButtonOption];
+            return canMoveExpenses ? [exportButtonOption, moveExpensesOption] : [exportButtonOption];
         }
 
         if (allSelectedAreDeleted) {
@@ -2210,37 +2257,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
         }
 
-        const ownerAccountIDs = new Set<number>();
-        let hasUnknownOwner = false;
-        for (const id of selectedTransactionsKeys) {
-            const transactionEntry = selectedTransactions[id];
-            if (!transactionEntry) {
-                continue;
-            }
-            const ownerAccountID =
-                transactionEntry.ownerAccountID ??
-                getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
-            if (typeof ownerAccountID === 'number') {
-                ownerAccountIDs.add(ownerAccountID);
-                if (ownerAccountIDs.size > 1) {
-                    break;
-                }
-            } else {
-                hasUnknownOwner = true;
-            }
-        }
-        const hasMultipleOwners = ownerAccountIDs.size > 1 || (hasUnknownOwner && (ownerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
-
-        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
-
-        if (canAllTransactionsBeMoved && !hasMultipleOwners && !isExpenseReportType) {
-            options.push({
-                text: translate('iou.moveExpenses'),
-                icon: expensifyIcons.DocumentMerge,
-                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.getRoute()),
-            });
+        if (canMoveExpenses) {
+            options.push(moveExpensesOption);
         }
 
         const firstTransactionKey = selectedTransactionsKeys.at(0);
@@ -2265,9 +2283,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.ArrowSplit,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, firstTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {
-                        isProduction,
-                    });
+                    initSplitExpense(
+                        firstTransaction,
+                        firstTransactionReport,
+                        splitEffectivePolicy,
+                        selfDMReportID,
+                        restrictedActionPolicyID,
+                        personalPolicy?.outputCurrency,
+                        getCurrencyDecimals,
+                        getCurrencySymbol,
+                        {isProduction},
+                    );
                 },
             });
         }
@@ -2401,6 +2427,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchKey,
         isTrackIntentUser,
         getCurrencyDecimals,
+        getCurrencySymbol,
         amountOwed,
         allTransactions,
         transactions,

@@ -1,6 +1,6 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -48,6 +48,7 @@ import type {ScrollView} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
 
@@ -111,11 +112,10 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         Navigation.dismissModal({
             afterTransition: () => {
                 // Remove the approval workflow using the initial data as it could be already edited
-                if (useRulesBackend) {
-                    removeApprovalWorkflowRules(initialApprovalWorkflow, policy, rulesCollection);
-                } else {
-                    removeApprovalWorkflow(initialApprovalWorkflow, policy);
+                if (useRulesBackend && removeApprovalWorkflowRules(initialApprovalWorkflow, policy, rulesCollection)) {
+                    return;
                 }
+                removeApprovalWorkflow(initialApprovalWorkflow, policy);
             },
         });
     };
@@ -228,7 +228,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                         title={translate('workflowsEditApprovalsPage.title')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    {!!approvalWorkflow && (
+                    {!!approvalWorkflow && !!initialApprovalWorkflow && (
                         <>
                             <ApprovalWorkflowEditor
                                 approvalWorkflow={approvalWorkflow}
@@ -264,7 +264,14 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                             />
                         </>
                     )}
-                    {!initialApprovalWorkflow && <FullScreenLoadingIndicator reasonAttributes={{context: 'WorkspaceWorkflowsApprovalsEditPage'}} />}
+                    {!initialApprovalWorkflow && (
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                reasonAttributes={{context: 'WorkspaceWorkflowsApprovalsEditPage'}}
+                            />
+                        </View>
+                    )}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

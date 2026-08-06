@@ -414,17 +414,24 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
     setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: existingRules});
 }
 
-/** Delete an approval workflow using the rules-based backend structure. */
-function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>) {
+/**
+ * Delete an approval workflow using the rules-based backend structure.
+ */
+function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>): boolean {
     if (!policy) {
-        return;
+        return false;
     }
 
     const existingRules = getApprovalWorkflowRulesForPolicy(rules, policy.id);
     const memberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
     const rulesDiff = reconcileApprovalWorkflowRulesForRemove(memberEmails, {existingRules});
 
+    if (isEmptyObject(rulesDiff)) {
+        return false;
+    }
+
     setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: existingRules});
+    return true;
 }
 
 /** Set the members of the approval workflow that is currently edited */

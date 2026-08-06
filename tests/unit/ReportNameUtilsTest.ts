@@ -46,6 +46,7 @@ describe('ReportNameUtils', () => {
         currentUserID = currentUserAccountID,
     ) =>
         computeReportNameOriginal({
+            conciergeReportID: undefined,
             report,
             reports,
             policies,
@@ -295,6 +296,7 @@ describe('ReportNameUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'lagertha2@vikings.net', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
             const translateWithYouMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.you' ? 'You Marker' : translateLocal(path, ...parameters));
             const name = computeReportNameOriginal({
+                conciergeReportID: undefined,
                 report,
                 reports: emptyCollections.reports,
                 policies: emptyCollections.policies,
@@ -626,6 +628,7 @@ describe('ReportNameUtils', () => {
             } as OnyxCollection<PolicyTagLists>;
 
             const name = computeReportNameOriginal({
+                conciergeReportID: undefined,
                 report: thread,
                 reports: emptyCollections.reports,
                 policies: emptyCollections.policies,
@@ -1475,6 +1478,45 @@ describe('ReportNameUtils', () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
+
+            it('excludes participants whose accountIDs are in pendingDeleteMemberAccountIDs', async () => {
+                const report: Report = {
+                    ...createRegularChat(1, [1, 2, 3, 4]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportName: '',
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report, ['2', '4'])).toEqual('One, Three');
+            });
+
+            it('includes all participants when pendingDeleteMemberAccountIDs is empty', async () => {
+                const report: Report = {
+                    ...createRegularChat(1, [1, 2, 3, 4]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportName: '',
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report, [])).toEqual('Four, One, Three, Two');
+            });
+
+            it('uses passed pendingDeleteMemberAccountIDs instead of falling back to report metadata', async () => {
+                const report: Report = {
+                    ...createRegularChat(1, [1, 2, 3, 4]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportName: '',
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {
+                    pendingChatMembers: [{accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+                });
+
+                expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report, ['3'])).toEqual('Four, One, Two');
+            });
         });
 
         it('builds the single-participant default name through the provided translate function', async () => {
@@ -1751,6 +1793,38 @@ describe('ReportNameUtils', () => {
             );
 
             expect(name).toBe(translate(CONST.LOCALES.EN, 'iou.expense'));
+        });
+    });
+    describe('concierge chat name', () => {
+        it('names the chat Concierge only when the threaded conciergeReportID matches the report', () => {
+            const report: Report = {
+                ...createRegularChat(1, [currentUserAccountID, 1]),
+                reportID: 'concierge-name-1',
+            };
+
+            // When the threaded conciergeReportID matches the report
+            const nameWithMatchingID = computeReportNameOriginal({
+                conciergeReportID: 'concierge-name-1',
+                report,
+                transactions: undefined,
+                currentUserAccountID,
+                currentUserLogin,
+                translate: translateLocal,
+                isTrackIntentUser: false,
+            });
+            expect(nameWithMatchingID).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+
+            // And an identical report with a non-matching conciergeReportID keeps its regular name
+            const nameWithDifferentID = computeReportNameOriginal({
+                conciergeReportID: 'a-different-report-id',
+                report,
+                transactions: undefined,
+                currentUserAccountID,
+                currentUserLogin,
+                translate: translateLocal,
+                isTrackIntentUser: false,
+            });
+            expect(nameWithDifferentID).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
     });
 });
