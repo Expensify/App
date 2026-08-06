@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
+import {useAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useAncestors from '@hooks/useAncestors';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -43,7 +44,7 @@ function DynamicNewTaskDetailsPage() {
     });
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [accountIDToName] = useOnyx(ONYXKEYS.DERIVED.ACCOUNT_ID_TO_NAME_MAP);
+    const accountIDToName = useAccountIDToNameMap();
     const [localTitle, setLocalTitle] = useState<string>();
     const [localDescription, setLocalDescription] = useState<string>();
     const taskTitle = localTitle ?? Parser.htmlToMarkdown(Parser.replace(task?.title ?? ''), {accountIDToName});
