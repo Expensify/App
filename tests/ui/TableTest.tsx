@@ -773,11 +773,7 @@ describe('Table', () => {
 
             expect(within(table).getByTestId('table-header-component')).toBe(pageControls);
             expect(within(table).queryByRole(CONST.ROLE.ROWGROUP)).toBeNull();
-            expect(
-                within(table)
-                    .UNSAFE_getAllByProps({role: CONST.ROLE.ROW})
-                    .filter((row) => row.props['aria-hidden'] !== true),
-            ).toHaveLength(rows.length);
+            expect(getHostTableRowsWithin(table).filter((row) => row.props['aria-hidden'] !== true)).toHaveLength(rows.length);
             expect(table.props['aria-rowcount']).toBe(props.data.length + 1);
             expect(table.props['aria-colcount']).toBe(props.columns.length);
         });
@@ -936,11 +932,7 @@ describe('Table', () => {
             const table = screen.getByLabelText('Members');
             const visibleRows = getHostTableRows().filter((row) => row.props['aria-hidden'] !== true);
             expect(within(table).getByTestId('table-header-component')).toBeTruthy();
-            expect(
-                within(table)
-                    .UNSAFE_getAllByProps({role: CONST.ROLE.ROW})
-                    .filter((row) => row.props['aria-hidden'] !== true),
-            ).toHaveLength(visibleRows.length);
+            expect(getHostTableRowsWithin(table).filter((row) => row.props['aria-hidden'] !== true)).toHaveLength(visibleRows.length);
             expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeDefined();
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
 
