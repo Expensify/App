@@ -878,7 +878,7 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = translate('workspaceActions.downgradedWorkspace');
     } else if (isActionableAddPaymentCard(lastReportAction)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
-    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
         const integrationName = getExportIntegrationDisplayName(policy, getOriginalMessage(lastReportAction)?.label, translate);
         lastMessageTextFromReport = getExportIntegrationLastMessageText(translate, lastReportAction, integrationName);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {

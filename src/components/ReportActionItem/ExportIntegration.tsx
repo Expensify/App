@@ -13,6 +13,7 @@ import {getExportIntegrationActionFragments, getExportIntegrationMessageHTML, ge
 
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
 
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 
@@ -23,7 +24,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ExportIntegrationProps = {
-    action: OnyxEntry<ReportAction>;
+    action: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>>;
 
     /** Original report from which the given reportAction is first created */
     originalReport: OnyxEntry<Report>;

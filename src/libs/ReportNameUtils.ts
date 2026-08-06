@@ -501,7 +501,7 @@ function computeReportNameBasedOnReportAction(
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
         return translate('iou.heldExpense');
     }
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
         const integrationName = getExportIntegrationDisplayName(reportPolicy, getOriginalMessage(parentReportAction)?.label, translate);
         return getExportIntegrationLastMessageText(translate, parentReportAction, integrationName);
     }

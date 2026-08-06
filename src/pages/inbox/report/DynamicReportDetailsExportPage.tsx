@@ -64,7 +64,7 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
             }
             Navigation.dismissModal();
         },
-        [connectionName, connectionNameFriendly, reportID],
+        [connectionName, reportID],
     );
 
     const showExportAgainModal = useCallback(
