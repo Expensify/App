@@ -33,8 +33,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 
-import ActionableItemButtonsSandbox from '@pages/DevSandbox/ActionableItemButtonsSandbox'; // @local-sandbox
-
 import colors from '@styles/theme/colors';
 
 import {clearOnyxAndResetApp} from '@userActions/App';
@@ -248,13 +246,6 @@ function TroubleshootPage() {
                                     <SentryDebugToolMenu />
                                 </View>
                             )}
-                            {/* @local-sandbox — DO NOT COMMIT. Remove with: git checkout -- src/pages/settings/Troubleshoot/TroubleshootPage.tsx */}
-                            {isDevelopment && (
-                                <View style={[styles.mt6]}>
-                                    <ActionableItemButtonsSandbox />
-                                </View>
-                            )}
-                            {/* @local-sandbox end */}
                         </View>
                     </Section>
                 </View>
