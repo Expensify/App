@@ -8,10 +8,23 @@ import {RESULTS} from 'react-native-permissions';
 
 import type {ContactImportResult} from './types';
 
+// Holds the in-flight import so concurrent callers reuse a single native scan of the address book.
+let pendingContactImport: Promise<ContactImportResult> | null = null;
+
 function contactImport(): Promise<ContactImportResult> {
+    // Returning from device Settings after granting Contacts access fires both the AppState "active"
+    // listener and useFocusEffect, and the participant screen mounts the import hook more than once, so a
+    // single foreground event can trigger several imports at the same moment. Loading the whole address book
+    // (including image data) multiple times concurrently causes an out-of-memory crash on iOS, so while an
+    // import is already running we hand every caller the same promise instead of starting another scan.
+    // See https://github.com/Expensify/App/issues/97939
+    if (pendingContactImport) {
+        return pendingContactImport;
+    }
+
     let permissionStatus: PermissionStatus = RESULTS.UNAVAILABLE;
 
-    return getContactPermission()
+    pendingContactImport = getContactPermission()
         .then((response: PermissionStatus) => {
             permissionStatus = response;
             if (response !== RESULTS.GRANTED && response !== RESULTS.LIMITED) {
@@ -30,7 +43,13 @@ function contactImport(): Promise<ContactImportResult> {
                 contactList: [],
                 permissionStatus,
             };
+        })
+        .finally(() => {
+            // Clear the cache once the scan settles so future foregrounds re-read the address book.
+            pendingContactImport = null;
         });
+
+    return pendingContactImport;
 }
 
 export default contactImport;
