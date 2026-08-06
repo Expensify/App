@@ -75,7 +75,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         onReconnect: loadPolicyCompanyCardsPage,
     });
 
-    const isPolicyLoaded = !!policy && (workspaceAccountID !== CONST.DEFAULT_NUMBER_ID || isOffline);
+    const isPolicyLoaded = !!policy && (policy.policyAccountID !== undefined || isOffline);
 
     const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
 
