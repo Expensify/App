@@ -1,11 +1,16 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
+
+import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
+
+import fileDownload from '@libs/fileDownload';
+
+import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Export';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
-import fileDownload from '@libs/fileDownload';
-import Navigation from '@libs/Navigation/Navigation';
-import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Export';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/fileDownload');
@@ -25,6 +30,14 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isTopmostRouteModalScreen: jest.fn(() => false),
     getActiveRouteWithoutParams: jest.fn(() => ''),
 }));
+const mockOpenConciergeAnywhere = jest.fn();
+jest.mock('@hooks/useOpenConciergeAnywhere', () => ({
+    __esModule: true,
+    default: () => ({
+        openConciergeAnywhere: mockOpenConciergeAnywhere,
+        isInSidePanel: false,
+    }),
+}));
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
@@ -39,7 +52,6 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 const mockFileDownload = fileDownload as jest.MockedFunction<typeof fileDownload>;
 const mockSendFromConcierge = sendExportFileFromConcierge as jest.MockedFunction<typeof sendExportFileFromConcierge>;
 const mockClearExportDownload = clearExportDownload as jest.MockedFunction<typeof clearExportDownload>;
-const mockNavigate = Navigation.navigate as jest.MockedFunction<typeof Navigation.navigate>;
 
 const EXPORT_ID = 'test-export-123';
 const CSV_FILE_NAME = 'export_2026-06-09_02-41-38_6a277d629c569.csv';
@@ -118,7 +130,19 @@ describe('ExportDownloadStatusModal', () => {
         await waitForBatchedUpdatesWithAct();
 
         const expectedURLPart = `secure?secureType=csvexport&filename=${encodeURIComponent(CSV_FILE_NAME)}&downloadName=${encodeURIComponent(CSV_FILE_NAME)}`;
-        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), expect.stringContaining(expectedURLPart), CSV_FILE_NAME, expect.anything(), expect.anything());
+        // shouldUnlink (arg 9) is left undefined so the platform default cleans up the temp file; appendTimestamp (arg 10) is false so the OS-recorded download time isn't duplicated in the name.
+        expect(mockFileDownload).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.stringContaining(expectedURLPart),
+            CSV_FILE_NAME,
+            expect.anything(),
+            expect.anything(),
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            false,
+        );
     });
 
     it('auto-downloads PDF on ready state transition with pdfreport secureType', async () => {
@@ -128,7 +152,19 @@ describe('ExportDownloadStatusModal', () => {
         await waitForBatchedUpdatesWithAct();
 
         const expectedURLPart = `secure?secureType=pdfreport&filename=${encodeURIComponent(PDF_FILE_NAME)}&downloadName=${encodeURIComponent(PDF_FILE_NAME)}`;
-        expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), expect.stringContaining(expectedURLPart), PDF_FILE_NAME, expect.anything(), expect.anything());
+        // shouldUnlink (arg 9) is left undefined so the platform default cleans up the temp file; appendTimestamp (arg 10) is false so the OS-recorded download time isn't duplicated in the name.
+        expect(mockFileDownload).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.stringContaining(expectedURLPart),
+            PDF_FILE_NAME,
+            expect.anything(),
+            expect.anything(),
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            false,
+        );
     });
 
     it('shows ready state with a Download button and no Close button', async () => {
@@ -172,8 +208,6 @@ describe('ExportDownloadStatusModal', () => {
 
     it('"Go to Concierge" navigates and closes', async () => {
         const onClose = jest.fn();
-        const conciergeReportID = 'concierge-report-123';
-        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing', shouldSendFromConcierge: true});
 
         renderModal({onClose});
@@ -182,7 +216,7 @@ describe('ExportDownloadStatusModal', () => {
         fireEvent.press(screen.getByText('exportDownload.goToConcierge'));
 
         expect(onClose).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining(conciergeReportID));
+        expect(mockOpenConciergeAnywhere).toHaveBeenCalled();
     });
 
     it('shows partial failure body when failedReportCount > 0 in ready state', async () => {

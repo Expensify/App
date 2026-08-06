@@ -1,7 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {delegateEmailSelector} from '@selectors/Account';
-import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -12,25 +8,36 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getCommentLength, isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
+
 import variables from '@styles/variables';
+
 import {canModifyTask, editTask} from '@userActions/Task';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/EditTaskForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {delegateEmailSelector} from '@selectors/Account';
+import React, {useCallback, useRef} from 'react';
+import {View} from 'react-native';
 
 type TaskDescriptionPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 

@@ -1,10 +1,13 @@
 import ConfirmModal from '@components/ConfirmModal';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {setIsGPSInProgressModalOpen} from '@libs/actions/isGPSInProgressModalOpen';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function GPSInProgressModal() {

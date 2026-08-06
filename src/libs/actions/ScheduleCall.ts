@@ -1,13 +1,17 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetGuideCallAvailabilityScheduleParams, SendScheduleCallNudgeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, ScheduleCallDraft} from '@src/types/onyx';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {CalendlyCall} from '@src/types/onyx/ReportNameValuePairs';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {openExternalLink} from './Link';
 
 function getGuideCallAvailabilitySchedule(reportID: string) {

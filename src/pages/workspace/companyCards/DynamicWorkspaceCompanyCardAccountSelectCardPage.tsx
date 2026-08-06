@@ -1,0 +1,143 @@
+import BlockingView from '@components/BlockingViews/BlockingView';
+import RenderHTML from '@components/RenderHTML';
+import SelectionScreen from '@components/SelectionScreen';
+import type {SelectorType} from '@components/SelectionScreen';
+
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsList from '@hooks/useCardsList';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+
+import {setCompanyCardExportAccount} from '@libs/actions/CompanyCards';
+import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, isExpensifyCard as isExpensifyCardUtil} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
+
+import Navigation from '@navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@navigation/types';
+
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+import {getExportMenuItem} from './utils';
+
+type DynamicWorkspaceCompanyCardAccountSelectCardProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT>;
+
+function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorkspaceCompanyCardAccountSelectCardProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const {environmentURL} = useEnvironment();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.path);
+    const {policyID, cardID} = route.params;
+    const feed = route.params.feed;
+    const policy = usePolicy(policyID);
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const [searchText, setSearchText] = useState('');
+
+    const [allBankCards] = useCardsList(feed);
+    const card = allBankCards?.[cardID];
+    const connectedIntegration = getConnectedIntegration(policy) ?? CONST.POLICY.CONNECTIONS.NAME.QBO;
+    // We need to have an unchanged active route for getExportMenuItem so the export page link is not updated incorrectly when user is in other pages
+    // See https://github.com/Expensify/App/issues/72352 for more details.
+    const activeRoute = Navigation.getActiveRoute();
+    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, styles, policy, card, activeRoute);
+    const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
+    const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
+    const defaultVendor = translate('workspace.accounting.defaultVendor');
+    const defaultAccount = translate('workspace.accounting.defaultAccount');
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
+
+    const [cardFeeds] = useCardFeeds(policyID);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, cardFeeds?.[feed]);
+
+    // This page is a dynamic page and is used by both Expensify Cards and Company Cards
+    const isExpensifyCard = isExpensifyCardUtil(card);
+    const featureName = isExpensifyCard ? CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED : CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED;
+    const policyFeature = isExpensifyCard ? CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD : CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS;
+
+    const searchedListOptions = tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.text ?? option.value]);
+
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.moreFeatures.companyCards.noAccountsFound')}
+            subtitle={currentConnectionName ? translate('workspace.moreFeatures.companyCards.noAccountsFoundDescription', currentConnectionName) : undefined}
+            containerStyle={styles.pb10}
+        />
+    );
+
+    const updateExportAccount = ({value}: SelectorType) => {
+        if (!exportMenuItem?.exportType) {
+            return;
+        }
+        const isDefaultSelected = value === defaultCard || value === defaultVendor || value === defaultAccount;
+        const exportValue = isDefaultSelected ? CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE : value;
+        setCompanyCardExportAccount(policyID, domainOrWorkspaceAccountID, cardID, exportMenuItem.exportType, exportValue, getCompanyCardFeed(feed));
+
+        Navigation.goBack(backPath);
+    };
+
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={featureName}
+            policyFeature={policyFeature}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            <SelectionScreen
+                policyID={policyID}
+                headerContent={
+                    <View style={[styles.mh5, styles.mb3]}>
+                        {!!exportMenuItem?.description && (
+                            <View style={[styles.renderHTML, styles.flexRow]}>
+                                <RenderHTML
+                                    html={translate(
+                                        'workspace.moreFeatures.companyCards.integrationExportTitle',
+                                        exportMenuItem.description,
+                                        exportMenuItem.exportPageLink ? `${environmentURL}/${exportMenuItem.exportPageLink}` : undefined,
+                                    )}
+                                />
+                            </View>
+                        )}
+                    </View>
+                }
+                featureName={featureName}
+                displayName="DynamicWorkspaceCompanyCardAccountSelectCardPage"
+                data={searchedListOptions ?? []}
+                textInputOptions={{
+                    label: translate('common.search'),
+                    value: searchText,
+                    onChangeText: setSearchText,
+                }}
+                onSelectRow={updateExportAccount}
+                initiallyFocusedOptionKey={exportMenuItem?.data?.find((mode) => mode.isSelected)?.keyForList}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
+                headerTitleAlreadyTranslated={exportMenuItem?.description}
+                listEmptyContent={listEmptyContent}
+                connectionName={connectedIntegration}
+                shouldShowTextInput={shouldShowTextInput}
+                isRowMultilineSupported
+            />
+        </AccessOrNotFoundWrapper>
+    );
+}
+
+export default DynamicWorkspaceCompanyCardAccountSelectCardPage;

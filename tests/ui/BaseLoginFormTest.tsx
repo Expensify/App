@@ -1,10 +1,19 @@
-import type * as ReactNavigationNative from '@react-navigation/native';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+
+import {LoginProvider} from '@pages/signin/SignInLoginContext';
+
+import {beginSignIn} from '@userActions/Session';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
+
+import type * as ReactNavigationNative from '@react-navigation/native';
+
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import {LoginProvider} from '@pages/signin/SignInLoginContext';
-import {beginSignIn} from '@userActions/Session';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@react-navigation/native', () => {
@@ -66,12 +75,21 @@ jest.mock('@userActions/CloseAccount', () => ({
 const BaseLoginForm = require('@pages/signin/LoginForm/BaseLoginForm').default;
 
 const mockBeginSignIn = beginSignIn as jest.MockedFunction<typeof beginSignIn>;
+const Stack = createStackNavigator();
 
 function renderForm() {
     return render(
-        <LoginProvider>
-            <BaseLoginForm isVisible />
-        </LoginProvider>,
+        <NavigationContainer>
+            <Stack.Navigator>
+                <Stack.Screen name={SCREENS.SIGN_IN_ROOT}>
+                    {() => (
+                        <LoginProvider>
+                            <BaseLoginForm isVisible />
+                        </LoginProvider>
+                    )}
+                </Stack.Screen>
+            </Stack.Navigator>
+        </NavigationContainer>,
     );
 }
 

@@ -1,5 +1,7 @@
-import lodashIsObject from 'lodash/isObject';
 import type {RawShiftedLineSegmentStyle} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+
+import lodashIsObject from 'lodash/isObject';
+
 import parseAttribute from './parseAttribute';
 
 function parseRawShiftedLineSegmentStyle(attribute: string): RawShiftedLineSegmentStyle {

@@ -1,7 +1,6 @@
-import React, {useMemo, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -11,12 +10,20 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useMemo, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type {SingleSelectItem} from './FilterComponents/SingleSelect';
+import type {ButtonComponentProps, FilterPopupButtonProps} from './FilterDropdowns/FilterPopupButton';
+
 import CurrencyPopup from './FilterDropdowns/CurrencyPopup';
 import FilterPopupButton from './FilterDropdowns/FilterPopupButton';
-import type {ButtonComponentProps, FilterPopupButtonProps} from './FilterDropdowns/FilterPopupButton';
 import SearchPageFooterSkeleton from './SearchPageFooterSkeleton';
+
+const noop = () => {};
 
 type SearchPageFooterProps = {
     /** Number of expenses represented by the footer total */
@@ -36,12 +43,9 @@ type SearchPageFooterProps = {
 
     /** Function to call when the footer currency changes */
     onCurrencyChange: (currency: string | undefined) => void;
-
-    /** Whether the footer currency picker should be available */
-    shouldAllowCurrencyChange: boolean;
 };
 
-function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoading, onCurrencyChange, shouldAllowCurrencyChange}: SearchPageFooterProps) {
+function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoading, onCurrencyChange}: SearchPageFooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -58,7 +62,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
 
     // The SearchList registers a global Enter shortcut that opens the focused expense. While the total button is focused,
     // claim Enter at top priority without bubbling so Enter only opens the currency popover instead of also opening the expense.
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, () => {}, {isActive: isTotalButtonFocused, shouldBubble: false, shouldPreventDefault: false});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, noop, {isActive: isTotalButtonFocused, shouldBubble: false, shouldPreventDefault: false});
 
     const handleCurrencyChange = (item: SingleSelectItem<string> | undefined) => {
         if (isOffline) {
@@ -81,6 +85,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
             searchPlaceholder={translate('common.search')}
             defaultValue={defaultCurrency}
             shouldShowList={isExpanded}
+            shouldUseFixedPopoverHeight
         />
     );
 
@@ -88,21 +93,27 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
         <Button
             ref={props.ref}
             accessibilityLabel={translate('common.totalSpend')}
-            shouldUseDefaultHover={false}
             innerStyles={[styles.bgTransparent, styles.gap1, styles.mnh0, styles.ph0, styles.pv0]}
-            text={convertToDisplayString(total, currency)}
-            textStyles={valueTextStyle}
-            textHoverStyles={styles.textSupporting}
+            contentContainerStyle={styles.gap1}
             isDisabled={isOffline || isTotalLoading}
-            small
-            shouldShowRightIcon
-            iconRight={icons.DownArrow}
-            iconRightFill={theme.icon}
-            iconRightHoverFill={theme.iconHovered}
+            size={CONST.BUTTON_SIZE.SMALL}
+            hoverStyles={styles.bgTransparent}
             onPress={props.onPress}
             onFocus={() => setIsTotalButtonFocused(true)}
             onBlur={() => setIsTotalButtonFocused(false)}
-        />
+        >
+            <Button.Text
+                style={valueTextStyle}
+                hoverStyle={styles.textSupporting}
+            >
+                {convertToDisplayString(total, currency)}
+            </Button.Text>
+            <Button.Icon
+                src={icons.DownArrow}
+                fill={theme.icon}
+                hoverFill={theme.iconHovered}
+            />
+        </Button>
     );
 
     return (
@@ -121,9 +132,9 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
                     <Text style={styles.textLabelSupporting}>{`${translate('common.expenses')}:`}</Text>
                     <Text style={valueTextStyle}>{count}</Text>
                 </View>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                    <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
-                    {shouldAllowCurrencyChange ? (
+                {typeof total === 'number' && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                        <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
                         <FilterPopupButton
                             PopoverComponent={renderCurrencyPopup}
                             renderButton={totalButton}
@@ -132,10 +143,8 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                             }}
                         />
-                    ) : (
-                        <Text style={valueTextStyle}>{convertToDisplayString(total, currency)}</Text>
-                    )}
-                </View>
+                    </View>
+                )}
             </View>
             {isTotalLoading && (
                 <View style={[StyleSheet.absoluteFill, styles.flexRow, styles.alignItemsCenter, styles.ph5, shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd]}>

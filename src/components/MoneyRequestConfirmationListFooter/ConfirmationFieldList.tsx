@@ -1,23 +1,31 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getTagLists} from '@libs/PolicyUtils';
+
 import variables from '@styles/variables';
+
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {AmountDisplay, CompactState, DistanceData, ErrorState, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
+
 import ClassificationFields from './fieldGroups/ClassificationFields';
 import computeFieldVisibility, {hasBelowShowMore} from './fieldGroups/fieldVisibility';
 import SettingsFields from './fieldGroups/SettingsFields';
 import TransactionDetailsFields from './fieldGroups/TransactionDetailsFields';
-import type {AmountDisplay, CompactState, DistanceData, ErrorState, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
 import useFooterDerivedFlags from './hooks/useFooterDerivedFlags';
 import useFooterTagVisibility from './hooks/useFooterTagVisibility';
 
@@ -51,9 +59,6 @@ type ConfirmationFieldListProps = {
 
     /** Compact-mode bookkeeping */
     compactState: CompactState;
-
-    /** Triggers submit from inline inputs */
-    onSubmitForm?: () => void;
 };
 
 function ConfirmationFieldList({
@@ -67,7 +72,6 @@ function ConfirmationFieldList({
     errorState,
     toggleHandlers,
     compactState,
-    onSubmitForm,
 }: ConfirmationFieldListProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -142,7 +146,6 @@ function ConfirmationFieldList({
                 iouCurrencyCode={flags.iouCurrencyCode}
                 isCompactMode={compactState.isCompactMode}
                 fieldVisibility={fieldVisibility}
-                onSubmitForm={onSubmitForm}
                 isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
             />
 

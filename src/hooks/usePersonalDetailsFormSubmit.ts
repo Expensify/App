@@ -1,10 +1,13 @@
 import type {FormOnyxKeys} from '@components/Form/types';
+
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useStepFormSubmit from './useStepFormSubmit';
-import type {SubStepProps} from './useSubStep/types';
 
-type UsePersonalDetailsFormSubmitParams = Pick<SubStepProps, 'onNext'> & {
+import type {SubPageProps} from './useSubPage/types';
+
+import useStepFormSubmit from './useStepFormSubmit';
+
+type UsePersonalDetailsFormSubmitParams = Pick<SubPageProps, 'onNext'> & {
     formId?: OnyxFormKey;
     fieldIds: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>>;
     shouldSaveDraft: boolean;

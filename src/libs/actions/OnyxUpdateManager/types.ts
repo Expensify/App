@@ -1,5 +1,6 @@
-import type {OnyxKey} from 'react-native-onyx';
 import type {AnyOnyxUpdatesFromServer, OnyxUpdatesFromServer} from '@src/types/onyx';
+
+import type {OnyxKey} from 'react-native-onyx';
 
 /**
  * Maps last update IDs to their corresponding Onyx server updates, allowing multiple updates to be enqueued simultaneously

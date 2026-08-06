@@ -1,12 +1,13 @@
-import * as Sentry from '@sentry/react-native';
 import CONST from '@src/CONST';
+
+import * as Sentry from '@sentry/react-native';
 
 /**
  * Builds the top-N slowest modules from raw init time data, logs them, and
  * sends a Sentry breadcrumb. Shared by index.native.ts and index.web.ts.
  *
  * @param initTimes  moduleId → execution time in ms
- * @param names      optional moduleId → human-readable name (Metro provides this; webpack uses the ID as the name)
+ * @param names      optional moduleId → human-readable name (Metro provides this; Rspack uses the ID as the name)
  * @param minMs      minimum ms threshold — modules below this are excluded
  */
 function reportModuleInitTimes(initTimes: Record<string | number, number> | undefined, names: Record<string | number, string> | undefined, minMs: number): void {

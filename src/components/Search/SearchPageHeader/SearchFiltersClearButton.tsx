@@ -1,12 +1,15 @@
-import React from 'react';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 type SearchFiltersClearButtonProps = {
     onPress: () => void;
@@ -29,7 +32,7 @@ function SearchFiltersClearButton({onPress}: SearchFiltersClearButtonProps) {
             <Icon
                 src={expensifyIcons.Close}
                 fill={theme.icon}
-                extraSmall
+                size={CONST.ICON_SIZE.EXTRA_SMALL}
             />
             <Text style={[styles.textMicroBoldSupporting]}>{translate('common.clear')}</Text>
         </PressableWithFeedback>

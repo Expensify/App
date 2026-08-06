@@ -1,16 +1,21 @@
-import {setYear} from 'date-fns';
-import React, {useEffect, useRef, useState} from 'react';
-import type {View} from 'react-native';
-import {isInternalPopstateInProgress} from '@components/Modal/internalPopstateGuard';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
+
 import {setDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
-import CalendarPicker from './CalendarPicker';
+
+import type {View} from 'react-native';
+
+import {setYear} from 'date-fns';
+import React, {useEffect, useRef, useState} from 'react';
+
 import type {DatePickerProps} from './types';
+
+import CalendarPicker from './CalendarPicker';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -49,32 +54,6 @@ function DatePickerModal({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-
-    useEffect(() => {
-        if (
-            getPlatform() !== CONST.PLATFORM.WEB ||
-            !isSmallScreenWidth ||
-            !isVisible ||
-            !shouldCloseWhenBrowserNavigationChanged ||
-            typeof window === 'undefined' ||
-            typeof window.addEventListener !== 'function'
-        ) {
-            return;
-        }
-
-        const listener = () => {
-            if (isInternalPopstateInProgress()) {
-                return;
-            }
-
-            onClose?.();
-        };
-
-        window.addEventListener('popstate', listener);
-        return () => {
-            window.removeEventListener('popstate', listener);
-        };
-    }, [isSmallScreenWidth, isVisible, onClose, shouldCloseWhenBrowserNavigationChanged]);
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {

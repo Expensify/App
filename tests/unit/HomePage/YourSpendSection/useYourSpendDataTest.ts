@@ -8,21 +8,29 @@
  *   - search() is dispatched when focused and online; suppressed when offline
  */
 import {act, renderHook} from '@testing-library/react-native';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
+
 import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards} from '@libs/CardUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+
 import {YOUR_SPEND_ROW_STATE} from '@pages/home/YourSpendSection/const';
 import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from '@pages/home/YourSpendSection/queries';
 import {useYourSpendData} from '@pages/home/YourSpendSection/useYourSpendData';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, Policy, Report} from '@src/types/onyx';
 import type {CardFeedErrors, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import createMock from '../../../utils/createMock';
 
 // Constants
 
@@ -101,7 +109,7 @@ const mockedBuildRecentCardTransactionsQuery = jest.mocked(buildRecentCardTransa
 
 // useOnyx mock
 
-const onyxData: Record<string, unknown> = {};
+const onyxData: Record<string, unknown> & Partial<Record<typeof ONYXKEYS.COLLECTION.SNAPSHOT, OnyxCollection<SearchResults>>> = {};
 
 const mockUseOnyx = jest.fn((key: string, options?: {selector?: (v: unknown) => unknown}) => {
     const value = onyxData[key];
@@ -136,15 +144,17 @@ function makeSearchResultsWithCount(count: number): SearchResults {
     return {
         search: {
             type: 'expense',
-            status: '',
             offset: 0,
+            hash: 0,
+            sortBy: 'date',
+            sortOrder: 'desc',
             hasMoreResults: false,
             hasResults: count > 0,
             isLoading: false,
             count,
         },
         data: {},
-    } as SearchResults;
+    };
 }
 
 /** Populates onyxData with a single-entry policies collection. */
@@ -186,9 +196,14 @@ function setupCardSnapshot(cardID: number, results: SearchResults | undefined) {
     }
     const hash = buildSearchQueryJSON(cardQuery)?.hash;
     if (!onyxData[ONYXKEYS.COLLECTION.SNAPSHOT]) {
-        onyxData[ONYXKEYS.COLLECTION.SNAPSHOT] = {};
+        const snapshotCollection: OnyxCollection<SearchResults> = {};
+        onyxData[ONYXKEYS.COLLECTION.SNAPSHOT] = snapshotCollection;
+        snapshotCollection[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`] = results;
+        return;
     }
-    (onyxData[ONYXKEYS.COLLECTION.SNAPSHOT] as Record<string, unknown>)[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`] = results;
+    const snapshotCollection = onyxData[ONYXKEYS.COLLECTION.SNAPSHOT] ?? {};
+    snapshotCollection[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`] = results;
+    onyxData[ONYXKEYS.COLLECTION.SNAPSHOT] = snapshotCollection;
 }
 
 /** Builds a fully-populated `CardFeedErrors` value for `onyxData[ONYXKEYS.DERIVED.CARD_FEED_ERRORS]`. */
@@ -209,21 +224,23 @@ function makeCardFeedErrors(overrides: Partial<CardFeedErrors> = {}): CardFeedEr
 }
 
 /** Builds third-party `Card[]` fixtures for `getDisplayableThirdPartyCards.mockReturnValue`. */
-function makeThirdPartyCards(cards: Array<{cardID: number; lastFourPAN?: string; cardName?: string; bank?: string; fundID?: string; lastScrapeResult?: number}>): Card[] {
-    return cards.map((c) => ({
-        accountID: ACCOUNT_ID,
-        bank: c.bank ?? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-        cardID: c.cardID,
-        cardName: c.cardName ?? '480801XXXXXX2554',
-        domainName: 'feed-a.exfy',
-        fraud: 'none',
-        fundID: c.fundID ?? '767578',
-        lastFourPAN: c.lastFourPAN ?? '',
-        lastScrape: '',
-        lastUpdated: '',
-        lastScrapeResult: c.lastScrapeResult,
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-    })) as unknown as Card[];
+function makeThirdPartyCards(cards: Array<{cardID: number; lastFourPAN?: string; cardName?: string; bank?: Card['bank']; fundID?: string; lastScrapeResult?: number}>): Card[] {
+    return cards.map((c) =>
+        createMock<Card>({
+            accountID: ACCOUNT_ID,
+            bank: c.bank ?? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            cardID: c.cardID,
+            cardName: c.cardName ?? '480801XXXXXX2554',
+            domainName: 'feed-a.exfy',
+            fraud: 'none',
+            fundID: c.fundID ?? '767578',
+            lastFourPAN: c.lastFourPAN ?? '',
+            lastScrape: '',
+            lastUpdated: '',
+            lastScrapeResult: c.lastScrapeResult,
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        }),
+    );
 }
 
 /** Returns a typed offline payload for `useNetwork.mockReturnValue`. */
@@ -233,7 +250,7 @@ function networkState(isOffline: boolean): ReturnType<typeof useNetwork> {
 
 /** Builds a `Card[]` payload for `getDisplayableExpensifyCards.mockReturnValue`. */
 function makeDisplayableCards(cards: Array<{cardID: number; lastFourPAN: string}>): Card[] {
-    return cards as unknown as Card[];
+    return cards.map((card) => createMock<Card>(card));
 }
 
 // Common beforeEach
@@ -587,17 +604,41 @@ describe('useYourSpendData — third-party cardRows', () => {
         mockedGetDisplayableThirdPartyCards.mockReturnValue(makeThirdPartyCards([{cardID: THIRD_PARTY_CARD_ID_1, lastFourPAN: THIRD_PARTY_LAST_FOUR_1}]));
         // First render: READY snapshot with count > 0 → row produced and total cached.
         setupCardSnapshot(THIRD_PARTY_CARD_ID_1, {
-            search: {type: 'expense', status: '', offset: 0, hasMoreResults: false, hasResults: true, isLoading: false, count: 3, total: 1234, currency: 'USD'},
+            search: {
+                type: 'expense',
+                offset: 0,
+                hash: 0,
+                sortBy: 'date',
+                sortOrder: 'desc',
+                hasMoreResults: false,
+                hasResults: true,
+                isLoading: false,
+                count: 3,
+                total: 1234,
+                currency: 'USD',
+            },
             data: {},
-        } as SearchResults);
+        });
         const {result, rerender} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows.at(0)?.total).toBe(1234);
 
         // Search screen wipes count/total/currency on the shared snapshot.
         setupCardSnapshot(THIRD_PARTY_CARD_ID_1, {
-            search: {type: 'expense', status: '', offset: 0, hasMoreResults: false, hasResults: true, isLoading: false, count: undefined, total: undefined, currency: undefined},
+            search: {
+                type: 'expense',
+                offset: 0,
+                hash: 0,
+                sortBy: 'date',
+                sortOrder: 'desc',
+                hasMoreResults: false,
+                hasResults: true,
+                isLoading: false,
+                count: undefined,
+                total: undefined,
+                currency: undefined,
+            },
             data: {},
-        } as unknown as SearchResults);
+        });
         rerender(undefined);
         // Cached total/currency must survive the wipe so the row stays.
         expect(result.current.cardRows).toHaveLength(1);
@@ -627,13 +668,37 @@ describe('useYourSpendData — third-party cardRows', () => {
             ]),
         );
         setupCardSnapshot(THIRD_PARTY_CARD_ID_1, {
-            search: {type: 'expense', status: '', offset: 0, hasMoreResults: false, hasResults: true, isLoading: false, count: 2, total: 500, currency: 'USD'},
+            search: {
+                type: 'expense',
+                offset: 0,
+                hash: 0,
+                sortBy: 'date',
+                sortOrder: 'desc',
+                hasMoreResults: false,
+                hasResults: true,
+                isLoading: false,
+                count: 2,
+                total: 500,
+                currency: 'USD',
+            },
             data: {},
-        } as SearchResults);
+        });
         setupCardSnapshot(THIRD_PARTY_CARD_ID_2, {
-            search: {type: 'expense', status: '', offset: 0, hasMoreResults: false, hasResults: true, isLoading: false, count: 3, total: 2200, currency: 'EUR'},
+            search: {
+                type: 'expense',
+                offset: 0,
+                hash: 0,
+                sortBy: 'date',
+                sortOrder: 'desc',
+                hasMoreResults: false,
+                hasResults: true,
+                isLoading: false,
+                count: 3,
+                total: 2200,
+                currency: 'EUR',
+            },
             data: {},
-        } as SearchResults);
+        });
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(2);
         const [r1, r2] = result.current.cardRows;
@@ -696,7 +761,7 @@ describe('useYourSpendData — approval cache is keyed by query hash', () => {
         // Switch to query B (different hash), with count missing on B's snapshot — the situation
         // that would let a stale-cache reuse happen if the cache weren't keyed by hash.
         mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY_B);
-        setupApprovalSnapshotForQuery(APPROVAL_QUERY_B, {search: {count: undefined}, data: {}} as unknown as SearchResults);
+        setupApprovalSnapshotForQuery(APPROVAL_QUERY_B, createMock<SearchResults>({search: {count: undefined}, data: {}}));
         rerender(undefined);
 
         // Should NOT be READY — the cache for hash A must not apply to hash B.
@@ -789,7 +854,7 @@ describe('useYourSpendData — drops the approval cache when no outstanding repo
     }
 
     // A zero-result search comes back with `count` missing (undefined), not 0.
-    const WIPED_SNAPSHOT = {search: {count: undefined}, data: {}} as unknown as SearchResults;
+    const WIPED_SNAPSHOT = createMock<SearchResults>({search: {count: undefined}, data: {}});
 
     beforeEach(() => {
         mockedIsPaidGroupPolicy.mockReturnValue(true);

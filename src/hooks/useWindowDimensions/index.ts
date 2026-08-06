@@ -1,12 +1,20 @@
+import type {ResponsiveLayoutProperties} from '@components/VideoPlayerContexts/FullScreenContextProvider';
+import {FullScreenActionsContext, FullScreenStateContext} from '@components/VideoPlayerContexts/FullScreenContextProvider';
+
+import useDebouncedState from '@hooks/useDebouncedState';
+
+import {isMobile as isMobileBrowser, isMobileWebKit} from '@libs/Browser';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
+import type {RefObject} from 'react';
+
 import {useContext, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Dimensions, useWindowDimensions} from 'react-native';
-import type {ResponsiveLayoutProperties} from '@components/VideoPlayerContexts/FullScreenContextProvider';
-import {FullScreenActionsContext, FullScreenStateContext} from '@components/VideoPlayerContexts/FullScreenContextProvider';
-import useDebouncedState from '@hooks/useDebouncedState';
-import {isMobile as isMobileBrowser, isMobileWebKit} from '@libs/Browser';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
 import type WindowDimensions from './types';
 
 const initialViewportHeight = window.visualViewport?.height ?? window.innerHeight;
@@ -17,9 +25,9 @@ const isMobile = isMobileBrowser();
  * A wrapper around React Native's useWindowDimensions hook.
  */
 export default function (useCachedViewportHeight = false): WindowDimensions {
-    const {isFullScreenRef, lockedWindowDimensionsRef} = useContext(FullScreenStateContext) ?? {
-        isFullScreenRef: useRef(false),
-        lockedWindowDimensionsRef: useRef<ResponsiveLayoutProperties | null>(null),
+    const {isFullScreen, lockedWindowDimensionsRef} = useContext(FullScreenStateContext) ?? {
+        isFullScreen: false,
+        lockedWindowDimensionsRef: {current: null} as RefObject<ResponsiveLayoutProperties | null>,
     };
     const {lockWindowDimensions, unlockWindowDimensions} = useContext(FullScreenActionsContext) ?? {
         lockWindowDimensions: () => {},
@@ -111,7 +119,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         responsiveLayoutResults,
     };
 
-    if (!lockedWindowDimensionsRef.current && !isFullScreenRef.current) {
+    if (!lockedWindowDimensionsRef.current && !isFullScreen) {
         return windowDimensions;
     }
 
@@ -131,7 +139,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     }
 
     // if video exits fullscreen mode, unlock the window dimensions
-    if (lockedWindowDimensionsRef.current && !isFullScreenRef.current) {
+    if (lockedWindowDimensionsRef.current && !isFullScreen) {
         const lastLockedWindowDimensions = {...lockedWindowDimensionsRef.current};
         unlockWindowDimensions();
         return {windowWidth: lastLockedWindowDimensions.windowWidth, windowHeight: lastLockedWindowDimensions.windowHeight};

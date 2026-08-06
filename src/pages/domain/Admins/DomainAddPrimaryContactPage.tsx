@@ -1,27 +1,35 @@
-import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
-import React, {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
+
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+
 import {setPrimaryContact} from '@userActions/Domain';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import React, {useCallback} from 'react';
 
 type AdminOption = Omit<ListItem, 'accountID' | 'login'> & {
     accountID: number;
@@ -89,7 +97,7 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
             keyForList: String(accountID),
             accountID,
             login: details?.login ?? '',
-            text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+            text: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
             alternateText: formatPhoneNumber(details?.login ?? ''),
             icons: [
                 {

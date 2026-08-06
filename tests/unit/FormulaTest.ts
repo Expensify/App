@@ -1,9 +1,12 @@
 import type {FormulaContext} from '@libs/Formula';
-import {compute, hasCircularReferences, parse, resolveReportFieldValue} from '@libs/Formula';
+import {compute, computeWithMetadata, hasCircularReferences, parse, resolveReportFieldValue} from '@libs/Formula';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails, Policy, PolicyReportField, Report, ReportActions, Transaction} from '@src/types/onyx';
+
+import createMock from '../utils/createMock';
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     getAllReportActions: jest.fn(),
@@ -12,6 +15,10 @@ jest.mock('@libs/ReportActionsUtils', () => ({
 jest.mock('@libs/ReportUtils', () => ({
     ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     getReportTransactions: jest.fn(),
+}));
+
+jest.mock('@libs/CurrentUserStore', () => ({
+    getCurrentUserEmail: jest.fn(() => 'jane@example.com'),
 }));
 
 const mockReportActionsUtils = ReportActionsUtils as jest.Mocked<typeof ReportActionsUtils>;
@@ -69,7 +76,7 @@ describe('CustomFormula', () => {
 
     describe('compute()', () => {
         const mockContext: FormulaContext = {
-            report: {
+            report: createMock<Report>({
                 reportID: '123',
                 reportName: '',
                 type: 'expense',
@@ -77,16 +84,16 @@ describe('CustomFormula', () => {
                 currency: 'USD',
                 lastVisibleActionCreated: '2025-01-15T10:30:00Z',
                 policyID: 'policy1',
-            } as Report,
-            policy: {
+            }),
+            policy: createMock<Policy>({
                 name: 'Test Policy',
-            } as Policy,
+            }),
         };
 
         beforeEach(() => {
             jest.clearAllMocks();
 
-            const mockReportActions = {
+            const mockReportActions = createMock<ReportActions>({
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
@@ -103,11 +110,11 @@ describe('CustomFormula', () => {
                 '3': {
                     reportActionID: '3',
                     created: '2025-01-12T14:20:00Z', // Middle action
-                    actionName: 'COMMENT',
+                    actionName: 'ADDCOMMENT',
                 },
-            } as unknown as ReportActions;
+            });
 
-            const mockTransactions = [
+            const mockTransactions = createMock<Transaction[]>([
                 {
                     transactionID: 'trans1',
                     created: '2025-01-08T12:00:00Z', // Oldest transaction
@@ -126,7 +133,7 @@ describe('CustomFormula', () => {
                     amount: 2000,
                     merchant: 'ACME Ltd.',
                 },
-            ] as Transaction[];
+            ]);
 
             mockReportActionsUtils.getAllReportActions.mockReturnValue(mockReportActions);
             mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
@@ -207,29 +214,29 @@ describe('CustomFormula', () => {
         test('should compute expenses count using allTransactions from context', () => {
             const allTransactions = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                transactions_trans1: {
+                transactions_trans1: createMock<Transaction>({
                     transactionID: 'trans1',
                     reportID: '123',
                     created: '2025-01-08T12:00:00Z',
                     amount: 5000,
                     merchant: 'ACME Ltd.',
-                } as Transaction,
+                }),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                transactions_trans2: {
+                transactions_trans2: createMock<Transaction>({
                     transactionID: 'trans2',
                     reportID: '123',
                     created: '2025-01-14T16:45:00Z',
                     amount: 3000,
                     merchant: 'ACME Ltd.',
-                } as Transaction,
+                }),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                transactions_trans3: {
+                transactions_trans3: createMock<Transaction>({
                     transactionID: 'trans3',
                     reportID: '123',
                     created: '2025-01-11T09:15:00Z',
                     amount: 2000,
                     merchant: 'ACME Ltd.',
-                } as Transaction,
+                }),
             };
 
             const contextWithAllTransactions: FormulaContext = {
@@ -254,7 +261,7 @@ describe('CustomFormula', () => {
 
         test('should handle missing report data gracefully', () => {
             const contextWithMissingData: FormulaContext = {
-                report: {} as unknown as Report,
+                report: createMock<Report>({}),
                 policy: null as unknown as Policy,
             };
             const result = compute('{report:total} {report:policyname}', contextWithMissingData);
@@ -370,9 +377,9 @@ describe('CustomFormula', () => {
                 type: 'expense',
                 policyID: 'policy1',
             },
-            policy: {
+            policy: createMock<Policy>({
                 name: 'Test Policy',
-            } as Policy,
+            }),
         };
 
         const calculateExpectedReimbursable = (total: number, nonReimbursableTotal: number) => {
@@ -436,12 +443,12 @@ describe('CustomFormula', () => {
 
         describe('Currency Formatting & Conversion', () => {
             const currencyContext: FormulaContext = {
-                report: {
+                report: createMock<Report>({
                     reportID: '123',
                     total: -10000,
                     currency: 'USD',
-                } as Report,
-                policy: {} as Policy,
+                }),
+                policy: createMock<Policy>({}),
             };
 
             beforeEach(() => {
@@ -527,7 +534,7 @@ describe('CustomFormula', () => {
 
     describe('Function Modifiers', () => {
         const mockContext: FormulaContext = {
-            report: {
+            report: createMock<Report>({
                 reportID: 'report123456789',
                 reportName: '',
                 type: 'expense',
@@ -535,10 +542,10 @@ describe('CustomFormula', () => {
                 currency: 'USD',
                 lastVisibleActionCreated: '2025-01-15T10:30:00Z',
                 policyID: 'policy1',
-            } as Report,
-            policy: {
+            }),
+            policy: createMock<Policy>({
                 name: 'Engineering Department Rules',
-            } as Policy,
+            }),
         };
 
         beforeEach(() => {
@@ -553,8 +560,8 @@ describe('CustomFormula', () => {
 
             test('should handle empty strings', () => {
                 const contextWithEmpty: FormulaContext = {
-                    report: {} as Report,
-                    policy: {name: ''} as Policy,
+                    report: createMock<Report>({}),
+                    policy: createMock<Policy>({name: ''}),
                 };
                 const result = compute('{report:policyname|frontpart}', contextWithEmpty);
                 expect(result).toBe('{report:policyname|frontpart}'); // Falls back to formula definition
@@ -576,8 +583,8 @@ describe('CustomFormula', () => {
 
             test('should handle empty strings', () => {
                 const contextWithEmpty: FormulaContext = {
-                    report: {} as Report,
-                    policy: {name: ''} as Policy,
+                    report: createMock<Report>({}),
+                    policy: createMock<Policy>({name: ''}),
                 };
                 const result = compute('{report:policyname|domain}', contextWithEmpty);
                 expect(result).toBe(''); // Empty policy name
@@ -613,7 +620,7 @@ describe('CustomFormula', () => {
     });
 
     describe('Auto-reporting Frequency', () => {
-        const mockReport = {reportID: '123'} as Report;
+        const mockReport = createMock<Report>({reportID: '123'});
         const createMockContext = (policy: Policy): FormulaContext => ({report: mockReport, policy});
 
         beforeEach(() => {
@@ -627,7 +634,7 @@ describe('CustomFormula', () => {
         });
 
         test('should compute weekly frequency dates', () => {
-            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY} as Policy;
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY});
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-13');
@@ -636,7 +643,7 @@ describe('CustomFormula', () => {
 
         test('should compute semi-monthly frequency dates', () => {
             jest.setSystemTime(new Date('2025-01-10T12:00:00Z'));
-            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY} as Policy;
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY});
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-01');
@@ -648,10 +655,10 @@ describe('CustomFormula', () => {
         });
 
         test('should compute monthly frequency with specific offset', () => {
-            const policy = {
+            const policy = createMock<Policy>({
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
                 autoReportingOffset: 25,
-            } as Policy;
+            });
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2024-12-26');
@@ -659,10 +666,10 @@ describe('CustomFormula', () => {
         });
 
         test('should compute monthly frequency with last business day', () => {
-            const policy = {
+            const policy = createMock<Policy>({
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
                 autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH,
-            } as Policy;
+            });
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-01');
@@ -671,21 +678,151 @@ describe('CustomFormula', () => {
 
         test('should compute trip frequency dates', () => {
             const mockTransactions = [
-                {transactionID: 'trans1', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000} as Transaction,
-                {transactionID: 'trans2', created: '2025-01-14T16:45:00Z', merchant: 'Restaurant', amount: 3000} as Transaction,
+                createMock<Transaction>({transactionID: 'trans1', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000}),
+                createMock<Transaction>({transactionID: 'trans2', created: '2025-01-14T16:45:00Z', merchant: 'Restaurant', amount: 3000}),
             ];
 
             mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
 
-            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
+        });
+
+        test('should use context.transaction for trip end date when adding a new expense to existing report', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([
+                createMock<Transaction>({transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000}),
+            ]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                transaction: createMock<Transaction>({transactionID: 'optimistic1', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Restaurant', amount: 3000}),
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
+        });
+
+        test('should use allTransactions for trip dates when Onyx is empty (new report optimistic flow)', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    trans1: createMock<Transaction>({transactionID: 'trans1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000}),
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-08');
+        });
+
+        test('should use allTransactions to merge Onyx + optimistic transaction for trip date range', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([
+                createMock<Transaction>({transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000}),
+            ]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    existing1: createMock<Transaction>({transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000}),
+                    optimistic1: createMock<Transaction>({transactionID: 'optimistic1', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Restaurant', amount: 3000}),
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
+        });
+
+        test('should fall back to current date for trip frequency when no transactions', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context = createMockContext(policy);
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-19');
             expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-19');
         });
 
+        test('should prefer context.transaction over context.allTransactions when transactionIDs match', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    sharedTxn: createMock<Transaction>({transactionID: 'sharedTxn', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Stale', amount: 1000}),
+                },
+                transaction: createMock<Transaction>({transactionID: 'sharedTxn', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Fresh', amount: 2000}),
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-14');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
+        });
+
+        test('should include context.allTransactions whose reportID does not yet match (moved-transaction flows)', () => {
+            // Reject/Hold pass source transactions before their reportID is rewritten to the new report.
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    movedTxn: createMock<Transaction>({transactionID: 'movedTxn', reportID: '999-source', created: '2025-01-05T12:00:00Z', merchant: 'Rejected Hotel', amount: 5000}),
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-05');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-05');
+        });
+
+        test('should let context.allTransactions override existing Onyx transactions with the same transactionID', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([
+                createMock<Transaction>({transactionID: 'shared1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Old Hotel', amount: 5000}),
+            ]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    shared1: createMock<Transaction>({transactionID: 'shared1', reportID: '123', created: '2025-01-12T12:00:00Z', merchant: 'Updated Hotel', amount: 7000}),
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-12');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-12');
+        });
+
+        test('should pass context through to startdate/enddate via allTransactions', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    trans1: createMock<Transaction>({transactionID: 'trans1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000}),
+                    trans2: createMock<Transaction>({transactionID: 'trans2', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Restaurant', amount: 3000}),
+                },
+            };
+
+            expect(compute('{report:startdate}', context)).toBe('2025-01-08');
+            expect(compute('{report:enddate}', context)).toBe('2025-01-14');
+        });
+
         test('should apply custom date formats', () => {
-            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY} as Policy;
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY});
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start:MMMM dd, yyyy}', context)).toBe('January 13, 2025');
@@ -694,7 +831,81 @@ describe('CustomFormula', () => {
 
         test('should return formula definition when policy or frequency is missing', () => {
             expect(compute('{report:autoreporting:start}', {report: mockReport, policy: undefined})).toBe('{report:autoreporting:start}');
-            expect(compute('{report:autoreporting:end}', createMockContext({} as Policy))).toBe('{report:autoreporting:end}');
+            expect(compute('{report:autoreporting:end}', createMockContext(createMock<Policy>({})))).toBe('{report:autoreporting:end}');
+        });
+    });
+
+    describe('computeWithMetadata()', () => {
+        const mockCtx: FormulaContext = {report: createMock<Report>({reportID: '1'}), policy: undefined};
+
+        test('flags REPORT parts that fall back to their raw definition as unresolved', () => {
+            const result = computeWithMetadata('{report:autoreporting:end}', mockCtx);
+            expect(result.hasUnresolvedTokens).toBe(true);
+            expect(result.value).toBe('{report:autoreporting:end}');
+        });
+
+        test('leaves hasUnresolvedTokens false when every part resolves', () => {
+            const result = computeWithMetadata('Trip {user:email}', mockCtx);
+            expect(result.hasUnresolvedTokens).toBe(false);
+            expect(result.value).toBe('Trip jane@example.com');
+        });
+    });
+
+    describe('ReportUtils.computeOptimisticReportName()', () => {
+        const titleField = {
+            fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+            name: 'Title',
+            type: CONST.REPORT_FIELD_TYPES.FORMULA,
+            defaultValue: 'Total: {report:total:EUR}',
+            deletable: false,
+            target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+            values: [],
+            keys: [],
+            externalIDs: [],
+            disabledOptions: [],
+            orderWeight: 1,
+            isTax: false,
+        };
+        const groupPolicy = createMock<Policy>({
+            id: 'p-1',
+            type: CONST.POLICY.TYPE.TEAM,
+            fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField},
+        });
+        const usdReport = createMock<Report>({reportID: 'r-1', policyID: 'p-1', total: -10000, currency: CONST.CURRENCY.USD});
+
+        test('returns null when the formula leaves any tokenized part unresolved', () => {
+            // `{report:total:EUR}` on a USD report with no conversion falls back to the raw token → wrapper must return null.
+            expect(ReportUtils.computeOptimisticReportName(usdReport, groupPolicy, 'p-1', {})).toBeNull();
+        });
+
+        test('resolves TRIP autoreporting formula to today on empty-report create (Option B fallback, buildOptimisticEmptyReport path)', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+            const tripField = {...titleField, defaultValue: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}'};
+            const tripPolicy = createMock<Policy>({
+                id: 'p-1',
+                type: CONST.POLICY.TYPE.TEAM,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: tripField},
+            });
+            const result = ReportUtils.computeOptimisticReportName(usdReport, tripPolicy, 'p-1', {});
+            expect(result).not.toBeNull();
+            expect(result).toMatch(/^Trip from \w{3} \d{2} to \w{3} \d{2}, \d{4}$/);
+        });
+    });
+
+    describe('User formula parts', () => {
+        const mockUserContext: FormulaContext = {report: createMock<Report>({reportID: '1'}), policy: undefined};
+
+        test('should resolve {user:email} to the current user email', () => {
+            expect(compute('{user:email}', mockUserContext)).toBe('jane@example.com');
+        });
+
+        test('should apply the frontPart modifier to the resolved email', () => {
+            expect(compute('{user:email|frontPart}', mockUserContext)).toBe('jane');
+        });
+
+        test('should leave unsupported user fields as the raw token', () => {
+            expect(compute('{user:phone}', mockUserContext)).toBe('{user:phone}');
         });
     });
 
@@ -706,7 +917,7 @@ describe('CustomFormula', () => {
 
         test('should handle undefined amounts', () => {
             const context: FormulaContext = {
-                report: {total: undefined} as Report,
+                report: createMock<Report>({total: undefined}),
                 policy: null as unknown as Policy,
             };
             const result = compute('{report:total}', context);
@@ -716,7 +927,7 @@ describe('CustomFormula', () => {
         test('should handle missing report actions for created', () => {
             mockReportActionsUtils.getAllReportActions.mockReturnValue({});
             const context: FormulaContext = {
-                report: {reportID: '123'} as Report,
+                report: createMock<Report>({reportID: '123'}),
                 policy: null as unknown as Policy,
             };
 
@@ -727,7 +938,7 @@ describe('CustomFormula', () => {
         test('should handle missing transactions for startdate', () => {
             mockReportUtils.getReportTransactions.mockReturnValue([]);
             const context: FormulaContext = {
-                report: {reportID: '123'} as Report,
+                report: createMock<Report>({reportID: '123'}),
                 policy: null as unknown as Policy,
             };
             const today = new Date();
@@ -739,7 +950,7 @@ describe('CustomFormula', () => {
         test('should handle missing transactions for enddate', () => {
             mockReportUtils.getReportTransactions.mockReturnValue([]);
             const context: FormulaContext = {
-                report: {reportID: '123'} as Report,
+                report: createMock<Report>({reportID: '123'}),
                 policy: null as unknown as Policy,
             };
             const today = new Date();
@@ -750,7 +961,7 @@ describe('CustomFormula', () => {
 
         test('should call getReportTransactions with correct reportID for startdate', () => {
             const context: FormulaContext = {
-                report: {reportID: 'test-report-123'} as Report,
+                report: createMock<Report>({reportID: 'test-report-123'}),
                 policy: null as unknown as Policy,
             };
 
@@ -760,7 +971,7 @@ describe('CustomFormula', () => {
 
         test('should call getAllReportActions with correct reportID for created', () => {
             const context: FormulaContext = {
-                report: {reportID: 'test-report-456'} as Report,
+                report: createMock<Report>({reportID: 'test-report-456'}),
                 policy: null as unknown as Policy,
             };
 
@@ -769,7 +980,7 @@ describe('CustomFormula', () => {
         });
 
         test('should skip partial transactions (empty merchant)', () => {
-            const mockTransactions = [
+            const mockTransactions = createMock<Transaction[]>([
                 {
                     transactionID: 'trans1',
                     created: '2025-01-15T12:00:00Z',
@@ -788,11 +999,11 @@ describe('CustomFormula', () => {
                     amount: 2000,
                     merchant: 'Gamma Inc.',
                 },
-            ] as Transaction[];
+            ]);
 
             mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
             const context: FormulaContext = {
-                report: {reportID: 'test-report-123'} as Report,
+                report: createMock<Report>({reportID: 'test-report-123'}),
                 policy: null as unknown as Policy,
             };
 
@@ -803,8 +1014,33 @@ describe('CustomFormula', () => {
             expect(endResult).toBe('2025-01-15');
         });
 
+        test('should fall back to current date when all transactions are partial (scan expense)', () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-19T12:00:00Z'));
+
+            const mockTransactions = createMock<Transaction[]>([
+                {
+                    transactionID: 'scan1',
+                    created: '2025-01-15T12:00:00Z',
+                    amount: 0,
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                },
+            ]);
+
+            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
+            const context: FormulaContext = {
+                report: createMock<Report>({reportID: 'test-report-123'}),
+                policy: undefined,
+            };
+
+            expect(compute('{report:startdate}', context)).toBe('2025-01-19');
+            expect(compute('{report:enddate}', context)).toBe('2025-01-19');
+
+            jest.useRealTimers();
+        });
+
         test('should skip partial transactions (partial merchant)', () => {
-            const mockTransactions = [
+            const mockTransactions = createMock<Transaction[]>([
                 {
                     transactionID: 'trans1',
                     created: '2025-01-15T12:00:00Z',
@@ -824,11 +1060,11 @@ describe('CustomFormula', () => {
                     amount: 2000,
                     merchant: 'Gamma Inc.',
                 },
-            ] as Transaction[];
+            ]);
 
             mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
             const context: FormulaContext = {
-                report: {reportID: 'test-report-123'} as Report,
+                report: createMock<Report>({reportID: 'test-report-123'}),
                 policy: null as unknown as Policy,
             };
 
@@ -846,23 +1082,23 @@ describe('CustomFormula', () => {
         const morningDate = '2025-01-08T09:05:02.123Z'; // 9:05:02 AM for leading zero tests
 
         const mockContextWithDate: FormulaContext = {
-            report: {reportID: '123'} as Report,
+            report: createMock<Report>({reportID: '123'}),
             policy: null as unknown as Policy,
         };
 
         const setupMockDate = (date: string) => {
-            const mockTransaction = {
+            const mockTransaction = createMock<Transaction>({
                 transactionID: 'trans1',
                 created: date,
                 amount: -5000,
                 merchant: 'Test Store',
-            } as Transaction;
+            });
             mockReportUtils.getReportTransactions.mockReturnValue([mockTransaction]);
 
-            const mockReportAction = {
+            const mockReportAction = createMock<ReportActions[string]>({
                 created: date,
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-            } as unknown as ReportActions[string];
+            });
             mockReportActionsUtils.getAllReportActions.mockReturnValue({action1: mockReportAction});
         };
 
@@ -1016,7 +1252,7 @@ describe('CustomFormula', () => {
         };
 
         const mockContextWithSubmissionInfo: FormulaContext = {
-            report: {
+            report: createMock<Report>({
                 reportID: '123',
                 reportName: '',
                 type: 'expense',
@@ -1025,8 +1261,8 @@ describe('CustomFormula', () => {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 created: '2025-01-15T10:30:00Z',
-            } as Report,
-            policy: {
+            }),
+            policy: createMock<Policy>({
                 name: 'Test Policy',
                 glCodes: true,
                 employeeList: {
@@ -1043,7 +1279,7 @@ describe('CustomFormula', () => {
                         employeePayrollID: 'PAY456',
                     },
                 },
-            } as unknown as Policy,
+            }),
             submitterPersonalDetails: mockSubmitter,
             managerPersonalDetails: mockManager,
         };
@@ -1051,7 +1287,7 @@ describe('CustomFormula', () => {
         beforeEach(() => {
             jest.clearAllMocks();
 
-            const mockReportActions = {
+            const mockReportActions = createMock<ReportActions>({
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
@@ -1064,7 +1300,7 @@ describe('CustomFormula', () => {
                     created: '2025-01-15T10:30:00Z',
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                 },
-            } as unknown as ReportActions;
+            });
 
             mockReportActionsUtils.getAllReportActions.mockReturnValue(mockReportActions);
         });
@@ -1104,12 +1340,12 @@ describe('CustomFormula', () => {
 
             test('name fields fall back to email when name missing', () => {
                 const contextWithPartialDetails: FormulaContext = {
-                    report: {reportID: '123'} as Report,
+                    report: createMock<Report>({reportID: '123'}),
                     policy: null as unknown as Policy,
-                    submitterPersonalDetails: {
+                    submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 111,
                         login: 'fallback@email.com',
-                    } as PersonalDetails,
+                    }),
                 };
 
                 expect(compute('{report:submit:from:firstname}', contextWithPartialDetails)).toBe('fallback@email.com');
@@ -1119,10 +1355,10 @@ describe('CustomFormula', () => {
 
             test('customfield1 - return empty when employeeList missing', () => {
                 const contextWithoutEmployeeList: FormulaContext = {
-                    report: {reportID: '123'} as Report,
-                    policy: {
+                    report: createMock<Report>({reportID: '123'}),
+                    policy: createMock<Policy>({
                         name: 'Test Policy',
-                    } as Policy,
+                    }),
                     submitterPersonalDetails: mockSubmitter,
                 };
 
@@ -1131,10 +1367,10 @@ describe('CustomFormula', () => {
 
             test('customfield2 - return empty when employeeList missing', () => {
                 const contextWithoutEmployeeList: FormulaContext = {
-                    report: {reportID: '123'} as Report,
-                    policy: {
+                    report: createMock<Report>({reportID: '123'}),
+                    policy: createMock<Policy>({
                         name: 'Test Policy',
-                    } as Policy,
+                    }),
                     submitterPersonalDetails: mockSubmitter,
                 };
 
@@ -1143,8 +1379,8 @@ describe('CustomFormula', () => {
 
             test('customfield1 - return empty when user not in employeeList', () => {
                 const contextWithDifferentEmployee: FormulaContext = {
-                    report: {reportID: '123'} as Report,
-                    policy: {
+                    report: createMock<Report>({reportID: '123'}),
+                    policy: createMock<Policy>({
                         name: 'Test Policy',
                         glCodes: true,
                         employeeList: {
@@ -1154,7 +1390,7 @@ describe('CustomFormula', () => {
                                 employeeUserID: 'EMP999',
                             },
                         },
-                    } as unknown as Policy,
+                    }),
                     submitterPersonalDetails: mockSubmitter,
                 };
 
@@ -1163,8 +1399,8 @@ describe('CustomFormula', () => {
 
             test('customfield1/customfield2 - return empty when glCodes disabled', () => {
                 const contextWithGlCodesDisabled: FormulaContext = {
-                    report: {reportID: '123'} as Report,
-                    policy: {
+                    report: createMock<Report>({reportID: '123'}),
+                    policy: createMock<Policy>({
                         name: 'Test Policy',
                         glCodes: false,
                         employeeList: {
@@ -1175,7 +1411,7 @@ describe('CustomFormula', () => {
                                 employeePayrollID: 'PAY123',
                             },
                         },
-                    } as unknown as Policy,
+                    }),
                     submitterPersonalDetails: mockSubmitter,
                 };
 
@@ -1219,12 +1455,12 @@ describe('CustomFormula', () => {
 
             test('firstname - fall back to email when manager name missing', () => {
                 const contextWithPartialManagerDetails: FormulaContext = {
-                    report: {reportID: '123'} as Report,
+                    report: createMock<Report>({reportID: '123'}),
                     policy: null as unknown as Policy,
-                    managerPersonalDetails: {
+                    managerPersonalDetails: createMock<PersonalDetails>({
                         accountID: 222,
                         login: 'manager@email.com',
-                    } as PersonalDetails,
+                    }),
                 };
 
                 expect(compute('{report:submit:to:firstname}', contextWithPartialManagerDetails)).toBe('manager@email.com');
@@ -1232,12 +1468,12 @@ describe('CustomFormula', () => {
 
             test('fullname - fall back to email when manager displayName missing', () => {
                 const contextWithPartialManagerDetails: FormulaContext = {
-                    report: {reportID: '123'} as Report,
+                    report: createMock<Report>({reportID: '123'}),
                     policy: null as unknown as Policy,
-                    managerPersonalDetails: {
+                    managerPersonalDetails: createMock<PersonalDetails>({
                         accountID: 222,
                         login: 'manager@email.com',
-                    } as PersonalDetails,
+                    }),
                 };
 
                 expect(compute('{report:submit:to:fullname}', contextWithPartialManagerDetails)).toBe('manager@email.com');
@@ -1282,14 +1518,14 @@ describe('CustomFormula', () => {
             });
 
             test('transaction date range with submission date', () => {
-                const mockTransactions = [
+                const mockTransactions = createMock<Transaction[]>([
                     {
                         transactionID: 'trans1',
                         created: '2025-01-08T12:00:00Z',
                         amount: 5000,
                         merchant: 'Store',
                     },
-                ] as Transaction[];
+                ]);
 
                 mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
 
@@ -1300,12 +1536,12 @@ describe('CustomFormula', () => {
         describe('Edge cases', () => {
             test('empty email - return empty when email empty', () => {
                 const contextWithEmptyEmail: FormulaContext = {
-                    report: {reportID: '123'} as Report,
+                    report: createMock<Report>({reportID: '123'}),
                     policy: null as unknown as Policy,
-                    submitterPersonalDetails: {
+                    submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         login: '',
-                    } as PersonalDetails,
+                    }),
                 };
 
                 expect(compute('{report:submit:from:email}', contextWithEmptyEmail)).toBe('');
@@ -1313,12 +1549,12 @@ describe('CustomFormula', () => {
 
             test('empty email with name - return empty when name also empty', () => {
                 const contextWithEmptyEmail: FormulaContext = {
-                    report: {reportID: '123'} as Report,
+                    report: createMock<Report>({reportID: '123'}),
                     policy: null as unknown as Policy,
-                    submitterPersonalDetails: {
+                    submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         login: '',
-                    } as PersonalDetails,
+                    }),
                 };
 
                 expect(compute('{report:submit:from:firstname}', contextWithEmptyEmail)).toBe('');
@@ -1326,13 +1562,13 @@ describe('CustomFormula', () => {
 
             test('empty firstname - fallback to email when firstname is empty string', () => {
                 const contextWithEmptyFirstName: FormulaContext = {
-                    report: {reportID: '123'} as Report,
+                    report: createMock<Report>({reportID: '123'}),
                     policy: null as unknown as Policy,
-                    submitterPersonalDetails: {
+                    submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         firstName: '',
                         login: 'user@test.com',
-                    } as PersonalDetails,
+                    }),
                 };
 
                 expect(compute('{report:submit:from:firstname}', contextWithEmptyFirstName)).toBe('user@test.com');
@@ -1340,13 +1576,13 @@ describe('CustomFormula', () => {
 
             test('empty lastname - fallback to email when lastname is empty string', () => {
                 const contextWithEmptyLastName: FormulaContext = {
-                    report: {reportID: '123'} as Report,
+                    report: createMock<Report>({reportID: '123'}),
                     policy: null as unknown as Policy,
-                    submitterPersonalDetails: {
+                    submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         lastName: '',
                         login: 'user@test.com',
-                    } as PersonalDetails,
+                    }),
                 };
 
                 expect(compute('{report:submit:from:lastname}', contextWithEmptyLastName)).toBe('user@test.com');
@@ -1354,13 +1590,13 @@ describe('CustomFormula', () => {
 
             test('empty displayName - fallback to email when displayName is empty string', () => {
                 const contextWithEmptyDisplayName: FormulaContext = {
-                    report: {reportID: '123'} as Report,
+                    report: createMock<Report>({reportID: '123'}),
                     policy: null as unknown as Policy,
-                    submitterPersonalDetails: {
+                    submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         displayName: '',
                         login: 'user@test.com',
-                    } as PersonalDetails,
+                    }),
                 };
 
                 expect(compute('{report:submit:from:fullname}', contextWithEmptyDisplayName)).toBe('user@test.com');
@@ -1368,12 +1604,12 @@ describe('CustomFormula', () => {
 
             test('empty email with frontpart - return empty for empty email modifier', () => {
                 const contextWithEmptyEmail: FormulaContext = {
-                    report: {reportID: '123'} as Report,
+                    report: createMock<Report>({reportID: '123'}),
                     policy: null as unknown as Policy,
-                    submitterPersonalDetails: {
+                    submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         login: '',
-                    } as PersonalDetails,
+                    }),
                 };
 
                 expect(compute('{report:submit:from:email|frontpart}', contextWithEmptyEmail)).toBe('');
@@ -1427,17 +1663,17 @@ describe('CustomFormula', () => {
     });
 
     describe('Field Reference Resolution', () => {
-        const mockReport = {reportID: '123'} as Report;
-        const mockPolicy = {name: 'Test Policy'} as Policy;
+        const mockReport = createMock<Report>({reportID: '123'});
+        const mockPolicy = createMock<Policy>({name: 'Test Policy'});
 
         test('should resolve simple {field:X} reference', () => {
             const fieldsByName = {
-                b: {
+                b: createMock<PolicyReportField>({
                     fieldID: 'field_b',
                     name: 'B',
                     defaultValue: 'value_from_b',
                     value: 'value_from_b',
-                } as unknown as PolicyReportField,
+                }),
             };
             const fieldValues = {b: 'value_from_b'};
 
@@ -1447,18 +1683,18 @@ describe('CustomFormula', () => {
 
         test('should resolve chained field references (A references B)', () => {
             const fieldsByName = {
-                a: {
+                a: createMock<PolicyReportField>({
                     fieldID: 'field_a',
                     name: 'A',
                     defaultValue: '{field:B}',
                     value: 'stale_value', // This should be ignored
-                } as unknown as PolicyReportField,
-                b: {
+                }),
+                b: createMock<PolicyReportField>({
                     fieldID: 'field_b',
                     name: 'B',
                     defaultValue: 'current_value_b',
                     value: 'current_value_b',
-                } as unknown as PolicyReportField,
+                }),
             };
             const fieldValues = {a: 'stale_value', b: 'current_value_b'};
 
@@ -1469,24 +1705,24 @@ describe('CustomFormula', () => {
 
         test('should resolve recursive field references (C -> A -> B)', () => {
             const fieldsByName = {
-                a: {
+                a: createMock<PolicyReportField>({
                     fieldID: 'field_a',
                     name: 'A',
                     defaultValue: '{field:B}',
                     value: 'stale_a', // Should be ignored
-                } as unknown as PolicyReportField,
-                b: {
+                }),
+                b: createMock<PolicyReportField>({
                     fieldID: 'field_b',
                     name: 'B',
                     defaultValue: 'fresh_value_b',
                     value: 'fresh_value_b',
-                } as unknown as PolicyReportField,
-                c: {
+                }),
+                c: createMock<PolicyReportField>({
                     fieldID: 'field_c',
                     name: 'C',
                     defaultValue: '{field:A}',
                     value: 'stale_c', // Should be ignored
-                } as unknown as PolicyReportField,
+                }),
             };
             const fieldValues = {a: 'stale_a', b: 'fresh_value_b', c: 'stale_c'};
 
@@ -1497,12 +1733,12 @@ describe('CustomFormula', () => {
 
         test('should handle field reference with text prefix and suffix', () => {
             const fieldsByName = {
-                name: {
+                name: createMock<PolicyReportField>({
                     fieldID: 'field_name',
                     name: 'Name',
                     defaultValue: 'John',
                     value: 'John',
-                } as unknown as PolicyReportField,
+                }),
             };
             const fieldValues = {name: 'John'};
 
@@ -1512,18 +1748,18 @@ describe('CustomFormula', () => {
 
         test('should handle multiple field references in same formula', () => {
             const fieldsByName = {
-                first: {
+                first: createMock<PolicyReportField>({
                     fieldID: 'field_first',
                     name: 'First',
                     defaultValue: 'Hello',
                     value: 'Hello',
-                } as unknown as PolicyReportField,
-                second: {
+                }),
+                second: createMock<PolicyReportField>({
                     fieldID: 'field_second',
                     name: 'Second',
                     defaultValue: 'World',
                     value: 'World',
-                } as unknown as PolicyReportField,
+                }),
             };
             const fieldValues = {first: 'Hello', second: 'World'};
 
@@ -1541,12 +1777,12 @@ describe('CustomFormula', () => {
 
         test('should use field.value when defaultValue has no field references', () => {
             const fieldsByName = {
-                simple: {
+                simple: createMock<PolicyReportField>({
                     fieldID: 'field_simple',
                     name: 'Simple',
                     defaultValue: 'default_text',
                     value: 'current_value',
-                } as unknown as PolicyReportField,
+                }),
             };
             const fieldValues = {simple: 'current_value'};
 
@@ -1556,12 +1792,12 @@ describe('CustomFormula', () => {
 
         test('should be case-insensitive for field names', () => {
             const fieldsByName = {
-                myfield: {
+                myfield: createMock<PolicyReportField>({
                     fieldID: 'field_myfield',
                     name: 'MyField',
                     defaultValue: 'test_value',
                     value: 'test_value',
-                } as unknown as PolicyReportField,
+                }),
             };
             const fieldValues = {myfield: 'test_value'};
 
@@ -1572,48 +1808,48 @@ describe('CustomFormula', () => {
     });
 
     describe('resolveReportFieldValue', () => {
-        const mockReport = {reportID: '123'} as Report;
-        const mockPolicy = {name: 'Test Policy'} as Policy;
+        const mockReport = createMock<Report>({reportID: '123'});
+        const mockPolicy = createMock<Policy>({name: 'Test Policy'});
 
         test('should return field.value when defaultValue has no field references', () => {
-            const field = {
+            const field = createMock<PolicyReportField>({
                 fieldID: 'field_simple',
                 name: 'Simple',
                 defaultValue: 'default_text',
                 value: 'current_value',
-            } as unknown as PolicyReportField;
+            });
 
             const result = resolveReportFieldValue(field, mockReport, mockPolicy, {}, {});
             expect(result).toBe('current_value');
         });
 
         test('should return defaultValue when value is undefined and no field references', () => {
-            const field = {
+            const field = createMock<PolicyReportField>({
                 fieldID: 'field_default',
                 name: 'Default',
                 defaultValue: 'fallback_value',
                 value: undefined,
-            } as unknown as PolicyReportField;
+            });
 
             const result = resolveReportFieldValue(field, mockReport, mockPolicy, {}, {});
             expect(result).toBe('fallback_value');
         });
 
         test('should resolve field references when defaultValue contains {field:X}', () => {
-            const field = {
+            const field = createMock<PolicyReportField>({
                 fieldID: 'field_a',
                 name: 'A',
                 defaultValue: '{field:B}',
                 value: '',
-            } as unknown as PolicyReportField;
+            });
 
             const fieldsByName = {
-                b: {
+                b: createMock<PolicyReportField>({
                     fieldID: 'field_b',
                     name: 'B',
                     defaultValue: 'resolved_value',
                     value: 'resolved_value',
-                } as unknown as PolicyReportField,
+                }),
             };
             const fieldValues = {b: 'resolved_value'};
 
@@ -1622,12 +1858,12 @@ describe('CustomFormula', () => {
         });
 
         test('should return fieldValue when report is null', () => {
-            const field = {
+            const field = createMock<PolicyReportField>({
                 fieldID: 'field_a',
                 name: 'A',
                 defaultValue: '{field:B}',
                 value: 'stale_value',
-            } as unknown as PolicyReportField;
+            });
 
             // @ts-expect-error - Testing report null
             const result = resolveReportFieldValue(field, null, mockPolicy, {}, {});
@@ -1635,26 +1871,26 @@ describe('CustomFormula', () => {
         });
 
         test('should resolve chained field references', () => {
-            const field = {
+            const field = createMock<PolicyReportField>({
                 fieldID: 'field_c',
                 name: 'C',
                 defaultValue: '{field:A}',
                 value: '',
-            } as unknown as PolicyReportField;
+            });
 
             const fieldsByName = {
-                a: {
+                a: createMock<PolicyReportField>({
                     fieldID: 'field_a',
                     name: 'A',
                     defaultValue: '{field:B}',
                     value: '',
-                } as unknown as PolicyReportField,
-                b: {
+                }),
+                b: createMock<PolicyReportField>({
                     fieldID: 'field_b',
                     name: 'B',
                     defaultValue: 'final_value',
                     value: 'final_value',
-                } as unknown as PolicyReportField,
+                }),
             };
             const fieldValues = {a: '', b: 'final_value'};
 
@@ -1663,10 +1899,10 @@ describe('CustomFormula', () => {
         });
 
         test('should return empty string when both value and defaultValue are undefined', () => {
-            const field = {
+            const field = createMock<PolicyReportField>({
                 fieldID: 'field_empty',
                 name: 'Empty',
-            } as unknown as PolicyReportField;
+            });
 
             const result = resolveReportFieldValue(field, mockReport, mockPolicy, {}, {});
             expect(result).toBe('');

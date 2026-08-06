@@ -1,4 +1,5 @@
 import enEmojis from '@assets/emojis/en';
+
 import StringUtils from '@src/libs/StringUtils';
 
 describe('libs/StringUtils.removeInvisibleCharacters', () => {
@@ -115,6 +116,15 @@ describe('libs/StringUtils.removeInvisibleCharacters', () => {
         // But if the String consist of only invisible characters, we can safely remove it.
         expect(StringUtils.removeInvisibleCharacters('\u200D')).toBe('');
         expect(StringUtils.removeInvisibleCharacters('⁠')).toBe('');
+    });
+    it('remove other blank-rendering characters (not in the C/Z categories)', () => {
+        // Hangul fillers (Lo) and Braille pattern blank (So) render as blank but are not stripped by \p{C}/\p{Z}.
+        // Like the existing ㅤ handling, these are only removed when the whole string is invisible.
+        expect(StringUtils.removeInvisibleCharacters('ᅟ')).toBe('');
+        expect(StringUtils.removeInvisibleCharacters('ᅠ')).toBe('');
+        expect(StringUtils.removeInvisibleCharacters('ﾠ')).toBe('');
+        expect(StringUtils.removeInvisibleCharacters('⠀')).toBe('');
+        expect(StringUtils.removeInvisibleCharacters('ㅤᅟᅠﾠ⠀')).toBe('');
     });
     it('check multiline', () => {
         expect(StringUtils.removeInvisibleCharacters('test\ntest')).toBe('test\ntest');

@@ -1,18 +1,23 @@
-import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useEffectEvent} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import {search} from '@libs/actions/Search';
 import {getSections, getSortedSections, getSuggestedSearches, isSearchDataLoaded} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect, useEffectEvent} from 'react';
 
 const SPEND_OVER_TIME_STATE = {
     OFFLINE: 'offline',
@@ -55,14 +60,15 @@ function useSpendOverTimeData() {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {accountID, login} = useCurrentUserPersonalDetails();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
-    const isSearchLoading = !!searchResults?.search?.isLoading;
 
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
 
-    const onConfigChanged = useEffectEvent(() => {
-        if (!queryJSON || isSearchLoading || isOffline) {
+    const retry = () => {
+        // `search.isLoading` is persisted and may be stale after a reload. Call `search()` again and let it ignore a request that is still running.
+        if (!queryJSON || isOffline) {
             return;
         }
 
@@ -74,6 +80,10 @@ function useSpendOverTimeData() {
             isLoading: false,
             shouldUpdateLastSearchParams: false,
         });
+    };
+
+    const onConfigChanged = useEffectEvent(() => {
+        retry();
     });
 
     useEffect(() => {
@@ -87,7 +97,6 @@ function useSpendOverTimeData() {
         searchResults?.data && queryJSON && groupBy && login
             ? (getSortedSections(
                   queryJSON.type,
-                  queryJSON.status,
                   getSections({
                       type: queryJSON.type,
                       data: searchResults.data,
@@ -98,8 +107,9 @@ function useSpendOverTimeData() {
                       translate,
                       formatPhoneNumber,
                       bankAccountList: undefined,
-                      conciergeReportID: undefined,
+                      conciergeReportID,
                       convertToDisplayString,
+                      reportAttributesDerivedValue: undefined,
                   })[0],
                   localeCompare,
                   translate,
@@ -118,6 +128,7 @@ function useSpendOverTimeData() {
         view,
         sortedData,
         state,
+        retry,
     };
 }
 

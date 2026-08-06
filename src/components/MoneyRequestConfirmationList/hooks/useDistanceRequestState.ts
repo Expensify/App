@@ -1,12 +1,15 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePrevious from '@hooks/usePrevious';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getDistanceInMeters, hasRoute as hasRouteUtil} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const mileageRateSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getDefaultMileageRate(policy);
 const policyDraftSelector = (draft: OnyxEntry<OnyxTypes.Policy>) => draft && ({customUnits: draft.customUnits} as OnyxEntry<OnyxTypes.Policy>);

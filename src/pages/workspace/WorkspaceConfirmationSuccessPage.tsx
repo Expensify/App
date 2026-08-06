@@ -1,10 +1,13 @@
-import React, {useCallback} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
+import React, {useCallback} from 'react';
 
 function WorkspaceConfirmationSuccessPage() {
     const styles = useThemeStyles();

@@ -1,14 +1,21 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
+
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, SearchResults} from '@src/types/onyx';
-import {createRandomReport} from '../../utils/collections/reports';
+
+import Onyx from 'react-native-onyx';
+
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
+
+import {createRandomReport} from '../../utils/collections/reports';
 
 // ---------------------------------------------------------------------------
 // Module mocks
@@ -37,12 +44,18 @@ jest.mock('@libs/actions/SplitExpenses.ts', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => []),
+    getExportTemplates: jest.fn(() => ({
+        customTemplates: [{name: 'Custom template', templateName: 'customTemplate', type: 'in-app', policyID: undefined, description: ''}],
+        defaultTemplates: [
+            {name: 'export.expenseLevelExport', templateName: 'detailed_export', type: 'integrations', policyID: undefined, description: ''},
+            {name: 'export.reportLevelExport', templateName: 'report_level_export', type: 'integrations', policyID: undefined, description: ''},
+        ],
+    })),
     exportSearchItemsToCSV: jest.fn(),
     exportToIntegrationOnSearch: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
-    approveMoneyRequestOnSearch: jest.fn(),
+    getSearchApproveOnyxData: jest.fn(() => ({})),
     getLastPolicyBankAccountID: jest.fn(),
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
@@ -62,16 +75,16 @@ jest.mock('@libs/actions/Search', () => ({
 }));
 
 // Control which export actions a report supports without depending on the full
-// integration/permission chain in getSecondaryExportReportActions. The key behavior under
+// integration/permission chain in getReportAccountingExportActions. The key behavior under
 // test is that the snapshot-resolved report (truthy) reaches this function; without the fix
 // the report is undefined and canReportBeExported bails before ever calling it.
-const mockGetSecondaryExportReportActions = jest.fn((...args: Parameters<typeof ReportSecondaryActionUtilsModule.getSecondaryExportReportActions>) => {
+const mockGetSecondaryExportReportActions = jest.fn((...args: Parameters<typeof ReportSecondaryActionUtilsModule.getReportAccountingExportActions>) => {
     const report = args[2];
     return report ? [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED] : [];
 });
 jest.mock('@libs/ReportSecondaryActionUtils', () => ({
     ...jest.requireActual<typeof ReportSecondaryActionUtilsModule>('@libs/ReportSecondaryActionUtils'),
-    getSecondaryExportReportActions: (...args: Parameters<typeof ReportSecondaryActionUtilsModule.getSecondaryExportReportActions>) => mockGetSecondaryExportReportActions(...args),
+    getReportAccountingExportActions: (...args: Parameters<typeof ReportSecondaryActionUtilsModule.getReportAccountingExportActions>) => mockGetSecondaryExportReportActions(...args),
 }));
 
 jest.mock('@libs/actions/MergeTransaction', () => ({
@@ -247,7 +260,6 @@ const expenseReportQueryJSON: SearchQueryJSON = {
     similarSearchHash: 12345,
     flatFilters: [],
     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-    status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
     view: CONST.SEARCH.VIEW.TABLE,
@@ -315,8 +327,10 @@ function makeSearchResults(reports: Report[]): SearchResults {
     return {
         search: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
+            hash: 0,
             offset: 0,
+            sortBy: 'date',
+            sortOrder: 'desc',
             hasMoreResults: false,
             hasResults: true,
             isLoading: false,
@@ -332,11 +346,16 @@ function getExportSubMenuItems(headerButtonsOptions: ReturnType<typeof useSearch
     return headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)?.subMenuItems;
 }
 
+function getExportOptionTexts(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions']) {
+    const exportOption = headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+    return exportOption?.subMenuItems?.map((item) => item.text) ?? (exportOption ? [exportOption.text] : []);
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('useSearchBulkActions - report export options resolve from the search snapshot', () => {
+describe('useSearchBulkActions - export options', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -428,5 +447,43 @@ describe('useSearchBulkActions - report export options resolve from the search s
         const subMenuItems = exportOption?.subMenuItems ?? [];
         expect(subMenuItems.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(false);
         expect(subMenuItems.some((item) => item.text === 'workspace.common.markAsExported')).toBe(false);
+    });
+
+    it('shows templates when reports are selected through their report groups', async () => {
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({
+                groupKey: `${CONST.SEARCH.GROUP_PREFIX}${REPORT_ID}`,
+                isSelectedViaGroup: true,
+            }),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(expect.arrayContaining(['Custom template', 'export.expenseLevelExport', 'export.reportLevelExport']));
+        });
+    });
+
+    it('hides templates when a full group is selected in an explicitly grouped search', async () => {
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({
+                groupKey: `${CONST.SEARCH.GROUP_PREFIX}category`,
+                isSelectedViaGroup: true,
+            }),
+        };
+
+        const groupedExpenseQueryJSON: SearchQueryJSON = {
+            ...expenseReportQueryJSON,
+            inputQuery: 'type:expense groupBy:category',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+        };
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
+        });
     });
 });

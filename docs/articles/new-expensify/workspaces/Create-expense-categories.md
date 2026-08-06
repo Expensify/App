@@ -181,6 +181,14 @@ Yes. When a category is manually edited, the change is logged in the related exp
 
 It will be removed from the workspace’s category list. However, it will remain visible on previously submitted or drafted reports where it was already applied.
 
+## What happens to an expense if its category is disabled on the workspace?
+
+If categories are disabled on the workspace while an expense still has a category applied, the **Category** field stays on the expense with a **Category no longer valid** violation.
+
+To resolve the violation, select the **Category** field on the expense. A **Category disabled** alert appears with options for managing the disabled category.
+
+Alternatively, you can enable tags on the workspace to edit the category directly.
+
 ## How can members see GL codes?
 
 GL codes are not visible to members by default. If visibility is required, consider including the GL code in the category name itself.

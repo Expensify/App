@@ -1,8 +1,10 @@
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {endSubmitFollowUpActionSpan, isTracking as isSubmitTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
 import isReportOpenInRHP from './isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from './isReportOpenInSuperWideRHP';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';

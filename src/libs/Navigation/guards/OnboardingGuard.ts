@@ -1,14 +1,9 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import {findFocusedRoute} from '@react-navigation/native';
-import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -16,6 +11,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Account, Onboarding} from '@src/types/onyx';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import {isActingAsDelegateSelector} from '@selectors/Account';
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
+import Onyx from 'react-native-onyx';
+
 import type {GuardResult, NavigationGuard} from './types';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
@@ -180,6 +186,15 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
 
+        // Test builds must never enter the onboarding UI. REPLACE into onboarding is normally
+        // admitted (real users advance between onboarding steps with forceReplace), but with
+        // SKIP_ONBOARDING there is no legitimate way to be mid-onboarding — bounce those too.
+        // Scoped to the flag so completed users' REPLACE behaviour is unchanged.
+        if (CONFIG.SKIP_ONBOARDING && isNavigatingToOnboardingFlowWithReplaceAction(action)) {
+            Log.info('[OnboardingGuard] SKIP_ONBOARDING: redirecting REPLACE into onboarding to home');
+            return {type: 'REDIRECT', route: ROUTES.HOME};
+        }
+
         const skipOnboardingConfig = CONFIG.SKIP_ONBOARDING;
         const isLoading = context.isLoading;
         const isNavigatingWithReplace = isNavigatingToOnboardingFlowWithReplaceAction(action);
@@ -193,7 +208,10 @@ const OnboardingGuard: NavigationGuard = {
             isInvitedOrGroupMember ||
             isSingleEntry ||
             isFirstTimeHybridAppTransition ||
-            isNavigatingWithReplace;
+            isNavigatingWithReplace ||
+            context.isSupportalSession ||
+            // Copilots should not be pushed through onboarding on behalf of the account they are accessing
+            isActingAsDelegateSelector(account);
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};

@@ -1,13 +1,11 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,13 +13,22 @@ import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import {setOnboardingPersonalTrackGoal} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
+
 import type {BaseOnboardingPersonalTrackGoalProps} from './types';
 
 const personalTrackGoalOptions = Object.values(CONST.ONBOARDING_PERSONAL_TRACK_GOALS);
@@ -59,6 +66,14 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
             return;
         }
         Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
+    };
+
+    const submitSomethingElseGoal = () => {
+        if (!somethingElseText.trim()) {
+            setInputError(translate('common.error.fieldRequired'));
+            return;
+        }
+        completeTrackGoalSelection(somethingElseText.trim());
     };
 
     const menuIcons = {
@@ -151,18 +166,13 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
             {isSomethingElseSelected && (
                 <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
                     <Button
-                        success
-                        large
-                        text={translate('common.continue')}
-                        onPress={() => {
-                            if (!somethingElseText.trim()) {
-                                setInputError(translate('common.error.fieldRequired'));
-                                return;
-                            }
-                            completeTrackGoalSelection(somethingElseText.trim());
-                        }}
-                        pressOnEnter
-                    />
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        onPress={submitSomethingElseGoal}
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.continue')}</Button.Text>
+                    </Button>
                 </View>
             )}
         </ScreenWrapper>

@@ -1,9 +1,13 @@
-import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import {useButtonContext} from '@components/ButtonComposed/context';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
 
 type ButtonTextProps = {
     /** The text to display */

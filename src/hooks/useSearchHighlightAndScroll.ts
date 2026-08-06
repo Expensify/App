@@ -1,18 +1,23 @@
-import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {SelectionListHandle} from '@components/SelectionList/types';
+
 import {search} from '@libs/actions/Search';
 import {mergeTransactionIdsHighlightOnSearchRoute} from '@libs/actions/Transaction';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import {useCallback, useEffect, useRef, useState} from 'react';
+
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
@@ -302,14 +307,18 @@ function useSearchHighlightAndScroll({
         });
 
         // Early return if the new item is not found in the data array
-        if (indexOfNewItem <= 0) {
+        if (indexOfNewItem < 0) {
+            return;
+        }
+
+        // Reset the trigger even when the item is already first so a later render cannot scroll or highlight it again.
+        triggeredByHookRef.current = false;
+        if (indexOfNewItem === 0) {
             return;
         }
 
         // Perform the scrolling action
         ref.scrollToIndex(indexOfNewItem);
-        // Reset the trigger flag to prevent unintended future scrolls and highlights
-        triggeredByHookRef.current = false;
     };
 
     const hasQueuedHighlights = newSearchResultKeys !== null && newSearchResultKeys.size > 0;

@@ -54,7 +54,7 @@ if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     # Navigate to the OldDot repository, and run bundle install and pod install
     cd Mobile-Expensify/ios
     bundle install
-    bundle exec pod install
+    RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 bundle exec pod install
     exit 0
 fi
 
@@ -110,7 +110,7 @@ if [ -d "$CACHED_PODSPEC_DIR" ]; then
 fi
 
 cd ios || cleanupAndExit 1
-bundle exec pod install
+RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 bundle exec pod install
 
 # Go back to where we started
 cleanupAndExit 0

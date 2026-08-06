@@ -1,7 +1,10 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
+
 import Button from './Button';
 import Header from './Header';
 import Modal from './Modal';
@@ -78,6 +81,7 @@ function DecisionModal({
         <Modal
             onClose={onClose}
             isVisible={isVisible}
+            shouldTreatModalAsCovering
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
             onModalHide={onModalHide}

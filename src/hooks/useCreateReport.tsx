@@ -1,16 +1,20 @@
-import {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultChatEnabledPolicy, isGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useCallback} from 'react';
+
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
@@ -88,15 +92,13 @@ export default function useCreateReport({
                 const freshReportID = generateReportID();
                 const freshTransactionID = generateReportID();
                 Navigation.navigate(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.CREATE,
-                            iouType: CONST.IOU.TYPE.CREATE,
-                            transactionID: freshTransactionID,
-                            reportID: freshReportID,
-                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                        }),
-                    ),
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.CREATE,
+                        iouType: CONST.IOU.TYPE.CREATE,
+                        transactionID: freshTransactionID,
+                        reportID: freshReportID,
+                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                    }),
                 );
                 return;
             }

@@ -1,8 +1,3 @@
-import React, {useCallback, useContext, useMemo, useRef} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Animated from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import {useSearchSidebarContentOffsetStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
@@ -15,19 +10,30 @@ import SearchPageHeaderWide from '@components/Search/SearchPageHeader/SearchPage
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
 import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavigationDeferredMount';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useNetwork from '@hooks/useNetwork';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
+
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
+import {StyleSheet, View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
@@ -119,12 +125,10 @@ function SearchPageWide({
                                 queryJSON={queryJSON}
                                 searchResults={searchResults}
                                 onSort={onSortPressedCallback}
-                                handleSearch={handleSearchAction}
                             />
                             <View style={styles.flex1}>
                                 {shouldShowLoadingSkeleton ? (
                                     <SearchLoadingSkeleton
-                                        containerStyle={styles.mt3}
                                         reasonAttributes={{
                                             context: 'SearchPage',
                                             isOffline,

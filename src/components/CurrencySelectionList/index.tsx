@@ -1,11 +1,16 @@
-import {Str} from 'expensify-common';
-import React, {useState} from 'react';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+
 import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+
 import getMatchScore from '@libs/getMatchScore';
+
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {Str} from 'expensify-common';
+import React, {useState} from 'react';
+
 import type {CurrencyListItem, CurrencySelectionListProps} from './types';
 
 function CurrencySelectionList({

@@ -1,12 +1,11 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
-import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {areTransactionsEligibleForMerge, getTransactionsForMerging, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildTransactionThread} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -19,13 +18,19 @@ import type {
     TransactionViolation,
     TransactionViolations,
 } from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../utils/TestHelper';
+
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Helper function to create mock violations
@@ -181,6 +186,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
     const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport} = fixtures;
 
     mergeTransactionRequest({
+        iouReportOwnerLogin: undefined,
         mergeTransactionID,
         mergeTransaction,
         targetTransaction,
@@ -191,12 +197,14 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, mockViolations, mockViolations),
         targetTransactionThreadReport: {reportID: targetReport.reportID},
         targetTransactionThreadParentReport: undefined,
-        targetTransactionThreadParentReportNextStep: undefined,
+        reportPolicyTags: undefined,
         currentUserAccountIDParam: 123,
         currentUserEmailParam: 'existing@example.com',
         isASAPSubmitBetaEnabled: false,
         selfDMReport: undefined,
+        selfDMReportActions: undefined,
         delegateAccountID: undefined,
+        isTrackIntentUser: false,
     });
 }
 
@@ -295,13 +303,14 @@ describe('mergeTransactionRequest', () => {
         // When: The merge transaction request is initiated
         // This should immediately update the UI with optimistic values
         mergeTransactionRequest({
+            iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
             targetTransactionThreadReport: {reportID: 'target-report-456'},
             targetTransactionThreadParentReport: undefined,
-            targetTransactionThreadParentReportNextStep: undefined,
+            reportPolicyTags: undefined,
             allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
             policy: undefined,
             policyTags: undefined,
@@ -311,6 +320,8 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            selfDMReportActions: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -410,13 +421,14 @@ describe('mergeTransactionRequest', () => {
 
         // When the merge fires
         mergeTransactionRequest({
+            iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
             targetTransactionThreadReport: {reportID: targetReportID},
             targetTransactionThreadParentReport: undefined,
-            targetTransactionThreadParentReportNextStep: undefined,
+            reportPolicyTags: undefined,
             allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID),
             policy: undefined,
             policyTags: undefined,
@@ -426,6 +438,8 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            selfDMReportActions: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -510,13 +524,14 @@ describe('mergeTransactionRequest', () => {
 
         // When: The Merge Expense flow is executed
         mergeTransactionRequest({
+            iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
             targetTransactionThreadReport: {reportID: targetExpenseReport.reportID},
             targetTransactionThreadParentReport: undefined,
-            targetTransactionThreadParentReportNextStep: undefined,
+            reportPolicyTags: undefined,
             allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
             policy: undefined,
             policyTags: undefined,
@@ -526,6 +541,8 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            selfDMReportActions: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -672,13 +689,14 @@ describe('mergeTransactionRequest', () => {
         mockFetch?.fail?.();
 
         mergeTransactionRequest({
+            iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
             targetTransactionThreadReport: {reportID: 'target-report-456'},
             targetTransactionThreadParentReport: undefined,
-            targetTransactionThreadParentReportNextStep: undefined,
+            reportPolicyTags: undefined,
             allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, mockViolations, mockViolations),
             policy: undefined,
             policyTags: undefined,
@@ -688,6 +706,8 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            selfDMReportActions: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -775,13 +795,14 @@ describe('mergeTransactionRequest', () => {
         // - Optimistically remove DUPLICATED_TRANSACTION violations since transactions are being merged
         // - Keep other violations like MISSING_CATEGORY intact
         mergeTransactionRequest({
+            iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
             targetTransactionThreadReport: {reportID: 'target123'},
             targetTransactionThreadParentReport: undefined,
-            targetTransactionThreadParentReportNextStep: undefined,
+            reportPolicyTags: undefined,
             allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, mockViolations, mockViolations),
             policy: undefined,
             policyTags: undefined,
@@ -791,6 +812,8 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            selfDMReportActions: undefined,
+            isTrackIntentUser: false,
         });
 
         await mockFetch?.resume?.();
@@ -1003,13 +1026,14 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
                 targetTransaction,
                 sourceTransaction,
                 targetTransactionThreadReport: {reportID: 'target-report-456'},
                 targetTransactionThreadParentReport: undefined,
-                targetTransactionThreadParentReportNextStep: undefined,
+                reportPolicyTags: undefined,
                 allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
                 policy: undefined,
                 policyTags: undefined,
@@ -1019,6 +1043,8 @@ describe('mergeTransactionRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 selfDMReport: undefined,
+                selfDMReportActions: undefined,
+                isTrackIntentUser: false,
             });
 
             await mockFetch?.resume?.();
@@ -1131,15 +1157,16 @@ describe('mergeTransactionRequest', () => {
                 [TEST_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
             });
 
-            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            jest.advanceTimersByTime(10);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
+            jest.advanceTimersByTime(10);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: undefined,
                 participants,
@@ -1183,6 +1210,7 @@ describe('mergeTransactionRequest', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: TEST_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1200,13 +1228,14 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
                 targetTransaction,
                 sourceTransaction,
                 targetTransactionThreadReport: {reportID: 'target-report-456'},
                 targetTransactionThreadParentReport: undefined,
-                targetTransactionThreadParentReportNextStep: undefined,
+                reportPolicyTags: undefined,
                 allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
                 policy: undefined,
                 policyTags: undefined,
@@ -1216,6 +1245,8 @@ describe('mergeTransactionRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 selfDMReport: undefined,
+                selfDMReportActions: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1230,7 +1261,6 @@ describe('mergeTransactionRequest', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report?.reportID).toBeFalsy();
@@ -1253,7 +1283,6 @@ describe('mergeTransactionRequest', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report).toBeFalsy();
@@ -1315,15 +1344,16 @@ describe('mergeTransactionRequest', () => {
                 [TEST_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
             });
 
-            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            jest.advanceTimersByTime(10);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
+            jest.advanceTimersByTime(10);
             const participants = userLogins.map((login, index) => ({
                 login,
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: undefined,
                 participants,
@@ -1349,13 +1379,14 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
                 targetTransaction,
                 sourceTransaction,
                 targetTransactionThreadReport: {reportID: 'target-report-456'},
                 targetTransactionThreadParentReport: undefined,
-                targetTransactionThreadParentReportNextStep: undefined,
+                reportPolicyTags: undefined,
                 allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, targetViolations, sourceViolations),
                 policy: undefined,
                 policyTags: undefined,
@@ -1365,6 +1396,8 @@ describe('mergeTransactionRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 selfDMReport,
+                selfDMReportActions: undefined,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -1373,7 +1406,6 @@ describe('mergeTransactionRequest', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report?.reportID).toBeFalsy();
@@ -1390,7 +1422,6 @@ describe('mergeTransactionRequest', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report).toBeFalsy();
@@ -1399,6 +1430,32 @@ describe('mergeTransactionRequest', () => {
                 });
             });
         });
+    });
+});
+
+describe('getTransactionsForMerging', () => {
+    beforeEach(() => {
+        return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    it('should do nothing when the target transaction has no transactionID', async () => {
+        // Given a target transaction with an empty transactionID
+        const targetTransaction = {...createRandomTransaction(0), transactionID: ''} as Transaction;
+
+        // When we request merge candidates for it (offline path, which would otherwise write eligible transactions locally)
+        getTransactionsForMerging({
+            isOffline: true,
+            targetTransaction,
+            transactions: {},
+            policy: undefined,
+            report: undefined,
+            currentUserLogin: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then no merge transaction entry is written for the empty key
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        expect(mergeTransaction).toBeUndefined();
     });
 });
 

@@ -1,21 +1,26 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useImperativeHandle, useRef, useState} from 'react';
-import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
-import MagicCodeInput from '@components/MagicCodeInput';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type {AutoCompleteVariant, ValidateCodeInputHandle} from '@components/ValidateCodeInput';
+import ValidateCodeInput from '@components/ValidateCodeInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {isValidRecoveryCode, isValidTwoFactorCode} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useImperativeHandle, useRef, useState} from 'react';
+
 import type {TwoFactorAuthFormProps} from './types';
 
 type BaseTwoFactorAuthFormProps = {
-    /** AutoComplete variant for the MagicCodeInput */
+    /** AutoComplete variant for the ValidateCodeInput */
     autoComplete?: AutoCompleteVariant;
 } & TwoFactorAuthFormProps;
 
@@ -24,6 +29,9 @@ const isMobile = !canFocusInputOnScreenFocus();
 function BaseTwoFactorAuthForm({
     autoComplete = CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE,
     shouldAllowRecoveryCode = false,
+    descriptionKey = 'twoFactorAuth.explainProcessToRemove',
+    descriptionKeyWithRecovery = 'twoFactorAuth.explainProcessToRemoveWithRecovery',
+    descriptionStyle,
     onSubmit,
     onInputChange,
     errorMessage,
@@ -39,7 +47,7 @@ function BaseTwoFactorAuthForm({
     const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string; recoveryCode?: string}>({});
 
-    const inputRef = useRef<MagicCodeInputHandle | null>(null);
+    const inputRef = useRef<ValidateCodeInputHandle | null>(null);
     const recoveryInputRef = useRef<BaseTextInputRef | null>(null);
 
     const focusRecoveryInput = () => {
@@ -188,9 +196,7 @@ function BaseTwoFactorAuthForm({
 
     return (
         <>
-            {shouldAllowRecoveryCode && (
-                <Text style={[styles.mb3]}>{translate(isUsingRecoveryCode ? 'twoFactorAuth.explainProcessToRemoveWithRecovery' : 'twoFactorAuth.explainProcessToRemove')}</Text>
-            )}
+            {shouldAllowRecoveryCode && <Text style={[styles.mb3, descriptionStyle]}>{translate(isUsingRecoveryCode ? descriptionKeyWithRecovery : descriptionKey)}</Text>}
             {shouldAllowRecoveryCode && isUsingRecoveryCode ? (
                 <TextInput
                     ref={(input) => {
@@ -210,7 +216,7 @@ function BaseTwoFactorAuthForm({
                     testID="recoveryCodeInput"
                 />
             ) : (
-                <MagicCodeInput
+                <ValidateCodeInput
                     autoComplete={autoComplete}
                     name="twoFactorAuthCode"
                     value={twoFactorAuthCode}
