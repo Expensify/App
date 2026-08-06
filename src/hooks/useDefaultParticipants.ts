@@ -1,4 +1,3 @@
-import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
@@ -11,6 +10,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {policyExpenseChatSelector} from '@selectors/Report';
 import {useMemo} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -53,10 +53,7 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const accountID = currentUserPersonalDetails.accountID;
-    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => getPolicyExpenseChat(accountID, defaultExpensePolicy?.id, reports)}, [
-        accountID,
-        defaultExpensePolicy?.id,
-    ]);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)}, [accountID, defaultExpensePolicy?.id]);
 
     return useMemo(() => {
         if (!isNewManualExpenseFlowEnabled) {

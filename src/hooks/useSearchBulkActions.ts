@@ -49,7 +49,6 @@ import {
     canEditMultipleTransactions,
     getAllPolicyExpenseChatReportActions,
     getIntegrationIcon,
-    getPolicyExpenseChat,
     getReportOrDraftReport,
     hasViolations as hasViolationsReportUtils,
     isArchivedReport,
@@ -104,6 +103,7 @@ import type {ValueOf} from 'type-fest';
 
 /* eslint-disable react-hooks/refs -- Refs in this hook are used inside callbacks that capture stable references; the lint rule flags false positives for these patterns */
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {policyExpenseChatSelector} from '@selectors/Report';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import useAllTransactions from './useAllTransactions';
@@ -1485,11 +1485,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         duplicateHandlerRef.current();
     }, []);
 
-    const activePolicyExpenseChatSelector = useCallback(
-        (reports: OnyxCollection<Report>) => getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id, reports),
-        [currentUserPersonalDetails.accountID, defaultExpensePolicy?.id],
-    );
-    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: activePolicyExpenseChatSelector});
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id)}, [
+        currentUserPersonalDetails.accountID,
+        defaultExpensePolicy?.id,
+    ]);
 
     const allTransactionsForDuplicate = useMemo(
         () =>

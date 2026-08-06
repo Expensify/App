@@ -21,7 +21,6 @@ import {
     canHoldUnholdReportAction,
     canRejectReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getPolicyExpenseChat,
     getReportOrDraftReport,
     isInvoiceReport,
     isMoneyRequestReport as isMoneyRequestReportUtils,
@@ -38,9 +37,9 @@ import type {Route} from '@src/ROUTES';
 import type {ExportTemplate, Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {policyExpenseChatSelector} from '@selectors/Report';
 import {useCallback, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import {OnyxCollection} from 'react-native-onyx';
 
 import useAllTransactions from './useAllTransactions';
 import useConfirmModal from './useConfirmModal';
@@ -183,11 +182,10 @@ function useSelectedTransactionsActions({
         return map;
     }, [selectedTransactionIDs, allTransactions]);
 
-    const activePolicyExpenseChatSelector = useCallback(
-        (reports: OnyxCollection<Report>) => getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id, reports),
-        [currentUserAccountID, defaultExpensePolicy?.id],
-    );
-    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: activePolicyExpenseChatSelector});
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(currentUserAccountID, defaultExpensePolicy?.id)}, [
+        currentUserAccountID,
+        defaultExpensePolicy?.id,
+    ]);
 
     const isDuplicateOptionVisible = useMemo(
         () =>
