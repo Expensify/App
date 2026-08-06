@@ -2633,6 +2633,22 @@ const translations: TranslationDeepObject<typeof en> = {
             debitBlocked: 'Votre banque a bloqué les transactions de test vers ce compte',
             insufficientFunds: 'Les transactions de test ont échoué en raison de fonds insuffisants',
         },
+        fixBankAccount: {
+            title: 'Corriger le compte bancaire',
+            actionRequired: 'Action requise',
+            debitBlockedIntro: 'Votre banque a bloqué les transactions de test vers ce compte.',
+            debitBlockedPrompt: 'Veuillez leur demander d’ajouter les identifiants ACH d’Expensify à leur liste blanche :',
+            debitBlockedResendPrompt: 'Ensuite, renvoyez les transactions de test ci-dessous.',
+            insufficientFundsIntro: 'Les transactions de test ont échoué en raison de fonds insuffisants.',
+            insufficientFundsPrompt: 'Une fois les fonds disponibles, utilisez le bouton ci-dessous.',
+            resendButton: 'Renvoyer les transactions',
+            successTitle: 'Transactions envoyées !',
+            successBody: 'Vérifiez votre compte bancaire dans un délai de 1 à 2 jours ouvrables.',
+            successButton: 'Compris',
+            debitBlockedBody:
+                'Votre banque a bloqué les transactions de test vers ce compte.<br/><br/>Veuillez leur demander d’ajouter les identifiants ACH d’Expensify à leur liste verte :<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Puis, renvoyez les transactions de test ci-dessous.',
+            insufficientFundsBody: 'Les transactions de test ont échoué en raison de fonds insuffisants.<br/>Une fois que des fonds seront disponibles, utilisez le bouton ci-dessous.',
+        },
     },
     cardPage: {
         expensifyCard: 'Carte Expensify',

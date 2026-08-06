@@ -2620,6 +2620,22 @@ const translations: TranslationDeepObject<typeof en> = {
             debitBlocked: 'La tua banca ha bloccato le transazioni di prova su questo conto',
             insufficientFunds: 'Le transazioni di prova non sono riuscite per fondi insufficienti',
         },
+        fixBankAccount: {
+            title: 'Correggi conto bancario',
+            actionRequired: 'Azione richiesta',
+            debitBlockedIntro: 'La tua banca ha bloccato le transazioni di prova su questo conto.',
+            debitBlockedPrompt: 'Chiedi loro di inserire negli elenchi consentiti gli ID ACH di Expensify:',
+            debitBlockedResendPrompt: 'Poi, reinvia le transazioni di prova qui sotto.',
+            insufficientFundsIntro: 'Le transazioni di prova non sono riuscite a causa di fondi insufficienti.',
+            insufficientFundsPrompt: 'Quando i fondi sono disponibili, usa il pulsante qui sotto.',
+            resendButton: 'Invia di nuovo le transazioni',
+            successTitle: 'Transazioni inviate!',
+            successBody: 'Controlla il tuo conto bancario entro 1-2 giorni lavorativi.',
+            successButton: 'Ricevuto',
+            debitBlockedBody:
+                'La tua banca ha bloccato le transazioni di prova su questo conto.<br/><br/>Chiedi loro di inserire negli elenchi consentiti gli ID ACH di Expensify:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Poi reinvia le transazioni di prova qui sotto.',
+            insufficientFundsBody: 'Le transazioni di prova non sono riuscite per fondi insufficienti.<br/>Quando i fondi saranno disponibili, usa il pulsante qui sotto.',
+        },
     },
     cardPage: {
         expensifyCard: 'Carta Expensify',

@@ -2622,6 +2622,22 @@ const translations: TranslationDeepObject<typeof en> = {
             debitBlocked: 'Je bank heeft testtransacties naar deze rekening geblokkeerd',
             insufficientFunds: 'Testtransacties mislukt vanwege onvoldoende saldo',
         },
+        fixBankAccount: {
+            title: 'Bankrekening herstellen',
+            actionRequired: 'Actie vereist',
+            debitBlockedIntro: 'Je bank heeft de testtransacties naar deze rekening geblokkeerd.',
+            debitBlockedPrompt: "Vraag hen om de ACH-ID's van Expensify op de whitelist te zetten:",
+            debitBlockedResendPrompt: 'Stuur vervolgens de testtransacties hieronder opnieuw.',
+            insufficientFundsIntro: 'Testtransacties zijn mislukt vanwege onvoldoende saldo.',
+            insufficientFundsPrompt: 'Zodra er geld beschikbaar is, gebruik je de knop hieronder.',
+            resendButton: 'Transacties opnieuw verzenden',
+            successTitle: 'Transacties verzonden!',
+            successBody: 'Controleer je bankrekening over 1–2 werkdagen.',
+            successButton: 'Begrepen',
+            debitBlockedBody:
+                "Je bank heeft de testtransacties naar deze rekening geblokkeerd.<br/><br/>Vraag hen om de ACH-ID's van Expensify op de whitelist te zetten:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Verzend daarna de onderstaande testtransacties opnieuw.",
+            insufficientFundsBody: 'Testtransacties zijn mislukt door onvoldoende saldo.<br/>Zodra er voldoende saldo is, gebruik je de knop hieronder.',
+        },
     },
     cardPage: {
         expensifyCard: 'Expensify Kaart',

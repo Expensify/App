@@ -2514,8 +2514,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Confirma las transacciones de prueba',
             accountRequiresAttention: 'Esta cuenta requiere atención',
             unlock: 'Desbloquear',
-            debitBlocked: 'Tu banco ha bloqueado las transacciones de prueba a esta cuenta',
+            debitBlocked: 'Tu banco bloqueó las transacciones de prueba a esta cuenta',
             insufficientFunds: 'Las transacciones de prueba fallaron por fondos insuficientes',
+        },
+        fixBankAccount: {
+            title: 'Corregir cuenta bancaria',
+            debitBlockedBody:
+                'Tu banco ha bloqueado las transacciones de prueba a esta cuenta.<br/><br/>Pídeles que añadan a la lista de permitidos los ID ACH de Expensify:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Luego, vuelve a enviar las transacciones de prueba que aparecen abajo.',
+            insufficientFundsBody: 'Las transacciones de prueba fallaron por fondos insuficientes.<br/>Cuando haya fondos disponibles, usa el botón de abajo.',
+            resendButton: 'Reenviar transacciones',
+            successTitle: '¡Transacciones enviadas!',
+            successBody: 'Revisa tu cuenta bancaria en los próximos 1-2 días hábiles.',
+            successButton: 'Entendido',
         },
     },
     cardPage: {
