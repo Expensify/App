@@ -20,7 +20,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, shouldShowPolicy} from '@libs/PolicyUtils';
-import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {generateReportID} from '@libs/ReportUtils';
 
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 
@@ -88,7 +88,6 @@ function useCreateNavigationSuggestions(): SearchQueryItem[] {
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailAndAccountIDSelector});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     // Use the shared report eligibility rules so Submit workspaces are only included for beta users.
@@ -99,7 +98,6 @@ function useCreateNavigationSuggestions(): SearchQueryItem[] {
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy([...groupPoliciesWithChatEnabled], activePolicy);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const isInvoiceVisible = canSendInvoice(allPolicies ?? null, sessionEmail);
 
     const {createReport, isVisible: isCreateReportVisible} = useCreateReport({
@@ -116,7 +114,7 @@ function useCreateNavigationSuggestions(): SearchQueryItem[] {
 
             const {reportID: createdReportID} = createNewReport(
                 currentUserPersonalDetails,
-                hasViolations,
+                false,
                 isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 defaultChatEnabledPolicy,
                 allBetas,
