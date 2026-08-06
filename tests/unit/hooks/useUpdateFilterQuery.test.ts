@@ -17,7 +17,7 @@ jest.mock('@hooks/useOnyx', () => ({
 }));
 
 const mockResetSearchKey = jest.fn();
-const mockUseSearchQueryContext = jest.fn();
+const mockUseSearchQueryContext = jest.fn<{currentSearchHash: number}, []>();
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryActions: () => ({resetSearchKey: mockResetSearchKey}),
