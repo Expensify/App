@@ -1616,10 +1616,10 @@ describe('actions/IOU/ReportWorkflow', () => {
             }
             expect(optimisticReportValue.nextStep.actorAccountID).toBe(ruleApproverAccountID);
 
-            const reportkey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
-            const optimisticReortUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportkey, Onyx.METHOD.MERGE, true);
-            const optimisticReortUpdateValue = optimisticReortUpdate.value;
-            expect(optimisticReortUpdateValue.nextStep).toEqual({
+            const expenseReportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
+            const optimisticExpenseReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', expenseReportKey, Onyx.METHOD.MERGE, true);
+            const optimisticExpenseReportUpdateValue = optimisticExpenseReportUpdate.value;
+            expect(optimisticExpenseReportUpdateValue.nextStep).toEqual({
                 actorAccountID: ruleApproverAccountID,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
@@ -1705,8 +1705,8 @@ describe('actions/IOU/ReportWorkflow', () => {
             const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
             expect(parameters.managerAccountID).toBe(adminAccountID);
 
-            const parentReportKey = `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`;
-            const optimisticParentReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', parentReportKey, Onyx.METHOD.MERGE, true);
+            const parentreportKey = `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`;
+            const optimisticParentReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', parentreportKey, Onyx.METHOD.MERGE, true);
             expect(optimisticParentReportUpdate.value.hasOutstandingChildRequest).toBe(true);
             expect(optimisticParentReportUpdate.value.iouReportID).toBeNull();
         });
