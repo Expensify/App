@@ -1,6 +1,7 @@
 import Button from '@components/ButtonComposed';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
@@ -25,6 +26,7 @@ type FraudAlertContentProps = {
 
 function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
     const {translate, getLocalDateFromDatetime} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     const reportActionID = action?.reportActionID;
     const originalMessage = getOriginalMessage(action);
@@ -32,7 +34,7 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))});
     const possibleFraud = card?.nameValuePairs?.possibleFraud ?? null;
 
-    const message = getActionableCardFraudAlertMessage(translate, action, getLocalDateFromDatetime);
+    const message = getActionableCardFraudAlertMessage(translate, action, getLocalDateFromDatetime, convertToDisplayString);
 
     return (
         <View

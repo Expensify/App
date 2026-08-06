@@ -89,6 +89,7 @@ function ConciergeOptionsButtons({action, actionOwnerReport, reportID}: Concierg
     const styles = useThemeStyles();
     const personalDetail = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isCategoryOptions = isConciergeCategoryOptions(action);
     const isResolved = isCategoryOptions ? isResolvedConciergeCategoryOptions(action) : isResolvedConciergeDescriptionOptions(action);
@@ -117,6 +118,7 @@ function ConciergeOptionsButtons({action, actionOwnerReport, reportID}: Concierg
                             personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                             personalDetail.accountID,
                             delegateAccountID,
+                            conciergeReportID,
                         );
                     }}
                 >
@@ -213,10 +215,12 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(personalDetail.email)});
     const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getOriginalMessage(action)?.transactionID)}`);
+    const [actionOwnerReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(actionOwnerReportID)}`);
     const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasWorkspaceToSubmitToSelector(personalDetail.login, isSubmit2026BetaEnabled)});
 
     const baseDraftTransactionParams = {
         reportID: actionOwnerReportID,
+        reportActions: actionOwnerReportActions,
         reportActionID: action.reportActionID,
         introSelected,
         draftTransactionIDs,

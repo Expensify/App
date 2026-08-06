@@ -92,6 +92,20 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/abc/overview/address')).toBe('/workspaces/abc/overview/workspace-address');
     });
 
+    it('redirects legacy policy-specific downgrade paths (with and without trailing slash) to the dynamic downgrade route', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/downgrade/')).toBe('/workspaces/abc/overview/plan/downgrade?policyID=abc');
+        expect(getMatchingNewRoute('/workspaces/abc/downgrade')).toBe('/workspaces/abc/overview/plan/downgrade?policyID=abc');
+    });
+
+    it('redirects legacy policy-less downgrade path to the Subscription dynamic downgrade route', () => {
+        expect(getMatchingNewRoute('/workspaces/downgrade')).toBe('/settings/subscription/downgrade');
+    });
+
+    it('does not redirect the already-migrated dynamic downgrade route', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/overview/plan/downgrade')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/subscription/downgrade')).toBe(undefined);
+    });
+
     it('redirects old card reconciliation account path with two wildcards', () => {
         expect(getMatchingNewRoute('/workspaces/abc/accounting/xero/card-reconciliation/account')).toBe(
             '/workspaces/abc/accounting/xero/card-reconciliation/account-reconciliation-settings',
@@ -477,21 +491,22 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-destination-edit')).toBe(undefined);
     });
 
-    it('redirects legacy per diem time step to the new destination-based dynamic route (#83850)', () => {
-        expect(getMatchingNewRoute('/create/submit/time/123/456')).toBe('/create/submit/destination/123/456/per-diem-time');
+    // The legacy `?backTo=` query is not preserved: the trailing wildcard swallows it and the new suffix carries its own query.
+    it('redirects the legacy money request report step to the new dynamic route (#83851)', () => {
+        expect(getMatchingNewRoute('/edit/submit/report/123/456')).toBe('/r/456/expense-report?action=edit&iouType=submit&transactionID=123&reportID=456');
     });
 
-    // NOTE: the redirect appends the dynamic suffix (`/time`) so a deep-link restores the actual wizard step. Query
-    // preservation is intentionally not asserted: the OldRoutes matcher captures the trailing segment with a greedy
-    // `(.*)` that also swallows the query string, so a suffix cannot be appended after it while keeping `?backTo=…`.
-    // This is acceptable because no call site produces these legacy paths with a query anymore (all navigations moved to
-    // `createDynamicRoute` without `backTo`).
-    it('redirects legacy per diem time edit step to the new confirmation-based dynamic route (#83850)', () => {
-        expect(getMatchingNewRoute('/create/submit/time/123/456/edit')).toBe('/create/submit/confirmation/123/456/per-diem-time-edit');
+    it('redirects the legacy money request edit report step to the new dynamic route (#83851)', () => {
+        expect(getMatchingNewRoute('/edit/submit/report/456/edit')).toBe('/r/456/expense-report-edit?action=edit&iouType=submit&reportID=456');
     });
 
-    it('does not redirect the already-migrated per diem time dynamic routes (#83850)', () => {
-        expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-destination/per-diem-time')).toBe(undefined);
-        expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-time-edit')).toBe(undefined);
+    it('redirects the legacy money request tag step to the new dynamic route (#83851)', () => {
+        expect(getMatchingNewRoute('/edit/submit/tag/0/123/456')).toBe('/r/456/expense-tag?action=edit&iouType=submit&orderWeight=0&transactionID=123&reportID=456');
+    });
+
+    it('does not redirect the already-migrated money request report and tag dynamic routes (#83851)', () => {
+        expect(getMatchingNewRoute('/r/456/expense-report?action=edit&iouType=submit&transactionID=123&reportID=456')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/456/expense-report-edit?action=edit&iouType=submit&reportID=456')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/456/expense-tag?action=edit&iouType=submit&orderWeight=0&transactionID=123&reportID=456')).toBe(undefined);
     });
 });
