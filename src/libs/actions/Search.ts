@@ -75,7 +75,6 @@ import type {
     Report,
     ReportAction,
     ReportActions,
-    ReportNextStepDeprecated,
     SaveSearch,
     Transaction,
 } from '@src/types/onyx';
@@ -225,7 +224,6 @@ type HandleActionButtonPressParams = {
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
     chatReportPolicy?: OnyxEntry<Policy>;
-    iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
     delegateEmail?: string;
@@ -264,7 +262,6 @@ function handleActionButtonPress({
     activePolicy,
     chatReport,
     chatReportPolicy,
-    iouReportCurrentNextStepDeprecated,
     searchData,
     chatReportActions,
     delegateEmail,
@@ -314,7 +311,6 @@ function handleActionButtonPress({
                 activePolicy,
                 chatReport,
                 chatReportPolicy,
-                iouReportCurrentNextStepDeprecated,
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
                 amountOwed,
@@ -352,7 +348,6 @@ function handleActionButtonPress({
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
                 amountOwed,
-                iouReportCurrentNextStepDeprecated,
                 delegateEmail,
                 delegateAccountID,
                 isTrackIntentUser,
@@ -523,7 +518,6 @@ type GetPayActionCallbackParams = {
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
     chatReportPolicy?: OnyxEntry<Policy>;
-    iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
@@ -552,7 +546,6 @@ function getPayActionCallback({
     activePolicy,
     chatReport,
     chatReportPolicy,
-    iouReportCurrentNextStepDeprecated,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     amountOwed,
@@ -595,7 +588,6 @@ function getPayActionCallback({
         chatReport: chatReportForPayment,
         iouReport: snapshotReport,
         introSelected,
-        iouReportCurrentNextStepDeprecated,
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         currentUserLogin: currentUserLogin ?? '',
         activePolicy,
@@ -628,7 +620,6 @@ type GetApproveActionCallbackParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
-    iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     delegateEmail?: string;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
@@ -648,7 +639,6 @@ function getApproveActionCallback({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     amountOwed,
-    iouReportCurrentNextStepDeprecated,
     delegateEmail,
     delegateAccountID,
     isTrackIntentUser,
@@ -670,7 +660,6 @@ function getApproveActionCallback({
         currentUserEmailParam: currentUserLogin ?? '',
         hasViolations,
         isASAPSubmitBetaEnabled,
-        expenseReportCurrentNextStepDeprecated: iouReportCurrentNextStepDeprecated,
         betas,
         userBillingGracePeriodEnds,
         amountOwed,
@@ -1753,11 +1742,6 @@ function getExportTemplates(
     // Conditionally include the report level export template
     if (includeReportLevelExport) {
         exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
-    }
-
-    // The Canadian Multiple Tax Export template is only relevant to workspaces that output in CAD, so it's hidden for every other currency
-    if (policy?.outputCurrency === CONST.CURRENCY.CAD) {
-        exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT, {name: translate('export.multipleTaxExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
     }
 
     // Conditionally include the basic export (CSV download) template so it's sorted alphabetically alongside the other default templates
