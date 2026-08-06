@@ -2616,19 +2616,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         fixBankAccount: {
             title: 'Corrigir conta bancária',
-            actionRequired: 'Ação necessária',
-            debitBlockedIntro: 'Seu banco bloqueou as transações de teste para esta conta.',
-            debitBlockedPrompt: 'Peça para que incluam na lista de permissões os IDs de ACH da Expensify:',
-            debitBlockedResendPrompt: 'Depois, reenvie as transações de teste abaixo.',
-            insufficientFundsIntro: 'As transações de teste falharam por falta de fundos.',
-            insufficientFundsPrompt: 'Quando os fundos estiverem disponíveis, use o botão abaixo.',
+            debitBlockedBody:
+                'Seu banco bloqueou as transações de teste para esta conta.<br/><br/>Peça para liberarem os IDs ACH da Expensify na lista de permissões:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Depois, reenvie as transações de teste abaixo.',
+            insufficientFundsBody: '<muted-text>As transações de teste falharam por falta de fundos.<br/>Quando houver fundos disponíveis, use o botão abaixo.</muted-text>',
             resendButton: 'Reenviar transações',
             successTitle: 'Transações enviadas!',
-            successBody: 'Verifique sua conta bancária nos próximos 1–2 dias úteis.',
+            successBody: 'Confira sua conta bancária nos próximos 1 a 2 dias úteis.',
             successButton: 'Entendi',
-            debitBlockedBody:
-                'Seu banco bloqueou as transações de teste para esta conta.<br/><br/>Peça para eles colocarem na lista de permissões os IDs ACH da Expensify:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Depois, reenvie as transações de teste abaixo.',
-            insufficientFundsBody: '<muted-text>As transações de teste falharam por falta de fundos.<br/>Quando houver fundos disponíveis, use o botão abaixo.</muted-text>',
         },
     },
     cardPage: {

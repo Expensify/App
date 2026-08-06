@@ -2518,13 +2518,13 @@ const translations: TranslationDeepObject<typeof en> = {
             insufficientFunds: 'Las transacciones de prueba fallaron por fondos insuficientes',
         },
         fixBankAccount: {
-            title: 'Arreglar cuenta bancaria',
+            title: 'Corregir cuenta bancaria',
             debitBlockedBody:
-                'Tu banco bloqueó las transacciones de prueba a esta cuenta.<br/><br/>Pídeles que añadan a la lista blanca los ID ACH de Expensify:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Luego, vuelve a enviar las transacciones de prueba de abajo.',
-            insufficientFundsBody: '<muted-text>Las transacciones de prueba fallaron por fondos insuficientes.<br/>Una vez que haya fondos disponibles, usa el botón de abajo.</muted-text>',
+                'Tu banco bloqueó las transacciones de prueba a esta cuenta.<br/><br/>Pídeles que agreguen a la lista blanca los ID de ACH de Expensify:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Luego, vuelve a enviar las transacciones de prueba de abajo.',
+            insufficientFundsBody: '<muted-text>Las transacciones de prueba fallaron por fondos insuficientes.<br/>Cuando haya fondos disponibles, utiliza el botón de abajo.</muted-text>',
             resendButton: 'Reenviar transacciones',
             successTitle: '¡Transacciones enviadas!',
-            successBody: 'Consulta tu cuenta bancaria en los próximos 1-2 días hábiles.',
+            successBody: 'Revisa tu cuenta bancaria en los próximos 1-2 días hábiles.',
             successButton: 'Entendido',
         },
     },

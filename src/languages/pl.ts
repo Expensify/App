@@ -2615,19 +2615,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         fixBankAccount: {
             title: 'Napraw konto bankowe',
-            actionRequired: 'Wymagane działanie',
-            debitBlockedIntro: 'Twój bank zablokował transakcje testowe na tym koncie.',
-            debitBlockedPrompt: 'Poproś ich o dodanie do białej listy identyfikatorów ACH Expensify:',
-            debitBlockedResendPrompt: 'Następnie wyślij ponownie testowe transakcje poniżej.',
-            insufficientFundsIntro: 'Próbne transakcje nie powiodły się z powodu niewystarczających środków.',
-            insufficientFundsPrompt: 'Gdy środki będą dostępne, użyj przycisku poniżej.',
+            debitBlockedBody:
+                'Twój bank zablokował transakcje testowe na to konto.<br/><br/>Poproś ich o dodanie do listy zaufanych identyfikatorów ACH Expensify:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Następnie wyślij ponownie poniższe transakcje testowe.',
+            insufficientFundsBody: '<muted-text>Testowe transakcje nie powiodły się z powodu niewystarczających środków.<br/>Gdy środki będą dostępne, użyj przycisku poniżej.</muted-text>',
             resendButton: 'Wyślij ponownie transakcje',
             successTitle: 'Transakcje wysłane!',
             successBody: 'Sprawdź swoje konto bankowe w ciągu najbliższych 1–2 dni roboczych.',
-            successButton: 'Zrozumiano',
-            debitBlockedBody:
-                'Twój bank zablokował transakcje testowe na to konto.<br/><br/>Poproś ich o dodanie do listy dozwolonych identyfikatorów ACH Expensify:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Następnie wyślij ponownie poniższe transakcje testowe.',
-            insufficientFundsBody: '<muted-text>Transakcje testowe nie powiodły się z powodu niewystarczających środków.<br/>Gdy środki będą dostępne, użyj przycisku poniżej.</muted-text>',
+            successButton: 'Rozumiem',
         },
     },
     cardPage: {

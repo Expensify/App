@@ -2625,25 +2625,19 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Bitte bestätigen Sie Testtransaktionen',
             accountRequiresAttention: 'Dieses Konto erfordert Ihre Aufmerksamkeit',
             unlock: 'Entsperren',
-            debitBlocked: 'Ihre Bank hat die Testtransaktionen zu diesem Konto blockiert',
-            insufficientFunds: 'Testtransaktionen aufgrund unzureichender Deckung fehlgeschlagen',
+            debitBlocked: 'Ihre Bank hat Testtransaktionen auf dieses Konto blockiert',
+            insufficientFunds: 'Testtransaktionen sind aufgrund unzureichender Deckung fehlgeschlagen',
         },
         fixBankAccount: {
-            title: 'Bankkonto korrigieren',
-            actionRequired: 'Handlung erforderlich',
-            debitBlockedIntro: 'Ihre Bank hat die Testtransaktionen für dieses Konto blockiert.',
-            debitBlockedPrompt: 'Bitte lassen Sie sie die ACH-IDs von Expensify auf die Whitelist setzen:',
-            debitBlockedResendPrompt: 'Senden Sie dann die Testtransaktionen unten erneut.',
-            insufficientFundsIntro: 'Testtransaktionen sind aufgrund unzureichender Deckung fehlgeschlagen.',
-            insufficientFundsPrompt: 'Sobald Gelder verfügbar sind, verwenden Sie die Schaltfläche unten.',
+            title: 'Bankkonto beheben',
+            debitBlockedBody:
+                'Ihre Bank hat die Testtransaktionen auf dieses Konto blockiert.<br/><br/>Bitte lassen Sie die folgenden ACH-IDs von Expensify auf die Whitelist setzen:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Senden Sie anschließend die unten stehenden Testtransaktionen erneut.',
+            insufficientFundsBody:
+                '<muted-text>Testtransaktionen sind aufgrund unzureichender Deckung fehlgeschlagen.<br/>Sobald wieder Geld verfügbar ist, verwenden Sie die Schaltfläche unten.</muted-text>',
             resendButton: 'Transaktionen erneut senden',
             successTitle: 'Transaktionen gesendet!',
             successBody: 'Prüfen Sie Ihr Bankkonto in den nächsten 1–2 Werktagen.',
             successButton: 'Verstanden',
-            debitBlockedBody:
-                'Ihre Bank hat die Testtransaktionen auf dieses Konto blockiert.<br/><br/>Bitte lassen Sie die ACH-IDs von Expensify auf die Whitelist setzen:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Senden Sie anschließend die Testtransaktionen unten erneut.',
-            insufficientFundsBody:
-                '<muted-text>Testtransaktionen sind aufgrund unzureichender Deckung fehlgeschlagen.<br/>Sobald genügend Geld vorhanden ist, verwenden Sie die Schaltfläche unten.</muted-text>',
         },
     },
     cardPage: {

@@ -2599,19 +2599,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         fixBankAccount: {
             title: '銀行口座を修正',
-            actionRequired: '対応が必要です',
-            debitBlockedIntro: 'この口座へのテスト取引は銀行によってブロックされました。',
-            debitBlockedPrompt: 'Expensify の ACH ID をホワイトリストに追加してもらってください。',
-            debitBlockedResendPrompt: '次に、下記のテスト取引を再送してください。',
-            insufficientFundsIntro: '残高不足のためテスト取引に失敗しました。',
-            insufficientFundsPrompt: '利用可能な残高が反映されましたら、下のボタンをお使いください。',
+            debitBlockedBody:
+                'この口座へのテスト取引が銀行によってブロックされました。<br/><br/>銀行に依頼して、Expensify の ACH ID をホワイトリストに登録してもらってください。<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>その後、以下のテスト取引を再送してください。',
+            insufficientFundsBody: '<muted-text>残高不足のためテスト取引に失敗しました。<br/>残高が利用可能になりましたら、下のボタンを使用してください。</muted-text>',
             resendButton: '取引を再送信',
             successTitle: '取引を送信しました！',
             successBody: '1〜2営業日以内に銀行口座をご確認ください。',
             successButton: '了解しました',
-            debitBlockedBody:
-                'お使いの銀行がこの口座へのテスト取引をブロックしました。<br/><br/>銀行に依頼して、Expensify の ACH ID をホワイトリストに登録してください。<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>その後、下記のテスト取引を再送してください。',
-            insufficientFundsBody: '<muted-text>残高不足のためテスト取引に失敗しました。<br/>残高が利用可能になりましたら、下のボタンを使用してください。</muted-text>',
         },
     },
     cardPage: {
