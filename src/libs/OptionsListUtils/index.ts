@@ -1824,6 +1824,30 @@ function hydrateLazyPersonalDetailOption(option: PersonalDetailOptionOrShell): H
     return {...option.hydrate(), isHydrated: true};
 }
 
+/**
+ * Hydrates a contact option that getValidOptions left as a shell (see `deferContactHydration`), re-applying the
+ * marks it wrote before the display fields existed. Screens that defer must call this instead of
+ * hydrateLazyPersonalDetailOption: the memoized build is shared by every caller, so it cannot carry one screen's
+ * selection state, and dropping the marks would render every row unselected and unbolded.
+ */
+function hydrateWithMarks(option: PersonalDetailOptionOrShell): HydratedPersonalDetailOption {
+    if (option.isHydrated) {
+        return option;
+    }
+
+    const hydrated = hydrateLazyPersonalDetailOption(option);
+    hydrated.isSelected = option.isSelected;
+    hydrated.selected = option.selected;
+    hydrated.isBold = option.isBold;
+    // Same suppression the eager path applies right after building the option, using the decision getValidOptions
+    // recorded on the shell (a shell has no brickRoadIndicator of its own until createOption derives one here).
+    if (!option.shouldShowGBR && hydrated.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+        hydrated.brickRoadIndicator = '';
+    }
+
+    return hydrated;
+}
+
 function createFilteredOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reports: OnyxCollection<Report>,
@@ -2312,13 +2336,13 @@ function sortComparatorReportOptionByDate(options: SearchOptionData) {
 /**
  * Sorts reports and personal details independently.
  */
-function orderOptions(options: ReportAndPersonalDetailOptions): ReportAndPersonalDetailOptions;
+function orderOptions<T extends SearchOptionData>(options: ReportAndPersonalDetailOptions<T>): ReportAndPersonalDetailOptions<T>;
 
 /**
  * Sorts reports and personal details independently, but prioritizes the search value.
  */
-function orderOptions(options: ReportAndPersonalDetailOptions, searchValue: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions;
-function orderOptions(options: ReportAndPersonalDetailOptions, searchValue?: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions {
+function orderOptions<T extends SearchOptionData>(options: ReportAndPersonalDetailOptions<T>, searchValue: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions<T>;
+function orderOptions<T extends SearchOptionData>(options: ReportAndPersonalDetailOptions<T>, searchValue?: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions<T> {
     let orderedReportOptions: SearchOptionData[];
     if (searchValue) {
         orderedReportOptions = orderReportOptionsWithSearch(options.recentReports, searchValue, config);
@@ -2730,6 +2754,32 @@ function prepareReportOptionsForDisplay(
 /**
  * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
  */
+/**
+ * Deferring hydration keeps the contact options as shells, so the caller sees the PersonalDetailOptionOrShell
+ * union and cannot render one without going through hydrateWithMarks. Everyone else gets built options.
+ */
+function getValidOptions(
+    options: OptionList,
+    policiesCollection: OnyxCollection<Policy>,
+    draftComments: OnyxCollection<string> | undefined,
+    loginList: OnyxEntry<Login>,
+    currentUserAccountID: number,
+    currentUserEmail: string,
+    conciergeReportID: string | undefined,
+    config: GetOptionsConfig & {deferContactHydration: true},
+    translate: LocalizedTranslate,
+): OptionsResult<PersonalDetailOptionOrShell>;
+function getValidOptions(
+    options: OptionList,
+    policiesCollection: OnyxCollection<Policy>,
+    draftComments: OnyxCollection<string> | undefined,
+    loginList: OnyxEntry<Login>,
+    currentUserAccountID: number,
+    currentUserEmail: string,
+    conciergeReportID: string | undefined,
+    config: GetOptionsConfig,
+    translate: LocalizedTranslate,
+): OptionsResult;
 function getValidOptions(
     options: OptionList,
     policiesCollection: OnyxCollection<Policy>,
@@ -2762,10 +2812,11 @@ function getValidOptions(
         sortedActions,
         isTrackIntentUser,
         isOffline,
+        deferContactHydration = false,
         ...config
     }: GetOptionsConfig,
     translate: LocalizedTranslate,
-): OptionsResult {
+): OptionsResult<PersonalDetailOptionOrShell> {
     // Gather shared configs:
     // Hard exclusions: cannot be selected at all
     const loginsToExclude: Record<string, boolean> = {
@@ -2979,7 +3030,7 @@ function getValidOptions(
     }
 
     // Get valid personal details and check if we can find the current user:
-    let personalDetailsOptions: SearchOptionData[] = [];
+    let personalDetailsOptions: PersonalDetailOptionOrShell[] = [];
     const currentUserRef = {
         current: undefined as SearchOptionData | undefined,
     };
@@ -3025,7 +3076,9 @@ function getValidOptions(
         const groupedPersonalDetails = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
         // Lightweight options from createFilteredOptionList get their full display fields only now, after the
         // heap selection reduced them to a single page, so the expensive work is done for a handful of options.
-        personalDetailsOptions = groupedPersonalDetails.options.map(hydrateLazyPersonalDetailOption);
+        // When the caller defers, even that is skipped: it caps the visible rows itself and hydrates that slice
+        // with hydrateWithMarks, so building anything here would be thrown away.
+        personalDetailsOptions = deferContactHydration ? groupedPersonalDetails.options : groupedPersonalDetails.options.map(hydrateLazyPersonalDetailOption);
 
         hasMore = hasMore || groupedPersonalDetails.hasMore;
 
@@ -3049,8 +3102,13 @@ function getValidOptions(
                 currentUserRef.current = personalDetail;
             }
             personalDetail.isBold = shouldBoldTitleByDefault;
-            if (personalDetail.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-                personalDetail.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : '';
+            if (personalDetail.isHydrated) {
+                if (personalDetail.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+                    personalDetail.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : '';
+                }
+            } else {
+                // The shell has no brickRoadIndicator yet, so hand the decision to hydrateWithMarks.
+                personalDetail.shouldShowGBR = shouldShowGBR;
             }
             personalDetail.isSelected =
                 (!!personalDetail.accountID && selectedAccountIDs.has(personalDetail.accountID)) || (!!personalDetail.login && selectedLogins.has(personalDetail.login));
@@ -3407,7 +3465,7 @@ function formatSectionsFromSearchTerm(
 /**
  * Remove the personal details for the DMs that are already in the recent reports so that we don't show duplicates.
  */
-function filteredPersonalDetailsOfRecentReports(recentReports: SearchOptionData[], personalDetails: SearchOptionData[]) {
+function filteredPersonalDetailsOfRecentReports<T extends SearchOptionData>(recentReports: SearchOptionData[], personalDetails: T[]): T[] {
     const excludedLogins = new Set(recentReports.map((report) => report.login));
     return personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
 }
@@ -3470,7 +3528,7 @@ function filterWorkspaceChats(reports: SearchOptionData[], searchTerms: string[]
     return filteredReports;
 }
 
-function filterPersonalDetails(personalDetails: SearchOptionData[], searchTerms: string[], currentUserAccountID: number): SearchOptionData[] {
+function filterPersonalDetails<T extends SearchOptionData>(personalDetails: T[], searchTerms: string[], currentUserAccountID: number): T[] {
     return searchTerms.reduceRight(
         (items, term) =>
             filterArrayByMatch(items, term, (item) => {
@@ -3562,8 +3620,8 @@ function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): Sear
     return isMatch ? report : undefined;
 }
 
-function filterOptions(
-    options: Options,
+function filterOptions<T extends SearchOptionData>(
+    options: Options<T>,
     searchInputValue: string,
     countryCode: number,
     loginList: OnyxEntry<Login>,
@@ -3571,7 +3629,7 @@ function filterOptions(
     currentUserAccountID: number,
     personalDetailsCollection: OnyxEntry<PersonalDetailsList>,
     config?: FilterUserToInviteConfig,
-): Options {
+): Options<T> {
     const trimmedSearchInput = searchInputValue.trim();
     const searchInputValueForInvite = config?.searchInputValue ?? trimmedSearchInput;
 
@@ -3620,11 +3678,11 @@ type FilterAndOrderConfig = FilterUserToInviteConfig & AllOrderConfigs;
  * Personal details will be filtered out if they are part of the recent reports.
  * Additional configs can be applied.
  */
-function combineOrderingOfReportsAndPersonalDetails(
-    options: ReportAndPersonalDetailOptions,
+function combineOrderingOfReportsAndPersonalDetails<T extends SearchOptionData>(
+    options: ReportAndPersonalDetailOptions<T>,
     searchInputValue: string,
     {maxRecentReportsToShow, sortByReportTypeInSearch, ...orderReportOptionsConfig}: AllOrderConfigs = {},
-): ReportAndPersonalDetailOptions {
+): ReportAndPersonalDetailOptions<T> {
     // sortByReportTypeInSearch will show the personal details as part of the recent reports
     if (sortByReportTypeInSearch) {
         const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(options.recentReports, options.personalDetails);
@@ -3650,8 +3708,8 @@ function combineOrderingOfReportsAndPersonalDetails(
  * Filters and orders the options based on the search input value.
  * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
  */
-function filterAndOrderOptions(
-    options: Options,
+function filterAndOrderOptions<T extends SearchOptionData>(
+    options: Options<T>,
     searchInputValue: string,
     countryCode: number,
     loginList: OnyxEntry<Login>,
@@ -3659,7 +3717,7 @@ function filterAndOrderOptions(
     currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     config?: FilterAndOrderConfig,
-): Options {
+): Options<T> {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
         filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, config);
@@ -3724,6 +3782,7 @@ export {
     createOptionFromReport,
     createFilteredOptionList,
     hydrateLazyPersonalDetailOption,
+    hydrateWithMarks,
     createOption,
     filterAndOrderOptions,
     filterReports,

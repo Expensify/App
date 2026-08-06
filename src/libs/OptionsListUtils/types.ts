@@ -160,6 +160,15 @@ type PersonalDetailShell = Pick<
     isHydrated: false;
 
     /**
+     * Written by getValidOptions when hydration is deferred, consumed by hydrateWithMarks.
+     *
+     * The eager path suppresses a GBR (INFO) brick road on the built option unless the caller asked for it.
+     * A shell has no brickRoadIndicator to suppress yet — createOption derives it during hydration — so the
+     * decision rides here instead of forcing every deferring screen to remember its own shouldShowGBR.
+     */
+    shouldShowGBR?: boolean;
+
+    /**
      * Builds the full display option, memoizing the result so every clone of the same cached option list shares
      * one build. Call hydrateLazyPersonalDetailOption rather than this directly — it also handles the already
      * hydrated half of the union and returns a copy consumers may mark in place.
@@ -297,6 +306,21 @@ type GetOptionsConfig = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;
     isTrackIntentUser?: boolean;
+    /**
+     * Return contact options as PersonalDetailShells instead of building their display fields.
+     *
+     * getValidOptions normally hydrates the page of contacts that survives filtering and the `maxElements` cap.
+     * A screen that caps the visible rows itself, after filtering, hydrates far fewer options by deferring:
+     * NewChatPage bypasses contact pagination while searching, so without this every match pays a full
+     * createOption even though only one page is rendered. Do NOT reach for `maxElements` instead — it collides
+     * with that screen's own hasMore/pagination accounting.
+     *
+     * The returned options carry the marks getValidOptions writes (isSelected / isBold / GBR suppression) but
+     * none of the display fields. Pass each one through hydrateWithMarks before rendering it; the
+     * PersonalDetailOptionOrShell element type is threaded through filterAndOrderOptions so forgetting to is a
+     * compile error at the render site.
+     */
+    deferContactHydration?: boolean;
     /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
 } & GetValidReportsConfig;
@@ -338,9 +362,15 @@ type SectionForSearchTerm = {
 
 type SelectionListSections = Array<SelectionListSection<OptionWithKey>>;
 
-type Options = {
+/**
+ * The contact-option element type is a parameter so a caller that passes `deferContactHydration` keeps the
+ * PersonalDetailOptionOrShell union all the way from getValidOptions through filterAndOrderOptions to the
+ * render, where hydrateWithMarks turns it back into a display option. Every other caller gets the default and
+ * is unaffected.
+ */
+type Options<TPersonalDetail extends SearchOptionData = SearchOptionData> = {
     recentReports: SearchOptionData[];
-    personalDetails: SearchOptionData[];
+    personalDetails: TPersonalDetail[];
     userToInvite: SearchOptionData | null;
     currentUserOption: SearchOptionData | null | undefined;
     workspaceChats?: SearchOptionData[];
@@ -379,10 +409,10 @@ type OrderReportOptionsConfig = {
     preferRecentExpenseReports?: boolean;
 };
 
-type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails' | 'workspaceChats'>;
+type ReportAndPersonalDetailOptions<TPersonalDetail extends SearchOptionData = SearchOptionData> = Pick<Options<TPersonalDetail>, 'recentReports' | 'personalDetails' | 'workspaceChats'>;
 
-type OptionsResult = {
-    options: Options;
+type OptionsResult<TPersonalDetail extends SearchOptionData = SearchOptionData> = {
+    options: Options<TPersonalDetail>;
     hasMore?: boolean;
 };
 

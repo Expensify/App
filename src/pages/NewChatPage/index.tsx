@@ -27,9 +27,9 @@ import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/acti
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {filterAndOrderOptions, getHeaderMessage, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, getHeaderMessage, getSearchValueForPhoneOrEmail, getValidOptions, hydrateWithMarks} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
-import type {OptionWithKey} from '@libs/OptionsListUtils/types';
+import type {HydratedPersonalDetailOption, OptionWithKey} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
@@ -148,6 +148,10 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             // expensive build now runs only for matches. This also pre-filters recent reports, which brings this
             // page in line with every other picker that passes searchString.
             searchString: getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode),
+            // This page caps the rendered contacts itself, after filtering (paginatedFilteredPersonalDetails
+            // below), so getValidOptions must not build display fields for every match — only the page that
+            // actually renders is hydrated, via hydrateWithMarks.
+            deferContactHydration: true,
             personalDetails: allPersonalDetails,
             allPolicyTags,
             countryCode,
@@ -219,9 +223,14 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         }
     };
 
+    // The only contacts whose display fields are ever built: one visible page, not every search match.
+    // The annotation is the guard — `Section` data accepts a shell structurally (every display field is
+    // optional), so without it, dropping the hydrate would render avatar-less rows instead of failing to compile.
+    const hydratedPersonalDetails: HydratedPersonalDetailOption[] = paginatedFilteredPersonalDetails.map(hydrateWithMarks);
+
     return {
         ...options,
-        personalDetails: paginatedFilteredPersonalDetails,
+        personalDetails: hydratedPersonalDetails,
         searchTerm,
         debouncedSearchTerm,
         setSearchTerm,
