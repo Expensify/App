@@ -788,6 +788,10 @@ const CONST = {
                 'resultcode.ssn.issued.prior.to.dob',
             ],
         },
+        NOC_CODE: {
+            INSUFFICIENT_FUNDS: ['R01', 'R09'] as string[],
+            DEBIT_BLOCKED: ['R05', 'R06', 'R07', 'R08', 'R10', 'R11', 'R16', 'R23', 'R29'] as string[],
+        },
     },
     CORPAY_DOCUMENT: {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
