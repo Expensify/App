@@ -71,7 +71,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
 
     const processedTextArray = splitTextWithEmojis(message);
 
-    // Original effect anchor — kept while the visible variant below is validated against it in Sentry.
+    // Original effect anchor, kept while the visible variant below is validated against it in Sentry.
     useEffect(() => {
         if (!reportActionID) {
             return;
