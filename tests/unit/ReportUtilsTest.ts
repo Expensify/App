@@ -174,6 +174,7 @@ import {
     isSelfDMOrSelfDMThread,
     isSortableColumnName,
     isUnread,
+    isUploadingAttachmentRemovedFromDraft,
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseReportRouteParams,
     prepareOnboardingOnyxData,
@@ -6391,6 +6392,20 @@ describe('ReportUtils', () => {
             const draft = 'Hello ![meme](https://example.com/meme.png)\n\n!(https://www.expensify.com/chat-attachments/999/other.jpg)';
 
             expect(replaceLocalAttachmentReferences(draft, syncedImageHtml, reportActionID)).toBe(draft);
+        });
+
+        it('reports the uploading attachment as removed once the draft drops its local reference', () => {
+            expect(isUploadingAttachmentRemovedFromDraft('Hello edited', uploadingImageHtml)).toBe(true);
+        });
+
+        it('does not report a removal while the draft still references the uploading attachment', () => {
+            const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
+
+            expect(isUploadingAttachmentRemovedFromDraft(draft, uploadingImageHtml)).toBe(false);
+        });
+
+        it('does not report a removal when the attachment already synced', () => {
+            expect(isUploadingAttachmentRemovedFromDraft('Hello edited', syncedImageHtml)).toBe(false);
         });
 
         it('does not swap in an attachment owned by a different report action', () => {

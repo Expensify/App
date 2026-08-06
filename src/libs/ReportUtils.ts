@@ -6639,14 +6639,11 @@ function getUploadingAttachmentHtml(file?: FileObject, attachmentID?: string): s
 }
 
 /**
- * An edit draft captured while the comment's attachment was still uploading references it by a local URI
- * (blob:/file:/content:) that only the author's device can resolve. Saving that draft after the upload has
- * synced would replace the attachment with a dead link, so swap the local reference for the synced one first.
- * The two are matched through stable identifiers rather than filenames or positions: a comment action carries
- * at most one sent attachment (multi-file sends are split into one action per file), and the synced source URL
- * embeds the owning action's ID (chat-attachments/<reportActionID>/), so only this action's own attachment
- * ever qualifies as the replacement. While the upload is still pending the draft is returned untouched —
- * the queued Add request re-attaches the uploaded file server-side, so there is nothing to swap yet.
+ * Swaps the local URI (blob:/file:/content:) that a draft captured mid-upload for the attachment that has since
+ * synced, so saving the draft cannot replace the attachment with a link only the author's device can resolve.
+ * The replacement is matched by the action ID embedded in the synced source URL, and a comment action holds at
+ * most one sent attachment because multi-file sends are split per file. Drafts are left alone while the upload
+ * is pending, since the edit merges into the queued Add request which re-attaches the file server-side.
  */
 function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentHtml: string | undefined, reportActionID: string): string {
     const localAttachmentReferenceRegex = /!?\[[^\]]*\]\((?:blob:|file:|content:)[^)]*\)|!\((?:blob:|file:|content:)[^)]*\)/g;
@@ -6674,6 +6671,16 @@ function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentH
         isReplaced = true;
         return syncedAttachmentMarkdown;
     });
+}
+
+/**
+ * Whether a draft dropped the reference to an attachment that has not finished uploading. The draft is compared
+ * against the local URI rather than the parsed HTML because a kept reference stays plain markdown until the
+ * upload syncs, so it never parses back into an attachment tag.
+ */
+function isUploadingAttachmentRemovedFromDraft(draftMarkdown: string, currentCommentHtml: string | undefined): boolean {
+    const localSource = currentCommentHtml?.match(new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`))?.at(1);
+    return !!localSource && !draftMarkdown.includes(localSource);
 }
 
 function getReportDescription(report: OnyxEntry<Report>): string {
@@ -14329,6 +14336,7 @@ export {
     canMergeReports,
     canModifyHoldStatus,
     replaceLocalAttachmentReferences,
+    isUploadingAttachmentRemovedFromDraft,
 };
 
 export type {

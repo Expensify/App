@@ -162,6 +162,7 @@ import {
     isReportManuallyReimbursed,
     isReportNotFound,
     isSelfDM,
+    isUploadingAttachmentRemovedFromDraft,
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
     replaceLocalAttachmentReferences,
@@ -3401,6 +3402,7 @@ function editReportComment(
     const originalCommentHTML = ReportActionsUtils.getReportActionHtml(originalReportAction);
     const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '').trim();
     const draftForNewComment = replaceLocalAttachmentReferences(textForNewComment, originalCommentHTML, originalReportAction.reportActionID);
+    const shouldRemoveQueuedAttachment = isUploadingAttachmentRemovedFromDraft(draftForNewComment, originalCommentHTML);
 
     // Skip the Edit if draft is not changed
     if (originalCommentMarkdown === draftForNewComment) {
@@ -3502,7 +3504,7 @@ function editReportComment(
             checkAndFixConflictingRequest: (persistedRequests) => {
                 const addCommentIndex = persistedRequests.findIndex((request) => addNewMessageWithText.has(request.command) && request.data?.reportActionID === reportActionID);
                 if (addCommentIndex > -1) {
-                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex);
+                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex, shouldRemoveQueuedAttachment);
                 }
                 return resolveDuplicationConflictAction(persistedRequests as AnyRequest[], createUpdateCommentMatcher(reportActionID));
             },
