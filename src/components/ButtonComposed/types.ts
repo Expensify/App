@@ -8,9 +8,25 @@ import type React from 'react';
 import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
+/**
+ * Imperative loading controller passed to `onPress` as its second argument.
+ *
+ * Call `run(work)` once the handler decides the button should enter its loading state (e.g. after validation passes).
+ * The button paints the spinner immediately, then runs `work` one macrotask later, so a JS-blocking `work` doesn't delay
+ * the feedback. Branches that bail out (e.g. on a validation error) simply return without calling `run`, so no spinner shows.
+ */
+type PressLoadingController = {
+    run: (work: () => void | Promise<void>) => Promise<void>;
+};
+
 type ButtonEventsProps = {
-    /** A function that is called when the button is clicked on */
-    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+    /**
+     * A function that is called when the button is clicked on.
+     *
+     * Receives a `loading` controller as its second argument. Call `loading.run(work)` to show the spinner immediately and
+     * defer the heavy work until after paint — useful when the handler validates first and only some branches should load.
+     */
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent, loading?: PressLoadingController) => void | Promise<void>;
 
     /** A function that is called when the button is long pressed */
     onLongPress?: (event?: GestureResponderEvent) => void;
@@ -37,6 +53,16 @@ type ButtonEventsProps = {
 type ButtonBehaviorProps = {
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading?: boolean;
+
+    /**
+     * Opt-in: show the loading spinner the moment the button is pressed, ahead of `onPress`. Defaults to false.
+     *
+     * The button owns the pressed state and paints the spinner before running `onPress`, so a JS-blocking handler still
+     * gives instant feedback. When an external `isLoading` turns true the button hands the spinner over to it; otherwise
+     * the pressed state resets when the screen regains focus. Leave it off for handlers that only navigate, toggle local
+     * state, or bail out on validation — those should use the `loading` controller passed to `onPress` instead.
+     */
+    shouldShowLoadingImmediatelyOnPress?: boolean;
 
     /** Indicates whether the button should be disabled */
     isDisabled?: boolean;
@@ -127,4 +153,4 @@ type ButtonProps = BaseButtonProps & {
     children: React.ReactNode;
 };
 
-export type {ButtonEventsProps, ButtonBehaviorProps, ButtonStyleProps, BaseButtonProps, ButtonProps, ButtonKeyboardShortcutProps};
+export type {ButtonEventsProps, ButtonBehaviorProps, ButtonStyleProps, BaseButtonProps, ButtonProps, ButtonKeyboardShortcutProps, PressLoadingController};
