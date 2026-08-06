@@ -88,8 +88,6 @@ describe('handleRHPVariantNavigation', () => {
     });
 
     it('navigates home for the trackExpensesWithConcierge variant when the Inbox tab is topmost but no report is revealed', () => {
-        // Reproduces the reported bug. The Reports split navigator is topmost but shows only the empty Inbox
-        // sidebar, so onboarding must still land the user on Home.
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
