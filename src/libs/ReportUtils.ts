@@ -11004,7 +11004,7 @@ function getIOUReportActionDisplayMessage(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-    policy: OnyxEntry<Policy>,
+    policyACHAccountNumber: string | undefined,
     transaction?: OnyxEntry<Transaction>,
     report?: Report,
     bankAccountList?: OnyxEntry<BankAccountList>,
@@ -11020,7 +11020,7 @@ function getIOUReportActionDisplayMessage(
 
     let translationKey: TranslationPaths;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policy);
+        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policyACHAccountNumber);
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
 
         switch (originalMessage.paymentType) {

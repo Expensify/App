@@ -568,16 +568,20 @@ describe('ReportUtils', () => {
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank, undefined, iouReport)).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined, iouReport)).toBe(
+                paidSystemMessage,
+            );
         });
 
-        it('should use the passed policy (not module-level allPolicies) for the ACH bank account last 4 digits', () => {
-            // Given a policy that is NOT seeded in Onyx, passed explicitly as the policy param
+        it('should use the passed ACH account number (not module-level allPolicies) for the bank account last 4 digits', () => {
+            // Given an ACH account number passed explicitly, with no matching policy read from Onyx
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
-            // Then the ACH last 4 digits are resolved from the passed policy alone
-            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank, undefined, iouReport)).toBe(paidSystemMessage);
+            // Then the ACH last 4 digits are resolved from the passed account number alone
+            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined, iouReport)).toBe(
+                paidSystemMessage,
+            );
         });
 
         it('should show the bank account from the action accountNumber instead of the policy default', async () => {
@@ -593,7 +597,9 @@ describe('ReportUtils', () => {
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321');
 
             // Then the message shows the last 4 digits of that account, not the policy default
-            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, convertToDisplayString, policyWithBank, undefined, iouReport)).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined, iouReport)).toBe(
+                paidSystemMessage,
+            );
         });
 
         it('should show the cross-border FX message with the credited amount and both account last-4s', async () => {
@@ -617,7 +623,9 @@ describe('ReportUtils', () => {
                 debitBankAccount: '6789',
                 creditBankAccount: '3335',
             });
-            expect(getIOUReportActionDisplayMessage(translateLocal, crossBorderAction, convertToDisplayString, policyWithBank, undefined, iouReport)).toBe(expectedMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, crossBorderAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined, iouReport)).toBe(
+                expectedMessage,
+            );
         });
 
         it('should return received payment when submitter marked payment received', () => {
@@ -632,9 +640,9 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, paymentReceivedReportAction, convertToDisplayString, policyWithBank, undefined, iouReport)).toBe(
-                translateLocal('iou.receivedPaymentReportAction'),
-            );
+            expect(
+                getIOUReportActionDisplayMessage(translateLocal, paymentReceivedReportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined, iouReport),
+            ).toBe(translateLocal('iou.receivedPaymentReportAction'));
         });
 
         it('should return marked as paid for elsewhere payment without submitter flag', () => {
@@ -648,7 +656,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, paidElsewhereReportAction, convertToDisplayString, policyWithBank, undefined, iouReport)).toBe(
+            expect(getIOUReportActionDisplayMessage(translateLocal, paidElsewhereReportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined, iouReport)).toBe(
                 translateLocal('iou.paidElsewhere'),
             );
         });
@@ -659,10 +667,10 @@ describe('ReportUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, createdAction, convertToDisplayString, policyWithBank, undefined, iouReport)).toBe('');
+            expect(getIOUReportActionDisplayMessage(translateLocal, createdAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined, iouReport)).toBe('');
         });
 
-        it('should use the passed policy for the last 4 digits of an automatic VBBA payment', () => {
+        it('should use the passed ACH account number for the last 4 digits of an automatic VBBA payment', () => {
             // Given an automatically-paid VBBA action with no accountNumber on the action itself
             const automaticVBBAAction = {
                 ...reportAction,
@@ -671,8 +679,10 @@ describe('ReportUtils', () => {
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const expected = translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
 
-            // Then the workspace-rules message resolves the last 4 digits from the passed policy
-            expect(getIOUReportActionDisplayMessage(translateLocal, automaticVBBAAction, convertToDisplayString, policyWithBank, undefined, iouReport)).toBe(expected);
+            // Then the workspace-rules message resolves the last 4 digits from the passed account number
+            expect(getIOUReportActionDisplayMessage(translateLocal, automaticVBBAAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined, iouReport)).toBe(
+                expected,
+            );
         });
 
         it('should return the workspace-rules message for an automatic Expensify payment', () => {
@@ -681,7 +691,7 @@ describe('ReportUtils', () => {
                 originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, automaticAction: true},
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, automaticExpensifyAction, convertToDisplayString, policyWithBank, undefined, iouReport)).toBe(
+            expect(getIOUReportActionDisplayMessage(translateLocal, automaticExpensifyAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined, iouReport)).toBe(
                 translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithExpensify', ''),
             );
         });
