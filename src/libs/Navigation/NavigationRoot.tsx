@@ -124,9 +124,6 @@ function parseAndLogRoute(state: NavigationState) {
 }
 
 function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {
-    // Registered during render: on native AppNavigator mounts synchronously, so onReady (which ends this span)
-    // fires in this same commit and would beat an effect. Also has to cover initialState below plus the
-    // navigator render. See useStartSpansOnRender.
     useStartSpansOnRender([
         {
             spanId: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
