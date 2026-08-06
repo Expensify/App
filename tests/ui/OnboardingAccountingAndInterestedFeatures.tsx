@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import TextInput from '@components/TextInput';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
@@ -160,6 +161,7 @@ describe('Onboarding interested features and accounting pages', () => {
         const otherAccountingSoftwareLabel = TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware');
         const otherAccountingSoftwareInput = screen.getByLabelText(otherAccountingSoftwareLabel);
         expect(otherAccountingSoftwareInput.props.autoFocus).toBeFalsy();
+        expect(renderResult.UNSAFE_getByType(TextInput).props.forceActiveLabel).toBeFalsy();
         const accountingScrollView = renderResult.UNSAFE_getByType(ScrollView);
         fireEvent(accountingScrollView, 'onContentSizeChange', 0, 0);
         expect(scrollToEndSpy).toHaveBeenCalledWith({animated: false});
