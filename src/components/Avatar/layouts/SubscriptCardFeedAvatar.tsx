@@ -1,5 +1,5 @@
+import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 import Icon from '@components/Icon';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -47,7 +47,6 @@ function SubscriptCardFeedAvatar({
     primaryAvatar,
     cardFeed,
     size,
-    shouldShowTooltip,
     subscriptAvatarBorderColor,
     fallbackDisplayName,
     containerStyle,
@@ -67,29 +66,22 @@ function SubscriptCardFeedAvatar({
             size={size}
             containerStyle={containerStyle}
             primary={
-                <UserDetailsTooltip
-                    shouldRender={shouldShowTooltip}
-                    accountID={Number(primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-                    icon={primaryAvatar}
-                    fallbackUserDetails={{
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        displayName: fallbackDisplayName || primaryAvatar.name,
-                    }}
+                <AvatarTooltip
+                    avatar={primaryAvatar}
+                    fallbackDisplayName={fallbackDisplayName}
                 >
-                    <View>
-                        <Avatar
-                            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
-                            type={primaryAvatar.type}
-                            source={primaryAvatar.source}
-                            name={primaryAvatar.name ?? ''}
-                            avatarID={primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                            fallbackIcon={primaryAvatar.fallbackIcon}
-                            fill={primaryAvatar.fill}
-                            size={size}
-                            testID="ReportActionAvatars-Subscript-MainAvatar"
-                        />
-                    </View>
-                </UserDetailsTooltip>
+                    <Avatar
+                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
+                        type={primaryAvatar.type}
+                        source={primaryAvatar.source}
+                        name={primaryAvatar.name ?? ''}
+                        avatarID={primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                        fallbackIcon={primaryAvatar.fallbackIcon}
+                        fill={primaryAvatar.fill}
+                        size={size}
+                        testID="ReportActionAvatars-Subscript-MainAvatar"
+                    />
+                </AvatarTooltip>
             }
             secondary={
                 <View

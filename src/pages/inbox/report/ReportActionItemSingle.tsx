@@ -167,7 +167,6 @@ function ReportActionItemSingle({
                         subscriptAvatarBorderColor={getBackgroundColor()}
                         noRightMarginOnSubscriptContainer
                         isInReportAction
-                        shouldShowTooltip
                         secondaryAvatarContainerStyle={[
                             StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
                             isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,

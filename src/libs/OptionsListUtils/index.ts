@@ -3171,13 +3171,6 @@ function getNoneOption(searchValue: string, isSelected: boolean, translate: Loca
 }
 
 /**
- * Helper method to check whether an option can show tooltip or not
- */
-function shouldOptionShowTooltip(option: SearchOptionData): boolean {
-    return !option.private_isArchived;
-}
-
-/**
  * Handles the logic for displaying selected participants from the search term
  */
 // We'll refactor this function to have less parameters in the future (https://github.com/Expensify/App/issues/66415)
@@ -3629,7 +3622,6 @@ export {
     orderPersonalDetailsOptions,
     orderWorkspaceOptions,
     recentReportComparator,
-    shouldOptionShowTooltip,
     shouldShowLastActorDisplayName,
     shouldUseBoldText,
     sortAlphabetically,

@@ -1,4 +1,5 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import {AvatarTooltipsDisabled} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -53,11 +54,12 @@ function TableListItem<TItem extends ListItem>({
     const rowContent = () => (
         <>
             {!!item.accountID && (
-                <AccountAvatar
-                    accountID={item.accountID}
-                    fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
-                    shouldShowTooltip={showTooltip}
-                />
+                <AvatarTooltipsDisabled isDisabled={!showTooltip}>
+                    <AccountAvatar
+                        accountID={item.accountID}
+                        fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                    />
+                </AvatarTooltipsDisabled>
             )}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, titleContainerStyles]}>
                 <TextWithTooltip
