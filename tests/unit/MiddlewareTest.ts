@@ -1,10 +1,11 @@
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
 
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
+import type MoveIOUReportToExistingPolicyParams from '@src/libs/API/parameters/MoveIOUReportToExistingPolicyParams';
 import HttpUtils from '@src/libs/HttpUtils';
-import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';
 // This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
 import '@src/libs/actions/replaceOptimisticReportWithActualReport';
+import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';
 import * as Network from '@src/libs/Network';
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
@@ -17,11 +18,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
-type FormDataObject = {body: TestHelper.FormData};
+let fetchMock: ReturnType<typeof TestHelper.createGlobalFetchMock>;
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -46,7 +48,8 @@ beforeEach(async () => {
     await waitForNetworkPromises();
     // Reassign global.fetch to a fresh mock to clear any leftover mockImplementationOnce
     // queue from the previous test. jest.clearAllMocks() only resets call counts, not the queue.
-    global.fetch = TestHelper.getGlobalFetchMock();
+    fetchMock = TestHelper.createGlobalFetchMock();
+    global.fetch = fetchMock;
     jest.clearAllMocks();
     Request.clearMiddlewares();
 });
@@ -109,19 +112,17 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(
-                {
-                    reportID: '1234',
-                },
-                ((global.fetch as jest.Mock).mock.calls.at(1) as FormDataObject[]).at(1)?.body,
-            );
+            const addCommentFormData = fetchMock.mock.calls.at(1)?.[1]?.body;
+            if (!(addCommentFormData instanceof FormData)) {
+                throw new Error('Expected AddComment request body to be native FormData.');
+            }
+            TestHelper.assertFormDataMatchesObject(createMock<OnyxReport>({reportID: '1234'}), {entries: () => Array.from(addCommentFormData.entries())});
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/OpenReport?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(
-                {
-                    reportID: '1234',
-                },
-                ((global.fetch as jest.Mock).mock.calls.at(0) as FormDataObject[]).at(1)?.body,
-            );
+            const openReportFormData = fetchMock.mock.calls.at(0)?.[1]?.body;
+            if (!(openReportFormData instanceof FormData)) {
+                throw new Error('Expected OpenReport request body to be native FormData.');
+            }
+            TestHelper.assertFormDataMatchesObject(createMock<OnyxReport>({reportID: '1234'}), {entries: () => Array.from(openReportFormData.entries())});
         });
 
         test('Request with preexistingReportID', async () => {
@@ -142,21 +143,16 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
-                ok: true,
-
-                json: async () => ({
-                    jsonCode: 200,
-                    onyxData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
-                            value: {
-                                preexistingReportID: '5555',
-                            },
+            fetchMock.mockAPICommand('OpenReport', () => ({
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
+                        value: {
+                            preexistingReportID: '5555',
                         },
-                    ],
-                }),
+                    },
+                ],
             }));
 
             SequentialQueue.unpause();
@@ -165,14 +161,17 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(
-                {
-                    reportID: '5555',
-                },
-                ((global.fetch as jest.Mock).mock.calls.at(1) as FormDataObject[]).at(1)?.body,
-            );
+            const addCommentFormData = fetchMock.mock.calls.at(1)?.[1]?.body;
+            if (!(addCommentFormData instanceof FormData)) {
+                throw new Error('Expected AddComment request body to be native FormData.');
+            }
+            TestHelper.assertFormDataMatchesObject(createMock<OnyxReport>({reportID: '5555'}), {entries: () => Array.from(addCommentFormData.entries())});
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/OpenReport?', expect.anything());
-            TestHelper.assertFormDataMatchesObject({reportID: '1234'}, ((global.fetch as jest.Mock).mock.calls.at(0) as FormDataObject[]).at(1)?.body);
+            const openReportFormData = fetchMock.mock.calls.at(0)?.[1]?.body;
+            if (!(openReportFormData instanceof FormData)) {
+                throw new Error('Expected OpenReport request body to be native FormData.');
+            }
+            TestHelper.assertFormDataMatchesObject(createMock<OnyxReport>({reportID: '1234'}), {entries: () => Array.from(openReportFormData.entries())});
         });
 
         test('Request with preexistingReportID and no reportID in params', async () => {
@@ -198,21 +197,16 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
-                ok: true,
-
-                json: async () => ({
-                    jsonCode: 200,
-                    onyxData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
-                            value: {
-                                preexistingReportID: '5555',
-                            },
+            fetchMock.mockAPICommand('RequestMoney', () => ({
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
+                        value: {
+                            preexistingReportID: '5555',
                         },
-                    ],
-                }),
+                    },
+                ],
             }));
 
             SequentialQueue.unpause();
@@ -221,25 +215,18 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(3);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/OpenReport?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(
-                {
-                    reportID: '5555',
-                },
-                ((global.fetch as jest.Mock).mock.calls.at(1) as FormDataObject[]).at(1)?.body,
-            );
-            const formData = ((global.fetch as jest.Mock).mock.calls.at(2) as FormDataObject[]).at(1)?.body;
-            expect(formData).not.toBeUndefined();
-            if (formData) {
-                const formDataObject = Array.from(formData.entries()).reduce(
-                    (acc, [key, val]) => {
-                        acc[key] = val;
-                        return acc;
-                    },
-                    {} as Record<string, string | Blob | undefined>,
-                );
-                expect(formDataObject.reportActionID).toBeUndefined();
-                expect(formDataObject.parentReportActionID).toBeUndefined();
+            const openReportFormData = fetchMock.mock.calls.at(1)?.[1]?.body;
+            if (!(openReportFormData instanceof FormData)) {
+                throw new Error('Expected OpenReport request body to be native FormData.');
             }
+            TestHelper.assertFormDataMatchesObject(createMock<OnyxReport>({reportID: '5555'}), {entries: () => Array.from(openReportFormData.entries())});
+            const rawFormData = fetchMock.mock.calls.at(2)?.[1]?.body;
+            expect(rawFormData).not.toBeUndefined();
+            if (!(rawFormData instanceof FormData)) {
+                throw new Error('Expected the third request body to be native FormData.');
+            }
+            expect(rawFormData.get('reportActionID')).toBeNull();
+            expect(rawFormData.get('parentReportActionID')).toBeNull();
         });
 
         test('Request with preexistingReportID and optimisticReportID param', async () => {
@@ -255,21 +242,16 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
-                ok: true,
-
-                json: async () => ({
-                    jsonCode: 200,
-                    onyxData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
-                            value: {
-                                preexistingReportID: '5555',
-                            },
+            fetchMock.mockAPICommand('MoveIOUReportToExistingPolicy', () => ({
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
+                        value: {
+                            preexistingReportID: '5555',
                         },
-                    ],
-                }),
+                    },
+                ],
             }));
 
             SequentialQueue.unpause();
@@ -278,7 +260,12 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(1);
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/MoveIOUReportToExistingPolicy?', expect.anything());
-            TestHelper.assertFormDataMatchesObject({optimisticReportID: '1234'} as unknown as OnyxReport, ((global.fetch as jest.Mock).mock.calls.at(0) as FormDataObject[]).at(1)?.body);
+            const moveReportFormData = fetchMock.mock.calls.at(0)?.[1]?.body;
+            if (!(moveReportFormData instanceof FormData)) {
+                throw new Error('Expected MoveIOUReportToExistingPolicy request body to be native FormData.');
+            }
+            const expectedMoveReportParams = {optimisticReportID: '1234'} satisfies Pick<MoveIOUReportToExistingPolicyParams, 'optimisticReportID'>;
+            expect(moveReportFormData.get('optimisticReportID')).toBe(expectedMoveReportParams.optimisticReportID);
         });
 
         test('OpenReport to a chat with preexistingReportID and clean up optimistic participant data', async () => {
@@ -318,12 +305,9 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            (global.fetch as jest.Mock)
-                .mockImplementationOnce(async () => ({
-                    ok: true,
-
-                    json: async () => ({
-                        jsonCode: 200,
+            fetchMock.mockAPICommand('OpenReport', ({reportID}) => {
+                if (reportID === optimisticReportID) {
+                    return {
                         onyxData: [
                             {
                                 onyxMethod: Onyx.METHOD.MERGE,
@@ -333,34 +317,31 @@ describe('Middleware', () => {
                                 },
                             },
                         ],
-                    }),
-                }))
-                .mockImplementationOnce(async () => ({
-                    ok: true,
+                    };
+                }
 
-                    json: async () => ({
-                        jsonCode: 200,
-                        onyxData: [
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: `${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`,
-                                value: {
-                                    reportID: preexistingReportID,
-                                    participants: {[preexistingAccountID]: {notificationPreference: 'always'}},
+                return {
+                    onyxData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`,
+                            value: {
+                                reportID: preexistingReportID,
+                                participants: {[preexistingAccountID]: {notificationPreference: 'always'}},
+                            },
+                        },
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                            value: {
+                                [preexistingAccountID]: {
+                                    accountID: preexistingAccountID,
                                 },
                             },
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                                value: {
-                                    [preexistingAccountID]: {
-                                        accountID: preexistingAccountID,
-                                    },
-                                },
-                            },
-                        ],
-                    }),
-                }));
+                        },
+                    ],
+                };
+            });
 
             SequentialQueue.unpause();
             await SequentialQueue.waitForIdle();
@@ -435,31 +416,26 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
-                ok: true,
-
-                json: async () => ({
-                    jsonCode: 200,
-                    onyxData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
-                            value: {
-                                reportID: optimisticReportID,
-                                participants: {[preexistingAccountID]: {notificationPreference: 'always'}},
+            fetchMock.mockAPICommand('OpenReport', () => ({
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[preexistingAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [preexistingAccountID]: {
+                                accountID: preexistingAccountID,
                             },
                         },
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                [preexistingAccountID]: {
-                                    accountID: preexistingAccountID,
-                                },
-                            },
-                        },
-                    ],
-                }),
+                    },
+                ],
             }));
 
             SequentialQueue.unpause();
