@@ -3,6 +3,8 @@ import GithubUtils from '@github/libs/GithubUtils';
 
 import {isRecord} from '@libs/ObjectUtils';
 
+import {error as logError, info as logInfo, setOutputStream, warn as logWarn} from '@scripts/utils/Logger';
+
 import {execFileSync} from 'child_process';
 import fs from 'fs';
 import path from 'path';
@@ -59,10 +61,12 @@ const ARTIFACT_IDS = {
 /** The Maven repository our artifacts are published to. */
 const MAVEN_REPO_URL = `https://maven.pkg.github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
 
-/** Logs go to stderr; stdout is reserved for the JSON result. */
-function logError(message: string) {
-    process.stderr.write(`[PatchedArtifacts] ${message}\n`);
-}
+const LOG_PREFIX = '[PatchedArtifacts]';
+
+// stdout carries the JSON result that Gradle and CocoaPods parse, so every diagnostic goes to stderr
+// (warnings and errors already do). Set here rather than in the CLI entry point, so the invariant
+// holds for any consumer of this module.
+setOutputStream({info: 'stderr'});
 
 /** Reads a non-empty environment variable, or null. */
 function getEnvVar(name: string): string | null {
@@ -200,11 +204,11 @@ async function resolveArtifacts(options: ResolveOptions): Promise<ResolveResult>
 
         const version = await findMatchingArtifactsVersion(options, artifactId, credentials.githubToken);
         if (version == null) {
-            logError(`No matching artifacts version found for ${packageName}. Building react-native from source.`);
+            logWarn(`${LOG_PREFIX} No matching artifacts version found for ${packageName}. Building react-native from source.`);
             return sourceBuild;
         }
 
-        logError(`Using patched react-native artifacts: ${packageName}:${version}`);
+        logInfo(`${LOG_PREFIX} Using patched react-native artifacts: ${packageName}:${version}`);
         return {
             buildFromSource: false,
             version,
@@ -214,7 +218,7 @@ async function resolveArtifacts(options: ResolveOptions): Promise<ResolveResult>
             ...credentials,
         };
     } catch (error) {
-        logError(`${error instanceof Error ? error.message : String(error)} Building react-native from source.`);
+        logError(`${LOG_PREFIX} ${error instanceof Error ? error.message : String(error)} Building react-native from source.`);
         return sourceBuild;
     }
 }
