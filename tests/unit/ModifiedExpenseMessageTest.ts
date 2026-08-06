@@ -2409,6 +2409,28 @@ describe('ModifiedExpenseMessage', () => {
                 });
             });
 
+            describe('when the vendor is no longer in the list but a display name was persisted on the action', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        vendor: {externalID: 'v-deleted', name: 'Amazon', isManuallySet: false},
+                    },
+                };
+
+                it('renders the persisted name instead of the raw externalID', () => {
+                    const result = getForReportAction({
+                        convertToDisplayString,
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithVendors,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('set the vendor to "Amazon"');
+                });
+            });
+
             describe('Xero supplier changes (R4)', () => {
                 // Xero policy with two named supplier contacts. The resolver reads
                 // `connections.xero.data.contacts` (keyed Record), and the label switches to

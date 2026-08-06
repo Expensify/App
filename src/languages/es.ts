@@ -2308,6 +2308,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Escanea el código QR con tu nuevo dispositivo y luego introduce el código para completar la configuración.',
         downloadCodes: 'Descargar códigos',
         copyCodes: 'Copiar códigos',
+        twoFactorAuthIsRequiredNetSuiteDescription: 'Por motivos de seguridad, NetSuite requiere autenticación de dos factores para conectar la integración.',
     },
     recoveryCodeForm: {
         error: {
@@ -5320,6 +5321,14 @@ ${amount} para ${merchant} - ${date}`,
                     enableSoapServices: {
                         title: 'Habilitar servicios web SOAP',
                         description: 'En NetSuite, ir a *Configuración > Empresa > Habilitar funciones > SuiteCloud* > habilitar *Servicios Web SOAP*.',
+                    },
+                    enableOAuth: {
+                        title: 'Habilitar OAuth 2.0',
+                        description: 'En NetSuite, ve a *Setup > Company > Enable Features > SuiteCloud* y, en *Manage Authentication*, habilita *OAuth 2.0*.',
+                    },
+                    enableRestWebServices: {
+                        title: 'Habilitar servicios web REST',
+                        description: 'En NetSuite, ve a *Setup > Company > Enable Features > SuiteCloud* y, en *SuiteTalk (Web Services)*, habilita *REST Web Services*.',
                     },
                     createAccessToken: {
                         title: 'Crear un token de acceso',

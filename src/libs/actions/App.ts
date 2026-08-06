@@ -159,7 +159,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.STASHED_CREDENTIALS,
-
+    ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
     // Preserve IS_USING_IMPORTED_STATE so that when the app restarts (especially in HybridApp mode),
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
     ONYXKEYS.IS_USING_IMPORTED_STATE,

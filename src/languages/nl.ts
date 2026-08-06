@@ -2412,6 +2412,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Scan de QR-code met je nieuwe apparaat en voer daarna de code in om de installatie te voltooien.',
         downloadCodes: 'Codes downloaden',
         copyCodes: 'Codes kopiëren',
+        twoFactorAuthIsRequiredNetSuiteDescription: 'Om veiligheidsredenen vereist NetSuite tweeledige verificatie om de koppeling te maken.',
     },
     recoveryCodeForm: {
         error: {
@@ -5408,6 +5409,14 @@ ${amount} voor ${merchant} - ${date}`,
                             netSuiteTokenSecret: 'Tokensleutel',
                         },
                         netSuiteAccountIDDescription: 'Ga in NetSuite naar *Setup > Integration > SOAP Web Services Preferences*.',
+                    },
+                    enableOAuth: {
+                        title: 'OAuth 2.0 inschakelen',
+                        description: 'Ga in NetSuite naar *Setup > Company > Enable Features > SuiteCloud* en schakel onder *Manage Authentication* de optie *OAuth 2.0* in.',
+                    },
+                    enableRestWebServices: {
+                        title: 'REST-webservices inschakelen',
+                        description: 'Ga in NetSuite naar *Setup > Company > Enable Features > SuiteCloud* en schakel onder *SuiteTalk (Web Services)* de optie *REST Web Services* in.',
                     },
                 },
             },
