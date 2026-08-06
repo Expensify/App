@@ -244,6 +244,7 @@ const WRITE_COMMANDS = {
     MARK_TRANSACTION_VIOLATION_AS_RESOLVED: 'MarkTransactionViolationAsResolved',
     CREATE_DISTANCE_REQUEST: 'CreateDistanceRequest',
     START_SPLIT_BILL: 'StartSplitBill',
+    DISMISS_MARKETING_WINDOW: 'DismissMarketingWindow',
     SEND_MONEY_ELSEWHERE: 'SendMoneyElsewhere',
     SEND_MONEY_WITH_WALLET: 'SendMoneyWithWallet',
     APPROVE_MONEY_REQUEST: 'ApproveMoneyRequest',
