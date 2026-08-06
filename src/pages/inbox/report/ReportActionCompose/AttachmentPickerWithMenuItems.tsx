@@ -257,7 +257,7 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.PAY]: [
                 {
                     icon: getIconForAction(CONST.IOU.TYPE.SEND, icons),
-                    text: translate('iou.paySomeone', getPayeeName(report, translate)),
+                    text: translate('iou.paySomeone', getPayeeName(report, translate, accountID)),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_PAY_SOMEONE,
                     onSelected: () => {
@@ -308,6 +308,7 @@ function AttachmentPickerWithMenuItems({
 
         return moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
     }, [
+        accountID,
         isDelegateAccessRestricted,
         isReportArchived,
         isRestrictedToPreferredPolicy,
