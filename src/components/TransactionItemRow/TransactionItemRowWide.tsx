@@ -591,6 +591,8 @@ function TransactionItemRowWide({
                     <View
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}
+                        // Status badges are visual state, not copyable row values, so exclude their text from copied selections.
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
                         <StatusCell
                             stateNum={transactionItem.report?.stateNum}
