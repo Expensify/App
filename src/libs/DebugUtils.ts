@@ -1621,6 +1621,7 @@ const DebugUtils = {
     validateDate,
     validateConstantEnum,
     validateArray,
+    validateStringRecord,
     validateObject,
     validateString,
     validateReportDraftProperty,
