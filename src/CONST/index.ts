@@ -1005,11 +1005,13 @@ const CONST = {
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
         DUALENTRY: 'dualEntry',
+        INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
+        NETSUITE_OAUTH: 'netSuiteOAuth',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -3228,12 +3230,15 @@ const CONST = {
         CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
         TOKEN_INPUT: {
             STEP_INDEX_LIST: ['1', '2', '3', '4'],
+            OAUTH_STEP_INDEX_LIST: ['1', '2', '3', '4'],
             PAGE_NAME: {
                 INSTALL: 'install',
                 AUTHENTICATION: 'authentication',
                 SOAP: 'soap',
                 ACCESS_TOKEN: 'access-token',
                 CREDENTIALS: 'credentials',
+                OAUTH: 'enable-oauth',
+                REST: 'enable-rest',
             },
             STEP_KEYS: {
                 install: 'installBundle',
@@ -3241,6 +3246,8 @@ const CONST = {
                 soap: 'enableSoapServices',
                 'access-token': 'createAccessToken',
                 credentials: 'enterCredentials',
+                'enable-oauth': 'enableOAuth',
+                'enable-rest': 'enableRestWebServices',
             },
         },
         IMPORT_CUSTOM_FIELDS: {
@@ -4334,6 +4341,9 @@ const CONST = {
             },
         },
         CONNECTIONS: {
+            ACCOUNTING_INTEGRATION_ALIASES: {
+                INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
+            },
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
@@ -6763,8 +6773,6 @@ const CONST = {
         RESULTS_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
-        // Null byte can't appear in a query, so it's safe to join query parts with it
-        QUERY_PARAMS_SEPARATOR: '\x00',
         DATA_TYPES: {
             EXPENSE: 'expense',
             EXPENSE_REPORT: 'expense-report',
