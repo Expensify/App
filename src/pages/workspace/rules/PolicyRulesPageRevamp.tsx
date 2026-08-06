@@ -385,6 +385,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                 policyID={policyID}
                                 canWriteRules={canWriteRules}
                                 isAgentsRulesBannerDismissed={isAgentsRulesBannerDismissed}
+                                onOpenAgentsTab={() => handleTabPress(RULES_TAB.AGENTS)}
                             />
                         )}
                         {isTableTab && (
