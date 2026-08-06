@@ -80,7 +80,7 @@ Each report downloads as its own PDF, including all expenses, attached receipts,
 
 ## How to download the receipts on a report
 
-Use **Download receipts** to download all of the receipts attached to a single report as one zip file.
+You can download every receipt attached to a report in a single ZIP file.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
 2. Open the report whose receipts you want to download.
@@ -88,7 +88,7 @@ Use **Download receipts** to download all of the receipts attached to a single r
 4. Select **Download receipts**.
 5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
 
-**Download receipts** only appears when at least one expense on the report has a receipt.
+**Note:** **Download receipts** only appears when at least one expense on the report has a receipt.
 
 ---
 
@@ -132,3 +132,9 @@ Excel may remove leading zeros automatically. To prevent this:
 1. Open Excel and go to **File** > **Import**.
 2. Select your CSV file.
 3. Set the relevant columns to **Text** format.
+
+## What type of receipts can be downloaded? 
+
+You can download PDF receipts and receipt image files. You can't download eReceipts or receipts created from a map.
+
+If you select **Download receipts** for a report that doesn't contain any downloadable receipts, you'll see the message **No receipts to download**. 
