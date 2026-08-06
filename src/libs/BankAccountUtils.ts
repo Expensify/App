@@ -19,6 +19,7 @@ type BankAccountConnectionStatus = {
     messageKey?: TranslationPaths;
     actionKey?: TranslationPaths;
     requiresUnlockHandler?: boolean;
+    requiresFixHandler?: boolean;
     tooltipKey?: TranslationPaths;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
@@ -125,6 +126,7 @@ function getBankAccountConnectionStatus(accountData: AccountData | undefined): B
                     labelKey: 'walletPage.bankAccountStatus.pending',
                     messageKey: 'walletPage.bankAccountStatus.insufficientFunds',
                     actionKey: 'common.actionBadge.fix',
+                    requiresFixHandler: true,
                     tone: 'danger',
                     brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
                 };
@@ -134,6 +136,7 @@ function getBankAccountConnectionStatus(accountData: AccountData | undefined): B
                     labelKey: 'walletPage.bankAccountStatus.pending',
                     messageKey: 'walletPage.bankAccountStatus.debitBlocked',
                     actionKey: 'common.actionBadge.fix',
+                    requiresFixHandler: true,
                     tone: 'danger',
                     brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
                 };
