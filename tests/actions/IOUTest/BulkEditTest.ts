@@ -1096,9 +1096,9 @@ describe('actions/IOU/BulkEdit', () => {
         });
 
         it('merges a bulk parent-tag edit into each transaction, preserving their own untouched child levels (independent tags)', () => {
-            const firstTransactionID = 'transaction-indep-1';
-            const secondTransactionID = 'transaction-indep-2';
-            const iouReportID = 'iou-indep-1';
+            const firstTransactionID = 'transaction-independent-1';
+            const secondTransactionID = 'transaction-independent-2';
+            const iouReportID = 'iou-independent-1';
             const policy = {
                 ...createRandomPolicy(70, CONST.POLICY.TYPE.TEAM),
                 areTagsEnabled: true,
@@ -1120,14 +1120,14 @@ describe('actions/IOU/BulkEdit', () => {
                 ...createRandomTransaction(1),
                 transactionID: firstTransactionID,
                 reportID: iouReportID,
-                transactionThreadReportID: 'thread-indep-1',
+                transactionThreadReportID: 'thread-independent-1',
                 tag: 'CostCenterA:IndicationX:PhaseP',
             };
             const secondTransaction: Transaction = {
                 ...createRandomTransaction(2),
                 transactionID: secondTransactionID,
                 reportID: iouReportID,
-                transactionThreadReportID: 'thread-indep-2',
+                transactionThreadReportID: 'thread-independent-2',
                 tag: 'CostCenterA:IndicationY:PhaseQ',
             };
             const transactions = {
@@ -1159,7 +1159,7 @@ describe('actions/IOU/BulkEdit', () => {
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
                 transactionIDs: [firstTransactionID, secondTransactionID],
-                // The bulk-edit page precomputes a common-prefix display string (parent only)...
+                // The bulk-edit page pre-computes a common-prefix display string (parent only)...
                 changes: {tag: 'CostCenterB'},
                 // ...but apply time uses the resolved per-level edit intent (index 0 -> CostCenterB) to
                 // merge into each expense's own tag. Build the index-keyed map programmatically because
