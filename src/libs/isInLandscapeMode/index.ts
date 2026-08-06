@@ -1,7 +1,22 @@
 import {isMobile} from '@libs/Browser';
 
-import {Dimensions} from 'react-native';
+function isInLandscapeMode(): boolean;
+function isInLandscapeMode(windowWidth: number, windowHeight: number): boolean;
+function isInLandscapeMode(windowWidth?: number, windowHeight?: number): boolean {
+    if (!isMobile()) {
+        return false;
+    }
 
-export default function isInLandscapeMode(windowWidth = Dimensions.get('window').width, windowHeight = Dimensions.get('window').height): boolean {
-    return isMobile() && windowWidth > windowHeight;
+    if (windowWidth !== undefined && windowHeight !== undefined) {
+        return windowWidth > windowHeight;
+    }
+
+    const orientationType = window.screen?.orientation?.type;
+    if (orientationType) {
+        return orientationType.startsWith('landscape');
+    }
+
+    return window.innerWidth > window.innerHeight;
 }
+
+export default isInLandscapeMode;
