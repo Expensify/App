@@ -1887,11 +1887,11 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten darauf, dass <strong>Sie</strong> Ausgaben hinzufügen.`;
+                        return `Warte darauf, dass <strong>Sie</strong> Spesen hinzufügen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Warten darauf, dass <strong>${actor}</strong> Ausgaben hinzufügt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf eine*n Admin, der Ausgaben hinzufügt.`;
+                        return `Warten auf eine:n Admin, der Ausgaben hinzufügt.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: (
@@ -1902,7 +1902,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten auf <strong>Sie</strong>, um Spesen einzureichen.`;
+                        return `Wartet darauf, dass <strong>Sie</strong> Spesen einreichen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Warten darauf, dass <strong>${actor}</strong> Ausgaben einreicht.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1917,11 +1917,11 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten auf <strong>Sie</strong>, um dies als erledigt zu markieren.`;
+                        return `Wartet darauf, dass <strong>Sie</strong> dies als erledigt markieren.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Warten darauf, dass <strong>${actor}</strong> dies als erledigt markiert.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf eine(n) Admin, um dies als erledigt zu markieren.`;
+                        return `Warten darauf, dass ein Admin dies als erledigt markiert.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -1929,7 +1929,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => `Keine weiteren Maßnahmen erforderlich!`,
+            ) => `Kein weiterer Handlungsbedarf!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -1940,11 +1940,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 const account = requiredDepositCurrency ? `${requiredDepositCurrency}-Bankkonto` : 'Bankkonto';
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten auf <strong>Sie</strong>, um ein ${account} hinzuzufügen.`;
+                        return `Warten darauf, dass <strong>Sie</strong> ein ${account} hinzufügen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten auf <strong>${actor}</strong>, um ein ${account} hinzuzufügen.`;
+                        return `Warten darauf, dass <strong>${actor}</strong> ein ${account} hinzufügt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf eine(n) Admin, der/die ein(e) ${account} hinzufügt.`;
+                        return `Warten Sie darauf, dass ein Admin ein ${account} hinzufügt.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
@@ -1959,11 +1959,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Ihre Auslagen werden automatisch eingereicht${formattedETA}.`;
+                        return `Warten darauf, dass <strong>Ihre</strong> Ausgaben automatisch eingereicht werden${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten darauf, dass die Ausgaben von <strong>${actor}</strong> automatisch eingereicht werden${formattedETA}.`;
+                        return `Es wird darauf gewartet, dass die Ausgaben von <strong>${actor}</strong> automatisch eingereicht werden${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten darauf, dass die Ausgaben eines Admins automatisch eingereicht werden${formattedETA}.`;
+                        return `Es wird darauf gewartet, dass die Ausgaben eines Admins automatisch eingereicht werden${formattedETA}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: (
@@ -1974,11 +1974,11 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten darauf, dass <strong>Sie</strong> die Probleme beheben.`;
+                        return `Warten auf <strong>Sie</strong>, um die Probleme zu beheben.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten auf <strong>${actor}</strong>, um die Probleme zu beheben.`;
+                        return `Warten darauf, dass <strong>${actor}</strong> die Probleme behebt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf eine Administratorin oder einen Administrator, um die Probleme zu beheben.`;
+                        return `Warten auf eine*n Admin, um die Probleme zu beheben.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (
@@ -1989,11 +1989,11 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Wartet auf <strong>Ihre</strong> Genehmigung der Ausgaben.`;
+                        return `Es wird darauf gewartet, dass <strong>Sie</strong> Spesen genehmigen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Warten auf die Genehmigung der Ausgaben durch <strong>${actor}</strong>.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf die Genehmigung der Ausgaben durch eine Administratorin oder einen Administrator.`;
+                        return `Warten auf Genehmigung der Ausgaben durch eine Adminperson.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2008,7 +2008,7 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Warten darauf, dass <strong>${actor}</strong> diesen Bericht exportiert.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf eine Administratorin bzw. einen Administrator, um diesen Bericht zu exportieren.`;
+                        return `Warten auf eine Administratorin oder einen Administrator, um diesen Bericht zu exportieren.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: (
@@ -2019,11 +2019,11 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warte darauf, dass <strong>Sie</strong> Spesen bezahlen.`;
+                        return `Wartet darauf, dass <strong>Sie</strong> Spesen bezahlen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Warten auf <strong>${actor}</strong>, um Auslagen zu bezahlen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten darauf, dass ein Admin Spesen bezahlt.`;
+                        return `Warten darauf, dass eine Adminperson Spesen bezahlt.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -2036,7 +2036,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `bis ${eta}` : ` ${eta}`;
                 }
-                return `Warten auf Abschluss der Zahlung${formattedETA}.`;
+                return `Warten, bis die Zahlung abgeschlossen ist${formattedETA}.`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
@@ -2044,7 +2044,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) =>
-                `Ups! Sie scheinen einen Bericht bei <strong>sich selbst</strong> einzureichen. Die Genehmigung eigener Berichte ist in Ihrem Arbeitsbereich <strong>verboten</strong>. Bitte reichen Sie diesen Bericht bei einer anderen Person ein oder wenden Sie sich an Ihre Admins, um die Person zu ändern, an die Sie Berichte einreichen.`,
+                `Ups! Sie scheinen diesen Bericht bei <strong>sich selbst</strong> einzureichen. Die Genehmigung eigener Berichte ist in Ihrem Workspace <strong>verboten</strong>. Bitte reichen Sie diesen Bericht bei jemand anderem ein oder kontaktieren Sie Ihre Admin, um die Person zu ändern, an die Sie Berichte einreichen.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2053,7 +2053,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Dieser Bericht wurde abgelehnt. Wir warten darauf, dass <strong>Sie</strong> die Probleme beheben und ihn manuell erneut einreichen.`;
+                        return `Dieser Bericht wurde abgelehnt. Es wird darauf gewartet, dass <strong>Sie</strong> die Probleme beheben und ihn manuell erneut einreichen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Dieser Bericht wurde abgelehnt. Es wird darauf gewartet, dass <strong>${actor}</strong> die Probleme behebt und den Bericht manuell erneut einreicht.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:

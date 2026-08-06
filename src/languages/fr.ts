@@ -1926,7 +1926,7 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `En attente que <strong>${actor}</strong> marque ceci comme terminé.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `En attente qu’un administrateur marque ceci comme terminé.`;
+                        return `En attente qu'un administrateur marque ceci comme terminé.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -1934,7 +1934,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => `Aucune autre action requise !`,
+            ) => `Aucune autre action n’est requise !`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -1964,11 +1964,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente de la soumission automatique de vos dépenses${formattedETA}.`;
+                        return `En attente que <strong>vos</strong> dépenses soient automatiquement soumises${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `En attente de la soumission automatique des dépenses de <strong>${actor}</strong>${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `En attente que les dépenses d’un administrateur soient automatiquement soumises${formattedETA}.`;
+                        return `En attente de la soumission automatique des dépenses d’un administrateur${formattedETA}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: (
@@ -1994,11 +1994,11 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente que <strong>vous</strong> approuviez les dépenses.`;
+                        return `En attente de <strong>votre</strong> approbation des dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `En attente de l’approbation des dépenses par <strong>${actor}</strong>.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `En attente de l’approbation des dépenses par un administrateur.`;
+                        return `En attente qu’un administrateur approuve les dépenses.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2049,7 +2049,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) =>
-                `Oups ! On dirait que vous soumettez à <strong>vous-même</strong>. Approuver vos propres notes de frais est <strong>interdit</strong> par votre espace de travail. Veuillez soumettre cette note de frais à une autre personne ou contacter votre administrateur pour changer la personne à qui vous la soumettez.`,
+                `Oups ! On dirait que vous soumettez à <strong>vous-même</strong>. L’approbation de vos propres notes de frais est <strong>interdite</strong> par votre espace de travail. Veuillez soumettre cette note de frais à une autre personne ou contacter votre administrateur pour modifier la personne à qui vous soumettez.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2058,9 +2058,9 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Cette note de frais a été rejetée. En attente que <strong>vous</strong> corrigiez les problèmes et la soumettiez manuellement à nouveau.`;
+                        return `Cette note de frais a été rejetée. En attente que <strong>vous</strong> corrigiez les problèmes et la soumettiez à nouveau manuellement.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Cette note de frais a été rejetée. En attente de <strong>${actor}</strong> pour corriger les problèmes et la soumettre à nouveau manuellement.`;
+                        return `Cette note de frais a été rejetée. En attente que <strong>${actor}</strong> corrige les problèmes et la soumette manuellement à nouveau.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Cette note de frais a été rejetée. En attente qu’un administrateur corrige les problèmes et la soumette manuellement à nouveau.`;
                 }

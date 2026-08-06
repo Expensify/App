@@ -1888,7 +1888,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Aguardando que <strong>você</strong> envie as despesas.`;
+                        return `Aguardando <strong>você</strong> enviar despesas.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Aguardando <strong>${actor}</strong> enviar as despesas.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1903,11 +1903,11 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Aguardando <strong>você</strong> marcar isto como concluído.`;
+                        return `Aguardando <strong>você</strong> marcar como concluído.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Aguardando <strong>${actor}</strong> marcar isso como concluído.`;
+                        return `Aguardando <strong>${actor}</strong> marcar como concluído.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Aguardando um administrador marcar isto como concluído.`;
+                        return `Aguardando um administrador marcar como concluído.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -1915,7 +1915,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => `Nenhuma ação adicional necessária!`,
+            ) => `Nenhuma ação adicional é necessária!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -1945,7 +1945,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Aguardando suas despesas serem enviadas automaticamente${formattedETA}.`;
+                        return `Aguardando as <strong>suas</strong> despesas serem enviadas automaticamente${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Aguardando as despesas de <strong>${actor}</strong> serem enviadas automaticamente${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1979,7 +1979,7 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Aguardando <strong>${actor}</strong> aprovar as despesas.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Aguardando um admin aprovar as despesas.`;
+                        return `Aguardando um administrador aprovar as despesas.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2030,7 +2030,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) =>
-                `Opa! Parece que você está enviando para <strong>você mesmo</strong>. Aprovar seus próprios relatórios é <strong>proibido</strong> pelo seu workspace. Envie este relatório para outra pessoa ou entre em contato com o seu administrador para mudar para quem você envia.`,
+                `Opa! Parece que você está enviando para <strong>você mesmo</strong>. Aprovar seus próprios relatórios é <strong>proibido</strong> pelo seu espaço de trabalho. Envie este relatório para outra pessoa ou entre em contato com seu administrador para alterar a pessoa para quem você envia.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2039,7 +2039,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Este relatório foi rejeitado. Estamos aguardando <strong>você</strong> corrigir os problemas e reenviar manualmente.`;
+                        return `Este relatório foi recusado. Aguardando que <strong>você</strong> corrija os problemas e o envie novamente manualmente.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Este relatório foi rejeitado. Aguardando <strong>${actor}</strong> corrigir os problemas e reenviar manualmente.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
