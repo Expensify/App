@@ -8,8 +8,9 @@ import {openLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FinancialForceConnectionConfig, FinancialForceFFAExportStatus, FinancialForceReportExportStatus} from '@src/types/onyx/Policy';
+import type Session from '@src/types/onyx/Session';
 
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
@@ -257,8 +258,8 @@ function getFinancialForceSetupLink(policyID: string, isSandbox = false) {
     return commandURL + params.toString();
 }
 
-function connectPolicyToFinancialForce(policyID: string, isSandbox: boolean, environmentURL: string) {
-    openLink(getFinancialForceSetupLink(policyID, isSandbox), environmentURL);
+function connectPolicyToFinancialForce(policyID: string, isSandbox: boolean, environmentURL: string, session: OnyxEntry<Session>) {
+    openLink(getFinancialForceSetupLink(policyID, isSandbox), environmentURL, false, session);
 }
 
 function clearFinancialForceErrorField(policyID: string | undefined, fieldName: string) {

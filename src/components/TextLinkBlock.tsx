@@ -4,6 +4,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openLink as openLinkUtil} from '@userActions/Link';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, TextStyle} from 'react-native';
 
@@ -13,6 +14,7 @@ import type {StyleProp, TextStyle} from 'react-native';
  */
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 
 import type {LinkProps, PressProps} from './TextLink';
 
@@ -36,12 +38,13 @@ function TextLinkBlock({text, style, prefixIcon, ...rest}: TextLinkBlockProps) {
 
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const openLink = () => {
         if (!rest.href) {
             return;
         }
-        openLinkUtil(rest.href, environmentURL);
+        openLinkUtil(rest.href, environmentURL, false, session);
     };
 
     return (
