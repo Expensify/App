@@ -1009,6 +1009,7 @@ const CONST = {
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
+        NETSUITE_OAUTH: 'netSuiteOAuth',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -3227,12 +3228,15 @@ const CONST = {
         CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
         TOKEN_INPUT: {
             STEP_INDEX_LIST: ['1', '2', '3', '4'],
+            OAUTH_STEP_INDEX_LIST: ['1', '2', '3', '4'],
             PAGE_NAME: {
                 INSTALL: 'install',
                 AUTHENTICATION: 'authentication',
                 SOAP: 'soap',
                 ACCESS_TOKEN: 'access-token',
                 CREDENTIALS: 'credentials',
+                OAUTH: 'enable-oauth',
+                REST: 'enable-rest',
             },
             STEP_KEYS: {
                 install: 'installBundle',
@@ -3240,6 +3244,8 @@ const CONST = {
                 soap: 'enableSoapServices',
                 'access-token': 'createAccessToken',
                 credentials: 'enterCredentials',
+                'enable-oauth': 'enableOAuth',
+                'enable-rest': 'enableRestWebServices',
             },
         },
         IMPORT_CUSTOM_FIELDS: {
