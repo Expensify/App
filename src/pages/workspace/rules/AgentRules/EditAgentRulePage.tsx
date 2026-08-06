@@ -143,7 +143,7 @@ function EditAgentRulePage({
                     onSubmit={saveRule}
                     submitButtonText={translate('common.save')}
                     style={[styles.flex1, styles.ph5]}
-                    shouldUseScrollView={false}
+                    shouldUseScrollView={isInLandscapeMode}
                     submitFlexEnabled={false}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
@@ -175,9 +175,8 @@ function EditAgentRulePage({
                                 defaultValue={agentRule.prompt}
                                 multiline
                                 shouldLabelStayOnSingleLine
-                                containerStyles={[styles.flex1]}
+                                containerStyles={[styles.h100]}
                                 touchableInputWrapperStyle={[styles.flex1]}
-                                textInputContainerStyles={[styles.flex1]}
                                 inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                             />
                         </View>

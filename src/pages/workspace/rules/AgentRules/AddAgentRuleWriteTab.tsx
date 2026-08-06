@@ -76,7 +76,7 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             submitButtonText={isRulesRevampEnabled ? translate('workspace.rules.agentRules.createRule') : translate('common.save')}
             style={[styles.flex1, styles.ph5]}
             submitFlexEnabled={false}
-            shouldUseScrollView={false}
+            shouldUseScrollView={isInLandscapeMode}
             enabledWhenOffline
             shouldHideFixErrorsAlert
             shouldValidateOnChange
@@ -101,9 +101,8 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
                         multiline
                         shouldSaveDraft
                         shouldLabelStayOnSingleLine
-                        containerStyles={[styles.flex1]}
+                        containerStyles={[styles.h100]}
                         touchableInputWrapperStyle={[styles.flex1]}
-                        textInputContainerStyles={[styles.flex1]}
                         inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                     />
                 </View>

@@ -64,8 +64,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const {windowWidth, windowHeight} = useWindowDimensions();
     const {isKeyboardActive} = useKeyboardState();
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
-    const shouldUseScrollableLayout = isInLandscapeMode || (isMobile() && windowWidth > windowHeight);
-    const shouldShrinkPromptInput = shouldUseScrollableLayout && isKeyboardActive;
+    const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const {accountID: ownerAccountID, login: ownerLogin, displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
@@ -149,14 +148,13 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     };
 
     const formWrapperRef = useRef<FormRef>(null);
-    const handleInputFocus = () => scrollToMultilineInput(formWrapperRef, shouldUseScrollableLayout);
+    const handleInputFocus = () => scrollToMultilineInput(formWrapperRef, isInLandscapeMode);
 
     return (
         <ScreenWrapper
             testID={AddAgentPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight={shouldUseScrollableLayout}
         >
             <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={COLLAPSIBLE_HEADER_OFFSET}>
                 <HeaderWithBackButton
@@ -170,8 +168,8 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                 validate={validate}
                 submitButtonText={translate('addAgentPage.createAgent')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={shouldUseScrollableLayout}
-                submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
+                shouldUseScrollView={isInLandscapeMode}
+                submitFlexEnabled={false}
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
                 ref={formWrapperRef}
@@ -201,7 +199,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                         spellCheck={false}
                         defaultValue={defaultAgentName}
                     />
-                    <View style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [shouldUseScrollableLayout ? styles.h42 : styles.flex1]}>
+                    <View style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [isInLandscapeMode ? styles.h42 : styles.flex1]}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}
