@@ -1,9 +1,12 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
 import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -23,6 +26,7 @@ import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type FixBankAccountPageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DYNAMIC_FIX_BANK_ACCOUNT>['route'];
 
@@ -86,6 +90,22 @@ function FixBankAccountPage() {
                         onButtonPress={onResend}
                         containerStyle={styles.flex1}
                     />
+                )}
+                {!didSend && !isInsufficientFunds && (
+                    <>
+                        <View style={[styles.flex1, styles.ph5]}>
+                            <Text style={[styles.textHeadlineH1, styles.mb3]}>{translate('common.actionRequired')}</Text>
+                            <RenderHTML html={translate('walletPage.fixBankAccount.debitBlockedBody')} />
+                        </View>
+                        <FixedFooter addBottomSafeAreaPadding>
+                            <Button
+                                success
+                                large
+                                text={translate('walletPage.fixBankAccount.resendButton')}
+                                onPress={onResend}
+                            />
+                        </FixedFooter>
+                    </>
                 )}
             </FullPageNotFoundView>
         </ScreenWrapper>
