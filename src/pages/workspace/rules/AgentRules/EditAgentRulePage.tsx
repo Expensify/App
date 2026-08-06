@@ -143,7 +143,7 @@ function EditAgentRulePage({
                     onSubmit={saveRule}
                     submitButtonText={translate('common.save')}
                     style={[styles.flex1, styles.ph5]}
-                    shouldUseScrollView={isInLandscapeMode}
+                    shouldUseScrollView={false}
                     submitFlexEnabled={false}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
@@ -163,7 +163,7 @@ function EditAgentRulePage({
                         </Button>
                     }
                 >
-                    <View style={styles.flex1}>
+                    <View style={styles.flexGrow1}>
                         <View style={inputWrapperStyles}>
                             <InputWrapper
                                 InputComponent={TextInput}

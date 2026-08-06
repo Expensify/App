@@ -76,14 +76,14 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             submitButtonText={isRulesRevampEnabled ? translate('workspace.rules.agentRules.createRule') : translate('common.save')}
             style={[styles.flex1, styles.ph5]}
             submitFlexEnabled={false}
-            shouldUseScrollView={isInLandscapeMode}
+            shouldUseScrollView={false}
             enabledWhenOffline
             shouldHideFixErrorsAlert
             shouldValidateOnChange
             shouldValidateOnBlur
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
         >
-            <View style={styles.flex1}>
+            <View style={styles.flexGrow1}>
                 {!isRulesRevampEnabled && (
                     <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
                         <Text style={[styles.textHeadlineH1, styles.mv2]}>{translate('workspace.rules.agentRules.describeRuleHeadline')}</Text>
