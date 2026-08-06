@@ -14091,7 +14091,6 @@ export {
     isDefaultRoom,
     isDeprecatedGroupDM,
     generateIsEmptyReport,
-    isEmptyReport,
     isRootGroupChat,
     isExpenseReport,
     isExpenseRequest,

@@ -2399,8 +2399,9 @@ const CONST = {
     },
     INBOX_TAB: {
         ALL: 'all',
+        FOCUS: 'focus',
         TODO: 'todo',
-        CHATS: 'chats',
+        UNREAD: 'unread',
     },
     THEME: {
         DEFAULT: 'system',

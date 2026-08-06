@@ -370,7 +370,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: 'Encontre um chat usando o',
             subtitleText2: 'botão acima ou crie algo usando o',
             subtitleText3: 'botão abaixo.',
-            noChats: 'Nenhum chat',
+            noUnreadChats: 'Nenhum chat não lido',
             noTodos: 'Nenhuma tarefa pendente',
             caughtUp: 'Você está em dia. Muito bem!',
             seeAllChats: 'Ver todas as conversas',
@@ -3057,7 +3057,7 @@ ${amount} para ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Fique no controle vendo apenas chats não lidos ou que precisam da sua atenção. Não se preocupe, você pode mudar isso a qualquer momento em <a href="${priorityModePageUrl}">configurações</a>.`,
     },
-    inboxTabs: {all: 'Todos', todo: 'Pendências', chats: 'Conversas'},
+    inboxTabs: {all: 'Todos', focus: 'Foco', todo: 'Pendências', unread: 'Não lidas'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `em ${policyName}`,
         generatingPDF: 'Gerar PDF',

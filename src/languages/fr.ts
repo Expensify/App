@@ -370,7 +370,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: 'Recherchez une discussion à l’aide de la',
             subtitleText2: 'bouton ci-dessus, ou créez quelque chose en utilisant le',
             subtitleText3: 'bouton ci-dessous.',
-            noChats: 'Aucune discussion',
+            noUnreadChats: 'Aucune discussion non lue',
             noTodos: 'Aucune tâche à faire',
             caughtUp: 'Vous êtes à jour. Bravo !',
             seeAllChats: 'Voir toutes les discussions',
@@ -3082,7 +3082,7 @@ ${amount} pour ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Gardez le contrôle en n’affichant que les discussions non lues ou celles qui nécessitent votre attention. Ne vous inquiétez pas, vous pouvez modifier ce réglage à tout moment dans les <a href="${priorityModePageUrl}">paramètres</a>.`,
     },
-    inboxTabs: {all: 'Tout', todo: 'Tâches', chats: 'Discussions'},
+    inboxTabs: {all: 'Tout', focus: 'Focus', todo: 'Tâches', unread: 'Non lu'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `dans ${policyName}`,
         generatingPDF: 'Générer le PDF',
