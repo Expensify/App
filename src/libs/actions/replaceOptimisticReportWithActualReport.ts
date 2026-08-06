@@ -47,6 +47,7 @@ Onyx.connectWithoutView({
 
 let allReports: OnyxCollection<Report>;
 
+// Session accountID is read only during optimistic-to-actual report replacement logic, not for rendering
 let sessionAccountID: number | undefined;
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
