@@ -123,9 +123,7 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
  * @param screens key/value pairs where the key is the name of the screen and the value is a function that returns the lazy-loaded component
  */
 function createModalStackNavigator<ParamList extends ParamListBase>(screens: Screens): React.ComponentType {
-    // Covered screens in every modal stack (e.g. previous RHP steps) are wrapped in React <Activity> so their
-    // updates are deferred to background priority while they stay mounted with preserved state.
-    const ModalStackNavigator = createPlatformStackNavigator<ParamList>(undefined, {nonTopScreensBehavior: 'activity'});
+    const ModalStackNavigator = createPlatformStackNavigator<ParamList>();
 
     function ModalStack() {
         const styles = useThemeStyles();
@@ -154,7 +152,10 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 aria-modal={isSmallScreenWidth || undefined}
                 role={isSmallScreenWidth ? 'dialog' : undefined}
             >
-                <ModalStackNavigator.Navigator>
+                {/* Covered screens in every modal stack (e.g. previous RHP steps) are wrapped in React <Activity> so their
+                    updates are deferred to background priority while they stay mounted with preserved state. A single
+                    screen can opt out through its own options. */}
+                <ModalStackNavigator.Navigator screenOptions={{nonTopScreenBehavior: 'activity'}}>
                     {Object.keys(screens as Required<Screens>).map((name) => (
                         <ModalStackNavigator.Screen
                             key={name}

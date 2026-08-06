@@ -27,7 +27,6 @@ type PlatformNavigatorImplProps<RouterOptions extends PlatformStackRouterOptions
     ExtraContent?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['ExtraContent'];
     NavigationContentWrapper?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['NavigationContentWrapper'];
     Effects?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['Effects'];
-    nonTopScreensBehavior?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['nonTopScreensBehavior'];
     displayName: string;
 };
 
@@ -47,7 +46,6 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     ExtraContent,
     NavigationContentWrapper,
     Effects,
-    nonTopScreensBehavior,
     displayName,
     ...props
 }: PlatformNavigatorImplProps<RouterOptions>) {
@@ -105,7 +103,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         }),
     };
 
-    const wrappedDescriptors = nonTopScreensBehavior ? wrapDescriptorsWithNonTopScreensBehavior(descriptors, state, nonTopScreensBehavior, persistentScreens) : descriptors;
+    const wrappedDescriptors = wrapDescriptorsWithNonTopScreensBehavior(descriptors, state, persistentScreens);
 
     const content = (
         <NavigationContent>
@@ -143,7 +141,6 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 ExtraContent={options?.ExtraContent}
                 NavigationContentWrapper={options?.NavigationContentWrapper}
                 Effects={options?.Effects}
-                nonTopScreensBehavior={options?.nonTopScreensBehavior}
                 displayName={displayName}
                 {...props}
             />
