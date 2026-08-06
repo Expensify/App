@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasCircularReferences} from '@libs/Formula';
 import type {FieldList} from '@libs/Formula';
+import StringUtils from '@libs/StringUtils';
 
 import variables from '@styles/variables';
 
@@ -72,7 +73,7 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
             // values. Squash any line breaks the user entered down to a single line before saving.
             onSubmit({
                 ...values,
-                [fieldKey]: values[fieldKey]?.replaceAll(/[\r\n]+/g, ' '),
+                [fieldKey]: StringUtils.lineBreaksToSpaces(values[fieldKey]),
             });
         },
         [fieldKey, onSubmit],
