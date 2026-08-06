@@ -8,18 +8,20 @@ import type {
     SetPolicyCommuterExclusionsParams,
     SetPolicyDistanceRatesEnabledParams,
     SetPolicyDistanceRatesUnitParams,
+    SetWorkspaceDistanceAutoUpdateParams,
     UpdatePolicyDistanceRateParams,
     UpdatePolicyDistanceRateValueParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import {buildOnyxDataForPolicyDistanceRateUpdates} from '@libs/PolicyDistanceRatesUtils';
+import {generateHexadecimalValue} from '@libs/NumberUtils';
+import {buildOnyxDataForPolicyDistanceRateUpdates, getExpectedUnitForCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {TransactionViolation} from '@src/types/onyx';
+import type {GovernmentMileageRate, TransactionViolation} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {CommuterExclusions, CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -27,6 +29,13 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
+
+/**
+ * Returns a client generated 13 character hexadecimal value for a custom unit rate ID
+ */
+function generateCustomUnitID(): string {
+    return generateHexadecimalValue(13);
+}
 
 /**
  * Takes array of customUnitRates and removes pendingFields and errorFields from each rate - we don't want to send those via API
@@ -630,6 +639,139 @@ function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclu
     API.write(WRITE_COMMANDS.DISABLE_POLICY_COMMUTER_EXCLUSIONS, parameters, onyxData);
 }
 
+/**
+ * Turn the auto-updating of government distance rates on or off for a workspace.
+ *
+ * When enabling, the government reference rates loaded on the distance settings page are copied optimistically so the new
+ * rows show up right away. Each optimistic rate gets a client-generated `customUnitRateID` which is sent to the server in
+ * `optimisticRateIDs` (keyed by `sourceRateID`) so the persisted rates keep the same IDs and row navigation stays stable.
+ *
+ * The distance unit is corrected in the same write when the workspace unit doesn't match the unit the government publishes
+ * its rates in (e.g. the workspace tracks miles but the currency is CAD, which expects kilometers).
+ */
+function setWorkspaceDistanceAutoUpdate(policyID: string, customUnit: CustomUnit, shouldAutoUpdateGovernmentDistanceRates: boolean, governmentMileageRates: GovernmentMileageRate[]) {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const customUnitID = customUnit.customUnitID;
+
+    const optimisticRates: Record<string, Rate> = {};
+    const successRates: Record<string, NullishDeep<Rate>> = {};
+    const failureRates: Record<string, null> = {};
+    const optimisticRateIDs: Record<string, string> = {};
+
+    if (shouldAutoUpdateGovernmentDistanceRates) {
+        const copiedSourceRateIDs = new Set(Object.values(customUnit.rates ?? {}).map((rate) => rate.attributes?.governmentRate?.sourceRateID));
+
+        for (const governmentMileageRate of governmentMileageRates) {
+            // The server skips reference rates the workspace already has, so we skip them optimistically too
+            if (copiedSourceRateIDs.has(governmentMileageRate.sourceRateID)) {
+                continue;
+            }
+
+            const customUnitRateID = generateCustomUnitID();
+            optimisticRateIDs[governmentMileageRate.sourceRateID] = customUnitRateID;
+            optimisticRates[customUnitRateID] = {
+                customUnitRateID,
+                name: governmentMileageRate.name,
+                rate: governmentMileageRate.rate,
+                currency: governmentMileageRate.currency,
+                enabled: true,
+                ...(governmentMileageRate.startDate ? {startDate: governmentMileageRate.startDate} : {}),
+                ...(governmentMileageRate.endDate ? {endDate: governmentMileageRate.endDate} : {}),
+                attributes: {
+                    governmentRate: {
+                        sourceRateID: governmentMileageRate.sourceRateID,
+                        rate: governmentMileageRate.rate,
+                        ...(governmentMileageRate.startDate ? {startDate: governmentMileageRate.startDate} : {}),
+                        ...(governmentMileageRate.endDate ? {endDate: governmentMileageRate.endDate} : {}),
+                    },
+                },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+            successRates[customUnitRateID] = {pendingAction: null};
+            failureRates[customUnitRateID] = null;
+        }
+    }
+
+    const currentUnit = customUnit.attributes?.unit;
+    const expectedUnit = getExpectedUnitForCurrency(governmentMileageRates.at(0)?.currency);
+    const shouldCorrectUnit = shouldAutoUpdateGovernmentDistanceRates && !!expectedUnit && !!currentUnit && currentUnit !== expectedUnit;
+
+    const optimisticCustomUnit: NullishDeep<CustomUnit> = {
+        ...(Object.keys(optimisticRates).length > 0 ? {rates: optimisticRates} : {}),
+        ...(shouldCorrectUnit ? {attributes: {unit: expectedUnit}, pendingFields: {attributes: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}} : {}),
+    };
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    shouldAutoUpdateGovernmentDistanceRates: shouldAutoUpdateGovernmentDistanceRates ? true : null,
+                    pendingFields: {shouldAutoUpdateGovernmentDistanceRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    errorFields: {shouldAutoUpdateGovernmentDistanceRates: null},
+                    ...(Object.keys(optimisticCustomUnit).length > 0 ? {customUnits: {[customUnitID]: optimisticCustomUnit}} : {}),
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null},
+                    ...(Object.keys(successRates).length > 0 || shouldCorrectUnit
+                        ? {
+                              customUnits: {
+                                  [customUnitID]: {
+                                      ...(Object.keys(successRates).length > 0 ? {rates: successRates} : {}),
+                                      ...(shouldCorrectUnit ? {pendingFields: {attributes: null}} : {}),
+                                  },
+                              },
+                          }
+                        : {}),
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    shouldAutoUpdateGovernmentDistanceRates: shouldAutoUpdateGovernmentDistanceRates ? null : true,
+                    pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null},
+                    errorFields: {shouldAutoUpdateGovernmentDistanceRates: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                    ...(Object.keys(failureRates).length > 0 || shouldCorrectUnit
+                        ? {
+                              customUnits: {
+                                  [customUnitID]: {
+                                      ...(Object.keys(failureRates).length > 0 ? {rates: failureRates} : {}),
+                                      ...(shouldCorrectUnit ? {attributes: {unit: currentUnit}, pendingFields: {attributes: null}} : {}),
+                                  },
+                              },
+                          }
+                        : {}),
+                },
+            },
+        ],
+    };
+
+    const parameters: SetWorkspaceDistanceAutoUpdateParams = {
+        policyID,
+        shouldAutoUpdateGovernmentDistanceRates,
+        ...(Object.keys(optimisticRateIDs).length > 0 ? {optimisticRateIDs: JSON.stringify(optimisticRateIDs)} : {}),
+    };
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_DISTANCE_AUTO_UPDATE, parameters, onyxData);
+}
+
+function clearWorkspaceDistanceAutoUpdateErrors(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: {shouldAutoUpdateGovernmentDistanceRates: null},
+        pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null},
+    });
+}
+
 function clearPolicyCommuterExclusionsErrors(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: {commuterExclusions: null},
@@ -656,4 +798,6 @@ export {
     setPolicyCommuterExclusions,
     disablePolicyCommuterExclusions,
     clearPolicyCommuterExclusionsErrors,
+    setWorkspaceDistanceAutoUpdate,
+    clearWorkspaceDistanceAutoUpdateErrors,
 };
