@@ -184,7 +184,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         convertToDisplayString,
     }).map((item) => ({
         ...item,
-        action: singleExecution(waitForNavigate(() => Navigation.navigate(item.route))),
+        action: singleExecution(waitForNavigate(() => Navigation.navigate(item.getRoute()))),
     }));
     // Close RHP if we land on a route that no longer exists in the menu
     const canAccessRoute = activeRoute && (workspaceMenuItems.some((item) => item.screenName === activeRoute) || activeRoute === SCREENS.WORKSPACE.INITIAL);

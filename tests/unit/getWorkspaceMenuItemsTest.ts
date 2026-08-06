@@ -1,3 +1,5 @@
+import Log from '@libs/Log';
+
 import getWorkspaceMenuItems from '@pages/workspace/getWorkspaceMenuItems';
 
 import CONST from '@src/CONST';
@@ -47,6 +49,24 @@ function buildPolicy(role: Policy['role']): Policy {
 }
 
 describe('getWorkspaceMenuItems', () => {
+    it('does not build routes until a menu item is selected', () => {
+        const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => undefined);
+
+        const items = getWorkspaceMenuItems({
+            policy: undefined,
+            policyID: undefined,
+            icons,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items).toHaveLength(3);
+        expect(warnSpy).not.toHaveBeenCalled();
+
+        items.at(0)?.getRoute();
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+        warnSpy.mockRestore();
+    });
+
     it('returns only the always-visible rows for a member without protected feature access', () => {
         const policy = buildPolicy(CONST.POLICY.ROLE.USER);
 
@@ -59,7 +79,7 @@ describe('getWorkspaceMenuItems', () => {
         });
 
         expect(items.map((item) => item.translationKey)).toEqual(['workspace.common.profile', 'workspace.common.members', 'workspace.common.rooms']);
-        expect(items.map((item) => item.route)).toEqual([
+        expect(items.map((item) => item.getRoute())).toEqual([
             ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id),
             ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id),
             ROUTES.WORKSPACE_ROOMS.getRoute(policy.id),
