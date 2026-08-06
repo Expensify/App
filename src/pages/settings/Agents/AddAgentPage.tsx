@@ -21,7 +21,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {buildFileFromAvatarCropResult} from '@libs/AvatarCropUtils';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
-import {isMobile} from '@libs/Browser';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Navigation from '@libs/Navigation/Navigation';
