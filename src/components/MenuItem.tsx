@@ -1161,7 +1161,6 @@ function MenuItem({
                                                                 }
                                                             }
                                                             accountIDs={!!rightIconAccountID && Number(rightIconAccountID) > 0 ? [Number(rightIconAccountID)] : undefined}
-                                                            useMidSubscriptSizeForMultipleAvatars
                                                         />
                                                     </View>
                                                 )}

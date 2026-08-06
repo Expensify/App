@@ -227,7 +227,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const highlightedFeature = (Object.keys(policyFeatureStates) as PolicyFeatureName[]).find((key) => policyFeatureStates[key] && !prevPendingFields?.[key] && policy?.pendingFields?.[key]);
 
     const prevPolicy = usePrevious(policy);
-    const shouldShowPolicy = checkIfShouldShowPolicy(policy, true, currentUserLogin);
+    const shouldShowPolicy = checkIfShouldShowPolicy(policy, true, currentUserLogin, true);
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
     // While the policy is being fetched (e.g., right after joinAccessiblePolicy), the role is not yet populated,
