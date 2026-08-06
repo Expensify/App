@@ -236,7 +236,7 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
         firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
     };
     const isSplitExpense = isSplitChildTransaction(trackExpenseTransaction);
-    const shouldShowSubmitButtons = !isSplitExpense || hasWorkspaceToSubmitTo;
+    const shouldShowSubmitButtons = !isSplitExpense || !!hasWorkspaceToSubmitTo;
 
     const submit = (submitDestination?: ValueOf<typeof CONST.IOU.SUBMIT_DESTINATION>) => {
         createDraftTransactionAndNavigateToParticipantSelector({
@@ -249,49 +249,47 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
         });
     };
 
-    const renderSubmitDestinationButtons = () => (
-        <>
-            {!isSplitExpense && (
-                <Button onPress={() => submit(CONST.IOU.SUBMIT_DESTINATION.FRIEND)}>
-                    <Button.Text>{translate('actionableMentionTrackExpense.submitToFriend')}</Button.Text>
-                </Button>
-            )}
-            <Button onPress={() => submit(CONST.IOU.SUBMIT_DESTINATION.EMPLOYER)}>
-                <Button.Text>{translate('actionableMentionTrackExpense.submitToEmployer')}</Button.Text>
-            </Button>
-        </>
-    );
-
-    const renderSubmitButton = () => (
-        <Button onPress={() => submit()}>
-            <Button.Text>{translate('actionableMentionTrackExpense.submit')}</Button.Text>
-        </Button>
-    );
-
-    const renderTrackFlowButtons = () => (
-        <>
-            <Button
-                onPress={() => {
-                    createDraftTransactionAndNavigateToParticipantSelector({...baseDraftTransactionParams, actionName: CONST.IOU.ACTION.CATEGORIZE});
-                }}
-            >
-                <Button.Text>{translate('actionableMentionTrackExpense.categorize')}</Button.Text>
-            </Button>
-            <Button
-                onPress={() => {
-                    createDraftTransactionAndNavigateToParticipantSelector({...baseDraftTransactionParams, actionName: CONST.IOU.ACTION.SHARE});
-                }}
-            >
-                <Button.Text>{translate('actionableMentionTrackExpense.share')}</Button.Text>
-            </Button>
-        </>
-    );
-
     return (
         <ActionableItemButtons layout="vertical">
             {/* On the Submit (submit2026) plan, the single "Submit it to someone" button splits into one button per destination. */}
-            {shouldShowSubmitButtons && (isSubmit2026BetaEnabled ? renderSubmitDestinationButtons() : renderSubmitButton())}
-            {Permissions.canUseTrackFlows() && renderTrackFlowButtons()}
+            {shouldShowSubmitButtons && isSubmit2026BetaEnabled && (
+                <>
+                    {!isSplitExpense && (
+                        <Button onPress={() => submit(CONST.IOU.SUBMIT_DESTINATION.FRIEND)}>
+                            <Button.Text>{translate('actionableMentionTrackExpense.submitToFriend')}</Button.Text>
+                        </Button>
+                    )}
+                    <Button onPress={() => submit(CONST.IOU.SUBMIT_DESTINATION.EMPLOYER)}>
+                        <Button.Text>{translate('actionableMentionTrackExpense.submitToEmployer')}</Button.Text>
+                    </Button>
+                </>
+            )}
+
+            {shouldShowSubmitButtons && !isSubmit2026BetaEnabled && (
+                <Button onPress={() => submit()}>
+                    <Button.Text>{translate('actionableMentionTrackExpense.submit')}</Button.Text>
+                </Button>
+            )}
+
+            {Permissions.canUseTrackFlows() && (
+                <>
+                    <Button
+                        onPress={() => {
+                            createDraftTransactionAndNavigateToParticipantSelector({...baseDraftTransactionParams, actionName: CONST.IOU.ACTION.CATEGORIZE});
+                        }}
+                    >
+                        <Button.Text>{translate('actionableMentionTrackExpense.categorize')}</Button.Text>
+                    </Button>
+                    <Button
+                        onPress={() => {
+                            createDraftTransactionAndNavigateToParticipantSelector({...baseDraftTransactionParams, actionName: CONST.IOU.ACTION.SHARE});
+                        }}
+                    >
+                        <Button.Text>{translate('actionableMentionTrackExpense.share')}</Button.Text>
+                    </Button>
+                </>
+            )}
+
             <Button
                 onPress={() => {
                     dismissTrackExpenseActionableWhisper(actionOwnerReportID, action);
