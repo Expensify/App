@@ -1,17 +1,21 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
 
 type ReceiptFileValidatorProps = {
     transactions: Transaction[];
@@ -84,6 +88,9 @@ function ReceiptFileValidator({
 
                 const onSuccess = (file: File) => {
                     const receipt: Receipt = file;
+                    // Rebuilding the receipt from disk makes a fresh File without the trace id from capture, so copy it
+                    // back from the saved draft. This keeps the capture, submit, and enqueue logs tied to one receipt.
+                    receipt.receiptTraceId = item.receipt?.receiptTraceId;
                     if (item?.receipt?.isTestReceipt) {
                         receipt.isTestReceipt = true;
                         receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;

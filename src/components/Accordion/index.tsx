@@ -1,8 +1,9 @@
 import type {ReactNode} from 'react';
-import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
+
+import React from 'react';
+import {View} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type AccordionProps = {

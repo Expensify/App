@@ -1,26 +1,29 @@
-import {useEffect, useRef, useState} from 'react';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import CONST from '@src/CONST';
+
 import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import CONST from '@src/CONST';
+
+import {useEffect, useRef, useState} from 'react';
 
 type PopoverPosition = {
     horizontal: number;
     vertical: number;
 };
 
-type UsePopoverEditStateOptions<T> = {
+type UsePopoverEditStateOptions = {
     /** Whether editing is currently permitted. When false, editing will be cancelled. */
     canEdit: boolean | undefined;
 
     /** The current value being edited */
-    value?: T;
+    value?: unknown;
 
     /** Callback when the value is saved */
-    onSave?: (value: T) => void;
+    onSave?: (value: unknown) => void;
 
     /** Custom equality function. If not provided, Object.is is used. */
-    isEqual?: (newValue: T, originalValue: T) => boolean;
+    isEqual?: (newValue: unknown, originalValue: unknown) => boolean;
 
     /** Height of the popover content (used for overflow detection). Defaults to CONST.POPOVER_DATE_MAX_HEIGHT */
     popoverHeight?: number;
@@ -35,19 +38,10 @@ type UsePopoverEditStateOptions<T> = {
 };
 
 /**
- * Hook for managing popover-based editing state (date picker, category picker, etc.).
- *
- * Handles:
- *   - Anchor ref for popover positioning
- *   - measureInWindow-based position calculation
- *   - Overflow detection (inverts when too close to bottom)
- *   - Adaptive height calculation (shrinks popover when space is limited)
- *   - Auto-open after layout via InteractionManager
- *   - isEditing + isPopoverVisible toggling
- *   - Auto-cancel when canEdit becomes false
- *   - Value comparison to prevent no-op saves
+ * Non-generic implementation so OXC's React Compiler can memoize the hook.
+ * OXC bails on type params inside hooks ("Unsupported declaration type for hoisting").
  */
-function usePopoverEditState<T>({
+function usePopoverEditStateImpl({
     canEdit,
     value,
     onSave,
@@ -55,7 +49,7 @@ function usePopoverEditState<T>({
     popoverHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
     padding = CONST.MODAL.POPOVER_MENU_PADDING,
     anchorEdge = CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-}: UsePopoverEditStateOptions<T>) {
+}: UsePopoverEditStateOptions) {
     const {windowHeight} = useWindowDimensions();
     const anchorRef = useRef<View>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -77,7 +71,6 @@ function usePopoverEditState<T>({
 
     const startEditing = () => {
         setIsEditing(true);
-        // EditableCell renders conditionally based on isEditing, defer measurement until that render completes and the anchor is laid out
         requestAnimationFrame(() => {
             openPopover();
         });
@@ -88,12 +81,7 @@ function usePopoverEditState<T>({
         setIsEditing(false);
     };
 
-    /**
-     * Handles saving a new value.
-     * Compares the new value with the original value and only calls onSave if they differ.
-     * Always closes the popover after handling.
-     */
-    const handleSave = (newValue: T) => {
+    const handleSave = (newValue: unknown) => {
         if (value !== undefined && onSave) {
             const shouldSave = isEqual ? !isEqual(newValue, value) : !Object.is(newValue, value);
             if (shouldSave) {
@@ -103,7 +91,6 @@ function usePopoverEditState<T>({
         cancelEditing();
     };
 
-    // Cancel editing when permission is revoked (e.g., transaction status changed)
     useEffect(() => {
         if (canEdit || !isEditing) {
             return;
@@ -111,7 +98,7 @@ function usePopoverEditState<T>({
         queueMicrotask(() => {
             cancelEditing();
         });
-    }, [canEdit, isEditing, cancelEditing]);
+    }, [canEdit, isEditing]);
 
     return {
         isEditing,
@@ -122,6 +109,35 @@ function usePopoverEditState<T>({
         startEditing,
         cancelEditing,
         handleSave,
+    };
+}
+
+type UsePopoverEditStateOptionsGeneric<T> = {
+    canEdit: boolean | undefined;
+    value?: T;
+    onSave?: (value: T) => void;
+    isEqual?: (newValue: T, originalValue: T) => boolean;
+    popoverHeight?: number;
+    padding?: number;
+    anchorEdge?: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
+};
+
+/**
+ * Hook for managing popover-based editing state (date picker, category picker, etc.).
+ *
+ * Handles:
+ *   - Anchor ref for popover positioning
+ *   - measureInWindow-based position calculation
+ *   - Overflow detection (inverts when too close to bottom)
+ *   - Adaptive height calculation (shrinks popover when space is limited)
+ *   - Auto-open after layout via InteractionManager
+ *   - isEditing + isPopoverVisible toggling
+ *   - Auto-cancel when canEdit becomes false
+ *   - Value comparison to prevent no-op saves
+ */
+function usePopoverEditState<T>(options: UsePopoverEditStateOptionsGeneric<T>) {
+    return usePopoverEditStateImpl(options as UsePopoverEditStateOptions) as ReturnType<typeof usePopoverEditStateImpl> & {
+        handleSave: (newValue: T) => void;
     };
 }
 

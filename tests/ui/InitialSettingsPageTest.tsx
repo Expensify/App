@@ -1,23 +1,33 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
-import type * as ReactNavigation from '@react-navigation/native';
-import {act, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScrollView from '@components/ScrollView';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import usePermissions from '@hooks/usePermissions';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
+
 import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import InitialSettingsPage from '@pages/settings/InitialSettingsPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import {DeviceEventEmitter} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -47,7 +57,6 @@ jest.mock('@userActions/Wallet', () => ({
 }));
 
 jest.mock('@userActions/App', () => ({
-    confirmReadyToOpenApp: jest.fn(),
     setLocale: jest.fn(),
 }));
 
@@ -158,16 +167,16 @@ describe('InitialSettingsPage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
     }
 
-    it('hides Wallet, Preferences and Security for agent account', async () => {
+    it('shows Wallet, Preferences and Security for agent account', async () => {
         await setupUser('agent_123@expensify.ai');
 
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.queryByTestId('menu-item-Wallet')).toBeNull();
-            expect(screen.queryByTestId('menu-item-Preferences')).toBeNull();
-            expect(screen.queryByTestId('menu-item-Security')).toBeNull();
+            expect(screen.getByTestId('menu-item-Wallet')).toBeDefined();
+            expect(screen.getByTestId('menu-item-Preferences')).toBeDefined();
+            expect(screen.getByTestId('menu-item-Security')).toBeDefined();
         });
     });
 
@@ -195,7 +204,7 @@ describe('InitialSettingsPage - agent account', () => {
         });
     });
 
-    it('hides Subscription for agent account', async () => {
+    it('shows Subscription for agent account', async () => {
         mockUseSubscriptionPlan.mockReturnValue(CONST.POLICY.TYPE.TEAM);
         await setupUser('agent_123@expensify.ai');
 
@@ -203,7 +212,7 @@ describe('InitialSettingsPage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.queryByTestId('menu-item-Subscription')).toBeNull();
+            expect(screen.getByTestId('menu-item-Subscription')).toBeDefined();
         });
     });
 
@@ -241,5 +250,51 @@ describe('InitialSettingsPage - agent account', () => {
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-Agents')).toBeDefined();
         });
+    });
+});
+
+describe('InitialSettingsPage - scrolling', () => {
+    const accountID = 456;
+
+    beforeAll(async () => {
+        Onyx.init({keys: ONYXKEYS});
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en' as const);
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+        await waitForBatchedUpdatesWithAct();
+        jest.clearAllMocks();
+    });
+
+    it('should emit a scrolling event so anchored tooltips can follow or hide', async () => {
+        mockUsePermissions.mockImplementation(() => ({isBetaEnabled: () => false}));
+        mockUseSubscriptionPlan.mockImplementation(() => null);
+        await TestHelper.signInWithTestUser(accountID, 'user@expensify.com');
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const emitSpy = jest.spyOn(DeviceEventEmitter, 'emit');
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // The account switcher's tooltip is anchored inside this list, so the page has to announce scrolls.
+        const scrollView = screen.UNSAFE_getByType(ScrollView);
+        fireEvent.scroll(scrollView, {
+            nativeEvent: {
+                contentOffset: {y: 120, x: 0},
+                layoutMeasurement: {height: 800, width: 400},
+                contentSize: {height: 2400, width: 400},
+            },
+        });
+
+        expect(emitSpy).toHaveBeenCalledWith(CONST.EVENTS.SCROLLING, true);
+        emitSpy.mockRestore();
     });
 });

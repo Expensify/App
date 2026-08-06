@@ -1,13 +1,8 @@
-import {useIsFocused} from '@react-navigation/native';
-import {FlashList} from '@shopify/flash-list';
-import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useImperativeHandle, useRef} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Footer from '@components/SelectionList/components/Footer';
 import SelectionListEmptyState from '@components/SelectionList/components/SelectionListEmptyState';
 import TextInput from '@components/SelectionList/components/TextInput';
 import useFlattenedSections, {isItemSelected, shouldTreatItemAsDisabled} from '@components/SelectionList/hooks/useFlattenedSections';
+import useScrollToFocusedInput from '@components/SelectionList/hooks/useScrollToFocusedInput';
 import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
 import useSelectionListKeyboardFocus from '@components/SelectionList/hooks/useSelectionListKeyboardFocus';
@@ -17,20 +12,35 @@ import useSelectionListTextInput from '@components/SelectionList/hooks/useSelect
 import ListItemRenderer from '@components/SelectionList/ListItem/ListItemRenderer';
 import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
+import type {ValueOf} from 'type-fest';
+
+import {useIsFocused} from '@react-navigation/native';
+import {FlashList} from '@shopify/flash-list';
+import React, {useCallback, useImperativeHandle, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
 
-function getItemType<TItem extends ListItem>(item: FlattenedItem<TItem>): ValueOf<typeof CONST.SECTION_LIST_ITEM_TYPE> {
+function getItemType(item: FlattenedItem<ListItem>): ValueOf<typeof CONST.SECTION_LIST_ITEM_TYPE> {
     return item?.type ?? CONST.SECTION_LIST_ITEM_TYPE.ROW;
 }
 
-function BaseSelectionListWithSections<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function BaseSelectionListWithSectionsImpl({
     sections,
     ref,
     ListItem,
@@ -77,7 +87,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldDisableHoverStyle,
     selectionButtonPosition,
     setShouldDisableHoverStyle = () => {},
-}: SelectionListWithSectionsProps<TItem>) {
+}: SelectionListWithSectionsProps<ListItem>) {
     const styles = useThemeStyles();
     const isScreenFocused = useIsFocused();
     const scrollEnabled = useScrollEnabled();
@@ -88,27 +98,27 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
 
     const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex, firstFocusableIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
-    const listRef = useRef<FlashListRef<FlattenedItem<TItem>> | null>(null);
+    const listRef = useRef<FlashListRef<FlattenedItem<ListItem>> | null>(null);
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, flattenedData);
+    const {containerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
 
-    const {focusedIndex, setFocusedIndex, setFocusedIndexFromRowFocus, setFocusedIndexWithoutScrollOnChange, suppressNextFocusScroll, isKeyboardNavigating, setHasKeyBeenPressed} =
-        useSelectionListKeyboardFocus({
-            initialFocusedIndex,
-            maxIndex: flattenedData.length - 1,
-            disabledIndexes,
-            isActive: isScreenFocused && itemsCount > 0,
-            isFocused: isScreenFocused,
-            shouldScrollToFocusedIndex,
-            shouldDebounceScrolling,
-            scrollToIndex,
-            debouncedScrollToIndex,
-            announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
-            setShouldDisableHoverStyle,
-        });
+    const {focusedIndex, setFocusedIndex, isKeyboardNavigating, setHasKeyBeenPressed} = useSelectionListKeyboardFocus({
+        initialFocusedIndex,
+        maxIndex: flattenedData.length - 1,
+        disabledIndexes,
+        isActive: isScreenFocused && itemsCount > 0,
+        isFocused: isScreenFocused,
+        shouldScrollToFocusedIndex,
+        shouldDebounceScrolling,
+        scrollToIndex,
+        debouncedScrollToIndex,
+        announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
+        setShouldDisableHoverStyle,
+    });
 
     const {innerTextInputRef, isTextInputFocusedRef, focusTextInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);
 
-    const getFocusedItem = (): TItem | undefined => {
+    const getFocusedItem = useCallback((): ListItem | undefined => {
         if (focusedIndex < 0 || focusedIndex >= flattenedData.length) {
             return;
         }
@@ -116,10 +126,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         if (!item || shouldTreatItemAsDisabled(item)) {
             return;
         }
-        return item as TItem;
-    };
+        return item as ListItem;
+    }, [flattenedData, focusedIndex]);
 
-    const selectRow = (item: TItem, indexToFocus?: number) => {
+    const selectRow = (item: ListItem, indexToFocus?: number) => {
         if (!isScreenFocused) {
             return;
         }
@@ -133,7 +143,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
         }
         if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
-            setFocusedIndexWithoutScrollOnChange(indexToFocus);
+            setFocusedIndex(indexToFocus);
         }
         onSelectRow(item);
 
@@ -150,26 +160,29 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         selectRow(focusedItem);
     };
 
-    const clearInputAfterSelect = () => {
+    const clearInputAfterSelect = useCallback(() => {
         textInputOptions?.onChangeText?.('');
-    };
+    }, [textInputOptions]);
 
-    const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
-        if (!shouldScroll) {
-            suppressNextFocusScroll();
-        }
-        setFocusedIndex(index);
-        if (shouldScroll) {
-            scrollToIndex(index);
-        }
-    };
+    const updateAndScrollToFocusedIndex = useCallback(
+        (index: number, shouldScroll = true) => {
+            setFocusedIndex(index);
+            if (shouldScroll) {
+                scrollToIndex(index);
+            }
+        },
+        [scrollToIndex, setFocusedIndex],
+    );
 
     /**
      * Handles isTextInputFocusedRef value when using external TextInput, so external TextInput does not lose focus when typing in it.
      */
-    const updateExternalTextInputFocus = (isTextInputFocused: boolean) => {
-        isTextInputFocusedRef.current = isTextInputFocused;
-    };
+    const updateExternalTextInputFocus = useCallback(
+        (isTextInputFocused: boolean) => {
+            isTextInputFocusedRef.current = isTextInputFocused;
+        },
+        [isTextInputFocusedRef],
+    );
 
     useImperativeHandle(
         ref,
@@ -180,8 +193,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             updateAndScrollToFocusedIndex,
             updateExternalTextInputFocus,
             getFocusedOption: getFocusedItem,
+            scrollInputIntoView,
         }),
-        [focusTextInput, scrollToIndex, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, getFocusedItem],
+        [focusTextInput, scrollToIndex, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, getFocusedItem, scrollInputIntoView],
     );
 
     const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
@@ -215,9 +229,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
-        focusedIndex,
         firstFocusableIndex,
-        suppressNextFocusScroll,
     });
 
     const textInputComponent = () => {
@@ -242,7 +254,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         );
     };
 
-    const renderItem = ({item, index}: ListRenderItemInfo<FlattenedItem<TItem>>) => {
+    const renderItem = ({item, index}: ListRenderItemInfo<FlattenedItem<ListItem>>) => {
         if (!item) {
             return null;
         }
@@ -279,7 +291,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         onDismissError={onDismissError}
                         rightHandSideComponent={rightHandSideComponent}
-                        setFocusedIndex={setFocusedIndexFromRowFocus}
+                        setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
                         shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
                         shouldIgnoreFocus={shouldIgnoreFocus}
@@ -301,6 +313,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     return (
         <View
+            ref={containerRef}
             style={[styles.flex1, addBottomSafeAreaPadding && paddingBottomStyle, style?.containerStyle]}
             onLayout={onLayout}
         >
@@ -327,7 +340,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     onEndReachedThreshold={onEndReachedThreshold}
                     onScrollBeginDrag={onScrollBeginDrag}
                     scrollEnabled={scrollEnabled}
-                    onScroll={() => {
+                    onScroll={(event) => {
+                        trackScrollOffset(event);
                         onScroll?.();
                         triggerScrollEvent();
                     }}
@@ -343,13 +357,17 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 />
             )}
             {!!footerContent && (
-                <Footer<TItem>
+                <Footer<ListItem>
                     footerContent={footerContent}
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                 />
             )}
         </View>
     );
+}
+
+function BaseSelectionListWithSections<TItem extends ListItem>(props: SelectionListWithSectionsProps<TItem>) {
+    return <BaseSelectionListWithSectionsImpl {...(props as unknown as SelectionListWithSectionsProps<ListItem>)} />;
 }
 
 export default BaseSelectionListWithSections;

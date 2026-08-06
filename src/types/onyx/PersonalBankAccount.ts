@@ -1,5 +1,6 @@
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of personal bank account */

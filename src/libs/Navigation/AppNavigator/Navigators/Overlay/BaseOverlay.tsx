@@ -1,13 +1,17 @@
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {OverlayStylesParams} from '@styles/index';
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
 import {useCardAnimation} from '@react-navigation/stack';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {OverlayStylesParams} from '@styles/index';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
 
 type BaseOverlayProps = {
     /* Callback to close the modal */

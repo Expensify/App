@@ -1,13 +1,16 @@
-import {useEffect, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useOnyx from '@hooks/useOnyx';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
+
 import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
 import type {DiscountInfo} from '@libs/SubscriptionUtils';
 import {calculateRemainingFreeTrialDays, doesUserHavePaymentCardAdded, getEarlyDiscountInfo, isUserOnFreeTrial, shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useEffect, useState} from 'react';
 
 const DISCOUNT_TYPE = {
     HALF_OFF: 50,

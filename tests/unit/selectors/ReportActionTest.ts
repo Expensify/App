@@ -1,6 +1,7 @@
-import {getReceiptScanFailedIOUActionDataSelector} from '@selectors/ReportAction';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+
+import {getReceiptScanFailedIOUActionDataSelector} from '@selectors/ReportAction';
 
 const CURRENT_USER_ACCOUNT_ID = 123456789;
 const OTHER_USER_ACCOUNT_ID = 987654321;

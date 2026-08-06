@@ -158,7 +158,7 @@ Examples:
 - “How should I set up approvals for my team?”  
 - “What’s the best way to organize reports for travel?”
 
-If Concierge can't perform the exact action you're looking for, or if you want to create specialized AI workflows for your organization, [learn how to create and use Custom Agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents). Custom Agents can be configured to handle specific tasks, workflows, and business processes beyond Concierge's built-in capabilities.
+If Concierge can't perform the exact action you're looking for, or if you want to create specialized AI workflows for your organization, [learn how to create and use Agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents). Agents can be configured to handle specific tasks, workflows, and business processes beyond Concierge's built-in capabilities.
 
 ---
 

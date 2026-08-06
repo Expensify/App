@@ -1,13 +1,17 @@
-import {deepEqual} from 'fast-equals';
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {getRoute} from '@libs/actions/Transaction';
 import {getValidWaypoints, hasRoute as hasRouteTransactionUtils, isDistanceTypeRequest, isMapDistanceRequest as isMapDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
+
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {deepEqual} from 'fast-equals';
+import {useEffect} from 'react';
+
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
 

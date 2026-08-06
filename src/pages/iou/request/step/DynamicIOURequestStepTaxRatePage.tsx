@@ -1,6 +1,5 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import TaxPicker from '@components/TaxPicker';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -11,27 +10,38 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
+
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense, pickReportForPolicy} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getTaxRateTitle, getTaxValue} from '@libs/TransactionUtils';
+
 import {getIOURequestPolicyID, setMoneyRequestTaxRateValues} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import {updateMoneyRequestTaxRate} from '@userActions/IOU/UpdateMoneyRequest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React from 'react';
+
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
-type IOURequestStepTaxRatePageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE> & {
+type DynamicIOURequestStepTaxRatePageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE> & {
     transaction: OnyxEntry<Transaction>;
 };
 
@@ -42,26 +52,30 @@ function getTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transact
     }
 }
 
-function IOURequestStepTaxRatePage({
+function DynamicIOURequestStepTaxRatePage({
     route: {
         params: {action, iouType, transactionID, reportID: reportIDFromRoute},
     },
     transaction,
     report,
-}: IOURequestStepTaxRatePageProps) {
+}: DynamicIOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.path);
 
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
-    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: getIOURequestPolicyID(transaction, report?.policyID ? report : participantReport), action, iouType});
+    // Skip the placeholder '_FAKE_' self-DM policy so it doesn't shadow the selected workspace chat's real policy. See #96576.
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: getIOURequestPolicyID(transaction, pickReportForPolicy(report, participantReport)), action, iouType});
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
@@ -74,10 +88,13 @@ function IOURequestStepTaxRatePage({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.path);
 
     const navigateBack = () => {
         Navigation.goBack(backPath);
+    };
+
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
     };
 
     const taxRateTitle = getTaxRateTitle(policy, currentTransaction, isMovingTransactionFromTrackExpense(action), policyForMovingExpenses);
@@ -89,6 +106,7 @@ function IOURequestStepTaxRatePage({
             transactionID: currentTransaction?.transactionID,
             transactionThreadReport: report,
             parentReport,
+            iouReportOwnerLogin,
             taxCode: '',
             taxValue: '',
             taxAmount: 0,
@@ -98,13 +116,14 @@ function IOURequestStepTaxRatePage({
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
-            parentReportNextStep,
             delegateAccountID,
+            reportPolicyTags,
+            isTrackIntentUser,
         };
 
         if (shouldClearTax && isEditing) {
             updateMoneyRequestTaxRate(updateTaxRateParams);
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
         if (!currentTransaction || !taxes.code || !taxRates) {
@@ -121,26 +140,26 @@ function IOURequestStepTaxRatePage({
                 taxCode: taxes.code,
                 taxValue,
             });
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         if (isEditing) {
             const newTaxCode = taxes.code;
             updateMoneyRequestTaxRate({...updateTaxRateParams, taxCode: newTaxCode, taxValue, taxAmount: convertToBackendAmount(taxAmount ?? 0)});
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         if (taxAmount === undefined) {
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
         const amountInSmallestCurrencyUnits = convertToBackendAmount(taxAmount);
 
         setMoneyRequestTaxRateValues(currentTransaction.transactionID, {taxCode: taxes?.code ?? '', taxAmount: amountInSmallestCurrencyUnits, taxValue});
 
-        navigateBack();
+        saveAndNavigateBack();
     };
 
     return (
@@ -163,7 +182,7 @@ function IOURequestStepTaxRatePage({
     );
 }
 
-const DynamicIOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxRatePage);
+const DynamicIOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(DynamicIOURequestStepTaxRatePage);
 
 const DynamicIOURequestStepTaxRatePageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepTaxRatePageWithWritableReportOrNotFound);
 

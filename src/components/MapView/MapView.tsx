@@ -1,28 +1,37 @@
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import type {MapState} from '@rnmapbox/maps';
-import Mapbox, {MarkerView} from '@rnmapbox/maps';
-import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
+
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Direction from './Direction';
+
+import type {MapState} from '@rnmapbox/maps';
+
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import Mapbox, {MarkerView} from '@rnmapbox/maps';
+import {getForegroundPermissionsAsync} from 'expo-location';
+import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+
 import type {MapViewProps} from './MapViewTypes';
+
+import Compass from './Compass';
+import Direction from './Direction';
+import MapMarkerIcon from './MapMarkerIcon';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
@@ -55,14 +64,14 @@ function MapView({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation', 'Compass']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation']);
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
     const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
     const currentPosition = userLocation ?? initialLocation;
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
     const shouldInitializeCurrentPosition = useRef(true);
-    const isAccessTokenSet = useAccessToken({accessToken});
+    const isAccessTokenReady = useAccessToken({accessToken});
 
     const {distanceUnit, toggleDistanceUnit} = useDistanceUnit(unit);
 
@@ -107,10 +116,26 @@ function MapView({
                 return;
             }
 
-            getCurrentPosition((params) => {
-                const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                setUserLocation(currentCoords);
-            }, setCurrentPositionToInitialState);
+            // Only read the device location when permission is ALREADY granted. We never request it here,
+            // so opening the map cannot trigger an OS permission prompt without a prior explicit user action.
+            getForegroundPermissionsAsync().then(({granted}) => {
+                if (!granted) {
+                    // Pass the permission-denied error so any stale cached location is cleared and the map falls back to initialState.
+                    setCurrentPositionToInitialState({
+                        code: GeolocationErrorCode.PERMISSION_DENIED,
+                        message: 'User denied access to location.',
+                    });
+                    return;
+                }
+
+                getCurrentPosition((params) => {
+                    const currentCoords = {
+                        longitude: params.coords.longitude,
+                        latitude: params.coords.latitude,
+                    };
+                    setUserLocation(currentCoords);
+                }, setCurrentPositionToInitialState);
+            });
         }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
     );
 
@@ -196,18 +221,6 @@ function MapView({
         mapHeading.set(e.properties.heading ?? 0);
     };
 
-    // Rotate the compass needle opposite to the map's bearing so it keeps pointing to true north.
-    const compassAnimatedStyle = useAnimatedStyle(() => ({
-        transform: [{rotate: `${-mapHeading.get()}deg`}],
-    }));
-
-    const resetMapToNorth = () => {
-        cameraRef.current?.setCamera({
-            heading: 0,
-            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
-        });
-    };
-
     const centerMap = useCallback(() => {
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
         if (waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1) {
@@ -270,7 +283,7 @@ function MapView({
         return utils.findClosestCoordinateOnLineFromCenter(boundsCenter, directionCoordinates);
     }, [waypoints, directionCoordinates]);
 
-    return !isOffline && isAccessTokenSet && !!defaultSettings ? (
+    return !isOffline && isAccessTokenReady && !!defaultSettings ? (
         <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
             <Mapbox.MapView
                 style={{flex: 1}}
@@ -308,8 +321,7 @@ function MapView({
                         />
                     </MarkerView>
                 )}
-                {waypoints?.map(({coordinate, markerComponent, id}) => {
-                    const MarkerComponent = markerComponent;
+                {waypoints?.map(({coordinate, markerType, id}) => {
                     if (
                         utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) &&
                         interactive &&
@@ -325,7 +337,7 @@ function MapView({
                             coordinate={coordinate}
                             allowOverlap
                         >
-                            <MarkerComponent />
+                            <MapMarkerIcon markerType={markerType} />
                         </MarkerView>
                     );
                 })}
@@ -338,7 +350,7 @@ function MapView({
                         key="distance-label"
                         allowOverlap
                     >
-                        <View style={{zIndex: 1}}>
+                        <View style={styles.zIndex1}>
                             <ToggleDistanceUnitButton
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 accessibilityLabel="distance-label"
@@ -352,26 +364,14 @@ function MapView({
                     </MarkerView>
                 )}
             </Mapbox.MapView>
-            {interactive && shouldDisplayCompass && (
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.l0, {zIndex: 1}]}>
-                    <PressableWithoutFeedback
-                        onPress={resetMapToNorth}
-                        accessibilityLabel={translate('common.resetMapToNorth')}
-                        role={CONST.ROLE.BUTTON}
-                        sentryLabel={CONST.SENTRY_LABEL.MAP_VIEW.COMPASS}
-                    >
-                        <Animated.View style={compassAnimatedStyle}>
-                            <ImageSVG
-                                src={expensifyIcons.Compass}
-                                width={CONST.MAP_VIEW_COMPASS_SIZE.width}
-                                height={CONST.MAP_VIEW_COMPASS_SIZE.height}
-                            />
-                        </Animated.View>
-                    </PressableWithoutFeedback>
-                </View>
-            )}
+            <Compass
+                interactive={interactive}
+                shouldDisplayCompass={shouldDisplayCompass}
+                cameraRef={cameraRef}
+                mapHeading={mapHeading}
+            />
             {interactive && (
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                     <Button
                         onPress={centerMap}
                         iconFill={theme.icon}

@@ -1,13 +1,17 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
 import type {SearchCustomColumnIds} from '@components/Search/types';
+
 import * as API from '@libs/API';
 import type {SetNameValuePairsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportLayoutGroupBy, ReportLayoutOption, ReportLayoutSelection} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * Apply a report layout selection from the group-by selector.

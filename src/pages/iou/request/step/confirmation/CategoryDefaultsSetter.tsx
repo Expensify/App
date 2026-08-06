@@ -1,8 +1,13 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+
 import {setMoneyRequestCategory} from '@userActions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
 import type {Policy, PolicyCategories, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
 
 type CategoryDefaultsSetterProps = {
     transactions: Transaction[];
@@ -30,6 +35,7 @@ function CategoryDefaultsSetter({
     requestType,
     isMovingTransactionFromTrackExpense,
 }: CategoryDefaultsSetterProps) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     useEffect(() => {
         for (const item of transactions) {
             if (!item.category) {
@@ -39,7 +45,7 @@ function CategoryDefaultsSetter({
                 if (existingCategory) {
                     const isExistingCategoryEnabled = policyCategories?.[existingCategory]?.enabled;
                     if (isExistingCategoryEnabled) {
-                        setMoneyRequestCategory(item.transactionID, existingCategory, policy);
+                        setMoneyRequestCategory(item.transactionID, existingCategory, policy, getCurrencyDecimals);
                     }
                 }
                 continue;
@@ -57,7 +63,7 @@ function CategoryDefaultsSetter({
             if (!isDistanceRequest || !!item?.category) {
                 continue;
             }
-            setMoneyRequestCategory(item.transactionID, defaultCategory, policy, isMovingTransactionFromTrackExpense);
+            setMoneyRequestCategory(item.transactionID, defaultCategory, policy, getCurrencyDecimals, isMovingTransactionFromTrackExpense);
         }
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-hooks/exhaustive-deps

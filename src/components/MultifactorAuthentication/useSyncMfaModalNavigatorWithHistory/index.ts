@@ -1,10 +1,12 @@
-import {useEffect} from 'react';
-import {BackHandler} from 'react-native';
 import getPlatform from '@libs/getPlatform';
 import {cancelPendingMfaMarkerReattach, isMfaMarkerStripInProgress, toggleMfaMarker} from '@libs/Navigation/helpers/mfaModalMarkerPreservation';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import CONST from '@src/CONST';
+
+import {useEffect} from 'react';
+import {BackHandler} from 'react-native';
 
 function dispatchToggle(isVisible: boolean) {
     Navigation.isNavigationReady().then(() => toggleMfaMarker(isVisible));

@@ -1,17 +1,21 @@
-import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
+
 import {write} from '@libs/API';
 import type {AddEmojiReactionParams, RemoveEmojiReactionParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {findEmojiByCode, hasAccountIDEmojiReacted} from '@libs/EmojiUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
+import type {ReportAction, ReportActionReactions, ReportActions} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
+import Onyx from 'react-native-onyx';
 
 /**
  * Adds a reaction to the report action.
@@ -102,9 +106,10 @@ function toggleEmojiReaction(
     existingReactions: OnyxEntry<ReportActionReactions>,
     paramSkinTone: number,
     currentUserAccountID: number,
+    reportActions: OnyxEntry<ReportActions>,
     ignoreSkinToneOnCompare = false,
 ) {
-    const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
+    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions);
 
     if (!originalReportID) {
         return;

@@ -1,7 +1,11 @@
-import React from 'react';
-import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
+
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
+
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
+
+import React from 'react';
+
 import SingleSelectPopup from './SingleSelectPopup';
 
 type CurrencyPopupProps = {
@@ -28,9 +32,16 @@ type CurrencyPopupProps = {
 
     /** Whether the currency list should be visible */
     shouldShowList?: boolean;
+
+    /** Whether the popover keeps a fixed height instead of growing with its content */
+    shouldUseFixedPopoverHeight?: boolean;
 };
 
-function CurrencyPopup({label, onBackButtonPress, onChange, closeOverlay, value, defaultValue, searchPlaceholder, shouldShowList}: CurrencyPopupProps) {
+/**
+ * Searchable single-select currency picker popup, used by the Search footer's total-spend currency selector
+ * and the Display filter's group-currency picker.
+ */
+function CurrencyPopup({label, onBackButtonPress, onChange, closeOverlay, value, defaultValue, searchPlaceholder, shouldShowList, shouldUseFixedPopoverHeight}: CurrencyPopupProps) {
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
 
@@ -49,7 +60,7 @@ function CurrencyPopup({label, onBackButtonPress, onChange, closeOverlay, value,
             searchPlaceholder={searchPlaceholder}
             defaultValue={defaultValue}
             shouldShowList={shouldShowList}
-            shouldUseFixedPopoverHeight
+            shouldUseFixedPopoverHeight={shouldUseFixedPopoverHeight}
         />
     );
 }

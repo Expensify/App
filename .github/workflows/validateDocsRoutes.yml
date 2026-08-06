@@ -11,7 +11,7 @@ jobs:
     if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+      - uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       - uses: ./.github/actions/composite/setupNode
 
