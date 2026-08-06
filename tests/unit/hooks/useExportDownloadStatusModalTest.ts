@@ -22,7 +22,7 @@ jest.mock('@hooks/useLocalize', () => ({
 let mockExportDownload: {state?: string; shouldSendFromConcierge?: boolean} | undefined;
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: () => [mockExportDownload],
+    default: () => [mockExportDownload, {status: 'loaded'}],
 }));
 
 type ExportDownloadStatusModalProps = {exportID: string; onClose: () => void};

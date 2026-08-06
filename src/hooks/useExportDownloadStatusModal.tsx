@@ -29,8 +29,13 @@ function useExportDownloadStatusModal(onCleanup?: () => void): UseExportDownload
     const [activeExportID, setActiveExportID] = useState<string | undefined>(undefined);
     const [activeExportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${activeExportID}`);
 
-    // Export IDs this hook dismissed-and-cleared, so the ownership cleanup below skips handing them off.
-    const dismissedExportIDRef = useRef<string | undefined>(undefined);
+    // After a dismiss we hold the export's ownership marker until its Onyx key actually settles, so the reload
+    // handler never sees a still-present ready value with no owner (which would flash a duplicate modal and
+    // re-download). The ref mirrors the state because the ownership cleanup below captures a stale render and
+    // cannot read the latest state to tell a dismiss apart from a real unmount.
+    const [clearingExportID, setClearingExportID] = useState<string | undefined>(undefined);
+    const [clearingExportDownload, clearingExportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${clearingExportID}`);
+    const clearingExportIDRef = useRef<string | undefined>(undefined);
 
     const handleExportModalClose = () => {
         // Keep the modal open while the export is still preparing (unless it was handed off to Concierge).
@@ -41,20 +46,18 @@ function useExportDownloadStatusModal(onCleanup?: () => void): UseExportDownload
         // shouldSendFromConcierge before the worker reads it and the file would never reach Concierge.
         if (activeExportID && !activeExportDownload?.shouldSendFromConcierge) {
             clearExportDownload(activeExportID, activeExportDownload);
-            // Remember this dismissal so the ownership cleanup below does not hand off to the reload handler.
-            // The export is being cleared, and releasing ownership before the Onyx delete propagates would let
-            // the handler momentarily see the still-present ready value with no owner and pop a duplicate modal.
-            dismissedExportIDRef.current = activeExportID;
+            // Hold ownership until the cleared key settles; the clearing effect below releases it.
+            clearingExportIDRef.current = activeExportID;
+            setClearingExportID(activeExportID);
         }
         setActiveExportID(undefined);
         onCleanup?.();
     };
 
-    // While this modal owns an export, register it so the app-level reload handler skips it and doesn't show a
-    // duplicate. On a real unmount (the user navigates away before, or right as, the export becomes ready) the
-    // cleanup releases ownership so the reload handler takes over. On an explicit dismiss we skip that release,
-    // since the export is being cleared from Onyx; the leftover marker is harmless because export IDs are unique
-    // and the key is gone.
+    // Register ownership while this modal shows an export so the app-level reload handler skips it and doesn't
+    // show a duplicate. On a real unmount (the user navigates away before, or right as, the export becomes ready)
+    // the cleanup releases ownership so the reload handler takes over. For a dismiss-and-clear we skip the release
+    // here and let the clearing effect below release it once the key settles.
     useEffect(() => {
         if (!activeExportID) {
             return;
@@ -62,13 +65,24 @@ function useExportDownloadStatusModal(onCleanup?: () => void): UseExportDownload
         markExportModalOpen(activeExportID);
         const ownedExportID = activeExportID;
         return () => {
-            if (dismissedExportIDRef.current === ownedExportID) {
-                dismissedExportIDRef.current = undefined;
+            if (clearingExportIDRef.current === ownedExportID) {
                 return;
             }
             markExportModalClosed(ownedExportID);
         };
     }, [activeExportID]);
+
+    // Release a dismissed export's ownership once its Onyx key is confirmed gone (status loaded + no value).
+    // Waiting for the delete to apply avoids a duplicate during the async clear, and releasing here still hands
+    // off to the reload handler if the clear rolls back and restores the ready value. We leave clearingExportID
+    // pointing at the (now absent) key; the next dismiss overwrites it, so there is nothing to reset.
+    useEffect(() => {
+        if (!clearingExportID || clearingExportMetadata.status !== 'loaded' || clearingExportDownload) {
+            return;
+        }
+        markExportModalClosed(clearingExportID);
+        clearingExportIDRef.current = undefined;
+    }, [clearingExportID, clearingExportDownload, clearingExportMetadata.status]);
 
     const exportDownloadStatusModal = activeExportID ? (
         <ExportDownloadStatusModal
