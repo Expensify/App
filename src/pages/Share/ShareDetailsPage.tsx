@@ -84,9 +84,22 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const privateIsArchived = useReportIsArchived(report?.reportID);
     const ancestors = useAncestors(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const currentUserAccountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const displayReport = useMemo(
-        () => getReportDisplayOption(report, unknownUserDetails, personalDetails, privateIsArchived, policy, sortedActions, reportAttributesDerived),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, policy, sortedActions, reportAttributesDerived],
+        () =>
+            getReportDisplayOption({
+                report,
+                unknownUserDetails,
+                personalDetails,
+                privateIsArchived,
+                policy,
+                conciergeReportID,
+                translate,
+                currentUserAccountID,
+                reportAttributesDerived,
+                sortedActions,
+            }),
+        [report, unknownUserDetails, personalDetails, privateIsArchived, policy, conciergeReportID, translate, currentUserAccountID, reportAttributesDerived, sortedActions],
     );
 
     const shouldShowAttachment = !isTextShared;

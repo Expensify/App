@@ -89,7 +89,6 @@ describe('AttachmentStorage', () => {
         const attachments = await new Promise<OnyxCollection<Attachment>>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.ATTACHMENT,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     Onyx.disconnect(connection);
                     resolve(value);
@@ -130,7 +129,6 @@ describe('AttachmentStorage', () => {
         const attachments = await new Promise<OnyxCollection<Attachment>>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.ATTACHMENT,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     Onyx.disconnect(connection);
                     resolve(value);
@@ -159,7 +157,6 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;
@@ -232,7 +229,6 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;
@@ -273,7 +269,7 @@ describe('AttachmentStorage', () => {
         }
 
         // Delete attachment
-        deleteReportComment({reportID}, attachmentAction, undefined, [], false, false, 'test@user.com');
+        deleteReportComment({reportID}, attachmentAction, undefined, undefined, [], false, false, 'test@user.com');
         await waitForBatchedUpdates();
 
         // Then the attachment should be removed
@@ -295,7 +291,6 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;
@@ -337,7 +332,7 @@ describe('AttachmentStorage', () => {
         }
 
         // Delete attachment
-        deleteReportComment({reportID}, attachmentAction, undefined, [], false, false, 'test@user.com');
+        deleteReportComment({reportID}, attachmentAction, undefined, undefined, [], false, false, 'test@user.com');
         await waitForBatchedUpdates();
 
         const removedAttachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
@@ -366,7 +361,6 @@ describe('AttachmentStorage', () => {
 
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
-            waitForCollectionCallback: true,
             callback: (value) => {
                 if (!value) {
                     return;

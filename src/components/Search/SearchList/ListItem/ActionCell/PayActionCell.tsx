@@ -69,10 +69,9 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         activePolicy,
         conciergeChat,
         defaultWorkspaceName,
-        nextStep,
         chatReportPolicy,
+        delegateAccountID,
     } = useReportPaymentContext({
-        reportID,
         chatReportPolicyID: chatReport?.policyID,
     });
 
@@ -114,7 +113,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: iouReport,
-                invoiceReportCurrentNextStepDeprecated: nextStep,
                 introSelected,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: email ?? '',
@@ -130,6 +128,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 defaultWorkspaceName,
                 additionalOnyxData,
                 chatReportActions,
+                delegateAccountID,
                 isTrackIntentUser,
             });
             return;
@@ -140,7 +139,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             chatReport,
             iouReport,
             introSelected,
-            iouReportCurrentNextStepDeprecated: nextStep,
             currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',
             activePolicy,
@@ -154,7 +152,9 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
             additionalOnyxData,
             chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID)}`],
+            delegateAccountID,
             isTrackIntentUser,
+            conciergeChat,
         });
     };
 
