@@ -35,7 +35,6 @@ function isNavigationIntentOnlyQuery(query: string) {
 function toMatchKey(value: string | undefined) {
     return StringUtils.normalizeForMatch(value ?? '')
         .toLowerCase()
-        .replaceAll(/\s+/g, ' ')
         .trim();
 }
 
