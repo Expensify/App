@@ -17,6 +17,7 @@ type MockUseCreateReportParams = {
     groupPoliciesWithChatEnabled: unknown[] | readonly never[];
     onNavigateToWorkspaceSelection: () => void;
     shouldHandleNavigationBack: boolean;
+    shouldSkipEmptyReportConfirmation?: boolean;
 };
 
 type MockOnyxOptions = {
@@ -225,6 +226,14 @@ describe('useCreateNavigationSuggestions', () => {
             matchTerms: ['Start chat', 'New Chat'],
         });
         expect(result.current.find((item) => item.keyForList === 'create_workspace')?.matchTerms).toEqual(['New workspace', 'Create workspace', 'Create a workspace']);
+    });
+
+    it('skips empty-report confirmation scans until the query can match Create rows', () => {
+        renderHook(() => useCreateNavigationSuggestions('reports'));
+        expect(mockUseCreateReport).toHaveBeenLastCalledWith(expect.objectContaining({shouldSkipEmptyReportConfirmation: true}));
+
+        renderHook(() => useCreateNavigationSuggestions('new chat'));
+        expect(mockUseCreateReport).toHaveBeenLastCalledWith(expect.objectContaining({shouldSkipEmptyReportConfirmation: false}));
     });
 
     it('passes Submit eligibility and exposes permission-gated actions', () => {

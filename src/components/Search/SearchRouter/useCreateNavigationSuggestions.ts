@@ -40,6 +40,8 @@ import {useState} from 'react';
 
 import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 
+import {isNavigationIntentOnlyQuery, matchesNavigationQuery, stripNavigationIntentPrefix} from './SearchRouterHelpers';
+
 type CreateNavigationItem = {
     visible: boolean;
     text: string;
@@ -72,7 +74,7 @@ function replaceTopmostModalWithAction(action: () => void) {
     Navigation.dismissModal({afterTransition: action});
 }
 
-function useCreateNavigationSuggestions(): NavigationSuggestionSourceItem[] {
+function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceItem[] {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle', 'Location', 'Document', 'ChatBubble', 'InvoiceGeneric', 'NewWorkspace']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -98,6 +100,19 @@ function useCreateNavigationSuggestions(): NavigationSuggestionSourceItem[] {
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy([...groupPoliciesWithChatEnabled], activePolicy);
     const isInvoiceVisible = canSendInvoice(allPolicies ?? null, sessionEmail);
+
+    const createExpenseMatchTerms = [translate('iou.createExpense'), translate('iou.addExpense'), translate('homePage.gettingStartedSection.createExpense')];
+    const createReportMatchTerms = [translate('report.newReport.createReport')];
+    const trackDistanceMatchTerms = [translate('iou.trackDistance')];
+    const chatMatchTerms = [translate('sidebarScreen.fabNewChat'), `${translate('common.new')} ${translate('common.chat')}`];
+    const invoiceMatchTerms = [translate('workspace.invoices.sendInvoice')];
+    const workspaceMatchTerms = [translate('workspace.new.newWorkspace'), translate('onboarding.workspace.createWorkspace'), translate('homePage.gettingStartedSection.createWorkspace')];
+    const matchQuery = stripNavigationIntentPrefix(query);
+    const shouldPrepareCreateReport =
+        isNavigationIntentOnlyQuery(query) ||
+        [createExpenseMatchTerms, createReportMatchTerms, trackDistanceMatchTerms, chatMatchTerms, invoiceMatchTerms, workspaceMatchTerms].some((matchTerms) =>
+            matchesNavigationQuery(matchQuery, ...matchTerms),
+        );
 
     const {createReport, isVisible: isCreateReportVisible} = useCreateReport({
         onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => {
@@ -131,6 +146,7 @@ function useCreateNavigationSuggestions(): NavigationSuggestionSourceItem[] {
         groupPoliciesWithChatEnabled,
         onNavigateToWorkspaceSelection: () => navigateToCreateReportWorkspaceSelection({forceReplace: isOnSearchMoneyRequestReportPage()}),
         shouldHandleNavigationBack: false,
+        shouldSkipEmptyReportConfirmation: !shouldPrepareCreateReport,
     });
 
     const shouldShowNewWorkspaceButton =
@@ -141,7 +157,7 @@ function useCreateNavigationSuggestions(): NavigationSuggestionSourceItem[] {
             visible: true,
             text: translate('iou.createExpense'),
             icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
-            matchTerms: [translate('iou.createExpense'), translate('iou.addExpense'), translate('homePage.gettingStartedSection.createExpense')],
+            matchTerms: createExpenseMatchTerms,
             action: () =>
                 replaceTopmostModalWithAction(() => {
                     interceptAnonymousUser(() => {
@@ -154,6 +170,7 @@ function useCreateNavigationSuggestions(): NavigationSuggestionSourceItem[] {
             visible: isCreateReportVisible,
             text: translate('report.newReport.createReport'),
             icon: icons.Document,
+            matchTerms: createReportMatchTerms,
             action: () => replaceTopmostModalWithAction(createReport),
             keyForList: 'create_report',
         },
@@ -161,6 +178,7 @@ function useCreateNavigationSuggestions(): NavigationSuggestionSourceItem[] {
             visible: true,
             text: translate('iou.trackDistance'),
             icon: icons.Location,
+            matchTerms: trackDistanceMatchTerms,
             action: () =>
                 replaceTopmostModalWithAction(() => {
                     interceptAnonymousUser(() => {
@@ -173,7 +191,7 @@ function useCreateNavigationSuggestions(): NavigationSuggestionSourceItem[] {
             visible: true,
             text: translate('sidebarScreen.fabNewChat'),
             icon: icons.ChatBubble,
-            matchTerms: [translate('sidebarScreen.fabNewChat'), `${translate('common.new')} ${translate('common.chat')}`],
+            matchTerms: chatMatchTerms,
             action: () => replaceTopmostModalWithAction(() => interceptAnonymousUser(startNewChat)),
             keyForList: 'create_chat',
         },
@@ -181,6 +199,7 @@ function useCreateNavigationSuggestions(): NavigationSuggestionSourceItem[] {
             visible: isInvoiceVisible,
             text: translate('workspace.invoices.sendInvoice'),
             icon: icons.InvoiceGeneric,
+            matchTerms: invoiceMatchTerms,
             action: () =>
                 replaceTopmostModalWithAction(() => {
                     interceptAnonymousUser(() => {
@@ -193,7 +212,7 @@ function useCreateNavigationSuggestions(): NavigationSuggestionSourceItem[] {
             visible: shouldShowNewWorkspaceButton,
             text: translate('workspace.new.newWorkspace'),
             icon: icons.NewWorkspace,
-            matchTerms: [translate('workspace.new.newWorkspace'), translate('onboarding.workspace.createWorkspace'), translate('homePage.gettingStartedSection.createWorkspace')],
+            matchTerms: workspaceMatchTerms,
             action: () =>
                 replaceTopmostModalWithAction(() => {
                     interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path)));

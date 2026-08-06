@@ -129,7 +129,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(SEARCH_ROUTER_ICON_NAMES);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
-    const createItems = useCreateNavigationSuggestions();
+    const createItems = useCreateNavigationSuggestions(query);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {typeMenuSections} = useSearchTypeMenuSections(undefined, shouldWatchForApprovals);
 
