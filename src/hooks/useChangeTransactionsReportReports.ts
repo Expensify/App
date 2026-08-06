@@ -16,8 +16,7 @@ import useOnyx from './useOnyx';
  * - the self-DM report, if one exists
  * - the destination report (`newReport`)
  * - each transaction's current report
- * - for non-deleted transactions, the old IOU action's transaction-thread report (`childReportID`) and its own
- *   report-action ID (the latter is used as a REPORT key fallback for that thread's `policyID` in `Transaction.ts`)
+ * - for non-deleted transactions, the old IOU action's transaction-thread report (`childReportID`)
  */
 function useChangeTransactionsReportReports(transactionIDs: string[], allTransactions: OnyxCollection<Transaction>, newReport: OnyxEntry<Report>): OnyxCollection<Report> {
     const newReportID = newReport?.reportID;
@@ -49,9 +48,6 @@ function useChangeTransactionsReportReports(transactionIDs: string[], allTransac
         const iouAction = getIOUActionForReportID(source, transaction.transactionID);
         if (iouAction?.childReportID) {
             ids.add(iouAction.childReportID);
-        }
-        if (iouAction?.reportActionID) {
-            ids.add(iouAction.reportActionID);
         }
     }
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
