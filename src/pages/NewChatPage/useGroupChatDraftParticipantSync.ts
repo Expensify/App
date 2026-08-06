@@ -2,7 +2,7 @@ import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useOnyx from '@hooks/useOnyx';
 
 import {getUserToInviteOption, hydrateLazyPersonalDetailOption} from '@libs/OptionsListUtils';
-import type {PersonalDetailOptionOrShell} from '@libs/OptionsListUtils';
+import type {HydratedPersonalDetailOption, PersonalDetailOptionOrShell} from '@libs/OptionsListUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Login, PersonalDetailsList} from '@src/types/onyx';
@@ -14,6 +14,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 import type SelectedOption from './types';
+
+/** Drops the option-list discriminant so a restored participant carries only display fields. */
+function stripHydrationFlag({isHydrated, ...option}: HydratedPersonalDetailOption): Omit<HydratedPersonalDetailOption, 'isHydrated'> {
+    return option;
+}
 
 /**
  * Keeps the NewChatPage's `selectedOptions` state aligned with the `NEW_GROUP_CHAT_DRAFT` Onyx draft.
@@ -56,9 +61,10 @@ function useGroupChatDraftParticipantSync(
             }
             const foundOption = allPersonalDetailOptions.find((personalDetail) => personalDetail.accountID === participant.accountID);
             // Options from useFilteredOptions are lightweight, but restored participants are rendered as selected
-            // rows, so the full display option is needed.
+            // rows, so the full display option is needed. `isHydrated` is option-list bookkeeping and stops here:
+            // a selected participant is a display option, not a half of the build-time union.
             const option = foundOption
-                ? hydrateLazyPersonalDetailOption(foundOption)
+                ? stripHydrationFlag(hydrateLazyPersonalDetailOption(foundOption))
                 : getUserToInviteOption({
                       searchValue: participant?.login,
                       personalDetails: allPersonalDetails,

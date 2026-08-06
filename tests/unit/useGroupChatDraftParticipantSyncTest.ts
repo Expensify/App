@@ -448,8 +448,10 @@ describe('useGroupDraftRestore', () => {
             expect(restored.at(0)?.isSelected).toBe(true);
             expect(restored.at(0)?.icons).toBeDefined();
             expect(restored.at(0)?.icons?.length).toBeGreaterThan(0);
-            // The hydration thunk is build-time bookkeeping; it must not ride along into selected options.
+            // The thunk and the discriminant are option-list bookkeeping; neither may ride into selected options.
             expect('hydrate' in (restored.at(0) ?? {})).toBe(false);
+            expect('isHydrated' in (restored.at(0) ?? {})).toBe(false);
+            expect('shouldShowGBR' in (restored.at(0) ?? {})).toBe(false);
         });
 
         it('should fall back to getUserToInviteOption for a participant absent from the lazy shells', () => {

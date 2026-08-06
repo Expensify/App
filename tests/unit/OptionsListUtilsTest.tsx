@@ -39,6 +39,7 @@ import {
     getUserToInviteOption,
     getValidOptions,
     hydrateLazyPersonalDetailOption,
+    hydrateWithMarks,
     optionsOrderAndGroupBy,
     optionsOrderBy,
     orderOptions,
@@ -1759,13 +1760,17 @@ describe('OptionsListUtils', () => {
             personalDetails: list.personalDetails.map(hydrateLazyPersonalDetailOption),
         });
 
+        // NOTE: `eagerList` is NOT a correctness baseline for what hydration produces — both sides of every
+        // comparison below run through hydrateLazyPersonalDetailOption, so a dropped hydration input would
+        // change both and still pass. What these tests prove is that getValidOptions handles the two halves of
+        // PersonalDetailOptionOrShell identically (filtering, ranking, the top-N heap, marking).
+        // The non-circular check — hydration output vs. a direct createOption call with non-default inputs —
+        // lives in 'lazy contact hydration vs. a direct createOption build' below.
         const buildOptionLists = () => {
             const lazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
                 conciergeReportID: undefined,
                 isSearching: true,
             });
-            // Fully hydrate every shell so getValidOptions can be compared against a pre-built baseline
-            // (createFilteredOptionList always returns lightweight shells).
             const eagerList = hydrateAllPersonalDetails(lazyList);
             return {eagerList, lazyList};
         };
@@ -2088,6 +2093,439 @@ describe('OptionsListUtils', () => {
             expect(lazyResults.personalDetails.find((option) => option.login === deviceContactLogin)?.icons).toBeDefined();
             expect(lazyResults.personalDetails.every((option) => !('hydrate' in option))).toBe(true);
             expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
+        });
+    });
+
+    describe('lazy contact hydration vs. a direct createOption build', () => {
+        // A self-contained fixture so every hydration input can be set to a non-default value and the output
+        // field it drives can be asserted individually. Comparing hydration against another hydration cannot
+        // catch a dropped input; comparing it against a direct createOption call can.
+        const PARITY_ACCOUNT_ID = 77;
+        const PARITY_REPORT_ID = '7700';
+        const PARITY_LOGIN = 'parity@expensify.com';
+
+        const PARITY_PERSONAL_DETAILS: PersonalDetailsList = {
+            '77': {
+                accountID: PARITY_ACCOUNT_ID,
+                displayName: 'Parity Contact',
+                login: PARITY_LOGIN,
+                keyForList: PARITY_LOGIN,
+                reportID: PARITY_REPORT_ID,
+            },
+        };
+        const PARITY_PERSONAL_DETAIL = PARITY_PERSONAL_DETAILS['77'] ?? null;
+
+        // A plain 1:1 DM, so createFilteredOptionList maps it onto the contact above.
+        const PARITY_REPORT: Report = {
+            reportID: PARITY_REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            reportName: 'Parity Contact',
+            lastVisibleActionCreated: '2024-01-01 00:00:00.000',
+            participants: {
+                [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [PARITY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        };
+        const PARITY_REPORTS: OnyxCollection<Report> = {[PARITY_REPORT_ID]: PARITY_REPORT};
+
+        // Non-default hydration inputs. Each one drives a different field of the built option, asserted below.
+        const PARITY_ATTRIBUTES: Record<string, ReportAttributes> = {
+            [PARITY_REPORT_ID]: {
+                reportName: 'Parity Contact',
+                isEmpty: false,
+                brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                requiresAttention: true,
+                reportErrors: {},
+            },
+        };
+        const PARITY_ARCHIVED_MAP: PrivateIsArchivedMap = {
+            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${PARITY_REPORT_ID}`]: true,
+        };
+
+        const buildParityShell = () => {
+            clearFilteredOptionListCache();
+            const list = createFilteredOptionList(PARITY_PERSONAL_DETAILS, PARITY_REPORTS, PARITY_ATTRIBUTES, PARITY_ARCHIVED_MAP, allPolicies, {
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+            const shell = list.personalDetails.at(0);
+            expect(shell).toBeDefined();
+            // Guard against a vacuous pass: the DM has to be mapped onto the contact, or none of the
+            // report-derived inputs below would reach createOption on either side.
+            expect(shell?.reportID).toBe(PARITY_REPORT_ID);
+            return shell;
+        };
+
+        it('should produce exactly what createOption produces from the same inputs', () => {
+            // Given a shell built from a fixture where every report-derived hydration input is non-default
+            const shell = buildParityShell();
+            if (!shell) {
+                return;
+            }
+
+            // When it is hydrated
+            const hydrated = hydrateLazyPersonalDetailOption(shell);
+
+            // Then it matches an option built by calling createOption directly with those same inputs.
+            // Dropping any input from the hydration path makes this diverge, because this side names them all.
+            const expected: HydratedPersonalDetailOption = {
+                item: PARITY_PERSONAL_DETAIL,
+                ...createOption({
+                    accountIDs: [PARITY_ACCOUNT_ID],
+                    personalDetails: PARITY_PERSONAL_DETAILS,
+                    report: PARITY_REPORT,
+                    policy: undefined,
+                    privateIsArchived: true,
+                    conciergeReportID: undefined,
+                    config: {showPersonalDetails: true},
+                    reportAttributesDerived: PARITY_ATTRIBUTES,
+                    policyTags: undefined,
+                    visibleReportActionsData: {},
+                }),
+                isHydrated: true,
+            };
+
+            expect(hydrated).toEqual(expected);
+        });
+
+        it('should carry the brick road status from reportAttributesDerived into the built option', () => {
+            // Given reportAttributesDerived marking the mapped DM with an error brick road
+            const shell = buildParityShell();
+            if (!shell) {
+                return;
+            }
+
+            // Then hydration surfaces it, so a caller with no report attributes in scope cannot lose it
+            expect(hydrateLazyPersonalDetailOption(shell).brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it('should carry the archived state from privateIsArchivedMap into the built option', () => {
+            // Given a privateIsArchivedMap marking the mapped DM as archived
+            const shell = buildParityShell();
+            if (!shell) {
+                return;
+            }
+
+            // Then hydration reflects it
+            expect(hydrateLazyPersonalDetailOption(shell).private_isArchived).toBe(true);
+        });
+
+        it('should carry conciergeReportID into the built option', () => {
+            // Given the mapped DM is the Concierge report
+            clearFilteredOptionListCache();
+            const list = createFilteredOptionList(PARITY_PERSONAL_DETAILS, PARITY_REPORTS, PARITY_ATTRIBUTES, PARITY_ARCHIVED_MAP, allPolicies, {
+                conciergeReportID: PARITY_REPORT_ID,
+                isSearching: true,
+            });
+            const shell = list.personalDetails.at(0);
+            expect(shell).toBeDefined();
+            if (!shell) {
+                return;
+            }
+
+            // Then hydration builds the same option a direct createOption call with that conciergeReportID does,
+            // rather than the one it would build with conciergeReportID dropped
+            const hydrated = hydrateLazyPersonalDetailOption(shell);
+            const withConcierge = createOption({
+                accountIDs: [PARITY_ACCOUNT_ID],
+                personalDetails: PARITY_PERSONAL_DETAILS,
+                report: PARITY_REPORT,
+                policy: undefined,
+                privateIsArchived: true,
+                conciergeReportID: PARITY_REPORT_ID,
+                config: {showPersonalDetails: true},
+                reportAttributesDerived: PARITY_ATTRIBUTES,
+                policyTags: undefined,
+                visibleReportActionsData: {},
+            });
+
+            expect(hydrated).toEqual({item: PARITY_PERSONAL_DETAIL, ...withConcierge, isHydrated: true});
+        });
+    });
+
+    describe('lazy contact options on the warm path', () => {
+        // createOption is called through a module-local binding, so a jest spy on the export never sees it.
+        // buildFullOption allocates a fresh `icons` array per build instead, so sharing that array by reference
+        // is exactly "no createOption ran": a rebuild could not produce the same array object.
+        const buildIdentity = (option: PersonalDetailOptionOrShell) => hydrateLazyPersonalDetailOption(option).icons;
+
+        it('should not rebuild any contact option when the second option list comes from the entry cache', () => {
+            // Given two identical createFilteredOptionList calls, the second served from the entry cache
+            clearFilteredOptionListCache();
+            const first = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {conciergeReportID: undefined});
+            const second = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {conciergeReportID: undefined});
+            expect(first.personalDetails.length).toBeGreaterThan(0);
+            expect(second.personalDetails.length).toBe(first.personalDetails.length);
+
+            // When both are run through getValidOptions (the first pass builds, the second must not)
+            const config = {personalDetails: PERSONAL_DETAILS};
+            const firstBuilds = first.personalDetails.map(buildIdentity);
+            const {options: firstResults} = getValidOptions(first, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: secondResults} = getValidOptions(second, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const secondBuilds = second.personalDetails.map(buildIdentity);
+
+            // Then every contact on the second pass reused the first pass's build.
+            // cloneOptionList hands out fresh shell objects on every return, so a memo keyed on shell identity
+            // starts empty for each clone and rebuilds the whole visible page — slower than the eager build it
+            // replaced. Keying the memo inside the shell's own closure is what makes the warm path free.
+            expect(secondBuilds).toHaveLength(firstBuilds.length);
+            for (let i = 0; i < firstBuilds.length; i++) {
+                expect(secondBuilds.at(i)).toBe(firstBuilds.at(i));
+            }
+
+            // And the two passes still produce equal output
+            expect(secondResults.personalDetails).toEqual(firstResults.personalDetails);
+        });
+
+        it('should freeze the memoized build in dev while leaving the copy handed to callers writable', () => {
+            // Given a hydrated contact option
+            clearFilteredOptionListCache();
+            const list = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+            const shell = list.personalDetails.at(0);
+            expect(shell).toBeDefined();
+            if (!shell) {
+                return;
+            }
+            const hydrated = hydrateLazyPersonalDetailOption(shell);
+            const icons = hydrated.icons;
+            expect(icons?.length).toBeGreaterThan(0);
+
+            // Then its nested objects — shared with every other caller that hydrates the same contact — are
+            // locked, so a consumer that mutates one cannot silently corrupt what the next caller reads.
+            // NOTE: jest runs this file in sloppy mode, where assigning to a frozen property fails silently
+            // instead of throwing, so assert the freeze itself plus a mutation that throws in either mode.
+            expect(Object.isFrozen(icons)).toBe(true);
+            expect(Object.isFrozen(icons?.at(0))).toBe(true);
+            const originalSource = icons?.at(0)?.source;
+            const icon = icons?.at(0);
+            if (icon) {
+                icon.source = '';
+            }
+            expect(icons?.at(0)?.source).toBe(originalSource);
+            expect(() => icons?.pop()).toThrow(TypeError);
+
+            // While the top-level copy stays writable, because getValidOptions marks options in place
+            hydrated.isBold = true;
+            expect(hydrated.isBold).toBe(true);
+            expect(Object.isFrozen(hydrated)).toBe(false);
+        });
+    });
+
+    describe('getValidOptions() with deferContactHydration', () => {
+        const buildLazyList = () => {
+            clearFilteredOptionListCache();
+            return createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+        };
+
+        it('should leave surviving contacts unhydrated so only the caller-rendered page is ever built', () => {
+            // Given an option list with more contacts than a screen renders at once
+            const lazyList = buildLazyList();
+            const config = {personalDetails: PERSONAL_DETAILS, deferContactHydration: true as const};
+
+            // When getValidOptions runs with hydration deferred
+            const {options: deferred} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+
+            // Then nothing was built: every survivor is still a shell
+            expect(deferred.personalDetails.length).toBeGreaterThan(0);
+            expect(deferred.personalDetails.every((option) => !option.isHydrated)).toBe(true);
+            expect(deferred.personalDetails.every((option) => !('icons' in option))).toBe(true);
+
+            // And hydrating only the visible page builds exactly that many options, not one per survivor.
+            // `icons` identity doubles as the build counter here (see the warm-path suite above).
+            const PAGE_SIZE = 2;
+            expect(deferred.personalDetails.length).toBeGreaterThan(PAGE_SIZE);
+            const page = deferred.personalDetails.slice(0, PAGE_SIZE).map(hydrateWithMarks);
+            expect(page).toHaveLength(PAGE_SIZE);
+            expect(page.every((option) => option.isHydrated && option.icons !== undefined)).toBe(true);
+            expect(deferred.personalDetails.slice(PAGE_SIZE).every((option) => !option.isHydrated)).toBe(true);
+        });
+
+        it('should produce the same visible options as the eager path once the page is hydrated', () => {
+            // Given the same list run both ways
+            const config = {personalDetails: PERSONAL_DETAILS};
+            const {options: eager} = getValidOptions(buildLazyList(), allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: deferred} = getValidOptions(
+                buildLazyList(),
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {...config, deferContactHydration: true as const},
+                translateLocal,
+            );
+
+            // Then hydrating the deferred survivors reproduces the eager options exactly
+            expect(deferred.personalDetails.map(hydrateWithMarks)).toEqual(eager.personalDetails);
+        });
+
+        it('should preserve the marks getValidOptions wrote on the shell through hydrateWithMarks', () => {
+            // Given a selected contact and bold-by-default off, so both marks differ from the build defaults
+            const lazyList = buildLazyList();
+            const selectedLogin = lazyList.personalDetails.at(0)?.login;
+            expect(selectedLogin).toBeTruthy();
+
+            const {options: deferred} = getValidOptions(
+                lazyList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {
+                    personalDetails: PERSONAL_DETAILS,
+                    deferContactHydration: true as const,
+                    selectedOptions: [{login: selectedLogin}],
+                    includeSelectedOptions: true,
+                    shouldBoldTitleByDefault: false,
+                },
+                translateLocal,
+            );
+
+            const selectedShell = deferred.personalDetails.find((option) => option.login === selectedLogin);
+            expect(selectedShell).toBeDefined();
+            if (!selectedShell) {
+                return;
+            }
+            expect(selectedShell.isSelected).toBe(true);
+            expect(selectedShell.isBold).toBe(false);
+
+            // Then hydration carries them onto the built option instead of resetting to the shared build's values
+            const hydrated = hydrateWithMarks(selectedShell);
+            expect(hydrated.isSelected).toBe(true);
+            expect(hydrated.isBold).toBe(false);
+            expect(hydrated.icons).toBeDefined();
+
+            // And an unselected contact stays unselected
+            const otherShell = deferred.personalDetails.find((option) => option.login !== selectedLogin);
+            expect(otherShell ? hydrateWithMarks(otherShell).isSelected : undefined).toBe(false);
+        });
+
+        it('should apply the GBR suppression the eager path applies, using the flag recorded on the shell', () => {
+            // Given a contact whose mapped DM carries a GBR (INFO) brick road
+            clearFilteredOptionListCache();
+            const baseList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+            const dmReportID = baseList.personalDetails.find((option) => option.reportID)?.reportID;
+            expect(dmReportID).toBeTruthy();
+            const attributesWithGBR: Record<string, ReportAttributes> = {
+                ...MOCK_REPORT_ATTRIBUTES_DERIVED,
+                [String(dmReportID)]: {
+                    ...MOCK_REPORT_ATTRIBUTES_DERIVED[String(dmReportID)],
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.INFO,
+                },
+            };
+            const listWithGBR = () => {
+                clearFilteredOptionListCache();
+                return createFilteredOptionList(PERSONAL_DETAILS, REPORTS, attributesWithGBR, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                    conciergeReportID: undefined,
+                    isSearching: true,
+                });
+            };
+            const findDM = <T extends SearchOptionData>(options: T[]) => options.find((option) => option.reportID === dmReportID);
+
+            // When the same list is run eagerly and deferred, both with shouldShowGBR left off
+            const config = {personalDetails: PERSONAL_DETAILS};
+            const {options: eager} = getValidOptions(listWithGBR(), allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: deferred} = getValidOptions(
+                listWithGBR(),
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {...config, deferContactHydration: true as const},
+                translateLocal,
+            );
+
+            // Then the deferred path suppresses the INFO dot exactly as the eager path does. A shell has no
+            // brickRoadIndicator to suppress at marking time, so the decision rides on the shell to hydration.
+            const eagerDM = findDM(eager.personalDetails);
+            const deferredDM = findDM(deferred.personalDetails);
+            expect(eagerDM).toBeDefined();
+            expect(deferredDM).toBeDefined();
+            if (!eagerDM || !deferredDM) {
+                return;
+            }
+            expect(eagerDM.brickRoadIndicator).toBe('');
+            expect(hydrateWithMarks(deferredDM).brickRoadIndicator).toBe('');
+        });
+
+        it('should keep GBR indicators when the caller asks for them', () => {
+            // Given the same GBR contact but with shouldShowGBR on
+            clearFilteredOptionListCache();
+            const baseList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+            const dmReportID = baseList.personalDetails.find((option) => option.reportID)?.reportID;
+            const attributesWithGBR: Record<string, ReportAttributes> = {
+                ...MOCK_REPORT_ATTRIBUTES_DERIVED,
+                [String(dmReportID)]: {
+                    ...MOCK_REPORT_ATTRIBUTES_DERIVED[String(dmReportID)],
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.INFO,
+                },
+            };
+            clearFilteredOptionListCache();
+            const lazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, attributesWithGBR, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+
+            // When hydration is deferred
+            const {options: deferred} = getValidOptions(
+                lazyList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {personalDetails: PERSONAL_DETAILS, deferContactHydration: true as const, shouldShowGBR: true},
+                translateLocal,
+            );
+
+            // Then the indicator survives hydration
+            const deferredDM = deferred.personalDetails.find((option) => option.reportID === dmReportID);
+            expect(deferredDM ? hydrateWithMarks(deferredDM).brickRoadIndicator : undefined).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO);
+        });
+    });
+
+    describe('PersonalDetailOptionOrShell typing', () => {
+        it('should not let a display field be read without narrowing on isHydrated', () => {
+            clearFilteredOptionListCache();
+            const list = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+            const option = list.personalDetails.at(0);
+            expect(option).toBeDefined();
+            if (!option) {
+                return;
+            }
+
+            // The display fields only exist on the hydrated half of the union, so reading one off the union is
+            // a compile error rather than an `undefined` that reaches a rendered row.
+            // @ts-expect-error icons is not readable without narrowing on isHydrated
+            const {icons} = option;
+            // @ts-expect-error subtitle is not readable without narrowing on isHydrated
+            const {subtitle} = option;
+            expect(icons).toBeUndefined();
+            expect(subtitle).toBeUndefined();
+
+            // Narrowing (or hydrating) is what makes them readable
+            expect(hydrateLazyPersonalDetailOption(option).icons).toBeDefined();
         });
     });
 
