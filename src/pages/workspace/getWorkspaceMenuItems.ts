@@ -1,6 +1,8 @@
 /**
  * Builds the ordered Workspace menu items with their visibility and indicator states.
  */
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/HRUtils';
 import {getObjectKeys} from '@libs/ObjectUtils';
@@ -87,7 +89,7 @@ type GetWorkspaceMenuItemsParams = {
     shouldShowRBR?: boolean;
     isRulesRevampBetaEnabled?: boolean;
     isVendorMatchingBetaEnabled?: boolean;
-    convertToDisplayString: (amount?: number, currency?: string) => string;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 function getWorkspaceMenuItems({
