@@ -17,6 +17,7 @@ import {
     isValidPastDate,
     isValidPaymentZipCode,
     isValidPersonName,
+    isValidPhoneNumber,
     isValidPIN,
     isValidRegistrationNumber,
     isValidRoomName,
@@ -592,6 +593,36 @@ describe('ValidationUtils', () => {
 
         test('Should return false for an empty string', () => {
             expect(isValidUSPhone('')).toBe(false);
+        });
+    });
+
+    describe('isValidPhoneNumber', () => {
+        test('Should return true for a US phone number', () => {
+            expect(isValidPhoneNumber('+12018675309')).toBe(true);
+        });
+
+        test('Should return true for a Canadian phone number', () => {
+            expect(isValidPhoneNumber('+14165551234')).toBe(true);
+        });
+
+        test('Should return true for a UK phone number', () => {
+            expect(isValidPhoneNumber('+442071234567')).toBe(true);
+        });
+
+        test('Should return true for an Australian phone number', () => {
+            expect(isValidPhoneNumber('+61255501234')).toBe(true);
+        });
+
+        test('Should return false for a number that is too short to be possible', () => {
+            expect(isValidPhoneNumber('123')).toBe(false);
+        });
+
+        test('Should return false for letters', () => {
+            expect(isValidPhoneNumber('abcdefg')).toBe(false);
+        });
+
+        test('Should return false for an empty string', () => {
+            expect(isValidPhoneNumber('')).toBe(false);
         });
     });
 
