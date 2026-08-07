@@ -3,6 +3,12 @@ on:
   issue_comment:
     types: [created, edited]
 
+concurrency:
+  # Serializes runs per-issue so two comments posted close together can't each create their own
+  # OpenAI Conversation for duplicate-check, splitting an issue's duplicate-detection history in two.
+  group: proposal-police-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
 jobs:
   proposal-police-workflow:
     runs-on: blacksmith-4vcpu-ubuntu-2404
@@ -18,4 +24,3 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PROPOSAL_POLICE_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}
-          PROPOSAL_POLICE_ASSISTANT_ID: ${{ secrets.PROPOSAL_POLICE_ASSISTANT_ID }}
