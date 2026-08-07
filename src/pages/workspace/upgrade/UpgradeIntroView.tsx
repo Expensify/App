@@ -1,4 +1,3 @@
-import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
@@ -9,6 +8,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -77,6 +77,7 @@ function UpgradeIntroView({
     unlockBadgeText,
 }: UpgradeIntroViewProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {environmentURL} = useEnvironment();
@@ -91,9 +92,11 @@ function UpgradeIntroView({
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
                     {!!iconSrc &&
                         (!isIllustration ? (
-                            <Avatar
-                                source={iconSrc}
-                                type={CONST.ICON_TYPE_AVATAR}
+                            <Icon
+                                src={iconSrc}
+                                width={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)}
+                                height={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)}
+                                additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)}
                             />
                         ) : (
                             <Icon

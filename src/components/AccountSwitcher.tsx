@@ -34,7 +34,7 @@ import {View} from 'react-native';
 
 import type {PopoverMenuItem} from './PopoverMenu';
 
-import Avatar from './Avatar';
+import AccountAvatar from './Avatar/connected/AccountAvatar';
 import Button from './Button';
 import {ModalActions} from './Modal/Global/ModalContext';
 import PopoverMenu from './PopoverMenu';
@@ -264,12 +264,10 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         <>
             <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flexGrow1, styles.flex1, styles.mnw0]}>
                 <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex1, styles.flexShrink1, styles.mnw0, styles.justifyContentCenter]}>
-                    <Avatar
-                        type={CONST.ICON_TYPE_AVATAR}
+                    <AccountAvatar
                         size={CONST.AVATAR_SIZE.DEFAULT}
-                        avatarID={currentUserPersonalDetails?.accountID}
-                        source={currentUserPersonalDetails?.avatar}
-                        fallbackIcon={currentUserPersonalDetails.fallbackIcon}
+                        accountID={currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                        shouldShowTooltip={false}
                     />
                     <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
                         {doesDisplayNameContainEmojis ? (

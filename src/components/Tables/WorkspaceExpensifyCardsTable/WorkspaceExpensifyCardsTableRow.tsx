@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import Table from '@components/Table';
@@ -37,7 +37,7 @@ type WorkspaceExpensifyCardsTableRowProps = {
 };
 
 export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: WorkspaceExpensifyCardsTableRowProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'FreezeCard']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FreezeCard']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -108,11 +108,10 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                         style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <Avatar
-                            source={item.cardholder?.avatar ?? icons.FallbackAvatar}
-                            avatarID={item.cardholder?.accountID}
-                            type={CONST.ICON_TYPE_AVATAR}
+                        <AccountAvatar
+                            accountID={item.cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                             size={avatarSize}
+                            fallbackDisplayName={cardholderName}
                         />
                         <View style={[styles.flex1, shouldUseNarrowTableLayout && styles.gap1]}>
                             <TextWithTooltip
