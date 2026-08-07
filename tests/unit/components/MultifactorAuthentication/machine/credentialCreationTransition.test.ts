@@ -1,4 +1,5 @@
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
+import snapshotToState from '@components/MultifactorAuthentication/machine/snapshotToState';
 import type {CreateCredentialInput, CreateCredentialOutput} from '@components/MultifactorAuthentication/machine/types';
 
 import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
@@ -28,6 +29,7 @@ describe('MFA credential creation', () => {
 
             const result = actor.getSnapshot();
             expect(result.matches({[MFA_STATE.OPEN]: MFA_STATE.CREATING_CREDENTIAL})).toBe(true);
+            expect(snapshotToState(result).isProcessingPrompt).toBe(true);
             expect(result.context.softPromptApproved).toBe(true);
 
             actor.stop();
@@ -41,6 +43,20 @@ describe('MFA credential creation', () => {
 
             const result = actor.getSnapshot();
             expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.SUCCESS}})).toBe(true);
+            expect(snapshotToState(result).isProcessingPrompt).toBe(false);
+
+            actor.stop();
+        });
+
+        it('does not mark the prompt as processing when the flow is cancelled', () => {
+            const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}});
+
+            actor.start();
+            actor.send({type: 'CLOSE_MODAL'});
+
+            const result = actor.getSnapshot();
+            expect(result.matches(MFA_STATE.CLOSING)).toBe(true);
+            expect(snapshotToState(result).isProcessingPrompt).toBe(false);
 
             actor.stop();
         });

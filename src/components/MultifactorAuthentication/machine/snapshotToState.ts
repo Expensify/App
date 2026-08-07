@@ -22,8 +22,11 @@ type MfaState = MfaContext & {
     /** Whether the validate-code screen currently shows the inline invalid-code error. */
     showsInvalidCodeError: boolean;
 
-    /** Whether the machine currently accepts a soft-prompt approval. The prompt screen shows the confirm button only while this is true. */
-    canApproveSoftPrompt: boolean;
+    /**
+     * Whether the prompt screen is processing a non-interactive biometric step. Credential creation
+     * is the only such step in this slice; authorization will be included once it is migrated.
+     */
+    isProcessingPrompt: boolean;
 };
 
 function getModalState(snapshot: MfaSnapshot): MfaModalState {
@@ -52,7 +55,9 @@ function snapshotToState(snapshot: MfaSnapshot): MfaState {
                 [MFA_STATE.VALIDATE_CODE]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE,
             },
         }),
-        canApproveSoftPrompt: snapshot.can({type: 'SOFT_PROMPT_APPROVED'}),
+        isProcessingPrompt: snapshot.matches({
+            [MFA_STATE.OPEN]: MFA_STATE.CREATING_CREDENTIAL,
+        }),
         showsInvalidCodeError: snapshot.matches({
             [MFA_STATE.OPEN]: {
                 [MFA_STATE.VALIDATE_CODE]: {

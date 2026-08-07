@@ -21,15 +21,11 @@ import React from 'react';
 
 type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultifactorAuthenticationModalNavigatorParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT>;
 
-/**
- * Once confirmed, the machine moves into credential creation and can no longer accept
- * `SOFT_PROMPT_APPROVED`, so the button swaps to loading instead of staying pressable.
- */
 function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {requestCancel, approveSoftPrompt, state} = useMultifactorAuthenticationInternal();
-    const {isCancelConfirmVisible, canApproveSoftPrompt} = state;
+    const {isCancelConfirmVisible, isProcessingPrompt} = state;
 
     const {illustration, title, subtitle} = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[route.params.promptType];
     const interceptFocusTrapEscape = useMFACancelOnEscape();
@@ -62,7 +58,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={approveSoftPrompt}
-                        isLoading={!canApproveSoftPrompt}
+                        isLoading={isProcessingPrompt}
                         testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.PROMPT_CONFIRM_BUTTON}
                     >
                         <Button.Text>{translate('common.buttonConfirm')}</Button.Text>

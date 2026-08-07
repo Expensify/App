@@ -107,13 +107,13 @@ async function createCredential(params: CreateCredentialParams): Promise<CreateC
             existingCredentials: reconciledExisting,
         });
     } catch (error) {
-        // Both `areLocalCredentialsKnownToServer` and `authorize()` resolve which credential to use
-        // from this local Onyx list. Registering with the backend anyway would leave the server
-        // knowing about a credential this device can't find again, so fail before that call happens.
-        addMFABreadcrumb('Failed to persist local passkey credential', {message: getErrorMessage(error)}, 'error');
+        // `addLocalPasskeyCredential` validates the user ID and rejects duplicate
+        // credential IDs before updating Onyx. Don't continue with backend
+        // registration when that local validation fails.
+        addMFABreadcrumb('Failed to update local passkey credentials', {message: getErrorMessage(error)}, 'error');
         return {
             success: false,
-            error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.LOCAL_PERSISTENCE_FAILED, getErrorMessage(error)),
+            error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.LOCAL_CREDENTIAL_UPDATE_FAILED, getErrorMessage(error)),
         };
     }
 

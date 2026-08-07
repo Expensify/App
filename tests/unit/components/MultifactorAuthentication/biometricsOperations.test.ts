@@ -111,8 +111,6 @@ describe('biometrics operations (native)', () => {
         });
     });
 
-    // Mirrors the `register` cases in useNativeBiometricsHSM.test.ts, which move over here when that
-    // hook is deleted.
     describe('createCredential', () => {
         beforeEach(() => {
             mockCreateKeys.mockResolvedValue({publicKey: LOCAL_PUBLIC_KEY_BASE64});

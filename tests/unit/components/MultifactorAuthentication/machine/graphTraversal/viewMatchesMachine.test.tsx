@@ -244,7 +244,7 @@ const testConfig = {
             expect(state.context.error).toBeUndefined();
             expect(state.context.softPromptApproved).toBe(true);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT);
-            // The machine can no longer accept SOFT_PROMPT_APPROVED here, so the button must be disabled rather than pressable.
+            // The prompt stays mounted during credential creation, so its button must show loading and remain disabled.
             expect(screen.getByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).toBeDisabled();
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: (state: SnapshotFrom<typeof mfaMachine>) => {

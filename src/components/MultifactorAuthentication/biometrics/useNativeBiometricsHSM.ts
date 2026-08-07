@@ -4,7 +4,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 
 import {buildSigningData, decodeLibraryError, getKeyAlias, mapAuthTypeNumber, mapSignErrorCodeToReason} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
-import type NativeBiometricsHSMKeyInfo from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
 import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
@@ -13,9 +12,9 @@ import Base64URL from '@src/utils/Base64URL';
 
 import type {SignatureResult} from '@sbaiahmed1/react-native-biometrics';
 
-import {createKeys, deleteKeys, getAllKeys, InputEncoding, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
+import {deleteKeys, getAllKeys, InputEncoding, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
 
-import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './shared/types';
+import type {AuthorizeParams, AuthorizeResult, UseBiometricsReturn} from './shared/types';
 
 import useServerCredentials from './shared/useServerCredentials';
 
@@ -76,47 +75,6 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             await deleteKeys(keyAlias);
         } catch (error) {
             addMFABreadcrumb('Failed to delete local keys', decodeLibraryError(error), 'error');
-        }
-    };
-
-    const register = async (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge: Parameters<UseBiometricsReturn['register']>[1]) => {
-        try {
-            const keyAlias = getKeyAlias(accountID);
-
-            /**
-             * createKeys called with:
-             * keyAlias - alias associated with the key stored on the device
-             * keyType: 'ec256' - Elliptic Curve P-256 key
-             * biometricStrength: undefined - currently ignored when allowDeviceCredentials is set to true
-             * allowDeviceCredentials: true - allow device credentials fallback when biometrics are unavailable
-             * failIfExists: false - overwrite any existing key for this alias to support re-registration
-             */
-            const {publicKey} = await createKeys(keyAlias, 'ec256', undefined, true, false);
-
-            const credentialID = Base64URL.base64ToBase64url(publicKey);
-
-            const clientDataJSON = JSON.stringify({challenge: registrationChallenge.challenge});
-            const keyInfo: NativeBiometricsHSMKeyInfo = {
-                rawId: credentialID,
-                type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_HSM_TYPE,
-                response: {
-                    clientDataJSON: Base64URL.encode(clientDataJSON),
-                    biometric: {
-                        publicKey: credentialID,
-                        algorithm: CONST.COSE_ALGORITHM.ES256,
-                    },
-                },
-            };
-
-            await onResult({
-                success: true,
-                keyInfo,
-            });
-        } catch (error) {
-            onResult({
-                success: false,
-                error: decodeLibraryError(error),
-            });
         }
     };
 
@@ -196,7 +154,6 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
         getLocalCredentialID,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,
-        register,
         authorize,
         deleteLocalKeysForAccount,
     };

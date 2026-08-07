@@ -32,8 +32,8 @@ jest.mock('@libs/MultifactorAuthentication/Passkeys/WebAuthn', () => ({
 
 const mockAddLocalPasskeyCredential = jest.fn<ReturnType<typeof PasskeyActionsModule.addLocalPasskeyCredential>, Parameters<typeof PasskeyActionsModule.addLocalPasskeyCredential>>();
 
-// Only the local-persistence write is mocked here, and only to simulate it rejecting — every other
-// test relies on this delegating straight through to the real Onyx-backed implementation.
+// Only the local credential update is mocked here, and only to simulate its validation throwing —
+// every other test delegates straight through to the real Onyx-backed implementation.
 jest.mock('@userActions/Passkey', () => ({
     ...jest.requireActual<typeof PasskeyActionsModule>('@userActions/Passkey'),
     addLocalPasskeyCredential: (params: Parameters<typeof PasskeyActionsModule.addLocalPasskeyCredential>[0]) => mockAddLocalPasskeyCredential(params),
@@ -169,8 +169,6 @@ describe('biometrics operations (web)', () => {
         });
     });
 
-    // No coverage exists yet for `usePasskeys.register()`'s ceremony; this pins it at the operation
-    // level ahead of the hook being deleted.
     describe('createCredential', () => {
         // Length must be a multiple of 4, so the decode/encode round trip below (used to inspect
         // `excludeCredentials`) is lossless — anything else can silently drop trailing bits.
@@ -281,11 +279,10 @@ describe('biometrics operations (web)', () => {
             expect(storedCredentials?.map((credential) => credential.id)).toEqual([duplicateCredentialId]);
         });
 
-        it('fails instead of reporting success when the local Onyx write rejects', async () => {
-            // If this were swallowed, the caller would register the credential with the backend
-            // anyway, leaving the server aware of a credential this device can't find in Onyx again --
-            // `areLocalCredentialsKnownToServer` would force the user back into registration.
-            mockAddLocalPasskeyCredential.mockRejectedValueOnce(new Error('Onyx write failed'));
+        it('fails instead of reporting success when local credential validation throws', async () => {
+            mockAddLocalPasskeyCredential.mockImplementationOnce(() => {
+                throw new Error('Local credential validation failed');
+            });
             mockCreatePasskeyCredential.mockResolvedValue(buildFakeAttestationCredential(bytesToArrayBuffer([11, 22, 33]), buildFakeAttestationResponse()));
 
             const result = await createCredential({accountID: ACCOUNT_ID, registrationChallenge: REGISTRATION_CHALLENGE});
@@ -294,7 +291,7 @@ describe('biometrics operations (web)', () => {
             if (result.success) {
                 throw new Error('Expected credential creation to fail');
             }
-            expect(result.error.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.LOCAL_PERSISTENCE_FAILED);
+            expect(result.error.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.LOCAL_CREDENTIAL_UPDATE_FAILED);
 
             await waitForBatchedUpdates();
             const storedCredentials = await getOnyxValue(getPasskeyOnyxKey(String(ACCOUNT_ID)));

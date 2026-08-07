@@ -32,15 +32,12 @@ jest.mock('@hooks/useOnyx', () => ({
 
 jest.mock('@userActions/MultifactorAuthentication');
 
-const mockCreateKeys = jest.fn();
 const mockDeleteKeys = jest.fn();
 const mockGetAllKeys = jest.fn();
 const mockSignWithOptions = jest.fn();
 const mockSha256 = jest.fn();
 
 jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    createKeys: (...args: unknown[]) => mockCreateKeys(...args),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     deleteKeys: (...args: unknown[]) => mockDeleteKeys(...args),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -78,13 +75,12 @@ describe('useNativeBiometricsHSM hook', () => {
         it('should return hook with required properties', () => {
             // Given a device with biometrics available and an authenticated user
             // When the hook is initialized
-            // Then it should expose all required interface methods so consumers can register, authorize, and manage biometric credentials
+            // Then it should expose all required interface methods so consumers can authorize and manage biometric credentials
             const {result} = renderHook(() => useNativeBiometricsHSM());
 
             expect(result.current).toHaveProperty('serverKnownCredentialIDs');
             expect(result.current).toHaveProperty('getLocalCredentialID');
             expect(result.current).toHaveProperty('areLocalCredentialsKnownToServer');
-            expect(result.current).toHaveProperty('register');
             expect(result.current).toHaveProperty('authorize');
             expect(result.current).toHaveProperty('deleteLocalKeysForAccount');
         });
@@ -194,76 +190,6 @@ describe('useNativeBiometricsHSM hook', () => {
             const {result} = renderHook(() => useNativeBiometricsHSM());
 
             expect(result.current.haveCredentialsEverBeenConfigured).toBe(true);
-        });
-    });
-
-    describe('register', () => {
-        const mockRegistrationChallenge = {
-            challenge: 'test-challenge-string',
-            rp: {id: 'expensify.com'},
-            user: {id: 'user-123', displayName: 'Test User'},
-            pubKeyCredParams: [{type: 'public-key' as const, alg: -7}],
-            timeout: 60000,
-        };
-
-        beforeEach(() => {
-            mockCreateKeys.mockResolvedValue({publicKey: 'abc+def/ghi='});
-        });
-
-        it('should create keys with correct alias', async () => {
-            // Given a valid registration challenge from the server
-            // When registering a new biometric credential
-            // Then it should create an HSM key with the account-specific alias so the key is uniquely tied to the current user
-            const {result} = renderHook(() => useNativeBiometricsHSM());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.register(onResult, mockRegistrationChallenge);
-            });
-
-            expect(mockCreateKeys).toHaveBeenCalledWith('12345_HSM_KEY', 'ec256', undefined, true, false);
-        });
-
-        it('should call onResult with success and keyInfo on successful registration', async () => {
-            // Given a valid registration challenge and the biometric library successfully creates an HSM key pair
-            // When the registration completes
-            // Then onResult should receive a success result with the base64url-encoded public key as rawId and HSM type for server registration
-            const {result} = renderHook(() => useNativeBiometricsHSM());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.register(onResult, mockRegistrationChallenge);
-            });
-
-            expect(onResult).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: true,
-                    keyInfo: expect.objectContaining({
-                        rawId: 'abc-def_ghi',
-                        type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_HSM_TYPE,
-                    }),
-                }),
-            );
-        });
-
-        it('should call onResult with failure when createKeys throws', async () => {
-            // Given the biometric library fails to create keys
-            // When the registration is attempted
-            // Then onResult should receive a failure result
-            mockCreateKeys.mockRejectedValue(new Error('Key creation failed'));
-
-            const {result} = renderHook(() => useNativeBiometricsHSM());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.register(onResult, mockRegistrationChallenge);
-            });
-
-            expect(onResult).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: false,
-                }),
-            );
         });
     });
 
