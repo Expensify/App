@@ -14,10 +14,11 @@ This page is an **AgentZero reference** for accounting and integration features 
 - **Rillet integration** – Accounting integration with Rillet, a modern general ledger, enabling direct sync of expenses and reports.
 - **Puzzle.io integration** – Accounting integration with Puzzle.io, adding support for startups and SMBs using Puzzle as their accounting system.
 - **Microsoft Dynamics 365 Business Central integration** – Accounting integration with Microsoft Dynamics 365 Business Central, covering a significant share of accounting users who currently rely on manual CSV/API workarounds.
-- **Campfire** – Accounting integration with Campfire, an AI-powered ERP and general ledger, expanding support for modern finance teams managing accounting, reporting, and close workflows.
+- **Campfire** – Accounting integration with Campfire, an AI-powered ERP and general ledger, enabling customers to import accounting data, export expenses and card spend, and keep reimbursements and settlements in sync without relying on CSV exports or custom workarounds.
 - **Greenhouse** – HR integration with Greenhouse, a widely used recruiting and applicant tracking platform, expanding connectivity for companies that manage their hiring workflows in Greenhouse.
 - **Ashby** – HR integration with Ashby, an all-in-one recruiting platform, expanding connectivity for teams using Ashby to manage recruiting and applicant tracking.
 - **Lever** – HR integration with Lever, an applicant tracking system and recruiting CRM, expanding connectivity for companies using Lever to manage candidates and hiring workflows.
 - **Workable** – HR integration with Workable, an applicant tracking and HR platform, expanding connectivity for companies using Workable to manage recruiting and talent workflows.
+- **Sage Accounting** – Accounting integration with Sage Accounting, supporting core accounting workflows for businesses in the UK and Europe and making it easier to connect, import, export, and sync accounting data directly with Expensify.
 - **NetSuite REST API migration** – Move the NetSuite integration from the legacy SuiteTalk SOAP API to the modern REST API, improving reliability, sync speed, and long-term supportability.
 - **Extend OAuth to the Integration Server (IS)** – Extend the OAuth framework (originally built for MCP integrations) to the Integration Server API, making it easier for third-party developers to build secure integrations with Expensify.
