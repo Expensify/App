@@ -352,12 +352,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 numberOfLinesTitle={2}
                                 rightLabel={isCategoryRequired ? translate('common.required') : ''}
                                 onPress={() => {
-                                    const categoryRoute = ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                        reportID,
-                                        Navigation.getActiveRoute(),
+                                    const categoryRoute = createDynamicRoute(
+                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                                            action: CONST.IOU.ACTION.EDIT,
+                                            iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                            reportID,
+                                        }),
                                     );
                                     if (shouldNavigateToUpgradePath) {
                                         Navigation.navigate(

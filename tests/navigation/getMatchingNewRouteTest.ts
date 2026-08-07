@@ -491,6 +491,19 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-destination-edit')).toBe(undefined);
     });
 
+    it('redirects legacy money request category path to the category dynamic route', () => {
+        expect(getMatchingNewRoute('/create/expense/category/123/456')).toBe('/r/456/category?action=create&iouType=expense&transactionID=123&reportID=456');
+    });
+
+    it('redirects legacy money request category-new path to the stacked add-category dynamic route', () => {
+        expect(getMatchingNewRoute('/create/expense/category/new/123/456')).toBe('/r/456/category/add-category?action=create&iouType=expense&transactionID=123&reportID=456');
+    });
+
+    it('does not redirect the already-migrated money request category dynamic routes', () => {
+        expect(getMatchingNewRoute('/r/456/category?action=create&iouType=expense&transactionID=123&reportID=456')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/456/category/add-category?action=create&iouType=expense&transactionID=123&reportID=456')).toBe(undefined);
+    });
+
     // The legacy `?backTo=` query is not preserved: the trailing wildcard swallows it and the new suffix carries its own query.
     it('redirects the legacy money request report step to the new dynamic route (#83851)', () => {
         expect(getMatchingNewRoute('/edit/submit/report/123/456')).toBe('/r/456/expense-report?action=edit&iouType=submit&transactionID=123&reportID=456');
