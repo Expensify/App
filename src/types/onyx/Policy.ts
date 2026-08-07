@@ -2638,6 +2638,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether new transactions need to be categorized */
         requiresCategory?: boolean;
 
+        /** Whether new uncategorized expenses get a category picked for them automatically. Defaults to true when unset. */
+        autoCategorizeNewExpenses?: boolean;
+
         /**
          * Policy Receipt Partners
          */
