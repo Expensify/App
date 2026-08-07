@@ -478,7 +478,7 @@ function setupNavigationFocusReturn(): void {
                 return;
             }
             const isEnter = e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey;
-            const isSpace = e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey;
+            const isSpace = e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey && e.key === CONST.KEYBOARD_SHORTCUTS.SPACE.trigger.DEFAULT.input;
             const isMatchingRelease = (pendingActivationKey === 'Enter' && isEnter) || (pendingActivationKey === 'Space' && isSpace);
             // Non-matching release (modifier, or the other activation key) must not burn pending, since the matching release still needs to refresh.
             if (!isMatchingRelease) {
@@ -570,15 +570,16 @@ type ActivationKey = 'Enter' | 'Space';
 
 /** True when a keydown activates a Pressable (Enter/Space, no repeat, no IME, any modifier). Text-editable targets are filtered downstream by isActivatableTarget. */
 function isActivationKeydown(e: KeyboardEvent): boolean {
+    const isEnter = e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey;
+    const isSpace = e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey && e.key === CONST.KEYBOARD_SHORTCUTS.SPACE.trigger.DEFAULT.input;
+    if (!isEnter && !isSpace) {
+        return false;
+    }
     if (e.repeat || e.isComposing) {
         return false;
     }
     // Safari's IME-Enter reports isComposing=false, so the helper catches it via keyCode===229.
-    if (isEnterWhileComposition(e)) {
-        return false;
-    }
-    // Space requires both `.code` and `.key === ' '`, since OS remaps can produce a printable char on the Space code.
-    return e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || (e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey && e.key === CONST.KEYBOARD_SHORTCUTS.SPACE.trigger.DEFAULT.input);
+    return !isEnterWhileComposition(e);
 }
 
 /** True when a keydown moves focus context (Tab, arrows, etc.), used to invalidate stale activation latches. Modifiers and typing don't count. */
