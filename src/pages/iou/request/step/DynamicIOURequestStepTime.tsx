@@ -81,7 +81,6 @@ function DynamicIOURequestStepTime({
 
     const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(policy) || (isEditPage && isEmptyObject(transaction?.comment?.customUnit));
 
-    // The `per-diem-time-edit` suffix sits on the confirmation base, so stripping it yields that route's own path.
     const editBackPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.path);
     const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
     const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
