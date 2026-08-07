@@ -7158,6 +7158,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>QuickBooks Desktop 連携機能は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からの Control プランでのみご利用いただけます</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                title: 'Intuit Enterprise Suite',
+                description: `Intuit Enterprise SuiteをExpensifyに接続すると、会計データが自動的に同期され、手入力を減らすことができます。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Intuit Enterprise Suite連携はControlプランでのみ利用でき、料金は<strong>${formattedPrice}</strong>からです（${hasTeam2025Pricing ? `メンバー1人あたり月額。` : `アクティブなメンバー1人あたり月額。`}）</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
                 description: `Expensify と Certinia の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションと税務同期を Certinia の設定に合わせて、財務の可視性を高めます。`,

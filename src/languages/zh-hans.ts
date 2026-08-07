@@ -6984,6 +6984,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>我们的 QuickBooks Desktop 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                title: 'Intuit Enterprise Suite',
+                description: `将Intuit Enterprise Suite连接到Expensify，即可自动同步会计数据并减少手动录入。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Intuit Enterprise Suite集成仅适用于Control套餐，起价为每${hasTeam2025Pricing ? `位成员` : `位活跃成员`}每月<strong>${formattedPrice}</strong>。</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
                 description: `通过 Expensify 与 Certinia 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Certinia 配置对齐，以获得更清晰的财务可见性。`,
