@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
+import {Str} from 'expensify-common';
 import React from 'react';
 
 import MenuItem from './MenuItem';
@@ -43,8 +44,10 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
 
     const hasVacationDelegate = !!vacationDelegate?.delegate;
     const vacationDelegatePersonalDetails = personalDetailsByLogin[vacationDelegate?.delegate?.toLowerCase() ?? ''];
-    const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
-    const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
+
+    const rawDelegateLogin = vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '';
+    const delegateDisplayName = Str.removeSMSDomain(vacationDelegatePersonalDetails?.displayName ?? rawDelegateLogin);
+    const delegateDescription = formatPhoneNumber(rawDelegateLogin);
 
     return hasVacationDelegate ? (
         <>
@@ -56,8 +59,8 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                 onClose={onCloseError}
             >
                 <MenuItem
-                    title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
-                    description={fallbackVacationDelegateLogin}
+                    title={delegateDisplayName}
+                    description={delegateDescription}
                     avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                     icon={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}

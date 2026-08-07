@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef} from 'react';
 
 function VacationDelegatePage() {
@@ -44,7 +45,7 @@ function VacationDelegatePage() {
         async (delegateLogin: string) => {
             const result = await showConfirmModal({
                 title: translate('common.headsUp'),
-                prompt: translate('statusPage.vacationDelegateWarning', getPersonalDetailByEmail(delegateLogin)?.displayName ?? delegateLogin),
+                prompt: translate('statusPage.vacationDelegateWarning', Str.removeSMSDomain(getPersonalDetailByEmail(delegateLogin)?.displayName ?? delegateLogin)),
                 confirmText: translate('common.confirm'),
                 cancelText: translate('common.cancel'),
                 shouldShowCancelButton: true,
