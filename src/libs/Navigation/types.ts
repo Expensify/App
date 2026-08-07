@@ -3283,6 +3283,7 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
         [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
         [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
+        [SCREENS.PRE_MOUNT_BUFFER]: undefined;
     };
 
 type SearchReportActionsParamList = {
