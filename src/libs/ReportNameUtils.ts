@@ -45,6 +45,7 @@ import {
     getCategoryTaxRateMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
+    getCompanyCardConnectionBroken30DaysMessage,
     getCompanyCardConnectionBrokenMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     getCrossBorderReimbursedMessage,
@@ -788,6 +789,10 @@ function computeReportNameBasedOnReportAction(
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
         return Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, parentReportAction));
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
+        return Parser.htmlToText(getCompanyCardConnectionBroken30DaysMessage(translate, parentReportAction));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
