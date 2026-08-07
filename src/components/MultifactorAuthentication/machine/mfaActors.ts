@@ -5,8 +5,9 @@ import addMFABreadcrumb from '@components/MultifactorAuthentication/observabilit
 import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import readOnyxValueOnce from '@libs/MultifactorAuthentication/shared/readOnyxValueOnce';
 
-import {requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
+import {getDeviceBiometricsOnyxKey, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration} from '@userActions/MultifactorAuthentication/processing';
 
 import CONST from '@src/CONST';
@@ -14,9 +15,10 @@ import CONST from '@src/CONST';
 import {fromPromise} from 'xstate';
 
 import type {
-    CheckLocalCredentialsInput,
     CreateCredentialInput,
     CreateCredentialOutput,
+    LoadRegistrationStateInput,
+    LoadRegistrationStateOutput,
     RequestRegistrationChallengeInput,
     RequestRegistrationChallengeOutput,
     ValidateDeviceInput,
@@ -29,10 +31,20 @@ import type {
 const validateDevice = fromPromise<MFAResult, ValidateDeviceInput>(({input}) => checkDeviceEligibility(input.allowedAuthenticationMethods));
 
 /**
- * Resolves to whether the account's local credentials are known to the server. A returning user
- * (true) skips the registration path entirely.
+ * Loads the account-scoped signals the machine needs to choose registration or authorization.
+ * Keeping this read inside the actor makes INIT independent of Onyx and lets cancellation tear down
+ * the temporary connection.
  */
-const checkLocalCredentials = fromPromise<boolean, CheckLocalCredentialsInput>(({input, signal}) => areLocalCredentialsKnownToServer(input.accountID, signal));
+const loadRegistrationState = fromPromise<LoadRegistrationStateOutput, LoadRegistrationStateInput>(async ({input, signal}) => {
+    const [hasLocalCredentials, deviceBiometrics] = await Promise.all([
+        areLocalCredentialsKnownToServer(input.accountID, signal),
+        readOnyxValueOnce(getDeviceBiometricsOnyxKey(input.accountID), signal),
+    ]);
+    return {
+        hasLocalCredentials,
+        hasEverAcceptedSoftPrompt: deviceBiometrics?.hasAcceptedSoftPrompt ?? false,
+    };
+});
 
 /**
  * Exchanges the submitted validate code for a validated registration challenge. The action normalizes
@@ -76,7 +88,7 @@ const createCredentialActor = fromPromise<CreateCredentialOutput, CreateCredenti
 function createActors() {
     return {
         validateDevice,
-        checkLocalCredentials,
+        loadRegistrationState,
         requestRegistrationChallenge: requestRegistrationChallengeActor,
         createCredential: createCredentialActor,
     };

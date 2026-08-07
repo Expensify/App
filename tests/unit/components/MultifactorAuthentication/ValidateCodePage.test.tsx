@@ -8,7 +8,7 @@ import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
 import Onyx from 'react-native-onyx';
 import createInitEvent, {MFA_TEST_ACCOUNT_ID, MFA_TEST_VALIDATE_CODE} from 'tests/utils/mfa/flowFixtures';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
-import {checkLocalCredentialsControl, resetMfaUiMocks, validateDeviceControl} from 'tests/utils/mfa/realUi/mocks';
+import {loadRegistrationStateControl, resetMfaUiMocks, validateDeviceControl} from 'tests/utils/mfa/realUi/mocks';
 import {translateLocal} from 'tests/utils/TestHelper';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 
@@ -54,7 +54,7 @@ describe('MultifactorAuthenticationValidateCodePage', () => {
 
         await act(async () => validateDeviceControl.resolve({success: true}));
         await waitForBatchedUpdatesWithAct();
-        await act(async () => checkLocalCredentialsControl.resolve(false));
+        await act(async () => loadRegistrationStateControl.resolve({hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}));
         await waitForBatchedUpdatesWithAct();
 
         const submitButton = screen.getByTestId(TEST_ID.VALIDATE_CODE_SUBMIT_BUTTON);

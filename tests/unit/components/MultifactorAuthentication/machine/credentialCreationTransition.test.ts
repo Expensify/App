@@ -28,7 +28,7 @@ describe('MFA credential creation', () => {
             actor.send({type: 'SOFT_PROMPT_APPROVED'});
 
             const result = actor.getSnapshot();
-            expect(result.matches({[MFA_STATE.OPEN]: MFA_STATE.CREATING_CREDENTIAL})).toBe(true);
+            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.CREATING_CREDENTIAL}})).toBe(true);
             expect(snapshotToState(result).isProcessingPrompt).toBe(true);
             expect(result.context.softPromptApproved).toBe(true);
 
@@ -64,7 +64,7 @@ describe('MFA credential creation', () => {
 
     describe('createCredential actor outcome', () => {
         it('reaches the success outcome when the actor resolves successfully', () => {
-            const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.CREATING_CREDENTIAL}, {registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE});
+            const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.CREATING_CREDENTIAL}}, {registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE});
 
             actor.start();
             sendCreateCredentialDone(actor, {success: true});
@@ -75,7 +75,7 @@ describe('MFA credential creation', () => {
         });
 
         it('reaches the failure outcome carrying the exact reason when the actor resolves with a failure', () => {
-            const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.CREATING_CREDENTIAL}, {registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE});
+            const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.CREATING_CREDENTIAL}}, {registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE});
             const failureError = createLocalMFAError(REASON.LOCAL_ERRORS.HSM.KEY_CREATION_FAILED, 'Credential creation transition spec failure');
 
             actor.start();
@@ -109,7 +109,6 @@ describe('MFA credential creation', () => {
                     validateCode: undefined,
                     registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE,
                     softPromptApproved: false,
-                    hasEverAcceptedSoftPrompt: false,
                     isCancelConfirmVisible: false,
                 },
             });

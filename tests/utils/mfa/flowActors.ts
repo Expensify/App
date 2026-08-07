@@ -24,7 +24,6 @@ function createFlowContext(overrides: Partial<MfaContext> = {}): MfaContext {
         validateCode: undefined,
         registrationChallenge: undefined,
         softPromptApproved: false,
-        hasEverAcceptedSoftPrompt: initEvent.hasEverAcceptedSoftPrompt,
         isCancelConfirmVisible: false,
         ...overrides,
     };
@@ -49,8 +48,8 @@ function sendValidateDeviceDone(actor: ReturnType<typeof createActorAtState>, ou
 /**
  * Completes the invoked credentials-check actor by sending its done event carrying the given output.
  */
-function sendCheckLocalCredentialsDone(actor: ReturnType<typeof createActorAtState>, output: MfaActorOutput<'checkLocalCredentials'>) {
-    actor.send(createActorDoneEvent('checkLocalCredentials', output));
+function sendLoadRegistrationStateDone(actor: ReturnType<typeof createActorAtState>, output: MfaActorOutput<'loadRegistrationState'>) {
+    actor.send(createActorDoneEvent('loadRegistrationState', output));
 }
 
 /**
@@ -60,4 +59,4 @@ function sendCreateCredentialDone(actor: ReturnType<typeof createActorAtState>, 
     actor.send(createActorDoneEvent('createCredential', output));
 }
 
-export {createActorAtState, createFlowContext, sendCheckLocalCredentialsDone, sendCreateCredentialDone, sendValidateDeviceDone};
+export {createActorAtState, createFlowContext, sendCreateCredentialDone, sendLoadRegistrationStateDone, sendValidateDeviceDone};

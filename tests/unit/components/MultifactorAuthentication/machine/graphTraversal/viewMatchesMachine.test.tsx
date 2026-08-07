@@ -4,8 +4,6 @@ import type {MfaActorDoneEvent, MfaInternalEvent, MfaMachineEvent} from '@compon
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import {mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
 
-import {getDeviceBiometricsOnyxKey} from '@libs/actions/MultifactorAuthentication';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -19,8 +17,8 @@ import getWalkedPaths, {actorDoneEventType, actorErrorEventType, isAutoDrivenEve
 import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
 import {
-    checkLocalCredentialsControl,
     createCredentialControl,
+    loadRegistrationStateControl,
     registrationStateCaptureControl,
     pendingModalClose,
     requestRegistrationChallengeControl,
@@ -122,10 +120,6 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
     return {
         INIT: async (step) => {
             const event = getInitEvent(step);
-            // The real Provider reads this flag from Onyx, so it must land there before `executeScenario` runs.
-            await act(async () => {
-                await Onyx.merge(getDeviceBiometricsOnyxKey(MFA_TEST_ACCOUNT_ID), {hasAcceptedSoftPrompt: event.hasEverAcceptedSoftPrompt});
-            });
             await act(async () => {
                 await executeScenario(event.scenarioName, event.payload);
             });
@@ -168,8 +162,8 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
         },
         [actorDoneEventType('validateDevice')]: (step) => settleActor(() => validateDeviceControl.resolve(getActorDoneOutput(step))),
         [actorErrorEventType('validateDevice')]: () => settleActor(validateDeviceControl.reject),
-        [actorDoneEventType('checkLocalCredentials')]: (step) => settleActor(() => checkLocalCredentialsControl.resolve(getActorDoneOutput(step))),
-        [actorErrorEventType('checkLocalCredentials')]: () => settleActor(checkLocalCredentialsControl.reject),
+        [actorDoneEventType('loadRegistrationState')]: (step) => settleActor(() => loadRegistrationStateControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('loadRegistrationState')]: () => settleActor(loadRegistrationStateControl.reject),
         [actorDoneEventType('requestRegistrationChallenge')]: (step) => settleActor(() => requestRegistrationChallengeControl.resolve(getActorDoneOutput(step))),
         [actorErrorEventType('requestRegistrationChallenge')]: () => settleActor(requestRegistrationChallengeControl.reject),
         [actorDoneEventType('createCredential')]: (step) => settleActor(() => createCredentialControl.resolve(getActorDoneOutput(step))),
@@ -231,21 +225,21 @@ const testConfig = {
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT);
             expect(screen.getByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).toBeOnTheScreen();
+            expect(screen.getByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).toBeEnabled();
             expect(screen.getByText(translateLocal('multifactorAuthentication.verifyYourself.biometrics'))).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('multifactorAuthentication.enableQuickVerification.biometrics'))).toBeOnTheScreen();
             expect(state.context.error).toBeUndefined();
             expect(state.context.softPromptApproved).toBe(false);
         },
-        // No entry navigation action fires for this state, so the prompt screen the user just approved stays up during the ceremony.
-        [`${MFA_STATE.OPEN}.${MFA_STATE.CREATING_CREDENTIAL}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.CREATING_CREDENTIAL}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(state.context.registrationChallenge).toBeDefined();
             expect(state.context.error).toBeUndefined();
             expect(state.context.softPromptApproved).toBe(true);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT);
-            // The prompt stays mounted during credential creation, so its button must show loading and remain disabled.
-            expect(screen.getByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).toBeDisabled();
+            // The prompt stays mounted during credential creation, but the already-approved action is removed.
+            expect(screen.queryByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).not.toBeOnTheScreen();
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);

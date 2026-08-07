@@ -56,7 +56,9 @@ function snapshotToState(snapshot: MfaSnapshot): MfaState {
             },
         }),
         isProcessingPrompt: snapshot.matches({
-            [MFA_STATE.OPEN]: MFA_STATE.CREATING_CREDENTIAL,
+            [MFA_STATE.OPEN]: {
+                [MFA_STATE.PROMPT]: MFA_STATE.CREATING_CREDENTIAL,
+            },
         }),
         showsInvalidCodeError: snapshot.matches({
             [MFA_STATE.OPEN]: {

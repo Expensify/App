@@ -1,6 +1,6 @@
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import snapshotToState from '@components/MultifactorAuthentication/machine/snapshotToState';
-import type {CheckLocalCredentialsInput, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
+import type {LoadRegistrationStateInput, LoadRegistrationStateOutput, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
 
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
@@ -12,7 +12,7 @@ import type * as UserActions from '@userActions/User';
 import CONST from '@src/CONST';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import {createActorAtState, sendCheckLocalCredentialsDone} from 'tests/utils/mfa/flowActors';
+import {createActorAtState, sendLoadRegistrationStateDone} from 'tests/utils/mfa/flowActors';
 import createInitEvent, {MFA_TEST_REGISTRATION_CHALLENGE, MFA_TEST_VALIDATE_CODE} from 'tests/utils/mfa/flowFixtures';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 import {createActor, fromPromise} from 'xstate';
@@ -83,7 +83,7 @@ describe('MFA validate code and registration decision', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
 
         actor.start();
-        sendCheckLocalCredentialsDone(actor, false);
+        sendLoadRegistrationStateDone(actor, {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false});
 
         expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}})).toBe(true);
         expect(requestValidateCodeActionMock).toHaveBeenCalledTimes(1);
@@ -96,7 +96,7 @@ describe('MFA validate code and registration decision', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
 
         actor.start();
-        sendCheckLocalCredentialsDone(actor, true);
+        sendLoadRegistrationStateDone(actor, {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: false});
 
         expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}})).toBe(true);
         expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
@@ -266,7 +266,7 @@ describe('MFA validate code and registration decision', () => {
         const machine = mfaMachine.provide({
             actors: {
                 validateDevice: fromPromise<MFAResult, ValidateDeviceInput>(() => Promise.resolve({success: true})),
-                checkLocalCredentials: fromPromise<boolean, CheckLocalCredentialsInput>(() => Promise.reject(new Error('Keystore read failed'))),
+                loadRegistrationState: fromPromise<LoadRegistrationStateOutput, LoadRegistrationStateInput>(() => Promise.reject(new Error('Keystore read failed'))),
             },
         });
         const actor = createActor(machine);
@@ -278,7 +278,7 @@ describe('MFA validate code and registration decision', () => {
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
         expect(result.context.error?.reason).toBe(REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION);
-        expect(result.context.error?.message).toContain('Local credentials check threw: Keystore read failed');
+        expect(result.context.error?.message).toContain('Registration state check threw: Keystore read failed');
 
         actor.stop();
     });

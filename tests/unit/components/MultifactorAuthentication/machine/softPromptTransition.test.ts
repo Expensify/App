@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 
 import Onyx from 'react-native-onyx';
 import getOnyxValue from 'tests/utils/getOnyxValue';
-import {createActorAtState, sendCheckLocalCredentialsDone} from 'tests/utils/mfa/flowActors';
+import {createActorAtState, sendLoadRegistrationStateDone} from 'tests/utils/mfa/flowActors';
 import {MFA_TEST_ACCOUNT_ID} from 'tests/utils/mfa/flowFixtures';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 
@@ -25,7 +25,7 @@ describe('MFA soft prompt', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
 
         actor.start();
-        sendCheckLocalCredentialsDone(actor, true);
+        sendLoadRegistrationStateDone(actor, {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: false});
         await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
@@ -36,10 +36,10 @@ describe('MFA soft prompt', () => {
     });
 
     it('skips the soft prompt and reaches the outcome directly for a returning user who already accepted it on this device', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}}, {hasEverAcceptedSoftPrompt: true});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
 
         actor.start();
-        sendCheckLocalCredentialsDone(actor, true);
+        sendLoadRegistrationStateDone(actor, {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true});
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.SUCCESS}})).toBe(true);
@@ -49,10 +49,10 @@ describe('MFA soft prompt', () => {
     });
 
     it('still shows the soft prompt for a fresh registration even though the account already accepted it on this device before (production parity: a new registration always needs approval in this flow)', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}}, {hasEverAcceptedSoftPrompt: true});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
 
         actor.start();
-        sendCheckLocalCredentialsDone(actor, false);
+        sendLoadRegistrationStateDone(actor, {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: true});
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}})).toBe(true);

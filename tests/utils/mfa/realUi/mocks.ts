@@ -1,9 +1,10 @@
 import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
 import type {
-    CheckLocalCredentialsInput,
     CreateCredentialInput,
     CreateCredentialOutput,
+    LoadRegistrationStateInput,
+    LoadRegistrationStateOutput,
     RequestRegistrationChallengeInput,
     RequestRegistrationChallengeOutput,
     ValidateDeviceInput,
@@ -115,7 +116,7 @@ function createControlledActor<TOutput, TInput>(actorID: string) {
 }
 
 const validateDeviceControl = createControlledActor<MFAResult, ValidateDeviceInput>('validateDevice');
-const checkLocalCredentialsControl = createControlledActor<boolean, CheckLocalCredentialsInput>('checkLocalCredentials');
+const loadRegistrationStateControl = createControlledActor<LoadRegistrationStateOutput, LoadRegistrationStateInput>('loadRegistrationState');
 const requestRegistrationChallengeControl = createControlledActor<RequestRegistrationChallengeOutput, RequestRegistrationChallengeInput>('requestRegistrationChallenge');
 const createCredentialControl = createControlledActor<CreateCredentialOutput, CreateCredentialInput>('createCredential');
 
@@ -123,7 +124,7 @@ function resetMfaUiMocks() {
     pendingModalClose.clear();
     registrationStateCaptureControl.reset();
     validateDeviceControl.reset();
-    checkLocalCredentialsControl.reset();
+    loadRegistrationStateControl.reset();
     requestRegistrationChallengeControl.reset();
     createCredentialControl.reset();
 }
@@ -132,7 +133,7 @@ function resetMfaUiMocks() {
 function mfaActorsMock() {
     const actors = {
         validateDevice: validateDeviceControl.actor,
-        checkLocalCredentials: checkLocalCredentialsControl.actor,
+        loadRegistrationState: loadRegistrationStateControl.actor,
         requestRegistrationChallenge: requestRegistrationChallengeControl.actor,
         createCredential: createCredentialControl.actor,
     } satisfies ReturnType<typeof createActors>;
@@ -227,7 +228,7 @@ export {
     pendingModalClose,
     registrationStateCaptureControl,
     validateDeviceControl,
-    checkLocalCredentialsControl,
+    loadRegistrationStateControl,
     requestRegistrationChallengeControl,
     createCredentialControl,
     resetMfaUiMocks,

@@ -103,7 +103,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             scenarioName,
             scenario,
             payload: params && Object.keys(params).length > 0 ? params : undefined,
-            hasEverAcceptedSoftPrompt: startRegistrationState.hasEverAcceptedSoftPrompt,
         });
     };
 
