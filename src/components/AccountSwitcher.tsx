@@ -167,9 +167,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
           }
         : {
               text: translate('delegate.copilotAccess'),
-              shiftVertical: 8,
-              shiftHorizontal: 8,
-              anchorAlignment: {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM},
               shouldRender: canSwitchAccounts,
           };
 
@@ -237,7 +234,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     const error = getLatestError(errorFields?.connect?.[email]);
                     const personalDetails = getPersonalDetailByEmail(email);
                     return createBaseMenuItem(personalDetails, error, {
-                        badgeText: translate('delegate.role', {role}),
+                        badgeText: translate('delegate.role', role),
                         onSelected: () => {
                             if (isOffline) {
                                 close(showOfflineModal);

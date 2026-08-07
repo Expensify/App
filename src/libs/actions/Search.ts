@@ -64,6 +64,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
+    BankAccountList,
     Beta,
     BillingGraceEndPeriod,
     ExportTemplate,
@@ -74,7 +75,6 @@ import type {
     Report,
     ReportAction,
     ReportActions,
-    ReportNextStepDeprecated,
     SaveSearch,
     Transaction,
 } from '@src/types/onyx';
@@ -224,7 +224,6 @@ type HandleActionButtonPressParams = {
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
     chatReportPolicy?: OnyxEntry<Policy>;
-    iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
     delegateEmail?: string;
@@ -263,7 +262,6 @@ function handleActionButtonPress({
     activePolicy,
     chatReport,
     chatReportPolicy,
-    iouReportCurrentNextStepDeprecated,
     searchData,
     chatReportActions,
     delegateEmail,
@@ -313,7 +311,6 @@ function handleActionButtonPress({
                 activePolicy,
                 chatReport,
                 chatReportPolicy,
-                iouReportCurrentNextStepDeprecated,
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
                 amountOwed,
@@ -351,7 +348,6 @@ function handleActionButtonPress({
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
                 amountOwed,
-                iouReportCurrentNextStepDeprecated,
                 delegateEmail,
                 delegateAccountID,
                 isTrackIntentUser,
@@ -522,7 +518,6 @@ type GetPayActionCallbackParams = {
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
     chatReportPolicy?: OnyxEntry<Policy>;
-    iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
@@ -551,7 +546,6 @@ function getPayActionCallback({
     activePolicy,
     chatReport,
     chatReportPolicy,
-    iouReportCurrentNextStepDeprecated,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     amountOwed,
@@ -594,7 +588,6 @@ function getPayActionCallback({
         chatReport: chatReportForPayment,
         iouReport: snapshotReport,
         introSelected,
-        iouReportCurrentNextStepDeprecated,
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         currentUserLogin: currentUserLogin ?? '',
         activePolicy,
@@ -627,7 +620,6 @@ type GetApproveActionCallbackParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
-    iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     delegateEmail?: string;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
@@ -647,7 +639,6 @@ function getApproveActionCallback({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     amountOwed,
-    iouReportCurrentNextStepDeprecated,
     delegateEmail,
     delegateAccountID,
     isTrackIntentUser,
@@ -669,7 +660,6 @@ function getApproveActionCallback({
         currentUserEmailParam: currentUserLogin ?? '',
         hasViolations,
         isASAPSubmitBetaEnabled,
-        expenseReportCurrentNextStepDeprecated: iouReportCurrentNextStepDeprecated,
         betas,
         userBillingGracePeriodEnds,
         amountOwed,
@@ -1876,6 +1866,7 @@ function handleBulkPayItemSelected(params: {
     showLockedAccountModal: () => void;
     policy: OnyxEntry<Policy>;
     businessBankAccountOptions: BankAccountMenuItem[] | undefined;
+    bankAccountList: OnyxEntry<BankAccountList>;
     activeAdminPolicies: Policy[];
     isUserValidated: boolean | undefined;
     isDelegateAccessRestricted: boolean;
@@ -1894,6 +1885,7 @@ function handleBulkPayItemSelected(params: {
         showLockedAccountModal,
         policy,
         businessBankAccountOptions,
+        bankAccountList,
         activeAdminPolicies,
         isUserValidated,
         isDelegateAccessRestricted,
@@ -1912,26 +1904,46 @@ function handleBulkPayItemSelected(params: {
     }
 
     if (isDelegateAccessRestricted) {
+        Log.info('[BulkPay] Blocking bulk pay: delegate access is restricted');
         deferModalPresentationAfterPopoverDismiss(showDelegateNoAccessModal);
         return;
     }
 
     if (isAccountLocked) {
+        Log.info('[BulkPay] Blocking bulk pay: account is locked');
         deferModalPresentationAfterPopoverDismiss(showLockedAccountModal);
         return;
     }
 
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+        Log.info('[BulkPay] Blocking bulk pay: billable actions are restricted', false, {policyID: policy.id});
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
         return;
     }
 
     if (!isUserValidated && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+        Log.info('[BulkPay] Blocking bulk pay: user is not validated, redirecting to account verification');
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
         return;
     }
 
-    if ((!!policyFromPaymentMethod || shouldSelectPaymentMethod) && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+    // The pay menu can offer any open business bank account the admin has access to, not only the one linked to
+    // the policy, so when a specific open account is selected we pay with it directly instead of gating on the
+    // KYC wall, which only accepts the policy-linked account and would bounce the user to the bank account setup.
+    const selectedBankAccountID = (item?.additionalData as BulkPaySelectionData | undefined)?.bankAccountID;
+    const selectedBankAccountData = selectedBankAccountID ? bankAccountList?.[selectedBankAccountID]?.accountData : undefined;
+    const isPayingWithSelectedOpenBusinessBankAccount =
+        item.key === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT &&
+        selectedBankAccountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+        selectedBankAccountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+
+    if ((!!policyFromPaymentMethod || shouldSelectPaymentMethod) && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !isPayingWithSelectedOpenBusinessBankAccount) {
+        Log.info('[BulkPay] Routing bulk pay through the KYC wall', false, {
+            itemKey: item.key,
+            policyID: (policyFromPaymentMethod ?? policyFromContext)?.id,
+            selectedBankAccountID,
+            selectedBankAccountState: selectedBankAccountData?.state,
+        });
         setPendingPaymentAdditionalData?.(item?.additionalData as BulkPaySelectionData | undefined);
         triggerKYCFlow({
             event: undefined,
