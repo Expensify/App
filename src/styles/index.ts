@@ -787,6 +787,10 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 4,
         },
 
+        supportalSwitcherPopoverWidth: {
+            width: variables.sideBarWidth,
+        },
+
         button: {
             backgroundColor: theme.buttonDefaultBG,
             borderRadius: variables.buttonBorderRadius,
