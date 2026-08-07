@@ -201,13 +201,15 @@ function IOURequestStepDistance({
         [distanceInMeters, distanceUnit],
     );
 
+    // Mirrors the manual tab input. Stays `undefined` until that tab reports a value, so a map expense the
+    // user never switched to Manual is not compared against an empty field. Once reported, an empty string
+    // still counts as dirty against a committed distance.
+    const [manualDistanceValue, setManualDistanceValue] = useState<string | undefined>(undefined);
+
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
-            // Manual distance sits in `manualNumberFormRef` until Save — gate on the mounted ref so a cleared (empty) value still counts as dirty against a committed distance.
-            const manualForm = manualNumberFormRef.current;
-            const typedDistance = manualForm?.getNumber();
-            const typedManualDistance = typedDistance ? roundToTwoDecimalPlaces(parseFloat(typedDistance)) : undefined;
-            const manualDistanceChanged = !!manualForm && typedManualDistance !== currentDistance;
+            const typedManualDistance = manualDistanceValue ? roundToTwoDecimalPlaces(parseFloat(manualDistanceValue)) : undefined;
+            const manualDistanceChanged = manualDistanceValue !== undefined && typedManualDistance !== currentDistance;
             // Split edits skip the transaction backup, so their pre-edit route lives in `originalSplitTransactionDraft`.
             const committedWaypoints = isEditingSplit ? originalSplitTransactionDraft?.comment?.waypoints : transactionBackup?.comment?.waypoints;
             return manualDistanceChanged || getWaypointsHasUnsavedChanges(transaction, committedWaypoints, waypoints, isCreatingNewRequest);
@@ -256,6 +258,8 @@ function IOURequestStepDistance({
         }
         const routeDistanceInUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(routeDistance, distanceUnit));
         manualNumberFormRef.current?.updateNumber(routeDistanceInUnit.toString());
+        // Keep the mirror in step with the value pushed into the input above
+        setManualDistanceValue(routeDistanceInUnit.toString());
         lastSyncedRouteDistance.current = routeDistance;
     }, [routeDistance, distanceUnit, customUnitQuantity]);
 
@@ -724,13 +728,17 @@ function IOURequestStepDistance({
         [isLoadingRoute, navigateToWaypointEditPage, waypoints, getWaypointKey],
     );
 
-    const handleManualInputChange = useCallback(() => {
-        isManuallyEditing.current = true;
-        if (!manualFormError) {
-            return;
-        }
-        setManualFormError('');
-    }, [manualFormError]);
+    const handleManualInputChange = useCallback(
+        (newDistance: string) => {
+            isManuallyEditing.current = true;
+            setManualDistanceValue(newDistance);
+            if (!manualFormError) {
+                return;
+            }
+            setManualFormError('');
+        },
+        [manualFormError],
+    );
 
     const errorState = useMemo(
         () => ({
