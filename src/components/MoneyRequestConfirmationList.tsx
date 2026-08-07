@@ -332,9 +332,11 @@ function MoneyRequestConfirmationList({
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
     const [showMoreFields, setShowMoreFields] = useState(false);
+    const [isTaxAmountEmpty, setIsTaxAmountEmpty] = useState(false);
 
     useEffect(() => {
         setShowMoreFields(false);
+        setIsTaxAmountEmpty(false);
     }, [transactionID]);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
@@ -429,6 +431,7 @@ function MoneyRequestConfirmationList({
 
     const sections = useConfirmationSections({
         isTypeSplit,
+        isTypeInvoice,
         shouldHideToSection,
         shouldForceTopEmptySections,
         participantRowErrors,
@@ -487,13 +490,13 @@ function MoneyRequestConfirmationList({
         isNewManualExpenseFlowEnabled,
         isReadOnly,
         shouldShowDate: shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest),
+        isTaxAmountEmpty,
     });
 
     const confirm = buildConfirmAction({
         iouType,
         policy,
         transactionID,
-        reportID,
         routeError,
         formError,
         isDelegateAccessRestricted,
@@ -509,7 +512,7 @@ function MoneyRequestConfirmationList({
     const selectionListStyle = {
         containerStyle: [styles.flexBasisAuto],
         contentContainerStyle: isCompactMode ? [styles.flexGrow1] : undefined,
-        listFooterContentStyle: isCompactMode ? [styles.flex1, styles.mv3] : [styles.mv3],
+        listFooterContentStyle: isCompactMode ? [styles.flex1, styles.mb3] : [styles.mb3],
     };
 
     const footerContent = isReadOnly ? undefined : (
@@ -587,6 +590,7 @@ function MoneyRequestConfirmationList({
                 compactControls={{showMoreFields, setShowMoreFields}}
                 scrollFocusedInputIntoView={scrollFocusedInputIntoView}
                 onSubmitForm={confirm}
+                onTaxAmountEmptyChange={setIsTaxAmountEmpty}
             />
         </View>
     );

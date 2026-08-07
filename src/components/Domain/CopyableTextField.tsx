@@ -8,8 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
@@ -40,17 +38,10 @@ function CopyableTextField({value, isLoading = false, style, textStyle, shouldDi
     const [expanded, setExpanded] = useState(false);
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
 
-    const copyableTextFieldLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'CopyableTextField',
-    };
-
     return (
         <View style={[styles.qbdSetupLinkBox, styles.border, styles.gap4, styles.justifyContentCenter, styles.alignItemsCenter, style]}>
             {isLoading ? (
-                <ActivityIndicator
-                    color={theme.text}
-                    reasonAttributes={copyableTextFieldLoadingReasonAttributes}
-                />
+                <ActivityIndicator color={theme.text} />
             ) : (
                 <>
                     <View style={[styles.w100, styles.flexRow, styles.gap2, styles.justifyContentBetween, styles.alignItemsCenter]}>
@@ -63,9 +54,10 @@ function CopyableTextField({value, isLoading = false, style, textStyle, shouldDi
                         <CopyTextToClipboard
                             urlToCopy={value ?? ''}
                             styles={styles.copyableTextFieldButton}
-                            iconStyles={styles.t0}
+                            iconStyles={styles.mr0}
                             shouldHaveActiveBackground
                             shouldUseButtonBackground
+                            inline={false}
                         />
                     </View>
                     {shouldDisplayShowMoreButton && (

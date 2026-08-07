@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -46,7 +46,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 import type {Ref} from 'react';
 
 import {useFocusEffect} from '@react-navigation/native';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import reject from 'lodash/reject';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
@@ -61,6 +61,7 @@ const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value
 const PAGINATION_SIZE = CONST.MAX_SELECTION_LIST_PAGE_LENGTH;
 
 function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
+    const {translate} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -144,6 +145,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             selectedOptions,
             includeSelectedOptions: true,
         },
+        translate,
     );
 
     const areOptionsInitialized = !isLoading;
@@ -240,7 +242,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const allPersonalDetails = usePersonalDetails();
 
@@ -392,7 +394,17 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
         KeyboardUtils.dismiss().then(() => {
-            singleExecution(() => navigateToAndOpenReport([login], allPersonalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas))();
+            singleExecution(() =>
+                navigateToAndOpenReport(
+                    [login],
+                    allPersonalDetails,
+                    currentUserAccountID,
+                    introSelected,
+                    guidedSetupAndTourStatus?.isSelfTourViewed,
+                    guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                    betas,
+                ),
+            )();
         });
     };
 
@@ -423,11 +435,12 @@ function NewChatPage({ref}: NewChatPageProps) {
             <Button
                 onPress={() => toggleOption(item)}
                 style={[styles.pl2]}
-                text={translate('newChatPage.addToGroup')}
                 accessibilityLabel={item.text ? translate('newChatPage.addUserToGroup', item.text) : ''}
                 innerStyles={buttonInnerStyles}
-                small
-            />
+                size={CONST.BUTTON_SIZE.SMALL}
+            >
+                <Button.Text>{translate('newChatPage.addToGroup')}</Button.Text>
+            </Button>
         );
     };
 
@@ -455,12 +468,13 @@ function NewChatPage({ref}: NewChatPageProps) {
 
             {!!selectedOptions.length && (
                 <Button
-                    success
-                    large
-                    text={translate('common.next')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={createGroup}
-                    pressOnEnter
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.next')}</Button.Text>
+                </Button>
             )}
         </>
     );

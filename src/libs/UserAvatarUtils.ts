@@ -168,6 +168,16 @@ function getCatalogAvatarNameFromURL(avatarURL?: AvatarSource): string | undefin
     return findAvatarIDFromURL(avatarURL);
 }
 
+/** Narrows an avatar owner ID to a numeric account ID. User-avatar path only — a workspace policyID yields the anonymous default; use `WorkspaceAvatar` instead. */
+function getAccountIDFromAvatarID(avatarID?: number | string): number {
+    if (avatarID === undefined) {
+        return CONST.DEFAULT_NUMBER_ID;
+    }
+    // Number() (unlike parseInt) rejects a policyID like '1A2B...' whole, instead of extracting a bogus leading account ID.
+    const accountID = Number(avatarID);
+    return Number.isNaN(accountID) ? CONST.DEFAULT_NUMBER_ID : accountID;
+}
+
 /**
  * Determines if an avatar source points to a default avatar (not user-uploaded).
  * Default avatars include numbered avatars (avatar_X, default-avatar_X) and Concierge avatars.
@@ -478,7 +488,16 @@ function getSmallSizeAvatar(args: GetAvatarArgsType & DefaultAvatarsType): Avata
     return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
 }
 
+/**
+ * Swaps a catalog-backed avatar URL for its bundled local SVG so it renders without a network request.
+ * Non-catalog sources (uploaded image URLs, SVG components, or undefined) are returned unchanged.
+ */
+function optimizeAvatarSource(source?: AvatarSource): AvatarSource | undefined {
+    return findLocalAvatarForURL(source) ?? source;
+}
+
 export {
+    getAccountIDFromAvatarID,
     getAvatar,
     getAvatarURL,
     getDefaultAvatar,
@@ -495,5 +514,6 @@ export {
     isDefaultAvatar,
     isGeneratedLetterAvatarURL,
     isLetterAvatar,
+    optimizeAvatarSource,
 };
 export type {AvatarSource};

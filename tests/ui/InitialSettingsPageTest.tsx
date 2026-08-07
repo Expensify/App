@@ -1,8 +1,9 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScrollView from '@components/ScrollView';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import usePermissions from '@hooks/usePermissions';
@@ -24,6 +25,7 @@ import type * as ReactNavigation from '@react-navigation/native';
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
+import {DeviceEventEmitter} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import * as TestHelper from '../utils/TestHelper';
@@ -248,5 +250,51 @@ describe('InitialSettingsPage - agent account', () => {
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-Agents')).toBeDefined();
         });
+    });
+});
+
+describe('InitialSettingsPage - scrolling', () => {
+    const accountID = 456;
+
+    beforeAll(async () => {
+        Onyx.init({keys: ONYXKEYS});
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en' as const);
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+        await waitForBatchedUpdatesWithAct();
+        jest.clearAllMocks();
+    });
+
+    it('should emit a scrolling event so anchored tooltips can follow or hide', async () => {
+        mockUsePermissions.mockImplementation(() => ({isBetaEnabled: () => false}));
+        mockUseSubscriptionPlan.mockImplementation(() => null);
+        await TestHelper.signInWithTestUser(accountID, 'user@expensify.com');
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const emitSpy = jest.spyOn(DeviceEventEmitter, 'emit');
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // The account switcher's tooltip is anchored inside this list, so the page has to announce scrolls.
+        const scrollView = screen.UNSAFE_getByType(ScrollView);
+        fireEvent.scroll(scrollView, {
+            nativeEvent: {
+                contentOffset: {y: 120, x: 0},
+                layoutMeasurement: {height: 800, width: 400},
+                contentSize: {height: 2400, width: 400},
+            },
+        });
+
+        expect(emitSpy).toHaveBeenCalledWith(CONST.EVENTS.SCROLLING, true);
+        emitSpy.mockRestore();
     });
 });

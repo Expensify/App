@@ -132,7 +132,7 @@ function ConfirmationReceiptThumbnail({
             style={[styles.moneyRequestImage, receiptContainerStyle, isLoadingReceipt && [styles.justifyContentCenter, styles.alignItemsCenter]]}
             onLayout={isCompactMode ? onCompactReceiptContainerLayout : undefined}
         >
-            {isLoadingReceipt && <ActivityIndicator reasonAttributes={{context: 'MoneyRequestConfirmationListFooter.receiptThumbnail'}} />}
+            {isLoadingReceipt && <ActivityIndicator />}
             {!isLoadingReceipt &&
                 (isPDF ? (
                     <PressableWithoutFocus
