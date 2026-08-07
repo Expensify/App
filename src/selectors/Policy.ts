@@ -9,6 +9,7 @@ import {
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isArchivedPolicy,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
@@ -74,6 +75,9 @@ type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'owner
     /** Whether the policy is optimistically pending deletion */
     isPendingDelete: boolean;
 
+    /** Whether the policy has been archived */
+    isArchived: boolean;
+
     /** Whether the current user has a pending request to join the policy */
     isJoinRequestPending: boolean;
 
@@ -92,14 +96,15 @@ type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'owner
  * employeeList, customUnits, connections, etc.).
  */
 const createWorkspaceListPoliciesSelector =
-    (currentUserLogin: string | undefined) =>
+    (currentUserLogin: string | undefined, showArchived = false) =>
     (policies: OnyxCollection<Policy>): WorkspaceListPolicy[] => {
         const result: WorkspaceListPolicy[] = [];
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !shouldShowPolicy(policy, true, currentUserLogin)) {
+            if (!policy || !shouldShowPolicy(policy, true, currentUserLogin, showArchived)) {
                 continue;
             }
 
+            const isArchived = isArchivedPolicy(policy);
             const isJoinRequestPending = !!policy.isJoinRequestPending && !!policy.policyDetailsForNonMembers;
             let nonMemberDetails: WorkspaceListPolicy['nonMemberDetails'];
             if (isJoinRequestPending) {
@@ -129,6 +134,7 @@ const createWorkspaceListPoliciesSelector =
                 pendingAction: policy.pendingAction,
                 errors: policy.errors,
                 isPendingDelete: isPendingDeletePolicy(policy),
+                isArchived,
                 isJoinRequestPending,
                 nonMemberDetails,
             });
