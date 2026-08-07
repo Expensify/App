@@ -12,7 +12,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openOldDotLink} from '@libs/actions/Link';
-import {hasStashedSession} from '@libs/actions/Session';
 
 import variables from '@styles/variables';
 
@@ -21,6 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 
 import {canSupportLoginSelector} from '@selectors/Account';
+import {isSupportalSessionSelector} from '@selectors/Session';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -47,12 +47,10 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
     const [email, setEmail] = useState('');
 
     const [canSupportLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSupportLoginSelector});
-    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
-    const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
+    const [isSupportalSession] = useOnyx(ONYXKEYS.SESSION, {selector: isSupportalSessionSelector});
 
-    // canSupportLogin resolves against the session, which is the customer during supportal, so fall back to the
-    // stashed session because that is the agent.
-    const isSupportAgent = (canSupportLogin ?? false) || hasStashedSession(stashedSession, stashedCredentials);
+    // During supportal the account is the customer, so canSupportLogin goes false while switching.
+    const isSupportAgent = (canSupportLogin ?? false) || !!isSupportalSession;
 
     const openSwitcher = useCallback(() => {
         calculatePopoverPosition(anchorRef, ANCHOR_ALIGNMENT).then((position) => {
