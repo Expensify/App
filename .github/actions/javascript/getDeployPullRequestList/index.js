@@ -11988,12 +11988,13 @@ function getValidMergedPRs(commits) {
 }
 /**
  * Takes in two git tags and returns a list of merged PRs entries between those two tags,
- * along with any Mobile-Expensify submodule version updates found in the commit history.
+ * along with any Mobile-Expensify submodule version updates found in the commit history,
+ * and the committer date of the base tag's commit (used for cherry-pick filtering).
  * Returns PRs in the order they appear in the commit history from the GitHub API.
  */
 async function getMergedPRsDeployedBetween(fromTag, toTag, repositoryName) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    const apiCommitList = await GithubUtils_1.default.getCommitHistoryBetweenTags(fromTag, toTag, repositoryName);
+    const { commits: apiCommitList, baseCommitDate } = await GithubUtils_1.default.getCommitHistoryBetweenTags(fromTag, toTag, repositoryName);
     const mergedPRs = getValidMergedPRs(apiCommitList);
     const submoduleUpdates = getSubmoduleUpdates(apiCommitList);
     console.log(`Found ${apiCommitList.length} commits.`);
@@ -12005,7 +12006,7 @@ async function getMergedPRsDeployedBetween(fromTag, toTag, repositoryName) {
         core.info(submoduleUpdates.map((u) => u.version).join(', '));
         core.endGroup();
     }
-    return { mergedPRs, submoduleUpdates };
+    return { mergedPRs, submoduleUpdates, baseCommitDate };
 }
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags.
@@ -12395,7 +12396,12 @@ class GithubUtils {
         return files;
     }
     /**
-     * Get commits between two tags via the GitHub API
+     * Get commits between two tags via the GitHub API.
+     *
+     * Returns both the list of commits and the committer date of the base tag's commit.
+     * The base commit date is used downstream to detect cherry-picked PRs that were already
+     * deployed to production: any commit whose date predates the base tag was brought into
+     * this range by a post-deploy sync rather than by a normal merge in the current cycle.
      */
     static async getCommitHistoryBetweenTags(fromTag, toTag, repositoryName) {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
@@ -12405,6 +12411,9 @@ class GithubUtils {
             let page = 1;
             const perPage = 250;
             let hasMorePages = true;
+            // The committer date of the commit that fromTag points to.
+            // Captured once from the first page of the compareCommits response — no extra API call needed.
+            let baseCommitDate = '';
             while (hasMorePages) {
                 core.info(`📄 Fetching page ${page} of commits...`);
                 const response = await this.octokit.repos.compareCommits({
@@ -12419,6 +12428,12 @@ class GithubUtils {
                 if (response.data?.commits && Array.isArray(response.data.commits)) {
                     if (page === 1) {
                         core.info(`📊 Total commits: ${response.data.total_commits ?? 'unknown'}`);
+                        // Capture the base tag's commit date from the first page.
+                        // This is the creation date of the commit that fromTag points to.
+                        baseCommitDate = response.data.base_commit?.commit?.committer?.date ?? '';
+                        if (baseCommitDate) {
+                            core.info(`📅 Base tag commit date: ${baseCommitDate}`);
+                        }
                     }
                     core.info(`✅ compareCommits API returned ${response.data.commits.length} commits for page ${page}`);
                     allCommits = allCommits.concat(response.data.commits);
@@ -12439,12 +12454,15 @@ class GithubUtils {
             core.info(`🎉 Successfully fetched ${allCommits.length} total commits`);
             core.endGroup();
             console.log('');
-            return allCommits.map((commit) => ({
-                commit: commit.sha,
-                subject: commit.commit.message,
-                authorName: commit.commit.author?.name ?? 'Unknown',
-                date: commit.commit.committer?.date ?? '',
-            }));
+            return {
+                commits: allCommits.map((commit) => ({
+                    commit: commit.sha,
+                    subject: commit.commit.message,
+                    authorName: commit.commit.author?.name ?? 'Unknown',
+                    date: commit.commit.committer?.date ?? '',
+                })),
+                baseCommitDate,
+            };
         }
         catch (error) {
             if (error instanceof request_error_1.RequestError && error.status === 404) {
