@@ -13,6 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import type {ImportedMerchantRule} from '@libs/actions/Policy/Rules';
 import {importMerchantRulesSpreadsheet} from '@libs/actions/Policy/Rules';
+import Tab from '@libs/actions/Tab';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -193,6 +194,8 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImportingRules(false);
+        // Import can start from any tab, so land on the one holding the imported rules.
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.EXPENSE_DEFAULTS);
         Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
     };
 
