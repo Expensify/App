@@ -44,7 +44,6 @@ function SearchTransactionsChangeReport() {
     const transactions = Object.values(selectedTransactions)
         .map((transactionItem) => transactionItem.transaction)
         .filter((transaction): transaction is Transaction => !!transaction);
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
@@ -58,7 +57,8 @@ function SearchTransactionsChangeReport() {
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
-    const hasUnreportedManagedCardTransactions = transactions.some((transaction) => isUnreportedManagedCardTransaction(transaction));
+    const managedCardTransactionID = transactions.find((transaction) => isUnreportedManagedCardTransaction(transaction))?.transactionID;
+    const hasUnreportedManagedCardTransactions = !!managedCardTransactionID;
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {isBetaEnabled} = usePermissions();
@@ -157,8 +157,8 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             false,
             shouldDismissEmptyReportsConfirmation,
+            {managedCardTransactionID},
         );
-        const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         const policyTagList = policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : {};
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
@@ -168,7 +168,6 @@ function SearchTransactionsChangeReport() {
                 email: session?.email ?? '',
                 newReport: optimisticReport,
                 policy: policyForMovingExpenses,
-                reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
                 policyTagList,
                 transactions,
@@ -239,7 +238,6 @@ function SearchTransactionsChangeReport() {
             return;
         }
 
-        const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
         changeTransactionsReport({
@@ -249,7 +247,6 @@ function SearchTransactionsChangeReport() {
             email: session?.email ?? '',
             newReport: destinationReport,
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
-            reportNextStep,
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
             policyTagList,
             transactions,

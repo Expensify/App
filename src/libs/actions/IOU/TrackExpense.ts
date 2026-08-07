@@ -1,5 +1,7 @@
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {AddTrackedExpenseToPolicyParams, CreateWorkspaceParams, DeleteMoneyRequestParams, RequestMoneyParams, ShareTrackedExpenseParams, TrackExpenseParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -11,7 +13,6 @@ import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalytic
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
 import isFileUploadable from '@libs/isFileUploadable';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -67,6 +68,7 @@ import {
     getMerchant,
     getRateID,
     getWaypoints,
+    hasUploadedReceipt,
     isCustomUnitRateIDForP2P,
     isDistanceExpenseType,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -186,7 +188,7 @@ type GetTrackExpenseInformationParams = {
     currentUserEmailParam: string;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
-    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
@@ -217,6 +219,7 @@ type DeleteTrackExpenseParams = {
     currentUserAccountID: number;
     currentUserEmail: string;
     policy?: OnyxEntry<OnyxTypes.Policy>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type BuildOnyxDataForTrackExpenseParams = {
@@ -1533,6 +1536,8 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             value: {
                 parentReportActionID: iouParams.reportActionID,
                 parentReportID: iouParams.reportID,
+                chatReportID: iouParams.reportID,
+                policyID: workspaceParams?.policyID,
             },
         });
 
@@ -1542,6 +1547,8 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             value: {
                 parentReportActionID: transactionThreadReport?.parentReportActionID,
                 parentReportID: transactionThreadReport?.parentReportID,
+                chatReportID: transactionThreadReport?.chatReportID,
+                policyID: transactionThreadReport?.policyID ?? null,
             },
         });
     }
@@ -1649,6 +1656,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         existingTransactionDraft,
         existingTransaction: explicitExistingTransaction,
         isSelfTourViewed,
+        conciergeChat,
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
@@ -1792,7 +1800,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             const workspaceParams =
                 isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
                     ? {
-                          receipt: isFileUploadable(receipt) ? receipt : undefined,
+                          receipt:
+                              isFileUploadable(receipt) && !hasUploadedReceipt(getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`])
+                                  ? receipt
+                                  : undefined,
                           category,
                           tag,
                           taxCode,
@@ -1856,6 +1867,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       onboardingMessage: getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
                       companySize: undefined,
                       isSelfTourViewed,
+                      conciergeChat,
                   })?.guidedSetupData
                 : undefined;
 
@@ -2276,7 +2288,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     const accountantEmail = addSMSDomainIfPhoneNumber(accountantParams?.accountant?.login);
     const accountantAccountID = accountantParams?.accountant?.accountID;
 
-    if (!policyID || !chatReportID || !accountantEmail || !accountantAccountID || !accountantParams.newLogins || !accountantParams.newAccountIDs) {
+    if (!policyID || !chatReportID || !accountantEmail || !accountantAccountID || !accountantParams || !accountantParams.newLogins || !accountantParams.newAccountIDs) {
         return;
     }
 
@@ -2332,7 +2344,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             failureData: addAccountantToWorkspaceFailureData,
         } = buildAddMembersToWorkspaceOnyxData(
             {[accountantEmail]: accountantAccountID},
-            getPersonalDetailsOnyxDataForOptimisticUsers(accountantParams.newLogins, accountantParams.newAccountIDs, formatPhoneNumber),
+            getPersonalDetailsOnyxDataForOptimisticUsers(accountantParams.newLogins, accountantParams.newAccountIDs, accountantParams.formatPhoneNumber),
             policyParams.policy,
             policyMemberAccountIDs,
             CONST.POLICY.ROLE.ADMIN,
@@ -2360,7 +2372,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             optimisticData: inviteAccountantToRoomOptimisticData,
             successData: inviteAccountantToRoomSuccessData,
             failureData: inviteAccountantToRoomFailureData,
-        } = buildInviteToRoomOnyxData(chatReport, {[accountantEmail]: accountantAccountID}, accountantParams.newAccountIDs, accountantParams.newLogins, formatPhoneNumber);
+        } = buildInviteToRoomOnyxData(chatReport, {[accountantEmail]: accountantAccountID}, accountantParams.newAccountIDs, accountantParams.newLogins, accountantParams.formatPhoneNumber);
         onyxData.optimisticData?.push(...inviteAccountantToRoomOptimisticData);
         onyxData.successData?.push(...inviteAccountantToRoomSuccessData);
         onyxData.failureData?.push(...inviteAccountantToRoomFailureData);
@@ -2436,6 +2448,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         merchant = '',
         comment = '',
         distance,
+        modifiedDistance,
         receipt,
         category,
         tag,
@@ -2485,6 +2498,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             merchant,
             comment,
             distance,
+            modifiedDistance,
             receipt: undefined,
             category,
             tag,
@@ -2547,7 +2561,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         transactionParams: {
             comment,
             amount,
-            distance,
+            distance: modifiedDistance ?? distance,
             currency,
             created,
             merchant,
@@ -2590,6 +2604,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
+    const sourceTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`];
 
     const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
@@ -2648,7 +2663,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 billable,
                 reimbursable,
-                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) && !hasUploadedReceipt(sourceTransaction) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
@@ -2701,7 +2716,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 billable,
                 reimbursable,
-                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) && !hasUploadedReceipt(sourceTransaction) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
@@ -2753,7 +2768,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 billable,
                 reimbursable,
-                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) && !hasUploadedReceipt(sourceTransaction) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
@@ -2804,6 +2819,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 currency,
                 comment,
                 distance: distance !== undefined ? roundToTwoDecimalPlaces(distance) : undefined,
+                modifiedDistance: modifiedDistance !== undefined ? roundToTwoDecimalPlaces(modifiedDistance) : undefined,
                 created,
                 merchant,
                 iouReportID: iouReport?.reportID,
@@ -2885,6 +2901,7 @@ function getNavigationUrlAfterTrackExpenseDelete(
     iouReport: OnyxEntry<OnyxTypes.Report>,
     chatIOUReport: OnyxEntry<OnyxTypes.Report>,
     isChatReportArchived: boolean | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     isSingleTransactionView = false,
 ): Route | undefined {
     if (!chatReportID || !transactionID) {
@@ -2895,7 +2912,16 @@ function getNavigationUrlAfterTrackExpenseDelete(
     if (!isSelfDM(chatReport)) {
         const allReports = getAllReports();
         const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
-        return getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, transactionThreadReport, iouReport, chatIOUReport, isChatReportArchived, isSingleTransactionView);
+        return getNavigationUrlOnMoneyRequestDelete(
+            transactionID,
+            reportAction,
+            transactionThreadReport,
+            iouReport,
+            chatIOUReport,
+            isChatReportArchived,
+            getCurrencyDecimals,
+            isSingleTransactionView,
+        );
     }
 
     // Only navigate if in single transaction view and the thread will be deleted
@@ -2924,6 +2950,7 @@ function deleteTrackExpense({
     currentUserAccountID,
     currentUserEmail,
     policy,
+    getCurrencyDecimals,
 }: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
         return;
@@ -2937,6 +2964,7 @@ function deleteTrackExpense({
         iouReport,
         chatIOUReport,
         isChatIOUReportArchived,
+        getCurrencyDecimals,
         isSingleTransactionView,
     );
 
@@ -2959,6 +2987,7 @@ function deleteTrackExpense({
             currentUserAccountID,
             currentUserEmail,
             policy,
+            getCurrencyDecimals,
         });
         return urlToNavigateBack;
     }
