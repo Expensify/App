@@ -244,7 +244,7 @@ import {
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
-import {deprecatedGetReportName, getGroupChatName, getInvoicePayerName, getInvoiceReportName} from './ReportNameUtils';
+import {deprecatedGetReportName, getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {isTaskCompleted} from './TaskUtils';
 import {
@@ -7222,16 +7222,26 @@ function getDeletedTransactionMessage(translate: LocalizedTranslate, action: Rep
     return message;
 }
 
-function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, reportAttributes?: ReportAttributesDerivedValue['reports']) {
+function parseMovedTransactionReportIDs(action: ReportAction): {fromReportID: string | undefined; toReportID: string | undefined} {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
     const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+    return {toReportID, fromReportID};
+}
+
+function getMovedTransactionReportID(action: ReportAction): string | undefined {
+    const {toReportID, fromReportID} = parseMovedTransactionReportIDs(action);
+    return fromReportID ?? toReportID;
+}
+
+function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, derivedReportName?: string | undefined) {
+    const {toReportID, fromReportID} = parseMovedTransactionReportIDs(action);
 
     const toReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
     const fromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
     const report = fromReport ?? toReport;
 
-    const reportName = Parser.htmlToText(deprecatedGetReportName(report, reportAttributes) ?? report?.reportName ?? '');
+    const reportName = Parser.htmlToText(getReportName(report, derivedReportName));
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         return reportName ? translate('iou.movedTransactionTo', reportUrl, reportName) : translate('iou.movedTransactionToAnotherReport');
@@ -7239,13 +7249,17 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
     return reportName ? translate('iou.movedTransactionFrom', reportUrl, reportName) : translate('iou.movedTransactionFromAnotherReport');
 }
 
-function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, reportAttributes?: ReportAttributesDerivedValue['reports']) {
-    const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
-    const {fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+function getUnreportedTransactionReportID(action: ReportAction): string | undefined {
+    const {fromReportID} = parseMovedTransactionReportIDs(action);
+    return fromReportID;
+}
+
+function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, derivedReportName?: string | undefined) {
+    const fromReportID = getUnreportedTransactionReportID(action);
 
     const fromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
-    const reportName = Parser.htmlToText(deprecatedGetReportName(fromReport, reportAttributes) ?? fromReport?.reportName ?? '');
+    const reportName = Parser.htmlToText(getReportName(fromReport, derivedReportName));
 
     let reportUrl = getReportURLForCurrentContext(fromReportID);
 
@@ -14289,6 +14303,9 @@ export {
     hasHeldExpensesFromTransactions,
     canMergeReports,
     canModifyHoldStatus,
+    getMovedTransactionReportID,
+    getUnreportedTransactionReportID,
+    parseMovedTransactionReportIDs,
 };
 
 export type {

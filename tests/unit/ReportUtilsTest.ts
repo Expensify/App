@@ -102,6 +102,7 @@ import {
     getMostRecentlyVisitedReport,
     getMovedActionMessage,
     getMovedTransactionMessage,
+    getMovedTransactionReportID,
     getNextApproverAccountID,
     getNonHeldAndFullAmount,
     getOriginalReportID,
@@ -138,6 +139,7 @@ import {
     getTransactionsWithReceipts,
     getUnheldReimbursableTotal,
     getUnreportedTransactionMessage,
+    getUnreportedTransactionReportID,
     getUserDetailTooltipText,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceIcon,
@@ -175,6 +177,7 @@ import {
     isSortableColumnName,
     isUnread,
     isWorkspaceMemberLeavingWorkspaceRoom,
+    parseMovedTransactionReportIDs,
     parseReportRouteParams,
     prepareOnboardingOnyxData,
     pushTransactionAutoSelectionsOnyxData,
@@ -20517,6 +20520,136 @@ describe('ReportUtils', () => {
             const result = getMovedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('parseMovedTransactionReportIDs', () => {
+        it('should return both fromReportID and toReportID when both are present', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: '111',
+                    toReportID: '222',
+                },
+            });
+
+            const result = parseMovedTransactionReportIDs(action);
+            expect(result).toEqual({fromReportID: '111', toReportID: '222'});
+        });
+
+        it('should return undefined for missing IDs', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {},
+            });
+
+            const result = parseMovedTransactionReportIDs(action);
+            expect(result.fromReportID).toBeUndefined();
+            expect(result.toReportID).toBeUndefined();
+        });
+
+        it('should return only fromReportID when toReportID is missing', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: '111',
+                },
+            });
+
+            const result = parseMovedTransactionReportIDs(action);
+            expect(result.fromReportID).toBe('111');
+            expect(result.toReportID).toBeUndefined();
+        });
+
+        it('should return only toReportID when fromReportID is missing', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    toReportID: '222',
+                },
+            });
+
+            const result = parseMovedTransactionReportIDs(action);
+            expect(result.fromReportID).toBeUndefined();
+            expect(result.toReportID).toBe('222');
+        });
+    });
+
+    describe('getMovedTransactionReportID', () => {
+        it('should return fromReportID when both IDs are present', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: '111',
+                    toReportID: '222',
+                },
+            });
+
+            expect(getMovedTransactionReportID(action)).toBe('111');
+        });
+
+        it('should fall back to toReportID when fromReportID is undefined', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    toReportID: '222',
+                },
+            });
+
+            expect(getMovedTransactionReportID(action)).toBe('222');
+        });
+
+        it('should return undefined when both IDs are missing', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {},
+            });
+
+            expect(getMovedTransactionReportID(action)).toBeUndefined();
+        });
+    });
+
+    describe('getUnreportedTransactionReportID', () => {
+        it('should return fromReportID', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: '333',
+                },
+            });
+
+            expect(getUnreportedTransactionReportID(action)).toBe('333');
+        });
+
+        it('should return undefined when fromReportID is missing', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+                originalMessage: {},
+            });
+
+            expect(getUnreportedTransactionReportID(action)).toBeUndefined();
+        });
+
+        it('should ignore toReportID and only return fromReportID', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: '333',
+                    toReportID: '444',
+                },
+            });
+
+            expect(getUnreportedTransactionReportID(action)).toBe('333');
         });
     });
 
