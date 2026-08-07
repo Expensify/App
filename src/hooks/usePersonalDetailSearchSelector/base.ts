@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailOptions from '@hooks/usePersonalDetailOptions';
 
+import memoize, {equivalentArgsComparator} from '@libs/memoize';
 import {filterOption, getValidOptions} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
@@ -148,6 +149,16 @@ const defaultListOptions = {
 };
 
 /**
+ * Filtering the whole option list is a pure derivation of its inputs, so remounting consumers reuse the previous result.
+ * A few entries are kept so that lists rendered next to each other don't evict each other.
+ */
+const memoizedGetValidOptions = memoize(getValidOptions, {
+    maxSize: 3,
+    equality: equivalentArgsComparator,
+    monitoringName: 'usePersonalDetailSearchSelector.getValidOptions',
+});
+
+/**
  * Base hook that provides search functionality with selection logic for option lists.
  * This contains the core logic without platform-specific dependencies.
  */
@@ -191,11 +202,20 @@ function usePersonalDetailSearchSelectorBase({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
 
-    const transformedOptions: OptionData[] =
-        optionsWithContacts?.map((option) => ({
+    // With nothing selected the options already carry the right state, so the list is passed through without copying,
+    // keeping its reference stable for the memoized filtering below.
+    const transformedOptions: OptionData[] = (() => {
+        if (!optionsWithContacts) {
+            return [];
+        }
+        if (selectedAccountIDs.size === 0) {
+            return optionsWithContacts;
+        }
+        return optionsWithContacts.map((option) => ({
             ...option,
             isSelected: selectedAccountIDs.has(option.accountID.toString()),
-        })) ?? [];
+        }));
+    })();
 
     const selectedOptions = (() => {
         const options: OptionData[] = [];
@@ -214,7 +234,7 @@ function usePersonalDetailSearchSelectorBase({
 
     const optionsList = !areOptionsInitialized
         ? defaultListOptions
-        : getValidOptions(transformedOptions, currentUserEmail, formatPhoneNumber, countryCode, loginList, {
+        : memoizedGetValidOptions(transformedOptions, currentUserEmail, formatPhoneNumber, countryCode, loginList, {
               excludeLogins,
               excludeFromSuggestionsOnly,
               includeSelectedOptions: shouldKeepSelectedInAvailableOptions,
