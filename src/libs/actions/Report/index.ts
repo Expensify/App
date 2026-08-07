@@ -1065,12 +1065,6 @@ function addActions({
     const snapshotDataToStore: NullishDeep<SearchResultDataType> = {};
     snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = optimisticReport;
     snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = optimisticReportActions;
-    const optimisticSnapshotUpdate = buildOptimisticSnapshotData(CONST.SEARCH.DATA_TYPES.CHAT, snapshotDataToStore);
-
-    // We are pushing the optimistic report and report actions into the chat snapshot so that the newly sent message appears immediately in "Reports > Chats" while offline.
-    if (optimisticSnapshotUpdate) {
-        optimisticData.push(optimisticSnapshotUpdate);
-    }
 
     optimisticData.push(...getOptimisticDataForAncestors(ancestors, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD));
 
@@ -1182,6 +1176,11 @@ function addActions({
                 value: {[resolvedReportActionID]: {childReportID: conciergeThreadReportID, childType: CONST.REPORT.TYPE.CHAT}},
             },
         );
+        snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT}${conciergeThreadReportID}`] = optimisticThread;
+        snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = {
+            ...optimisticReportActions,
+            [resolvedReportActionID]: {...optimisticReportActions[resolvedReportActionID], childReportID: conciergeThreadReportID, childType: CONST.REPORT.TYPE.CHAT},
+        };
         successData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1219,6 +1218,11 @@ function addActions({
                 value: {[resolvedReportActionID]: {childReportID: null, childType: ''}},
             },
         );
+    }
+
+    const optimisticSnapshotUpdate = buildOptimisticSnapshotData(CONST.SEARCH.DATA_TYPES.CHAT, snapshotDataToStore);
+    if (optimisticSnapshotUpdate) {
+        optimisticData.push(optimisticSnapshotUpdate);
     }
 
     API.write(commandName, parameters, {
