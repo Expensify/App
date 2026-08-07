@@ -13,6 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openOldDotLink} from '@libs/actions/Link';
+import {getSupportalReason} from '@libs/actions/Session';
 
 import variables from '@styles/variables';
 
@@ -47,6 +48,9 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
     const [anchorPosition, setAnchorPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [email, setEmail] = useState('');
+    const [reason, setReason] = useState('');
+    const [isReasonRequired, setIsReasonRequired] = useState(false);
+    const [isCheckingReason, setIsCheckingReason] = useState(false);
 
     const [canSupportLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSupportLoginSelector});
     const [isSupportalSession] = useOnyx(ONYXKEYS.SESSION, {selector: isSupportalSessionSelector});
@@ -61,16 +65,44 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
         });
     };
 
-    const switchToAccount = () => {
-        const target = email.trim();
-        if (!target) {
-            return;
-        }
+    const closeSwitcher = () => {
         setIsPopoverVisible(false);
         setEmail('');
+        setReason('');
+        setIsReasonRequired(false);
+    };
 
-        // OldDot mints the support token behind Cloudflare and redirects back to /transition.
-        openOldDotLink(CONST.OLDDOT_URLS.SUPPORTAL_LOGIN_NEWDOT(target), true);
+    // OldDot mints the support token behind Cloudflare and redirects back to /transition.
+    const switchToAccount = (target: string, supportReason: string) => {
+        closeSwitcher();
+        openOldDotLink(CONST.OLDDOT_URLS.SUPPORTAL_LOGIN_NEWDOT(target, supportReason), true);
+    };
+
+    const submitEmail = () => {
+        const target = email.trim();
+        if (!target || isCheckingReason) {
+            return;
+        }
+
+        setIsCheckingReason(true);
+        getSupportalReason(target)
+            .then((derivedReason) => {
+                if (!derivedReason) {
+                    setIsReasonRequired(true);
+                    return;
+                }
+                switchToAccount(target, '');
+            })
+            .finally(() => setIsCheckingReason(false));
+    };
+
+    const submitReason = () => {
+        const target = email.trim();
+        const enteredReason = reason.trim();
+        if (!target || !enteredReason) {
+            return;
+        }
+        switchToAccount(target, enteredReason);
     };
 
     if (!isSupportAgent) {
@@ -111,12 +143,12 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
             )}
             <PopoverWithMeasuredContent
                 isVisible={isPopoverVisible}
-                onClose={() => setIsPopoverVisible(false)}
+                onClose={closeSwitcher}
                 anchorRef={anchorRef}
                 anchorPosition={anchorPosition}
                 anchorAlignment={ANCHOR_ALIGNMENT}
             >
-                <View style={[styles.p5, styles.supportalSwitcherPopoverWidth]}>
+                <View style={[styles.createMenuContainer, styles.ph5]}>
                     <TextInput
                         label={translate('supportalSwitcher.title')}
                         accessibilityLabel={translate('supportalSwitcher.emailLabel')}
@@ -124,12 +156,29 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
                         role={CONST.ROLE.PRESENTATION}
                         value={email}
                         onChangeText={setEmail}
-                        onSubmitEditing={switchToAccount}
+                        onSubmitEditing={submitEmail}
+                        editable={!isCheckingReason && !isReasonRequired}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"
                         spellCheck={false}
                         enterKeyHint="go"
                     />
+                    {isReasonRequired && (
+                        <View style={styles.mt3}>
+                            <TextInput
+                                label={translate('supportalSwitcher.reasonLabel')}
+                                accessibilityLabel={translate('supportalSwitcher.reasonLabel')}
+                                hint={translate('supportalSwitcher.reasonHint')}
+                                role={CONST.ROLE.PRESENTATION}
+                                value={reason}
+                                onChangeText={setReason}
+                                onSubmitEditing={submitReason}
+                                autoFocus
+                                spellCheck={false}
+                                enterKeyHint="go"
+                            />
+                        </View>
+                    )}
                 </View>
             </PopoverWithMeasuredContent>
         </>
