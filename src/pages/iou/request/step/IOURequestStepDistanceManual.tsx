@@ -147,8 +147,9 @@ function IOURequestStepDistanceManual({
         ownerBillingGracePeriodEnd,
         currentUserAccountIDParam,
     );
+    const shouldAutoReportToDefaultWorkspace = shouldUseDefaultExpensePolicy && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
     const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
-        policyID: policy?.id ?? (shouldUseDefaultExpensePolicy ? defaultExpensePolicy?.id : undefined),
+        policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
         isManualDistanceRequest: true,
     });
 

@@ -51,7 +51,8 @@ function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, i
     const [policiesWithCommuterExclusions] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesWithCommuterExclusionsSelector});
 
     return useCallback(
-        (policyIDToCheck = policyID) => {
+        (...policyIDsToCheck: [string?]) => {
+            const policyIDToCheck = policyIDsToCheck.length > 0 ? policyIDsToCheck[0] : policyID;
             if (!isManualDistanceRequest && !isOdometerDistanceRequest) {
                 return false;
             }

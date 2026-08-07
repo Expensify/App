@@ -160,8 +160,9 @@ function IOURequestStepDistanceOdometer({
         () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam),
         [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam],
     );
+    const shouldAutoReportToDefaultWorkspace = shouldUseDefaultExpensePolicy && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
     const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
-        policyID: policy?.id ?? (shouldUseDefaultExpensePolicy ? defaultExpensePolicy?.id : undefined),
+        policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
         isOdometerDistanceRequest: true,
     });
 

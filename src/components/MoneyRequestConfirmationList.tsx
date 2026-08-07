@@ -256,7 +256,7 @@ function MoneyRequestConfirmationList({
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
     const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
-        policyID: policy?.id,
+        policyID: isPolicyExpenseChat ? policy?.id : undefined,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
     });
