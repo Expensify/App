@@ -90,7 +90,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
         if (isActionableAddPaymentCard(action) && !doesUserHavePaymentCardAdded(userBillingFundID) && shouldRenderAddPaymentCard()) {
             return [
                 {
-                    text: 'subscription.cardSection.addCardButton',
+                    translationKey: 'subscription.cardSection.addCardButton',
                     key: `${action.reportActionID}-actionableAddPaymentCard-submit`,
                     onPress: () => {
                         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
@@ -169,7 +169,6 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
             if (followups && followups.length > 0) {
                 return followups.map((followup) => ({
                     text: followup.text,
-                    shouldUseLocalization: false,
                     key: `${action.reportActionID}-followup-${followup.text}`,
                     onPress: () => {
                         resolveSuggestedFollowup(
@@ -211,8 +210,8 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                 categorize: CONST.IOU.ACTION.CATEGORIZE,
                 share: CONST.IOU.ACTION.SHARE,
             } as const;
-            const prepareTrackExpenseButton = (actionKey: keyof typeof TRACK_EXPENSE_ACTIONS, extraParams?: Partial<CreateDraftTransactionParams>) => ({
-                text: `actionableMentionTrackExpense.${actionKey}`,
+            const prepareTrackExpenseButton = (actionKey: keyof typeof TRACK_EXPENSE_ACTIONS, extraParams?: Partial<CreateDraftTransactionParams>): ActionableItem => ({
+                translationKey: `actionableMentionTrackExpense.${actionKey}`,
                 key: `${action.reportActionID}-actionableMentionTrackExpense-${actionKey}`,
                 onPress: () => {
                     createDraftTransactionAndNavigateToParticipantSelector({
@@ -226,7 +225,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
             // On the Submit (submit2026) plan, "Submit it to someone" splits into two destinations:
             // submit to an individual ("a friend") or route to a submit-enabled workspace ("my employer").
             const prepareSubmitDestinationButton = (destination: ValueOf<typeof CONST.IOU.SUBMIT_DESTINATION>, textKey: 'submitToFriend' | 'submitToEmployer'): ActionableItem => ({
-                text: `actionableMentionTrackExpense.${textKey}`,
+                translationKey: `actionableMentionTrackExpense.${textKey}`,
                 key: `${action.reportActionID}-actionableMentionTrackExpense-${textKey}`,
                 onPress: () => {
                     createDraftTransactionAndNavigateToParticipantSelector({
@@ -256,7 +255,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                 options.push(prepareTrackExpenseButton('categorize'), prepareTrackExpenseButton('share'));
             }
             options.push({
-                text: 'actionableMentionTrackExpense.nothing',
+                translationKey: 'actionableMentionTrackExpense.nothing',
                 key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
                 onPress: () => {
                     dismissTrackExpenseActionableWhisper(actionOwnerReportID, action);
@@ -284,13 +283,14 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
         <ActionableItemButtons
             items={actionableItemButtons}
             layout={isActionableTrackExpense(action) || isPhrasalConciergeOptions ? 'vertical' : 'horizontal'}
-            shouldUseLocalization={!isPhrasalConciergeOptions}
-            primaryTextNumberOfLines={actionableButtonsNoLines}
-            styles={{
-                text: isPhrasalConciergeOptions ? styles.actionableItemButtonText : undefined,
-                button: isPhrasalConciergeOptions ? styles.actionableItemButton : undefined,
+            textProps={{
+                numberOfLines: actionableButtonsNoLines,
+                style: isPhrasalConciergeOptions && styles.actionableItemButtonText,
             }}
-            wrapperStyle={isPhrasalConciergeOptions ? styles.mt4 : undefined}
+            buttonProps={{
+                innerStyles: isPhrasalConciergeOptions && styles.actionableItemButton,
+            }}
+            wrapperStyle={isPhrasalConciergeOptions && styles.mt4}
         />
     );
 }

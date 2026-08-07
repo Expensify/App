@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -348,14 +348,15 @@ function SearchEditMultiplePage() {
                     ))}
                 </ScrollView>
                 <Button
-                    success
-                    large
-                    text={translate('common.save')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={save}
                     isLoading={isSaving}
                     isDisabled={isSaving}
                     style={[styles.m5]}
-                />
+                >
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
             </View>
         </ScreenWrapper>
     );

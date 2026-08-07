@@ -33,13 +33,13 @@ function JoinRequestContent({action, actionOwnerReportID, policyID}: JoinRequest
             ? []
             : [
                   {
-                      text: 'actionableMentionJoinWorkspaceOptions.accept',
+                      translationKey: 'actionableMentionJoinWorkspaceOptions.accept',
                       key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
                       onPress: () => acceptJoinRequest(actionOwnerReportID, action),
                       isPrimary: true,
                   },
                   {
-                      text: 'actionableMentionJoinWorkspaceOptions.decline',
+                      translationKey: 'actionableMentionJoinWorkspaceOptions.decline',
                       key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
                       onPress: () => declineJoinRequest(actionOwnerReportID, action),
                   },
@@ -51,7 +51,6 @@ function JoinRequestContent({action, actionOwnerReportID, policyID}: JoinRequest
             {buttons.length > 0 && (
                 <ActionableItemButtons
                     items={buttons}
-                    shouldUseLocalization
                     layout="horizontal"
                 />
             )}
