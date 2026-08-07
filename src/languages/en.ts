@@ -2680,6 +2680,7 @@ const translations = {
             unlock: 'Unlock',
             debitBlocked: 'Your bank blocked test transactions to this account',
             insufficientFunds: 'Test transactions failed due to insufficient funds',
+            validationFailedFallback: 'Your bank blocked test transactions to this account. <concierge-link>Contact Concierge</concierge-link>',
         },
         fixBankAccount: {
             title: 'Fix bank account',
