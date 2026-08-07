@@ -23,8 +23,8 @@ defineTask<BackgroundLocationTrackingTaskData>(BACKGROUND_LOCATION_TRACKING_TASK
     // Use NetInfo.fetch() instead of the in-memory NetworkState.isOffline() because this
     // background task may run in a headless JS context (Android) where module-level state
     // in NetworkState.ts hasn't been populated via Onyx/NetInfo subscribers.
-    const [gpsDraftDetailsPromiseResult, netInfoState] = await Promise.all([OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS).catch(() => undefined), NetInfo.fetch()]);
-    const gpsDraftDetails = gpsDraftDetailsPromiseResult ?? undefined;
+    const gpsDraftDetails = OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS) ?? undefined;
+    const netInfoState = await NetInfo.fetch();
     if (!gpsDraftDetails) {
         return;
     }
@@ -58,8 +58,7 @@ async function updateStartAddress(gpsPoints: GPSPoint[][], isOffline: boolean) {
         const address = await addressFromGpsPoint({lat: startPoint.lat, long: startPoint.long});
 
         // To avoid race conditions, we need to get the latest gpsDraftDetails, because reverse geocoding may even take a few seconds
-        const gpsDraftDetailsPromiseResult = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS).catch(() => undefined);
-        const updatedGpsDraftDetails = gpsDraftDetailsPromiseResult ?? undefined;
+        const updatedGpsDraftDetails = OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS) ?? undefined;
         const updatedGpsPoints = updatedGpsDraftDetails ? getGpsPoints(updatedGpsDraftDetails) : gpsPoints;
 
         if (address !== null) {
