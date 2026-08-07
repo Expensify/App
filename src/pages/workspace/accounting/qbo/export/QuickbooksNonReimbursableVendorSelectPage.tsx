@@ -11,6 +11,7 @@ import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 
 import variables from '@styles/variables';
@@ -43,6 +44,7 @@ type QuickbooksNonReimbursableVendorSelectPageProps = {
 
 function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVendor, displayName}: QuickbooksNonReimbursableVendorSelectPageProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -78,7 +80,7 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
             title={translate('workspace.qbo.noAccountsFound')}
-            subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+            subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
             containerStyle={styles.pb10}
         />
     );
