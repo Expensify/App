@@ -1984,7 +1984,6 @@
 "../../tests/unit/useGroupDraftRestoreTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
 "../../tests/unit/useIndicatorStatusTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/useMarkAsReadTest.ts"	"no-restricted-imports"	1
-"../../tests/unit/usePersonalDetailSearchSelectorTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/usePolicyIndicatorChecksTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
 "../../tests/unit/usePopoverPositionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/useReceiptHoverZoomTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
