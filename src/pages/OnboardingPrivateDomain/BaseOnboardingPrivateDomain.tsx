@@ -26,7 +26,7 @@ import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingPrivateDomainProps} from './types';
@@ -104,8 +104,18 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         sendValidateCode();
     }, [sendValidateCode, isValidated, shouldBlockPublicDomain]);
 
+    // Fire the forced-replace redirect at most once per mount. Without this guard, a dependency flip (e.g. the
+    // accessible-policies loading flag toggling) can re-run the effect and re-dispatch the redirect, which drives
+    // history.replaceState in a loop and trips Safari's rate limit. See Expensify/App#97473.
+    const hasRedirectedRef = useRef(false);
+
     useEffect(() => {
+        if (hasRedirectedRef.current) {
+            return;
+        }
+
         if (shouldBlockPublicDomain) {
+            hasRedirectedRef.current = true;
             navigateToNextOnboardingStep(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
             return;
         }
@@ -115,6 +125,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         }
 
         if (joinablePoliciesLength > 0) {
+            hasRedirectedRef.current = true;
             Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
             return;
         }
@@ -122,6 +133,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         // When validation succeeded but there are no joinable workspaces and the API call has completed,
         // navigate to the next onboarding step (same as the skip button behavior).
         if (getAccessiblePoliciesAction?.loading === false) {
+            hasRedirectedRef.current = true;
             navigateToNextOnboardingStep(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
         }
     }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, shouldBlockPublicDomain, navigateToNextOnboardingStep]);
