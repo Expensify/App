@@ -5689,6 +5689,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             subsidiarySelectDescription: 'Escolha a subsidiária no DualEntry da qual você gostaria de importar dados.',
             noCompaniesFound: 'Nenhuma empresa encontrada',
             noCompaniesFoundDescription: 'Adicione uma empresa no DualEntry e sincronize a conexão novamente',
+            accountTypesDescription: 'Suas contas DualEntry serão importadas como categorias.',
+            enableNewAccountsTitle: 'Ativar contas recém-importadas',
+            enableNewAccountsDescription: 'Novas contas DualEntry estarão disponíveis como categorias.',
+            classificationsImport: 'Todas as classificações DualEntry são importadas como etiquetas',
+            importDescription: 'Escolha quais configurações de codificação importar do DualEntry.',
         },
         type: {
             free: 'Grátis',

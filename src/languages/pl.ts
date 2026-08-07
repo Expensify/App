@@ -5675,6 +5675,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             subsidiarySelectDescription: 'Wybierz jednostkę zależną w DualEntry, z której chcesz zaimportować dane.',
             noCompaniesFound: 'Nie znaleziono firm',
             noCompaniesFoundDescription: 'Dodaj proszę firmę w DualEntry i zsynchronizuj połączenie ponownie',
+            accountTypesDescription: 'Twoje konta DualEntry zostaną zaimportowane jako kategorie.',
+            enableNewAccountsTitle: 'Włącz nowo zaimportowane konta',
+            enableNewAccountsDescription: 'Nowe konta DualEntry będą dostępne jako kategorie.',
+            classificationsImport: 'Wszystkie klasyfikacje DualEntry są importowane jako tagi',
+            importDescription: 'Wybierz, które konfiguracje kodowania zaimportować z DualEntry.',
         },
         type: {
             free: 'Darmowy',
