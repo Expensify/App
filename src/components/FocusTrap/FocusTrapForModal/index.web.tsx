@@ -9,7 +9,16 @@ import React, {useRef} from 'react';
 
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
-function FocusTrapForModal({children, active, initialFocus = false, shouldPreventScroll = false, shouldReturnFocus = true}: FocusTrapForModalProps) {
+/** On web an RN `View` ref IS the DOM node, so narrow with `instanceof` rather than casting. A detached anchor can never take focus, so it is no better than nothing. */
+function resolveLauncherElement(ref: FocusTrapForModalProps['launcherRef']): HTMLElement | null {
+    const node = ref?.current;
+    if (!(node instanceof HTMLElement) || !document.contains(node)) {
+        return null;
+    }
+    return node;
+}
+
+function FocusTrapForModal({children, active, initialFocus = false, shouldPreventScroll = false, shouldReturnFocus = true, launcherRef}: FocusTrapForModalProps) {
     // Track this trap's own launcher so onPostDeactivate targets the right shared-stack entry.
     const cachedLauncherRef = useRef<HTMLElement | null>(null);
     return (
@@ -18,9 +27,12 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
             focusTrapOptions={{
                 onActivate: () => {
                     // Capture for nav-back return — independent of shouldReturnFocus (which gates only focus-trap-react's same-screen return below).
-                    const launcher = document.activeElement;
+                    const activeElement = document.activeElement;
                     blurActiveElement();
-                    if (launcher instanceof HTMLElement && launcher !== document.body) {
+                    // What actually held focus wins; the anchor is the fallback for triggers that blur themselves
+                    // before opening, which would otherwise leave us with `body` and no launcher at all.
+                    const launcher = activeElement instanceof HTMLElement && activeElement !== document.body ? activeElement : resolveLauncherElement(launcherRef);
+                    if (launcher) {
                         cachedLauncherRef.current = launcher;
                         setActivePopoverLauncher(launcher);
                     }
