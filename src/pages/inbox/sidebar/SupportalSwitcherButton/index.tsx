@@ -12,7 +12,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {openOldDotLink} from '@libs/actions/Link';
+import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import {getSupportalReason} from '@libs/actions/Session';
 
 import variables from '@styles/variables';
@@ -72,10 +72,11 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
         setIsReasonRequired(false);
     };
 
-    // OldDot mints the support token behind Cloudflare and redirects back to /transition.
+    // OldDot mints the support token behind Cloudflare and redirects back to /transition. It has to run on the
+    // agent's own OldDot session, so send no short-lived token, same as the restoreStashedLogin exit.
     const switchToAccount = (target: string, supportReason: string) => {
         closeSwitcher();
-        openOldDotLink(CONST.OLDDOT_URLS.SUPPORTAL_LOGIN_NEWDOT(target, supportReason), true);
+        buildOldDotURL(CONST.OLDDOT_URLS.SUPPORTAL_LOGIN_NEWDOT(target, supportReason)).then((oldDotURL) => openExternalLink(oldDotURL, undefined, true));
     };
 
     const submitEmail = () => {
