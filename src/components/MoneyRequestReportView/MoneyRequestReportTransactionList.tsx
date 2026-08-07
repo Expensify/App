@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import LinkButton from '@components/ButtonComposed/composed/LinkButton';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import type FlatListRefType from '@components/FlashList/types';
@@ -975,17 +975,17 @@ function MoneyRequestReportTransactionList({
                     />
                 )}
                 {!shouldUseNarrowLayout && !isExpenseReportViewFromIOUReport && (
-                    <Button
-                        link
-                        small
-                        shouldUseDefaultHover={false}
-                        text={translate('search.columns')}
-                        iconFill={theme.link}
-                        iconHoverFill={theme.linkHover}
-                        icon={expensifyIcons.Columns}
-                        textStyles={[styles.textMicroBold]}
+                    <LinkButton
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={openColumnsPage}
-                    />
+                    >
+                        <LinkButton.Icon
+                            src={expensifyIcons.Columns}
+                            fill={theme.link}
+                            hoverFill={theme.linkHover}
+                        />
+                        <LinkButton.Text style={[styles.textMicroBold]}>{translate('search.columns')}</LinkButton.Text>
+                    </LinkButton>
                 )}
             </View>
         </View>

@@ -1,7 +1,7 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -428,15 +428,16 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         <View style={[styles.flexRow, styles.gap2]}>
             {isPolicyAdmin && (
                 <Button
-                    success
-                    text={translate('common.invite')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.INVITE_BUTTON}
-                    icon={expensifyIcons.UserPlus}
                     onPress={handleInvitePress}
-                    medium
+                    size={CONST.BUTTON_SIZE.MEDIUM}
                     innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                />
+                >
+                    <Button.Icon src={expensifyIcons.UserPlus} />
+                    <Button.Text>{translate('common.invite')}</Button.Text>
+                </Button>
             )}
             {dropdownMenu}
         </View>
@@ -743,14 +744,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                         return (
                                             <View style={[styles.flexRow]}>
                                                 <Button
-                                                    medium
-                                                    text={translate('common.chooseFile')}
                                                     onPress={() => {
                                                         openPicker({
                                                             onPicked: handleRulesDocumentPicked,
                                                         });
                                                     }}
-                                                />
+                                                >
+                                                    <Button.Text>{translate('common.chooseFile')}</Button.Text>
+                                                </Button>
                                             </View>
                                         );
                                     }}
