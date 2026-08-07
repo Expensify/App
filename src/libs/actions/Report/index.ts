@@ -3069,6 +3069,27 @@ function saveReportDraft(reportID: string, report: Report) {
 }
 
 /**
+ * Client-only render aid: copies an already-built draft report (e.g. the zero-workspace "Submit to my employer"
+ * flow's draft policy expense chat) into COLLECTION.REPORT so a pre-mounted destination screen can render
+ * immediately. Not a new entity and not an API write - the eventual backend success handler overwrites this same
+ * key with confirmed data.
+ */
+async function promoteDraftReportForPreMount(reportID: string, draftReport: Report) {
+    // Persist the marker first so startup cleanup can remove the speculative report if the app terminates before submit.
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`, true);
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, draftReport);
+}
+
+/**
+ * Removes a report promoted via `promoteDraftReportForPreMount` when the caller backs out before that promotion is confirmed by the backend.
+ */
+async function clearPromotedDraftReportForPreMount(reportID: string) {
+    // Remove the report first. If the app terminates between these writes, startup cleanup consumes the remaining marker.
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+    return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`, null);
+}
+
+/**
  * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
  * When empty string or null is passed, it will delete the draft comment from Onyx store.
@@ -8541,6 +8562,8 @@ export {
     mergeReports,
     getOptimisticChatReport,
     saveReportDraft,
+    promoteDraftReportForPreMount,
+    clearPromotedDraftReportForPreMount,
     moveIOUReportToPolicy,
     moveIOUReportToPolicyAndInviteSubmitter,
     convertIOUReportToExpenseReport,

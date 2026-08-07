@@ -87,6 +87,7 @@ function ReportFetchHandler() {
 
     // Only the main report route carries a Submit-via-PDF secure access key.
     const secureKeyFromRoute = route.name === SCREENS.REPORT ? route.params?.secureKey : undefined;
+    const isPendingCreationFromRoute = route.name === SCREENS.REPORT ? route.params?.isPendingCreation === 'true' : false;
     const shouldReplaceWithExpenseReportRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && route.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP] === 'true';
 
     const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -160,6 +161,15 @@ function ReportFetchHandler() {
         // to the join while the secureKey is still on the route. Once the join grants access the secureKey is cleared,
         // and normal fetching resumes.
         if (secureKeyFromRoute) {
+            return;
+        }
+
+        // reportIDFromRoute is a client-generated optimistic ID for a chat that doesn't exist on the server yet (see
+        // getSubmitExpensePreMountDestinationRoute.ts, which pre-mounts this screen behind the confirmation RHP for a
+        // brand-new 1:1 recipient before submit). Calling openReport for it would 403 and latch the not-found page.
+        // Once the real submit writes the report into COLLECTION.REPORT under this same ID, reportOnyx?.reportID
+        // becomes truthy and normal fetching resumes.
+        if (isPendingCreationFromRoute && !reportOnyx?.reportID) {
             return;
         }
 
@@ -286,6 +296,15 @@ function ReportFetchHandler() {
         }
         navigation.setParams({secureKey: undefined});
     }, [secureKeyFromRoute, reportIDFromRoute, report?.reportID, report?.errorFields?.notFound, navigation]);
+
+    // isPendingCreation only protects the client-generated ID before submission. Remove it once the optimistic
+    // report exists locally so copied or restored links use the normal openReport path on other clients.
+    useEffect(() => {
+        if (!isPendingCreationFromRoute || !reportOnyx?.reportID) {
+            return;
+        }
+        navigation.setParams({isPendingCreation: undefined});
+    }, [isPendingCreationFromRoute, reportOnyx?.reportID, navigation]);
 
     useEffect(() => {
         if (!isAnonymousUser) {

@@ -1,3 +1,4 @@
+import cleanupPromotedDraftReports from '@libs/cleanupPromotedDraftReports';
 import intlPolyfill from '@libs/IntlPolyfill';
 
 import {setDeviceID} from '@userActions/Device';
@@ -84,6 +85,8 @@ export default function () {
             ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
         ],
     });
+
+    cleanupPromotedDraftReports();
 
     // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
     // handlers are registered before any push arrives, including Android headless/background wake-ups.
