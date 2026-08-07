@@ -242,6 +242,7 @@ function PaymentMethodList({
         status: BankAccountConnectionStatus,
         onActionPress: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
         onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
+        onFixPress?: () => void,
     ): PaymentMethodItem['connectionStatus'] => ({
         statusText: translate(status.labelKey),
         statusTone: status.tone,
@@ -249,6 +250,10 @@ function PaymentMethodList({
         message: status.messageKey ? translate(status.messageKey) : undefined,
         actionText: status.actionKey ? translate(status.actionKey) : undefined,
         onActionPress: () => {
+            if (onFixPress) {
+                onFixPress();
+                return;
+            }
             if (status.requiresUnlockHandler) {
                 (onUnlockPress ?? onActionPress)(undefined);
                 return;
@@ -580,7 +585,7 @@ function PaymentMethodList({
             };
             const existingBrickRoadIndicator = (paymentMethod as Partial<PaymentMethodItem>).brickRoadIndicator;
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
-            const bankConnectionStatus = shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(getBankAccountState(paymentMethod.accountData)) : undefined;
+            const bankConnectionStatus = shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(paymentMethod.accountData) : undefined;
             const paymentMethodPress = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                 pressHandler({
                     event: e,
@@ -593,6 +598,9 @@ function PaymentMethodList({
                         event: e,
                         ...paymentMethodData,
                     }));
+            const onFixPress = bankConnectionStatus?.requiresFixHandler
+                ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(paymentMethod.methodID?.toString() ?? '')))
+                : undefined;
 
             return {
                 ...paymentMethod,
@@ -606,7 +614,7 @@ function PaymentMethodList({
                 canDismissError: true,
                 isMissingPersonalInfo,
                 brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,
-                connectionStatus: bankConnectionStatus ? mapBankStatusToRowStatus(bankConnectionStatus, paymentMethodPress, paymentMethodThreeDotsPress) : undefined,
+                connectionStatus: bankConnectionStatus ? mapBankStatusToRowStatus(bankConnectionStatus, paymentMethodPress, paymentMethodThreeDotsPress, onFixPress) : undefined,
             };
         });
         return combinedPaymentMethods;
