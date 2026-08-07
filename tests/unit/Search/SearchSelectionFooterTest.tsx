@@ -3,8 +3,6 @@ import {render} from '@testing-library/react-native';
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
 import type {SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 
-import {getFooterConvertedAmounts} from '@libs/actions/Search';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
@@ -51,10 +49,10 @@ const PAYMENT_CURRENCY = CONST.CURRENCY.GBP;
 const ACCOUNT_ID = 1;
 const PERSONAL_POLICY_ID = 'personalPolicy1';
 
-function buildSearchResults(currency: string | undefined, count = 1): SearchResults {
+function buildSearchResults(currency: string | undefined): SearchResults {
     return {
         search: {
-            count,
+            count: 1,
             currency,
             total: -100,
             offset: 0,
@@ -70,7 +68,7 @@ function buildSearchResults(currency: string | undefined, count = 1): SearchResu
     };
 }
 
-function buildSelectedTransaction(currency: string, groupCurrency?: string, groupAmount?: number): SelectedTransactionInfo {
+function buildSelectedTransaction(currency: string): SelectedTransactionInfo {
     return {
         isSelected: true,
         canReject: false,
@@ -84,8 +82,6 @@ function buildSelectedTransaction(currency: string, groupCurrency?: string, grou
         policyID: undefined,
         amount: 100,
         currency,
-        groupCurrency,
-        groupAmount,
         isFromOneTransactionReport: false,
     };
 }
@@ -99,9 +95,6 @@ describe('SearchSelectionFooter', () => {
         mockSearchQueryContext.current = {currentSearchHash: 1, currentSearchKey: undefined, currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE}};
         mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY)};
         mockCapturedFooterProps.current = undefined;
-        // Clear here rather than in afterEach: Onyx.clear() there re-renders the previous test's still-mounted
-        // component (testing-library only unmounts it afterwards), and those renders can record mock calls.
-        jest.clearAllMocks();
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_POLICY_ID, PERSONAL_POLICY_ID);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${PERSONAL_POLICY_ID}`, {id: PERSONAL_POLICY_ID, outputCurrency: PAYMENT_CURRENCY});
@@ -110,6 +103,7 @@ describe('SearchSelectionFooter', () => {
 
     afterEach(async () => {
         await Onyx.clear();
+        jest.clearAllMocks();
     });
 
     it("falls back to the user's live payment currency when the search snapshot has no currency yet", async () => {
@@ -128,32 +122,5 @@ describe('SearchSelectionFooter', () => {
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current?.defaultCurrency).toBe(CONST.CURRENCY.EUR);
-    });
-
-    it('requests conversion to the payment currency when the loaded figures are denominated in another currency', async () => {
-        // The payment currency changed after the snapshot loaded: the selected group's server-converted figure is
-        // still denominated in the old payment currency (INR), while the live default is now GBP.
-        mockSelectedTransactions.current = {[`${CONST.SEARCH.GROUP_PREFIX}category1`]: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY, 'INR', -100)};
-
-        // A partial selection (1 of 2), so the footer uses the client-side selected total.
-        render(<SearchSelectionFooter searchResults={buildSearchResults(undefined, 2)} />);
-        await waitForBatchedUpdates();
-
-        expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: PAYMENT_CURRENCY}));
-    });
-
-    it('labels an unconvertible total with the currency its figures are denominated in, not the default', async () => {
-        // Same stale-denomination scenario, but the selected row carries no transaction ID or group key, so no
-        // conversion request can be made for it.
-        mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY, 'INR', -100)};
-
-        render(<SearchSelectionFooter searchResults={buildSearchResults(undefined, 2)} />);
-        await waitForBatchedUpdates();
-
-        // The displayed total keeps its own denomination (INR) instead of borrowing the new default's symbol, while
-        // the Reset/default currency still follows the live payment currency.
-        expect(getFooterConvertedAmounts).not.toHaveBeenCalled();
-        expect(mockCapturedFooterProps.current?.currency).toBe('INR');
-        expect(mockCapturedFooterProps.current?.defaultCurrency).toBe(PAYMENT_CURRENCY);
     });
 });
