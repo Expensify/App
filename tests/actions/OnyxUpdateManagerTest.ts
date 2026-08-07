@@ -1,12 +1,10 @@
 import type {AppActionsMock} from '@libs/actions/__mocks__/App';
-import * as AppImport from '@libs/actions/App';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as OnyxUpdateManagerExports from '@libs/actions/OnyxUpdateManager';
 import type {AnyDeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
-import * as OnyxUpdateManagerUtilsImport from '@libs/actions/OnyxUpdateManager/utils';
 import type {OnyxUpdateManagerUtilsMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__';
 import type {ApplyUpdatesMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
-import * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
+import type * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
 import {isPaused as isSequentialQueuePaused, isRunning as isSequentialQueueRunning} from '@libs/Network/SequentialQueue';
 
 import CONST from '@src/CONST';
@@ -19,6 +17,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
+import createMock from '../utils/createMock';
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
 
 jest.mock('@userActions/OnyxUpdates');
@@ -46,9 +45,9 @@ const TEST_USER_ACCOUNT_ID = 1;
 const REPORT_ID = 'testReport1';
 const ONYX_KEY = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const;
 
-const App = AppImport as AppActionsMock<typeof ONYX_KEY>;
-const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
-const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
+const App = jest.requireMock<AppActionsMock<typeof ONYX_KEY>>('@userActions/App');
+const ApplyUpdates = jest.requireMock<ApplyUpdatesMock>('@userActions/OnyxUpdateManager/utils/applyUpdates');
+const OnyxUpdateManagerUtils = jest.requireMock<OnyxUpdateManagerUtilsMock>('@userActions/OnyxUpdateManager/utils');
 
 const exampleReportAction = {
     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -60,7 +59,7 @@ const exampleReportAction = {
     shouldShow: true,
 } satisfies Partial<OnyxTypes.ReportAction>;
 
-const initialData = {report1: exampleReportAction, report2: exampleReportAction, report3: exampleReportAction} as unknown as OnyxTypes.ReportActions;
+const initialData = createMock<OnyxTypes.ReportActions>({report1: exampleReportAction, report2: exampleReportAction, report3: exampleReportAction});
 
 const mockUpdate1 = OnyxUpdateMockUtils.createUpdate(1, [
     {

@@ -29,6 +29,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import * as TestHelper from '../utils/TestHelper';
+import {isObject} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -41,8 +42,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@components/RenderHTML', () => {
-    const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<{Text: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
 
     return ({html}: {html: string}) => {
         const plainText = html.replaceAll(/<[^>]*>/g, '');
@@ -71,8 +72,8 @@ jest.mock('@react-navigation/native', () => {
 
 // Replace MenuItemWithTopDescription with a simple test double that exposes props in the tree
 jest.mock('@components/MenuItemWithTopDescription', () => {
-    const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {Text: React.ComponentType<{testID: string; children?: React.ReactNode}>};
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<{Text: React.ComponentType<{testID: string; children?: React.ReactNode}>}>('react-native');
     return ({pressableTestID, brickRoadIndicator}: {pressableTestID: string; brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) =>
         ReactMock.createElement(Text, {testID: pressableTestID}, `${brickRoadIndicator ?? 'none'}-brickRoadIndicator`);
 });
@@ -352,8 +353,8 @@ describe('ProfilePage - agent account', () => {
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
         await waitForBatchedUpdatesWithAct();
 
-        const saveButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean}};
-        expect(saveButtonProps.accessibilityState?.disabled).toBe(false);
+        const saveButtonAccessibilityState: unknown = screen.getByTestId('save-prompt-button').props.accessibilityState;
+        expect(isObject(saveButtonAccessibilityState) ? saveButtonAccessibilityState.disabled : undefined).toBe(false);
     });
 
     it('shows loading state on save button while a user-initiated prompt update is pending', async () => {
@@ -382,8 +383,8 @@ describe('ProfilePage - agent account', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const saveButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean}};
-        expect(saveButtonProps.accessibilityState?.disabled).toBe(true);
+        const saveButtonAccessibilityState: unknown = screen.getByTestId('save-prompt-button').props.accessibilityState;
+        expect(isObject(saveButtonAccessibilityState) ? saveButtonAccessibilityState.disabled : undefined).toBe(true);
     });
 
     it('allows re-saving an edited prompt while offline even when a previous save is still pending', async () => {
@@ -440,8 +441,8 @@ describe('ProfilePage - agent account', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const loadingButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean; busy?: boolean}};
-        expect(loadingButtonProps.accessibilityState?.disabled).toBe(true);
+        const loadingButtonAccessibilityState: unknown = screen.getByTestId('save-prompt-button').props.accessibilityState;
+        expect(isObject(loadingButtonAccessibilityState) ? loadingButtonAccessibilityState.disabled : undefined).toBe(true);
 
         // Network drops while the request is still in flight: pendingAction stays 'update'.
         await act(async () => {
@@ -449,8 +450,8 @@ describe('ProfilePage - agent account', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const offlineButtonProps = screen.getByTestId('save-prompt-button').props as {accessibilityState?: {disabled?: boolean; busy?: boolean}};
-        expect(offlineButtonProps.accessibilityState?.disabled).toBe(false);
+        const offlineButtonAccessibilityState: unknown = screen.getByTestId('save-prompt-button').props.accessibilityState;
+        expect(isObject(offlineButtonAccessibilityState) ? offlineButtonAccessibilityState.disabled : undefined).toBe(false);
     });
 
     it('does not call updateAgentPrompt when saving blank prompt', async () => {
