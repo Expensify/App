@@ -35,8 +35,9 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
 
-    const reportName = getChatListItemReportName(action, report, conciergeReportID, translate);
+    const reportName = getChatListItemReportName(action, report, parentReport, conciergeReportID, translate);
 
     return (
         <View style={[styles.p4]}>

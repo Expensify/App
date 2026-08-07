@@ -108,6 +108,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const derivedParentReportName = useDerivedReportNameByReportID(report?.parentReportID);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -134,7 +135,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         return currentUserPersonalDetails.login;
     }, [report, policy, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber, conciergeReportID, translate, derivedParentReportName]);
 
-    const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
+    const reportForTitle = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
 
     const title = isReport ? deprecatedGetReportName(reportForTitle, reportAttributes) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
