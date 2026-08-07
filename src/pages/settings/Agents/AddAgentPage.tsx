@@ -161,8 +161,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID), {forceReplace: true});
     };
 
-    const formWrapperRef = useRef<FormRef>(null);
-    const handleInputFocus = () => scrollToMultilineInput(formWrapperRef, isInLandscapeMode);
+    const handleInputFocus = () => scrollToMultilineInput(formRef, isInLandscapeMode);
 
     const agentAvatar = avatarSource ? (
         <UserAvatar
@@ -195,7 +194,6 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                 submitFlexEnabled={false}
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
-                ref={formWrapperRef}
                 // Block submit until the draft has loaded, so we never create the agent without the preset/photo it will restore.
                 isSubmitDisabled={isDraftLoading}
             >
