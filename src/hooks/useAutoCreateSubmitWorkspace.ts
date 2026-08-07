@@ -122,7 +122,9 @@ function useAutoCreateSubmitWorkspace() {
                 policyIDForNavigation = existingSubmitPolicyID;
             }
 
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout);
+            // Pass conciergeReportID so the Submit workspace path can honor a pending
+            // /concierge deep-link intent the same way navigateAfterOnboarding does.
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout, conciergeReportID);
         },
         [
             currentUserEmail,
@@ -144,6 +146,7 @@ function useAutoCreateSubmitWorkspace() {
             hasActiveAdminPolicies,
             shouldUseNarrowLayout,
             conciergeChat,
+            conciergeReportID,
         ],
     );
 
