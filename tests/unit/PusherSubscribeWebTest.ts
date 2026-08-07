@@ -12,7 +12,7 @@ jest.mock('@libs/Pusher', () => {
 type FakeChannel = {
     subscribed: boolean;
     subscriptionPending: boolean;
-    bind: (eventName: string, callback: (data?: unknown) => void) => void;
+    bind: (eventName: string, callback: () => void) => void;
     completeHandshake: () => void;
     dropConnection: () => void;
 };
@@ -72,14 +72,8 @@ jest.mock('pusher-js/with-encryption', () => {
             const channel = mockChannels.get(channelName) ?? createChannel();
             mockChannels.set(channelName, channel);
 
-            if (!channel.subscriptionPending && this.connection.state === 'connected') {
-                channel.subscriptionPending = true;
-            }
+            channel.subscriptionPending = true;
             return channel;
-        }
-
-        unsubscribe(channelName: string) {
-            mockChannels.delete(channelName);
         }
 
         disconnect() {}
