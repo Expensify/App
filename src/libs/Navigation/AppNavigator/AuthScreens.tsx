@@ -87,6 +87,7 @@ const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/worksp
 
 const loadSearchRouterPage = () => require<ReactComponentModule>('../../../components/Search/SearchRouter/SearchRouterPage').default;
 const loadRightModalNavigator = () => require<ReactComponentModule>('./Navigators/RightModalNavigator').default;
+const loadDynamicCardAuthenticationPage = () => require<ReactComponentModule>('../../../pages/settings/Subscription/DynamicCardAuthenticationPage').default;
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
@@ -364,6 +365,12 @@ function AuthScreens() {
                             name={SCREENS.BANK_CONNECTION_COMPLETE}
                             options={rootNavigatorScreenOptions.fullScreen}
                             component={ConnectionCompletePage}
+                        />
+                        <RootStack.Screen
+                            name={SCREENS.DYNAMIC_CARD_AUTHENTICATION}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
+                            getComponent={loadDynamicCardAuthenticationPage}
+                            listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}

@@ -271,6 +271,32 @@ describe('actions/PolicyMember', () => {
             });
         });
 
+        it('sets the payment card form loading state while requesting an SCA authentication link', async () => {
+            const fakePolicy: PolicyType = createRandomPolicy(0);
+            const fakeCard = {
+                cardNumber: '1234567890123456',
+                cardYear: '2023',
+                cardMonth: '05',
+                cardCVV: '123',
+                addressName: 'John Doe',
+                addressZip: '12345',
+                currency: CONST.PAYMENT_CARD_CURRENCY.GBP,
+            };
+
+            mockFetch?.pause?.();
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, 1, 'fake@gmail.com', fakeCard);
+            await waitForBatchedUpdates();
+
+            const optimisticFormState = await getOnyxValue(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+            expect(optimisticFormState?.isLoading).toBe(true);
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const settledFormState = await getOnyxValue(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+            expect(settledFormState?.isLoading).toBe(false);
+        });
+
         it('should set owner and ownerAccountID from explicit parameters on success', async () => {
             const fakePolicy: PolicyType = createRandomPolicy(0);
             const fakeEmail = 'newowner@gmail.com';
