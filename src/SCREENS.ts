@@ -691,7 +691,7 @@ const SCREENS = {
             RILLET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: 'Policy_Accounting_Rillet_Travel_Invoicing_Settlement_Account',
             DUALENTRY_SETUP: 'Policy_Accounting_DualEntry_Setup',
             DUALENTRY_EXISTING_CONNECTIONS: 'Policy_Accounting_DualEntry_Existing_Connections',
-            DUALENTRY_COMPANY_SELECTOR: 'Policy_Accounting_DualEntry_Subsidiary_Selector',
+            DUALENTRY_SUBSIDIARY_SELECTOR: 'Policy_Accounting_DualEntry_Subsidiary_Selector',
             DUALENTRY_IMPORT: 'Policy_Accounting_DualEntry_Import',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
