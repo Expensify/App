@@ -103,7 +103,6 @@
 "../../src/components/AutoCompleteSuggestions/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/AutoSubmitModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Avatar.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/AvatarButtonWithIcon.tsx"	"react-hooks/static-components"	1
 "../../src/components/AvatarCropModal/AvatarCropModal.tsx"	"no-restricted-imports"	1
 "../../src/components/AvatarCropModal/ImageCropView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AvatarCropModal/Slider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
