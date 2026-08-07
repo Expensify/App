@@ -10,7 +10,6 @@ import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/Worksp
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
@@ -51,15 +50,14 @@ import type {PersonalDetails, Transaction} from '@src/types/onyx';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 
-type DynamicIOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE>;
+type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE>;
 
-function DynamicIOURequestStepUpgrade({
+function IOURequestStepUpgrade({
     route: {
-        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, iouType, upgradeBackTo},
+        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, iouType, backTo},
     },
-}: DynamicIOURequestStepUpgradeProps) {
+}: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
-    const upgradeUnderlyingPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.path);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -99,7 +97,6 @@ function DynamicIOURequestStepUpgrade({
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -142,7 +139,6 @@ function DynamicIOURequestStepUpgrade({
 
             const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas, isTrackIntentUser);
 
-            const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
 
             // Move ALL selected transactions to the new report
@@ -153,7 +149,6 @@ function DynamicIOURequestStepUpgrade({
                 email: session?.email ?? '',
                 newReport: optimisticReport,
                 policy: newPolicy,
-                reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
                 policyTagList,
                 transactions,
@@ -236,10 +231,7 @@ function DynamicIOURequestStepUpgrade({
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
                 Navigation.goBack();
-                navigateWithMicrotask(
-                    upgradeBackTo ??
-                        createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID}), upgradeUnderlyingPath),
-                );
+                navigateWithMicrotask(backTo ?? createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID})));
 
                 break;
             default:
@@ -247,8 +239,7 @@ function DynamicIOURequestStepUpgrade({
         }
     }, [
         action,
-        upgradeBackTo,
-        upgradeUnderlyingPath,
+        backTo,
         navigateWithMicrotask,
         reportID,
         shouldSubmitExpense,
@@ -259,7 +250,6 @@ function DynamicIOURequestStepUpgrade({
         hasViolations,
         isASAPSubmitBetaEnabled,
         allPolicies,
-        allReportNextSteps,
         allPolicyCategories,
         session?.accountID,
         session?.email,
@@ -414,4 +404,4 @@ function DynamicIOURequestStepUpgrade({
     );
 }
 
-export default DynamicIOURequestStepUpgrade;
+export default IOURequestStepUpgrade;
