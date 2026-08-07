@@ -583,7 +583,13 @@ describe('actions/IOU', () => {
             });
 
             const cannedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${cannedExpensesHash}`;
-            expect(result?.optimisticData?.some((update) => update.key === cannedSnapshotKey)).toBe(true);
+            const cannedUpdate = result?.optimisticData?.find((update) => update.key === cannedSnapshotKey);
+            expect(cannedUpdate).toBeDefined();
+
+            // The snapshot must carry its own `hash` or the never-visited page's `isSearchDataLoaded` gate stays
+            // false and the page renders "Nothing to show" even though the transaction data was merged in.
+            const cannedUpdateValue = cannedUpdate?.value as {search?: {hash?: number}} | undefined;
+            expect(cannedUpdateValue?.search?.hash).toBe(cannedExpensesHash);
         });
     });
 });

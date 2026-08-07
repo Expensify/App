@@ -217,6 +217,12 @@ function getSearchOnyxUpdate({
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const,
             value: {
                 search: {
+                    // `hash` is what makes an optimistically-created snapshot renderable. The Search page gates
+                    // rendering on `isSearchDataLoaded`, which requires `snapshot.search.hash === queryJSON.hash`.
+                    // When the page was visited before, `search()` already stamped this hash on the snapshot, so a
+                    // partial MERGE renders; on a never-visited page the snapshot is created by this MERGE, so it
+                    // must carry the hash itself or `isSearchDataLoaded` stays false and the page shows "Nothing to show".
+                    hash: queryJSON.hash,
                     type: queryJSON.type,
                     hasResults: true,
                     isLoading: false,
@@ -276,6 +282,8 @@ function getSearchOnyxUpdate({
                     key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupTransactionsQueryJSON.hash}` as const,
                     value: {
                         search: {
+                            // See the note above: the per-member snapshot must carry its own hash to be renderable when created optimistically.
+                            hash: groupTransactionsQueryJSON.hash,
                             type: groupTransactionsQueryJSON.type,
                             offset: 0,
                             hasMoreResults: false,
