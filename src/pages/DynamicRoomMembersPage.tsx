@@ -331,11 +331,6 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout, icons.Plus]);
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
-    const reasonAttributes = {
-        context: 'DynamicRoomMembersPage',
-        didLoadRoomMembers,
-        isPersonalDetailsReady: isPersonalDetailsReady(personalDetails),
-    };
 
     let subtitleKey: '' | TranslationPaths | undefined;
     if (!isEmptyObject(report)) {
@@ -371,10 +366,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 {isLoading ? (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={reasonAttributes}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 ) : (
                     <View style={[styles.w100, styles.flex1]}>
                         <RoomMembersTable

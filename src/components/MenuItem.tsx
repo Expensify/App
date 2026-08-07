@@ -13,7 +13,6 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
@@ -665,9 +664,6 @@ function MenuItem({
     } else if (isCompactPopoverItem) {
         descriptionVerticalMargin = styles.mt0Half;
     }
-    const menuItemLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MenuItem',
-    };
     const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
     const isNewWindowIcon = iconRight === icons.NewWindow;
     let enhancedAccessibilityLabel = accessibilityLabel ?? defaultAccessibilityLabel;
@@ -994,10 +990,7 @@ function MenuItem({
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
                                                                 ) : (
-                                                                    <ActivityIndicator
-                                                                        color={theme.textSupporting}
-                                                                        reasonAttributes={menuItemLoadingReasonAttributes}
-                                                                    />
+                                                                    <ActivityIndicator color={theme.textSupporting} />
                                                                 ))}
                                                             {iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <WorkspaceAvatar

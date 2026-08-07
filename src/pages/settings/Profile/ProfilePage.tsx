@@ -33,7 +33,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {useIsAgentAccount} from '@libs/SessionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
 
 import {clearAgentAvatarUpdateError} from '@userActions/Agent';
@@ -188,11 +187,6 @@ function ProfilePage() {
         },
     ];
 
-    const privateSectionReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'ProfilePage.privateSection',
-        isLoadingApp: isAppLoadPending,
-    };
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -233,15 +227,7 @@ function ProfilePage() {
                         >
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
-                                    <AvatarSkeleton
-                                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                                        reasonAttributes={{
-                                            context: 'ProfilePage',
-                                            isPersonalDetailsEmpty: isEmptyObject(currentUserPersonalDetails),
-                                            isAccountIDInvalid: accountID === -1,
-                                            hasNoAvatarURL: !avatarURL,
-                                        }}
-                                    />
+                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.XXXX_LARGE} />
                                 ) : (
                                     <OfflineWithFeedback
                                         errors={isAgentAccount ? agentPrompt?.avatarErrors : undefined}
@@ -305,10 +291,7 @@ function ProfilePage() {
                         >
                             {isAppLoadPending ? (
                                 <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
-                                    <ActivityIndicator
-                                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                        reasonAttributes={privateSectionReasonAttributes}
-                                    />
+                                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                                 </View>
                             ) : (
                                 <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>

@@ -32,7 +32,6 @@ import {formatReportLastMessageText, getReportOrDraftReport, getReportSubtitlePr
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -483,12 +482,6 @@ function SearchAutocompleteList({
         debounceHandleSearch();
     }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SearchAutocompleteList',
-        isRecentSearchesDataLoaded,
-        isLoadingOptions,
-    };
-
     /* Sections generation */
     const {sections, styledRecentReports, suggestionsCount} = useMemo(() => {
         const nextSections: Array<Section<AutocompleteListItem>> = [];
@@ -538,11 +531,6 @@ function SearchAutocompleteList({
                 fixedNumItems={3}
                 shouldStyleAsTable
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                reasonAttributes={{
-                    context: 'SearchAutocompleteList',
-                    isRecentSearchesDataLoaded,
-                    isLoadingOptions,
-                }}
             />
         );
 
@@ -635,7 +623,6 @@ function SearchAutocompleteList({
         styles,
         translate,
         isLoadingOptions,
-        isRecentSearchesDataLoaded,
         reports,
     ]);
 
@@ -721,7 +708,6 @@ function SearchAutocompleteList({
                 fixedNumItems={4}
                 shouldStyleAsTable
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                reasonAttributes={reasonAttributes}
             />
         );
     }
