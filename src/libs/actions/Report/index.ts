@@ -2359,6 +2359,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         betas,
+        hasReportActions: false,
     });
     return optimisticTransactionThread;
 }
@@ -2700,6 +2701,7 @@ function createChildReport(
             isNewThread: true,
             betas,
             isSelfTourViewed,
+            hasReportActions: false,
             currentUserAccountID,
         });
     } else {
@@ -3616,6 +3618,20 @@ function updateRoomVisibility(reportID: string, previousValue: RoomVisibility | 
     API.write(WRITE_COMMANDS.UPDATE_ROOM_VISIBILITY, parameters, {optimisticData, failureData});
 }
 
+type ToggleSubscribeToChildReportParams = {
+    childReportID: string | undefined;
+    currentUserAccountID: number;
+    parentReportAction: ReportAction;
+    parentReport: OnyxEntry<Report>;
+    introSelected: OnyxEntry<IntroSelected>;
+    isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow: boolean | undefined;
+    betas: OnyxEntry<Beta[]>;
+    prevNotificationPreference: NotificationPreference | undefined;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    hasReportActions: boolean;
+};
+
 /**
  * This will subscribe to an existing thread, or create a new one and then subscribe to it if necessary
  *
@@ -3624,20 +3640,21 @@ function updateRoomVisibility(reportID: string, previousValue: RoomVisibility | 
  * @param parentReport The parent report
  * @param prevNotificationPreference The previous notification preference for the child report
  */
-function toggleSubscribeToChildReport(
-    childReportID: string | undefined,
-    currentUserAccountID: number,
-    parentReportAction: ReportAction,
-    parentReport: OnyxEntry<Report>,
-    introSelected: OnyxEntry<IntroSelected>,
-    isSelfTourViewed: boolean | undefined,
-    hasCompletedGuidedSetupFlow: boolean | undefined,
-    betas: OnyxEntry<Beta[]>,
-    prevNotificationPreference: NotificationPreference | undefined,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-) {
+function toggleSubscribeToChildReport({
+    childReportID,
+    currentUserAccountID,
+    parentReportAction,
+    parentReport,
+    introSelected,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
+    betas,
+    prevNotificationPreference,
+    personalDetails,
+    hasReportActions,
+}: ToggleSubscribeToChildReportParams) {
     if (childReportID) {
-        openReport({reportID: childReportID, introSelected, betas, isSelfTourViewed, hasCompletedGuidedSetupFlow, currentUserAccountID});
+        openReport({reportID: childReportID, introSelected, betas, isSelfTourViewed, hasCompletedGuidedSetupFlow, hasReportActions, currentUserAccountID});
         const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(
@@ -3684,6 +3701,7 @@ function toggleSubscribeToChildReport(
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
             betas,
+            hasReportActions: false,
             currentUserAccountID,
         });
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
