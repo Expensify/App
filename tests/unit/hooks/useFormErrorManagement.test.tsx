@@ -13,6 +13,7 @@ import type * as ReactNavigationModule from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => {
@@ -26,7 +27,7 @@ jest.mock('@react-navigation/native', () => {
 type Params = Parameters<typeof useFormErrorManagement>[0];
 
 const baseParams: Params = {
-    transaction: {transactionID: 'txn1', amount: 100, merchant: 'Coffee', comment: {}} as unknown as OnyxTypes.Transaction,
+    transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', amount: 100, merchant: 'Coffee', comment: {}}),
     transactionReport: undefined,
     iouMerchant: 'Coffee',
     iouCategory: '',
@@ -71,8 +72,8 @@ describe('useFormErrorManagement', () => {
                     ...baseParams,
                     isEditingSplitBill: true,
                     hasSmartScanFailed: true,
-                    transaction: {transactionID: 'txn1', amount: 0, merchant: '', comment: {}, receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED}} as unknown as OnyxTypes.Transaction,
-                    transactionReport: {type: CONST.REPORT.TYPE.IOU} as unknown as OnyxTypes.Report,
+                    transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', amount: 0, merchant: '', comment: {}, receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED}}),
+                    transactionReport: createMock<OnyxTypes.Report>({type: CONST.REPORT.TYPE.IOU}),
                 }),
             {wrapper: Wrapper},
         );

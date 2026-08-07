@@ -1,13 +1,17 @@
-import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
+import type {ChartDefaultTypeface} from '@components/Charts/types/chartSkiaTypefaceTypes';
 import {CHART_SKIA_TYPEFACE_ASSETS} from '@components/Charts/utils/chartFontAssets';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 
+import ObjectUtils from '@src/types/utils/ObjectUtils';
+
 import type {SkTypeface} from '@shopify/react-native-skia';
 
-const CHART_SKIA_TYPEFACE_KEYS = Object.keys(CHART_SKIA_TYPEFACE_ASSETS) as ChartSkiaTypefaceKey[];
+import createMock from '../utils/createMock';
+
+const CHART_SKIA_TYPEFACE_KEYS = ObjectUtils.typedKeys(CHART_SKIA_TYPEFACE_ASSETS);
 
 function makeTypefaces(): ChartDefaultTypeface {
-    return Object.fromEntries(CHART_SKIA_TYPEFACE_KEYS.map((key) => [key, {id: key} as unknown as SkTypeface])) as ChartDefaultTypeface;
+    return ObjectUtils.typedFromEntries(CHART_SKIA_TYPEFACE_KEYS.map((key) => [key, createMock<SkTypeface>({})] as const));
 }
 
 describe('getChartSkiaTypeface', () => {
