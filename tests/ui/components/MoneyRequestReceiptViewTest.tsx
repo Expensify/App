@@ -98,6 +98,7 @@ jest.mock('@libs/EmojiTrie', () => ({
 
 // Override IDs so we control Onyx keys and can use evictableKeys for REPORT_ACTIONS
 const TEST_PARENT_REPORT_ID = 'testParentReportID';
+const TEST_CHAT_REPORT_ID = 'testChatReportID';
 const TEST_REPORT_ID = 'testReportID';
 const TEST_ACTION_ID = 'testActionID';
 const TEST_TRANSACTION_ID = 'testTransactionID';
@@ -218,6 +219,32 @@ const transactionWithOdometerDistanceReceipt: Transaction = {
     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
 };
 
+// The expense's own report, whose parent is the conversation the expense was created in.
+const testMoneyRequestReport: Report = {
+    ...testReport,
+    reportID: TEST_PARENT_REPORT_ID,
+    parentReportID: TEST_CHAT_REPORT_ID,
+    chatReportID: TEST_CHAT_REPORT_ID,
+};
+
+// Read but not write is what stops someone posting, and it is set on whichever report they were given limited
+// access to. When it lands on the expense's own report, the transaction thread below it still allows writing.
+const readOnlyMoneyRequestReport: Report = {
+    ...testMoneyRequestReport,
+    permissions: [CONST.REPORT.PERMISSIONS.READ],
+};
+
+const testChatReport: Report = {
+    ...testReport,
+    reportID: TEST_CHAT_REPORT_ID,
+    type: CONST.REPORT.TYPE.CHAT,
+};
+
+const readOnlyChatReport: Report = {
+    ...testChatReport,
+    permissions: [CONST.REPORT.PERMISSIONS.READ],
+};
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
@@ -239,6 +266,10 @@ describe('MoneyRequestReceiptView', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithoutReceipt);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {id: TEST_POLICY_ID});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${TEST_POLICY_ID}`, {});
+            // The reports above the expense are loaded and writable unless a test says otherwise, matching a
+            // conversation the user can post in. Receipt actions stay hidden while these are still loading.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, testMoneyRequestReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, testChatReport);
         });
         await waitForBatchedUpdatesWithAct();
     });
@@ -337,6 +368,81 @@ describe('MoneyRequestReceiptView', () => {
 
             expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
             expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it("hides the add button but keeps the expand button when the expense's own report is read-only", async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, readOnlyMoneyRequestReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, testChatReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
+        });
+
+        it('hides the add button but keeps the expand button when the conversation above the expense is read-only', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, testMoneyRequestReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, readOnlyChatReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
+        });
+
+        it('hides the add button while a report above the expense is still loading', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                // The expense points at a conversation that Onyx has not delivered yet, as after a deep link or a cache clear.
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, null);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it('shows action buttons when every report above the expense allows writing', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, testMoneyRequestReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, testChatReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
         });
 
         it('shows both action buttons for a map distance receipt', async () => {

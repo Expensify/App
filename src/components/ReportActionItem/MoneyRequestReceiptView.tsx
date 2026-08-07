@@ -43,6 +43,7 @@ import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {
     canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    canWriteInReport as canWriteInReportReportUtils,
     getCreationReportErrors,
     isInvoiceReport,
     isTrackExpenseReportNew,
@@ -236,7 +237,15 @@ function MoneyRequestReceiptView({
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
+    // A read-only conversation carries its restriction on the report the user was given limited access to - the expense's
+    // own report, or the conversation above it - while the transaction thread stays writable. Checking only the thread
+    // therefore still offers the receipt actions to someone who cannot post there. Same check that hides the composer.
+    // A report we expect but have not loaded yet must not read as writable: permissions arrive with the report, so
+    // treating it as missing would leave the add control live on a read-only conversation until Onyx catches up.
+    const isParentReportPending = !!parentReportID && !parentReport;
+    const isChatReportPending = !!parentReport?.parentReportID && !chatReport;
+    const canWriteInAncestorReports = !isParentReportPending && !isChatReportPending && canWriteInReportReportUtils(parentReport) && canWriteInReportReportUtils(chatReport);
+    const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && canWriteInAncestorReports && !readonly;
     const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
@@ -543,6 +552,9 @@ function MoneyRequestReceiptView({
 
     // Map distance receipts show both hover actions just like regular receipts, so we don't exclude isMapDistanceRequest here.
     const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !mergeTransactionID;
+    // Expanding only opens the receipt to look at, so a conversation the user cannot post in should not take that away.
+    // It still follows the readonly prop, which suppresses every affordance in the duplicate and merge review flows.
+    const canExpandReceipt = hasReceipt && !isLoading && !mergeTransactionID && !readonly;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
@@ -700,46 +712,48 @@ function MoneyRequestReceiptView({
                                     )}
                                 </ReceiptHoverZoom>
                             </View>
-                            {canShowReceiptActions && (
+                            {canExpandReceipt && (
                                 <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && !isPickerOpen && deviceHasHoverSupport && styles.opacity0]}>
-                                    <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
-                                        {({openPicker}) => (
-                                            <Tooltip text={translate('receipt.addAdditionalReceipt')}>
-                                                <PressableWithoutFeedback
-                                                    ref={addButtonRef}
-                                                    onPress={() => {
-                                                        setIsPickerOpen(true);
-                                                        resetButtonHoverState(addButtonRef);
-                                                        const onPickerClosed = () => {
-                                                            setIsPickerOpen(false);
-                                                            if (isElementHovered(receiptContainerRef)) {
-                                                                hoverBind.onMouseEnter();
-                                                            }
-                                                        };
-                                                        openPicker({
-                                                            onPicked: (files) => {
-                                                                onPickerClosed();
-                                                                validateFiles(files, undefined, {isValidatingReceipts: false});
-                                                            },
-                                                            onCanceled: onPickerClosed,
-                                                        });
-                                                    }}
-                                                    style={styles.receiptActionButton}
-                                                    hoverStyle={styles.buttonDefaultHovered}
-                                                    accessibilityLabel={translate('receipt.addAdditionalReceipt')}
-                                                    role={CONST.ROLE.BUTTON}
-                                                    sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
-                                                >
-                                                    <Icon
-                                                        src={lazyIcons.ReceiptPlus}
-                                                        height={variables.iconSizeSmall}
-                                                        width={variables.iconSizeSmall}
-                                                        fill={theme.icon}
-                                                    />
-                                                </PressableWithoutFeedback>
-                                            </Tooltip>
-                                        )}
-                                    </AttachmentPicker>
+                                    {canShowReceiptActions && (
+                                        <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
+                                            {({openPicker}) => (
+                                                <Tooltip text={translate('receipt.addAdditionalReceipt')}>
+                                                    <PressableWithoutFeedback
+                                                        ref={addButtonRef}
+                                                        onPress={() => {
+                                                            setIsPickerOpen(true);
+                                                            resetButtonHoverState(addButtonRef);
+                                                            const onPickerClosed = () => {
+                                                                setIsPickerOpen(false);
+                                                                if (isElementHovered(receiptContainerRef)) {
+                                                                    hoverBind.onMouseEnter();
+                                                                }
+                                                            };
+                                                            openPicker({
+                                                                onPicked: (files) => {
+                                                                    onPickerClosed();
+                                                                    validateFiles(files, undefined, {isValidatingReceipts: false});
+                                                                },
+                                                                onCanceled: onPickerClosed,
+                                                            });
+                                                        }}
+                                                        style={styles.receiptActionButton}
+                                                        hoverStyle={styles.buttonDefaultHovered}
+                                                        accessibilityLabel={translate('receipt.addAdditionalReceipt')}
+                                                        role={CONST.ROLE.BUTTON}
+                                                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
+                                                    >
+                                                        <Icon
+                                                            src={lazyIcons.ReceiptPlus}
+                                                            height={variables.iconSizeSmall}
+                                                            width={variables.iconSizeSmall}
+                                                            fill={theme.icon}
+                                                        />
+                                                    </PressableWithoutFeedback>
+                                                </Tooltip>
+                                            )}
+                                        </AttachmentPicker>
+                                    )}
                                     <Tooltip text={translate('reportActionCompose.expand')}>
                                         <PressableWithoutFocus
                                             onPress={() =>
