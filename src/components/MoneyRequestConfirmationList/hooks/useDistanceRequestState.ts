@@ -97,11 +97,14 @@ function useDistanceRequestState({
     const prevDistance = usePrevious(distance);
     const amountUnit = unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionDisplayData(customUnit, amountUnit);
+    const reimbursableDistance = commuterExclusionData?.reimbursableDistance;
+    const prevReimbursableDistance = usePrevious(reimbursableDistance);
     const reimbursableDistanceInMeters = commuterExclusionData
         ? DistanceRequestUtils.convertToDistanceInMeters(commuterExclusionData.reimbursableDistance, commuterExclusionData.distanceUnit)
         : distance;
     const shouldCalculateDistanceAmount =
-        isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit || !!commuterExclusionData);
+        isDistanceRequest &&
+        (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit || prevReimbursableDistance !== reimbursableDistance);
 
     const hasRoute = hasRouteUtil(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;

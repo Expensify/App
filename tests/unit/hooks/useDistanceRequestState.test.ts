@@ -50,13 +50,14 @@ describe('useDistanceRequestState', () => {
         expect(result.current.distanceRequestAmount).toBe(500); // 10 * 0.5 * 100
     });
 
-    it('calculates the amount from the reimbursable distance when the custom unit has a commuter exclusion', () => {
+    it('recalculates only when the reimbursable distance changes', () => {
         const transaction = baseParams.transaction;
         if (!transaction) {
             throw new Error('Expected a transaction');
         }
 
-        const {result} = renderHook(() =>
+        let reimbursableDistance = 8;
+        const {result, rerender} = renderHook(() =>
             useDistanceRequestState({
                 ...baseParams,
                 transaction: {
@@ -70,7 +71,7 @@ describe('useDistanceRequestState', () => {
                             quantity: 10,
                             distanceUnit: 'mi',
                             commuterExclusion: 2,
-                            reimbursableDistance: 8,
+                            reimbursableDistance,
                         },
                     },
                 },
@@ -80,7 +81,16 @@ describe('useDistanceRequestState', () => {
 
         expect(result.current.distance).toBe(10);
         expect(result.current.distanceRequestAmount).toBe(400);
+        expect(result.current.shouldCalculateDistanceAmount).toBe(false);
+
+        reimbursableDistance = 7;
+        rerender(undefined);
+
+        expect(result.current.distanceRequestAmount).toBe(350);
         expect(result.current.shouldCalculateDistanceAmount).toBe(true);
+
+        rerender(undefined);
+        expect(result.current.shouldCalculateDistanceAmount).toBe(false);
     });
 
     it('isDistanceRequestWithPendingRoute is true when transaction has no route', () => {
