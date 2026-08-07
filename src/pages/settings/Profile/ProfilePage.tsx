@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import Button from '@components/Button';
@@ -250,13 +251,17 @@ function ProfilePage() {
                                         <MenuItemGroup shouldUseSingleExecution={false}>
                                             <AvatarButtonWithIcon
                                                 text={translate('avatarWithImagePicker.editImage')}
-                                                source={avatarURL}
-                                                avatarID={accountID}
+                                                avatar={
+                                                    <UserAvatar
+                                                        source={avatarURL}
+                                                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                                                        accountID={accountID}
+                                                        fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                                    />
+                                                }
                                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
-                                                size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                                 avatarStyle={styles.alignSelfStart}
                                                 pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                                fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                                                 editIconStyle={styles.profilePageAvatar}
                                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AVATAR}
                                             />

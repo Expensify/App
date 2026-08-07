@@ -27,7 +27,6 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicyByType} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
@@ -133,7 +132,7 @@ function WorkspacesListPage() {
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
                 ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate, formatPhoneNumber}) : undefined,
                 iconType: policy.nonMemberDetails.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                icon: policy.nonMemberDetails.avatar ? policy.nonMemberDetails.avatar : getDefaultWorkspaceAvatar(policy.nonMemberDetails.name),
+                icon: policy.nonMemberDetails.avatar ? policy.nonMemberDetails.avatar : undefined,
                 action: () => null,
                 dismissError: () => null,
             };
@@ -162,7 +161,7 @@ function WorkspacesListPage() {
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
                 ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate, formatPhoneNumber}) : undefined,
                 iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+                icon: policy.avatarURL,
                 pendingAction: policy.pendingAction,
                 action: (event) => navigateToWorkspace(policyID, event),
                 dismissError: () => dismissWorkspaceError(policyID, policy.pendingAction),

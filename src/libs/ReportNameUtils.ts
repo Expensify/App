@@ -23,7 +23,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
  * This file contains utility functions for managing and computing report names
  */
 import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -133,6 +132,7 @@ import {
 import {
     formatReportLastMessageText,
     getDisplayNameForParticipant,
+    getInvoiceReceiverPersonalDetail,
     getMoneyRequestSpendBreakdown,
     getMovedActionMessage,
     getMovedTransactionMessage,
@@ -194,16 +194,6 @@ type ComputeReportName = {
     isTrackIntentUser: boolean | undefined;
     pendingDeleteMemberAccountIDs?: string[];
 };
-
-let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-
-// eslint-disable-next-line rulesdir/no-onyx-connect -- allPersonalDetails is used by the deprecated getReportName function; will be removed as part of the Onyx.connect migration
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        allPersonalDetails = value;
-    },
-});
 
 function generateArchivedReportName(reportName: string): string {
     return `${reportName} (${translateLocal('common.archived')}) `;
@@ -346,7 +336,7 @@ function getInvoicesChatName({
 }: {
     report: OnyxEntry<Report>;
     receiverPolicy: OnyxEntry<Policy>;
-    personalDetails?: Partial<PersonalDetailsList>;
+    personalDetails: Partial<PersonalDetailsList> | undefined;
     policy: OnyxEntry<Policy>;
     currentUserAccountID?: number;
     translate: LocalizedTranslate;
@@ -362,7 +352,7 @@ function getInvoicesChatName({
 
     if (isIndividual) {
         return temporaryGetDisplayNameOrDefault({
-            passedPersonalDetails: (personalDetails ?? allPersonalDetails)?.[invoiceReceiverAccountID],
+            passedPersonalDetails: personalDetails?.[invoiceReceiverAccountID],
             translate,
             formatPhoneNumber: formatPhoneNumberPhoneUtils,
         });
@@ -371,8 +361,14 @@ function getInvoicesChatName({
     return getPolicyName({report, policy: receiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
 }
 
-function getInvoiceReportName(report: OnyxEntry<Report>, translate: LocalizedTranslate, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>): string {
-    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy, translate});
+function getInvoiceReportName(
+    report: OnyxEntry<Report>,
+    translate: LocalizedTranslate,
+    personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    policy?: OnyxEntry<Policy>,
+    invoiceReceiverPolicy?: OnyxEntry<Policy>,
+): string {
+    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy, personalDetailsList, translate});
     const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
     return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
 }
@@ -385,15 +381,14 @@ function getInvoiceReportName(report: OnyxEntry<Report>, translate: LocalizedTra
 function getInvoicePayerName(
     report: OnyxEntry<Report>,
     translate: LocalizedTranslate,
+    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
-    invoiceReceiverPersonalDetail?: PersonalDetails | null,
 ): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
     if (isIndividual) {
-        const personalDetail = invoiceReceiverPersonalDetail ?? allPersonalDetails?.[invoiceReceiver.accountID];
-        return temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail ?? undefined, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+        return temporaryGetDisplayNameOrDefault({passedPersonalDetails: invoiceReceiverPersonalDetail ?? undefined, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils});
     }
 
     return getPolicyName({report, policy: invoiceReceiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
@@ -406,11 +401,13 @@ function getMoneyRequestReportName({
     report,
     policy,
     invoiceReceiverPolicy,
+    personalDetailsList,
     translate,
 }: {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
+    personalDetailsList: OnyxEntry<PersonalDetailsList>;
     translate: LocalizedTranslate;
 }): string {
     // For expense reports with empty fieldList and empty reportName, return "New Report" (matches OldDot behavior)
@@ -433,7 +430,8 @@ function getMoneyRequestReportName({
         payerOrApproverName = getPolicyName({report: parentReport ?? report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
     } else if (isInvoiceReport(report)) {
         const chatReport = getReportOrDraftReport(report?.chatReportID);
-        payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPolicy);
+        const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(chatReport, personalDetailsList);
+        payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
     } else {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
     }
@@ -740,7 +738,7 @@ function computeReportNameBasedOnReportAction(
 
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
-        const last4Digits = reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
+        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -1091,7 +1089,7 @@ function computeReportName({
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName({report, policy, translate});
+        formattedName = getMoneyRequestReportName({report, policy, personalDetailsList, translate});
     }
 
     if (isInvoiceReport(report)) {
@@ -1102,7 +1100,7 @@ function computeReportName({
             chatReceiverPolicyID = (chatReceiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = chatReceiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReceiverPolicyID}`] : undefined;
-        formattedName = getInvoiceReportName(report, translate, policy, invoiceReceiverPolicy);
+        formattedName = getInvoiceReportName(report, translate, personalDetailsList, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {

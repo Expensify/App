@@ -167,9 +167,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
           }
         : {
               text: translate('delegate.copilotAccess'),
-              shiftVertical: 8,
-              shiftHorizontal: 8,
-              anchorAlignment: {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM},
               shouldRender: canSwitchAccounts,
           };
 

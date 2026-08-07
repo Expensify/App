@@ -486,6 +486,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Ano anterior',
         nextYear: 'Ano que vem',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         editor: 'Editor',
         restrictions: 'Restrições',
         tryAgain: 'Tentar novamente',
@@ -1085,6 +1086,7 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateTitle: 'Nenhuma despesa recente',
             emptyStateMessage: 'Crie um ou arraste um recibo aqui',
         },
+        insightsSection: {chartUnavailable: 'Gráfico indisponível', notEnoughData: 'Ainda não temos dados suficientes para preencher este gráfico'},
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -5679,6 +5681,16 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 },
             },
         },
+        dualEntry: {
+            dualEntrySetup: 'Configuração do DualEntry',
+            enterCredentials: 'Insira sua chave de API DualEntry',
+            howToFindAPIKey:
+                '<strong>Encontrando sua chave de API.</strong><ol><li>Faça login no DualEntry</li><li>Navegue até [organization name] -> Settings -> Developer access -> API keys</li><li>Crie uma chave de API</li><li>Cole a chave de API abaixo</li></ol>',
+            subsidiary: 'Filial',
+            subsidiarySelectDescription: 'Escolha a subsidiária no DualEntry da qual você gostaria de importar dados.',
+            noCompaniesFound: 'Nenhuma empresa encontrada',
+            noCompaniesFoundDescription: 'Adicione uma empresa no DualEntry e sincronize a conexão novamente',
+        },
         type: {
             free: 'Grátis',
             control: 'Controle',
@@ -6693,6 +6705,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
+            dualEntry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6712,6 +6725,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DualEntry';
                     default: {
                         return '';
                     }
@@ -6920,6 +6935,12 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'rilletSyncConnection':
                             return 'Inicializando conexão com Rillet';
                         case 'rilletSyncImportData':
+                            return 'Carregando dados';
+                        case 'dualEntrySyncTitle':
+                            return 'Sincronizando dados DualEntry';
+                        case 'dualEntrySyncConnection':
+                            return 'Inicializando conexão com o DualEntry';
+                        case 'dualEntrySyncImportData':
                             return 'Carregando dados';
                         default: {
                             return `Tradução ausente para o estágio: ${stage}`;
@@ -7200,6 +7221,12 @@ ${reportName}`,
                 description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + Rillet. Alinhe dimensões de categorização de despesas e a sincronização de impostos à sua configuração Rillet para maior visibilidade financeira.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Nossa integração com a Rillet está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                title: 'DualEntry',
+                description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + DualEntry. Alinhe dimensões de categorização de despesas e a sincronização de impostos à sua configuração DualEntry para maior visibilidade financeira.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Nossa integração com a DualEntry está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprovações Avançadas',
