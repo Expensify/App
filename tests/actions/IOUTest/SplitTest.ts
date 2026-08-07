@@ -10,8 +10,8 @@ import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs
 import {addComment, notifyNewAction} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {writeWhenReady} from '@libs/API/writeWhenReady';
 import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
-import {deferOrExecuteWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isAddCommentAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -101,6 +101,15 @@ jest.mock('@src/libs/actions/Report', () => {
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
+jest.mock('@libs/API/writeWhenReady', () => ({
+    // Run the deferred write inline: no screen transition happens in a test, so the barrier would
+    // otherwise hold the write until its safety timeout and every optimistic-data assertion would fail.
+    writeWhenReady: jest.fn((command: string, params: unknown, onyxData: unknown) => {
+        const baseWrite = jest.requireActual<{default: (c: string, p: unknown, o: unknown) => Promise<unknown>}>('@libs/API/write').default;
+        return baseWrite(command, params, onyxData);
+    }),
+    createTransitionBarrier: jest.fn(() => () => new Promise(() => {})),
+}));
 jest.mock('@libs/deferredLayoutWrite', () => ({
     registerDeferredWrite: (_key: string, callback: () => void) => callback(),
     flushDeferredWrite: jest.fn(),
@@ -9589,36 +9598,31 @@ describe('split save deferred write', () => {
         jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(false);
     });
 
-    it('reserves the SEARCH channel and defers the write when saving from the Search page', async () => {
-        // Given a split saved while the Search page is the topmost full screen route
-        jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
-        const {expenseReport, iouAction, params} = await buildSplitFlowParams();
-
-        // When the split is saved
-        updateSplitTransactionsFromSplitExpensesFlow(params);
-        await waitForBatchedUpdates();
-
-        // Then the SEARCH channel is reserved before navigating, so a flush fired by the
-        // destination's layout is remembered rather than dropped
-        expect(reserveDeferredWriteChannel).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-
-        // And the write is routed through the deferral rather than executed inline
-        expect(deferOrExecuteWrite).toHaveBeenCalledWith(expect.any(Function), expect.objectContaining({shouldDeferForSearch: true}));
-        expect(expenseReport.reportID).toBeTruthy();
-        expect(iouAction.reportActionID).toBeTruthy();
-    });
-
-    it('reserves the DISMISS_MODAL channel with the destination report when saving from a report', async () => {
-        // Given a split saved from a report rather than the Search page
+    it('defers the write behind a navigation barrier when saving from the split-expenses flow', async () => {
+        // Given a split saved through the split-expenses flow
         const {params} = await buildSplitFlowParams();
 
         // When the split is saved
         updateSplitTransactionsFromSplitExpensesFlow(params);
         await waitForBatchedUpdates();
 
-        // Then the write is still deferred, but never onto the SEARCH channel
-        expect(deferOrExecuteWrite).toHaveBeenCalledWith(expect.any(Function), expect.objectContaining({shouldDeferForSearch: false}));
-        expect(reserveDeferredWriteChannel).not.toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        // Then the write goes through writeWhenReady with a barrier, so its optimistic data does not
+        // land while the press is still trying to paint
+        expect(writeWhenReady).toHaveBeenCalledWith(expect.any(String), expect.anything(), expect.anything(), expect.any(Function));
+    });
+
+    it('defers the write the same way when saving from the Search page', async () => {
+        // Given the Search page is the topmost full screen route
+        jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+        const {params} = await buildSplitFlowParams();
+
+        // When the split is saved
+        updateSplitTransactionsFromSplitExpensesFlow(params);
+        await waitForBatchedUpdates();
+
+        // Then the same barrier-gated path is used - writeWhenReady is route agnostic, so the Search
+        // branch needs no special casing
+        expect(writeWhenReady).toHaveBeenCalledWith(expect.any(String), expect.anything(), expect.anything(), expect.any(Function));
     });
 
     it('writes immediately when the caller is not the split-expenses flow', async () => {
@@ -9629,7 +9633,7 @@ describe('split save deferred write', () => {
         updateSplitTransactions({...params, isFromSplitExpensesFlow: false});
         await waitForBatchedUpdates();
 
-        // Then there is no navigation to hide behind, so the write is not deferred
-        expect(deferOrExecuteWrite).not.toHaveBeenCalled();
+        // Then there is no navigation to wait on, so the write is not deferred
+        expect(writeWhenReady).not.toHaveBeenCalled();
     });
 });

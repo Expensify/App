@@ -57,20 +57,15 @@ jest.mock('@src/libs/actions/Report', () => {
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
-// The split-expenses save routes its API.write through deferOrExecuteWrite, which parks the write
-// until the destination screen lays out. No destination mounts here, so run it inline the same way
-// SplitTest.ts does for the other IOU flows on this primitive. The deferral timing itself is covered
-// by the "split save deferred write" tests in SplitTest.ts.
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: jest.fn((apiWrite: () => void) => apiWrite()),
-    reserveDeferredWriteChannel: jest.fn(),
+jest.mock('@libs/API/writeWhenReady', () => ({
+    // Run the deferred write inline: no screen transition happens in a test, so the barrier would
+    // otherwise hold the write until its safety timeout and every optimistic-data assertion would fail.
+    writeWhenReady: jest.fn((command: string, params: unknown, onyxData: unknown) => {
+        const baseWrite = jest.requireActual<{default: (c: string, p: unknown, o: unknown) => Promise<unknown>}>('@libs/API/write').default;
+        return baseWrite(command, params, onyxData);
+    }),
+    createTransitionBarrier: jest.fn(() => () => new Promise(() => {})),
 }));
-
 jest.mock('@src/libs/SearchQueryUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@src/libs/SearchQueryUtils');
