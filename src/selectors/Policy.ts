@@ -271,29 +271,6 @@ const createFilteredPoliciesInfoSelector =
         return {filteredPoliciesCount, firstPolicyID};
     };
 
-/**
- * Maps every policy ID to the default category configured on its distance unit. Used when an expense is moved to
- * another workspace, where the destination policy isn't known until the user picks it, so subscribing to that single
- * policy isn't an option. Only the default categories are kept so the subscriber re-renders when one of them changes
- * rather than on any change to any policy.
- */
-const policyDistanceDefaultCategoriesSelector = (policies: OnyxCollection<Policy>): Record<string, string | undefined> => {
-    const result: Record<string, string | undefined> = {};
-
-    for (const policy of Object.values(policies ?? {})) {
-        if (!policy?.id) {
-            continue;
-        }
-        const distanceUnit = Object.values(policy.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        if (!distanceUnit?.defaultCategory) {
-            continue;
-        }
-        result[policy.id] = distanceUnit.defaultCategory;
-    }
-
-    return result;
-};
-
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
     return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 };
@@ -433,7 +410,6 @@ export {
     hasReusablePoliciesConnectedToSelector,
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
-    policyDistanceDefaultCategoriesSelector,
     policyNameSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,
