@@ -37,10 +37,6 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    // A chat thread whose parent is an invoice report gets its name resolved from the parent invoice
-    // (see getChatListItemReportName -> getReportForHeader), so we need that same parent to decide which
-    // report to fetch transactions for. Read it reactively here rather than via getReportForHeader's
-    // deprecated global report cache, which isn't guaranteed to be populated or trigger a re-render.
     const parentReportID = isChatThread(report) ? report.parentReportID : undefined;
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
     let reportForHeaderReportID: string | undefined;
