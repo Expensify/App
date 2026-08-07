@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -17,8 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
 // eslint-disable-next-line no-restricted-imports -- genuine paid-only check: copy-settings carries paid features, so only paid group (Collect/Control) workspaces are valid targets; Submit/Personal are intentionally excluded.
-import {isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {isArchivedPolicy, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -58,7 +57,14 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         ? []
         : Object.values(policies)
               .filter((policy): policy is Policy => {
-                  if (!policy || policy.id === sourcePolicyID || !isPaidGroupPolicy(policy) || isPendingDeletePolicy(policy) || !isPolicyAdmin(policy, currentUserEmail)) {
+                  if (
+                      !policy ||
+                      policy.id === sourcePolicyID ||
+                      !isPaidGroupPolicy(policy) ||
+                      isPendingDeletePolicy(policy) ||
+                      isArchivedPolicy(policy) ||
+                      !isPolicyAdmin(policy, currentUserEmail)
+                  ) {
                       return false;
                   }
                   return true;
@@ -81,13 +87,11 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         keyForList: policy.id,
         isSelected: resolvedSelectedTargetIDs.includes(policy.id),
         leftElement: (
-            <View style={[styles.mr3]}>
-                <Avatar
-                    source={policy.avatarURL ?? getDefaultWorkspaceAvatar(policy.title)}
-                    size={CONST.AVATAR_SIZE.DEFAULT}
+            <View style={styles.mr3}>
+                <WorkspaceAvatar
+                    source={policy.avatarURL}
                     name={policy.title}
                     avatarID={policy.id}
-                    type={CONST.ICON_TYPE_WORKSPACE}
                 />
             </View>
         ),

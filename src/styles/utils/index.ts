@@ -2005,6 +2005,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS:
+                // Wider than category/tag so short violation labels are less likely to truncate.
+                columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
                 columnWidth = {
                     ...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96),
@@ -2014,6 +2018,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.EXPENSES:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES:
                 columnWidth = {...getWidthStyle(variables.w130)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED:
+                // Fixed width: wide enough for the long headers these columns carry, so no amount-based widening is needed.
+                columnWidth = {...getWidthStyle(variables.w130), ...styles.alignItemsEnd};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
