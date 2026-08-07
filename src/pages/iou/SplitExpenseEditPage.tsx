@@ -483,6 +483,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                     isSelfDMSplit,
                                     personalPolicy?.outputCurrency,
                                     getCurrencySymbol,
+                                    allPolicies,
                                 );
                                 Navigation.goBack(backTo);
                             }}
