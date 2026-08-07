@@ -2,6 +2,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
 import useEnvironment from '@hooks/useEnvironment';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {FooterColumnRow} from '@pages/signin/SignInPageLayout/types';
@@ -14,7 +15,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
 
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 
 type FooterRowProps = FooterColumnRow & {
     text: string;

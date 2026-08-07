@@ -1,4 +1,5 @@
 import useEnvironment from '@hooks/useEnvironment';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openLink as openLinkUtil} from '@userActions/Link';
@@ -14,7 +15,6 @@ import type {StyleProp, TextStyle} from 'react-native';
  */
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 
 import type {LinkProps, PressProps} from './TextLink';
 

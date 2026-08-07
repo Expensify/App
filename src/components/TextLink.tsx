@@ -1,4 +1,5 @@
 import useEnvironment from '@hooks/useEnvironment';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openLink as openLinkUtil} from '@userActions/Link';
@@ -10,7 +11,6 @@ import type {KeyboardEvent, KeyboardEventHandler, MouseEventHandler} from 'react
 import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
 
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 
 import type {TextProps} from './Text';
 
