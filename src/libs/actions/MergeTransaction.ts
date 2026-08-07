@@ -54,6 +54,7 @@ import Onyx from 'react-native-onyx';
 
 import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from './IOU/UpdateMoneyRequest';
 
+import {getAllReports} from './IOU';
 import {getCleanUpTransactionThreadReportOnyxData} from './IOU/DeleteMoneyRequest';
 import {getDeleteTrackExpenseInformation} from './IOU/TrackExpense';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU/UpdateMoneyRequest';
@@ -589,11 +590,15 @@ function mergeTransactionRequest({
             const sourceIouAction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
             const sourceTransactionThreadReportID = sourceIouAction?.childReportID;
             const shouldDeleteTransactionThread = !!sourceTransactionThreadReportID;
+            const allReports = getAllReports();
+            const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceTransactionThreadReportID}`];
+
             const cleanUpSourceTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
                 transactionThreadID: sourceTransactionThreadReportID,
                 shouldDeleteTransactionThread,
                 reportAction: sourceIouAction,
                 currentUserAccountID: currentUserAccountIDParam,
+                transactionThread,
             });
             optimisticSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.optimisticData);
             successSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.successData);
