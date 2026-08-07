@@ -1,7 +1,7 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import Avatar from '@components/Avatar';
 import AvatarPageFooter from '@components/AvatarPageFooter';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -172,15 +172,16 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                     >
                         {({openPicker}) => (
                             <Button
-                                icon={icons.Upload}
-                                text={translate('avatarPage.uploadPhoto')}
                                 accessibilityLabel={translate('avatarPage.uploadPhoto')}
                                 onPress={() => {
                                     openPicker({
                                         onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                                     });
                                 }}
-                            />
+                            >
+                                <Button.Icon src={icons.Upload} />
+                                <Button.Text>{translate('avatarPage.uploadPhoto')}</Button.Text>
+                            </Button>
                         )}
                     </AttachmentPicker>
                 </View>

@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -57,12 +57,12 @@ function ShowPreviousMessagesButton({reportID, actionType, hasPreviousMessages, 
             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
             <View>
                 <Button
-                    small
-                    shouldShowRightIcon
-                    iconRight={expensifyIcons.UpArrow}
-                    text={translate('common.concierge.showHistory')}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onPress={onPress}
-                />
+                >
+                    <Button.Text>{translate('common.concierge.showHistory')}</Button.Text>
+                    <Button.Icon src={expensifyIcons.UpArrow} />
+                </Button>
             </View>
             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
         </View>

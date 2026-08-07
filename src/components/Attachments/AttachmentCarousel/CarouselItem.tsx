@@ -1,6 +1,6 @@
 import AttachmentView from '@components/Attachments/AttachmentView';
 import type {Attachment} from '@components/Attachments/types';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
@@ -48,8 +48,10 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
 
     const renderButton = (style: StyleProp<ViewStyle>) => (
         <Button
-            small
+            size={CONST.BUTTON_SIZE.SMALL}
             style={style}
+            // Restores the 12px horizontal padding from the legacy implementation.
+            innerStyles={styles.ph3}
             onPress={() => setIsHidden(!isHidden)}
             testID="moderationButton"
             sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.MODERATION_BUTTON}
