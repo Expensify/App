@@ -599,7 +599,7 @@ function getSynchronizationErrorMessage(
         );
     }
 
-    const syncError = translate('workspace.accounting.syncError', {connectionName: connectionDisplayName});
+    const syncError = translate('workspace.accounting.syncError', connectionDisplayName);
 
     const connection = policy?.connections?.[connectionName];
     if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {
