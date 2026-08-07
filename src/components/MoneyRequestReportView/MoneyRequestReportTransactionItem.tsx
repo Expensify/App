@@ -16,13 +16,19 @@ import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
+import {getLatestErrorField, getLatestErrorMessageField} from '@libs/ErrorUtils';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
+import {dismissRejectExpenseError} from '@userActions/IOU/RejectMoneyRequest';
+import {clearError} from '@userActions/Transaction';
+
 import CONST from '@src/CONST';
 import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -159,6 +165,31 @@ function MoneyRequestReportTransactionItemBody({
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
 
+    // `Transaction.errors` also carries receipt errors, which are objects rendered by their own save/delete UI, so
+    // keep only the plain message errors here.
+    const messageErrors: Errors = Object.fromEntries(
+        Object.entries(transaction.errors ?? {}).filter((entry): entry is [string, string | null] => typeof entry[1] === 'string' || entry[1] === null),
+    );
+
+    // The backend reports a reject against an expense it has already moved under its own `reject` field rather than
+    // the generic `errors`, so both have to be read to show the message.
+    const rejectError = getLatestErrorField(transaction, 'reject');
+    const transactionErrors = {...getLatestErrorMessageField({errors: messageErrors}), ...rejectError};
+
+    // A failed action (e.g. rejecting an expense that has already moved) leaves the expense in place with no pending
+    // action, so opacity has to be forced — `OfflineWithFeedback` only dims on its own while a write is pending.
+    const hasTransactionErrors = Object.keys(transactionErrors).length > 0;
+
+    // A reject error means the server no longer has this expense on this report, so dismissing it drops the stale
+    // local copy rather than just hiding the message. Any other error is a plain dismiss.
+    const dismissTransactionError = () => {
+        if (!isEmptyObject(rejectError)) {
+            dismissRejectExpenseError(transaction.transactionID);
+            return;
+        }
+        clearError(transaction.transactionID);
+    };
+
     // On narrow layouts `inlineEdit` is undefined (the parent skips the hook). The fallback ref
     // keeps the press handler shape identical without ever being mutated on narrow.
     const fallbackEditingOnMouseDownRef = useRef(false);
@@ -184,6 +215,10 @@ function MoneyRequestReportTransactionItemBody({
     return (
         <OfflineWithFeedback
             pendingAction={pendingAction}
+            errors={transactionErrors}
+            onClose={dismissTransactionError}
+            shouldForceOpacity={hasTransactionErrors}
+            errorRowStyles={[styles.ph3, styles.pb3]}
             style={!shouldUseNarrowLayout && isLastItem && [styles.tableBottomRadius, styles.overflowHidden]}
         >
             <PressableWithFeedback
