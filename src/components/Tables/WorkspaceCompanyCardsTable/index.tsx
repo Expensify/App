@@ -53,7 +53,7 @@ type WorkspaceCompanyCardsTableProps = {
     /** Policy ID */
     policyID: string;
 
-    /** Whether the policy is loaded */
+    /** Whether the policy is fully loaded, i.e. its account ID has resolved */
     isPolicyLoaded: boolean;
 
     /** Domain or workspace account ID */

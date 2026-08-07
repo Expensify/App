@@ -75,6 +75,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         onReconnect: loadPolicyCompanyCardsPage,
     });
 
+    const isPolicyLoaded = !!policy && (policy.policyAccountID !== undefined || isOffline);
+
     const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
 
     const hasFeedsLoaded = !!allCardFeeds && Object.keys(allCardFeeds).length > 0;
@@ -134,7 +136,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                 <WorkspaceCompanyCardsTable
                     ref={companyCardsTableRef}
                     policyID={policyID}
-                    isPolicyLoaded={!!policy}
+                    isPolicyLoaded={isPolicyLoaded}
                     domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
                     companyCards={companyCards}
                     onAssignCard={assignCard}

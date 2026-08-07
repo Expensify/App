@@ -134,13 +134,22 @@ function buildCompanyCards({
     };
 }
 
-function renderTable(companyCards: UseCompanyCardsResult, isSelectionModeEnabled = false) {
+type RenderTableOverrides = {
+    isPolicyLoaded?: boolean;
+    domainOrWorkspaceAccountID?: number;
+};
+
+function renderTable(
+    companyCards: UseCompanyCardsResult,
+    isSelectionModeEnabled = false,
+    {isPolicyLoaded = true, domainOrWorkspaceAccountID = DOMAIN_OR_WORKSPACE_ACCOUNT_ID}: RenderTableOverrides = {},
+) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <WorkspaceCompanyCardsTable
                 policyID={POLICY_ID}
-                isPolicyLoaded
-                domainOrWorkspaceAccountID={DOMAIN_OR_WORKSPACE_ACCOUNT_ID}
+                isPolicyLoaded={isPolicyLoaded}
+                domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
                 companyCards={companyCards}
                 onAssignCard={jest.fn()}
                 isAssigningCardDisabled={false}
@@ -212,6 +221,32 @@ describe('WorkspaceCompanyCardsTable loading suppression', () => {
 
         expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
         expect(screen.getByTestId('WorkspaceCompanyCardsTable')).toBeTruthy();
+    });
+});
+
+describe('WorkspaceCompanyCardsTable unresolved workspace account ID', () => {
+    beforeEach(async () => {
+        await Onyx.clear();
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+        await waitForBatchedUpdates();
+    });
+
+    it('keeps the loading indicator up instead of flashing the feeds load error while the policy account ID is unresolved', async () => {
+        renderTable(buildCompanyCards({workspaceCardFeedsStatus: {}}), false, {isPolicyLoaded: false, domainOrWorkspaceAccountID: CONST.DEFAULT_NUMBER_ID});
+
+        await waitForBatchedUpdates();
+
+        expect(screen.getByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeTruthy();
+        expect(screen.queryByText(TestHelper.translateLocal('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle'))).toBeNull();
+    });
+
+    it('still shows the feeds load error once the policy is loaded and the account ID is genuinely 0', async () => {
+        renderTable(buildCompanyCards({workspaceCardFeedsStatus: {}}), false, {domainOrWorkspaceAccountID: CONST.DEFAULT_NUMBER_ID});
+
+        await waitForBatchedUpdates();
+
+        expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
+        expect(screen.getByText(TestHelper.translateLocal('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle'))).toBeTruthy();
     });
 });
 
