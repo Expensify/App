@@ -469,7 +469,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - NWWebSocket (0.5.7)
+  - NWWebSocket (0.5.10)
   - Onfido (32.6.2)
   - onfido-react-native-sdk (15.1.0):
     - Onfido (~> 32.6.0)
@@ -477,12 +477,13 @@ PODS:
   - OpenSSL-Universal (3.6.2000)
   - Plaid (6.4.2)
   - PromisesObjC (2.4.0)
-  - pusher-websocket-react-native (1.3.1):
-    - PusherSwift (~> 10.1.5)
+  - pusher-websocket-react-native (1.3.5):
+    - PusherSwift (~> 10.1.10)
     - React
-  - PusherSwift (10.1.6):
-    - NWWebSocket (~> 0.5.7)
-    - TweetNacl (~> 1.0.0)
+  - PusherSwift (10.1.10):
+    - NWWebSocket (~> 0.5.10)
+    - PusherTweetNacl (~> 1.2.0)
+  - PusherTweetNacl (1.2.0)
   - QuickCrypto (1.1.6):
     - boost
     - DoubleConversion
@@ -4395,7 +4396,6 @@ PODS:
   - SwiftUIIntrospect (1.3.0)
   - TrustKit (3.0.7)
   - Turf (4.0.0)
-  - TweetNacl (1.0.2)
   - UMAppLoader (56.0.1)
   - VisionCamera (4.7.2):
     - VisionCamera/Core (= 4.7.2)
@@ -4597,6 +4597,7 @@ SPEC REPOS:
     - Plaid
     - PromisesObjC
     - PusherSwift
+    - PusherTweetNacl
     - SDWebImage
     - SDWebImageAVIFCoder
     - SDWebImageSVGCoder
@@ -4606,7 +4607,6 @@ SPEC REPOS:
     - SwiftUIIntrospect
     - TrustKit
     - Turf
-    - TweetNacl
 
 EXTERNAL SOURCES:
   AppLogs:
@@ -4980,14 +4980,15 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   NitroFetch: 4941ca1e41fc72ebdad33c50c85fee59a3dd6871
   NitroModules: 1961fff19baf1f4a5221dd2fea7d4de95941f9e4
-  NWWebSocket: b4741420f1976e1dff4da3edad00c401e4f1d769
+  NWWebSocket: 873eb4b18acd0317da70cdba388d792a3187ce00
   Onfido: 65454f91d10758193c857fd149417f6efbea84c5
   onfido-react-native-sdk: bb8cfd9198e2e97978461d969497d18b37e45ca7
   OpenSSL-Universal: ecee7b138fa75a74ecf00d7ffd248fb584739b9e
   Plaid: 8a212ed955d480364e0deb7fed93625b29811e9d
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  pusher-websocket-react-native: 31b5fdd632bfa6d417f9ad0bceefe403ab41825d
-  PusherSwift: fa3d5f6587c20ad5790de87a5c9b150367b5f0f5
+  pusher-websocket-react-native: abc07fda5976027d80d6728ddb69b655116befcb
+  PusherSwift: 6022fe6584b4317dc5c177091292b2a4d80a8c35
+  PusherTweetNacl: 015f56f2cf010e718703f2bd9bca66fdcc91b208
   QuickCrypto: 17cf0ce8529e95012d571358768b8729f9a571ed
   RCT-Folly: 36c4f904fb6cd0219dcb76b94e9502d2a72fab0b
   RCTDeprecation: 225e022b85a206cf0883a909c4a114159783363c
@@ -5111,7 +5112,6 @@ SPEC CHECKSUMS:
   SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
   TrustKit: 1050f3ce0595f8ed775f1237b7f590e3a4f93e91
   Turf: c9eb11a65d96af58cac523460fd40fec5061b081
-  TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
   UMAppLoader: b7d22886a244871c20b5a8f2fcea13c18534e677
   VisionCamera: 30b358b807324c692064f78385e9a732ce1bebfe
   Yoga: 9d8e8094a2bed6a175d9e6001a0546d5dae663ee
