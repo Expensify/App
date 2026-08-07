@@ -5835,6 +5835,16 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
             },
         },
+        dualEntry: {
+            dualEntrySetup: 'Ρύθμιση DualEntry',
+            enterCredentials: 'Εισαγάγετε το κλειδί API του DualEntry',
+            howToFindAPIKey:
+                '<strong>Εύρεση του κλειδιού API.</strong><ol><li>Συνδεθείτε στο DualEntry</li><li>Μεταβείτε σε [organization name] -> Settings -> Developer access -> API keys</li><li>Δημιουργήστε κλειδί API</li><li>Επικολλήστε το κλειδί API παρακάτω</li></ol>',
+            subsidiary: 'Θυγατρική',
+            subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική στο DualEntry από την οποία θέλετε να εισαγάγετε δεδομένα.',
+            noCompaniesFound: 'Δεν βρέθηκαν εταιρείες',
+            noCompaniesFoundDescription: 'Παρακαλούμε προσθέστε μια εταιρεία στο DualEntry και συγχρονίστε ξανά τη σύνδεση',
+        },
         type: {
             free: 'Δωρεάν',
             control: 'Έλεγχος',
@@ -6883,6 +6893,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
+            dualEntry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6902,6 +6913,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DualEntry';
                     default: {
                         return '';
                     }
@@ -7111,6 +7124,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'rilletSyncConnection':
                             return 'Γίνεται αρχικοποίηση σύνδεσης με το Rillet';
                         case 'rilletSyncImportData':
+                            return 'Φόρτωση δεδομένων';
+                        case 'dualEntrySyncTitle':
+                            return 'Γίνεται συγχρονισμός δεδομένων DualEntry';
+                        case 'dualEntrySyncConnection':
+                            return 'Γίνεται προετοιμασία σύνδεσης με το DualEntry';
+                        case 'dualEntrySyncImportData':
                             return 'Φόρτωση δεδομένων';
                         default: {
                             return `Λείπει μετάφραση για το στάδιο: ${stage}`;
@@ -7502,6 +7521,12 @@ ${reportName}`,
                 description: `Απολαύστε τον αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες εγγραφές με την ενσωμάτωση Expensify + Rillet. Ευθυγραμμίστε τις διαστάσεις κωδικοποίησης εξόδων και τον συγχρονισμό φόρων με τη ρύθμιση Rillet για πιο ξεκάθαρη οικονομική εικόνα.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Η ενοποίησή μας με το Rillet είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                title: 'DualEntry',
+                description: `Απολαύστε τον αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες εγγραφές με την ενσωμάτωση Expensify + DualEntry. Ευθυγραμμίστε τις διαστάσεις κωδικοποίησης εξόδων και τον συγχρονισμό φόρων με τη ρύθμιση DualEntry για πιο ξεκάθαρη οικονομική εικόνα.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Η ενοποίησή μας με το DualEntry είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Προηγμένες εγκρίσεις',
