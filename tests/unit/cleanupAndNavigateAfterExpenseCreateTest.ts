@@ -8,6 +8,8 @@ import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
+
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/navigateAfterExpenseCreate', () => jest.fn());
 
@@ -16,18 +18,18 @@ jest.mock('@libs/ReportUtils', () => ({
     isMoneyRequestReport: jest.fn(),
 }));
 
-const chatReport = {reportID: 'chat-1'} as Report;
-const expenseReport = {reportID: 'expense-1', chatReportID: 'linked-chat-1'} as Report;
+const chatReport = createMock<Report>({reportID: 'chat-1'});
+const expenseReport = createMock<Report>({reportID: 'expense-1', chatReportID: 'linked-chat-1'});
 
 describe('cleanupAndNavigateAfterExpenseCreate', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        (isMoneyRequestReport as jest.Mock).mockReturnValue(false);
-        (getReportOrDraftReport as jest.Mock).mockReturnValue(undefined);
+        jest.mocked(isMoneyRequestReport).mockReturnValue(false);
+        jest.mocked(getReportOrDraftReport).mockReturnValue(undefined);
     });
 
     it('should delegate cleanup to cleanupAfterExpenseCreate and navigation to navigateAfterExpenseCreate', () => {
-        const linkedTrackedExpenseReportAction = {childReportID: 'child-1'} as OnyxEntry<ReportAction>;
+        const linkedTrackedExpenseReportAction: OnyxEntry<ReportAction> = createMock<ReportAction>({childReportID: 'child-1'});
 
         cleanupAndNavigateAfterExpenseCreate({
             action: CONST.IOU.ACTION.CREATE,
@@ -116,7 +118,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
 
     it('should set shouldAddPendingNewTransactionIDs=true for CREATE into a brand-new optimistic chat that is not yet in the report cache', () => {
         // A brand-new optimistic chat created the same tick is NOT in the report cache, so getReportOrDraftReport returns undefined.
-        (getReportOrDraftReport as jest.Mock).mockReturnValue(undefined);
+        jest.mocked(getReportOrDraftReport).mockReturnValue(undefined);
 
         cleanupAndNavigateAfterExpenseCreate({
             action: CONST.IOU.ACTION.CREATE,
@@ -137,9 +139,9 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
     });
 
     it('should derive hasMultipleTransactions=true when the resolved activeReportID points to a money-request report', () => {
-        const resolvedFinalReport = {reportID: 'expense-1'} as Report;
-        (isMoneyRequestReport as jest.Mock).mockReturnValue(true);
-        (getReportOrDraftReport as jest.Mock).mockReturnValue(resolvedFinalReport);
+        const resolvedFinalReport = createMock<Report>({reportID: 'expense-1'});
+        jest.mocked(isMoneyRequestReport).mockReturnValue(true);
+        jest.mocked(getReportOrDraftReport).mockReturnValue(resolvedFinalReport);
 
         cleanupAndNavigateAfterExpenseCreate({
             action: CONST.IOU.ACTION.CREATE,
@@ -158,8 +160,8 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
     });
 
     it('should derive hasMultipleTransactions=false when the resolved activeReportID points to a chat report', () => {
-        (isMoneyRequestReport as jest.Mock).mockReturnValue(false);
-        (getReportOrDraftReport as jest.Mock).mockReturnValue(chatReport);
+        jest.mocked(isMoneyRequestReport).mockReturnValue(false);
+        jest.mocked(getReportOrDraftReport).mockReturnValue(chatReport);
 
         cleanupAndNavigateAfterExpenseCreate({
             action: CONST.IOU.ACTION.CREATE,
@@ -255,7 +257,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         });
 
         it('should be false for CREATE when navigation lands on a money-request (expense) report instead of the chat', () => {
-            (isMoneyRequestReport as jest.Mock).mockReturnValue(true);
+            jest.mocked(isMoneyRequestReport).mockReturnValue(true);
 
             cleanupAndNavigateAfterExpenseCreate({
                 action: CONST.IOU.ACTION.CREATE,

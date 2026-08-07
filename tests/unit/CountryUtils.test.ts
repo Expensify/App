@@ -76,7 +76,8 @@ describe('CountryUtils', () => {
         });
 
         it('should convert country name to country code', () => {
-            const data = {street: '123 Main St', city: 'New York', state: 'NY', country: 'United States'} as unknown as Address;
+            const data = {street: '123 Main St', city: 'New York', state: 'NY', country: 'United States'};
+            // @ts-expect-error - Legacy addresses can contain country names before normalization.
             const result = normalizeCountryCode(data);
             expect(result).toEqual({street: '123 Main St', city: 'New York', state: 'NY', country: 'US'});
         });
@@ -99,31 +100,37 @@ describe('CountryUtils', () => {
             ];
 
             for (const {input, expected} of testCases) {
-                const data = {street: '789 Test St', city: 'Test City', country: input} as unknown as Address;
+                const data = {street: '789 Test St', city: 'Test City', country: input};
+                // @ts-expect-error - Legacy addresses can contain country names before normalization.
                 const result = normalizeCountryCode(data);
                 expect(result?.country).toBe(expected);
             }
         });
 
         it('should preserve invalid country values', () => {
-            const data = {street: '789 Test St', city: 'Test City', country: 'Invalid Country'} as unknown as Address;
+            const data = {street: '789 Test St', city: 'Test City', country: 'Invalid Country'};
+            // @ts-expect-error - This deliberately exercises an invalid country value.
             const result = normalizeCountryCode(data);
             expect(result).toEqual({street: '789 Test St', city: 'Test City', country: 'Invalid Country'});
         });
 
         it('should handle special characters in country names', () => {
-            const data = {street: '123 Main St', city: 'Sarajevo', country: 'Bosnia & Herzegovina'} as unknown as Address;
+            const data = {street: '123 Main St', city: 'Sarajevo', country: 'Bosnia & Herzegovina'};
+            // @ts-expect-error - Legacy addresses can contain country names before normalization.
             const result = normalizeCountryCode(data);
             expect(result).toEqual({street: '123 Main St', city: 'Sarajevo', country: 'BA'});
         });
 
         it('should be case sensitive when normalizing country names', () => {
-            const dataLowerCase = {street: '789 Test St', city: 'Test City', country: 'united states'} as unknown as Address;
-            const dataUpperCase = {street: '789 Test St', city: 'Test City', country: 'UNITED STATES'} as unknown as Address;
-            const dataProperCase = {street: '789 Test St', city: 'Test City', country: 'United States'} as unknown as Address;
+            const dataLowerCase = {street: '789 Test St', city: 'Test City', country: 'united states'};
+            const dataUpperCase = {street: '789 Test St', city: 'Test City', country: 'UNITED STATES'};
+            const dataProperCase = {street: '789 Test St', city: 'Test City', country: 'United States'};
 
+            // @ts-expect-error - Legacy addresses can contain country names before normalization.
             expect(normalizeCountryCode(dataLowerCase)).toEqual({street: '789 Test St', city: 'Test City', country: 'united states'});
+            // @ts-expect-error - Legacy addresses can contain country names before normalization.
             expect(normalizeCountryCode(dataUpperCase)).toEqual({street: '789 Test St', city: 'Test City', country: 'UNITED STATES'});
+            // @ts-expect-error - Legacy addresses can contain country names before normalization.
             expect(normalizeCountryCode(dataProperCase)).toEqual({street: '789 Test St', city: 'Test City', country: 'US'});
         });
 
@@ -134,7 +141,8 @@ describe('CountryUtils', () => {
                 state: 'CA',
                 zipCode: '90001',
                 country: 'United States',
-            } as unknown as Address;
+            };
+            // @ts-expect-error - Legacy addresses can contain country names before normalization.
             const result = normalizeCountryCode(data);
             expect(result).toEqual({
                 street: '123 Main St',
@@ -146,7 +154,8 @@ describe('CountryUtils', () => {
         });
 
         it('should handle MISSING TRANSLATION value', () => {
-            const data = {street: '789 Test St', city: 'Test City', country: 'MISSING TRANSLATION'} as unknown as Address;
+            const data = {street: '789 Test St', city: 'Test City', country: 'MISSING TRANSLATION'};
+            // @ts-expect-error - This deliberately exercises a missing translation value.
             const result = normalizeCountryCode(data);
             expect(result).toEqual({street: '789 Test St', city: 'Test City', country: 'MISSING TRANSLATION'});
         });
