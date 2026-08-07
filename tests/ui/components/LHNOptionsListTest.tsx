@@ -43,6 +43,7 @@ jest.mock('@src/languages/IntlStore', () => {
             },
             subscribe: () => () => {},
             getSnapshotVersion: () => 0,
+            hasLocale: (locale: string) => cache.has(locale),
         },
     };
 });
