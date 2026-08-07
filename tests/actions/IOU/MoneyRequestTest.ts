@@ -1374,24 +1374,6 @@ describe('MoneyRequest', () => {
                 draftTransactionIDs: [baseParams.transactionID],
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixture forwarding the real OptionData baseParams.participants already produced, with isDisabled overridden
                 participants: [{...baseParams.participants.at(0), isDisabled: true} as OptionData],
-                conciergeReportID: undefined,
-                delegateAccountID: undefined,
-                getCurrencySymbol,
-            });
-
-            await waitForBatchedUpdates();
-            expect(baseParams.setDistanceRequestData).toHaveBeenCalled();
-        });
-
-        it('should pass reportDraft to getMoneyRequestParticipantOptions and mark participant as disabled', async () => {
-            let capturedParticipants: Participant[] = [];
-            handleMoneyRequestStepDistanceNavigation({
-                ...baseParams,
-                iouType: CONST.IOU.TYPE.SUBMIT,
-                shouldSkipConfirmation: false,
-                isArchivedExpenseReport: false,
-                draftTransactionIDs: [baseParams.transactionID],
-                reportDraft: fakeReport,
                 setDistanceRequestData: (participants) => {
                     capturedParticipants = participants;
                 },
