@@ -9,7 +9,7 @@
 
 
 
-
+#include <string>
 
 namespace margelo::nitro::utils {
 
@@ -45,6 +45,11 @@ namespace margelo::nitro::utils {
     static const auto method = _javaPart->javaClassStatic()->getMethod<double()>("getAppStartTime");
     auto __result = method(_javaPart);
     return __result;
+  }
+  std::string JHybridAppStartTimeModuleSpec::getAppStartupMarkers() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<jni::JString>()>("getAppStartupMarkers");
+    auto __result = method(_javaPart);
+    return __result->toStdString();
   }
 
   // Methods

@@ -15,7 +15,7 @@
 
 
 
-
+#include <string>
 
 namespace margelo::nitro::utils {
 
@@ -45,6 +45,7 @@ namespace margelo::nitro::utils {
     public:
       // Properties
       virtual double getAppStartTime() = 0;
+      virtual std::string getAppStartupMarkers() = 0;
 
     public:
       // Methods

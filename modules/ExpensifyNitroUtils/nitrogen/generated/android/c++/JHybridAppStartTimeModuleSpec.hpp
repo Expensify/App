@@ -51,6 +51,7 @@ namespace margelo::nitro::utils {
   public:
     // Properties
     double getAppStartTime() override;
+    std::string getAppStartupMarkers() override;
 
   public:
     // Methods
