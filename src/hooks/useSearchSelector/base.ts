@@ -211,6 +211,13 @@ function useSearchSelectorBase({
 
     // Searching bypasses the recent-reports pre-filter so a typed query can still match reports outside the top 500 most recently active ones.
     const isSearchingOptions = !!debouncedSearchTerm.trim();
+
+    // Only these two contexts spread `getValidOptionsConfig` into their getValidOptions call, so only they can
+    // turn P2P off downstream. Building contacts the option-building step then discards is pure waste, so the
+    // value the option list is built with has to be the value getValidOptions will see.
+    const isGetValidOptionsConfigApplied = searchContext === CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL || searchContext === CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES;
+    const includeP2P = !isGetValidOptionsConfigApplied || (getValidOptionsConfig.includeP2P ?? true);
+
     const {
         options: filteredOptions,
         isLoading: isLoadingOptions,
@@ -219,6 +226,7 @@ function useSearchSelectorBase({
     } = useFilteredOptions({
         enabled: shouldInitialize,
         isSearching: isSearchingOptions,
+        includeP2P,
         batchSize: maxResultsPerPage,
     });
     const areOptionsInitialized = !isLoadingOptions;
@@ -228,7 +236,9 @@ function useSearchSelectorBase({
         if (!contactOptions?.length || !areOptionsInitialized) {
             return defaultOptions;
         }
-        const personalDetailsWithContacts = defaultOptions.personalDetails.concat(contactOptions);
+        // Device contacts come out of ContactUtils fully built, so they enter the list as the hydrated half of
+        // the union and hydrateLazyPersonalDetailOption passes them straight through.
+        const personalDetailsWithContacts = defaultOptions.personalDetails.concat(contactOptions.map((contact) => ({...contact, isHydrated: true as const})));
         return {
             ...defaultOptions,
             personalDetails: personalDetailsWithContacts,

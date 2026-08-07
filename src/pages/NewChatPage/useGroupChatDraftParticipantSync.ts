@@ -1,11 +1,11 @@
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useOnyx from '@hooks/useOnyx';
 
-import {getUserToInviteOption} from '@libs/OptionsListUtils';
-import type {SearchOption} from '@libs/OptionsListUtils';
+import {getUserToInviteOption, hydrateLazyPersonalDetailOption} from '@libs/OptionsListUtils';
+import type {PersonalDetailOptionOrShell} from '@libs/OptionsListUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Login, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {Login, PersonalDetailsList} from '@src/types/onyx';
 import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -25,7 +25,7 @@ import type SelectedOption from './types';
  *   consistent when the user returns.
  */
 function useGroupChatDraftParticipantSync(
-    allPersonalDetailOptions: Array<SearchOption<PersonalDetails>>,
+    allPersonalDetailOptions: PersonalDetailOptionOrShell[],
     areAllPersonalDetailOptionsLoaded: boolean,
     allPersonalDetails: OnyxEntry<PersonalDetailsList>,
     loginList: OnyxEntry<Login>,
@@ -54,14 +54,22 @@ function useGroupChatDraftParticipantSync(
             if (participant.accountID === currentUserAccountID) {
                 return result;
             }
-            const option =
-                allPersonalDetailOptions.find((personalDetail) => personalDetail.accountID === participant.accountID) ??
-                getUserToInviteOption({
-                    searchValue: participant?.login,
-                    personalDetails: allPersonalDetails,
-                    loginList,
-                    currentUserEmail,
-                });
+            const foundOption = allPersonalDetailOptions.find((personalDetail) => personalDetail.accountID === participant.accountID);
+            if (foundOption) {
+                // Options from useFilteredOptions are lightweight, but restored participants are rendered as
+                // selected rows, so the full display option is needed. `isHydrated` is option-list bookkeeping
+                // and stops here: a selected participant is a display option, not a half of the build-time union.
+                const {isHydrated, ...hydrated} = hydrateLazyPersonalDetailOption(foundOption);
+                result.push({...hydrated, isSelected: true});
+                return result;
+            }
+
+            const option = getUserToInviteOption({
+                searchValue: participant?.login,
+                personalDetails: allPersonalDetails,
+                loginList,
+                currentUserEmail,
+            });
             if (option) {
                 result.push({...option, isSelected: true});
             }

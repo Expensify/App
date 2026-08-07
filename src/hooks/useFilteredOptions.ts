@@ -17,8 +17,13 @@ type UseFilteredOptionsConfig = {
     maxRecentReports?: number;
     /** Whether the hook should be enabled (default: true) */
     enabled?: boolean;
-    /** Whether to include P2P personal details (default: true) */
-    includeP2P?: boolean;
+    /**
+     * Whether to build P2P contact shells in the option list. Required — must match the `includeP2P` passed to
+     * `getValidOptions`/`getSearchOptions` on the same screen. Passing `true` here while those helpers use
+     * `false` builds one shell per contact and then discards them all (no error, just wasted work). Pass
+     * `false` on screens that render reports only.
+     */
+    includeP2P: boolean;
     /** Number of reports to load per batch when paginating (default: 100) */
     batchSize?: number;
     /** Whether to enable dynamic loading/pagination (default: true) */
@@ -67,6 +72,7 @@ type UseFilteredOptionsResult = {
  * const {options, isLoading} = useFilteredOptions({
  *   maxRecentReports: 500,
  *   enabled: didScreenTransitionEnd,
+ *   includeP2P: true,
  * });
  *
  * <SelectionList
@@ -74,8 +80,8 @@ type UseFilteredOptionsResult = {
  *   shouldShowLoadingPlaceholder={isLoading}
  * />
  */
-function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
-    const {maxRecentReports = 500, enabled = true, includeP2P = true, batchSize = 100, isSearching = false, deferContactsUntilSearch = false} = config;
+function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOptionsResult {
+    const {maxRecentReports = 500, enabled = true, includeP2P, batchSize = 100, isSearching = false, deferContactsUntilSearch = false} = config;
 
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 

@@ -12,7 +12,7 @@ import filterArrayByMatch from '@libs/filterArrayByMatch';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
-import {translateLocal} from '@libs/Localize';
+import {translate as translateWithLocale, translateLocal} from '@libs/Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import MaxHeap from '@libs/MaxHeap';
 import MinHeap from '@libs/MinHeap';
@@ -208,7 +208,9 @@ import type {
     GetOptionsConfig,
     GetUserToInviteConfig,
     GetValidReportsConfig,
+    HydratedPersonalDetailOption,
     IsValidReportsConfig,
+    LazyHydrationContext,
     MemberForList,
     OptionList,
     Options,
@@ -216,6 +218,9 @@ import type {
     OrderOptionsConfig,
     OrderReportOptionsConfig,
     PayeePersonalDetails,
+    PersonalDetailFilterRankFields,
+    PersonalDetailOptionOrShell,
+    PersonalDetailShell,
     PreviewConfig,
     ReportAndPersonalDetailOptions,
     SearchOption,
@@ -298,6 +303,30 @@ Onyx.connect({
 });
 
 /**
+ * Single-account form of getPersonalDetailsForAccountIDs, without the array/map allocations that version needs.
+ * Prefer this when looking up exactly one account: the option list builds one contact per personal detail, so
+ * the two throwaway objects the plural version allocates per call add up to one pair per contact on the account.
+ *
+ * @returns the (normalized, in place) PersonalDetails, or undefined when the accountID is falsy or there is no
+ * personal details list to read from.
+ */
+function getPersonalDetailForAccountID(accountID: number, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): PersonalDetails | undefined {
+    const cleanAccountID = Number(accountID);
+    if (!personalDetails || !cleanAccountID) {
+        return undefined;
+    }
+
+    const personalDetail: PersonalDetails = personalDetails[accountID] ?? ({} as PersonalDetails);
+
+    if (cleanAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
+    }
+
+    personalDetail.accountID = cleanAccountID;
+    return personalDetail;
+}
+
+/**
  * Returns the personal details for an array of accountIDs
  * @returns keys of the object are emails, values are PersonalDetails objects.
  */
@@ -308,21 +337,11 @@ function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, perso
     }
     if (accountIDs) {
         for (const accountID of accountIDs) {
-            const cleanAccountID = Number(accountID);
-            if (!cleanAccountID) {
+            const personalDetail = getPersonalDetailForAccountID(accountID, personalDetails);
+            if (!personalDetail) {
                 continue;
             }
-            let personalDetail: OnyxEntry<PersonalDetails> = personalDetails[accountID] ?? undefined;
-            if (!personalDetail) {
-                personalDetail = {} as PersonalDetails;
-            }
-
-            if (cleanAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
-                personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
-            }
-
-            personalDetail.accountID = cleanAccountID;
-            personalDetailsForAccountIDs[cleanAccountID] = personalDetail;
+            personalDetailsForAccountIDs[personalDetail.accountID] = personalDetail;
         }
     }
     return personalDetailsForAccountIDs;
@@ -1108,6 +1127,31 @@ type CreateOptionParams = {
 };
 
 /**
+ * Display name for a personal detail option built with showPersonalDetails. Shared by createOption and the
+ * lazy shell in buildPersonalDetailsOptions, which must produce the identical `text` so filtering and
+ * ranking of shells match the hydrated options. Mirrors createOption's historical asymmetry: the
+ * personal details data is only passed through when there is no report.
+ */
+type GetPersonalDetailOptionTextProps = {
+    accountID: number | undefined;
+    hasReport: boolean;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    login: string | undefined;
+    translate: LocalizedTranslate;
+};
+
+function getPersonalDetailOptionText({accountID, hasReport, personalDetails, login, translate}: GetPersonalDetailOptionTextProps): string {
+    return (
+        getDisplayNameForParticipant({
+            accountID,
+            personalDetailsData: hasReport ? undefined : (personalDetails ?? undefined),
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            translate,
+        }) || formatPhoneNumberPhoneUtils(login ?? '')
+    );
+}
+
+/**
  * Creates a report list option - optimized for SearchOption context
  */
 function createOption({
@@ -1246,17 +1290,10 @@ function createOption({
                 : '');
 
         reportName = showPersonalDetails
-            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils, translate: translateFn}) ||
-              formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
+            ? getPersonalDetailOptionText({accountID: accountIDs.at(0), hasReport: true, personalDetails, login: personalDetail?.login, translate: translateFn})
             : computedReportName;
     } else {
-        reportName =
-            getDisplayNameForParticipant({
-                accountID: accountIDs.at(0),
-                personalDetailsData: personalDetails ?? undefined,
-                formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                translate: translateFn,
-            }) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '');
+        reportName = getPersonalDetailOptionText({accountID: accountIDs.at(0), hasReport: false, personalDetails, login: personalDetail?.login, translate: translateFn});
         result.keyForList = String(accountIDs.at(0));
 
         result.alternateText = formatPhoneNumberPhoneUtils(personalDetails?.[accountIDs[0]]?.login ?? '');
@@ -1633,6 +1670,9 @@ const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArc
  *    those reports are processed in step 4, avoiding work on thousands of reports while ensuring correct filtering.
  * 3. Search mode (`options.isSearching` true): uses the full pre-filtered report list with no recency sort and
  *    no `maxRecentReports` cap, so search can include all eligible reports.
+ * 4. Process the selected reports into options (`processReport` / `createOption`).
+ * 5. Personal details are built as filter/rank shells (no icons / last-message / policy work). getValidOptions
+ *    hydrates survivors via hydrateLazyPersonalDetailOption. Reports stay eager — their filters read fully-built fields.
  *
  * @param options.isSearching - When true, skips the sort and top-N limit in step 2; when false, applies them.
  *
@@ -1665,6 +1705,9 @@ function buildFilteredOptionListCacheKey(args: Array<string | number | boolean>)
 // NOTE: this is a shallow clone — the top-level fields consumers mutate today are all scalars. Nested
 // objects (icons, participantsList, item, allReportErrors) stay shared with the cached entry, so any new
 // consumer that mutates those in place would corrupt the cache and must clone them first.
+// A contact shell's `hydrate` is copied by reference too, so every clone of one cached entry shares that
+// closure's memoized build: reopening a picker, or a second screen on the same cache entry, reuses the
+// createOption work instead of redoing it.
 function cloneOptionList(optionList: OptionList): OptionList {
     return {
         reports: optionList.reports.map((option) => ({...option})),
@@ -1677,10 +1720,11 @@ function cloneOptionList(optionList: OptionList): OptionList {
 // silently corrupting the cache for other screens. The clones' top-level objects stay mutable because
 // spreading a frozen object produces a new unfrozen one — which covers all mutations consumers do today.
 //
-// `item` and the members of `participantsList` are exempt: they are Onyx snapshot objects shared with the
-// whole app, not structures this cache created, and existing code still writes to them in place (e.g.
-// getPersonalDetailsForAccountIDs sets accountID during every option build), so freezing them would crash
-// unrelated flows in dev. Mutating them corrupts app-wide Onyx state, which is beyond this cache's invariant.
+// `item` and the members of `participantsList` are exempt: they hold Onyx snapshot objects shared with the
+// whole app (reports / personal details), not structures this cache created, and existing code still writes
+// to them in place (e.g. getPersonalDetailsForAccountIDs sets accountID during every option build), so
+// freezing them would crash unrelated flows in dev. Mutating them corrupts app-wide Onyx state, which is
+// beyond this cache's invariant.
 function deepFreeze(value: unknown) {
     if (typeof value !== 'object' || value === null || Object.isFrozen(value)) {
         return;
@@ -1709,6 +1753,133 @@ function clearFilteredOptionListCache() {
 // account, so drop them on sign-out instead of holding them until the next call.
 registerSessionCleanupCallback(() => filteredOptionListCache.clear());
 
+/**
+ * Builds the full display option for one contact. The createOption inputs are the ones captured when the shell
+ * was built, so the result is exactly what the eager build would have produced.
+ */
+function buildFullOption(accountID: number, item: PersonalDetails | null, report: Report | undefined, context: LazyHydrationContext): HydratedPersonalDetailOption {
+    const {personalDetails, policiesCollection, reportAttributesDerived, policyTags, visibleReportActionsData, privateIsArchivedMap, conciergeReportID, translate} = context;
+    const privateIsArchived = report ? privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] : undefined;
+    const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
+
+    const built: HydratedPersonalDetailOption = {
+        item,
+        ...createOption({
+            accountIDs: [accountID],
+            personalDetails,
+            report,
+            policy,
+            privateIsArchived,
+            conciergeReportID,
+            config: {showPersonalDetails: true},
+            reportAttributesDerived,
+            policyTags: reportPolicyTags,
+            visibleReportActionsData,
+            translate,
+        }),
+        isHydrated: true,
+    };
+
+    // Every caller that hydrates this contact shares this one object, so lock it the way the cached option list
+    // itself is locked: a consumer that mutates it throws here instead of silently corrupting what the next
+    // caller reads. hydrateLazyPersonalDetailOption hands out unfrozen top-level copies, so marking still works.
+    if (__DEV__) {
+        deepFreeze(built);
+    }
+
+    return built;
+}
+
+/**
+ * Step 5 of createFilteredOptionList: one lightweight shell per personal detail.
+ * Only filter/rank fields are computed here; getValidOptions hydrates survivors via hydrateLazyPersonalDetailOption.
+ */
+function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Report>, context: LazyHydrationContext): PersonalDetailShell[] {
+    const {personalDetails, translate} = context;
+    return Object.values(personalDetails ?? {}).map((personalDetail) => {
+        const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        const report = reportMapForAccountIDs[accountID];
+        // Same lookup createOption performs (also normalizes accountID in place), minus the array/map
+        // allocations the plural helper would make per contact.
+        const detail = getPersonalDetailForAccountID(accountID, personalDetails);
+        // Same text createOption computes, using the same translate buildFullOption hands it.
+        const text = getPersonalDetailOptionText({accountID, hasReport: !!report, personalDetails, login: detail?.login, translate});
+
+        // The build inputs are fixed at this point, so one contact always hydrates to the same option and the
+        // result is memoized here. cloneOptionList copies `hydrate` by reference, so every clone of this cached
+        // option list shares the memo: reopening a picker reuses the build instead of redoing createOption.
+        //
+        // The closure captures only these immutable build-time identities, never the shell object: getValidOptions
+        // marks shells in place (isSelected/isBold), and capturing the shell would bake that transient marking
+        // state into the memoized build.
+        let built: HydratedPersonalDetailOption | undefined;
+        const hydrate = () => (built ??= buildFullOption(accountID, personalDetail, report, context));
+
+        return {
+            item: personalDetail,
+            isHydrated: false,
+            hydrate,
+            // The empty string default mirrors createOption, as many places test for reportID existence with truthiness operators.
+            // eslint-disable-next-line rulesdir/no-default-id-values
+            reportID: report?.reportID ?? '',
+            keyForList: report ? String(report.reportID) : String(accountID),
+            text,
+            login: detail?.login,
+            accountID: Number(detail?.accountID),
+            participantsList: detail ? [detail] : [],
+            isSelected: false,
+            selected: false,
+        };
+    });
+}
+
+/**
+ * Turns a contact option from createFilteredOptionList into a full display option, building the expensive
+ * display fields on the first call and reusing that build afterwards. Options that are already hydrated
+ * (e.g. device contacts) pass through unchanged.
+ *
+ * Shells return a fresh top-level copy per call: consumers mark options in place (getValidOptions sets
+ * isBold/isSelected/brickRoadIndicator) and list rows re-render on reference change, so this matches the
+ * per-call objects the eager build produced. Only the createOption work is shared. The copies share nested
+ * objects (icons, participantsList, item) with the memoized build, matching the cloneOptionList invariant:
+ * a consumer that mutates those must clone them first.
+ */
+function hydrateLazyPersonalDetailOption(option: PersonalDetailOptionOrShell): HydratedPersonalDetailOption {
+    if (option.isHydrated) {
+        return option;
+    }
+
+    return {...option.hydrate(), isHydrated: true};
+}
+
+/**
+ * Hydrates a contact option that getValidOptions left as a shell (see `deferContactHydration`), re-applying the
+ * marks it wrote before the display fields existed. Screens that defer must call this instead of
+ * hydrateLazyPersonalDetailOption: the memoized build is shared by every caller, so it cannot carry one screen's
+ * selection state, and dropping the marks would render every row unselected and unbolded.
+ *
+ * `selected` (the legacy duplicate of isSelected) is deliberately not re-applied: getValidOptions never writes
+ * it, so the shell's value and the build's are both the `false` createOption assigns, and copying it would only
+ * hide a future divergence from the eager path — which does not carry it across either.
+ */
+function hydrateWithMarks(option: PersonalDetailOptionOrShell): HydratedPersonalDetailOption {
+    if (option.isHydrated) {
+        return option;
+    }
+
+    const hydrated = hydrateLazyPersonalDetailOption(option);
+    hydrated.isSelected = option.isSelected;
+    hydrated.isBold = option.isBold;
+    // Same suppression the eager path applies right after building the option, using the decision getValidOptions
+    // recorded on the shell (a shell has no brickRoadIndicator of its own until createOption derives one here).
+    if (!option.shouldShowGBR && hydrated.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+        hydrated.brickRoadIndicator = '';
+    }
+
+    return hydrated;
+}
+
 function createFilteredOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reports: OnyxCollection<Report>,
@@ -1718,6 +1889,7 @@ function createFilteredOptionList(
     options: {
         conciergeReportID: string | undefined;
         maxRecentReports?: number;
+        /** Whether to build contact shells at all. Pass false from screens that render reports only. */
         includeP2P?: boolean;
         isSearching?: boolean;
         /**
@@ -1736,6 +1908,15 @@ function createFilteredOptionList(
     sortedActions?: Record<string, ReportAction[]>,
 ): OptionList {
     const {conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
+
+    // The locale the contact options are built against, and the one the cache entry is keyed on below.
+    const activeLocale = locale ?? IntlStore.getCurrentLocale();
+    // Binding translate to that locale keeps the contact options consistent with the cache key. translateLocal
+    // would read the imperative global instead, which can disagree with an explicit `locale` while the cache key
+    // claims the explicit one.
+    // NOTE: this covers contacts only. Report options (step 4) go through processReport, which takes no
+    // `translate` and so still resolves strings against the imperative global.
+    const translateInActiveLocale: LocalizedTranslate = (path, ...parameters) => translateWithLocale(activeLocale, path, ...parameters);
 
     // Contacts are expensive to build on large accounts (one option per personal detail). When a screen
     // opts into deferral and is not actively searching, skip building them entirely; the empty state
@@ -1758,8 +1939,8 @@ function createFilteredOptionList(
         visibleReportActionsData,
         isTrackIntentUser,
         conciergeReportID,
-        // Option building translates strings imperatively (translateLocal), so the active locale is part of the output.
-        locale ?? IntlStore.getCurrentLocale(),
+        // Option building translates strings, so the active locale is part of the output.
+        activeLocale,
         // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
         // so its reference signals that the underlying report actions changed.
         sortedActions,
@@ -1849,36 +2030,26 @@ function createFilteredOptionList(
         }
     }
 
-    // Step 5: Process personal details (all of them when built - needed for search functionality)
+    // Step 5: Process personal details (all of them when built - needed for search functionality).
+    // Only the fields used for filtering and sorting are computed here. The expensive display fields (icons,
+    // alternate text, last message preview) are built by hydrateLazyPersonalDetailOption, but only for the
+    // page of options that survives filtering and the maxElements cap in getValidOptions.
     const personalDetailsOptions = shouldBuildContacts
-        ? Object.values(personalDetails ?? {}).map((personalDetail) => {
-              const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-
-              const report = reportMapForAccountIDs[accountID];
-              const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-              const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-              const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-              return {
-                  item: personalDetail,
-                  ...createOption({
-                      accountIDs: [accountID],
-                      personalDetails,
-                      report: reportMapForAccountIDs[accountID],
-                      policy,
-                      privateIsArchived,
-                      conciergeReportID,
-                      config: {showPersonalDetails: true},
-                      reportAttributesDerived,
-                      policyTags: reportPolicyTags,
-                      visibleReportActionsData,
-                  }),
-              };
+        ? buildPersonalDetailsOptions(reportMapForAccountIDs, {
+              personalDetails,
+              policiesCollection,
+              reportAttributesDerived,
+              policyTags,
+              visibleReportActionsData,
+              privateIsArchivedMap,
+              conciergeReportID,
+              translate: translateInActiveLocale,
           })
         : [];
 
     const result: OptionList = {
         reports: reportOptions,
-        personalDetails: personalDetailsOptions as Array<SearchOption<PersonalDetails>>,
+        personalDetails: personalDetailsOptions,
     };
 
     if (!shouldUseCache) {
@@ -1950,7 +2121,13 @@ function createOptionFromReport({
     };
 }
 
-function orderPersonalDetailsOptions<T extends SearchOptionData>(options: T[]): T[] {
+/**
+ * What personalDetailsComparator reads: the filter/rank subset both halves of PersonalDetailOptionOrShell
+ * satisfy, plus the `alternateText` fallback that only PersonalDetailOptionData needs.
+ */
+type PersonalDetailSortFields = PersonalDetailFilterRankFields & Pick<SearchOptionData, 'alternateText'>;
+
+function orderPersonalDetailsOptions<T extends PersonalDetailSortFields>(options: T[]): T[] {
     // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
     // Keep this aligned with `getValidOptions` ordering (`optionsOrderBy(..., personalDetailsComparator, ...)`)
     // so upstream and downstream sorting use the same key (text -> alternateText -> login).
@@ -1966,9 +2143,15 @@ function orderReportOptions(options: SearchOptionData[]) {
 }
 
 /**
- * Sort personal details by displayName or login in alphabetical order
+ * Sort personal details by displayName or login in alphabetical order.
+ *
+ * For personal detail options `text` is always a string (createOption assigns it unconditionally, and the
+ * lazy shell in buildPersonalDetailsOptions computes it the same way), so both the shells this sorts in
+ * getValidOptions and the hydrated options orderOptions sorts later always resolve to the same key — the
+ * two passes cannot disagree on order. The alternateText/login fallbacks exist only for
+ * PersonalDetailOptionData, which has no guaranteed `text`.
  */
-function personalDetailsComparator(personalDetail: SearchOptionData | PersonalDetailOptionData) {
+function personalDetailsComparator(personalDetail: PersonalDetailSortFields) {
     const name = personalDetail.text ?? personalDetail.alternateText ?? personalDetail.login ?? '';
     return name.toLowerCase();
 }
@@ -2195,13 +2378,13 @@ function sortComparatorReportOptionByDate(options: SearchOptionData) {
 /**
  * Sorts reports and personal details independently.
  */
-function orderOptions(options: ReportAndPersonalDetailOptions): ReportAndPersonalDetailOptions;
+function orderOptions<T extends SearchOptionData>(options: ReportAndPersonalDetailOptions<T>): ReportAndPersonalDetailOptions<T>;
 
 /**
  * Sorts reports and personal details independently, but prioritizes the search value.
  */
-function orderOptions(options: ReportAndPersonalDetailOptions, searchValue: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions;
-function orderOptions(options: ReportAndPersonalDetailOptions, searchValue?: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions {
+function orderOptions<T extends SearchOptionData>(options: ReportAndPersonalDetailOptions<T>, searchValue: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions<T>;
+function orderOptions<T extends SearchOptionData>(options: ReportAndPersonalDetailOptions<T>, searchValue?: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions<T> {
     let orderedReportOptions: SearchOptionData[];
     if (searchValue) {
         orderedReportOptions = orderReportOptionsWithSearch(options.recentReports, searchValue, config);
@@ -2611,8 +2794,36 @@ function prepareReportOptionsForDisplay(
 }
 
 /**
- * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
+ * Filters reports and personal details down to options that are valid to display.
+ *
+ * Three declarations, one runtime function (TypeScript overloads):
+ * 1. Callers that pass `deferContactHydration: true` get `PersonalDetailOptionOrShell` contacts — hydrate with
+ *    hydrateWithMarks before rendering.
+ * 2. Everyone else gets fully built contacts (`OptionsResult`).
+ * 3. The implementation signature below is shared by both; do not call or export it separately.
  */
+function getValidOptions(
+    options: OptionList,
+    policiesCollection: OnyxCollection<Policy>,
+    draftComments: OnyxCollection<string> | undefined,
+    loginList: OnyxEntry<Login>,
+    currentUserAccountID: number,
+    currentUserEmail: string,
+    conciergeReportID: string | undefined,
+    config: GetOptionsConfig & {deferContactHydration: true},
+    translate: LocalizedTranslate,
+): OptionsResult<PersonalDetailOptionOrShell>;
+function getValidOptions(
+    options: OptionList,
+    policiesCollection: OnyxCollection<Policy>,
+    draftComments: OnyxCollection<string> | undefined,
+    loginList: OnyxEntry<Login>,
+    currentUserAccountID: number,
+    currentUserEmail: string,
+    conciergeReportID: string | undefined,
+    config: GetOptionsConfig,
+    translate: LocalizedTranslate,
+): OptionsResult;
 function getValidOptions(
     options: OptionList,
     policiesCollection: OnyxCollection<Policy>,
@@ -2645,10 +2856,11 @@ function getValidOptions(
         sortedActions,
         isTrackIntentUser,
         isOffline,
+        deferContactHydration = false,
         ...config
     }: GetOptionsConfig,
     translate: LocalizedTranslate,
-): OptionsResult {
+): OptionsResult<PersonalDetailOptionOrShell> {
     // Gather shared configs:
     // Hard exclusions: cannot be selected at all
     const loginsToExclude: Record<string, boolean> = {
@@ -2862,9 +3074,11 @@ function getValidOptions(
     }
 
     // Get valid personal details and check if we can find the current user:
-    let personalDetailsOptions: SearchOptionData[] = [];
+    let personalDetailsOptions: PersonalDetailOptionOrShell[] = [];
+    // Holds an element of `personalDetailsOptions`, so with `deferContactHydration` it can be a shell. Typed as
+    // the union so it leaves getValidOptions as one too and the render site has to hydrate it (see `Options`).
     const currentUserRef = {
-        current: undefined as SearchOptionData | undefined,
+        current: undefined as PersonalDetailOptionOrShell | undefined,
     };
 
     if (includeP2P) {
@@ -2906,7 +3120,11 @@ function getValidOptions(
             ? Math.max(maxElements - recentReportOptions.length - workspaceChats.length - (!selfDMChat ? 1 : 0), MIN_PERSONAL_DETAILS_SLOTS)
             : undefined;
         const groupedPersonalDetails = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
-        personalDetailsOptions = groupedPersonalDetails.options;
+        // Lightweight options from createFilteredOptionList get their full display fields only now, after the
+        // heap selection reduced them to a single page, so the expensive work is done for a handful of options.
+        // When the caller defers, even that is skipped: it caps the visible rows itself and hydrates that slice
+        // with hydrateWithMarks, so building anything here would be thrown away.
+        personalDetailsOptions = deferContactHydration ? groupedPersonalDetails.options : groupedPersonalDetails.options.map(hydrateLazyPersonalDetailOption);
 
         hasMore = hasMore || groupedPersonalDetails.hasMore;
 
@@ -2921,17 +3139,18 @@ function getValidOptions(
             }
         }
 
-        for (let i = 0; i < personalDetailsOptions.length; i++) {
-            const personalDetail = personalDetailsOptions.at(i);
-            if (!personalDetail) {
-                continue;
-            }
+        for (const personalDetail of personalDetailsOptions) {
             if (!!currentUserEmail && personalDetail?.login === currentUserEmail) {
                 currentUserRef.current = personalDetail;
             }
             personalDetail.isBold = shouldBoldTitleByDefault;
-            if (personalDetail.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-                personalDetail.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : '';
+            if (personalDetail.isHydrated) {
+                if (personalDetail.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+                    personalDetail.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : '';
+                }
+            } else {
+                // The shell has no brickRoadIndicator yet, so hand the decision to hydrateWithMarks.
+                personalDetail.shouldShowGBR = shouldShowGBR;
             }
             personalDetail.isSelected =
                 (!!personalDetail.accountID && selectedAccountIDs.has(personalDetail.accountID)) || (!!personalDetail.login && selectedLogins.has(personalDetail.login));
@@ -3288,7 +3507,7 @@ function formatSectionsFromSearchTerm(
 /**
  * Remove the personal details for the DMs that are already in the recent reports so that we don't show duplicates.
  */
-function filteredPersonalDetailsOfRecentReports(recentReports: SearchOptionData[], personalDetails: SearchOptionData[]) {
+function filteredPersonalDetailsOfRecentReports<T extends SearchOptionData>(recentReports: SearchOptionData[], personalDetails: T[]): T[] {
     const excludedLogins = new Set(recentReports.map((report) => report.login));
     return personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
 }
@@ -3351,7 +3570,7 @@ function filterWorkspaceChats(reports: SearchOptionData[], searchTerms: string[]
     return filteredReports;
 }
 
-function filterPersonalDetails(personalDetails: SearchOptionData[], searchTerms: string[], currentUserAccountID: number): SearchOptionData[] {
+function filterPersonalDetails<T extends SearchOptionData>(personalDetails: T[], searchTerms: string[], currentUserAccountID: number): T[] {
     return searchTerms.reduceRight(
         (items, term) =>
             filterArrayByMatch(items, term, (item) => {
@@ -3362,8 +3581,8 @@ function filterPersonalDetails(personalDetails: SearchOptionData[], searchTerms:
     );
 }
 
-function filterCurrentUserOption(currentUserOption: SearchOptionData | null | undefined, searchTerms: string[]): SearchOptionData | null | undefined {
-    return searchTerms.reduceRight((item, term) => {
+function filterCurrentUserOption<T extends SearchOptionData>(currentUserOption: T | null | undefined, searchTerms: string[]): T | null | undefined {
+    return searchTerms.reduceRight<T | null | undefined>((item, term) => {
         if (!item) {
             return null;
         }
@@ -3443,8 +3662,8 @@ function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): Sear
     return isMatch ? report : undefined;
 }
 
-function filterOptions(
-    options: Options,
+function filterOptions<T extends SearchOptionData>(
+    options: Options<T>,
     searchInputValue: string,
     countryCode: number,
     loginList: OnyxEntry<Login>,
@@ -3452,7 +3671,7 @@ function filterOptions(
     currentUserAccountID: number,
     personalDetailsCollection: OnyxEntry<PersonalDetailsList>,
     config?: FilterUserToInviteConfig,
-): Options {
+): Options<T> {
     const trimmedSearchInput = searchInputValue.trim();
     const searchInputValueForInvite = config?.searchInputValue ?? trimmedSearchInput;
 
@@ -3501,11 +3720,11 @@ type FilterAndOrderConfig = FilterUserToInviteConfig & AllOrderConfigs;
  * Personal details will be filtered out if they are part of the recent reports.
  * Additional configs can be applied.
  */
-function combineOrderingOfReportsAndPersonalDetails(
-    options: ReportAndPersonalDetailOptions,
+function combineOrderingOfReportsAndPersonalDetails<T extends SearchOptionData>(
+    options: ReportAndPersonalDetailOptions<T>,
     searchInputValue: string,
     {maxRecentReportsToShow, sortByReportTypeInSearch, ...orderReportOptionsConfig}: AllOrderConfigs = {},
-): ReportAndPersonalDetailOptions {
+): ReportAndPersonalDetailOptions<T> {
     // sortByReportTypeInSearch will show the personal details as part of the recent reports
     if (sortByReportTypeInSearch) {
         const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(options.recentReports, options.personalDetails);
@@ -3531,8 +3750,8 @@ function combineOrderingOfReportsAndPersonalDetails(
  * Filters and orders the options based on the search input value.
  * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
  */
-function filterAndOrderOptions(
-    options: Options,
+function filterAndOrderOptions<T extends SearchOptionData>(
+    options: Options<T>,
     searchInputValue: string,
     countryCode: number,
     loginList: OnyxEntry<Login>,
@@ -3540,7 +3759,7 @@ function filterAndOrderOptions(
     currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     config?: FilterAndOrderConfig,
-): Options {
+): Options<T> {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
         filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, config);
@@ -3604,6 +3823,8 @@ export {
     combineOrderingOfReportsAndPersonalDetails,
     createOptionFromReport,
     createFilteredOptionList,
+    hydrateLazyPersonalDetailOption,
+    hydrateWithMarks,
     createOption,
     filterAndOrderOptions,
     filterReports,
@@ -3649,4 +3870,17 @@ export {
     processSearchString,
 };
 
-export type {GetOptionsConfig, MemberForList, Option, OptionList, OptionTree, Options, SearchOption, SearchOptionData} from './types';
+export type {
+    GetOptionsConfig,
+    HydratedPersonalDetailOption,
+    MemberForList,
+    Option,
+    OptionList,
+    OptionTree,
+    Options,
+    PersonalDetailFilterRankFields,
+    PersonalDetailOptionOrShell,
+    PersonalDetailShell,
+    SearchOption,
+    SearchOptionData,
+} from './types';

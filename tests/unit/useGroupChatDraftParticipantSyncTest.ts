@@ -3,10 +3,12 @@ import {act, renderHook} from '@testing-library/react-native';
 import useOnyx from '@hooks/useOnyx';
 
 import * as OptionsListUtilsModule from '@libs/OptionsListUtils';
-import type {SearchOption} from '@libs/OptionsListUtils';
+import type {HydratedPersonalDetailOption, PersonalDetailOptionOrShell} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 
-import type {PersonalDetails} from '@src/types/onyx';
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
 import type * as ReactNavigation from '@react-navigation/native';
@@ -51,7 +53,7 @@ jest.mock('@react-navigation/native', () => {
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'current@test.com';
 
-function makePersonalDetailOption(accountID: number, login: string): SearchOption<PersonalDetails> {
+function makePersonalDetailOption(accountID: number, login: string): HydratedPersonalDetailOption {
     return {
         accountID,
         login,
@@ -59,6 +61,7 @@ function makePersonalDetailOption(accountID: number, login: string): SearchOptio
         keyForList: String(accountID),
         reportID: '',
         item: {accountID, login, displayName: login},
+        isHydrated: true,
     };
 }
 
@@ -104,7 +107,7 @@ describe('useGroupDraftRestore', () => {
     }
 
     function renderRestoreHook(overrides?: {
-        allPersonalDetailOptions?: Array<SearchOption<PersonalDetails>>;
+        allPersonalDetailOptions?: PersonalDetailOptionOrShell[];
         areAllPersonalDetailOptionsLoaded?: boolean;
         selectedOptions?: OptionData[];
         draftParticipants?: SelectedParticipant[] | undefined;
@@ -393,6 +396,77 @@ describe('useGroupDraftRestore', () => {
             });
 
             expect(setSelectedOptions).toHaveBeenCalledTimes(1);
+            const restored = setSelectedOptions.mock.calls.at(0)?.at(0) ?? [];
+            expect(restored).toHaveLength(1);
+            expect(restored.at(0)?.login).toBe('invited@test.com');
+            expect(mockGetUserToInviteOption).toHaveBeenCalled();
+        });
+    });
+
+    // The options this hook receives come straight from useFilteredOptions, i.e. lightweight shells that carry
+    // only filter/rank fields — not the fully built options the other cases in this file construct by hand. A
+    // restored participant is rendered as a selected row with an avatar, so the hook has to hydrate what it
+    // finds. Nothing in the type system enforces that: a shell spread into SelectedOption typechecks fine, so
+    // this is the only thing standing between a regression and silently avatar-less restored rows.
+    describe('restore from lazy contact options', () => {
+        const LAZY_PERSONAL_DETAILS: PersonalDetailsList = {
+            [String(10)]: {accountID: 10, login: 'alice@test.com', displayName: 'Alice'},
+            [String(20)]: {accountID: 20, login: 'bob@test.com', displayName: 'Bob'},
+        };
+
+        // createOption translates imperatively, so hydration needs a loaded locale.
+        beforeAll(() => {
+            IntlStore.load(CONST.LOCALES.EN);
+        });
+
+        function buildLazyShells(): PersonalDetailOptionOrShell[] {
+            // isSearching skips the createFilteredOptionList cache, so shells never leak between tests.
+            return OptionsListUtilsModule.createFilteredOptionList(LAZY_PERSONAL_DETAILS, {}, undefined, {}, undefined, {conciergeReportID: undefined, isSearching: true}).personalDetails;
+        }
+
+        it('should hydrate a restored participant found among lazy shells', () => {
+            // Given contact options that are lightweight shells, as useFilteredOptions produces them
+            const shells = buildLazyShells();
+            // Guard against a vacuous pass: if these ever arrive fully built, the assertions below prove nothing.
+            expect(shells).toHaveLength(2);
+            expect(shells.every((shell) => !shell.isHydrated)).toBe(true);
+            expect(shells.every((shell) => !('icons' in shell))).toBe(true);
+
+            // When a draft participant matching one of them is restored
+            const {setSelectedOptions} = renderRestoreHook({
+                draftParticipants: [PARTICIPANT_A],
+                allPersonalDetailOptions: shells,
+            });
+
+            // Then the restored option is the hydrated one: it has the display fields a selected row renders,
+            // not the shell's filter/rank subset
+            expect(setSelectedOptions).toHaveBeenCalledTimes(1);
+            const restored = setSelectedOptions.mock.calls.at(0)?.at(0) ?? [];
+            expect(restored).toHaveLength(1);
+            expect(restored.at(0)?.accountID).toBe(PARTICIPANT_A.accountID);
+            expect(restored.at(0)?.login).toBe(PARTICIPANT_A.login);
+            expect(restored.at(0)?.isSelected).toBe(true);
+            expect(restored.at(0)?.icons).toBeDefined();
+            expect(restored.at(0)?.icons?.length).toBeGreaterThan(0);
+            // The thunk and the discriminant are option-list bookkeeping; neither may ride into selected options.
+            expect('hydrate' in (restored.at(0) ?? {})).toBe(false);
+            expect('isHydrated' in (restored.at(0) ?? {})).toBe(false);
+            expect('shouldShowGBR' in (restored.at(0) ?? {})).toBe(false);
+        });
+
+        it('should fall back to getUserToInviteOption for a participant absent from the lazy shells', () => {
+            // Given lazy shells that do not contain the drafted participant
+            const invited: SelectedParticipant = {accountID: 999, login: 'invited@test.com'};
+            const inviteStub: OptionData = {text: 'invited@test.com', login: 'invited@test.com', accountID: 999, keyForList: '999', reportID: ''};
+            mockGetUserToInviteOption.mockReturnValue(inviteStub);
+
+            // When the draft is restored
+            const {setSelectedOptions} = renderRestoreHook({
+                draftParticipants: [invited],
+                allPersonalDetailOptions: buildLazyShells(),
+            });
+
+            // Then hydration is skipped and the invite option is used as-is
             const restored = setSelectedOptions.mock.calls.at(0)?.at(0) ?? [];
             expect(restored).toHaveLength(1);
             expect(restored.at(0)?.login).toBe('invited@test.com');

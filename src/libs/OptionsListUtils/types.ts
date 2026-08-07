@@ -1,4 +1,7 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
+
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -9,6 +12,7 @@ import type {
     Login,
     PersonalDetails,
     PersonalDetailsList,
+    Policy,
     PolicyTagLists,
     Report,
     ReportAction,
@@ -97,13 +101,103 @@ type SearchOptionData = Pick<
     | 'selected' // Duplicate of isSelected, kept for backwards compatibility
 >;
 
+/**
+ * The createOption inputs of one createFilteredOptionList run, captured so hydrating a lazy personal detail
+ * option reproduces exactly what the eager build would have produced. One object is shared by every shell of
+ * the run — these are references to app-wide Onyx snapshots, not copies. It is reachable only from the
+ * hydration closure a shell holds, never from the shell itself, so holding a contact option gives no handle
+ * on app-wide Onyx state.
+ */
+type LazyHydrationContext = {
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    policiesCollection: OnyxCollection<Policy>;
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
+    policyTags: OnyxCollection<PolicyTagLists>;
+    visibleReportActionsData: VisibleReportActionsDerivedValue;
+    privateIsArchivedMap: PrivateIsArchivedMap;
+    conciergeReportID: string | undefined;
+
+    /**
+     * Bound to the locale the option list is keyed on, so the shell's display name and the hydrated option's
+     * agree.
+     */
+    translate: LocalizedTranslate;
+};
+
 type SearchOption<T> = SearchOptionData & {
     item: T;
 };
 
+/**
+ * A contact option as createFilteredOptionList produces it: the fields that filtering, ranking and de-duping
+ * read, and nothing else. The display fields (icons, subtitle, lastMessageText, the display alternateText, …)
+ * are deliberately absent, so reading one directly off `OptionList.personalDetails` is a compile error rather
+ * than an `undefined` for code review to catch. Call hydrateLazyPersonalDetailOption to turn one into a
+ * HydratedPersonalDetailOption before rendering it.
+ *
+ * The hydration inputs are not reachable from the shell: they live in the `hydrate` closure, so holding a
+ * contact option gives no handle on the shared Onyx snapshots the build reads.
+ *
+ * The compile error only guards the direct read. Every display field of OptionData is optional, so a shell
+ * structurally satisfies SearchOptionData: once it is handed to a helper typed against SearchOptionData or
+ * Partial<SearchOptionData>, the display fields are back in scope and read as `undefined`. Prefer
+ * PersonalDetailFilterRankFields for helpers that must accept either half of the union; hydrate first before
+ * passing a shell anywhere that renders it.
+ */
+type PersonalDetailShell = Pick<
+    SearchOptionData,
+    // Identity
+    | 'reportID'
+    | 'keyForList'
+    | 'login'
+    | 'accountID'
+    | 'text'
+    | 'displayName'
+    | 'participantsList'
+    | 'isOptimisticPersonalDetail'
+
+    // isSelected/isBold: written in place by getValidOptions once the visible options are selected.
+    | 'isSelected'
+    // selected: legacy duplicate, never updated after the shell is built.
+    | 'selected'
+    | 'isBold'
+> & {
+    item: PersonalDetails | null;
+
+    /** Discriminant: this option carries filter/rank fields only, so the display fields must not be read off it. */
+    isHydrated: false;
+
+    /**
+     * Written by getValidOptions when hydration is deferred, consumed by hydrateWithMarks.
+     *
+     * The eager path suppresses a GBR (INFO) brick road on the built option unless the caller asked for it.
+     * A shell has no brickRoadIndicator to suppress yet — createOption derives it during hydration — so the
+     * decision rides here instead of forcing every deferring screen to remember its own shouldShowGBR.
+     */
+    shouldShowGBR?: boolean;
+
+    /**
+     * Builds the full display option, memoizing the result so every clone of the same cached option list shares
+     * one build. Call hydrateLazyPersonalDetailOption rather than this directly — it also handles the already
+     * hydrated half of the union and returns a copy consumers may mark in place.
+     */
+    hydrate: () => HydratedPersonalDetailOption;
+};
+
+type HydratedPersonalDetailOption = SearchOption<PersonalDetails | null> & {isHydrated: true};
+
+type PersonalDetailOptionOrShell = PersonalDetailShell | HydratedPersonalDetailOption;
+
+/**
+ * The only fields filtering, ranking and de-duping read off a contact option. Both halves of
+ * PersonalDetailOptionOrShell satisfy it, so helpers typed against it accept shells without claiming the
+ * display fields exist.
+ */
+type PersonalDetailFilterRankFields = Pick<SearchOptionData, 'text' | 'displayName' | 'login' | 'accountID' | 'participantsList'>;
+
 type OptionList = {
     reports: Array<SearchOption<Report>>;
-    personalDetails: Array<SearchOption<PersonalDetails>>;
+    personalDetails: PersonalDetailOptionOrShell[];
 };
 
 type Option = Partial<OptionData>;
@@ -220,6 +314,22 @@ type GetOptionsConfig = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;
     isTrackIntentUser?: boolean;
+    /**
+     * Return contact options as PersonalDetailShells instead of building their display fields.
+     *
+     * getValidOptions normally hydrates the page of contacts that survives filtering and the `maxElements` cap.
+     * A screen that caps the visible rows itself, after filtering, hydrates far fewer options by deferring:
+     * NewChatPage bypasses contact pagination while searching, so without this every match pays a full
+     * createOption even though only one page is rendered. Do NOT reach for `maxElements` instead — it collides
+     * with that screen's own hasMore/pagination accounting.
+     *
+     * The returned options carry the marks getValidOptions writes (isSelected / isBold / GBR suppression) but
+     * none of the display fields. Pass each one through hydrateWithMarks before rendering it; the
+     * PersonalDetailOptionOrShell element type is threaded through filterAndOrderOptions so forgetting to is a
+     * compile error at the render site. That covers `currentUserOption` as well — it is picked out of the same
+     * contact array, so `Options` parameterizes it on the same element type.
+     */
+    deferContactHydration?: boolean;
     /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
 } & GetValidReportsConfig;
@@ -261,11 +371,20 @@ type SectionForSearchTerm = {
 
 type SelectionListSections = Array<SelectionListSection<OptionWithKey>>;
 
-type Options = {
+/**
+ * The contact-option element type is a parameter so a caller that passes `deferContactHydration` keeps the
+ * PersonalDetailOptionOrShell union all the way from getValidOptions through filterAndOrderOptions to the
+ * render, where hydrateWithMarks turns it back into a display option. Every other caller gets the default and
+ * is unaffected.
+ *
+ * It parameterizes `currentUserOption` too: that is an element of `personalDetails` (getValidOptions picks it
+ * out of the same array), so with hydration deferred it is a shell and must be hydrated before it is rendered.
+ */
+type Options<TPersonalDetail extends SearchOptionData = SearchOptionData> = {
     recentReports: SearchOptionData[];
-    personalDetails: SearchOptionData[];
+    personalDetails: TPersonalDetail[];
     userToInvite: SearchOptionData | null;
-    currentUserOption: SearchOptionData | null | undefined;
+    currentUserOption: TPersonalDetail | null | undefined;
     workspaceChats?: SearchOptionData[];
     selfDMChat?: SearchOptionData | undefined;
 };
@@ -302,10 +421,10 @@ type OrderReportOptionsConfig = {
     preferRecentExpenseReports?: boolean;
 };
 
-type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails' | 'workspaceChats'>;
+type ReportAndPersonalDetailOptions<TPersonalDetail extends SearchOptionData = SearchOptionData> = Pick<Options<TPersonalDetail>, 'recentReports' | 'personalDetails' | 'workspaceChats'>;
 
-type OptionsResult = {
-    options: Options;
+type OptionsResult<TPersonalDetail extends SearchOptionData = SearchOptionData> = {
+    options: Options<TPersonalDetail>;
     hasMore?: boolean;
 };
 
@@ -314,6 +433,8 @@ export type {
     GetOptionsConfig,
     GetUserToInviteConfig,
     GetValidReportsConfig,
+    HydratedPersonalDetailOption,
+    LazyHydrationContext,
     MemberForList,
     Option,
     OptionWithKey,
@@ -323,6 +444,9 @@ export type {
     OrderOptionsConfig,
     OrderReportOptionsConfig,
     PayeePersonalDetails,
+    PersonalDetailFilterRankFields,
+    PersonalDetailOptionOrShell,
+    PersonalDetailShell,
     PreviewConfig,
     ReportAndPersonalDetailOptions,
     SearchOption,
