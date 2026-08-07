@@ -21,6 +21,7 @@ export type {default as RevokeDeviceParams} from './RevokeDeviceParams';
 export type {default as ConnectBankAccountParams} from './ConnectBankAccountParams';
 export type {default as OpenDuplicatePolicyPageParams} from './OpenDuplicatePolicyPageParams';
 export type {default as ConnectPolicyToAccountingIntegrationParams} from './ConnectPolicyToAccountingIntegrationParams';
+export type {default as ConnectPolicyToNetSuiteOAuthParams} from './ConnectPolicyToNetSuiteOAuthParams';
 export type {default as ConnectPolicyToGustoParams} from './ConnectPolicyToGustoParams';
 export type {default as ConnectPolicyToMergeParams} from './ConnectPolicyToMergeParams';
 export type {default as ConnectPolicyToZenefitsParams} from './ConnectPolicyToZenefitsParams';
@@ -489,6 +490,7 @@ export type {default as ImportPerDiemRatesParams} from './ImportPerDiemRatesPara
 export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
 export type {default as ExportReportPDFParams} from './ExportReportPDFParams';
 export type {default as ExportReportsToPDFParams} from './ExportReportsToPDFParams';
+export type {default as ExportReceiptsToZipParams} from './ExportReceiptsToZipParams';
 export type {default as UpdateWorkspaceCustomUnitParams} from './UpdateWorkspaceCustomUnitParams';
 export type {default as DismissProductTrainingParams} from './DismissProductTraining';
 export type {default as AddWorkEmailParams} from './AddWorkEmailParams';

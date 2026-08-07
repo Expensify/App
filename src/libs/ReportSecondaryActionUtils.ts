@@ -466,7 +466,7 @@ function isReceivedPaymentAction(report: Report, reportTransactions: Transaction
         return true;
     }
 
-    if (policy?.role === CONST.POLICY.ROLE.ADMIN) {
+    if (arePaymentsEnabledUtils(policy) && policy?.role === CONST.POLICY.ROLE.ADMIN) {
         return false;
     }
 
@@ -578,8 +578,10 @@ function isHoldAction(
     reportActions: ReportAction[] | undefined,
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
+    /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+    isOffline?: boolean,
 ): boolean {
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, isOffline);
     const isOneExpenseReport = reportTransactions.length === 1;
     const transaction = reportTransactions.at(0);
 
@@ -831,6 +833,8 @@ function isRemoveHoldAction(
     reportActions?: ReportAction[],
     policy?: Policy,
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
+    /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+    isOffline?: boolean,
 ): boolean {
     const isClosedReport = isClosedReportUtils(report);
     if (isClosedReport) {
@@ -843,7 +847,7 @@ function isRemoveHoldAction(
         return false;
     }
 
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, isOffline);
 
     if (!transactionThreadReportID) {
         return false;
@@ -924,6 +928,7 @@ function getSecondaryReportActions({
     parentReport,
     isProduction,
     reimbursementCancellableStatus,
+    isOffline,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -945,6 +950,8 @@ function getSecondaryReportActions({
     parentReport?: OnyxEntry<Report>;
     isProduction: boolean;
     reimbursementCancellableStatus?: OnyxEntry<ReportCancelReimbursementStatus>;
+    /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+    isOffline?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -989,6 +996,7 @@ function getSecondaryReportActions({
         reportMetadata,
         isChatReportArchived,
         ownerLogin: submitterLogin,
+        isOffline,
     });
 
     if (
@@ -1034,11 +1042,11 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
     }
 
-    if (isHoldAction(report, chatReport, reportTransactions, reportActions, policy, currentUserAccountID)) {
+    if (isHoldAction(report, chatReport, reportTransactions, reportActions, policy, currentUserAccountID, isOffline)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
-    if (isRemoveHoldAction(report, chatReport, reportTransactions, reportActions, policy, primaryAction)) {
+    if (isRemoveHoldAction(report, chatReport, reportTransactions, reportActions, policy, primaryAction, isOffline)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
@@ -1068,6 +1076,10 @@ function getSecondaryReportActions({
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
+
+    if (reportTransactions.some(hasReceiptTransactionUtils)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS);
+    }
 
     if (!isOpenReportUtils(report)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);

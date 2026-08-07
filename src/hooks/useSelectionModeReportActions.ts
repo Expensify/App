@@ -125,7 +125,7 @@ function useSelectionModeReportActions({
     const canAllowSettlement = hasUpdatedTotal(report, policy);
 
     const totalAmount = getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, shouldShowPayButton, transactions);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, shouldShowPayButton, transactions, convertToDisplayString);
 
     // Primary/secondary action detection
     const currentUserEmail = currentUserLogin ?? '';
@@ -145,6 +145,7 @@ function useSelectionModeReportActions({
         isChatReportArchived,
         invoiceReceiverPolicy,
         ownerLogin: submitterLogin,
+        isOffline,
     });
 
     const secondaryActions = (() => {
@@ -170,6 +171,7 @@ function useSelectionModeReportActions({
             isChatReportArchived,
             isProduction,
             reimbursementCancellableStatus,
+            isOffline,
         });
     })();
 
@@ -185,37 +187,44 @@ function useSelectionModeReportActions({
     const effectiveShouldBlockSubmit = shouldBlockSubmit || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy;
 
     // Shared payment hook
-    const {confirmPayment, shouldBlockAction, invokePaymentSelect, selectionModeKYCSuccess, paymentSubMenuItems, hasPayInSelectionMode, isAnyTransactionOnHold, isInvoiceReport, kycWallRef} =
-        useSelectionModePayment({
-            reportID: report?.reportID,
-            transactions,
-            formattedAmount: totalAmount,
-            shouldHidePaymentOptions: !shouldShowPayButton,
-            onlyShowPayElsewhere,
-            hasPayAction,
-            allExpensesSelected,
-            onHoldMenuOpen: ({requestType: rt, paymentType: pt, methodID}) => {
-                setRequestType(rt);
-                setPaymentType(pt);
-                setSelectedVBBAToPayFromHoldMenu(methodID);
-                setIsHoldMenuVisible(true);
-            },
-            onPaymentComplete: () => {
-                clearSelectedTransactions(true);
-                turnOffMobileSelectionMode();
-            },
-            confirmApproval,
-        });
+    const {
+        confirmPayment,
+        runPaymentAction,
+        invokePaymentSelect,
+        selectionModeKYCSuccess,
+        paymentSubMenuItems,
+        handleWorkspaceSelected,
+        hasPayInSelectionMode,
+        isAnyTransactionOnHold,
+        isInvoiceReport,
+        kycWallRef,
+    } = useSelectionModePayment({
+        reportID: report?.reportID,
+        transactions,
+        formattedAmount: totalAmount,
+        shouldHidePaymentOptions: !shouldShowPayButton,
+        onlyShowPayElsewhere,
+        hasPayAction,
+        allExpensesSelected,
+        onHoldMenuOpen: ({requestType: rt, paymentType: pt, methodID}) => {
+            setRequestType(rt);
+            setPaymentType(pt);
+            setSelectedVBBAToPayFromHoldMenu(methodID);
+            setIsHoldMenuVisible(true);
+        },
+        onPaymentComplete: () => {
+            clearSelectedTransactions(true);
+            turnOffMobileSelectionMode();
+        },
+        confirmApproval,
+    });
 
     // Defer payment select until the popover dismiss animation completes. Blocking modals are shown
     // synchronously inside the callback (popover already closed) to avoid double-defer on Android.
     const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         TransitionTracker.runAfterTransitions({
             callback: () => {
-                if (shouldBlockAction(iouPaymentType)) {
-                    return;
-                }
-                invokePaymentSelect(event, iouPaymentType, triggerKYCFlow);
+                runPaymentAction(iouPaymentType, false, () => invokePaymentSelect(event, iouPaymentType, triggerKYCFlow));
             },
             waitForUpcomingTransition: true,
         });
@@ -280,7 +289,6 @@ function useSelectionModeReportActions({
         handleHoldMenuConfirm,
         confirmPayment,
         confirmApproval,
-        shouldBlockAction,
 
         // Pay-related
         hasPayAction,
@@ -300,6 +308,7 @@ function useSelectionModeReportActions({
         // KYC dropdown integration
         onSelectionModePaymentSelect,
         selectionModeKYCSuccess,
+        handleWorkspaceSelected,
 
         // Data for external use
         primaryAction,

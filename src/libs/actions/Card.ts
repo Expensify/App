@@ -32,6 +32,7 @@ import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
 import {buildSpendRuleAST} from '@libs/SpendRulesUtils';
 
@@ -1432,6 +1433,7 @@ function issueExpensifyCard(
     const spendRuleEnabled = !!data.spendRuleEnabled;
     const spendRuleOption = data.spendRuleOption ?? CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING;
     const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru, spendRuleValue, spendRuleID} = data;
+    const normalizedAssigneeEmail = addSMSDomainIfPhoneNumber(assigneeEmail);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
@@ -1471,7 +1473,7 @@ function issueExpensifyCard(
     const isCreatingNewSpendRule = spendRuleEnabled && spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW && spendRuleValue;
 
     const parameters: CreateExpensifyCardParams = {
-        assigneeEmail,
+        assigneeEmail: normalizedAssigneeEmail,
         limit,
         limitType,
         cardTitle,
