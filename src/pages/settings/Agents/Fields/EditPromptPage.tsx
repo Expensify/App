@@ -99,6 +99,8 @@ function EditPromptPage({route}: EditPromptPageProps) {
                         label={translate('editAgentPage.instructions')}
                         accessibilityLabel={translate('editAgentPage.instructions')}
                         role={CONST.ROLE.PRESENTATION}
+                        type="markdown"
+                        excludedMarkdownStyles={['mentionReport']}
                         defaultValue={Str.htmlDecode(agentPrompt?.prompt ?? '')}
                         multiline
                         containerStyles={[styles.flex1]}

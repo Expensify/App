@@ -63,7 +63,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
 
     let connectionDescription: string | undefined;
     if (card.isSyncInProgress) {
-        connectionDescription = card.syncStageInProgress ? translate('workspace.hr.syncStageName', {stage: card.syncStageInProgress}) : translate('workspace.hr.syncing');
+        connectionDescription = card.syncStageInProgress ? translate('workspace.hr.syncStageName', card.syncStageInProgress) : translate('workspace.hr.syncing');
     } else if (!card.successfulDate) {
         connectionDescription = translate('workspace.hr.notSync');
     } else {
