@@ -117,6 +117,14 @@ Each card shows one of the following statuses:
 
 ---
 
+## What the Remaining column shows in the Expensify Card list
+
+The Expensify Card list includes a **Remaining** column so you can see how much of each cardholder's spending limit is left without opening every card individually. The value matches the **Remaining limit** shown on an individual card's details page. Click the **Remaining** column header to sort the list by remaining amount.
+
+**Note:** The **Remaining** column is hidden on narrow and medium screens. Widen your browser window or view the list on a larger screen to see it.
+
+---
+
 ## How to apply Expensify Card cash back to your Expensify bill
 
 Workspace Admins with a US Expensify Card program can choose whether their Expensify Card cash back is applied toward their Expensify bill or sent to their settlement account. This setting is enabled by default.
