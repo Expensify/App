@@ -8386,6 +8386,9 @@ const translations = {
         updateAreCommentsRequired: (categoryName: string, oldValue: boolean) => {
             return `changed the "${categoryName}" category description to ${!oldValue ? 'required' : 'not required'} (previously ${!oldValue ? 'not required' : 'required'})`;
         },
+        updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
+            return `changed the "${categoryName}" category attendees to ${newValue ? 'required' : 'not required'} (previously ${newValue ? 'not required' : 'required'})`;
+        },
         updateCategoryMaxExpenseAmount: (categoryName: string, newAmount?: string, oldAmount?: string) => {
             if (newAmount && !oldAmount) {
                 return `added a ${newAmount} max amount to the category "${categoryName}"`;
