@@ -932,6 +932,10 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Μόνο διαχειριστές',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal into another account',
+        emailLabel: 'Email address',
+    },
     sidebarScreen: {
         buttonFind: 'Βρείτε κάτι...',
         buttonMySettings: 'Οι ρυθμίσεις μου',

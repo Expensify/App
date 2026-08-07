@@ -913,6 +913,10 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Apenas admins',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal into another account',
+        emailLabel: 'Email address',
+    },
     sidebarScreen: {
         buttonFind: 'Encontre algo...',
         buttonMySettings: 'Minhas configurações',

@@ -905,6 +905,10 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: '管理者のみ',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal into another account',
+        emailLabel: 'Email address',
+    },
     sidebarScreen: {
         buttonFind: '何かを検索…',
         buttonMySettings: '自分の設定',

@@ -954,6 +954,10 @@ const translations = {
             admins: 'Admins only',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal into another account',
+        emailLabel: 'Email address',
+    },
     sidebarScreen: {
         buttonFind: 'Find something...',
         buttonMySettings: 'My settings',

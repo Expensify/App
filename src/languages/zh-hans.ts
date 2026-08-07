@@ -886,6 +886,10 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: '仅限管理员',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal into another account',
+        emailLabel: 'Email address',
+    },
     sidebarScreen: {
         buttonFind: '查找内容…',
         buttonMySettings: '我的设置',
