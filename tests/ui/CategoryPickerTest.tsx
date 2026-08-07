@@ -103,4 +103,28 @@ describe('CategoryPicker', () => {
         expect(findRow('Advertising')?.alternateText).toBeUndefined();
         expect(findRow('Benefits')?.alternateText).toBeUndefined();
     });
+
+    it('never reads a bare collection key when the policy ID is an empty string', () => {
+        mockedOriginalUseOnyx.mockReturnValue([false, {status: 'loaded'}]);
+
+        render(
+            <CategoryPicker
+                policyID=""
+                onSubmit={jest.fn()}
+            />,
+        );
+
+        const collectionKeys: string[] = [
+            ONYXKEYS.COLLECTION.POLICY,
+            ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+            ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT,
+            ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
+        ];
+        const requestedKeys = [...mockedUseOnyx.mock.calls, ...mockedOriginalUseOnyx.mock.calls].map(([key]) => key);
+
+        expect(requestedKeys.length).toBeGreaterThan(0);
+        for (const key of requestedKeys) {
+            expect(collectionKeys).not.toContain(key);
+        }
+    });
 });
