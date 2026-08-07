@@ -49,6 +49,7 @@ const defaultSearchResultsActions: SearchResultsActionsValue = {
 const defaultSearchSelectionContext: SearchSelectionContextValue = {
     currentSelectedTransactionReportID: undefined,
     selectedTransactions: {},
+    excludedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
     shouldTurnOffSelectionMode: false,
