@@ -3,10 +3,8 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {cancelSpan, endSpanWithAttributes, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
-import type Request from '@src/types/onyx/Request';
 
 import type {SpanAttributes} from '@sentry/core';
-import type {OnyxKey} from 'react-native-onyx';
 
 import type Middleware from './types';
 
@@ -56,14 +54,14 @@ function findTrackedGroup(command: string): TrackedCommandGroup | undefined {
     return TRACKED_COMMAND_GROUPS.find((group) => group.commands.has(command));
 }
 
-function readUpdateIDTo(data: Request<OnyxKey>['data']): number | undefined {
-    const updateIDTo = Number(data?.updateIDTo);
-    return Number.isFinite(updateIDTo) ? updateIDTo : undefined;
+function readUpdateID(value: unknown): number | undefined {
+    const updateID = value === null || value === '' ? Number.NaN : Number(value);
+    return Number.isFinite(updateID) ? updateID : undefined;
 }
 
 function didResponseAdvance(updateIDFrom: number | undefined, lastUpdateID: number | string | undefined): boolean | undefined {
-    const responseUpdateID = Number(lastUpdateID);
-    if (updateIDFrom === undefined || !Number.isFinite(responseUpdateID)) {
+    const responseUpdateID = readUpdateID(lastUpdateID);
+    if (updateIDFrom === undefined || responseUpdateID === undefined) {
         return undefined;
     }
     return responseUpdateID > updateIDFrom;
@@ -89,7 +87,7 @@ const SentryServerTiming: Middleware = (response, request) => {
         attributes: {
             [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: request.command,
             [CONST.TELEMETRY.ATTRIBUTE_UPDATE_ID_FROM]: updateIDFrom,
-            [CONST.TELEMETRY.ATTRIBUTE_UPDATE_ID_TO]: readUpdateIDTo(request.data),
+            [CONST.TELEMETRY.ATTRIBUTE_UPDATE_ID_TO]: readUpdateID(request.data?.updateIDTo),
         },
     });
 
