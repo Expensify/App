@@ -191,7 +191,7 @@ function ReportActionItemImage({
         propsObj = {
             shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
 
-            source: originalImageSource,
+            source: shouldUseThumbnailImage ? thumbnailSource : originalImageSource,
             fallbackIcon: icons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
             isAuthTokenRequired: true,
