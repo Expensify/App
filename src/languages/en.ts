@@ -8726,7 +8726,7 @@ const translations = {
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) => `changed custom report name formula to "${newDefaultTitle}" (previously "${oldDefaultTitle}")`,
 
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `took over ownership of ${policyName} from ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} scheduled submit`,
+        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} submissions`,
 
         // This function requires 11 params to match the budget notification data model; reducing further would hurt readability
         // eslint-disable-next-line @typescript-eslint/max-params
