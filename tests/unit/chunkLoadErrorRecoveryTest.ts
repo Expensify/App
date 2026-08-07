@@ -6,9 +6,9 @@
  * already on the second failure by the time the user taps it).
  *
  * lazyRetry uses a three-state strategy:
- *   - First failure                        → plain reload.
+ *   - Any failure while offline              → park the promise and re-attempt on reconnect.
+ *   - First failure                          → plain reload.
  *   - Second failure, ChunkLoadError, online → clear SW cache then reload.
- *   - Second failure, ChunkLoadError, offline→ reject to error boundary (keep cached offline assets).
  *   - Second failure, non-ChunkLoadError     → reject to error boundary.
  *   - Third failure                          → reject to error boundary (loop prevention).
  */
@@ -22,6 +22,24 @@ import lazyRetry from '@src/utils/lazyRetry';
 import type {ComponentType} from 'react';
 
 type ComponentImport<T> = () => Promise<{default: T}>;
+
+// The real NetworkState reports offline part-way through a jest run (NetInfo's listener fires
+// asynchronously after module init), which would make these tests order-dependent.
+let mockIsOffline = false;
+const mockReachabilityListeners = new Set<() => void>();
+jest.mock('@libs/NetworkState', () => ({
+    getIsOffline: () => mockIsOffline,
+    onReachabilityConfirmed: (callback: () => void) => {
+        mockReachabilityListeners.add(callback);
+        return () => mockReachabilityListeners.delete(callback);
+    },
+}));
+
+function confirmReachability() {
+    for (const callback of [...mockReachabilityListeners]) {
+        callback();
+    }
+}
 
 const mockClearWorkboxRecoveryCaches = jest.fn();
 jest.mock('@libs/clearWorkboxRecoveryCaches', () => ({
@@ -88,6 +106,8 @@ describe('ChunkLoadError recovery', () => {
         reloadMock.mockClear();
         mockClearWorkboxRecoveryCaches.mockClear();
         sessionStorage.clear();
+        mockIsOffline = false;
+        mockReachabilityListeners.clear();
     });
 
     describe('usePageRefresh (web)', () => {
@@ -131,6 +151,15 @@ describe('ChunkLoadError recovery', () => {
         const RETRY_KEY = 'test';
         const stateKey = `${CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED}:${RETRY_KEY}`;
 
+        function createFlakyImport(failures: number) {
+            let attempts = 0;
+            const componentImport: ComponentImport<ComponentType> = () => {
+                attempts += 1;
+                return attempts <= failures ? Promise.reject(chunkError) : Promise.resolve({default: () => null});
+            };
+            return {componentImport, getAttempts: () => attempts};
+        }
+
         it('plain-reloads on the first failure without clearing caches', async () => {
             sessionStorage.removeItem(stateKey);
             const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
@@ -145,7 +174,6 @@ describe('ChunkLoadError recovery', () => {
 
         it('clears SW caches before reloading on the second ChunkLoadError failure when online', async () => {
             sessionStorage.setItem(stateKey, 'true');
-            jest.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
             const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
 
             lazyRetry(failingImport, RETRY_KEY);
@@ -156,16 +184,68 @@ describe('ChunkLoadError recovery', () => {
             expect(callOrder).toEqual(['clear', 'reload']);
         });
 
-        it('rejects to the error boundary on second ChunkLoadError failure when offline to preserve the offline cache', async () => {
-            sessionStorage.setItem(stateKey, 'true');
-            jest.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
-            const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
+        it('parks the promise and re-imports on reconnect when the import fails while offline', async () => {
+            mockIsOffline = true;
+            const {componentImport, getAttempts} = createFlakyImport(1);
 
-            await expect(lazyRetry(failingImport, RETRY_KEY)).rejects.toBeDefined();
+            const onRejected = jest.fn();
+            const promise = lazyRetry(componentImport, RETRY_KEY).catch(onRejected);
             await flushMicrotasks();
 
-            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+            expect(getAttempts()).toBe(1);
+            expect(onRejected).not.toHaveBeenCalled();
             expect(reloadMock).not.toHaveBeenCalled();
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+            expect(sessionStorage.getItem(stateKey)).toBeNull();
+
+            mockIsOffline = false;
+            confirmReachability();
+            await promise;
+
+            expect(getAttempts()).toBe(2);
+            expect(onRejected).not.toHaveBeenCalled();
+            expect(sessionStorage.getItem(stateKey)).toBe('false');
+        });
+
+        it('re-arms the wait when the retried import fails while still offline', async () => {
+            mockIsOffline = true;
+            const {componentImport, getAttempts} = createFlakyImport(2);
+
+            const onRejected = jest.fn();
+            const promise = lazyRetry(componentImport, RETRY_KEY).catch(onRejected);
+            await flushMicrotasks();
+
+            confirmReachability();
+            await flushMicrotasks();
+
+            expect(getAttempts()).toBe(2);
+            expect(onRejected).not.toHaveBeenCalled();
+            expect(mockReachabilityListeners.size).toBe(1);
+
+            mockIsOffline = false;
+            confirmReachability();
+            await promise;
+
+            expect(getAttempts()).toBe(3);
+            expect(onRejected).not.toHaveBeenCalled();
+            expect(reloadMock).not.toHaveBeenCalled();
+        });
+
+        it('does not burn a reload attempt on an offline failure, so a later online failure still gets its plain reload', async () => {
+            mockIsOffline = true;
+            const {componentImport} = createFlakyImport(Number.POSITIVE_INFINITY);
+
+            lazyRetry(componentImport, RETRY_KEY);
+            await flushMicrotasks();
+            expect(reloadMock).not.toHaveBeenCalled();
+
+            mockIsOffline = false;
+            confirmReachability();
+            await flushMicrotasks();
+
+            expect(sessionStorage.getItem(stateKey)).toBe('true');
+            expect(reloadMock).toHaveBeenCalledTimes(1);
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
         });
 
         it('rejects to the error boundary on second failure when the error is not a ChunkLoadError', async () => {
