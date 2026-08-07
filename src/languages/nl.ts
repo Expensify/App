@@ -2483,7 +2483,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 : `Je verbinding met de kaart ${cardName} is verbroken. Log in bij je bank om de kaart te herstellen.`,
         conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
             connectionLink
-                ? `Je verbinding met de kaart ${cardName} is al 30 dagen verbroken. <a href="${connectionLink}">Log in bij je bank</a> om deze te herstellen of verwijder de kaart als je die niet meer gebruikt. Je verliest geen ingediende uitgaven als je die verwijdert.`
+                ? `Je verbinding met de kaart ${cardName} is al 30 dagen verbroken. <a href="${connectionLink}">Log in bij je bank</a> om deze te herstellen of <a href="${connectionLink}">verwijder de kaart</a> als je die niet meer gebruikt. Je verliest geen ingediende uitgaven als je die verwijdert.`
                 : `Je verbinding met de kaart ${cardName} is al 30 dagen verbroken. Log in bij je bank om deze te herstellen of verwijder de kaart als je die niet meer gebruikt. Je verliest geen ingediende uitgaven als je die verwijdert.`,
         addAdditionalCards: 'Extra kaarten toevoegen',
         upgradeDescription: 'Meer kaarten toevoegen? Maak een werkruimte om extra persoonlijke kaarten toe te voegen of bedrijfskaarten aan het hele team toe te wijzen.',
@@ -9188,8 +9188,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(${count} keer herhaald.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `De verbinding met ${feedName} is verbroken. <a href='${workspaceCompanyCardRoute}'>Log in bij je bank</a> om kaartimports te herstellen.`,
-                companyCardConnectionBroken30Days: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `De verbinding met ${feedName} is al 30 dagen verbroken. <a href='${workspaceCompanyCardRoute}'>Log in bij je bank</a> om deze te herstellen of verwijder de verbinding als je die niet meer gebruikt. Je verliest geen ingediende uitgaven als je die verwijdert.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `De verbinding met ${feedName} is al 30 dagen verbroken. <a href='${workspaceCompanyCardRoute}'>Log in bij je bank</a> om deze te herstellen of <a href='${workspaceCompanyCardSettingsRoute}'>verwijder de verbinding</a> als je die niet meer gebruikt. Je verliest geen ingediende uitgaven als je die verwijdert.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `de Plaid-verbinding met je zakelijke bankrekening is verbroken. <a href='${walletRoute}'>Verbind je bankrekening ${maskedAccountNumber} opnieuw</a> zodat je je Expensify Kaarten kunt blijven gebruiken.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
