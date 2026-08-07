@@ -104,6 +104,10 @@ function TabSelectorBase<K extends string = string>({
                 });
 
                 const handlePress = () => {
+                    if (tab.isDisabled) {
+                        tab.disabledAction?.();
+                        return;
+                    }
                     if (isActive) {
                         onActiveTabPress(tab.key);
                         return;
@@ -133,6 +137,7 @@ function TabSelectorBase<K extends string = string>({
                         badgeStyles={tab.badgeStyles}
                         pendingAction={tab.pendingAction}
                         isDisabled={tab.isDisabled}
+                        disabledAction={tab.disabledAction}
                     />
                 );
             })}

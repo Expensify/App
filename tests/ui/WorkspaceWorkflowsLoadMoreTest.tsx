@@ -112,7 +112,8 @@ const renderPage = () =>
                             <Stack.Screen
                                 name={SCREENS.WORKSPACE.WORKFLOWS}
                                 component={WorkspaceWorkflowsPage}
-                                initialParams={{policyID: POLICY_ID}}
+                                // Approval workflow cards live on the Approvals tab, so deep-link straight to it.
+                                initialParams={{policyID: POLICY_ID, tab: CONST.TAB.WORKFLOWS.APPROVALS}}
                             />
                         </Stack.Navigator>
                     </NavigationContainer>
