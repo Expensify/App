@@ -82,8 +82,8 @@ function SidebarLinks({insets, optionListItems, hasReportData, isActiveReport}: 
         [shouldUseNarrowLayout, isActiveReport, setStickyReportID],
     );
 
-    // Every Inbox tab uses the compact row style (28px avatar, sender + preview on one line).
-    const viewMode = CONST.OPTION_MODE.COMPACT;
+    // Every Inbox tab uses the default two-line row style (larger avatar, sender and preview on separate lines).
+    const viewMode = CONST.OPTION_MODE.DEFAULT;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);

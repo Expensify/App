@@ -583,10 +583,11 @@ function categorizeReportsForLHN(
             lastVisibleActionCreated: report.lastVisibleActionCreated,
         };
 
+        // Only pinned chats float to the top. GBR (requiresAttention) and RBR (errors) reports keep their
+        // green/red indicators but are NOT floated — they sort into their normal recency position below.
         const isPinned = !!report.isPinned;
-        const requiresAttention = !!report?.requiresAttention;
 
-        if (isPinned || requiresAttention) {
+        if (isPinned) {
             pinnedAndGBRReports.push(miniReport);
             continue;
         }
@@ -594,11 +595,8 @@ function categorizeReportsForLHN(
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
         const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
         const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);
-        const hasErrors = !!report.hasErrorsOtherThanFailedReceipt && !isArchived;
 
-        if (hasErrors) {
-            errorReports.push(miniReport);
-        } else if (reportsDrafts?.[reportID]) {
+        if (reportsDrafts?.[reportID]) {
             draftReports.push(miniReport);
         } else if (isArchived) {
             archivedReports.push(miniReport);
@@ -723,11 +721,11 @@ function sortReportsToDisplayInLHN(
 ): string[] {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;
-    // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
-    // 1. Pinned/GBR - Always sorted by reportDisplayName
-    // 2. Error reports - Always sorted by reportDisplayName
+    // The LHN is split into these groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
+    // 1. Pinned - Always sorted by reportDisplayName. Only pinned chats float here; GBR/RBR reports are NOT floated.
+    // 2. Error reports - Currently unused (GBR/RBR reports sort by recency in the non-archived group instead).
     // 3. Drafts - Always sorted by reportDisplayName
-    // 4. Non-archived reports and settled IOUs
+    // 4. Non-archived reports and settled IOUs (includes GBR/RBR reports)
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
     // 5. Archived reports
