@@ -250,17 +250,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // metadataCurrency is unset for a fresh no-workspace account until a search populates search.currency (e.g. after
     // visiting Reports), so fall back to the live payment currency instead of an arbitrary selected expense's currency.
     const effectiveDefaultCurrency = defaultFooterCurrency ?? metadataCurrency ?? paymentCurrency;
-
-    // The currency the loaded figures are denominated in: the whole-search grand total in metadataCurrency, per-row
-    // figures in the server-converted groupCurrency (or the row's own currency when no conversion happened). A chosen
-    // currency needs converting when it differs from this — comparing against the default instead would skip the
-    // conversion whenever the default itself moved away from the loaded figures (e.g. resetting to a just-changed
-    // Preferences > Payment currency).
-    const firstSelectedTransactionKey = selectedTransactionsKeys.at(0);
-    const firstSelectedTransaction = firstSelectedTransactionKey ? selectedTransactions[firstSelectedTransactionKey] : undefined;
-    const selectionDenominationCurrency = isReportsSearch ? selectedReports.at(0)?.currency : (firstSelectedTransaction?.groupCurrency ?? firstSelectedTransaction?.currency);
-    const loadedFiguresCurrency = (shouldUseClientTotal ? selectionDenominationCurrency : metadataCurrency) ?? effectiveDefaultCurrency;
-    const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== loadedFiguresCurrency;
+    const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== effectiveDefaultCurrency;
 
     // The most recent conversion request for this currency failed, so stop waiting on a converted value that isn't coming.
     const hasConversionFailed = hasCustomFooterCurrency && !!selectedCurrency && !!failedConversionCurrencies?.[selectedCurrency];
@@ -407,12 +397,15 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             return {count: undefined, total: undefined, currency: undefined};
         }
 
+        const selectedTransactionItems = Object.values(selectedTransactions);
+        const fallbackCurrency = effectiveDefaultCurrency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
+
         if (shouldUseClientTotal) {
             const shouldUseConvertedSelectedTotal = hasCustomFooterCurrency && areAllSelectedConverted && !hasConversionFailed && !!selectedCurrency;
 
             // Reports sum each selected report's converted total; other searches sum per row — whole groups from the
-            // groups cache, individual transactions from the transactions cache — falling back to the unconverted
-            // per-row amount until the conversion is ready, which keeps the footer on that currency meanwhile.
+            // groups cache, individual transactions from the transactions cache — falling back to the default per-row
+            // amount until the conversion is ready, which keeps the footer on the default currency meanwhile.
             let total;
             if (shouldUseConvertedSelectedTotal && isReportsSearch && selectedCurrency) {
                 total = selectedReportIDs.reduce((acc, reportID) => acc - (convertedReports?.[reportID]?.[selectedCurrency] ?? 0), 0);
@@ -431,27 +424,26 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                 }, 0);
             }
 
-            // Unconverted figures keep the currency they're denominated in instead of borrowing the default's symbol,
-            // which can move away from the loaded figures (e.g. after changing Preferences > Payment currency).
-            return {count: selectedExpenseCount, total, currency: shouldUseConvertedSelectedTotal ? selectedCurrency : loadedFiguresCurrency};
+            return {count: selectedExpenseCount, total, currency: shouldUseConvertedSelectedTotal ? selectedCurrency : fallbackCurrency};
         }
 
         if (hasCustomFooterCurrency && isSearchTotalFresh && !hasConversionFailed && selectedCurrencyConvertedTotal) {
             return {count: selectedCurrencyConvertedTotal.count, total: selectedCurrencyConvertedTotal.total, currency: selectedCurrency};
         }
 
-        return {count: metadataCount, total: metadataTotal, currency: loadedFiguresCurrency};
+        return {count: metadataCount, total: metadataTotal, currency: effectiveDefaultCurrency ?? metadataCurrency};
     }, [
         areAllSelectedConverted,
         convertedGroups,
         convertedReports,
         convertedTransactions,
+        effectiveDefaultCurrency,
         hasConversionFailed,
         hasCustomFooterCurrency,
         isReportsSearch,
         isSearchTotalFresh,
-        loadedFiguresCurrency,
         metadataCount,
+        metadataCurrency,
         metadataTotal,
         selectedCurrency,
         selectedCurrencyConvertedTotal,
