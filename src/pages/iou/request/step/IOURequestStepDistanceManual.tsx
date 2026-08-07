@@ -11,6 +11,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestParticipantsPolicyTags';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -208,6 +209,18 @@ function IOURequestStepDistanceManual({
 
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
 
+    const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
+        currentUserAccountID: currentUserAccountIDParam,
+        report,
+        policy,
+        personalDetails,
+        conciergeReportID,
+        isArchived,
+        reportAttributesDerived,
+        reportDraft,
+        translate,
+    });
+
     const navigateToNextPage = (amount: string) => {
         const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
 
@@ -275,7 +288,6 @@ function IOURequestStepDistanceManual({
             transaction,
             reportID,
             transactionID,
-            reportAttributesDerived,
             personalDetails,
             manualDistance: distanceAsFloat,
             currentUserLogin: currentUserEmailParam,
@@ -304,16 +316,16 @@ function IOURequestStepDistanceManual({
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
-            conciergeReportID,
             draftTransactionIDs,
             optimisticTransactionID,
             optimisticChatReportID,
-            reportDraft,
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
             formatPhoneNumber,
             getCurrencySymbol,
+            participants,
+            participantsPolicyTags,
         });
     };
 
