@@ -200,4 +200,4 @@
 - Upstream PR/issue: TBD
 - E/App issue: https://github.com/Expensify/App/issues/97472
 - Sentry: https://expensify.sentry.io/issues/APP-EEE
-- PR introducing patch: TBD (this PR)
+- PR introducing patch: https://github.com/Expensify/App/pull/98015
