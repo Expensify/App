@@ -18,7 +18,7 @@ const GO_TO_PREFIX = /^go\s+to\s+/i;
 const GO_PREFIX = /^go\s+/i;
 
 function stripNavigationIntentPrefix(query: string) {
-    const trimmedQuery = query.trim();
+    const trimmedQuery = query.trim().replaceAll(/\s+/g, ' ');
     if (GO_TO_PREFIX.test(trimmedQuery)) {
         return trimmedQuery.replace(GO_TO_PREFIX, '').trim();
     }
@@ -32,28 +32,28 @@ function isNavigationIntentOnlyQuery(query: string) {
     return /^go(?:\s+to)?$/i.test(query.trim());
 }
 
+function toMatchKey(value: string | undefined) {
+    return StringUtils.normalizeForMatch(value ?? '').toLowerCase();
+}
+
 function matchesNavigationQuery(query: string, ...values: Array<string | undefined>) {
-    const normalizedQuery = StringUtils.normalizeAccents(query).toLowerCase();
+    const normalizedQuery = toMatchKey(query);
     if (!normalizedQuery) {
         return false;
     }
 
-    return values.some((value) =>
-        StringUtils.normalizeAccents(value ?? '')
-            .toLowerCase()
-            .includes(normalizedQuery),
-    );
+    return values.some((value) => toMatchKey(value).includes(normalizedQuery));
 }
 
 function matchesNavigationQueryExactly(query: string, ...values: Array<string | undefined>) {
-    const normalizedQuery = StringUtils.normalizeAccents(query).toLowerCase();
-    return values.some((value) => StringUtils.normalizeAccents(value ?? '').toLowerCase() === normalizedQuery);
+    const normalizedQuery = toMatchKey(query);
+    return values.some((value) => toMatchKey(value) === normalizedQuery);
 }
 
 function sortNavigationSuggestionItems<T extends NavigationSuggestionSourceItem>(items: T[], localeCompare: LocaleContextProps['localeCompare']): T[] {
     return [...items].sort((firstItem, secondItem) => {
-        const firstText = StringUtils.normalizeAccents(firstItem.text ?? '').toLowerCase();
-        const secondText = StringUtils.normalizeAccents(secondItem.text ?? '').toLowerCase();
+        const firstText = toMatchKey(firstItem.text);
+        const secondText = toMatchKey(secondItem.text);
         const textComparison = localeCompare(firstText, secondText);
         if (textComparison !== 0) {
             return textComparison;

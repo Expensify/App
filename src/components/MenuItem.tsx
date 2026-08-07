@@ -13,7 +13,6 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
@@ -44,6 +43,7 @@ import type {PressableRef} from './Pressable/GenericPressable/types';
 
 import ActivityIndicator from './ActivityIndicator';
 import Avatar from './Avatar';
+import WorkspaceAvatar from './Avatar/WorkspaceAvatar';
 import Badge from './Badge';
 import {useIsCompactMenu} from './CompactMenuContext';
 import CopyTextToClipboard from './CopyTextToClipboard';
@@ -664,9 +664,6 @@ function MenuItem({
     } else if (isCompactPopoverItem) {
         descriptionVerticalMargin = styles.mt0Half;
     }
-    const menuItemLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MenuItem',
-    };
     const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
     const isNewWindowIcon = iconRight === icons.NewWindow;
     let enhancedAccessibilityLabel = accessibilityLabel ?? defaultAccessibilityLabel;
@@ -682,8 +679,9 @@ function MenuItem({
     });
     const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
 
+    const hasIcon = (!!icon || iconType === CONST.ICON_TYPE_WORKSPACE) && !Array.isArray(icon);
     // eslint-disable-next-line no-nested-ternary -- Selects ml2/ml3/empty based on icon presence and avatar size
-    const iconLeftPadding = shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {};
+    const iconLeftPadding = shouldPutLeftPaddingWhenNoIcon || hasIcon ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {};
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -706,7 +704,7 @@ function MenuItem({
         styles.flex1,
         title ? {} : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight),
-        !descriptionAddon && icon && !Array.isArray(icon) ? styles.ml3 : {},
+        !descriptionAddon && hasIcon ? styles.ml3 : {},
         descriptionAddon ? styles.ml2 : {},
         (descriptionTextStyle as TextStyle) || styles.breakWord,
         isDeleted ? styles.offlineFeedbackDeleted : {},
@@ -715,7 +713,7 @@ function MenuItem({
     const descriptionContainerStyle = StyleUtils.combineStyles<ViewStyle>([
         styles.flexRow,
         styles.alignItemsCenter,
-        descriptionAddon && icon && !Array.isArray(icon) ? styles.ml3 : {},
+        descriptionAddon && hasIcon ? styles.ml3 : {},
         title ? descriptionVerticalMargin : {},
     ]);
 
@@ -948,7 +946,7 @@ function MenuItem({
                                                             accountIDs={iconAccountID ? [iconAccountID] : undefined}
                                                         />
                                                     )}
-                                                    {!icon && shouldPutLeftPaddingWhenNoIcon && (
+                                                    {!icon && iconType !== CONST.ICON_TYPE_WORKSPACE && shouldPutLeftPaddingWhenNoIcon && (
                                                         <View
                                                             style={[
                                                                 styles.popoverMenuIcon,
@@ -958,7 +956,7 @@ function MenuItem({
                                                             ]}
                                                         />
                                                     )}
-                                                    {!!icon && !Array.isArray(icon) && (
+                                                    {hasIcon && (
                                                         <View
                                                             style={[
                                                                 styles.popoverMenuIcon,
@@ -993,20 +991,14 @@ function MenuItem({
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
                                                                 ) : (
-                                                                    <ActivityIndicator
-                                                                        color={theme.textSupporting}
-                                                                        reasonAttributes={menuItemLoadingReasonAttributes}
-                                                                    />
+                                                                    <ActivityIndicator color={theme.textSupporting} />
                                                                 ))}
-                                                            {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
-                                                                <Avatar
-                                                                    imageStyles={[styles.alignSelfCenter]}
-                                                                    size={CONST.AVATAR_SIZE.DEFAULT}
+                                                            {iconType === CONST.ICON_TYPE_WORKSPACE && (
+                                                                <WorkspaceAvatar
+                                                                    imageStyles={styles.alignSelfCenter}
                                                                     source={icon}
-                                                                    fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
-                                                                    name={title}
-                                                                    avatarID={avatarID}
-                                                                    type={CONST.ICON_TYPE_WORKSPACE}
+                                                                    name={title ?? ''}
+                                                                    avatarID={avatarID ?? CONST.DEFAULT_NUMBER_ID}
                                                                 />
                                                             )}
                                                             {iconType === CONST.ICON_TYPE_AVATAR && (
@@ -1163,7 +1155,6 @@ function MenuItem({
                                                                 }
                                                             }
                                                             accountIDs={!!rightIconAccountID && Number(rightIconAccountID) > 0 ? [Number(rightIconAccountID)] : undefined}
-                                                            useMidSubscriptSizeForMultipleAvatars
                                                         />
                                                     </View>
                                                 )}
