@@ -269,6 +269,7 @@ function Expensify() {
             return;
         }
         updateLastRoute('');
+
         // On iOS, changing the Contacts permission in Settings forces the app to reload (see `goToSettings`).
         // Restoring a deep RHP route (e.g. the money-request participant selector) directly on the boot frame
         // kicks the react-navigation card's native-driver entering animation while the tree is still hydrating,
