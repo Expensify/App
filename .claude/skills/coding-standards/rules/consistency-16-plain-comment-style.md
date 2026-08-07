@@ -55,7 +55,7 @@ The following phrases sound natural to AI but are unusual in human-written code.
 | defense in depth | extra guard, additional check |
 | belt and suspenders (or belt-and-suspenders) | extra safety check, redundant guard |
 | fresh evidence | new data, updated result |
-| sentinel (used as prose metaphor, not a named constant or established CS term in context) | placeholder, marker, guard entry |
+| sentinel | placeholder, marker, guard entry |
 
 **Examples of violations:**
 
