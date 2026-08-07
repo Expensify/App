@@ -1232,11 +1232,7 @@ function addActions({
     });
 
     if (conciergeThreadReportID && resolvedReportActionID) {
-        if (isSearchTopmostFullScreenRoute()) {
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: conciergeThreadReportID, backTo: Navigation.getActiveRoute()}));
-        } else {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeThreadReportID, undefined, undefined, Navigation.getActiveRoute()));
-        }
+        Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID}));
     }
     notifyNewAction(resolvedNotifyReportID, lastAction, lastAction?.actorAccountID === currentUserAccountID);
 }
