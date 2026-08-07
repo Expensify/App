@@ -73,6 +73,7 @@ type CrossReportMergeToSourceReportFixtures = {
     mergeTransactionID: string;
     sourceExpenseReport: Report;
     targetReport: Report;
+    sourceIOUAction: ReportAction;
     sourceIOUActionID: string;
     targetIOUActionID: string;
     targetTransactionThreadID: string;
@@ -174,6 +175,7 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
         mergeTransactionID,
         sourceExpenseReport,
         targetReport,
+        sourceIOUAction,
         sourceIOUActionID,
         targetIOUActionID,
         targetTransactionThreadID,
@@ -183,7 +185,7 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
 }
 
 function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSourceReportFixtures) {
-    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport} = fixtures;
+    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport, sourceIOUAction} = fixtures;
 
     mergeTransactionRequest({
         iouReportOwnerLogin: undefined,
@@ -205,6 +207,8 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         selfDMReportActions: undefined,
         delegateAccountID: undefined,
         isTrackIntentUser: false,
+        sourceTransactionThreadReportActions: undefined,
+        sourceIOUAction,
     });
 }
 
@@ -322,6 +326,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -440,6 +446,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -543,6 +551,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -708,6 +718,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -814,6 +826,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -1045,6 +1059,8 @@ describe('mergeTransactionRequest', () => {
                 selfDMReport: undefined,
                 selfDMReportActions: undefined,
                 isTrackIntentUser: false,
+                sourceTransactionThreadReportActions: undefined,
+                sourceIOUAction: undefined,
             });
 
             await mockFetch?.resume?.();
@@ -1247,6 +1263,8 @@ describe('mergeTransactionRequest', () => {
                 selfDMReport: undefined,
                 selfDMReportActions: undefined,
                 isTrackIntentUser: false,
+                sourceTransactionThreadReportActions: undefined,
+                sourceIOUAction,
             });
 
             await waitForBatchedUpdates();
@@ -1398,6 +1416,8 @@ describe('mergeTransactionRequest', () => {
                 selfDMReport,
                 selfDMReportActions: undefined,
                 isTrackIntentUser: false,
+                sourceTransactionThreadReportActions: undefined,
+                sourceIOUAction: undefined,
             });
 
             await waitForBatchedUpdates();

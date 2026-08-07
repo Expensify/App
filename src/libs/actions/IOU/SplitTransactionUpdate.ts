@@ -1637,6 +1637,7 @@ function updateSplitTransactions({
                     reportAction: iouActionToCleanUp,
                     updatedReportPreviewAction: updatedReportPreviewAction as OnyxTypes.ReportAction,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
+                    transactionThreadReportActionsParam: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouActionToCleanUp.childReportID}`],
                 });
 
                 onyxData.optimisticData?.push(...optimisticData);
