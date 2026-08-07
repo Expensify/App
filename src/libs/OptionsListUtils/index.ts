@@ -746,7 +746,7 @@ function getLastMessageTextForReport({
             reportOrID: report,
             iouReportAction: lastReportAction,
             shouldConsiderScanningReceiptOrPendingRoute: true,
-            policy: null,
+            policy,
             isForListPreview: true,
         });
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
@@ -771,7 +771,7 @@ function getLastMessageTextForReport({
                 iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: true,
                 isPreviewMessageForParentChatReport: reportUtilsIsChatReport(report),
-                policy: null,
+                policy,
                 isForListPreview: true,
                 originalReportAction: lastReportAction,
             });
@@ -1057,7 +1057,7 @@ function getLastMessageTextForReport({
                                 reportOrID: report,
                                 iouReportAction: lastReportAction,
                                 shouldConsiderScanningReceiptOrPendingRoute: true,
-                                policy: null,
+                                policy,
                                 isForListPreview: true,
                             }),
                         ),
