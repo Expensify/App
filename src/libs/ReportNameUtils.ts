@@ -144,6 +144,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getMovedActionMessage,
     getMovedTransactionMessage,
+    getMovedTransactionReportID,
     getParentReport,
     getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
@@ -155,6 +156,7 @@ import {
     getReportOrDraftReport,
     getTransactionReportName,
     getUnreportedTransactionMessage,
+    getUnreportedTransactionReportID,
     getWorkspaceNameUpdatedMessage,
     isAdminRoom,
     isArchivedNonExpenseReport,
@@ -625,11 +627,15 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction, reportAttributes));
+        const unreportedReportID = getUnreportedTransactionReportID(parentReportAction);
+        const reportName = unreportedReportID ? reportAttributes?.[unreportedReportID]?.reportName : undefined;
+        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction, reportName));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-        return Parser.htmlToText(getMovedTransactionMessage(translate, parentReportAction, reportAttributes));
+        const movedReportID = getMovedTransactionReportID(parentReportAction);
+        const reportName = movedReportID ? reportAttributes?.[movedReportID]?.reportName : undefined;
+        return Parser.htmlToText(getMovedTransactionMessage(translate, parentReportAction, reportName));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
