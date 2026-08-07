@@ -84,6 +84,12 @@ type FormWrapperProps = ChildrenProps &
         shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
         ref?: ForwardedRef<FormWrapperRef>;
+
+        /** Styles for the container wrapping the submit button and footer content */
+        submitButtonAndFooterContainerStyles?: StyleProp<ViewStyle>;
+
+        /** Styles for the submit button itself (`submitButtonStyles` targets the wrapping container) */
+        submitButtonInnerStyles?: StyleProp<ViewStyle>;
     };
 
 function FormWrapper({
@@ -120,6 +126,8 @@ function FormWrapper({
     forwardedFSClass,
     sentryLabel = CONST.SENTRY_LABEL.FORM.SUBMIT_BUTTON,
     ref,
+    submitButtonAndFooterContainerStyles,
+    submitButtonInnerStyles,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
@@ -223,6 +231,8 @@ function FormWrapper({
             shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
             shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
             sentryLabel={sentryLabel}
+            buttonAndFooterContainerStyles={submitButtonAndFooterContainerStyles}
+            buttonStyles={submitButtonInnerStyles}
         />
     );
 
