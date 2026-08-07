@@ -237,7 +237,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     const error = getLatestError(errorFields?.connect?.[email]);
                     const personalDetails = personalDetailsByLogin[email];
                     return createBaseMenuItem(personalDetails, error, {
-                        badgeText: translate('delegate.role', {role}),
+                        badgeText: translate('delegate.role', role),
                         onSelected: () => {
                             if (isOffline) {
                                 close(showOfflineModal);
