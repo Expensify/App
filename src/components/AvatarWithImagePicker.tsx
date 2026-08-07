@@ -119,7 +119,7 @@ function AvatarWithImagePicker({
     const {translate} = useLocalize();
     const {openCropper} = useAvatarCrop({maskType: editorMaskImage ? 'square' : undefined, onCropped: onImageSelected});
 
-    const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
+    const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown> = {}) => {
         setErrorData({
             validationError: error,
             phraseParam,
@@ -291,7 +291,7 @@ function AvatarWithImagePicker({
             {!!errorData.validationError && (
                 <DotIndicatorMessage
                     style={styles.mt6}
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-type-assertion
                     messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
                     type="error"
                 />
