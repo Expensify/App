@@ -71,7 +71,7 @@ describe('LoginUtils', () => {
         it('Should keep the calling code when it differs from the country code', () => {
             expect(formatE164PhoneNumber('+61255501234', CONST.DEFAULT_COUNTRY_CODE)).toBe('+61255501234');
         });
-        it('Should return undefined for an unparseable number', () => {
+        it('Should return undefined for a value that is not a phone number', () => {
             expect(formatE164PhoneNumber('abcdefg', CONST.DEFAULT_COUNTRY_CODE)).toBeUndefined();
         });
     });
