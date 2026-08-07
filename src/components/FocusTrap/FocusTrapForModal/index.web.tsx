@@ -9,7 +9,15 @@ import React, {useRef} from 'react';
 
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
-function FocusTrapForModal({children, active, initialFocus = false, shouldPreventScroll = false, shouldReturnFocus = true}: FocusTrapForModalProps) {
+function FocusTrapForModal({
+    children,
+    active,
+    initialFocus = false,
+    shouldPreventScroll = false,
+    shouldReturnFocus = true,
+    clickOutsideDeactivates,
+    allowOutsideClick,
+}: FocusTrapForModalProps) {
     // Track this trap's own launcher so onPostDeactivate targets the right shared-stack entry.
     const cachedLauncherRef = useRef<HTMLElement | null>(null);
     return (
@@ -17,7 +25,6 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
             active={active}
             focusTrapOptions={{
                 onActivate: () => {
-                    // Capture for nav-back return — independent of shouldReturnFocus (which gates only focus-trap-react's same-screen return below).
                     const launcher = document.activeElement;
                     blurActiveElement();
                     if (launcher instanceof HTMLElement && launcher !== document.body) {
@@ -39,9 +46,9 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                 },
                 preventScroll: shouldPreventScroll,
                 trapStack: sharedTrapStack,
-                clickOutsideDeactivates: true,
+                clickOutsideDeactivates: clickOutsideDeactivates ?? true,
+                allowOutsideClick,
                 initialFocus,
-                // Lazy so document.body isn't evaluated at render time (SSR-safe).
                 fallbackFocus: () => document.body,
                 setReturnFocus: false,
             }}

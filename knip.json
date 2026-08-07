@@ -15,7 +15,16 @@
                 "metro.config.js",
                 "eslint.changed.config.mjs",
                 "react-native.config.js",
-                "rock.config.mjs"
+                "rock.config.mjs",
+                "src/components/Overlay/FloatingHost.tsx",
+                "src/components/Overlay/Presence.tsx",
+                "src/components/Overlay/AnimatedSurface.tsx",
+                "src/components/Overlay/createHeadingSystem.tsx",
+                "src/components/Overlay/Portal/index.tsx",
+                "src/components/Overlay/DismissableLayer/index.tsx",
+                "src/components/Overlay/hooks/useOverlayTrigger.ts",
+                "src/components/Overlay/hooks/useAnchoredOpener.ts",
+                "src/components/Overlay/hooks/useOverlaySelectors.ts"
             ],
             "project": [
                 "src/**/*.{js,jsx,ts,tsx}",

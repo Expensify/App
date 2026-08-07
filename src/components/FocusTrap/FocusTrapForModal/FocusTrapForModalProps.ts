@@ -8,6 +8,8 @@ type FocusTrapForModalProps = {
     initialFocus?: FocusTrapOptions['initialFocus'];
     shouldPreventScroll?: boolean;
     shouldReturnFocus?: boolean;
+    clickOutsideDeactivates?: FocusTrapOptions['clickOutsideDeactivates'];
+    allowOutsideClick?: FocusTrapOptions['allowOutsideClick'];
 };
 
 export default FocusTrapForModalProps;
