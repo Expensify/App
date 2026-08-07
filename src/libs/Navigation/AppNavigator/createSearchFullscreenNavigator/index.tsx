@@ -25,7 +25,10 @@ function SearchFullscreenNavigatorEffects(props: CustomEffectsHookProps) {
 
 const SearchFullscreenNavigatorComponent = createPlatformStackNavigatorComponent('SearchFullscreenNavigator', {
     createRouter: addPushParamsRouterExtension(SearchFullscreenRouter),
-    defaultScreenOptions: defaultPlatformStackScreenOptions,
+    // Covered search screens are deprioritized with React <Activity>. Setting it for the whole navigator is only meant
+    // to demonstrate the mechanism on as many screens as possible. The final PR will opt every screen in separately,
+    // so each one is reviewed on its own.
+    defaultScreenOptions: {...defaultPlatformStackScreenOptions, nonTopScreenBehavior: 'activity'},
     Effects: SearchFullscreenNavigatorEffects,
     getCustomState,
     ExtraContent: SearchSidebar,

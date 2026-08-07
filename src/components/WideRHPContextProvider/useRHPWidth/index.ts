@@ -1,3 +1,6 @@
+import getRouteReportID from '@components/WideRHPContextProvider/getRouteReportID';
+
+import extractPresentNavigationKeys from '@libs/Navigation/helpers/extractPresentNavigationKeys';
 import {navigationRef} from '@libs/Navigation/Navigation';
 
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -22,10 +25,20 @@ function getWidthOrder(width: RHPWidth): number {
 /** Sets a screen's RHP width. A per-report hint outranks the caller until the caller's own width catches up — so a pre-marked report opens at the right width without a loading-state flash. */
 function useRHPWidth(width: RHPWidth) {
     const route = useRoute();
-    const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
+    const reportID = getRouteReportID(route) ?? '';
     const {setRHPWidth, removeRHPRouteKey, getReportRHPWidthHint, unmarkReportRHPWidth} = useWideRHPActions();
 
     const onClose = () => {
+        // Effects also unmount when a covered screen is hidden by <Activity>, so an unmounting effect does not
+        // always mean the screen is closing. Deregister only when the route has actually left the navigation
+        // state; on a hide the registration must survive, otherwise the RHP container snaps to the single width.
+        // A route closed while its screen is hidden never runs this cleanup again - the navigation state
+        // listener in WideRHPContextProvider deregisters it instead.
+        const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
+        if (rootState && extractPresentNavigationKeys(rootState).has(route.key)) {
+            return;
+        }
+
         removeRHPRouteKey(route);
         // Clear the one-shot hint on unmount so it can't pin the report wide on a later visit.
         if (reportID) {
