@@ -20,7 +20,8 @@ const emptyRHPKeysState: VisibleRHPKeys = {
  * Takes navigation state as an argument so the visible keys can be derived during render rather than synced by hand.
  */
 function getVisibleRHPKeys(state: NavigationState | undefined, allWideRHPKeys: string[], allSuperWideRHPKeys: string[]): VisibleRHPKeys {
-    if (!state) {
+    // Nothing registered is the common case, and it needs no traversal of a tree whose keys nothing will be matched against.
+    if (!state || (!allWideRHPKeys.length && !allSuperWideRHPKeys.length)) {
         return emptyRHPKeysState;
     }
 

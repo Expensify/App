@@ -1,13 +1,8 @@
-import {buildClearedPendingNewTransactionFlags, buildPendingNewTransactionFlagKey} from '@libs/PendingNewTransactionFlags';
+import {buildClearedPendingNewTransactionFlags, buildPendingNewTransactionFlag} from '@libs/PendingNewTransactionFlags';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
-
-/** Builds the flag entry for one add, stamped at write time so each write is its own instance. */
-function buildPendingNewTransactionFlag(transactionID: string): Record<string, true> {
-    return {[buildPendingNewTransactionFlagKey(transactionID, Date.now())]: true};
-}
 
 function addPendingNewTransactionIDs(reportID: string | undefined, transactionID: string | undefined) {
     if (!reportID || !transactionID) {
@@ -27,4 +22,4 @@ function deletePendingNewTransactionIDs(reportID: string | undefined, flagKeys: 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs: buildClearedPendingNewTransactionFlags(flagKeys)});
 }
 
-export {addPendingNewTransactionIDs, buildPendingNewTransactionFlag, deletePendingNewTransactionIDs};
+export {addPendingNewTransactionIDs, deletePendingNewTransactionIDs};

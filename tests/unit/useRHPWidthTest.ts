@@ -1,8 +1,6 @@
-import {render} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 
 import type {RHPWidth, RHPWidthHint} from '@components/WideRHPContextProvider/types';
-
-import React from 'react';
 
 const mockSetRHPWidth = jest.fn<void, [{key: string}, RHPWidth]>();
 const mockRemoveRHPRouteKey = jest.fn();
@@ -29,14 +27,9 @@ jest.mock('@react-navigation/native', () => ({
 // Required by path: jest resolves the platform variant first, and index.native.ts is the no-op the wide RHP does not exist for.
 const {default: useRHPWidth} = require<{default: (width: RHPWidth) => void}>('../../src/components/WideRHPContextProvider/useRHPWidth/index.ts');
 
-function Harness({width}: {width: RHPWidth}) {
-    useRHPWidth(width);
-    return null;
-}
-
 function renderHarness(width: RHPWidth) {
-    const utils = render(<Harness width={width} />);
-    return {...utils, setWidth: (next: RHPWidth) => utils.rerender(<Harness width={next} />)};
+    const utils = renderHook<void, {width: RHPWidth}>((props) => useRHPWidth(props.width), {initialProps: {width}});
+    return {...utils, setWidth: (next: RHPWidth) => utils.rerender({width: next})};
 }
 
 const lastRegisteredWidth = () => mockSetRHPWidth.mock.calls.at(-1)?.[1];
@@ -77,6 +70,16 @@ describe('useRHPWidth', () => {
         setWidth('super-wide');
 
         expect(lastRegisteredWidth()).toBe('super-wide');
+    });
+
+    it('clears the hint on unmount, bounding one left behind by a navigation that mounted no screen', () => {
+        mockGetReportRHPWidthHint.mockReturnValue(undefined);
+        const {unmount} = renderHarness('wide');
+        mockUnmarkReportRHPWidth.mockClear();
+
+        unmount();
+
+        expect(mockUnmarkReportRHPWidth).toHaveBeenCalledWith('report1');
     });
 
     it('consumes the incoming report hint when the carousel swaps params on the same screen', () => {

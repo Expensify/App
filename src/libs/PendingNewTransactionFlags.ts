@@ -27,4 +27,9 @@ function buildClearedPendingNewTransactionFlags(flagKeys: string[]): Record<stri
     return clearedFlags;
 }
 
-export {buildClearedPendingNewTransactionFlags, buildPendingNewTransactionFlagKey, parsePendingNewTransactionFlagKey};
+/** Builds the flag entry for one add, stamped at write time so each write is its own instance. */
+function buildPendingNewTransactionFlag(transactionID: string): Record<string, true> {
+    return {[buildPendingNewTransactionFlagKey(transactionID, Date.now())]: true};
+}
+
+export {buildClearedPendingNewTransactionFlags, buildPendingNewTransactionFlag, buildPendingNewTransactionFlagKey, parsePendingNewTransactionFlagKey};

@@ -174,6 +174,11 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     }, [visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys]);
 
     /**
+     * Effect that empties the module-level snapshot on teardown, since it outlives the provider and would otherwise answer for the next session.
+     */
+    useEffect(() => () => setVisibleRHPRouteKeysSnapshot([], []), []);
+
+    /**
      * Effect that manages the secondary overlay animation for single RHP displayed on Super Wide RHP and rendering state.
      */
     const shouldRenderSecondaryOverlayForRHPOnSuperWideRHP = useShouldRenderOverlay(

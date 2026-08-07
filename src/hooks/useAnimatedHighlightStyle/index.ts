@@ -106,20 +106,17 @@ export default function useAnimatedHighlightStyle({
         if (playPhaseRef.current === 'idle' || !didScreenTransitionEnd) {
             return;
         }
+        // Both are called from the JS thread, so they set their value there and leave the one thread hop to the worklet boundary below.
         const revealRow = () => {
-            scheduleOnRN(() => {
-                nonRepeatableProgress.set(withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}));
-            });
+            nonRepeatableProgress.set(withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}));
         };
         const playPulse = () => {
-            scheduleOnRN(() => {
-                repeatableProgress.set(
-                    withSequence(
-                        withDelay(highlightStartDelay, withTiming(1, {duration: highlightStartDuration, easing: Easing.inOut(Easing.ease)})),
-                        withDelay(highlightEndDelay, withTiming(0, {duration: highlightEndDuration, easing: Easing.inOut(Easing.ease)})),
-                    ),
-                );
-            });
+            repeatableProgress.set(
+                withSequence(
+                    withDelay(highlightStartDelay, withTiming(1, {duration: highlightStartDuration, easing: Easing.inOut(Easing.ease)})),
+                    withDelay(highlightEndDelay, withTiming(0, {duration: highlightEndDuration, easing: Easing.inOut(Easing.ease)})),
+                ),
+            );
         };
         const playEntryThenPulse = () => {
             scheduleOnRN(() => {
@@ -130,6 +127,7 @@ export default function useAnimatedHighlightStyle({
                             if (!finished) {
                                 return;
                             }
+                            // This callback runs on the UI thread, so the pulse hops back to JS once.
                             scheduleOnRN(playPulse);
                         }),
                     ),

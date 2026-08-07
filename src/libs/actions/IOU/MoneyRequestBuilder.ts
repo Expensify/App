@@ -7,7 +7,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
-import {buildClearedPendingNewTransactionFlags} from '@libs/PendingNewTransactionFlags';
+import {buildClearedPendingNewTransactionFlags, buildPendingNewTransactionFlag} from '@libs/PendingNewTransactionFlags';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnit, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isReportPreviewAction} from '@libs/ReportActionsUtils';
@@ -82,7 +82,6 @@ import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantP
 import type {GPSPoint} from './types/TrackExpenseTransactionParams';
 
 import {getAllPersonalDetails, getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports} from './index';
-import {buildPendingNewTransactionFlag} from './PendingNewTransactions';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 
 type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
@@ -678,6 +677,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const isTransactionAlreadyOnReport = reportTransactionsFromCache.some((reportTransaction) => reportTransaction.transactionID === transaction.transactionID);
     const existingReportTransactions = reportTransactionsFromCache.filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID);
     // What the report will hold once this add lands, from the cache when it has this report and otherwise from the server count every caller pre-increments.
+    // The fallback cannot see pending deletes, so it is deliberately the weaker source and only decides when the cache holds nothing to decide from.
     const transactionCountAfterAdd =
         existingReportTransactions.length > 0
             ? existingReportTransactions.filter((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length + 1

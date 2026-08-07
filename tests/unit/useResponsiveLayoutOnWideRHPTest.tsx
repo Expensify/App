@@ -8,9 +8,6 @@ import type * as ReactNavigationModule from '@react-navigation/native';
 
 import React from 'react';
 
-// The repo-wide manual mock does not re-export NavigationRouteContext, which is the context this hook reads, so this file takes the real module.
-jest.mock('@react-navigation/native', () => jest.requireActual<Record<string, unknown>>('@react-navigation/native'));
-
 let mockDisplayedWidth: Exclude<RHPWidth, 'narrow'> | undefined;
 jest.mock('@components/WideRHPContextProvider', () => ({
     __esModule: true,

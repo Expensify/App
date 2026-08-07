@@ -9,7 +9,7 @@ import {createContext, useContext, useSyncExternalStore} from 'react';
 
 import type ResponsiveLayoutOnWideRHPResult from './types';
 
-// NavigationRouteContext is undefined when tests mock @react-navigation/native without re-exporting it, so fall back to a noop context to keep useContext valid.
+// Dozens of suites replace @react-navigation/native with a partial factory, leaving this undefined, so fall back to a noop context to keep useContext valid.
 const FallbackRouteContext = createContext<Route<string> | undefined>(undefined);
 
 /**
