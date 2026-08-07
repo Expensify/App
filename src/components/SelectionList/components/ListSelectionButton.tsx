@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 type ListSelectionButtonProps<TItem extends ListItem> = {
     /** The item to render the selection button for */
@@ -50,13 +50,34 @@ function ListSelectionButton<TItem extends ListItem>({
 }: ListSelectionButtonProps<TItem> & {role: typeof CONST.ROLE.CHECKBOX | typeof CONST.ROLE.RADIO}) {
     const label = accessibilityLabel ?? item.text ?? '';
 
+    // Paint the checkmark immediately on press, even when the parent defers the (expensive) selection-state
+    // update in a transition. The optimistic value is dropped as soon as the item prop catches up
+    // (state-adjustment-during-render, see https://react.dev/reference/react/useState#storing-information-from-previous-renders).
+    // Track the row identity (keyForList) alongside isSelected: SelectionList rows render through FlashList and are
+    // recycled, so the same component instance can receive a different item with the same isSelected value - resetting
+    // on identity change prevents a stale optimistic checkmark from leaking onto the recycled row.
+    const isCheckedProp = item.isSelected ?? false;
+    const [prevItem, setPrevItem] = useState({key: item.keyForList, checked: isCheckedProp});
+    const [optimisticChecked, setOptimisticChecked] = useState<boolean | null>(null);
+    if (prevItem.key !== item.keyForList || prevItem.checked !== isCheckedProp) {
+        setPrevItem({key: item.keyForList, checked: isCheckedProp});
+        setOptimisticChecked(null);
+    }
+    const isChecked = optimisticChecked ?? isCheckedProp;
+
     return (
         <SelectionButton
             shouldSelectOnPressEnter
             role={role}
             accessibilityLabel={label}
-            isChecked={item.isSelected ?? false}
-            onPress={() => onSelectRow(item)}
+            isChecked={isChecked}
+            onPress={() => {
+                // A checkbox toggles, so flip the current value. A radio press only ever selects, so paint it
+                // checked - inverting an already-checked radio would leave it stuck unchecked because its
+                // isSelected prop never changes to trigger the reset above.
+                setOptimisticChecked(role === CONST.ROLE.RADIO ? true : !isChecked);
+                onSelectRow(item);
+            }}
             disabled={disabled}
             style={style}
             containerStyle={containerStyle}
