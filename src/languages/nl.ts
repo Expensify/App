@@ -1086,6 +1086,7 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateTitle: 'Geen recente uitgaven',
             emptyStateMessage: 'Maak er een aan of sleep hier een bonnetje naartoe',
         },
+        insightsSection: {chartUnavailable: 'Diagram niet beschikbaar', notEnoughData: 'We hebben nog niet genoeg gegevens om deze grafiek te vullen'},
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

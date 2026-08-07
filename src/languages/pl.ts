@@ -1084,6 +1084,7 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateTitle: 'Brak ostatnich wydatków',
             emptyStateMessage: 'Utwórz jeden lub przeciągnij tu paragon',
         },
+        insightsSection: {chartUnavailable: 'Wykres niedostępny', notEnoughData: 'Nie mamy jeszcze wystarczającej ilości danych, żeby wypełnić ten wykres'},
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',

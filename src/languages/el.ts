@@ -1131,6 +1131,7 @@ const translations: TranslationDeepObject<typeof en> = {
             }),
             today: 'Σήμερα',
         },
+        insightsSection: {chartUnavailable: 'Το γράφημα δεν είναι διαθέσιμο', notEnoughData: 'Δεν έχουμε ακόμη αρκετά δεδομένα για να συμπληρώσουμε αυτό το γράφημα'},
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',

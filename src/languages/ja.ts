@@ -1071,6 +1071,7 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateTitle: '最近の経費はありません',
             emptyStateMessage: '新規作成するか、レシートをここにドラッグしてください',
         },
+        insightsSection: {chartUnavailable: 'グラフを表示できません', notEnoughData: 'このチャートを表示するためのデータがまだ十分にありません'},
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
