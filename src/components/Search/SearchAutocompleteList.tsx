@@ -209,6 +209,7 @@ function SearchAutocompleteList({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [searchResultReportIDs] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -262,7 +263,8 @@ function SearchAutocompleteList({
             isUsedInChatFinder: true,
             includeReadOnly: true,
             searchQuery: autocompleteQueryValue,
-            maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
+            // With an Auth order, keep every matching report instead of just the 20 most recent, so the Auth-order sort below can't drop a top-ranked but old one.
+            maxResults: searchResultReportIDs && searchResultReportIDs.length > 0 ? listOptions.reports.length : CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
             includeUserToInvite: true,
             includeRecentReports: true,
             includeCurrentUser: true,
@@ -295,6 +297,7 @@ function SearchAutocompleteList({
         sortedActions,
         conciergeReportID,
         isTrackIntentUser,
+        searchResultReportIDs,
         translate,
     ]);
 
@@ -439,8 +442,23 @@ function SearchAutocompleteList({
             reportOptions.push(searchOptions.userToInvite);
         }
 
+        // When the server has returned a tier-ranked order for this search, display results in that order
+        // instead of the client-side kind/recency order. Reports absent from the list sort to the end.
+        if (searchResultReportIDs && searchResultReportIDs.length > 0) {
+            const rankByReportID = new Map(searchResultReportIDs.map((reportID, index) => [reportID, index]));
+            const rankOf = (option: OptionData) => {
+                // The selfDM always sorts first when it matches — it's always in Onyx, so it ranks ahead of the server order
+                // (and need not be included in it).
+                if (option.isSelfDM) {
+                    return -1;
+                }
+                return option.reportID === undefined ? Number.MAX_SAFE_INTEGER : (rankByReportID.get(option.reportID) ?? Number.MAX_SAFE_INTEGER);
+            };
+            reportOptions.sort((a, b) => rankOf(a) - rankOf(b));
+        }
+
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, searchOptions]);
+    }, [autocompleteQueryValue, searchOptions, searchResultReportIDs]);
 
     // Locked rank map (stable key -> originalIndex) capturing the order of locally-known
     // results at the moment the query changes. Recomputed only when the query changes, so server
@@ -558,8 +576,17 @@ function SearchAutocompleteList({
                     customHeader: skeletonHeader,
                 });
             }
+        } else if (searchResultReportIDs && searchResultReportIDs.length > 0) {
+            // The server returned a tier-ranked order for this query (already applied to recentReportsOptions),
+            // so render a single list in that order rather than splitting into local/server sections — splitting
+            // would group local matches separately and break the global tier ordering.
+            if (nextStyledRecentReports.length > 0 || !isLoadingOptions) {
+                pushSection({title: translate('search.serverResults'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
+            } else {
+                pushSection({title: undefined, data: [], sectionIndex: sectionIndex++, customHeader: skeletonHeader});
+            }
         } else {
-            // Active search: split rows into local (frozen order) and server sections.
+            // Active search without a server order yet: split rows into local (frozen order) and server sections.
             const localRows: AutocompleteListItem[] = [];
             const serverRows: AutocompleteListItem[] = [];
             for (const item of nextStyledRecentReports) {
@@ -632,6 +659,7 @@ function SearchAutocompleteList({
         recentSearchesData,
         searchOptions,
         searchQueryItems,
+        searchResultReportIDs,
         styles,
         translate,
         isLoadingOptions,
