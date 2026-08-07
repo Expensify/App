@@ -127,7 +127,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
     // Each tab reuses its section's existing title so the tab label and the card heading can never drift apart.
     // A tab this member can't open is disabled rather than hidden, so they stay aware the feature exists and can ask an
     // admin to change their role instead of the tab bar silently differing between roles.
-    const tabs: TabSelectorBaseItem[] = [
+    const tabs: Array<TabSelectorBaseItem<WorkflowsTab>> = [
         {
             key: WORKFLOWS_TAB.SUBMISSIONS,
             title: translate('workflowsPage.submissionFrequency'),
@@ -156,7 +156,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
 
     // A persisted or deep-linked tab can point at one this member can't open, so fall back to the first they can.
     const selectableTabs = tabs.filter((tab) => !tab.isDisabled);
-    const activeTab: WorkflowsTab = selectableTabs.some((tab) => tab.key === requestedTab) ? requestedTab : ((selectableTabs.at(0)?.key ?? WORKFLOWS_TAB.APPROVALS) as WorkflowsTab);
+    const activeTab: WorkflowsTab = selectableTabs.some((tab) => tab.key === requestedTab) ? requestedTab : (selectableTabs.at(0)?.key ?? WORKFLOWS_TAB.APPROVALS);
 
     const handleTabPress = (key: string) => {
         if (!isWorkflowsTab(key)) {
