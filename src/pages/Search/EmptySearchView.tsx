@@ -217,9 +217,7 @@ function EmptySearchViewContent({
         content = {
             ...defaultViewItemHeader.folder,
             title: translate('search.searchResults.emptyStatementsResults.title'),
-            subtitle: translate('search.searchResults.emptyViolationSnapshotResults.subtitle', {
-                formattedDate: DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone),
-            }),
+            subtitle: translate('search.searchResults.emptyViolationSnapshotResults.subtitle', DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone)),
         };
     }
 
