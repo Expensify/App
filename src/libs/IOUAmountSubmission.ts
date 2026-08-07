@@ -87,7 +87,6 @@ type SubmitAmountArgs = {
     transactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     storedTransaction: OnyxEntry<OnyxTypes.Transaction>;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     duplicateTransactions: OnyxCollection<OnyxTypes.Transaction>;
@@ -403,6 +402,8 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 existingTransaction: storedTransaction,
                 draftTransactionIDs: draftTransactionIDsList,
                 isSelfTourViewed,
+                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+                conciergeChat: undefined,
                 personalDetails: allPersonalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,
@@ -579,7 +580,6 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         splitDraftTransaction,
         transaction,
         report,
-        parentReportNextStep,
         duplicateTransactions,
         duplicateTransactionViolations,
         policyCategories,
@@ -629,7 +629,6 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         transactionThreadReport: report,
         parentReport,
         iouReportOwnerLogin: getLoginByAccountID(parentReport?.ownerAccountID, allPersonalDetails),
-        parentReportNextStep,
         transactions: duplicateTransactions,
         transactionViolations: duplicateTransactionViolations,
         currency: selectedCurrency,
