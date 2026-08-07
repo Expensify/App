@@ -303,6 +303,30 @@ Onyx.connect({
 });
 
 /**
+ * Single-account form of getPersonalDetailsForAccountIDs, without the array/map allocations that version needs.
+ * Prefer this when looking up exactly one account: the option list builds one contact per personal detail, so
+ * the two throwaway objects the plural version allocates per call add up to one pair per contact on the account.
+ *
+ * @returns the (normalized, in place) PersonalDetails, or undefined when the accountID is falsy or there is no
+ * personal details list to read from.
+ */
+function getPersonalDetailForAccountID(accountID: number, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): PersonalDetails | undefined {
+    const cleanAccountID = Number(accountID);
+    if (!personalDetails || !cleanAccountID) {
+        return undefined;
+    }
+
+    const personalDetail: PersonalDetails = personalDetails[accountID] ?? ({} as PersonalDetails);
+
+    if (cleanAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
+    }
+
+    personalDetail.accountID = cleanAccountID;
+    return personalDetail;
+}
+
+/**
  * Returns the personal details for an array of accountIDs
  * @returns keys of the object are emails, values are PersonalDetails objects.
  */
@@ -313,21 +337,11 @@ function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, perso
     }
     if (accountIDs) {
         for (const accountID of accountIDs) {
-            const cleanAccountID = Number(accountID);
-            if (!cleanAccountID) {
+            const personalDetail = getPersonalDetailForAccountID(accountID, personalDetails);
+            if (!personalDetail) {
                 continue;
             }
-            let personalDetail: OnyxEntry<PersonalDetails> = personalDetails[accountID] ?? undefined;
-            if (!personalDetail) {
-                personalDetail = {} as PersonalDetails;
-            }
-
-            if (cleanAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
-                personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
-            }
-
-            personalDetail.accountID = cleanAccountID;
-            personalDetailsForAccountIDs[cleanAccountID] = personalDetail;
+            personalDetailsForAccountIDs[personalDetail.accountID] = personalDetail;
         }
     }
     return personalDetailsForAccountIDs;
@@ -1644,6 +1658,7 @@ const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArc
  *    those reports are processed in step 4, avoiding work on thousands of reports while ensuring correct filtering.
  * 3. Search mode (`options.isSearching` true): uses the full pre-filtered report list with no recency sort and
  *    no `maxRecentReports` cap, so search can include all eligible reports.
+ * 4. Process the selected reports into options (`processReport` / `createOption`).
  * 5. Personal details are built as filter/rank shells (no icons / last-message / policy work). getValidOptions
  *    hydrates survivors via hydrateLazyPersonalDetailOption. Reports stay eager — their filters read fully-built fields.
  *
@@ -1773,8 +1788,9 @@ function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Repo
     return Object.values(personalDetails ?? {}).map((personalDetail) => {
         const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const report = reportMapForAccountIDs[accountID];
-        // Same lookup createOption performs (also normalizes accountID in place).
-        const detail = getPersonalDetailsForAccountIDs([accountID], personalDetails)[accountID];
+        // Same lookup createOption performs (also normalizes accountID in place), minus the array/map
+        // allocations the plural helper would make per contact.
+        const detail = getPersonalDetailForAccountID(accountID, personalDetails);
         // Same text createOption computes, using the same translate buildFullOption hands it.
         const text = getPersonalDetailOptionText({accountID, hasReport: !!report, personalDetails, login: detail?.login, translate});
 
@@ -1830,6 +1846,10 @@ function hydrateLazyPersonalDetailOption(option: PersonalDetailOptionOrShell): H
  * marks it wrote before the display fields existed. Screens that defer must call this instead of
  * hydrateLazyPersonalDetailOption: the memoized build is shared by every caller, so it cannot carry one screen's
  * selection state, and dropping the marks would render every row unselected and unbolded.
+ *
+ * `selected` (the legacy duplicate of isSelected) is deliberately not re-applied: getValidOptions never writes
+ * it, so the shell's value and the build's are both the `false` createOption assigns, and copying it would only
+ * hide a future divergence from the eager path — which does not carry it across either.
  */
 function hydrateWithMarks(option: PersonalDetailOptionOrShell): HydratedPersonalDetailOption {
     if (option.isHydrated) {
@@ -1838,7 +1858,6 @@ function hydrateWithMarks(option: PersonalDetailOptionOrShell): HydratedPersonal
 
     const hydrated = hydrateLazyPersonalDetailOption(option);
     hydrated.isSelected = option.isSelected;
-    hydrated.selected = option.selected;
     hydrated.isBold = option.isBold;
     // Same suppression the eager path applies right after building the option, using the decision getValidOptions
     // recorded on the shell (a shell has no brickRoadIndicator of its own until createOption derives one here).
@@ -1880,8 +1899,11 @@ function createFilteredOptionList(
 
     // The locale the contact options are built against, and the one the cache entry is keyed on below.
     const activeLocale = locale ?? IntlStore.getCurrentLocale();
-    // Binding translate to that locale keeps the two consistent. translateLocal would read the imperative
-    // global instead, which can disagree with an explicit `locale` while the cache key claims the explicit one.
+    // Binding translate to that locale keeps the contact options consistent with the cache key. translateLocal
+    // would read the imperative global instead, which can disagree with an explicit `locale` while the cache key
+    // claims the explicit one.
+    // NOTE: this covers contacts only. Report options (step 4) go through processReport, which takes no
+    // `translate` and so still resolves strings against the imperative global.
     const translateInActiveLocale: LocalizedTranslate = (path, ...parameters) => translateWithLocale(activeLocale, path, ...parameters);
 
     // Contacts are expensive to build on large accounts (one option per personal detail). When a screen
@@ -3041,8 +3063,10 @@ function getValidOptions(
 
     // Get valid personal details and check if we can find the current user:
     let personalDetailsOptions: PersonalDetailOptionOrShell[] = [];
+    // Holds an element of `personalDetailsOptions`, so with `deferContactHydration` it can be a shell. Typed as
+    // the union so it leaves getValidOptions as one too and the render site has to hydrate it (see `Options`).
     const currentUserRef = {
-        current: undefined as SearchOptionData | undefined,
+        current: undefined as PersonalDetailOptionOrShell | undefined,
     };
 
     if (includeP2P) {
@@ -3103,11 +3127,7 @@ function getValidOptions(
             }
         }
 
-        for (let i = 0; i < personalDetailsOptions.length; i++) {
-            const personalDetail = personalDetailsOptions.at(i);
-            if (!personalDetail) {
-                continue;
-            }
+        for (const personalDetail of personalDetailsOptions) {
             if (!!currentUserEmail && personalDetail?.login === currentUserEmail) {
                 currentUserRef.current = personalDetail;
             }
@@ -3549,8 +3569,8 @@ function filterPersonalDetails<T extends SearchOptionData>(personalDetails: T[],
     );
 }
 
-function filterCurrentUserOption(currentUserOption: SearchOptionData | null | undefined, searchTerms: string[]): SearchOptionData | null | undefined {
-    return searchTerms.reduceRight((item, term) => {
+function filterCurrentUserOption<T extends SearchOptionData>(currentUserOption: T | null | undefined, searchTerms: string[]): T | null | undefined {
+    return searchTerms.reduceRight<T | null | undefined>((item, term) => {
         if (!item) {
             return null;
         }

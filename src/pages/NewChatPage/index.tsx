@@ -141,7 +141,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             betas: betas ?? [],
             includeSelfDM: true,
             shouldAlwaysIncludeDM: true,
-            // Search mode bypasses contact pagination (skipPagination below), so without this every contact on
+            // Search mode bypasses contact pagination (the usePaginatedData above), so without this every contact on
             // the account survives into the hydration step and pays a full createOption. filterAndOrderOptions
             // re-filters contacts over the same fields right after, and this filter's haystack is the
             // concatenation of those fields, so it keeps a superset — the visible contacts are unchanged and the
@@ -228,8 +228,12 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     // optional), so without it, dropping the hydrate would render avatar-less rows instead of failing to compile.
     const hydratedPersonalDetails: HydratedPersonalDetailOption[] = paginatedFilteredPersonalDetails.map(hydrateWithMarks);
 
+    // Picked out of the same contact array, so it is a shell too whenever getValidOptions produced one.
+    const hydratedCurrentUserOption: HydratedPersonalDetailOption | null | undefined = options.currentUserOption ? hydrateWithMarks(options.currentUserOption) : options.currentUserOption;
+
     return {
         ...options,
+        currentUserOption: hydratedCurrentUserOption,
         personalDetails: hydratedPersonalDetails,
         searchTerm,
         debouncedSearchTerm,

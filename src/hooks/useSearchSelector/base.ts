@@ -216,7 +216,7 @@ function useSearchSelectorBase({
     // turn P2P off downstream. Building contacts the option-building step then discards is pure waste, so the
     // value the option list is built with has to be the value getValidOptions will see.
     const isGetValidOptionsConfigApplied = searchContext === CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL || searchContext === CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES;
-    const includeP2P = isGetValidOptionsConfigApplied ? (getValidOptionsConfig.includeP2P ?? true) : true;
+    const includeP2P = !isGetValidOptionsConfigApplied || (getValidOptionsConfig.includeP2P ?? true);
 
     const {
         options: filteredOptions,
