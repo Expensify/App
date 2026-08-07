@@ -297,6 +297,14 @@ describe('actions/Transaction', () => {
 
             const policyTagList = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${mockPolicy.id}`)) ?? {};
 
+            let reports: OnyxCollection<Report>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                callback: (value) => {
+                    reports = value;
+                },
+            });
+
             changeTransactionsReport({
                 transactionIDs: [transaction?.transactionID],
                 isASAPSubmitBetaEnabled: false,
@@ -306,8 +314,8 @@ describe('actions/Transaction', () => {
                 policy: mockPolicy,
                 allTransactions,
                 policyTagList,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 selfDMReportActions,
                 isTrackIntentUser: false,
             });
@@ -427,8 +435,8 @@ describe('actions/Transaction', () => {
                 allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
                 policyTagList: undefined,
                 transactionViolations: {},
-                allReports: undefined,
                 personalPolicyOutputCurrency: 'EUR',
+                reports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -504,6 +512,14 @@ describe('actions/Transaction', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
                 await waitForBatchedUpdates();
 
+                let reports: OnyxCollection<Report>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    callback: (value) => {
+                        reports = value;
+                    },
+                });
+
                 changeTransactionsReport({
                     transactionIDs: [TRANSACTION_ID],
                     isASAPSubmitBetaEnabled: false,
@@ -514,7 +530,7 @@ describe('actions/Transaction', () => {
                     allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`]: transaction},
                     policyTagList: undefined,
                     transactionViolations: {},
-                    allReports: undefined,
+                    reports,
                     isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
