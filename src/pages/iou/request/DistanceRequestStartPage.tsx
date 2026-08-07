@@ -60,12 +60,12 @@ function DistanceRequestStartPage({
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const defaultParticipants = useDefaultParticipants({sourceReport: report, transaction, iouType});
+    const {participants} = useDefaultParticipants({sourceReport: report, transaction, iouType});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
     const activeGroupPolicies = getActivePolicies(policies ?? null, currentUserPersonalDetails.login).filter(isGroupPolicy);
     const onlyActivePolicy = activeGroupPolicies.length === 1 ? activeGroupPolicies.at(0) : undefined;
-    const targetParticipant = defaultParticipants.find((participant) => participant.isPolicyExpenseChat);
+    const targetParticipant = participants.find((participant) => participant.isPolicyExpenseChat);
     const isOnlyWorkspaceTheTarget = onlyActivePolicy?.id === targetParticipant?.policyID;
     let targetPolicy = isOnlyWorkspaceTheTarget ? onlyActivePolicy : undefined;
     if (isPolicyExpenseChat(report)) {
