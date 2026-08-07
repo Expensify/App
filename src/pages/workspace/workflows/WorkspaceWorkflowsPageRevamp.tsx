@@ -93,8 +93,19 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const shouldShowSubmissions = canWriteWorkflows || !canWriteApprovals;
-    const shouldShowPayments = canMemberRead(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+    const canAccessSubmissions = canWriteWorkflows || !canWriteApprovals;
+    const canReadPayments = canMemberRead(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+
+    // The read-only modal says the role can view but not edit, which isn't true here — a disabled tab can't be opened at
+    // all — so these tabs get their own "no access" explanation.
+    const showNoAccessModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('workspace.common.readOnlyActionTitle'),
+            prompt: translate('workspace.common.noAccessActionPrompt'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    }, [showConfirmModal, translate]);
 
     const [lastSelectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.WORKFLOWS_TAB_TYPE}`);
     const lastSelectedTabStr = lastSelectedTab as string | undefined;
@@ -114,30 +125,28 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
     }, [routeTab]);
 
     // Each tab reuses its section's existing title so the tab label and the card heading can never drift apart.
-    const visibleTabs: TabSelectorBaseItem[] = [
-        ...(shouldShowSubmissions
-            ? [
-                  {
-                      key: WORKFLOWS_TAB.SUBMISSIONS,
-                      title: translate('workflowsPage.submissionFrequency'),
-                      icon: expensifyIcons.Send,
-                  },
-              ]
-            : []),
+    // A tab this member can't open is disabled rather than hidden, so they stay aware the feature exists and can ask an
+    // admin to change their role instead of the tab bar silently differing between roles.
+    const tabs: TabSelectorBaseItem[] = [
+        {
+            key: WORKFLOWS_TAB.SUBMISSIONS,
+            title: translate('workflowsPage.submissionFrequency'),
+            icon: expensifyIcons.Send,
+            isDisabled: !canAccessSubmissions,
+            disabledAction: showNoAccessModal,
+        },
         {
             key: WORKFLOWS_TAB.APPROVALS,
             title: translate('workflowsPage.addApprovalsTitle'),
             icon: expensifyIcons.ThumbsUp,
         },
-        ...(shouldShowPayments
-            ? [
-                  {
-                      key: WORKFLOWS_TAB.PAYMENTS,
-                      title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
-                      icon: expensifyIcons.MoneyBag,
-                  },
-              ]
-            : []),
+        {
+            key: WORKFLOWS_TAB.PAYMENTS,
+            title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
+            icon: expensifyIcons.MoneyBag,
+            isDisabled: !canReadPayments,
+            disabledAction: showNoAccessModal,
+        },
         {
             key: WORKFLOWS_TAB.ADVANCED,
             title: translate('workspace.rules.expenseReportRules.title'),
@@ -145,8 +154,9 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
         },
     ];
 
-    // Submissions and Payments can be hidden for members without the matching access, so never leave a hidden tab active.
-    const activeTab: WorkflowsTab = visibleTabs.some((tab) => tab.key === requestedTab) ? requestedTab : ((visibleTabs.at(0)?.key ?? WORKFLOWS_TAB.APPROVALS) as WorkflowsTab);
+    // A persisted or deep-linked tab can point at one this member can't open, so fall back to the first they can.
+    const selectableTabs = tabs.filter((tab) => !tab.isDisabled);
+    const activeTab: WorkflowsTab = selectableTabs.some((tab) => tab.key === requestedTab) ? requestedTab : ((selectableTabs.at(0)?.key ?? WORKFLOWS_TAB.APPROVALS) as WorkflowsTab);
 
     const handleTabPress = (key: string) => {
         if (!isWorkflowsTab(key)) {
@@ -241,7 +251,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
                 <View style={[styles.flexRow, styles.mb1, styles.w100]}>
                     <TabSelectorContextProvider activeTabKey={activeTab}>
                         <TabSelectorBase
-                            tabs={visibleTabs}
+                            tabs={tabs}
                             activeTabKey={activeTab}
                             onTabPress={handleTabPress}
                         />
