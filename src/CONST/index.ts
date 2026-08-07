@@ -1015,6 +1015,7 @@ const CONST = {
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         NETSUITE_OAUTH: 'netSuiteOAuth',
+        TRAVEL_CODING_SYNC: 'travelCodingSync',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
