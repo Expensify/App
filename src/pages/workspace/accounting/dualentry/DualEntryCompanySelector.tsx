@@ -32,9 +32,9 @@ type CompanyListItem = ListItem & {
 function DualEntryCompanySelector({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const companyList = policy?.connections?.dualentry?.data?.companies;
-    const dualentryConfig = policy?.connections?.dualentry?.config;
-    const currentCompanyID = dualentryConfig?.companyID ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const companyList = policy?.connections?.dualEntry?.data?.companies;
+    const dualEntryConfig = policy?.connections?.dualEntry?.config;
+    const currentSubsidiaryID = dualEntryConfig?.subsidiaryID ?? CONST.DEFAULT_NUMBER_ID.toString();
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
 
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -43,18 +43,18 @@ function DualEntryCompanySelector({policy}: WithPolicyConnectionsProps) {
         ? companyList.map((companyItem) => ({
               text: companyItem.name,
               keyForList: companyItem.id,
-              isSelected: companyItem.id === currentCompanyID,
+              isSelected: companyItem.id === currentSubsidiaryID,
               value: companyItem.id,
           }))
         : [];
     const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
-    const updateCompany = ({keyForList, value}: SelectorType) => {
-        if (!keyForList || keyForList === currentCompanyID) {
+    const updateSubsidiary = ({keyForList, value}: SelectorType) => {
+        if (!keyForList || keyForList === currentSubsidiaryID) {
             return;
         }
 
-        updateDualEntrySubsidiary(policyID, value, currentCompanyID);
+        updateDualEntrySubsidiary(policyID, value, currentSubsidiaryID);
         Navigation.goBack();
     };
 
@@ -63,15 +63,15 @@ function DualEntryCompanySelector({policy}: WithPolicyConnectionsProps) {
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.dualentry.noCompaniesFound')}
-            subtitle={translate('workspace.dualentry.noCompaniesFoundDescription')}
+            title={translate('workspace.dualEntry.noCompaniesFound')}
+            subtitle={translate('workspace.dualEntry.noCompaniesFoundDescription')}
             containerStyle={styles.pb10}
         />
     );
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
-            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.dualentry.companySelectDescription')}</Text>
+            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.dualEntry.subsidiarySelectDescription')}</Text>
         </View>
     );
 
@@ -84,16 +84,16 @@ function DualEntryCompanySelector({policy}: WithPolicyConnectionsProps) {
             data={filteredData}
             textInputOptions={textInputOptions}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.DUALENTRY}
-            onSelectRow={updateCompany}
-            initiallyFocusedOptionKey={dualentryConfig?.companyID}
+            onSelectRow={updateSubsidiary}
+            initiallyFocusedOptionKey={dualEntryConfig?.subsidiaryID}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack()}
-            title="workspace.dualentry.company"
+            title="workspace.dualEntry.subsidiary"
             listEmptyContent={listEmptyContent}
-            pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.COMPANY_ID], dualentryConfig?.pendingFields)}
-            errors={getLatestErrorField(dualentryConfig ?? {}, CONST.DUALENTRY_CONFIG.COMPANY_ID)}
+            pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.SUBSIDIARY_ID], dualEntryConfig?.pendingFields)}
+            errors={getLatestErrorField(dualEntryConfig ?? {}, CONST.DUALENTRY_CONFIG.SUBSIDIARY_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.COMPANY_ID)}
+            onClose={() => clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.SUBSIDIARY_ID)}
         />
     );
 }

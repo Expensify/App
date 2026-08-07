@@ -218,7 +218,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         (action) => action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
-    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`);
 
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
@@ -294,14 +293,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
-        addSplitExpenseField(transaction, draftTransaction, transactionReport, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency);
+        addSplitExpenseField(transaction, draftTransaction, transactionReport, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol);
     };
 
     const onMakeSplitsEven = () => {
         if (!draftTransaction) {
             return;
         }
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol);
     };
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
@@ -394,7 +393,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             transactionViolations,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             quickAction,
-            iouReportNextStep,
             betas,
             personalDetails,
             transactionReport: draftTransactionReport,
@@ -408,10 +406,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const onSplitExpenseValueChange = (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
         if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
             const amountInCents = convertToBackendAmount(value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, allPolicies);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol, allPolicies);
         } else {
             const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, allPolicies);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol, allPolicies);
         }
     };
 

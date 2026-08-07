@@ -44,6 +44,7 @@ import type {PressableRef} from './Pressable/GenericPressable/types';
 
 import ActivityIndicator from './ActivityIndicator';
 import Avatar from './Avatar';
+import WorkspaceAvatar from './Avatar/WorkspaceAvatar';
 import Badge from './Badge';
 import {useIsCompactMenu} from './CompactMenuContext';
 import CopyTextToClipboard from './CopyTextToClipboard';
@@ -948,7 +949,7 @@ function MenuItem({
                                                             accountIDs={iconAccountID ? [iconAccountID] : undefined}
                                                         />
                                                     )}
-                                                    {!icon && shouldPutLeftPaddingWhenNoIcon && (
+                                                    {!icon && iconType !== CONST.ICON_TYPE_WORKSPACE && shouldPutLeftPaddingWhenNoIcon && (
                                                         <View
                                                             style={[
                                                                 styles.popoverMenuIcon,
@@ -958,7 +959,7 @@ function MenuItem({
                                                             ]}
                                                         />
                                                     )}
-                                                    {!!icon && !Array.isArray(icon) && (
+                                                    {(!!icon || iconType === CONST.ICON_TYPE_WORKSPACE) && !Array.isArray(icon) && (
                                                         <View
                                                             style={[
                                                                 styles.popoverMenuIcon,
@@ -998,15 +999,12 @@ function MenuItem({
                                                                         reasonAttributes={menuItemLoadingReasonAttributes}
                                                                     />
                                                                 ))}
-                                                            {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
-                                                                <Avatar
-                                                                    imageStyles={[styles.alignSelfCenter]}
-                                                                    size={CONST.AVATAR_SIZE.DEFAULT}
+                                                            {iconType === CONST.ICON_TYPE_WORKSPACE && (
+                                                                <WorkspaceAvatar
+                                                                    imageStyles={styles.alignSelfCenter}
                                                                     source={icon}
-                                                                    fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
-                                                                    name={title}
-                                                                    avatarID={avatarID}
-                                                                    type={CONST.ICON_TYPE_WORKSPACE}
+                                                                    name={title ?? ''}
+                                                                    avatarID={avatarID ?? CONST.DEFAULT_NUMBER_ID}
                                                                 />
                                                             )}
                                                             {iconType === CONST.ICON_TYPE_AVATAR && (
@@ -1163,7 +1161,6 @@ function MenuItem({
                                                                 }
                                                             }
                                                             accountIDs={!!rightIconAccountID && Number(rightIconAccountID) > 0 ? [Number(rightIconAccountID)] : undefined}
-                                                            useMidSubscriptSizeForMultipleAvatars
                                                         />
                                                     </View>
                                                 )}

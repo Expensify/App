@@ -61,7 +61,7 @@ function prepareDualEntryOnyxData<TSettingName extends keyof DualEntryConnection
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             [settingName]: settingValue ?? null,
                             pendingFields: {
@@ -83,7 +83,7 @@ function prepareDualEntryOnyxData<TSettingName extends keyof DualEntryConnection
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             pendingFields: {
                                 [settingName]: null,
@@ -101,7 +101,7 @@ function prepareDualEntryOnyxData<TSettingName extends keyof DualEntryConnection
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             [settingName]: oldSettingValue ?? null,
                             pendingFields: {
@@ -132,7 +132,7 @@ function prepareDualEntryCodingOnyxData<TSettingName extends keyof DualEntryCodi
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             coding: {
                                 [settingName]: settingValue ?? null,
@@ -156,7 +156,7 @@ function prepareDualEntryCodingOnyxData<TSettingName extends keyof DualEntryCodi
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             pendingFields: {
                                 [settingName]: null,
@@ -174,7 +174,7 @@ function prepareDualEntryCodingOnyxData<TSettingName extends keyof DualEntryCodi
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             coding: {
                                 [settingName]: oldSettingValue ?? null,
@@ -209,7 +209,7 @@ function prepareDualEntryFieldMappingOnyxData(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             coding: {
                                 fieldMappings: {
@@ -235,7 +235,7 @@ function prepareDualEntryFieldMappingOnyxData(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             pendingFields: {
                                 [fieldOfflineFeedbackKey]: null,
@@ -253,7 +253,7 @@ function prepareDualEntryFieldMappingOnyxData(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             coding: {
                                 fieldMappings: {
@@ -276,8 +276,8 @@ function prepareDualEntryFieldMappingOnyxData(
     return {optimisticData, successData, failureData};
 }
 
-function updateDualEntrySubsidiary(policyID: string, subsidiaryID: DualEntryConnectionsConfig['companyID'], oldSubsidiaryID?: DualEntryConnectionsConfig['companyID']) {
-    const onyxData = prepareDualEntryOnyxData(policyID, CONST.DUALENTRY_CONFIG.COMPANY_ID, subsidiaryID, oldSubsidiaryID ?? null);
+function updateDualEntrySubsidiary(policyID: string, subsidiaryID: DualEntryConnectionsConfig['subsidiaryID'], oldSubsidiaryID?: DualEntryConnectionsConfig['subsidiaryID']) {
+    const onyxData = prepareDualEntryOnyxData(policyID, CONST.DUALENTRY_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
     const params: UpdateDualEntrySubsidiaryParams = {
         policyID,
         subsidiaryID,

@@ -13,7 +13,7 @@ import TextLink from '@components/TextLink';
 import {isAuthenticationError} from '@libs/actions/connections';
 import {getCardsCustomExportPendingAction, areCardsCustomExportInErrorFields} from '@libs/CardFeedUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {canUseTaxNetSuite} from '@libs/PolicyUtils';
+import {canUseTaxNetSuite, getCurrentConnectionName} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -53,12 +53,34 @@ import {
 } from './netsuite/utils';
 import getQuickbooksDesktopSetupEntryRoute from './qbd/utils';
 
+const INTUIT_ENTERPRISE_SUITE_SCOPE = 'app-foundations.custom-dimensions.read';
+
+function isIntuitEnterpriseSuiteConnection(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.quickbooksOnline?.config?.credentials?.scope?.includes(INTUIT_ENTERPRISE_SUITE_SCOPE);
+}
+
+function getQuickbooksOnlineIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
+    return translate(isIntuitEnterpriseSuiteConnection(policy) ? 'workspace.accounting.intuitEnterpriseSuite' : 'workspace.accounting.qbo');
+}
+
+function getAccountingIntegrationDisplayName(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, translate: LocaleContextProps['translate']): string {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
+        return getQuickbooksOnlineIntegrationName(policy, translate);
+    }
+    return CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+}
+
+function getCurrentAccountingIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string | undefined {
+    const currentConnectionName = getCurrentConnectionName(policy);
+    return currentConnectionName === CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline ? getQuickbooksOnlineIntegrationName(policy, translate) : currentConnectionName;
+}
+
 // eslint-disable-next-line @typescript-eslint/max-params
 function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
-    existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean; rillet: boolean; dualentry: boolean},
+    existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean; rillet: boolean; dualEntry: boolean},
     policy?: Policy,
     key?: number,
     integrationToDisconnect?: ConnectionName,
@@ -67,9 +89,12 @@ function getAccountingIntegrationData(
     expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare', IconAsset>,
     cardFeeds?: CombinedCardFeeds,
     cardList?: Record<string, WorkspaceCardsList | undefined>,
+    isIntuitEnterpriseSuiteOverride?: boolean,
 ): AccountingIntegration | undefined {
     const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    // An explicit QBO or IES selection must take precedence over the existing connection identity.
+    const shouldUseIntuitEnterpriseSuite = isIntuitEnterpriseSuiteOverride ?? isIntuitEnterpriseSuiteConnection(policy);
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
     const getBackToAfterWorkspaceUpgradeRouteForIntacct = () => {
@@ -112,7 +137,7 @@ function getAccountingIntegrationData(
         if (integrationToDisconnect) {
             return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
-        if (existingConnections.dualentry) {
+        if (existingConnections.dualEntry) {
             return ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXISTING_CONNECTIONS.getRoute(policyID);
         }
         return ROUTES.POLICY_ACCOUNTING_DUALENTRY_SETUP.getRoute(policyID);
@@ -121,11 +146,12 @@ function getAccountingIntegrationData(
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return {
-                title: translate('workspace.accounting.qbo'),
+                title: translate(shouldUseIntuitEnterpriseSuite ? 'workspace.accounting.intuitEnterpriseSuite' : 'workspace.accounting.qbo'),
                 icon: expensifyIcons?.QBOSquare,
                 setupConnectionFlow: (
                     <ConnectToQuickbooksOnlineFlow
                         policyID={policyID}
+                        isIntuitEnterpriseSuite={shouldUseIntuitEnterpriseSuite}
                         key={key}
                     />
                 ),
@@ -168,6 +194,20 @@ function getAccountingIntegrationData(
                 ],
                 pendingFields: {...qboConfig?.pendingFields, ...policy?.connections?.quickbooksOnline?.config?.pendingFields},
                 errorFields: {...qboConfig?.errorFields, ...policy?.connections?.quickbooksOnline?.config?.errorFields},
+                ...(shouldUseIntuitEnterpriseSuite
+                    ? {
+                          workspaceUpgradeNavigationDetails: {
+                              integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias,
+                              backToAfterWorkspaceUpgradeRoute: ROUTES.POLICY_ACCOUNTING.getRoute(
+                                  policyID,
+                                  connectionName,
+                                  integrationToDisconnect,
+                                  shouldDisconnectIntegrationBeforeConnecting,
+                                  true,
+                              ),
+                          },
+                      }
+                    : {}),
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
@@ -473,7 +513,7 @@ function getAccountingIntegrationData(
         }
         case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY: {
             return {
-                title: translate('workspace.accounting.dualentry'),
+                title: translate('workspace.accounting.dualEntry'),
                 icon: expensifyIcons?.DualEntrySquare,
                 setupConnectionFlow: (
                     <ConnectToDualEntryFlow
@@ -485,7 +525,7 @@ function getAccountingIntegrationData(
                 subscribedImportSettings: [
                     CONST.DUALENTRY_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.DUALENTRY_CONFIG.SYNC_TAX_RATES,
-                    ...(policy?.connections?.dualentry?.data?.classifications?.map((classification) => `${CONST.DUALENTRY_CONFIG.FIELD_MAPPING_PREFIX}${classification.id}`) ?? []),
+                    ...(policy?.connections?.dualEntry?.data?.classifications?.map((classification) => `${CONST.DUALENTRY_CONFIG.FIELD_MAPPING_PREFIX}${classification.id}`) ?? []),
                 ],
                 onExportPagePress: () => null,
                 subscribedExportSettings: [
@@ -495,7 +535,6 @@ function getAccountingIntegrationData(
                     CONST.DUALENTRY_CONFIG.NON_REIMBURSABLE,
                     CONST.DUALENTRY_CONFIG.DEFAULT_VENDORID,
                     CONST.DUALENTRY_CONFIG.CREDIT_CARD_ACCOUNT_ID,
-                    CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID,
                     CONST.DUALENTRY_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
                     ...Object.values(cardFeeds ?? {}).map((program) => `${CONST.DUALENTRY_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`),
                 ],
@@ -521,11 +560,11 @@ function getAccountingIntegrationData(
                     CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
                 ],
                 workspaceUpgradeNavigationDetails: {
-                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.dualentry.alias,
+                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.dualEntry.alias,
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForDualEntry(),
                 },
-                pendingFields: policy?.connections?.dualentry?.config?.pendingFields,
-                errorFields: policy?.connections?.dualentry?.config?.errorFields,
+                pendingFields: policy?.connections?.dualEntry?.config?.pendingFields,
+                errorFields: policy?.connections?.dualEntry?.config?.errorFields,
             };
         }
         default:
@@ -540,10 +579,11 @@ function getSynchronizationErrorMessage(
     translate: LocaleContextProps['translate'],
     styles?: ThemeStyles,
 ): React.ReactNode | undefined {
+    const connectionDisplayName = getAccountingIntegrationDisplayName(policy, connectionName, translate);
     if (isAuthenticationError(policy, connectionName)) {
         return (
             <Text style={[styles?.formError]}>
-                <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName])} </Text>
+                <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', connectionDisplayName)} </Text>
                 {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
                     <>
                         <TextLink
@@ -559,7 +599,7 @@ function getSynchronizationErrorMessage(
         );
     }
 
-    const syncError = translate('workspace.accounting.syncError', {connectionName});
+    const syncError = translate('workspace.accounting.syncError', connectionDisplayName);
 
     const connection = policy?.connections?.[connectionName];
     if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {
@@ -596,4 +636,12 @@ function getQBDReimbursableAccounts(
     return accounts;
 }
 
-export {getAccountingIntegrationData, getSynchronizationErrorMessage, getQBDReimbursableAccounts};
+export {
+    getAccountingIntegrationData,
+    getCurrentAccountingIntegrationName,
+    getSynchronizationErrorMessage,
+    getAccountingIntegrationDisplayName,
+    getQBDReimbursableAccounts,
+    getQuickbooksOnlineIntegrationName,
+    isIntuitEnterpriseSuiteConnection,
+};

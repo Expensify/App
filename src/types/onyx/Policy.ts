@@ -1473,7 +1473,7 @@ type FinancialForceConnectionData = {
 
 /** Certinia credentials (Salesforce / Certinia org); fields populate as OAuth / sync complete */
 type FinancialForceCredentials = {
-    /** Certinia company ID */
+    /** Salesforce organization ID */
     companyID?: string;
 
     /** Salesforce enterprise / instance URL */
@@ -1563,6 +1563,9 @@ type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the connection has been fully set up */
         isConfigured?: boolean;
+
+        /** FFA Accounting Company ID */
+        company?: string;
 
         /** Certinia import / coding settings */
         coding: FinancialForceCodingConfig;
@@ -2150,9 +2153,6 @@ type DualEntryExport = {
      */
     cardProgramAccounts: Record<CardFeedWithNumber, string>;
 
-    /** Account used when exporting Expensify Card expenses. */
-    expensifyCardAccountID: string;
-
     /** Default vendor used when exporting transactions. */
     defaultVendorID: string;
 
@@ -2211,7 +2211,7 @@ type DualEntrySync = {
 type DualEntryConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The internalID of the selected company in DualEntry */
-        companyID: string;
+        subsidiaryID: string;
 
         /** Whether the connection has been configured */
         isConfigured: boolean;
@@ -2847,6 +2847,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the auto reporting is enabled */
         autoReporting?: boolean;
 
+        /** Whether the company (true) or the employee (false) absorbs FX conversion costs on cross-border global reimbursements */
+        globalReimbursementFXPreferCompany?: boolean;
+
         /**
          * The scheduled submit frequency set up on this policy.
          * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
@@ -3148,6 +3151,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether Attendee Tracking is enabled */
         isAttendeeTrackingEnabled?: boolean;
+
+        /** Whether receipts are publicly viewable via URL without report access */
+        isReceiptVisibilityPublic?: boolean;
 
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;

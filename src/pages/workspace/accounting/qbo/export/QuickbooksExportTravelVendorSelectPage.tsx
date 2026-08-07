@@ -1,5 +1,7 @@
 import type {SelectorType} from '@components/SelectionScreen';
 
+import useLocalize from '@hooks/useLocalize';
+
 import {clearQBOErrorField} from '@libs/actions/Policy/Policy';
 import {updateConnectionConfig} from '@libs/actions/PolicyConnections';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -8,6 +10,7 @@ import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 
 import TravelInvoicingVendorSelectPage from '@pages/workspace/accounting/common/TravelInvoicingVendorSelectPage';
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -17,6 +20,8 @@ import ROUTES from '@src/ROUTES';
 import React from 'react';
 
 function QuickbooksExportTravelVendorSelectPage({policy}: WithPolicyConnectionsProps) {
+    const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
@@ -45,6 +50,7 @@ function QuickbooksExportTravelVendorSelectPage({policy}: WithPolicyConnectionsP
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             emptyStateTitle="workspace.qbo.noAccountsFound"
             emptyStateSubtitle="workspace.qbo.noAccountsFoundDescription"
+            emptyStateSubtitleAlreadyTranslated={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
             onSelect={selectVendor}
             onBack={() => Navigation.goBack(backPath)}
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR], qboConfig?.pendingFields)}

@@ -34,7 +34,7 @@ function DualEntrySetupPage({route}: DualEntrySetupPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const policyID: string = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const config = policy?.connections?.dualentry?.config;
+    const config = policy?.connections?.dualEntry?.config;
     const shouldBeBlocked = !!config?.isConfigured && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.DUALENTRY);
 
     const confirmCredentials = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DUALENTRY_CREDENTIALS_FORM>) => {
@@ -58,7 +58,7 @@ function DualEntrySetupPage({route}: DualEntrySetupPageProps) {
     return (
         <ConnectionLayout
             displayName="DualEntrySetupPage"
-            headerTitle="workspace.dualentry.dualentrySetup"
+            headerTitle="workspace.dualEntry.dualEntrySetup"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -80,9 +80,9 @@ function DualEntrySetupPage({route}: DualEntrySetupPageProps) {
                 shouldValidateOnChange
                 addBottomSafeAreaPadding
             >
-                <Text style={[styles.textHeadlineH1, styles.pb5, styles.pt3]}>{translate('workspace.dualentry.enterCredentials')}</Text>
+                <Text style={[styles.textHeadlineH1, styles.pb5, styles.pt3]}>{translate('workspace.dualEntry.enterCredentials')}</Text>
                 <View style={[styles.renderHTML, styles.mb5]}>
-                    <RenderHTML html={translate('workspace.dualentry.howToFindAPIKey')} />
+                    <RenderHTML html={translate('workspace.dualEntry.howToFindAPIKey')} />
                 </View>
 
                 {formItems.map((formItem, index) => (
