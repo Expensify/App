@@ -195,7 +195,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                     triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
                     return;
                 }
-                markAsManuallyExported([moneyRequestReport.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegrationFallback);
+                markAsManuallyExported([moneyRequestReport.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegrationFallback, policy);
             },
         },
     };

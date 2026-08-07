@@ -1735,7 +1735,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     exportOptions.push({
                         text: translate('workspace.common.markAsExported'),
                         icon: integrationIcon,
-                        onSelected: () => handleExportAction(() => markAsManuallyExported(selectedReportIDs, connectedIntegration)),
+                        onSelected: () => handleExportAction(() => markAsManuallyExported(selectedReportIDs, connectedIntegration, policy)),
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
                         displayInDefaultIconColor: true,

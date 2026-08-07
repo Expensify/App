@@ -1,6 +1,6 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
-import {getSearchValueForConnection, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
+import {getExportLabelForConnection, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies, getFilterFromQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -74,9 +74,9 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
 
         const connectionPolicies = policiesToUse.filter((policy) => !!policy?.connections?.[connectionName]);
         if (connectionPolicies.length === 0) {
-            return [getSearchValueForConnection(connectionName)];
+            return [getExportLabelForConnection(connectionName)];
         }
-        return [...new Set(connectionPolicies.map((policy) => getSearchValueForConnection(connectionName, policy)))];
+        return [...new Set(connectionPolicies.map((policy) => getExportLabelForConnection(connectionName, policy)))];
     });
 
     const exportedToFilterOptions = [...new Set([...connectedIntegrationSearchValues, ...standardAndCustomExportTemplates])];

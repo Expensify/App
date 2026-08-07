@@ -60,11 +60,11 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
             if (type === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
                 exportToIntegration(reportID, connectionName);
             } else if (type === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                markAsManuallyExported([reportID], connectionName);
+                markAsManuallyExported([reportID], connectionName, policy);
             }
             Navigation.dismissModal();
         },
-        [connectionName, reportID],
+        [connectionName, policy, reportID],
     );
 
     const showExportAgainModal = useCallback(

@@ -1,4 +1,10 @@
-import {getAccountingIntegrationDisplayName, getExportIntegrationDisplayName, getQuickbooksOnlineIntegrationName, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
+import {
+    getAccountingIntegrationDisplayName,
+    getExportIntegrationDisplayName,
+    getExportLabelForConnection,
+    getQuickbooksOnlineIntegrationName,
+    isIntuitEnterpriseSuiteConnection,
+} from '@libs/AccountingUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -73,6 +79,16 @@ describe('AccountingUtils', () => {
 
         it('returns the canonical friendly name for another integration', () => {
             expect(getAccountingIntegrationDisplayName(buildQBOConnectionPolicy(INTUIT_ENTERPRISE_SUITE_SCOPE), CONST.POLICY.CONNECTIONS.NAME.XERO, translateLocal)).toBe('Xero');
+        });
+    });
+
+    describe('getExportLabelForConnection', () => {
+        it('returns the IES label for an IES-backed QBO connection', () => {
+            expect(getExportLabelForConnection(CONST.POLICY.CONNECTIONS.NAME.QBO, buildQBOConnectionPolicy(INTUIT_ENTERPRISE_SUITE_SCOPE))).toBe(CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE);
+        });
+
+        it('returns the QBO label for a standard QBO connection', () => {
+            expect(getExportLabelForConnection(CONST.POLICY.CONNECTIONS.NAME.QBO, buildQBOConnectionPolicy('com.intuit.quickbooks.accounting'))).toBe(CONST.EXPORT_LABELS.QBO);
         });
     });
 
