@@ -3,6 +3,7 @@ import StatusBadge from '@components/StatusBadge';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
 import type {TableData} from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 import Tooltip from '@components/Tooltip';
@@ -76,6 +77,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
     const {translate} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Bolt']);
     const {processedData} = useTableContext<DistanceRateTableItemData>();
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const {rate, formattedRate, pendingAction, errors} = item;
     const isSelected = processedData.at(rowIndex)?.selected ?? false;
@@ -165,7 +167,10 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.justifyContentCenter]}>
+                        <View
+                            style={[styles.justifyContentCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <StatusBadge
                                 text={statusLabels[status] ?? ''}
                                 backgroundColor={statusColors.backgroundColor}
@@ -175,7 +180,10 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1]}>
+                        <View
+                            style={[styles.flex1]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -186,7 +194,10 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -198,7 +209,10 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                     )}
 
                     {!shouldUseNarrowTableLayout && shouldShowDateColumns && (
-                        <View style={[styles.flex1]}>
+                        <View
+                            style={[styles.flex1]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -209,7 +223,10 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                     )}
 
                     {!shouldUseNarrowTableLayout && shouldShowDateColumns && (
-                        <View style={[styles.flex1]}>
+                        <View
+                            style={[styles.flex1]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -219,7 +236,10 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                         </View>
                     )}
 
-                    <View style={[styles.justifyContentCenter, styles.alignItemsEnd]}>
+                    <View
+                        style={[styles.justifyContentCenter, styles.alignItemsEnd]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         <Switch
                             isOn={item.enabled}
                             showLockIcon={item.isLocked}
@@ -229,13 +249,15 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                         />
                     </View>
 
-                    <Icon
-                        src={Expensicons.ArrowRight}
-                        fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
+                        <Icon
+                            src={Expensicons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </View>
                 </>
             )}
         </Table.Row>

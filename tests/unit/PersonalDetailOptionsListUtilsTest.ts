@@ -3,13 +3,22 @@ import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
-import {canCreateOptimisticPersonalDetailOption, createOption, createOptionList, filterOption, getValidOptions, matchesSearchTerms} from '@libs/PersonalDetailOptionsListUtils';
+import {
+    canCreateOptimisticPersonalDetailOption,
+    createOption,
+    createOptionList,
+    filterOption,
+    getFilteredRecentAttendees,
+    getValidOptions,
+    matchesSearchTerms,
+} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils/types';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
 
 // The rule is disabled for this file as test data uses numeric keys that don't follow naming conventions
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -653,6 +662,53 @@ describe('PersonalDetailOptionsListUtils', () => {
             expect(results.personalDetails.length).toBe(2);
         });
 
+        it('should exclude a report-backed option without a login from recent options', () => {
+            // Given a stale personal detail that still has an accountID and a 1:1 report, but no login (e.g. after its contact method was removed)
+            const staleAccountID = 1002;
+            const staleReportID = '14';
+            const personalDetailsWithStaleContact: PersonalDetailsList = {
+                ...PERSONAL_DETAILS,
+                [staleAccountID]: {
+                    accountID: staleAccountID,
+                    displayName: 'Stale Contact',
+                },
+            };
+            const reportsWithStaleContact: OnyxCollection<Report> = {
+                ...REPORTS,
+
+                // Note: This report has the largest lastVisibleActionCreated, so it would be the first recent option if it wasn't filtered out
+                [staleReportID]: {
+                    lastReadTime: '2021-01-14 11:25:39.303',
+                    lastVisibleActionCreated: '2022-11-22 03:26:04.999',
+                    isPinned: false,
+                    reportID: staleReportID,
+                    participants: {
+                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [staleAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    reportName: 'Stale Contact',
+                    type: CONST.REPORT.TYPE.CHAT,
+                },
+            };
+            const optionsWithStaleContact = createOptionList(
+                currentUserAccountID,
+                personalDetailsWithStaleContact,
+                {...ACCOUNT_ID_TO_REPORT_ID_MAP, [staleAccountID]: staleReportID},
+                translateReportObjectToOnyxCollection(reportsWithStaleContact),
+                undefined,
+                {},
+                formatPhoneNumber,
+                translateLocal,
+            );
+
+            // When getting the valid options
+            const results = getValidOptions(optionsWithStaleContact.options, currentUserLogin, formatPhoneNumber, 1);
+
+            // Then the login-less option should not be offered in either section
+            expect(results.recentOptions).not.toEqual(expect.arrayContaining([expect.objectContaining({accountID: staleAccountID})]));
+            expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({accountID: staleAccountID})]));
+        });
+
         describe('excludedLogins', () => {
             it('should exclude Concierge when excludedLogins is specified', () => {
                 const results = getValidOptions(OPTIONS_WITH_CONCIERGE.options, currentUserLogin, formatPhoneNumber, 1, undefined, {
@@ -897,6 +953,78 @@ describe('PersonalDetailOptionsListUtils', () => {
         it('should not match current user option when searching unrelated term even with extraSearchTerms', () => {
             const result = filterOption(OPTIONS.currentUserOption, 'non-matching-string', ['You', 'me']);
             expect(result).toBeNull();
+        });
+    });
+
+    describe('getFilteredRecentAttendees', () => {
+        it('should deduplicate recent attendees by email', () => {
+            const attendees: Attendee[] = [];
+            const recentAttendees: Attendee[] = [
+                {email: 'user1@example.com', displayName: 'User One', avatarUrl: ''},
+                {email: 'user1@example.com', displayName: 'User One Duplicate', avatarUrl: ''}, // Duplicate by email
+                {email: 'user2@example.com', displayName: 'User Two', avatarUrl: ''},
+            ];
+
+            const result = getFilteredRecentAttendees(attendees, recentAttendees, currentUserLogin);
+
+            // Should deduplicate by email - user1@example.com should only appear once
+            const user1Count = result.filter((login) => login === 'user1@example.com').length;
+            expect(user1Count).toBe(1);
+        });
+
+        it('should deduplicate name-only attendees by displayName', () => {
+            const attendees: Attendee[] = [];
+            const recentAttendees: Attendee[] = [
+                {email: '', displayName: 'Name Only', avatarUrl: ''},
+                {email: '', displayName: 'Name Only', avatarUrl: ''}, // Duplicate by displayName (name-only attendee)
+                {email: '', displayName: 'Another Name', avatarUrl: ''},
+            ];
+
+            const result = getFilteredRecentAttendees(attendees, recentAttendees, currentUserLogin);
+
+            // Should deduplicate by displayName - Name Only should only appear once
+            const nameOnlyCount = result.filter((login) => login === 'Name Only').length;
+            expect(nameOnlyCount).toBe(1);
+        });
+
+        it('should use displayName as login for name-only attendees', () => {
+            const attendees: Attendee[] = [];
+            const recentAttendees: Attendee[] = [{email: '', displayName: 'John Smith', avatarUrl: ''}];
+
+            const result = getFilteredRecentAttendees(attendees, recentAttendees, currentUserLogin);
+
+            expect(result).toContain('John Smith');
+        });
+
+        it('should preserve displayName for recent attendees with undefined email', () => {
+            const attendees: Attendee[] = [];
+            const recentAttendees: Attendee[] = [{displayName: 'Login Only User', avatarUrl: ''}];
+
+            const result = getFilteredRecentAttendees(attendees, recentAttendees, currentUserLogin);
+
+            expect(result).toContain('Login Only User');
+        });
+
+        it('should exclude attendees that are already selected', () => {
+            const attendees: Attendee[] = [{email: 'user1@example.com', displayName: 'User One', avatarUrl: ''}];
+            const recentAttendees: Attendee[] = [
+                {email: 'user1@example.com', displayName: 'User One', avatarUrl: ''},
+                {email: 'user2@example.com', displayName: 'User Two', avatarUrl: ''},
+            ];
+
+            const result = getFilteredRecentAttendees(attendees, recentAttendees, currentUserLogin);
+
+            expect(result).not.toContain('user1@example.com');
+            expect(result).toContain('user2@example.com');
+        });
+
+        it('should include the current user when not already present', () => {
+            const attendees: Attendee[] = [];
+            const recentAttendees: Attendee[] = [{email: 'user2@example.com', displayName: 'User Two', avatarUrl: ''}];
+
+            const result = getFilteredRecentAttendees(attendees, recentAttendees, currentUserLogin);
+
+            expect(result).toContain(currentUserLogin);
         });
     });
 });

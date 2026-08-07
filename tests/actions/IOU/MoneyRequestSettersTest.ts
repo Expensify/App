@@ -11,6 +11,7 @@ import {
     setMoneyRequestTag,
 } from '@libs/actions/IOU/MoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {getCurrencyDecimals} from '@libs/CurrencyUtils';
 import Log from '@libs/Log';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 
@@ -356,7 +357,7 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
             // When setting the money request category
-            setMoneyRequestCategory(transactionID, category, fakePolicy);
+            setMoneyRequestCategory(transactionID, category, fakePolicy, getCurrencyDecimals);
 
             await waitForBatchedUpdates();
 
@@ -397,7 +398,7 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When setting the money request category
-                setMoneyRequestCategory(transactionID, category, fakePolicy);
+                setMoneyRequestCategory(transactionID, category, fakePolicy, getCurrencyDecimals);
 
                 await waitForBatchedUpdates();
 
@@ -435,7 +436,7 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When setting the money request category
-                setMoneyRequestCategory(transactionID, category, fakePolicy);
+                setMoneyRequestCategory(transactionID, category, fakePolicy, getCurrencyDecimals);
 
                 await waitForBatchedUpdates();
 
@@ -466,7 +467,7 @@ describe('actions/IOU', () => {
             });
 
             // When setting the money request category without a policyID
-            setMoneyRequestCategory(transactionID, '', undefined);
+            setMoneyRequestCategory(transactionID, '', undefined, getCurrencyDecimals);
             await waitForBatchedUpdates();
 
             // Then the transaction tax should be cleared

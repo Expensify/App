@@ -1,5 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -180,6 +182,8 @@ function createTransaction({
                     email: currentUserEmail ?? '',
                 },
                 introSelected,
+                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+                conciergeChat: undefined,
                 quickAction,
                 recentWaypoints,
                 betas,
@@ -228,6 +232,8 @@ function createTransaction({
                 existingTransactionDraft,
                 existingTransaction: transaction,
                 isSelfTourViewed,
+                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+                conciergeChat: undefined,
                 personalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,
@@ -474,6 +480,9 @@ function startMoneyRequest(
         case CONST.IOU.REQUEST_TYPE.TIME:
             Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_TIME.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
             return;
+        case CONST.IOU.REQUEST_TYPE.PER_DIEM:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
+            return;
         default:
             Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
     }
@@ -625,7 +634,13 @@ function setMoneyRequestTaxRateValues(transactionID: string, taxRateValues: TaxR
  * @param policy - The policy object, or undefined for P2P transactions where tax info should be cleared
  * @param isMovingFromTrackExpense - If the expense is moved from Track Expense
  */
-function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<Policy>, isMovingFromTrackExpense?: boolean) {
+function setMoneyRequestCategory(
+    transactionID: string,
+    category: string,
+    policy: OnyxEntry<Policy>,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    isMovingFromTrackExpense?: boolean,
+) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         category,
     });
@@ -641,7 +656,7 @@ function setMoneyRequestCategory(transactionID: string, category: string, policy
         return;
     }
     const transaction = getAllTransactionDrafts()[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
-    const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(category, transaction, policy);
+    const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(category, transaction, policy, getCurrencyDecimals);
     if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
         setMoneyRequestTaxRateValues(transactionID, {
             taxCode: categoryTaxCode,
@@ -723,13 +738,13 @@ function setCustomUnitRateID(
     });
 }
 
-function setGPSTransactionDraftData(transactionID: string, gpsDraftDetails: GpsDraftDetails | undefined, distance: number) {
+function setGPSTransactionDraftData(transactionID: string, gpsDraftDetails: GpsDraftDetails | undefined, distance: number, distanceUnit: Unit) {
     const waypoints = getGPSWaypoints(gpsDraftDetails);
     const routes = getGPSRoutes(gpsDraftDetails);
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         comment: {
-            customUnit: {quantity: distance},
+            customUnit: {quantity: distance, distanceUnit},
             waypoints,
         },
         routes,
@@ -934,6 +949,7 @@ function updateDistanceRateOnExpenseDateChange({
     lastSelectedDistanceRates,
     isDraft,
     personalPolicyOutputCurrency,
+    getCurrencyDecimals,
 }: {
     transactionID: string;
     transaction: OnyxEntry<Transaction>;
@@ -946,6 +962,7 @@ function updateDistanceRateOnExpenseDateChange({
     lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates>;
     isDraft: boolean;
     personalPolicyOutputCurrency: string | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 }) {
     if (!isDistanceRequest(transaction) || !(isPolicyExpenseChat || isTrackExpense)) {
         return;
@@ -967,7 +984,7 @@ function updateDistanceRateOnExpenseDateChange({
     if (rateChanged && rateID && isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense || isExpenseUnreported(transaction), effectivePolicy, isDistanceRequest(transaction))) {
         const mileageRates = DistanceRequestUtils.getMileageRates(effectivePolicy);
         const distanceUnit = mileageRates[rateID] ? DistanceRequestUtils.getDistanceUnit(transaction, mileageRates[rateID]) : transaction?.comment?.customUnit?.distanceUnit;
-        const {taxAmount, taxCode, taxValue} = getDistanceRateTaxUpdates(effectivePolicy, transaction, rateID, distanceUnit);
+        const {taxAmount, taxCode, taxValue} = getDistanceRateTaxUpdates(effectivePolicy, transaction, rateID, getCurrencyDecimals, distanceUnit);
         setMoneyRequestTaxRate(transactionID, taxCode || null, isDraft);
         setMoneyRequestTaxAmount(transactionID, taxAmount, isDraft);
         setMoneyRequestTaxValue(transactionID, taxValue ?? null, isDraft);

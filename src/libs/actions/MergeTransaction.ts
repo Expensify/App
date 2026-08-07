@@ -14,6 +14,9 @@ import {
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTransactionUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
+import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getReportAction, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
@@ -30,20 +33,8 @@ import {
 import CONST from '@src/CONST';
 import {getReportOwnerAccountIDAsAttendee, getReportOwnerAsAttendee, isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {
-    CardList,
-    MergeTransaction,
-    PersonalDetailsList,
-    Policy,
-    PolicyCategories,
-    PolicyTagLists,
-    Report,
-    ReportActions,
-    ReportNextStepDeprecated,
-    Transaction,
-    TransactionViolations,
-} from '@src/types/onyx';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {CardList, MergeTransaction, PersonalDetailsList, Policy, PolicyCategories, PolicyTagLists, Report, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
@@ -85,6 +76,27 @@ function setMergeTransactionKey(transactionID: string, values: MergeTransactionU
     Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`>);
 }
 
+const MERGE_TRANSACTION_DYNAMIC_PATHS: ReadonlySet<string> = new Set([
+    DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST.path,
+    DYNAMIC_ROUTES.MERGE_TRANSACTION_RECEIPT.path,
+    DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS.path,
+    DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION.path,
+]);
+
+/**
+ * Navigating between merge-transaction steps can start from a URL that already ends with a
+ * previous step's (self-contained) dynamic suffix, e.g. `merge/:transactionID/receipt`. Strip
+ * it so the next step's suffix replaces it instead of stacking on top of it.
+ */
+function getMergeTransactionBasePath(): string {
+    const activeRoute = Navigation.getActiveRoute();
+    const match = findAllMatchingDynamicSuffixes(activeRoute).find((candidate) => MERGE_TRANSACTION_DYNAMIC_PATHS.has(candidate.pattern));
+    if (!match) {
+        return activeRoute;
+    }
+    return getPathWithoutDynamicSuffix(match.pathUsedForMatching, match.actualSuffix, match.pattern) || activeRoute;
+}
+
 function setupMergeTransactionDataAndNavigate(
     navigationTransactionID: string,
     transactions: Transaction[],
@@ -105,7 +117,7 @@ function setupMergeTransactionDataAndNavigate(
         const transaction = transactions.at(0);
         if (transaction) {
             setupMergeTransactionData(navigationTransactionID, {targetTransactionID: transaction.transactionID});
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute(), isOnSearch));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST.getRoute(transaction.transactionID, isOnSearch), getMergeTransactionBasePath()));
             return;
         }
     }
@@ -128,7 +140,7 @@ function setupMergeTransactionDataAndNavigate(
     }
     if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
         // Navigate to the receipt review page if both transactions have a receipt
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute(), isOnSearch));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_RECEIPT.getRoute(navigationTransactionID, isOnSearch), getMergeTransactionBasePath()));
     } else {
         const receipt = targetTransaction.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction.receipt;
         if (receipt) {
@@ -150,11 +162,11 @@ function setupMergeTransactionDataAndNavigate(
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
             setMergeTransactionKey(navigationTransactionID, mergeableData);
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute(), isOnSearch));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION.getRoute(navigationTransactionID, isOnSearch), getMergeTransactionBasePath()));
             return;
         }
 
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute(), isOnSearch));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS.getRoute(navigationTransactionID, isOnSearch), getMergeTransactionBasePath()));
     }
 }
 
@@ -253,7 +265,6 @@ function getOnyxTargetTransactionData({
     mergeTransaction,
     targetTransactionThreadReport,
     targetTransactionThreadParentReport,
-    targetTransactionThreadParentReportNextStep,
     iouReportOwnerLogin,
     policy,
     policyTags,
@@ -270,7 +281,6 @@ function getOnyxTargetTransactionData({
     mergeTransaction: MergeTransaction;
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
-    targetTransactionThreadParentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     iouReportOwnerLogin: string | undefined;
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
@@ -317,7 +327,6 @@ function getOnyxTargetTransactionData({
             transactionThreadReport: targetTransactionThreadReport,
             iouReport: targetTransactionThreadParentReport,
             iouReportOwnerLogin,
-            iouReportNextStep: targetTransactionThreadParentReportNextStep,
             transactionChanges: filteredTransactionChanges,
             policy,
             policyTagList: policyTags,
@@ -375,7 +384,6 @@ type MergeTransactionRequestParams = {
     sourceTransaction: Transaction;
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
-    targetTransactionThreadParentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     iouReportOwnerLogin: string | undefined;
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
@@ -405,7 +413,6 @@ function mergeTransactionRequest({
     sourceTransaction,
     targetTransactionThreadReport,
     targetTransactionThreadParentReport,
-    targetTransactionThreadParentReportNextStep,
     iouReportOwnerLogin,
     allTransactionViolations,
     policy,
@@ -459,7 +466,6 @@ function mergeTransactionRequest({
         mergeTransaction,
         targetTransactionThreadReport,
         targetTransactionThreadParentReport,
-        targetTransactionThreadParentReportNextStep,
         iouReportOwnerLogin,
         policy,
         policyTags,

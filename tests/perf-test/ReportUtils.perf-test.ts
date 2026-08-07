@@ -37,7 +37,7 @@ import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const getMockedReports = (length = 500) =>
@@ -104,7 +104,7 @@ describe('ReportUtils', () => {
         const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT} as unknown as ReportAction;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction, undefined, undefined));
+        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction, undefined, undefined, 1));
     });
 
     test('[ReportUtils] getReportRecipientAccountID on 1k participants', async () => {
@@ -301,6 +301,6 @@ describe('ReportUtils', () => {
         };
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIOUReportActionDisplayMessage(translateLocal, reportAction));
+        await measureFunction(() => getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString));
     });
 });

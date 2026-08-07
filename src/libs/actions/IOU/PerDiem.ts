@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {CreatePerDiemRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -6,11 +8,10 @@ import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getPerDiemCustomUnit, getPerDiemRateCustomUnitRate} from '@libs/PolicyUtils';
@@ -240,8 +241,8 @@ type PerDiemExpenseInformation = {
     shouldDeferAutoSubmit?: boolean;
     optimisticChatReportID?: string;
     optimisticTransactionID?: string;
-    // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -264,8 +265,8 @@ type PerDiemExpenseInformationParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     optimisticChatReportID?: string;
     optimisticTransactionID?: string;
-    // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -278,8 +279,7 @@ type PerDiemExpenseInformationForSelfDM = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     /** UI-controlled id so post-submit nav lands on the report the action wrote. */
     optimisticChatReportID: string;
-    // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -322,6 +322,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         personalDetails,
         optimisticChatReportID,
         optimisticTransactionID: uiProvidedOptimisticTransactionID,
+        formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
     } = perDiemExpenseInformation;
@@ -510,17 +511,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
 
     const predictedNextStatus =
         iouReport.statusNum ?? (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN);
-    // buildOptimisticNextStep is used in parallel
-    const optimisticNextStepDeprecated = buildNextStepNew({
-        report: iouReport,
-        predictedNextStatus,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        policy,
-        isTrackIntentUser,
-    });
     const optimisticNextStep = buildOptimisticNextStep({
         report: iouReport,
         predictedNextStatus,
@@ -568,7 +558,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             },
             personalDetailListAction: optimisticPersonalDetailListAction,
             nextStep: optimisticNextStep,
-            nextStepDeprecated: optimisticNextStepDeprecated,
         },
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -934,6 +923,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         shouldDeferAutoSubmit,
         optimisticChatReportID,
         optimisticTransactionID,
+        formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
     } = submitPerDiemExpenseInformation;
@@ -987,6 +977,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         personalDetails,
         optimisticChatReportID,
         optimisticTransactionID,
+        formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
     });

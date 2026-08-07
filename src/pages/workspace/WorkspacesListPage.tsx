@@ -27,7 +27,6 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicyByType} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
@@ -64,10 +63,10 @@ function WorkspacesListPage() {
     // Light, flat projection of the policy collection. Deep, frequently mutated policy fields (isLoading*
     // flags, employeeList, connections, etc.) are excluded, so background writes to them no longer commit
     // this page. Per-row error indicators subscribe to those fields themselves in WorkspaceRowBrickRoadIndicator.
-    const [workspaceListPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createWorkspaceListPoliciesSelector(session?.email)}, [session?.email]);
+    const [workspaceListPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createWorkspaceListPoliciesSelector(session?.email)});
 
     // IDs of every workspace eligible as a copy-settings target. Derived once per policy write (not per row) so each row can cheaply decide whether to offer "Copy settings".
-    const [copySettingsEligibleTargets] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createCopySettingsEligibleTargetsSelector(session?.email)}, [session?.email]);
+    const [copySettingsEligibleTargets] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createCopySettingsEligibleTargetsSelector(session?.email)});
 
     // A workspace can copy its settings when there is at least one other eligible target.
     const isWorkspaceEligibleToCopy = (policyID: string) =>
@@ -84,7 +83,7 @@ function WorkspacesListPage() {
                 .filter((id): id is number => id !== undefined),
         ),
     ];
-    const [ownerDisplayDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: createDisplayDetailsByAccountIDsSelector(ownerAccountIDs)}, [workspaceListPolicies]);
+    const [ownerDisplayDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: createDisplayDetailsByAccountIDsSelector(ownerAccountIDs)});
 
     const navigateToWorkspace = (policyID: string, event?: ModifiedMouseEvent) => {
         const workspaceRoute = shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
@@ -133,7 +132,7 @@ function WorkspacesListPage() {
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
                 ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
                 iconType: policy.nonMemberDetails.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                icon: policy.nonMemberDetails.avatar ? policy.nonMemberDetails.avatar : getDefaultWorkspaceAvatar(policy.nonMemberDetails.name),
+                icon: policy.nonMemberDetails.avatar ? policy.nonMemberDetails.avatar : undefined,
                 action: () => null,
                 dismissError: () => null,
             };
@@ -162,7 +161,7 @@ function WorkspacesListPage() {
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
                 ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
                 iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+                icon: policy.avatarURL,
                 pendingAction: policy.pendingAction,
                 action: (event) => navigateToWorkspace(policyID, event),
                 dismissError: () => dismissWorkspaceError(policyID, policy.pendingAction),

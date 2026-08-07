@@ -474,7 +474,7 @@ function isReceivedPaymentAction(report: Report, reportTransactions: Transaction
         return true;
     }
 
-    if (policy?.role === CONST.POLICY.ROLE.ADMIN) {
+    if (arePaymentsEnabledUtils(policy) && policy?.role === CONST.POLICY.ROLE.ADMIN) {
         return false;
     }
 
@@ -586,8 +586,10 @@ function isHoldAction(
     reportActions: ReportAction[] | undefined,
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
+    /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+    isOffline?: boolean,
 ): boolean {
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, isOffline);
     const isOneExpenseReport = reportTransactions.length === 1;
     const transaction = reportTransactions.at(0);
 
@@ -677,8 +679,8 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions, report);
 }
 
-function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions?: ReportAction[]): boolean {
-    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? []);
+function isDeleteAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportActions?: ReportAction[]): boolean {
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID);
 }
 
 function shouldShowEditSplitInDeleteAction(
@@ -687,6 +689,7 @@ function shouldShowEditSplitInDeleteAction(
     reportActions: ReportAction[] | undefined,
     originalTransaction: OnyxEntry<Transaction>,
     isProduction: boolean,
+    currentUserAccountID: number,
 ): boolean {
     if (reportTransactions.length !== 1) {
         return false;
@@ -698,7 +701,10 @@ function shouldShowEditSplitInDeleteAction(
     }
 
     const isSelfDMSplit = isSelfDMReportUtils(report);
-    return shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction, isSelfDMSplit, isProduction) && isDeleteAction(report, reportTransactions, reportActions);
+    return (
+        shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction, isSelfDMSplit, isProduction) &&
+        isDeleteAction(report, reportTransactions, currentUserAccountID, reportActions)
+    );
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
@@ -835,6 +841,8 @@ function isRemoveHoldAction(
     reportActions?: ReportAction[],
     policy?: Policy,
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
+    /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+    isOffline?: boolean,
 ): boolean {
     const isClosedReport = isClosedReportUtils(report);
     if (isClosedReport) {
@@ -847,7 +855,7 @@ function isRemoveHoldAction(
         return false;
     }
 
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, isOffline);
 
     if (!transactionThreadReportID) {
         return false;
@@ -927,6 +935,7 @@ function getSecondaryReportActions({
     isChatReportArchived = false,
     parentReport,
     isProduction,
+    isOffline,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -947,6 +956,8 @@ function getSecondaryReportActions({
     isChatReportArchived?: boolean;
     parentReport?: OnyxEntry<Report>;
     isProduction: boolean;
+    /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+    isOffline?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -991,6 +1002,7 @@ function getSecondaryReportActions({
         reportMetadata,
         isChatReportArchived,
         ownerLogin: submitterLogin,
+        isOffline,
     });
 
     if (
@@ -1036,11 +1048,11 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
     }
 
-    if (isHoldAction(report, chatReport, reportTransactions, reportActions, policy, currentUserAccountID)) {
+    if (isHoldAction(report, chatReport, reportTransactions, reportActions, policy, currentUserAccountID, isOffline)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
-    if (isRemoveHoldAction(report, chatReport, reportTransactions, reportActions, policy, primaryAction)) {
+    if (isRemoveHoldAction(report, chatReport, reportTransactions, reportActions, policy, primaryAction, isOffline)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
@@ -1050,7 +1062,7 @@ function getSecondaryReportActions({
 
     if (
         isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy, parentReport, isProduction) &&
-        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, isProduction)
+        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, isProduction, currentUserAccountID)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
@@ -1070,6 +1082,10 @@ function getSecondaryReportActions({
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
+
+    if (reportTransactions.some(hasReceiptTransactionUtils)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS);
+    }
 
     if (!isOpenReportUtils(report)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
@@ -1105,7 +1121,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, reportActions ?? [])) {
+    if (isDeleteAction(report, reportTransactions, currentUserAccountID, reportActions ?? [])) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
@@ -1180,7 +1196,7 @@ function getSecondaryTransactionThreadActions({
 
     if (
         isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy, grandParentReport, isProduction) &&
-        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, isProduction)
+        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, isProduction, currentUserAccountID)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
@@ -1211,7 +1227,7 @@ function getSecondaryTransactionThreadActions({
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [])) {
+    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, reportAction ? [reportAction] : [])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 
