@@ -6,7 +6,6 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -20,8 +19,8 @@ import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtil
 
 import navigationRef from '@navigation/navigationRef';
 
-import useInitialSettingsPageMenuData from '@pages/settings/useInitialSettingsPageMenuData';
-import type {MenuData, MenuSection} from '@pages/settings/useInitialSettingsPageMenuData';
+import useSettingsNavigationMenuData from '@pages/settings/useSettingsNavigationMenuData';
+import type {MenuData, MenuSection} from '@pages/settings/useSettingsNavigationMenuData';
 
 import variables from '@styles/variables';
 
@@ -165,8 +164,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const createItems = useCreateNavigationSuggestions(query);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {typeMenuSections} = useSearchTypeMenuSections(undefined, shouldWatchForApprovals);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {accountMenuItemsData, generalMenuItemsData} = useInitialSettingsPageMenuData(currentUserPersonalDetails);
+    const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
 
     const topLevelItems = buildTopLevelNavigationItems({
         labels: {
