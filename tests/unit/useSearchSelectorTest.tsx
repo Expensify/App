@@ -15,6 +15,7 @@ import type {OnyxMultiSetInput} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -86,15 +87,17 @@ describe('useSearchSelector sortedActions integration', () => {
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.clear();
-            await Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {
-                    accountID: MOCK_ACCOUNT_ID,
-                    email: MOCK_EMAIL,
-                    authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
-                },
-                [ONYXKEYS.BETAS]: [],
-                [ONYXKEYS.COUNTRY_CODE]: CONST.DEFAULT_COUNTRY_CODE,
-            } as unknown as OnyxMultiSetInput);
+            await Onyx.multiSet(
+                createMock<OnyxMultiSetInput>({
+                    [ONYXKEYS.SESSION]: {
+                        accountID: MOCK_ACCOUNT_ID,
+                        email: MOCK_EMAIL,
+                        authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
+                    },
+                    [ONYXKEYS.BETAS]: [],
+                    [ONYXKEYS.COUNTRY_CODE]: CONST.DEFAULT_COUNTRY_CODE,
+                }),
+            );
         });
         await waitForBatchedUpdatesWithAct();
     });
@@ -238,30 +241,30 @@ describe('useSearchSelector sortedActions integration', () => {
     });
 });
 
-const EXISTING_CONTACT: OptionData = {
+const EXISTING_CONTACT = createMock<OptionData>({
     text: 'Alice Smith',
     login: 'alice@expensify.com',
     accountID: 100,
     isSelected: false,
     keyForList: 'alice@expensify.com',
-} as OptionData;
+});
 
-const SECOND_CONTACT: OptionData = {
+const SECOND_CONTACT = createMock<OptionData>({
     text: 'Bob Jones',
     login: 'bob@expensify.com',
     accountID: 200,
     isSelected: false,
     keyForList: 'bob@expensify.com',
-} as OptionData;
+});
 
-const NON_EXISTING_USER_TO_INVITE: OptionData = {
+const NON_EXISTING_USER_TO_INVITE = createMock<OptionData>({
     text: 'newuser@gmail.com',
     login: 'newuser@gmail.com',
     accountID: 999999,
     isOptimisticAccount: true,
     isSelected: false,
     keyForList: 'newuser@gmail.com',
-} as OptionData;
+});
 
 describe('useSearchSelector selection and non-existing options', () => {
     beforeAll(() => {
@@ -272,15 +275,17 @@ describe('useSearchSelector selection and non-existing options', () => {
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.clear();
-            await Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {
-                    accountID: MOCK_ACCOUNT_ID,
-                    email: MOCK_EMAIL,
-                    authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
-                },
-                [ONYXKEYS.BETAS]: [],
-                [ONYXKEYS.COUNTRY_CODE]: CONST.DEFAULT_COUNTRY_CODE,
-            } as unknown as OnyxMultiSetInput);
+            await Onyx.multiSet(
+                createMock<OnyxMultiSetInput>({
+                    [ONYXKEYS.SESSION]: {
+                        accountID: MOCK_ACCOUNT_ID,
+                        email: MOCK_EMAIL,
+                        authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
+                    },
+                    [ONYXKEYS.BETAS]: [],
+                    [ONYXKEYS.COUNTRY_CODE]: CONST.DEFAULT_COUNTRY_CODE,
+                }),
+            );
         });
         await waitForBatchedUpdatesWithAct();
     });
