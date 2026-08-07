@@ -124,7 +124,7 @@ function AuthScreensInitHandler() {
         return () => {
             registerPusherReinitializeHandler(null);
         };
-    }, [session?.accountID, session?.email]);
+    }, [session?.accountID, session?.email, formatPhoneNumber]);
 
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
@@ -132,7 +132,7 @@ function AuthScreensInitHandler() {
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
         initializePusher(session?.accountID, session?.email, formatPhoneNumber, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current);
-    }, [session?.accountID, session?.email]);
+    }, [session?.accountID, session?.email, formatPhoneNumber]);
 
     useEffect(() => {
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);

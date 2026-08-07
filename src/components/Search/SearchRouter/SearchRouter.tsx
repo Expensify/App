@@ -294,6 +294,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             contextualReportNVP,
             contextualReportPolicy,
             isTrackIntentUser,
+            formatPhoneNumber,
         ],
     );
 

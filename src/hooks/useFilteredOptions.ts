@@ -104,11 +104,18 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
                 ? createFilteredOptionList(
                       allPersonalDetails,
                       allReports,
-                      formatPhoneNumber,
                       reportAttributesDerived,
                       privateIsArchivedMap,
                       allPolicies,
-                      {conciergeReportID, maxRecentReports: reportsLimit, includeP2P, isSearching, deferContactsUntilSearch, locale: preferredLocale},
+                      {
+                          conciergeReportID,
+                          maxRecentReports: reportsLimit,
+                          includeP2P,
+                          isSearching,
+                          deferContactsUntilSearch,
+                          locale: preferredLocale,
+                          formatPhoneNumber,
+                      },
                       undefined,
                       undefined,
                       isTrackIntentUser,
@@ -118,6 +125,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         [
             enabled,
             allReports,
+            formatPhoneNumber,
             allPersonalDetails,
             reportAttributesDerived,
             privateIsArchivedMap,

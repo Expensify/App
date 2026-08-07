@@ -1291,19 +1291,33 @@ function createOption({
 /**
  * Get the option for a given report.
  */
-function getReportOption(
-    participant: Participant,
-    privateIsArchived: boolean | undefined,
-    policy: OnyxEntry<Policy>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    conciergeReportID: string | undefined,
-    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
-    reportDraft: OnyxEntry<Report>,
-    currentUserAccountID: number,
-    translate: LocalizedTranslate,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    policyTags?: OnyxCollection<PolicyTagLists>,
-): OptionData {
+type GetReportOptionParams = {
+    participant: Participant;
+    privateIsArchived: boolean | undefined;
+    policy: OnyxEntry<Policy>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    conciergeReportID: string | undefined;
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
+    reportDraft: OnyxEntry<Report>;
+    currentUserAccountID: number;
+    translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    policyTags?: OnyxCollection<PolicyTagLists>;
+};
+
+function getReportOption({
+    participant,
+    privateIsArchived,
+    policy,
+    personalDetails,
+    conciergeReportID,
+    reportAttributesDerived,
+    reportDraft,
+    currentUserAccountID,
+    translate,
+    formatPhoneNumber,
+    policyTags,
+}: GetReportOptionParams): OptionData {
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
@@ -1428,19 +1442,33 @@ function getReportDisplayOption({
 /**
  * Get the option for a policy expense report.
  */
-function getPolicyExpenseReportOption(
-    participant: Participant | SearchOptionData,
-    privateIsArchived: boolean | undefined,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    expenseReport: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    translate: LocalizedTranslate,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    currentUserAccountID: number,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    policyTags?: OnyxEntry<PolicyTagLists>,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-): SearchOptionData {
+type GetPolicyExpenseReportOptionParams = {
+    participant: Participant | SearchOptionData;
+    privateIsArchived: boolean | undefined;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    expenseReport: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    currentUserAccountID: number;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    policyTags?: OnyxEntry<PolicyTagLists>;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+};
+
+function getPolicyExpenseReportOption({
+    participant,
+    privateIsArchived,
+    personalDetails,
+    expenseReport,
+    policy,
+    translate,
+    formatPhoneNumber,
+    currentUserAccountID,
+    reportAttributesDerived,
+    policyTags,
+    visibleReportActionsData = {},
+}: GetPolicyExpenseReportOptionParams): SearchOptionData {
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
         .filter(([, reportParticipant]) => reportParticipant && !isHiddenForCurrentUser(reportParticipant.notificationPreference))
         .map(([accountID]) => Number(accountID));
@@ -1567,20 +1595,34 @@ function isReportSelected(reportOption: SearchOptionData, selectedOptions: Array
     return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
 }
 
-function processReport(
-    report: OnyxEntry<Report> | null,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchived: boolean | undefined,
-    policy: OnyxEntry<Policy>,
-    conciergeReportID: string | undefined,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    policyTags?: OnyxEntry<PolicyTagLists>,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-    isTrackIntentUser?: boolean,
+type ProcessReportParams = {
+    report: OnyxEntry<Report> | null;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    privateIsArchived: boolean | undefined;
+    policy: OnyxEntry<Policy>;
+    conciergeReportID: string | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    policyTags?: OnyxEntry<PolicyTagLists>;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    isTrackIntentUser?: boolean;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
-    sortedActions?: Record<string, ReportAction[]>,
-): {
+    sortedActions?: Record<string, ReportAction[]>;
+};
+
+function processReport({
+    report,
+    personalDetails,
+    privateIsArchived,
+    policy,
+    conciergeReportID,
+    formatPhoneNumber,
+    reportAttributesDerived,
+    policyTags,
+    visibleReportActionsData = {},
+    isTrackIntentUser,
+    sortedActions,
+}: ProcessReportParams): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
 } {
@@ -1718,34 +1760,36 @@ function clearFilteredOptionListCache() {
 // account, so drop them on sign-out instead of holding them until the next call.
 registerSessionCleanupCallback(() => filteredOptionListCache.clear());
 
+type CreateFilteredOptionListOptions = {
+    conciergeReportID: string | undefined;
+    maxRecentReports?: number;
+    includeP2P?: boolean;
+    isSearching?: boolean;
+    deferContactsUntilSearch?: boolean;
+    /**
+     * When true, personal details (contacts) are only built while searching (`isSearching`).
+     * For screens whose idle/empty state shows no standalone contacts (e.g. the SearchRouter),
+     * this skips building an option for every contact on open. Screens that show contacts at
+     * empty state (contact pickers) must leave this false.
+     */
+    locale?: Locale;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+};
+
 function createFilteredOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reports: OnyxCollection<Report>,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     privateIsArchivedMap: PrivateIsArchivedMap,
     policiesCollection: OnyxCollection<Policy>,
-    options: {
-        conciergeReportID: string | undefined;
-        maxRecentReports?: number;
-        includeP2P?: boolean;
-        isSearching?: boolean;
-        /**
-         * When true, personal details (contacts) are only built while searching (`isSearching`).
-         * For screens whose idle/empty state shows no standalone contacts (e.g. the SearchRouter),
-         * this skips building an option for every contact on open. Screens that show contacts at
-         * empty state (contact pickers) must leave this false.
-         */
-        deferContactsUntilSearch?: boolean;
-        locale?: Locale;
-    },
+    options: CreateFilteredOptionListOptions,
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = EMPTY_VISIBLE_REPORT_ACTIONS,
     isTrackIntentUser?: boolean,
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>,
 ): OptionList {
-    const {conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
+    const {conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale, formatPhoneNumber} = options;
 
     // Contacts are expensive to build on large accounts (one option per personal detail). When a screen
     // opts into deferral and is not actively searching, skip building them entirely; the empty state
@@ -1770,6 +1814,7 @@ function createFilteredOptionList(
         conciergeReportID,
         // Option building translates strings imperatively (translateLocal), so the active locale is part of the output.
         locale ?? IntlStore.getCurrentLocale(),
+        formatPhoneNumber,
         // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
         // so its reference signals that the underlying report actions changed.
         sortedActions,
@@ -1826,7 +1871,7 @@ function createFilteredOptionList(
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
         const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-        const {reportMapEntry, reportOption} = processReport(
+        const {reportMapEntry, reportOption} = processReport({
             report,
             personalDetails,
             privateIsArchived,
@@ -1834,11 +1879,11 @@ function createFilteredOptionList(
             conciergeReportID,
             formatPhoneNumber,
             reportAttributesDerived,
-            reportPolicyTags,
+            policyTags: reportPolicyTags,
             visibleReportActionsData,
             isTrackIntentUser,
             sortedActions,
-        );
+        });
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
 
@@ -2495,19 +2540,33 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
  * @param config - Configuration object specifying display preferences and filtering criteria
  * @returns Array of enriched and filtered report options ready for UI display
  */
-function prepareReportOptionsForDisplay(
-    options: Array<SearchOption<Report>>,
-    policiesCollection: OnyxCollection<Policy>,
-    isOffline: boolean,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    config: GetValidReportsConfig & {translate: LocalizedTranslate},
-    conciergeReportID: string | undefined,
-    sortedActions: Record<string, ReportAction[]> | undefined,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    policyTags?: OnyxCollection<PolicyTagLists>,
-    isTrackIntentUser?: boolean,
-): Array<SearchOption<Report>> {
+type PrepareReportOptionsForDisplayParams = {
+    options: Array<SearchOption<Report>>;
+    policiesCollection: OnyxCollection<Policy>;
+    isOffline: boolean;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    config: GetValidReportsConfig & {translate: LocalizedTranslate};
+    conciergeReportID: string | undefined;
+    sortedActions: Record<string, ReportAction[]> | undefined;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    policyTags?: OnyxCollection<PolicyTagLists>;
+    isTrackIntentUser?: boolean;
+};
+
+function prepareReportOptionsForDisplay({
+    options,
+    policiesCollection,
+    isOffline,
+    formatPhoneNumber,
+    config,
+    conciergeReportID,
+    sortedActions,
+    visibleReportActionsData = {},
+    reportAttributesDerived,
+    policyTags,
+    isTrackIntentUser,
+}: PrepareReportOptionsForDisplayParams): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
         forcePolicyNamePreview = false,
@@ -2788,12 +2847,12 @@ function getValidOptions(
         hasMore = hasMore || groupedOptions.hasMore;
 
         if (selfDMChats.length > 0) {
-            selfDMChat = prepareReportOptionsForDisplay(
-                selfDMChats,
+            selfDMChat = prepareReportOptionsForDisplay({
+                options: selfDMChats,
                 policiesCollection,
-                isOfflineNetworkState,
+                isOffline: isOfflineNetworkState,
                 formatPhoneNumber,
-                {
+                config: {
                     ...getValidReportsConfig,
                     selectedOptions,
                     shouldBoldTitleByDefault,
@@ -2807,20 +2866,20 @@ function getValidOptions(
                 sortedActions,
                 visibleReportActionsData,
                 reportAttributesDerived,
-                allPolicyTags,
+                policyTags: allPolicyTags,
                 isTrackIntentUser,
-            ).at(0);
+            }).at(0);
         }
 
         if (maxRecentReportElements) {
             recentReportOptions = recentReportOptions.splice(0, maxRecentReportElements);
         }
-        recentReportOptions = prepareReportOptionsForDisplay(
-            recentReportOptions,
+        recentReportOptions = prepareReportOptionsForDisplay({
+            options: recentReportOptions,
             policiesCollection,
-            isOfflineNetworkState,
+            isOffline: isOfflineNetworkState,
             formatPhoneNumber,
-            {
+            config: {
                 ...getValidReportsConfig,
                 selectedOptions,
                 shouldBoldTitleByDefault,
@@ -2834,16 +2893,16 @@ function getValidOptions(
             sortedActions,
             visibleReportActionsData,
             reportAttributesDerived,
-            allPolicyTags,
+            policyTags: allPolicyTags,
             isTrackIntentUser,
-        );
+        });
 
-        workspaceChats = prepareReportOptionsForDisplay(
-            workspaceChats,
+        workspaceChats = prepareReportOptionsForDisplay({
+            options: workspaceChats,
             policiesCollection,
-            isOfflineNetworkState,
+            isOffline: isOfflineNetworkState,
             formatPhoneNumber,
-            {
+            config: {
                 ...getValidReportsConfig,
                 selectedOptions,
                 shouldBoldTitleByDefault,
@@ -2857,9 +2916,9 @@ function getValidOptions(
             sortedActions,
             visibleReportActionsData,
             reportAttributesDerived,
-            allPolicyTags,
+            policyTags: allPolicyTags,
             isTrackIntentUser,
-        );
+        });
 
         if (reportIDsToExclude.size > 0) {
             workspaceChats = workspaceChats.filter((chat) => !chat.reportID || !reportIDsToExclude.has(chat.reportID));
@@ -3254,17 +3313,17 @@ function formatSectionsFromSearchTerm(
                               const expenseReport = getReportByID(participant.reportID);
                               const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                               const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
-                              return getPolicyExpenseReportOption(
+                              return getPolicyExpenseReportOption({
                                   participant,
                                   privateIsArchived,
                                   personalDetails,
                                   expenseReport,
-                                  expenseReportPolicy,
+                                  policy: expenseReportPolicy,
                                   translate,
                                   formatPhoneNumber,
                                   currentUserAccountID,
                                   reportAttributesDerived,
-                              );
+                              });
                           }
                           return getParticipantsOption(participant, personalDetails, translate);
                       })
@@ -3296,17 +3355,17 @@ function formatSectionsFromSearchTerm(
                           const expenseReport = getReportByID(participant.reportID);
                           const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                           const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
-                          return getPolicyExpenseReportOption(
+                          return getPolicyExpenseReportOption({
                               participant,
                               privateIsArchived,
                               personalDetails,
                               expenseReport,
-                              expenseReportPolicy,
+                              policy: expenseReportPolicy,
                               translate,
                               formatPhoneNumber,
                               currentUserAccountID,
                               reportAttributesDerived,
-                          );
+                          });
                       }
                       return getParticipantsOption(participant, personalDetails, translate);
                   })
