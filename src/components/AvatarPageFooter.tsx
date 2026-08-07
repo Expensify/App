@@ -13,7 +13,7 @@ type AvatarPageFooterProps = {
     /** Translation key of the validation error to show, if any */
     validationError?: TranslationPaths | null | '';
 
-    /** Params for the validation error translation */
+    /** Standalone params for the validation error translation */
     phraseParam?: Record<string, unknown>;
 
     /** Whether the save button is enabled */

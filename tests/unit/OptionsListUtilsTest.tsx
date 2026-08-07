@@ -6659,11 +6659,7 @@ describe('OptionsListUtils', () => {
                     formatPhoneNumber,
                 });
 
-                expect(lastMessage).toBe(
-                    translateLocal('reportArchiveReasons.policyDeleted', {
-                        policyName: policy.name,
-                    }),
-                );
+                expect(lastMessage).toBe(translateLocal('reportArchiveReasons.policyDeleted', {policyName: policy.name}));
             });
 
             it('should use the passed policy name for REMOVED_FROM_POLICY archive reason', async () => {
@@ -6705,12 +6701,7 @@ describe('OptionsListUtils', () => {
                     formatPhoneNumber,
                 });
 
-                expect(lastMessage).toBe(
-                    translateLocal('reportArchiveReasons.removedFromPolicy', {
-                        displayName: 'Hidden',
-                        policyName: policy.name,
-                    }),
-                );
+                expect(lastMessage).toBe(translateLocal('reportArchiveReasons.removedFromPolicy', {displayName: 'Hidden', policyName: policy.name}));
             });
 
             it('resolves the workspace-unavailable fallback through the provided translate function when the archived policy is unavailable', async () => {
