@@ -1,7 +1,7 @@
 ---
 title: Upcoming Features – Integrations & Accounting (New Expensify)
 description: Internal AgentZero reference for planned and in-development accounting and integration features in New Expensify, including Rillet, Puzzle.io, Microsoft Dynamics 365 Business Central, DualEntry, NetSuite REST, Greenhouse, Ashby, Lever, Campfire, Workable, and HR imports. Not for public search indexing.
-keywords: upcoming, coming soon, planned, roadmap, Campfire, Rillet, Puzzle.io, DualEntry, Greenhouse, Ashby, Lever, Workable, Microsoft Dynamics 365, Microsoft Dynamics 365 Business Central, Dynamics, D365, NetSuite REST API, SuiteTalk, merge.dev, HR import, HRIS, OAuth, Integration Server, accounting integration,
+keywords: [upcoming, coming soon, planned, roadmap, Campfire, Rillet, Puzzle.io, DualEntry, Greenhouse, Ashby, Lever, Workable, Microsoft Dynamics 365, Microsoft Dynamics 365 Business Central, Dynamics, D365, NetSuite REST API, SuiteTalk, merge.dev, HR import, HRIS, OAuth, Integration Server, accounting integration]
 noindex: true
 sitemap: false
 internalScope: For AgentZero and internal tooling only. Use this page to give accurate, forward-looking answers about accounting and integration features that are planned but not yet generally available. Do not expose this URL in user-facing help.
