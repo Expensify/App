@@ -23,7 +23,7 @@ Each suggested Agent rule includes a predefined set of natural-language instruct
 
 When you create a rule from a suggestion, you can review and edit its instructions before saving. After it's created, you can continue editing it like any other Agent rule.
 
-For guidance on writing clear, effective instructions, see [How to Write Agent Rules](/articles/new-expensify/ai-agents/How-to-Write-Agent-Rules)/
+For guidance on writing clear, effective instructions, see [How to Write Agent Rules](/articles/new-expensify/ai-agents/How-to-Write-Agent-Rules).
 
 ---
 
