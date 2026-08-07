@@ -7774,8 +7774,7 @@ const translations = {
                 alwaysNonReimbursable: 'Always non-reimbursable',
                 alwaysNonReimbursableDescription: 'Expenses are never paid back to employees',
                 billableDefault: 'Billable default',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in <a href="${tagsPageLink}">tags</a>.</muted-text>`,
+                billableDefaultDescription: 'Choose whether cash and credit card expenses should be billable by default.',
                 disabled: 'Disabled',
                 disabledDescription: 'Expenses cannot be marked as billable',
                 billable: 'Billable',

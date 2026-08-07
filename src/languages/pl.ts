@@ -7471,8 +7471,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 alwaysNonReimbursable: 'Zawsze niepodlegające zwrotowi',
                 alwaysNonReimbursableDescription: 'Wydatki nigdy nie są zwracane pracownikom',
                 billableDefault: 'Domyślne obciążenie klienta',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>Wybierz, czy wydatki gotówkowe i kartą kredytową mają być domyślnie fakturowalne. Fakturowanie wydatków jest włączane lub wyłączane w <a href="${tagsPageLink}">tagach</a>.</muted-text>`,
+                billableDefaultDescription: 'Wybierz, czy wydatki gotówkowe i kartą kredytową mają być domyślnie fakturowalne.',
                 disabled: 'Wyłączone',
                 disabledDescription: 'Wydatków nie można oznaczyć jako fakturowalne',
                 billable: 'Fakturowalne',

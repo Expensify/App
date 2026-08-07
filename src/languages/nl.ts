@@ -7489,8 +7489,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 alwaysNonReimbursable: 'Altijd niet-declarabel',
                 alwaysNonReimbursableDescription: 'Onkosten worden nooit aan medewerkers terugbetaald',
                 billableDefault: 'Factureerbaar als standaard',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>Kies of contante en creditcarduitgaven standaard factureerbaar moeten zijn. Factureerbare uitgaven worden in- of uitgeschakeld in <a href="${tagsPageLink}">labels</a>.</muted-text>`,
+                billableDefaultDescription: 'Kies of contante en creditcarduitgaven standaard factureerbaar moeten zijn.',
                 disabled: 'Uitgeschakeld',
                 disabledDescription: 'Uitgaven kunnen niet als factureerbaar worden gemarkeerd',
                 billable: 'Factureerbaar',

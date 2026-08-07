@@ -7537,8 +7537,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 alwaysNonReimbursable: 'Immer nicht erstattungsfähig',
                 alwaysNonReimbursableDescription: 'Auslagen werden Mitarbeitenden nie erstattet',
                 billableDefault: 'Standardmäßig verrechenbar',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>Wähle, ob Bar- und Kreditkartenausgaben standardmäßig verrechenbar sein sollen. Verrechenbare Ausgaben werden in <a href="${tagsPageLink}">Tags</a> aktiviert oder deaktiviert.</muted-text>`,
+                billableDefaultDescription: 'Wähle, ob Bar- und Kreditkartenausgaben standardmäßig verrechenbar sein sollen.',
                 disabled: 'Deaktiviert',
                 disabledDescription: 'Spesen können nicht als verrechenbar markiert werden',
                 billable: 'Abrechenbar',
