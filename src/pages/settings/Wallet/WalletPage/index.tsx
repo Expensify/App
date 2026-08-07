@@ -45,10 +45,11 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
 
-import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressLockedBankAccount, resetPersonalBankAccountForUpdate} from '@userActions/BankAccounts';
+import {deletePaymentBankAccount, linkPlaidToBankAccount, openPersonalBankAccountSetupView, pressLockedBankAccount, resetPersonalBankAccountForUpdate} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
+import {openPlaidBankLogin} from '@userActions/Plaid';
 import {enableCompanyCards} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import {navigateToConciergeChat} from '@userActions/Report';
@@ -61,6 +62,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ForwardedRef, RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import debounce from 'lodash/debounce';
@@ -478,6 +480,90 @@ function WalletPage() {
         deletePaymentMethod();
     }, [showConfirmModal, translate, resetSelectedPaymentMethodData, deletePaymentMethod]);
 
+    // Draft: link a Plaid Item to an existing OPEN BBA via the LinkPlaidToBankAccount backend command.
+    // Kicks off by setting linkPlaidBankAccountID; effects below fetch the link token, open Plaid Link,
+    // and call the backend action on success. Mirrors FixPersonalCardConnectionPage's direct-SDK pattern.
+    const [linkPlaidBankAccountID, setLinkPlaidBankAccountID] = useState<number | null>(null);
+    const [isPlaidScriptLoaded, setIsPlaidScriptLoaded] = useState(false);
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
+    const hasRequestedLinkPlaidToken = useRef(false);
+    const previousLinkPlaidTokenRef = useRef<string | undefined>(undefined);
+
+    useEffect(() => {
+        if (linkPlaidBankAccountID === null || hasRequestedLinkPlaidToken.current) {
+            return;
+        }
+        hasRequestedLinkPlaidToken.current = true;
+        openPlaidBankLogin(true, linkPlaidBankAccountID);
+    }, [linkPlaidBankAccountID]);
+
+    useEffect(() => {
+        if (linkPlaidBankAccountID === null || typeof window === 'undefined' || isPlaidScriptLoaded) {
+            return;
+        }
+        const PLAID_SRC = 'https://cdn.plaid.com/link/v2/stable/link-initialize.js';
+        const handleLoad = () => setIsPlaidScriptLoaded(true);
+        if (typeof window.Plaid?.create === 'function') {
+            handleLoad();
+            return;
+        }
+        let scriptEl = document.querySelector<HTMLScriptElement>(`script[src="${PLAID_SRC}"]`);
+        if (!scriptEl) {
+            scriptEl = document.createElement('script');
+            scriptEl.src = PLAID_SRC;
+            scriptEl.async = true;
+            document.body.appendChild(scriptEl);
+        }
+        scriptEl.addEventListener('load', handleLoad, {once: true});
+        return () => {
+            scriptEl?.removeEventListener('load', handleLoad);
+        };
+    }, [linkPlaidBankAccountID, isPlaidScriptLoaded]);
+
+    useEffect(() => {
+        const hasFreshToken = !!plaidLinkToken && plaidLinkToken !== previousLinkPlaidTokenRef.current;
+        if (linkPlaidBankAccountID === null || !hasFreshToken || !plaidLinkToken || !isPlaidScriptLoaded || typeof window === 'undefined' || typeof window.Plaid?.create !== 'function') {
+            return;
+        }
+        previousLinkPlaidTokenRef.current = plaidLinkToken;
+        const bankAccountIDForLink = linkPlaidBankAccountID;
+        // Extract the stored last 4 digits from the BBA's masked accountNumber (e.g. "XXXXXXXX1234").
+        // Backend wrong-account guard compares against getLastFourDigits() on ACHData.
+        const storedAccountNumber = paymentMethod.selectedPaymentMethod?.accountNumber ?? '';
+        const storedLastFour = storedAccountNumber.slice(-4);
+        const handler = window.Plaid.create({
+            token: plaidLinkToken,
+            onSuccess: (publicToken: string, metadata: PlaidLinkOnSuccessMetadata) => {
+                // Plaid Link may return multiple selected accounts. Pick the one whose mask matches
+                // the BBA's stored last 4 so we (re)link the intended account and pass the wrong-account
+                // guard in LinkPlaidToBankAccount. If none match, send the first account and let the
+                // backend reject cleanly with PLAID_RECONNECT_WRONG_ACCOUNT. plaidAccountID is required
+                // so the backend can persist the top-level plaidAccountID on the BBA (needed for the
+                // Connect case; matches ConnectBankAccount's normal write).
+                const accounts = metadata?.accounts ?? [];
+                const matchingAccount = storedLastFour ? accounts.find((account) => account.mask === storedLastFour) : undefined;
+                const selectedAccount = matchingAccount ?? accounts.at(0);
+                const mask = selectedAccount?.mask ?? '';
+                const plaidAccountID = selectedAccount?.id ?? '';
+                linkPlaidToBankAccount(bankAccountIDForLink, publicToken, plaidAccountID, mask);
+                setLinkPlaidBankAccountID(null);
+                hasRequestedLinkPlaidToken.current = false;
+            },
+            onExit: () => {
+                setLinkPlaidBankAccountID(null);
+                hasRequestedLinkPlaidToken.current = false;
+            },
+            onEvent: () => {},
+        });
+        handler.open();
+        return () => {
+            handler.exit(true);
+            handler.destroy();
+        };
+    }, [linkPlaidBankAccountID, plaidLinkToken, isPlaidScriptLoaded, paymentMethod.selectedPaymentMethod?.accountNumber]);
+
+    const shouldShowConnectPlaidButton = paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !paymentMethod.selectedPaymentMethod?.plaidAccountID;
+
     const threeDotMenuItems = useMemo(
         () => [
             ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
@@ -562,6 +648,25 @@ function WalletPage() {
                       },
                   ]
                 : []),
+            ...(shouldShowConnectPlaidButton
+                ? [
+                      {
+                          text: 'Connect to Plaid',
+                          icon: icons.Link,
+                          onSelected: () => {
+                              if (isAccountLocked) {
+                                  closeModal(() => showLockedAccountModal());
+                                  return;
+                              }
+                              const bankAccountID = paymentMethod.selectedPaymentMethod?.bankAccountID;
+                              if (!bankAccountID) {
+                                  return;
+                              }
+                              closeModal(() => setLinkPlaidBankAccountID(bankAccountID));
+                          },
+                      },
+                  ]
+                : []),
         ],
         [
             shouldUseNarrowLayout,
@@ -581,7 +686,11 @@ function WalletPage() {
             makeDefaultPaymentMethod,
             showLockedAccountModal,
             paymentMethod.selectedPaymentMethod.bankAccountID,
+            paymentMethod.selectedPaymentMethod?.bankAccountID,
             showDeleteAccountModal,
+            shouldShowConnectPlaidButton,
+            icons.Link,
+            setLinkPlaidBankAccountID,
         ],
     );
 
