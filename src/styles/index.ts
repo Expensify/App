@@ -2153,13 +2153,6 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.heading,
         },
 
-        sidebarLinkActiveText: {
-            color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
-            textDecorationLine: 'none',
-            overflow: 'hidden',
-        },
-
         optionItemAvatarNameWrapper: {
             minWidth: 0,
             flex: 1,
