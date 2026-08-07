@@ -5,7 +5,7 @@ import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import * as UserActions from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 
-import ContactMethodDetailsPage from '@pages/settings/Profile/Contacts/ContactMethodDetailsPage';
+import DynamicContactMethodDetailsPage from '@pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -36,6 +36,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
+jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => ''));
+
 jest.mock('@components/DelegateNoAccessModalProvider', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@components/DelegateNoAccessModalProvider');
@@ -64,7 +66,6 @@ function HTMLProviderWrapper({children}: {children: React.ReactNode}) {
 const fakeEmail = 'fake@gmail.com';
 const mockRoute = {
     params: {
-        backTo: '',
         contactMethod: fakeEmail,
     },
 };
@@ -76,7 +77,7 @@ const mockLoginList = {
     },
 };
 
-describe('ContactMethodDetailsPage', () => {
+describe('DynamicContactMethodDetailsPage', () => {
     let mockFetch: MockFetch;
     beforeAll(() => {
         Onyx.init({
@@ -92,7 +93,7 @@ describe('ContactMethodDetailsPage', () => {
     function ContactMethodDetailsPageRenderer() {
         return (
             <HTMLProviderWrapper>
-                <ContactMethodDetailsPage
+                <DynamicContactMethodDetailsPage
                     // @ts-expect-error - Ignoring type errors for testing purposes
                     route={mockRoute}
                 />
