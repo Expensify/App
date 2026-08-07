@@ -1,10 +1,4 @@
-import {isMobile} from '@libs/Browser';
-
-// iPadOS Safari in "Request Desktop Website" mode (the default) reports a Macintosh user agent that
-// isMobile() can't recognize; real Macs report zero touch points.
-function isIPadInDesktopMode(): boolean {
-    return /Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1;
-}
+import {isIPadInDesktopMode, isMobile} from '@libs/Browser';
 
 /**
  * Copies a picked file's bytes into a memory-backed File. A picked File only references its OS

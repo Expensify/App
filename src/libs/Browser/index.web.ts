@@ -2,7 +2,7 @@ import getOSAndName from '@libs/actions/Device/getDeviceInfo/getOSAndName';
 
 import CONST from '@src/CONST';
 
-import type {GetBrowser, IsMobile, IsMobileChrome, IsMobileIOS, IsMobileSafari, IsMobileSafariOnIos26, IsMobileWebKit, IsSafari} from './types';
+import type {GetBrowser, IsIPadInDesktopMode, IsMobile, IsMobileChrome, IsMobileIOS, IsMobileSafari, IsMobileSafariOnIos26, IsMobileWebKit, IsSafari} from './types';
 
 /**
  * Fetch browser name from UA string
@@ -41,6 +41,12 @@ const getBrowser: GetBrowser = () => {
  */
 const isMobile: IsMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Silk|Opera Mini/i.test(navigator.userAgent);
 
+/**
+ * iPadOS Safari in "Request Desktop Website" mode (the default) reports a Macintosh user agent that
+ * isMobile() can't recognize; real Macs report zero touch points.
+ */
+const isIPadInDesktopMode: IsIPadInDesktopMode = () => /Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1;
+
 const isMobileIOS: IsMobileIOS = () => {
     const userAgent = navigator.userAgent;
     return /iP(ad|od|hone)/i.test(userAgent);
@@ -78,4 +84,4 @@ const isMobileSafariOnIos26: IsMobileSafariOnIos26 = (): boolean => {
     return isMobileSafari() && getOSAndName().osVersion === '26';
 };
 
-export {getBrowser, isMobile, isMobileIOS, isMobileSafari, isMobileWebKit, isSafari, isMobileChrome, isMobileSafariOnIos26};
+export {getBrowser, isMobile, isIPadInDesktopMode, isMobileIOS, isMobileSafari, isMobileWebKit, isSafari, isMobileChrome, isMobileSafariOnIos26};
