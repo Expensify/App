@@ -45,6 +45,20 @@ describe('getVisibleRHPKeys', () => {
         });
     });
 
+    it('holds a single dismissing screen at its width while the RHP below it stays open', () => {
+        // Popping one screen off the RHP takes it out of the stack a frame before it unmounts, same as dismissing the whole RHP.
+        const state = buildRootState([reportsSplit, rhpWithChildren(['remaining'])]);
+
+        expect(getVisibleRHPKeys(state, ['dismissingWideKey'], [])).toEqual({visibleWideRHPRouteKeys: ['dismissingWideKey'], visibleSuperWideRHPRouteKeys: []});
+    });
+
+    it('does not hold a registered screen the RHP is simply not displaying', () => {
+        // 'wideKey' is still in the stack under the super-wide screen, so it is on screen or not on its own merits, never held.
+        const state = buildRootState([reportsSplit, rhpWithChildren(['wideKey', 'superWideKey'])]);
+
+        expect(getVisibleRHPKeys(state, ['wideKey'], ['superWideKey'])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: ['superWideKey']});
+    });
+
     it('displays a registered screen while the RHP is on top', () => {
         const state = buildRootState([reportsSplit, rhpWithChildren(['a', 'wideKey', 'c'])]);
 

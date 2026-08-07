@@ -1,11 +1,11 @@
+import type {RHPWidth, RHPWidthHint} from '@components/WideRHPContextProvider/types';
+
 import {navigationRef} from '@libs/Navigation/Navigation';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 
 import {useRoute} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useRef} from 'react';
-
-import type {RHPWidth, RHPWidthHint} from '../types';
 
 import {expandedRHPProgress, useWideRHPActions} from '..';
 

@@ -28,29 +28,31 @@ function getVisibleRHPKeys(state: NavigationState | undefined, allWideRHPKeys: s
     const lastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
     const lastRHPRoute = state.routes.find((route) => route.key === lastVisibleRHPRouteKey);
 
-    if (!lastRHPRoute) {
-        if (state.routes.some((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)) {
-            return emptyRHPKeysState;
+    if (!lastRHPRoute && state.routes.some((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)) {
+        return emptyRHPKeysState;
+    }
+
+    let visibleRHPKeys = new Set<string>();
+    if (lastRHPRoute) {
+        const superWideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => route?.key && allSuperWideRHPKeys.includes(route.key)) ?? -1;
+        const wideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => route?.key && allWideRHPKeys.includes(route.key)) ?? -1;
+
+        if (superWideRHPIndex > -1) {
+            visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state?.routes.slice(superWideRHPIndex));
+        } else if (wideRHPIndex > -1) {
+            visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state?.routes.slice(wideRHPIndex));
+        } else {
+            visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state?.routes);
         }
-        // A dismissing RHP leaves the navigation state while its card animates out, so its registrations, which live until unmount, hold the width.
-        return {visibleWideRHPRouteKeys: allWideRHPKeys, visibleSuperWideRHPRouteKeys: allSuperWideRHPKeys};
     }
 
-    const superWideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => route?.key && allSuperWideRHPKeys.includes(route.key)) ?? -1;
-    const wideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => route?.key && allWideRHPKeys.includes(route.key)) ?? -1;
-
-    let visibleRHPKeys;
-    if (superWideRHPIndex > -1) {
-        visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state?.routes.slice(superWideRHPIndex));
-    } else if (wideRHPIndex > -1) {
-        visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state?.routes.slice(wideRHPIndex));
-    } else {
-        visibleRHPKeys = extractNavigationKeys(lastRHPRoute.state?.routes);
-    }
+    // Only RHP screens register, so a registration the state no longer knows about is one animating out and holds its width until it unmounts.
+    const keysInState = extractNavigationKeys(state.routes);
+    const isDisplayed = (key: string) => visibleRHPKeys.has(key) || !keysInState.has(key);
 
     return {
-        visibleWideRHPRouteKeys: allWideRHPKeys.filter((key) => visibleRHPKeys.has(key)),
-        visibleSuperWideRHPRouteKeys: allSuperWideRHPKeys.filter((key) => visibleRHPKeys.has(key)),
+        visibleWideRHPRouteKeys: allWideRHPKeys.filter(isDisplayed),
+        visibleSuperWideRHPRouteKeys: allSuperWideRHPKeys.filter(isDisplayed),
     };
 }
 
