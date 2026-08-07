@@ -4128,6 +4128,9 @@ ${amount} para ${merchant} - ${date}`,
         proofOf: 'Comprobante de domicilio personal',
         enterOneEmail: (companyName) => `Introduce el correo electrónico del director en ${companyName}`,
         regulationRequiresOneMoreDirector: 'El reglamento exige que haya otro director como firmante.',
+        bothSignersMustBeOnIllionReport:
+            'Ambas personas firmantes deben figurar como directores en el informe de illion de la empresa. No pueden ser simplemente dos personas cualquiera del negocio.',
+        signerMustBeOnIllionReport: 'El director que añadas como firmante debe estar incluido en el informe de illion de la empresa.',
         hangTight: 'Espera un momento...',
         enterTwoEmails: (companyName) => `Introduce los correos electrónicos de dos directores en ${companyName}`,
         sendReminder: 'Enviar un recordatorio',
@@ -4138,9 +4141,12 @@ ${amount} para ${merchant} - ${date}`,
         proofOfDirectorsDescription: 'Ejemplos: Perfil Corporativo de Oncorp o Registro Comercial.',
         codiceFiscale: 'Codice Fiscale',
         codiceFiscaleDescription: 'Codice Fiscale para firmantes, usuarios autorizados y beneficiarios finales.',
-        PDSandFSG: 'Documentación de divulgación PDS + FSG',
-        PDSandFSGDescription:
-            'Nuestra colaboración con Corpay utiliza una conexión API para aprovechar su amplia red de socios bancarios internacionales y facilitar los reembolsos globales en Expensify. Según la normativa australiana, te proporcionamos la Guía de Servicios Financieros (FSG) y el Documento de Divulgación del Producto (PDS) de Corpay.\n\nPor favor, lee detenidamente los documentos FSG y PDS, ya que contienen información completa e importante sobre los productos y servicios que ofrece Corpay. Conserva estos documentos para futuras consultas.',
+        PDSandFSG: 'Documentación de divulgación del PDS, FSG y TMD',
+        PDSandFSGDescription: Str.dedent(`
+            Nuestra colaboración con Corpay utiliza una conexión API para aprovechar su amplia red de socios bancarios internacionales y así impulsar los Reembolsos Globales en Expensify. De acuerdo con la normativa australiana, te proporcionamos la Guía de Servicios Financieros (FSG), el Documento de Divulgación del Producto (PDS) y la Determinación del Mercado Objetivo (TMD) de Corpay.
+
+            Lee detenidamente los documentos FSG, PDS y TMD, ya que contienen todos los detalles e información importante sobre los productos y servicios que ofrece Corpay. Conserva estos documentos para futuras consultas.
+        `),
         pleaseUpload: 'Sube documentación adicional a continuación para ayudarnos a verificar tu identidad como director de la empresa.',
         enterSignerInfo: 'Ingrese la información del firmante',
         thisStep: 'Este paso ha sido completado',
@@ -4151,6 +4157,8 @@ ${amount} para ${merchant} - ${date}`,
         },
     },
     agreementsStep: {
+        bankStatement: 'Extracto bancario',
+        bankStatementDescription: 'Por favor, proporciona un extracto bancario reciente, con fecha de los últimos tres meses, de la cuenta bancaria de empresa que estás conectando.',
         agreements: 'Acuerdos',
         pleaseConfirm: 'Por favor confirme los acuerdos a continuación',
         regulationRequiresUs: 'La normativa requiere que verifiquemos la identidad de cualquier individuo que posea más del 25% del negocio.',
@@ -4159,7 +4167,7 @@ ${amount} para ${merchant} - ${date}`,
         iAcceptTheTermsAndConditions: `Acepto los <a href="https://www.corpay.com/cross-border/terms">términos y condiciones</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Acepto los términos y condiciones.',
         accept: 'Agregar y aceptar cuenta bancaria',
-        iConsentToThePrivacyNotice: 'Doy mi consentimiento para el <a href="https://payments.corpay.com/compliance">aviso de privacidad</a>.',
+        iConsentToThePrivacyNotice: 'Doy mi consentimiento al <a href="https://www.corpay.com/privacy-policy">aviso de privacidad</a>.',
         iConsentToThePrivacyNoticeAccessibility: 'Doy mi consentimiento para el aviso de privacidad.',
         error: {
             authorized: 'Debe ser un funcionario controlador con autorización para operar la cuenta bancaria comercial',
