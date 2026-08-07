@@ -44,6 +44,39 @@ doThing();
 
 ---
 
+### Banned phrases
+
+The following phrases sound natural to AI but are unusual in human-written code. Flag any comment that uses them and suggest a plain substitute.
+
+| Phrase | Plain substitute |
+|--------|-----------------|
+| fan out | send, make, dispatch, distribute |
+| carve out | set aside, exclude, separate |
+| defense in depth | extra guard, additional check |
+| belt and suspenders (or belt-and-suspenders) | extra safety check, redundant guard |
+| fresh evidence | new data, updated result |
+| sentinel (used as prose metaphor, not a named constant or established CS term in context) | placeholder, marker, guard entry |
+
+**Examples of violations:**
+
+```ts
+// Fan out the request to every matching snapshot.
+// Belt-and-suspenders: also check the flag here.
+// Defense in depth: reject the value if it arrived stale.
+// Uses a sentinel to signal end-of-stream.
+```
+
+**Corrected:**
+
+```ts
+// Send the request to every matching snapshot.
+// Extra safety check: also verify the flag here.
+// Additional guard: reject the value if it arrived stale.
+// Uses a placeholder to signal end-of-stream.
+```
+
+---
+
 ### Review Metadata
 
 Flag ONLY when BOTH of these are true:
@@ -56,6 +89,7 @@ Flag ONLY when BOTH of these are true:
   - Uses `->` instead of writing the relationship in words
   - Uses a semicolon instead of two separate sentences
   - Trails at the end of a code line instead of sitting on its own line directly above it
+  - Uses a banned phrase from the list above
 
 **DO NOT flag if:**
 
