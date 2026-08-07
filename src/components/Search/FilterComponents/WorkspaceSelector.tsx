@@ -85,6 +85,7 @@ function SectionHeader({
                 <Text style={[styles.textLabelSupporting]}>{title}</Text>
             </View>
             <PressableWithoutFeedback
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.WORKSPACE_SELECTOR_SELECT_ALL}
                 style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv2]}
                 onPress={toggleSection}
                 accessibilityRole={CONST.ROLE.BUTTON}
