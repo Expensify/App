@@ -2,10 +2,12 @@ import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
+import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from '@libs/AgentRuleChangeLogUtils';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertToDisplayString as convertToDisplayStringUtil} from '@libs/CurrencyUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
@@ -580,7 +582,8 @@ function getExpenseReportPreviewText(
     report: OnyxEntry<Report>,
     moneyRequestAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>,
     translate: LocalizedTranslate,
-    transactions: Transaction[] = [],
+    transactions: Transaction[],
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ): string {
     const originalMessage = moneyRequestAction ? getOriginalMessage(moneyRequestAction) : undefined;
     const linkedTransaction = transactions.find((transaction) => transaction.transactionID === originalMessage?.IOUTransactionID);
@@ -671,8 +674,7 @@ function getLastMessageTextForReport({
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin?: string;
-    // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
-    conciergeReportID?: string;
+    conciergeReportID: string | undefined;
     isTrackIntentUser?: boolean;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
@@ -739,7 +741,8 @@ function getLastMessageTextForReport({
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
-        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, {
+        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, convertToDisplayStringUtil, {
             reportOrID: report,
             iouReportAction: lastReportAction,
             shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -762,7 +765,8 @@ function getLastMessageTextForReport({
             const reportName = reportAttributesDerived?.[iouReport.reportID]?.reportName ?? '';
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
-            const reportPreviewMessage = getReportPreviewMessage(translate, {
+            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+            const reportPreviewMessage = getReportPreviewMessage(translate, convertToDisplayStringUtil, {
                 reportOrID: !isEmptyObject(iouReport) ? iouReport : null,
                 iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -776,7 +780,8 @@ function getLastMessageTextForReport({
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
-        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, lastReportAction, report?.ownerAccountID);
+        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, lastReportAction, report?.ownerAccountID, convertToDisplayStringUtil);
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
@@ -790,6 +795,8 @@ function getLastMessageTextForReport({
             report?.ownerAccountID,
             getLoginByAccountID(report?.ownerAccountID, personalDetails),
             getLoginByAccountID(lastReportAction.actorAccountID, personalDetails),
+            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+            convertToDisplayStringUtil,
             currentUserAccountID,
         );
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
@@ -798,7 +805,7 @@ function getLastMessageTextForReport({
         const properSchemaForModifiedExpenseMessageWithHTML = getForReportAction({
             translate,
             // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-            convertToDisplayString,
+            convertToDisplayString: convertToDisplayStringUtil,
             reportAction: lastReportAction,
             policy,
             movedFromReport,
@@ -905,7 +912,8 @@ function getLastMessageTextForReport({
     } else if (isRenamedAction(lastReportAction)) {
         lastMessageTextFromReport = getRenamedAction(translate, lastReportAction, isExpenseReport(report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
-        lastMessageTextFromReport = getDeletedTransactionMessage(translate, lastReportAction);
+        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+        lastMessageTextFromReport = getDeletedTransactionMessage(translate, lastReportAction, convertToDisplayStringUtil);
     } else if (
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
@@ -923,7 +931,8 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getDynamicExternalWorkflowRoutedMessage(lastReportAction, translate);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
-        lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAmountMessage(translate, lastReportAction);
+        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+        lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAmountMessage(translate, lastReportAction, convertToDisplayStringUtil);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE)) {
         lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAgeMessage(translate, lastReportAction);
@@ -944,7 +953,8 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getRequireCompanyCardsEnabledMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
-        lastMessageTextFromReport = getAutoReimbursementMessage(translate, lastReportAction);
+        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+        lastMessageTextFromReport = getAutoReimbursementMessage(translate, lastReportAction, convertToDisplayStringUtil);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE)) {
         lastMessageTextFromReport = getCategoryTaxRateMessage(translate, lastReportAction);
@@ -992,6 +1002,15 @@ function getLastMessageTextForReport({
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED)) {
         lastMessageTextFromReport = getWorkspaceFeatureEnabledMessage(translate, lastReportAction);
     }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE)) {
+        lastMessageTextFromReport = getAddAgentRuleMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE)) {
+        lastMessageTextFromReport = getUpdateAgentRuleMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE)) {
+        lastMessageTextFromReport = getDeleteAgentRuleMessage(translate, lastReportAction);
+    }
     if (isPolicyCopyReportAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, lastReportAction));
     }
@@ -1025,14 +1044,16 @@ function getLastMessageTextForReport({
         } else if (report?.transactionCount && report?.transactionCount > 0 && report?.currency) {
             const latestVisibleMoneyRequestAction = getLatestVisibleMoneyRequestAction(reportID, canUserPerformWrite, sortedActions?.[reportID], visibleReportActionsDataParam);
             if (isExpenseReport(report) && latestVisibleMoneyRequestAction) {
-                lastMessageTextFromReport = getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate, transactions);
+                // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+                lastMessageTextFromReport = getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate, transactions, convertToDisplayStringUtil);
             } else if (!isExpenseReport(report)) {
                 lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
             } else if (!isCreatedAction(lastReportAction)) {
                 lastMessageTextFromReport =
                     formatReportLastMessageText(
                         Parser.htmlToText(
-                            getReportPreviewMessage(translate, {
+                            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+                            getReportPreviewMessage(translate, convertToDisplayStringUtil, {
                                 reportOrID: report,
                                 iouReportAction: lastReportAction,
                                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -1079,8 +1100,7 @@ type CreateOptionParams = {
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     translate?: LocalizedTranslate;
     isTrackIntentUser?: boolean;
-    // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
-    conciergeReportID?: string;
+    conciergeReportID: string | undefined;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
@@ -1213,7 +1233,17 @@ function createOption({
                       },
                   );
 
-        const computedReportName = deprecatedGetReportName(report, reportAttributesDerived);
+        const computedReportName =
+            deprecatedGetReportName(report, reportAttributesDerived) ||
+            (result.isSelfDM
+                ? getDisplayNameForParticipant({
+                      accountID: report.ownerAccountID,
+                      shouldAddCurrentUserPostfix: true,
+                      personalDetailsData: personalDetails ?? undefined,
+                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      translate: translateFn,
+                  })
+                : '');
 
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils, translate: translateFn}) ||
@@ -1321,20 +1351,36 @@ function getReportOption(
     return option;
 }
 
+type GetReportDisplayOptionParams = {
+    report: OnyxEntry<Report>;
+    unknownUserDetails: OnyxEntry<Participant>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    privateIsArchived: boolean | undefined;
+    policy: OnyxEntry<Policy>;
+    conciergeReportID: string | undefined;
+    translate: LocalizedTranslate;
+    currentUserAccountID: number;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    policyTags?: OnyxEntry<PolicyTagLists>;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+};
+
 /**
  * Get the display option for a given report.
  */
-function getReportDisplayOption(
-    report: OnyxEntry<Report>,
-    unknownUserDetails: OnyxEntry<Participant>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchived: boolean | undefined,
-    policy: OnyxEntry<Policy>,
-    translate: LocalizedTranslate,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    policyTags?: OnyxEntry<PolicyTagLists>,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-): OptionData {
+function getReportDisplayOption({
+    report,
+    unknownUserDetails,
+    personalDetails,
+    privateIsArchived,
+    policy,
+    conciergeReportID,
+    translate,
+    currentUserAccountID,
+    reportAttributesDerived,
+    policyTags,
+    visibleReportActionsData = {},
+}: GetReportDisplayOptionParams): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
     const option = createOption({
@@ -1343,6 +1389,7 @@ function getReportDisplayOption(
         report: !isEmptyObject(report) ? report : undefined,
         policy,
         privateIsArchived,
+        conciergeReportID,
         config: {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
@@ -1350,6 +1397,7 @@ function getReportDisplayOption(
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
+        currentUserAccountID,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1382,6 +1430,7 @@ function getPolicyExpenseReportOption(
     expenseReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     translate: LocalizedTranslate,
+    currentUserAccountID: number,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1396,6 +1445,8 @@ function getPolicyExpenseReportOption(
         report: !isEmptyObject(expenseReport) ? expenseReport : null,
         policy,
         privateIsArchived,
+        // Passing conciergeReportID as undefined is intentional, a policy expense chat is never the Concierge chat.
+        conciergeReportID: undefined,
         config: {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
@@ -1403,6 +1454,7 @@ function getPolicyExpenseReportOption(
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
+        currentUserAccountID,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1513,6 +1565,7 @@ function processReport(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
+    conciergeReportID: string | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1548,6 +1601,7 @@ function processReport(
                 report,
                 privateIsArchived,
                 policy,
+                conciergeReportID,
                 reportAttributesDerived,
                 policyTags,
                 visibleReportActionsData,
@@ -1662,6 +1716,7 @@ function createFilteredOptionList(
     privateIsArchivedMap: PrivateIsArchivedMap,
     policiesCollection: OnyxCollection<Policy>,
     options: {
+        conciergeReportID: string | undefined;
         maxRecentReports?: number;
         includeP2P?: boolean;
         isSearching?: boolean;
@@ -1673,14 +1728,14 @@ function createFilteredOptionList(
          */
         deferContactsUntilSearch?: boolean;
         locale?: Locale;
-    } = {},
+    },
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = EMPTY_VISIBLE_REPORT_ACTIONS,
     isTrackIntentUser?: boolean,
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>,
 ): OptionList {
-    const {maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
+    const {conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
 
     // Contacts are expensive to build on large accounts (one option per personal detail). When a screen
     // opts into deferral and is not actively searching, skip building them entirely; the empty state
@@ -1702,6 +1757,7 @@ function createFilteredOptionList(
         policyTags,
         visibleReportActionsData,
         isTrackIntentUser,
+        conciergeReportID,
         // Option building translates strings imperatively (translateLocal), so the active locale is part of the output.
         locale ?? IntlStore.getCurrentLocale(),
         // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
@@ -1765,6 +1821,7 @@ function createFilteredOptionList(
             personalDetails,
             privateIsArchived,
             policy,
+            conciergeReportID,
             reportAttributesDerived,
             reportPolicyTags,
             visibleReportActionsData,
@@ -1809,6 +1866,7 @@ function createFilteredOptionList(
                       report: reportMapForAccountIDs[accountID],
                       policy,
                       privateIsArchived,
+                      conciergeReportID,
                       config: {showPersonalDetails: true},
                       reportAttributesDerived,
                       policyTags: reportPolicyTags,
@@ -1844,18 +1902,33 @@ function createFilteredOptionList(
     return cloneOptionList(result);
 }
 
-function createOptionFromReport(
-    report: Report,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchived: boolean | undefined,
-    policy: OnyxEntry<Policy>,
-    sortedActions: Record<string, ReportAction[]> | undefined,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    config?: PreviewConfig,
-    policyTags?: OnyxEntry<PolicyTagLists>,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-    isTrackIntentUser?: boolean,
-) {
+type CreateOptionFromReportParams = {
+    report: Report;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    privateIsArchived: boolean | undefined;
+    policy: OnyxEntry<Policy>;
+    sortedActions: Record<string, ReportAction[]> | undefined;
+    conciergeReportID: string | undefined;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    config?: PreviewConfig;
+    policyTags?: OnyxEntry<PolicyTagLists>;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    isTrackIntentUser?: boolean;
+};
+
+function createOptionFromReport({
+    report,
+    personalDetails,
+    privateIsArchived,
+    policy,
+    sortedActions,
+    conciergeReportID,
+    reportAttributesDerived,
+    config,
+    policyTags,
+    visibleReportActionsData = {},
+    isTrackIntentUser,
+}: CreateOptionFromReportParams) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
     return {
@@ -1866,6 +1939,7 @@ function createOptionFromReport(
             report,
             privateIsArchived,
             policy,
+            conciergeReportID,
             config,
             reportAttributesDerived,
             policyTags,
@@ -2219,6 +2293,8 @@ function getUserToInviteOption({
         personalDetails: personalDetailsExtended,
         report: null,
         privateIsArchived: undefined,
+        // Passing conciergeReportID as undefined is intentional, the invite option is built without a report, so it can never be the Concierge chat.
+        conciergeReportID: undefined,
         config: {showChatPreviewLine},
         visibleReportActionsData,
     });
@@ -2406,7 +2482,7 @@ function prepareReportOptionsForDisplay(
     options: Array<SearchOption<Report>>,
     policiesCollection: OnyxCollection<Policy>,
     isOffline: boolean,
-    config: GetValidReportsConfig,
+    config: GetValidReportsConfig & {translate: LocalizedTranslate},
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -2427,6 +2503,7 @@ function prepareReportOptionsForDisplay(
         shouldShowGBR = false,
         shouldUnreadBeBold = false,
         personalDetails,
+        translate,
     } = config;
 
     const validOptions: Array<SearchOption<Report>> = [];
@@ -2506,8 +2583,8 @@ function prepareReportOptionsForDisplay(
         }
 
         if (shouldSeparateWorkspaceChat && newReportOption.isPolicyExpenseChat && !newReportOption.private_isArchived) {
-            newReportOption.text = getPolicyName({report, policy});
-            newReportOption.alternateText = translateLocal('workspace.common.workspace');
+            newReportOption.text = getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
+            newReportOption.alternateText = translate('workspace.common.workspace');
 
             if (report?.policyID) {
                 const submitToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report?.ownerAccountID, personalDetails));
@@ -2515,7 +2592,7 @@ function prepareReportOptionsForDisplay(
                 const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
                 if (subtitle) {
-                    newReportOption.alternateText = translateLocal('iou.submitsTo', subtitle ?? '');
+                    newReportOption.alternateText = translate('iou.submitsTo', subtitle ?? '');
                 }
                 const canSubmitPerDiemExpense = canSubmitPerDiemExpenseFromWorkspace(policy);
                 if (!canSubmitPerDiemExpense && isPerDiemRequest) {
@@ -2569,7 +2646,8 @@ function getValidOptions(
         isTrackIntentUser,
         isOffline,
         ...config
-    }: GetOptionsConfig = {},
+    }: GetOptionsConfig,
+    translate: LocalizedTranslate,
 ): OptionsResult {
     // Gather shared configs:
     // Hard exclusions: cannot be selected at all
@@ -2702,6 +2780,7 @@ function getValidOptions(
                     shouldSeparateWorkspaceChat,
                     shouldShowGBR,
                     personalDetails,
+                    translate,
                 },
                 conciergeReportID,
                 sortedActions,
@@ -2727,6 +2806,7 @@ function getValidOptions(
                 shouldSeparateWorkspaceChat,
                 shouldShowGBR,
                 personalDetails,
+                translate,
             },
             conciergeReportID,
             sortedActions,
@@ -2748,6 +2828,7 @@ function getValidOptions(
                 shouldSeparateWorkspaceChat,
                 shouldShowGBR,
                 personalDetails,
+                translate,
             },
             conciergeReportID,
             sortedActions,
@@ -2913,6 +2994,7 @@ type SearchOptionsConfig = {
     conciergeReportID: string | undefined;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     isTrackIntentUser?: boolean;
+    translate: LocalizedTranslate;
 };
 
 /**
@@ -2944,36 +3026,47 @@ function getSearchOptions({
     conciergeReportID,
     excludeFromSuggestionsOnly = {},
     isTrackIntentUser,
+    translate,
 }: SearchOptionsConfig): OptionsResult {
-    const optionList = getValidOptions(options, policyCollection, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
-        betas,
-        includeRecentReports,
-        includeMultipleParticipantReports: true,
-        showChatPreviewLine: isUsedInChatFinder,
-        includeP2P: true,
-        includeOwnedWorkspaceChats: true,
-        includeThreads: true,
-        includeMoneyRequests: true,
-        includeTasks: true,
-        includeReadOnly,
-        includeSelfDM: true,
-        shouldBoldTitleByDefault: !isUsedInChatFinder,
-        excludeHidden: true,
-        maxElements: maxResults,
-        includeCurrentUser,
-        searchString: searchQuery,
-        includeUserToInvite,
-        shouldShowGBR,
-        shouldUnreadBeBold,
-        personalDetails,
-        countryCode,
-        visibleReportActionsData,
-        reportAttributesDerived,
-        allPolicyTags,
-        sortedActions,
-        excludeFromSuggestionsOnly,
-        isTrackIntentUser,
-    });
+    const optionList = getValidOptions(
+        options,
+        policyCollection,
+        draftComments,
+        loginList,
+        currentUserAccountID,
+        currentUserEmail,
+        conciergeReportID,
+        {
+            betas,
+            includeRecentReports,
+            includeMultipleParticipantReports: true,
+            showChatPreviewLine: isUsedInChatFinder,
+            includeP2P: true,
+            includeOwnedWorkspaceChats: true,
+            includeThreads: true,
+            includeMoneyRequests: true,
+            includeTasks: true,
+            includeReadOnly,
+            includeSelfDM: true,
+            shouldBoldTitleByDefault: !isUsedInChatFinder,
+            excludeHidden: true,
+            maxElements: maxResults,
+            includeCurrentUser,
+            searchString: searchQuery,
+            includeUserToInvite,
+            shouldShowGBR,
+            shouldUnreadBeBold,
+            personalDetails,
+            countryCode,
+            visibleReportActionsData,
+            reportAttributesDerived,
+            allPolicyTags,
+            sortedActions,
+            excludeFromSuggestionsOnly,
+            isTrackIntentUser,
+        },
+        translate,
+    );
 
     return optionList;
 }
@@ -3133,7 +3226,16 @@ function formatSectionsFromSearchTerm(
                               const expenseReport = getReportByID(participant.reportID);
                               const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                               const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
-                              return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, translate, reportAttributesDerived);
+                              return getPolicyExpenseReportOption(
+                                  participant,
+                                  privateIsArchived,
+                                  personalDetails,
+                                  expenseReport,
+                                  expenseReportPolicy,
+                                  translate,
+                                  currentUserAccountID,
+                                  reportAttributesDerived,
+                              );
                           }
                           return getParticipantsOption(participant, personalDetails, translate);
                       })
@@ -3165,7 +3267,16 @@ function formatSectionsFromSearchTerm(
                           const expenseReport = getReportByID(participant.reportID);
                           const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                           const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
-                          return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, translate, reportAttributesDerived);
+                          return getPolicyExpenseReportOption(
+                              participant,
+                              privateIsArchived,
+                              personalDetails,
+                              expenseReport,
+                              expenseReportPolicy,
+                              translate,
+                              currentUserAccountID,
+                              reportAttributesDerived,
+                          );
                       }
                       return getParticipantsOption(participant, personalDetails, translate);
                   })
@@ -3186,7 +3297,7 @@ function filteredPersonalDetailsOfRecentReports(recentReports: SearchOptionData[
  * Filters options based on the search input value
  */
 function filterReports(reports: SearchOptionData[], searchTerms: string[]): SearchOptionData[] {
-    const normalizedSearchTerms = searchTerms.map((term) => StringUtils.normalizeAccents(term));
+    const normalizedSearchTerms = searchTerms.map((term) => StringUtils.normalizeForMatch(term));
     // We search eventually for multiple whitespace separated search terms.
     // We start with the search term at the end, and then narrow down those filtered search results with the next search term.
     // We repeat (reduce) this until all search terms have been used:
@@ -3195,22 +3306,22 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
             filterArrayByMatch(items, term, (item) => {
                 const values: string[] = [];
                 if (item.text) {
-                    values.push(StringUtils.normalizeAccents(item.text));
-                    values.push(StringUtils.normalizeAccents(item.text).replaceAll(/['-]/g, ''));
+                    values.push(StringUtils.normalizeForMatch(item.text));
+                    values.push(StringUtils.normalizeForMatch(item.text).replaceAll(/['-]/g, ''));
                 }
 
                 if (item.login) {
-                    values.push(StringUtils.normalizeAccents(item.login));
-                    values.push(StringUtils.normalizeAccents(item.login.replace(CONST.EMAIL_SEARCH_REGEX, '')));
+                    values.push(StringUtils.normalizeForMatch(item.login));
+                    values.push(StringUtils.normalizeForMatch(item.login.replace(CONST.EMAIL_SEARCH_REGEX, '')));
                 }
 
                 if (item.isThread) {
                     if (item.alternateText) {
-                        values.push(StringUtils.normalizeAccents(item.alternateText));
+                        values.push(StringUtils.normalizeForMatch(item.alternateText));
                     }
                 } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
                     if (item.subtitle) {
-                        values.push(StringUtils.normalizeAccents(item.subtitle));
+                        values.push(StringUtils.normalizeForMatch(item.subtitle));
                     }
                 }
 
