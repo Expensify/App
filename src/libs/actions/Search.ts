@@ -961,7 +961,7 @@ function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPagePara
     write(WRITE_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE, {reportIDList}, {optimisticData, successData});
 }
 
-// Tracks in-flight search requests by hash+offset to prevent duplicate API calls
+// Tracks in-flight search requests by hash+offset+totals to prevent duplicate API calls
 // when both page-level (useSearchPageSetup) and Search-internal (handleSearch) effects
 // fire for the same query. Cleared when the request completes.
 const inFlightSearchRequests = new Set<string>();
@@ -1042,8 +1042,9 @@ function search({
         return;
     }
 
-    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
-    if (inFlightSearchRequests.has(dedupeKey)) {
+    const pageKey = `${queryJSON.hash}_${offset ?? 0}`;
+    const dedupeKey = `${pageKey}_${shouldCalculateTotals ? 'totals' : 'noTotals'}`;
+    if (inFlightSearchRequests.has(dedupeKey) || (!shouldCalculateTotals && inFlightSearchRequests.has(`${pageKey}_totals`))) {
         return;
     }
     inFlightSearchRequests.add(dedupeKey);

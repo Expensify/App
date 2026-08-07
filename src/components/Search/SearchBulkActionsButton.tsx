@@ -135,14 +135,11 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     }, [selectedTransactions, selectedTransactionsKeys, isExpenseReportType, searchData]);
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
-    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !!currentSearchResults?.search?.isLoading;
-    let selectionButtonText: string;
-    if (areAllMatchingItemsSelected) {
-        selectionButtonText =
-            typeof allMatchingItemsCount !== 'number' ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: allMatchingItemsCount});
-    } else {
-        selectionButtonText = translate('workspace.common.selected', {count: selectedItemsCount});
-    }
+    const hasSearchErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0;
+    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !hasSearchErrors;
+    const selectionButtonText = translate('workspace.common.selected', {
+        count: areAllMatchingItemsSelected && typeof allMatchingItemsCount === 'number' ? allMatchingItemsCount : selectedItemsCount,
+    });
 
     return (
         <>
