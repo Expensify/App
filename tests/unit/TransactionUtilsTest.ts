@@ -570,8 +570,8 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.modifiedMerchant).not.toContain('20');
         });
 
-        it('keeps the commuter exclusion applied when the distance rate is changed', () => {
-            // Given a policy with a 3 mile fixed distance commuter exclusion and two rates
+        it('converts commuter exclusion data when the distance rate unit is changed', () => {
+            // Given a policy with a 3 mile fixed distance commuter exclusion and a kilometer rate
             const fakePolicy: Policy = {
                 ...createRandomPolicy(0),
                 commuterExclusions: {
@@ -587,17 +587,17 @@ describe('TransactionUtils', () => {
                             // getMileageRates keys its result by the rates map key, so it must match customUnitRateID
                             ID1: {
                                 customUnitRateID: '1',
-                                currency: CONST.CURRENCY.USD,
-                                rate: 1,
+                                currency: CONST.CURRENCY.EUR,
+                                rate: 10,
                             },
                             ID2: {
                                 customUnitRateID: '2',
-                                currency: CONST.CURRENCY.USD,
-                                rate: 2,
+                                currency: CONST.CURRENCY.EUR,
+                                rate: 30,
                             },
                         },
                         attributes: {
-                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
                         },
                     },
                 },
@@ -630,16 +630,15 @@ describe('TransactionUtils', () => {
                 getCurrencySymbol,
             });
 
-            // Then the commuter exclusion is still applied
-            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBe(3);
-            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBe(7);
+            // Then the original distance and commuter exclusion are converted to kilometers
+            expect(updatedTransaction.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(16.09);
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBeCloseTo(4.83);
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(11.26);
 
-            // And the amount comes from the reimbursable distance at the new rate (7 × 2), not the full 10 miles
-            expect(updatedTransaction.modifiedAmount).toBe(14);
-
-            // And the merchant quotes that same reimbursable distance, so it agrees with the amount
-            expect(updatedTransaction.modifiedMerchant).toContain('7');
-            expect(updatedTransaction.modifiedMerchant).not.toContain('10');
+            // And the amount and merchant use the converted reimbursable distance at the kilometer rate
+            expect(updatedTransaction.modifiedAmount).toBe(338);
+            expect(updatedTransaction.modifiedMerchant).toBe('11.26 km @ EUR 0.30 / km');
         });
 
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
