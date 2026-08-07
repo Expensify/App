@@ -15,7 +15,7 @@ import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildNextStepNew} from '@libs/NextStepUtils';
+import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isActionOfType, isDeletedAction} from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -61,7 +61,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/NextStepUtils', () => ({
-    buildNextStepNew: jest.fn(),
     buildOptimisticNextStep: jest.fn(),
 }));
 
@@ -3944,7 +3943,6 @@ describe('actions/Report', () => {
                     [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                 },
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4034,7 +4032,6 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList,
                 isReportLastVisibleArchived: false,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4079,7 +4076,6 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4110,7 +4106,6 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4140,7 +4135,6 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4170,7 +4164,6 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4202,7 +4195,6 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4255,7 +4247,6 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: targetPolicy.employeeList,
                 isReportLastVisibleArchived: false,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4705,7 +4696,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
             });
-            expect(buildNextStepNew).toHaveBeenCalledWith({
+            expect(buildOptimisticNextStep).toHaveBeenCalledWith({
                 report,
                 policy,
                 currentUserAccountIDParam: 1,
