@@ -55,7 +55,7 @@ function SearchReportsMergeReports() {
 
     const [destinationReportID, setDestinationReportID] = useState<string | undefined>();
 
-    useHydrateReportsFromSnapshot(currentSearchResults, allReports, allTransactions ?? {}, selectedReports);
+    useHydrateReportsFromSnapshot(currentSearchResults, allReports, allTransactions, selectedReports);
 
     const allReportsTransactions: Record<string, Transaction[]> = useMemo(() => {
         const selectedReportIDSet = new Set(selectedReports.map((report) => report.reportID));

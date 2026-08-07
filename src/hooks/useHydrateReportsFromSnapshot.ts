@@ -6,7 +6,7 @@ import type {Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import Onyx from 'react-native-onyx';
 
 function useHydrateReportsFromSnapshot(
@@ -17,9 +17,13 @@ function useHydrateReportsFromSnapshot(
     /** Only merge reports or transactions included in `selectedReports` when this parameter is provided. */
     selectedReports?: SelectedReports[],
 ) {
+    const hasHydratedFromAllReports = useRef(false);
+    const hasHydratedFromAllTransactions = useRef(false);
+
     useEffect(() => {
         const snapshotData = currentSearchResults?.data;
-        if (!snapshotData) {
+        // Guard with `hasHydratedFromAllTransactions` to prevent hydration from re-running when `allTransactions` changes
+        if (!snapshotData || hasHydratedFromAllTransactions.current) {
             return;
         }
 
@@ -41,7 +45,7 @@ function useHydrateReportsFromSnapshot(
             key.startsWith(ONYXKEYS.COLLECTION.REPORT) && !key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && !key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
         const isTransactionKey = (key: string): key is `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}` => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
         for (const key of Object.keys(snapshotData)) {
-            if (!isReportKey(key) && (!allTransactions || !isTransactionKey(key))) {
+            if ((!isReportKey(key) && (!allTransactions || !isTransactionKey(key))) || (isReportKey(key) && hasHydratedFromAllReports.current)) {
                 continue;
             }
 
@@ -62,9 +66,16 @@ function useHydrateReportsFromSnapshot(
         if (onyxUpdates.length > 0) {
             Onyx.update(onyxUpdates);
         }
+
+        hasHydratedFromAllReports.current = true;
+        if (allTransactions) {
+            hasHydratedFromAllTransactions.current = true;
+        }
         // Hydration should only run once on mount using the initial snapshot data
+        // Include `allTransactions` as a dependency so hydration can occur once it has a value.
+        // `hasHydratedFromAllTransactions` acts as a guard to ensure hydration only happens once.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [allTransactions]);
 }
 
 export default useHydrateReportsFromSnapshot;
