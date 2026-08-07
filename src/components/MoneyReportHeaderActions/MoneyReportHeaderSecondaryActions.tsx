@@ -473,6 +473,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             dropdownMenuRef={dropdownMenuRef}
             onOptionsMenuHide={handleOptionsMenuHide}
             ref={kycWallRef}
+            shouldPutHeaderTextAfterBackButton
         />
     );
 }

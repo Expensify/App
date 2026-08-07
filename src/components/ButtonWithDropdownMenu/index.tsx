@@ -90,9 +90,11 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         shouldUseModalPaddingStyle = true,
         shouldUseShortForm = false,
         shouldUseOptionIcon = false,
+        headerTextStyles,
         stayNormalOnDisable = false,
         brickRoadIndicator,
         sentryLabel,
+        shouldPutHeaderTextAfterBackButton = false,
     } = props;
 
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'DotIndicator']);
@@ -339,6 +341,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             setIsMenuVisible(false);
                         }
                     }}
+                    headerStyles={headerTextStyles}
                     anchorPosition={popoverAnchorPosition}
                     shouldShowRadioButton={shouldShowRadioButton}
                     anchorRef={dropdownAnchor}
@@ -371,6 +374,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             shouldCallAfterModalHide: true,
                         })),
                     }))}
+                    shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
                 />
             )}
         </View>

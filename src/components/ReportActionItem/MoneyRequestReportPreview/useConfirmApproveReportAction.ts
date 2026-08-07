@@ -34,7 +34,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
 
     const {iouReport, policy, ownerLogin, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail, delegateAccountID} = actionButtonData;
 
-    return () => {
+    return (full = true) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (hasHeldExpensesReportUtils(transactions)) {
@@ -52,7 +52,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 ownerLogin,
-                full: true,
+                full,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
                 delegateAccountID,
