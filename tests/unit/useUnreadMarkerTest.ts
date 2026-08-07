@@ -17,6 +17,7 @@ const LAST_READ_TIME = '2023-01-01 10:00:00.000';
 let mockIsAnonymousUser = false;
 let mockLastReadTime: string = LAST_READ_TIME;
 let mockLastReadTimeByReportID: Record<string, string> = {};
+let mockUnconfirmedReadWindow: {from: string; to: string} | undefined;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
@@ -29,9 +30,10 @@ jest.mock('@hooks/useIsAnonymousUser', () => ({
 }));
 
 // The hook subscribes to `${ONYXKEYS.COLLECTION.REPORT}${reportID}` with a selector that returns
-// `lastReadTime`. The implementation is set in beforeEach so it can use ONYXKEYS freely (a jest.mock
-// factory cannot reference out-of-scope variables).
-const mockUseOnyx = jest.fn<[string], [string]>();
+// `lastReadTime`, and to `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}` with a selector returning
+// `unconfirmedReadWindow`. The implementation is set in beforeEach so it can use ONYXKEYS freely (a
+// jest.mock factory cannot reference out-of-scope variables).
+const mockUseOnyx = jest.fn<[string | {from: string; to: string} | undefined], [string]>();
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
     default: (key: string) => mockUseOnyx(key),
@@ -66,7 +68,11 @@ describe('useUnreadMarker', () => {
         mockIsAnonymousUser = false;
         mockLastReadTime = LAST_READ_TIME;
         mockLastReadTimeByReportID = {};
+        mockUnconfirmedReadWindow = undefined;
         mockUseOnyx.mockImplementation((key) => {
+            if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_METADATA)) {
+                return [mockUnconfirmedReadWindow];
+            }
             const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
             return [mockLastReadTimeByReportID[reportID] ?? mockLastReadTime];
         });
@@ -141,5 +147,29 @@ describe('useUnreadMarker', () => {
         const {result: resultB} = renderUnreadMarker({reportID: 'B', sortedVisibleReportActions: [action], sortedReportActions: [action]});
         expect(resultB.current.unreadMarkerReportActionID).toBeNull();
         expect(resultB.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
+    it("keeps the NEW divider on another user's in-window message when an unconfirmedReadWindow is active, even though the bumped lastReadTime claims to cover it", () => {
+        // The queue bumped lastReadTime to 12:00 over the offline window (10:00 → 12:00]; another user's
+        // message landed at 11:00, inside the window, while this device was offline.
+        mockLastReadTime = '2023-01-01 12:00:00.000';
+        mockUnconfirmedReadWindow = {from: '2023-01-01 10:00:00.000', to: '2023-01-01 12:00:00.000'};
+        const action = makeAction('m1', {created: '2023-01-01 11:00:00.000'});
+
+        const {result} = renderUnreadMarker({sortedVisibleReportActions: [action], sortedReportActions: [action]});
+
+        expect(result.current.unreadMarkerReportActionID).toBe('m1');
+        expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
+    it('ignores an unconfirmedReadWindow once lastReadTime has advanced past its upper bound (superseded by a newer read)', () => {
+        mockLastReadTime = '2023-01-01 13:00:00.000';
+        mockUnconfirmedReadWindow = {from: '2023-01-01 10:00:00.000', to: '2023-01-01 12:00:00.000'};
+        const action = makeAction('m1', {created: '2023-01-01 11:00:00.000'});
+
+        const {result} = renderUnreadMarker({sortedVisibleReportActions: [action], sortedReportActions: [action]});
+
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
     });
 });
