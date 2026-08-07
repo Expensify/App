@@ -462,6 +462,9 @@ const ONYXKEYS = {
     /** Set when we are loading the bulk change approver page */
     IS_LOADING_BULK_CHANGE_APPROVER_PAGE: 'isLoadingBulkChangeApproverPage',
 
+    /** Set when we are loading the reimbursement countries used to decide whether to collect international deposit details */
+    IS_LOADING_DEPOSIT_ACCOUNT_SETUP: 'isLoadingDepositAccountSetup',
+
     /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
 
@@ -1670,6 +1673,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
     [ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS]: boolean;
     [ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE]: boolean;
+    [ONYXKEYS.IS_LOADING_DEPOSIT_ACCOUNT_SETUP]: boolean;
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
     [ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS]: boolean;
     [ONYXKEYS.IS_LOADING_AGENT_TEMPLATES]: boolean;
