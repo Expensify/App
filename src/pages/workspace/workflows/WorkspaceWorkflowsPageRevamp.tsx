@@ -65,7 +65,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Workflows']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table', 'Send', 'ThumbsUp', 'MoneyBag', 'Gear']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table', 'Send', 'ThumbsUp', 'MoneyBag', 'Wrench']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
@@ -141,7 +141,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
         {
             key: WORKFLOWS_TAB.ADVANCED,
             title: translate('workspace.rules.expenseReportRules.title'),
-            icon: expensifyIcons.Gear,
+            icon: expensifyIcons.Wrench,
         },
     ];
 
