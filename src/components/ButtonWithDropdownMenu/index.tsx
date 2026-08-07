@@ -1,6 +1,7 @@
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import InlineIcon from '@components/Icon/InlineIcon';
+import type BaseModalProps from '@components/Modal/types';
 import PopoverMenu from '@components/PopoverMenu';
 import Text from '@components/Text';
 
@@ -13,7 +14,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isSafari} from '@libs/Browser';
+import {resolvePopoverLauncherElement, setActivePopoverLauncher} from '@libs/LauncherStack';
 import mergeRefs from '@libs/mergeRefs';
+import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -21,7 +25,7 @@ import type {AnchorPosition} from '@src/styles';
 import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {ButtonWithDropdownMenuProps} from './types';
@@ -102,10 +106,35 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const StyleUtils = useStyleUtils();
     const [selectedItemIndex, setSelectedItemIndex] = useState(defaultSelectedIndex);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
+    const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
+    // When an item uses shouldCallAfterModalHide, restore the anchor before onSelected so nav can capture it.
+    const shouldRestoreAnchorOnHideRef = useRef(false);
     // In tests, skip the popover anchor position calculation. The default values are needed for popover menu to be rendered in tests.
     const defaultPopoverAnchorPosition = process.env.NODE_ENV === 'test' ? {horizontal: 100, vertical: 100} : null;
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
     const dropdownAnchor = useRef<View | null>(null);
+
+    const registerDropdownLauncher = useCallback(() => {
+        // Register before open — mouse-open often leaves activeElement as body, so FocusTrap can't infer the launcher.
+        const anchor = resolvePopoverLauncherElement(dropdownAnchor);
+        if (anchor) {
+            setActivePopoverLauncher(anchor);
+        }
+    }, []);
+
+    const setMenuVisible = useCallback(
+        (visible: boolean) => {
+            if (visible) {
+                registerDropdownLauncher();
+            }
+            setIsMenuVisible(visible);
+        },
+        [registerDropdownLauncher],
+    );
+
+    const toggleMenuVisible = useCallback(() => {
+        setMenuVisible(!isMenuVisible);
+    }, [isMenuVisible, setMenuVisible]);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -164,7 +193,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         (e) => {
             if (shouldAlwaysShowDropdownMenu || options.length) {
                 if (!isSplitButton) {
-                    setIsMenuVisible(!isMenuVisible);
+                    toggleMenuVisible();
                     return;
                 }
                 if (selectedItem?.value) {
@@ -193,14 +222,14 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
 
     const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
         if (!isSplitButton) {
-            setIsMenuVisible(!isMenuVisible);
+            toggleMenuVisible();
         } else if (selectedItem?.value) {
             onPress(event, selectedItem.value);
         }
     };
 
     useImperativeHandle(ref, () => ({
-        setIsMenuVisible,
+        setIsMenuVisible: setMenuVisible,
     }));
 
     const IconComponent = shouldUseShortForm ? InlineIcon : Icon;
@@ -265,7 +294,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             accessibilityState={{expanded: isMenuVisible}}
                             stayNormalOnDisable={stayNormalOnDisable}
                             style={[styles.pl0]}
-                            onPress={() => setIsMenuVisible(!isMenuVisible)}
+                            onPress={toggleMenuVisible}
                             removeBorderRadius={CONST.BUTTON_REMOVE_BORDER_RADIUS.LEFT}
                             size={size}
                             innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton, isButtonSizeSmall && styles.dropDownButtonCartIcon]}
@@ -333,8 +362,28 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         onOptionsMenuHide?.();
                     }}
                     onModalShow={onOptionsMenuShow}
+                    onModalHide={() => {
+                        setRestoreFocusType(undefined);
+                        if (!shouldRestoreAnchorOnHideRef.current) {
+                            return;
+                        }
+                        shouldRestoreAnchorOnHideRef.current = false;
+                        // Put focus back on the anchor before shouldCallAfterModalHide runs onSelected / NavigationFocusReturn captures.
+                        const anchor = resolvePopoverLauncherElement(dropdownAnchor);
+                        if (anchor) {
+                            restoreFocusWithModality(anchor);
+                        }
+                    }}
                     onItemSelected={(selectedSubitem, index, event) => {
                         onSubItemSelected?.(selectedSubitem, index, event);
+                        // Match PopoverMenu: Safari runs shouldCallAfterModalHide immediately (no defer),
+                        // so do not arm post-hide restore — that would refocus the anchor behind the destination.
+                        const willDeferSelection = !!selectedSubitem.shouldCallAfterModalHide && !isSafari();
+                        if (willDeferSelection) {
+                            shouldRestoreAnchorOnHideRef.current = true;
+                        } else {
+                            setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE);
+                        }
                         if (selectedSubitem.shouldCloseModalOnSelect !== false) {
                             setIsMenuVisible(false);
                         }
@@ -348,6 +397,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     headerText={menuHeaderText}
                     shouldUseScrollView={shouldPopoverUseScrollView}
                     containerStyles={containerStyles}
+                    shouldEnableNewFocusManagement
+                    restoreFocusType={restoreFocusType}
                     menuItems={options.map((item, index) => ({
                         ...item,
                         onSelected: item.onSelected

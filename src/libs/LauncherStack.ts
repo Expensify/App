@@ -2,6 +2,9 @@
  * Stack of popover/modal launcher elements — the element that opened a focus trap. Top is the most recent.
  * pickLauncher prefers the topmost active entry, else the most recent deactivated-within-LAUNCHER_CLEAR_DELAY_MS.
  */
+import type {RefObject} from 'react';
+import type {View} from 'react-native';
+
 import {LAUNCHER_CLEAR_DELAY_MS, LAUNCHER_STACK_MAX} from './focusReturnTimings';
 
 // deactivatedAt is set on trap close; entry lives LAUNCHER_CLEAR_DELAY_MS so deferred-nav popovers can still consume it.
@@ -11,13 +14,24 @@ type LauncherEntry = {element: HTMLElement; deactivatedAt?: number};
 const launcherStack: LauncherEntry[] = [];
 let hasWarnedAboutOverflow = false;
 
+/** Resolve a RN View ref to its web host node for LauncherStack registration. No-op on native. */
+function resolvePopoverLauncherElement(ref: RefObject<View | null> | null | undefined): HTMLElement | null {
+    if (typeof document === 'undefined' || !ref?.current) {
+        return null;
+    }
+    // On web, RN View refs are DOM nodes; instanceof avoids an unsafe cast.
+    const node = ref.current;
+    if (!(node instanceof HTMLElement) || !document.contains(node)) {
+        return null;
+    }
+    return node;
+}
+
 // Two passes so nested traps resolve to the outer (active) launcher, not the just-closed inner.
-function pickLauncher(): HTMLElement | null {
+function pickActiveLauncher(): HTMLElement | null {
     if (typeof document === 'undefined') {
         return null;
     }
-    // Monotonic — Date.now() would misbehave on clock jumps.
-    const now = performance.now();
     for (let i = launcherStack.length - 1; i >= 0; i -= 1) {
         const entry = launcherStack.at(i);
         if (!entry) {
@@ -31,6 +45,19 @@ function pickLauncher(): HTMLElement | null {
             return entry.element;
         }
     }
+    return null;
+}
+
+function pickLauncher(): HTMLElement | null {
+    if (typeof document === 'undefined') {
+        return null;
+    }
+    const active = pickActiveLauncher();
+    if (active) {
+        return active;
+    }
+    // Monotonic — Date.now() would misbehave on clock jumps.
+    const now = performance.now();
     for (let i = launcherStack.length - 1; i >= 0; i -= 1) {
         const entry = launcherStack.at(i);
         if (entry?.deactivatedAt === undefined) {
@@ -97,4 +124,4 @@ function resetLauncherStackForTests(): void {
     hasWarnedAboutOverflow = false;
 }
 
-export {pickLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests};
+export {pickLauncher, pickActiveLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests, resolvePopoverLauncherElement};

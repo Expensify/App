@@ -1,26 +1,36 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
-import {markActivePopoverLauncherDeactivated, setActivePopoverLauncher} from '@libs/LauncherStack';
+import {markActivePopoverLauncherDeactivated, pickActiveLauncher, pickLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import resolveFocusTrapLauncher from '@libs/resolveFocusTrapLauncher';
 import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 import sharedTrapStack from '@libs/sharedTrapStack';
 
 import {FocusTrap} from 'focus-trap-react';
 import React, {useRef} from 'react';
+import {View} from 'react-native';
 
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
 function FocusTrapForModal({children, active, initialFocus = false, shouldPreventScroll = false, shouldReturnFocus = true}: FocusTrapForModalProps) {
+    const styles = useThemeStyles();
     // Track this trap's own launcher so onPostDeactivate targets the right shared-stack entry.
     const cachedLauncherRef = useRef<HTMLElement | null>(null);
+    // Host we own (same pattern as FormElement) — dContents so it does not affect modal layout/alignment.
+    const trapContainerRef = useRef<View | null>(null);
+
     return (
         <FocusTrap
             active={active}
             focusTrapOptions={{
                 onActivate: () => {
-                    // Capture for nav-back return — independent of shouldReturnFocus (which gates only focus-trap-react's same-screen return below).
-                    const launcher = document.activeElement;
+                    const activeElement = document.activeElement;
+                    const fromActive = activeElement instanceof HTMLElement && activeElement !== document.body ? activeElement : null;
+                    const container = trapContainerRef.current instanceof HTMLElement ? trapContainerRef.current : null;
+                    const launcher = resolveFocusTrapLauncher(fromActive, pickActiveLauncher(), container, pickLauncher());
                     blurActiveElement();
-                    if (launcher instanceof HTMLElement && launcher !== document.body) {
+                    if (launcher && document.contains(launcher)) {
                         cachedLauncherRef.current = launcher;
                         setActivePopoverLauncher(launcher);
                     }
@@ -46,7 +56,12 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                 setReturnFocus: false,
             }}
         >
-            {children}
+            <View
+                ref={trapContainerRef}
+                style={styles.dContents}
+            >
+                {children}
+            </View>
         </FocusTrap>
     );
 }

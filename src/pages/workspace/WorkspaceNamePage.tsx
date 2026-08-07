@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -30,6 +31,7 @@ type Props = WithPolicyProps;
 function WorkspaceNamePage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
@@ -97,7 +99,7 @@ function WorkspaceNamePage({policy}: Props) {
                             accessibilityLabel={translate('workspace.common.workspaceName')}
                             defaultValue={policy?.name}
                             spellCheck={false}
-                            autoFocus
+                            ref={inputCallbackRef}
                         />
                     </View>
                 </FormProvider>

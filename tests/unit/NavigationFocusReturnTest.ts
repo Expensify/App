@@ -440,6 +440,31 @@ describe('captureTriggerForRoute', () => {
             expect(launcherSpy).toHaveBeenCalled();
         });
 
+        it('should capture a pre-blurred ThreeDots launcher when the menu item unmounts on navigate', () => {
+            // ThreeDotsMenu blurs the anchor before FocusTrap activates, then registers via setActivePopoverLauncher.
+            const launcher = document.createElement('button');
+            const menuItem = document.createElement('button');
+            document.body.appendChild(launcher);
+            document.body.appendChild(menuItem);
+
+            setActivePopoverLauncher(launcher);
+            launcher.blur();
+            expect(document.activeElement).toBe(document.body);
+
+            // User activates Duplicate while the disposable menu item holds focus.
+            menuItem.focus();
+            menuItem.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+            captureTriggerForRoute('workspaces-list');
+
+            // Popover unmounts the menu item; only the 3-dot launcher remains.
+            menuItem.remove();
+            markActivePopoverLauncherDeactivated(launcher);
+
+            const launcherSpy = jest.spyOn(launcher, 'focus');
+            expect(restoreTriggerForRoute('workspaces-list')).toBe(true);
+            expect(launcherSpy).toHaveBeenCalled();
+        });
+
         it('should fall through to lastInteractiveElement when the launcher is gone', () => {
             const fallback = document.createElement('button');
             document.body.appendChild(fallback);

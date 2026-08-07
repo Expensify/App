@@ -554,6 +554,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             titleStyle={styles.workspaceTitleStyle}
                             description={translate('workspace.common.workspaceName')}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.NAME}
+                            pressableTestID="workspace-overview-name-menu-item"
                             shouldShowRightIcon={!readOnly}
                             interactive={!readOnly}
                             wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
@@ -579,6 +580,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     title={policyDescription}
                                     description={translate('workspace.editor.descriptionInputLabel')}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.DESCRIPTION}
+                                    pressableTestID="workspace-overview-description-menu-item"
                                     shouldShowRightIcon={!readOnly}
                                     interactive={!readOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
