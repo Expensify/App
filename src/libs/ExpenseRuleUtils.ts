@@ -75,13 +75,13 @@ function extractRuleFromForm(form: ExpenseRuleForm, taxRate?: TaxRate) {
     const commentHTML = form.comment ? Parser.replace(form.comment) : undefined;
 
     const rule: ExpenseRule = {
-        billable: form.billable,
+        billable: form.billable || undefined,
         category: form.category,
         comment: commentHTML,
         createReport: form.createReport,
         merchant: form.merchant,
         merchantToMatch: form.merchantToMatch,
-        reimbursable: form.reimbursable,
+        reimbursable: form.reimbursable || undefined,
         report: form.report,
         tag: form.tag,
         // eslint-disable-next-line @typescript-eslint/naming-convention
