@@ -10,7 +10,9 @@ import Onyx from 'react-native-onyx';
 
 import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps} from './types';
 
-const ATTACHMENT_DIR = `${RNFS.DocumentDirectoryPath}/attachments`;
+// Cached attachments are re-downloadable, so they live in Caches, which the OS may purge
+// and which is never exposed to the user via the iOS Files app (unlike Documents)
+const ATTACHMENT_DIR = `${RNFS.CachesDirectoryPath}/attachments`;
 
 async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentProps) {
     const isLocalFile = uri.startsWith('file://');
