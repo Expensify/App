@@ -12,6 +12,7 @@ import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 /* eslint-disable @typescript-eslint/naming-convention */
 import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startOfDay, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
+import {el} from 'date-fns/locale/el';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../utils/TestHelper';
@@ -269,20 +270,9 @@ describe('DateUtils', () => {
             expect(DateUtils.formatWithUTCTimeZone(datetimeStr)).toEqual(expectedResult);
         });
 
-        it('formats locale-sensitive tokens with the locale it is given, ignoring the date-fns global default', async () => {
-            // The date-fns global default is set asynchronously by IntlStore and is invisible to React, so a component
-            // that relies on it keeps rendering the previous language after a locale switch. Passing the locale
-            // explicitly is what makes the formatted date follow the user's current language.
-            await IntlStore.load(CONST.LOCALES.EL);
-            await waitForBatchedUpdates();
-            const greekLocale = IntlStore.getDateFNSLocale(CONST.LOCALES.EL);
-
-            await IntlStore.load(CONST.LOCALES.EN);
-            await waitForBatchedUpdates();
-            const englishLocale = IntlStore.getDateFNSLocale(CONST.LOCALES.EN);
-
-            expect(DateUtils.formatWithUTCTimeZone(datetime, CONST.DATE.MONTH_DAY_ABBR_FORMAT, greekLocale)).toEqual('Νοε 7');
-            expect(DateUtils.formatWithUTCTimeZone(datetime, CONST.DATE.MONTH_DAY_ABBR_FORMAT, englishLocale)).toEqual('Nov 7');
+        it('formats locale-sensitive tokens in the locale it is given rather than the date-fns global default', () => {
+            // The suite runs with the global default set to English, so a Greek month name can only come from the argument.
+            expect(DateUtils.formatWithUTCTimeZone(datetime, CONST.DATE.MONTH_DAY_ABBR_FORMAT, el)).toEqual('Νοε 7');
         });
     });
 

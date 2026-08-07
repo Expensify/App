@@ -18,7 +18,7 @@ import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {Locale as DateFNSLocale} from 'date-fns';
+import type {Locale as DateFnsLocale} from 'date-fns';
 
 import {format as formatDate} from 'date-fns';
 import React, {createContext, useEffect, useState} from 'react';
@@ -68,11 +68,10 @@ type LocaleContextProps = {
 
     /**
      * The date-fns locale matching `preferredLocale`, to pass as the `locale` option of date-fns `format`.
-     * date-fns also reads a global default locale, but React can't track that global, so components that format
-     * locale-sensitive tokens (MMM, MMMM, EEEE, do) must use this value or they will keep rendering the previous
-     * language until something else re-renders them.
+     * Components formatting locale-sensitive tokens (MMM, MMMM, EEEE, do) must use this rather than the date-fns
+     * global default, which React can't track and so can't re-render on.
      */
-    dateFNSLocale: DateFNSLocale | undefined;
+    dateFnsLocale: DateFnsLocale | undefined;
 };
 
 type LocalizedTranslate = LocaleContextProps['translate'];
@@ -90,7 +89,7 @@ const LocaleContext = createContext<LocaleContextProps>({
     localeCompare: () => 0,
     formatTravelDate: () => '',
     preferredLocale: undefined,
-    dateFNSLocale: undefined,
+    dateFnsLocale: undefined,
 });
 
 const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
@@ -184,7 +183,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         localeCompare,
         formatTravelDate,
         preferredLocale: currentLocale,
-        dateFNSLocale: IntlStore.getDateFNSLocale(currentLocale),
+        dateFnsLocale: IntlStore.getDateFnsLocale(currentLocale),
     };
 
     // eslint-disable-next-line rulesdir/context-provider-split-values

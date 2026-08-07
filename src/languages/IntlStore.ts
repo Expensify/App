@@ -7,7 +7,7 @@ import type {Locale} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type DynamicModule from '@src/types/utils/DynamicModule';
 
-import type {Locale as DateUtilsLocale} from 'date-fns';
+import type {Locale as DateFnsLocale} from 'date-fns';
 
 import {setDefaultOptions} from 'date-fns';
 import Onyx from 'react-native-onyx';
@@ -46,7 +46,7 @@ class IntlStore {
      * Cache for localized date-fns
      * @private
      */
-    private static dateUtilsCache = new Map<Locale, DateUtilsLocale>();
+    private static dateUtilsCache = new Map<Locale, DateFnsLocale>();
 
     /**
      * Set of loaders for each locale.
@@ -215,12 +215,10 @@ class IntlStore {
     }
 
     /**
-     * Returns the date-fns locale for the given locale, or for the current locale when none is provided.
-     * Returns undefined until the locale's date-fns module has finished loading, in which case date-fns falls back to its built-in en-US locale.
+     * Returns the date-fns locale to format dates in, which is undefined until that locale's date-fns module has loaded.
      */
-    public static getDateFNSLocale(locale?: Locale) {
-        const localeToUse = locale ?? this.currentLocale;
-        return localeToUse ? this.dateUtilsCache.get(localeToUse) : undefined;
+    public static getDateFnsLocale(locale: Locale | undefined) {
+        return locale ? this.dateUtilsCache.get(locale) : undefined;
     }
 
     public static load(locale: Locale) {
