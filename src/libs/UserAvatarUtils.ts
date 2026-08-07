@@ -177,6 +177,16 @@ function getCatalogAvatarNameFromURL(avatarURL?: AvatarSource): string | undefin
     return findAvatarIDFromURL(avatarURL);
 }
 
+/** Narrows an avatar owner ID to a numeric account ID. User-avatar path only — a workspace policyID yields the anonymous default; use `WorkspaceAvatar` instead. */
+function getAccountIDFromAvatarID(avatarID?: number | string): number {
+    if (avatarID === undefined) {
+        return CONST.DEFAULT_NUMBER_ID;
+    }
+    // Number() (unlike parseInt) rejects a policyID like '1A2B...' whole, instead of extracting a bogus leading account ID.
+    const accountID = Number(avatarID);
+    return Number.isNaN(accountID) ? CONST.DEFAULT_NUMBER_ID : accountID;
+}
+
 /**
  * Determines if an avatar source points to a default avatar (not user-uploaded).
  * Default avatars include numbered avatars (avatar_X, default-avatar_X) and Concierge avatars.
@@ -528,6 +538,7 @@ function optimizeAvatarSource(source?: AvatarSource): AvatarSource | undefined {
 
 export {
     buildUserIcon,
+    getAccountIDFromAvatarID,
     getAvatar,
     getAvatarURL,
     getDefaultAvatar,
