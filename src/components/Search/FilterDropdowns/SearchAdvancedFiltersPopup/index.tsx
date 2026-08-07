@@ -45,11 +45,13 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     // The list highlights `selectedFilter` immediately; the content pane follows `restedFilter` once the cursor has stayed
     // on a row for SEARCH_FILTER_HOVER_INTENT_DELAY, so sweeping across rows doesn't render a content pane per row.
     const [selectedFilter, restedFilter, setSelectedFilter] = useDebouncedState<SearchFilter['key']>(CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
-    // The last MAX_MOUNTED_FILTER_CONTENTS rested filters stay mounted (hidden by Activity), so returning to one of them
-    // toggles visibility instead of remounting. Adjusted during render so the new pane shows in the same frame.
+    // The MAX_MOUNTED_FILTER_CONTENTS most recently rested filters stay mounted (hidden by Activity), so returning to
+    // one of them toggles visibility instead of remounting. Kept in least-recently-rested order (revisits move a filter
+    // back to the end, without remounting since the keys are stable) and adjusted during render so the new pane shows
+    // in the same frame.
     const [mountedFilters, setMountedFilters] = useState<Array<SearchFilter['key']>>([CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE]);
-    if (!mountedFilters.includes(restedFilter)) {
-        setMountedFilters([...mountedFilters, restedFilter].slice(-CONST.SEARCH.MAX_MOUNTED_FILTER_CONTENTS));
+    if (mountedFilters.at(-1) !== restedFilter) {
+        setMountedFilters([...mountedFilters.filter((filterKey) => filterKey !== restedFilter), restedFilter].slice(-CONST.SEARCH.MAX_MOUNTED_FILTER_CONTENTS));
     }
     const filterContentRef = useRef<View>(null);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);

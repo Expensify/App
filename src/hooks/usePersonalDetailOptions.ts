@@ -140,35 +140,37 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
     const {accountID} = useCurrentUserPersonalDetails();
     const {formatPhoneNumber, translate} = useLocalize();
     const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
-    const reportIDsSet = (() => {
-        if (!reports) {
-            return new Set<string>();
-        }
-        const validReportIDs = new Set<string>();
-        for (const report of Object.values(reports)) {
-            if (report) {
-                validReportIDs.add(report.reportID);
-            }
-        }
-        return validReportIDs;
-    })();
-
     const [reportAttributes, reportAttributesMetadata] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const personalDetails = usePersonalDetails();
 
     const isLoading = !enabled || isLoadingOnyxValue(reportsMetadata, reportAttributesMetadata, reportNameValuePairsMetadata);
 
-    const accountIDToReportIDMap = generateAccountIDToReportIDMap(reports, accountID);
-    const privateIsArchivedMap = filterRNVPs(reportNameValuePairs, reportIDsSet);
-    const filteredReportAttributes = filterReportAttributes(reportAttributes, reportIDsSet);
+    // The whole derivation chain is skipped while loading (or disabled), so a consumer that only holds the Onyx
+    // subscriptions (e.g. PersonalDetailOptionsKeepWarm) doesn't rebuild these maps on every collection update.
+    const optionsData = (() => {
+        if (isLoading) {
+            return undefined;
+        }
 
-    const optionsData = !isLoading
-        ? memoizedCreateOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, filteredReportAttributes, privateIsArchivedMap, formatPhoneNumber, translate, {
-              shouldStoreReportErrors,
-              shouldShowBrickRoadIndicator,
-          })
-        : undefined;
+        const reportIDsSet = new Set<string>();
+        if (reports) {
+            for (const report of Object.values(reports)) {
+                if (report) {
+                    reportIDsSet.add(report.reportID);
+                }
+            }
+        }
+
+        const accountIDToReportIDMap = generateAccountIDToReportIDMap(reports, accountID);
+        const privateIsArchivedMap = filterRNVPs(reportNameValuePairs, reportIDsSet);
+        const filteredReportAttributes = filterReportAttributes(reportAttributes, reportIDsSet);
+
+        return memoizedCreateOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, filteredReportAttributes, privateIsArchivedMap, formatPhoneNumber, translate, {
+            shouldStoreReportErrors,
+            shouldShowBrickRoadIndicator,
+        });
+    })();
 
     return {
         options: optionsData?.options,

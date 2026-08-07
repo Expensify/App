@@ -114,24 +114,34 @@ function memoize<Fn extends IsomorphicFn, MaxArgs extends number = NonPartial<Is
     return memoized;
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+/**
+ * The two-level fallback below reads arguments through `Object.keys`, which only describes plain objects - for other
+ * types (Set, Map, Date, class instances) it returns an empty list and any two instances would look identical.
+ */
+const isPlainObject = (value: unknown): value is Record<string, unknown> => {
+    if (typeof value !== 'object' || value === null) {
+        return false;
+    }
+    const prototype = Object.getPrototypeOf(value) as unknown;
+    return prototype === Object.prototype || prototype === null;
+};
 
 /**
- * Two arguments are equivalent when they are shallowly equal, or are records with the same keys whose values are
+ * Two arguments are equivalent when they are shallowly equal, or are plain objects with the same keys whose values are
  * shallowly equal - the second level covers arguments rebuilt from unchanged sources (e.g. a mapped Onyx collection).
  */
 const areArgumentsEquivalent = (previousArgument: unknown, nextArgument: unknown) => {
     if (shallowEqual(previousArgument, nextArgument)) {
         return true;
     }
-    if (!isRecord(previousArgument) || !isRecord(nextArgument)) {
+    if (!isPlainObject(previousArgument) || !isPlainObject(nextArgument)) {
         return false;
     }
     const previousKeys = Object.keys(previousArgument);
     if (previousKeys.length !== Object.keys(nextArgument).length) {
         return false;
     }
-    return previousKeys.every((key) => shallowEqual(previousArgument[key], nextArgument[key]));
+    return previousKeys.every((key) => key in nextArgument && shallowEqual(previousArgument[key], nextArgument[key]));
 };
 
 /**
@@ -139,7 +149,7 @@ const areArgumentsEquivalent = (previousArgument: unknown, nextArgument: unknown
  * call from unchanged sources, where `'shallow'` always misses and `'deep'` would walk the whole payload.
  */
 const equivalentArgsComparator = <Key extends readonly unknown[]>(previousArgs: Key, nextArgs: Key) =>
-    previousArgs.every((argument, index) => areArgumentsEquivalent(argument, nextArgs.at(index)));
+    previousArgs.length === nextArgs.length && previousArgs.every((argument, index) => areArgumentsEquivalent(argument, nextArgs.at(index)));
 
 export default memoize;
 export {equivalentArgsComparator};
