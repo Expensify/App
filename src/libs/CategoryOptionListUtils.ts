@@ -35,12 +35,7 @@ type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}
  * @param options[].enabled - a flag to enable/disable option in a list
  * @param options[].name - a name of an option
  */
-function getCategoryOptionTree(
-    options: Record<string, Category> | Category[],
-    selectedOptions: Category[] = [],
-    shouldShowGLCode = false,
-    getGLCode?: (categoryName: string) => string,
-): OptionTree[] {
+function getCategoryOptionTree(options: Record<string, Category> | Category[], selectedOptions: Category[] = [], shouldShowGLCode = false): OptionTree[] {
     const optionCollection = new Map<string, OptionTree>();
     for (const option of Object.values(options)) {
         const array = processCategoryNameSegments(option.name);
@@ -71,10 +66,9 @@ function getCategoryOptionTree(
             // A non-leaf (parent) row whose parent has no backing category in the options it was handed is a structural
             // header only, so it should not render a selection control (e.g. the synthesized "Parent" row in the Recent section).
             const shouldHideSelectionButton = !isChild && !parentOption;
-            const glCode = shouldShowGLCode && getGLCode ? getGLCode(searchText) : '';
             optionCollection.set(searchText, {
                 text: `${indents}${leafName}`,
-                ...(glCode ? {alternateText: glCode} : {}),
+                ...(isChild && shouldShowGLCode && option.glCode ? {alternateText: option.glCode} : {}),
                 keyForList: searchText,
                 searchText,
                 tooltipText,
@@ -112,7 +106,6 @@ function getCategoryListSections({
     shouldShowGLCode?: boolean;
 }): CategoryTreeSection[] {
     const withGLCode = (category: Category): Category => (shouldShowGLCode ? {...category, glCode: getCategoryGLCode(categories, category.name)} : category);
-    const getGLCode = (categoryName: string) => getCategoryGLCode(categories, categoryName);
     const sortedCategories = sortCategories(categories, localeCompare);
     const enabledCategories = Object.values(sortedCategories)
         .filter((category) => category.enabled)
@@ -136,7 +129,7 @@ function getCategoryListSections({
     }
 
     if (numberOfEnabledCategories === 0 && selectedOptions.length > 0) {
-        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, [], shouldShowGLCode, getGLCode);
+        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, [], shouldShowGLCode);
         categorySections.push({
             // "Selected" section
             title: '',
@@ -185,7 +178,7 @@ function getCategoryListSections({
         }));
 
         // Step 6: Generate the option tree and push the section
-        const data = getCategoryOptionTree(finalSearchCategories, [], shouldShowGLCode, getGLCode);
+        const data = getCategoryOptionTree(finalSearchCategories, [], shouldShowGLCode);
         categorySections.push({
             // "Search" section
             title: '',
@@ -197,7 +190,7 @@ function getCategoryListSections({
     }
 
     if (selectedOptions.length > 0) {
-        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, [], shouldShowGLCode, getGLCode);
+        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, [], shouldShowGLCode);
         categorySections.push({
             // "Selected" section
             title: '',
@@ -210,7 +203,7 @@ function getCategoryListSections({
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.has(category.name));
 
     if (numberOfEnabledCategories < CONST.STANDARD_LIST_ITEM_LIMIT) {
-        const data = getCategoryOptionTree(filteredCategories, selectedOptionsWithDisabledState, shouldShowGLCode, getGLCode);
+        const data = getCategoryOptionTree(filteredCategories, selectedOptionsWithDisabledState, shouldShowGLCode);
         categorySections.push({
             // "All" section when items amount less than the threshold
             title: '',
@@ -236,7 +229,7 @@ function getCategoryListSections({
     if (filteredRecentlyUsedCategories.length > 0) {
         const cutRecentlyUsedCategories = filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow);
 
-        const data = getCategoryOptionTree(cutRecentlyUsedCategories, [], shouldShowGLCode, getGLCode);
+        const data = getCategoryOptionTree(cutRecentlyUsedCategories, [], shouldShowGLCode);
         categorySections.push({
             // "Recent" section
             title: translate('common.recent'),
@@ -245,7 +238,7 @@ function getCategoryListSections({
         });
     }
 
-    const data = getCategoryOptionTree(filteredCategories, selectedOptionsWithDisabledState, shouldShowGLCode, getGLCode);
+    const data = getCategoryOptionTree(filteredCategories, selectedOptionsWithDisabledState, shouldShowGLCode);
     categorySections.push({
         // "All" section when items amount more than the threshold
         title: translate('common.all'),

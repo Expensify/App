@@ -1342,7 +1342,7 @@ describe('CategoryOptionListUtils', () => {
         ]);
     });
 
-    it('shows the parent category GL code when searching for a subcategory (regression #96808)', () => {
+    it('shows the GL code only on the subcategory row when searching for a subcategory', () => {
         const categories: PolicyCategories = {
             Lunch: makeCategory('Lunch', '4100'),
             'Lunch: Sushi': makeCategory('Lunch: Sushi', '4200'),
@@ -1359,7 +1359,7 @@ describe('CategoryOptionListUtils', () => {
         const parentRow = rows.find((row) => row.searchText === 'Lunch');
         const childRow = rows.find((row) => row.searchText === 'Lunch: Sushi');
 
-        expect(parentRow?.alternateText).toBe('4100');
+        expect(parentRow?.alternateText).toBeUndefined();
         expect(childRow?.alternateText).toBe('4200');
     });
 
@@ -1381,7 +1381,7 @@ describe('CategoryOptionListUtils', () => {
         expect(rows.find((row) => row.searchText === 'Lunch: Sushi')?.alternateText).toBe('4200');
     });
 
-    it('shows GL codes in the recently used section, including a synthesized parent header', () => {
+    it('shows the GL code on the recently used subcategory but not on its synthesized parent header', () => {
         const categories: PolicyCategories = {'Lunch: Sushi': makeCategory('Lunch: Sushi', '4200'), Lunch: makeCategory('Lunch', '4100')};
         for (let index = 0; index < CONST.STANDARD_LIST_ITEM_LIMIT; index++) {
             categories[`Category ${index}`] = makeCategory(`Category ${index}`, `${1000 + index}`);
@@ -1396,7 +1396,7 @@ describe('CategoryOptionListUtils', () => {
         });
         const recentRows = sections.find((section) => section.title === translateLocal('common.recent'))?.data ?? [];
 
-        expect(recentRows.find((row) => row.searchText === 'Lunch')?.alternateText).toBe('4100');
+        expect(recentRows.find((row) => row.searchText === 'Lunch')?.alternateText).toBeUndefined();
         expect(recentRows.find((row) => row.searchText === 'Lunch: Sushi')?.alternateText).toBe('4200');
     });
 
