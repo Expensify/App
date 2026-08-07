@@ -73,7 +73,6 @@ For guidance on writing clear, effective instructions, see [How to Write Agent R
 | Suggested Agent rule | What it does | Default instruction |
 | --- | --- | --- |
 | **Billable status** | Approves or rejects expenses based on whether they're billable. | Only approve non-billable expenses. Reject any expense marked as billable to a client. |
-For guidance on writing clear, effective instructions, see [How to Write Agent Rules](/articles/new-expensify/ai-agents/How-to-Write-Agent-Rules).
 | **Description is empty** | Rejects expenses that don't include a description. | Reject expenses that have no description. Approve expenses that include a description. |
 | **Tag is a specific value** | Only approves expenses tagged to a specific project. | Only approve expenses tagged to the project "Apollo". Reject expenses tagged to any other project. |
 | **Tag is empty** | Rejects expenses missing a required tag. | Reject expenses that are missing a project tag. Approve expenses that have a tag. |
