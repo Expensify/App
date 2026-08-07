@@ -25,6 +25,7 @@
         }
     },
     "include": [
+        "wdyr.ts",
         "src",
         "web",
         "website",
