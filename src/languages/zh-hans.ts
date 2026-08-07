@@ -8447,6 +8447,7 @@ ${reportName}`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制发票设置`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制出差设置`,
         },
+        updatedCurrencyConversionFee: ({preference}: {preference: 'company' | 'employee'}) => `将货币兑换手续费设置更新为“${preference === 'company' ? '公司' : '员工'} 支付方”`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',

@@ -8754,6 +8754,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `factuurinstellingen gekopieerd van <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `reiskosteninstellingen gekopieerd van <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updatedCurrencyConversionFee: ({preference}: {preference: 'company' | 'employee'}) =>
+            `heeft de instelling voor de valutawisselkosten bijgewerkt naar "${preference === 'company' ? 'Bedrijf' : 'Werknemer'} betaalt"`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',

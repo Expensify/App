@@ -30,6 +30,7 @@ import {
     getCombinedReportActions,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
@@ -4849,6 +4850,29 @@ describe('ReportActionsUtils', () => {
 
             const result = getRequireCompanyCardsEnabledMessage(translateLocal, action);
             expect(result).toBe('disabled the company card purchases requirement');
+        });
+    });
+
+    describe('getCurrencyConversionFeeMessage', () => {
+        const buildAction = (preference?: 'company' | 'employee') =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: preference ? {preference} : {},
+                message: [],
+            }) as ReportAction;
+
+        it('should name the company when the company pays the fees', () => {
+            expect(getCurrencyConversionFeeMessage(translateLocal, buildAction('company'))).toBe('updated the currency conversion fee setting to "Company pays"');
+        });
+
+        it('should name the employee when the employee pays the fees', () => {
+            expect(getCurrencyConversionFeeMessage(translateLocal, buildAction('employee'))).toBe('updated the currency conversion fee setting to "Employee pays"');
+        });
+
+        it('should fall back to the employee, who pays unless the company opts in', () => {
+            expect(getCurrencyConversionFeeMessage(translateLocal, buildAction())).toBe('updated the currency conversion fee setting to "Employee pays"');
         });
     });
 
