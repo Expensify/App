@@ -5,7 +5,6 @@ import {
     FailureTracking,
     handleDeletedAccount,
     HandleUnusedOptimisticID,
-    LoadPostDataForOpenOrReconnect,
     LoadTest,
     Logging,
     Pagination,
@@ -15,6 +14,7 @@ import {
     SupportalPermission,
 } from '@libs/Middleware';
 import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
+import LoadPostDataForOpenOrReconnect from '@libs/Middleware/LoadPostDataForOpenOrReconnect';
 import SentryServerTiming from '@libs/Middleware/SentryServerTiming';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
 import {getIsOffline} from '@libs/NetworkState';

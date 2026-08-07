@@ -13,11 +13,10 @@ import type Middleware from './types';
  */
 const loadPostData: Middleware = (requestResponse, request) =>
     requestResponse.then((response) => {
-        if (!isReconnectFamilyRequest(request) || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            return response;
+        if (isReconnectFamilyRequest(request) && response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
+            loadPostDataForOpenOrReconnect();
         }
 
-        loadPostDataForOpenOrReconnect();
         return response;
     });
 
