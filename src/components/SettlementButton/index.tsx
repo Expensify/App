@@ -29,7 +29,7 @@ import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
-import {isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
+import {canAccessPolicyBankAccount, isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -164,10 +164,13 @@ function SettlementButton({
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate);
+    // Any workspace admin can pay, but only the members who can actually access the workspace bank account may see it.
+    // Without this, a non-payer admin is shown (and defaulted to) an account they can't use, and tapping Pay just asks
+    // them to add a new one. The dropdown already scopes itself to `bankAccountList`, which is why it stays correct.
+    const canUsePolicyBankAccount = canAccessPolicyBankAccount(policy, email, bankAccountList);
     const hasIntentToPay =
         ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) ||
-            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN ||
-            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
+            (canUsePolicyBankAccount && (policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED))) &&
         !lastPaymentMethod;
     const {isBetaEnabled} = usePermissions();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -595,6 +598,11 @@ function SettlementButton({
     }
 
     let secondaryTextRaw: string | undefined;
+    // Set when the button face names the workspace bank account. No option in the menu represents that account — the
+    // menu is built from `bankAccountList`, which does not contain it — so the press needs its own action (see
+    // `onPrimaryPress`). Otherwise it runs the first listed option's handler and pays from a different account than the
+    // one printed on the button.
+    let isLabelledWithPolicyBankAccount = false;
     if (
         shouldUseShortForm ||
         lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE ||
@@ -611,8 +619,9 @@ function SettlementButton({
 
         // Handle bank account payments first (expense reports require bank account, never wallet)
         if ((lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA || (hasIntentToPay && isExpenseReport)) && !!policy?.achAccount) {
-            if (policy?.achAccount?.accountNumber) {
+            if (canUsePolicyBankAccount && policy?.achAccount?.accountNumber) {
                 secondaryTextRaw = translate('paymentMethodList.bankAccountLastFour', policy?.achAccount?.accountNumber?.slice(-4));
+                isLabelledWithPolicyBankAccount = !!policy?.achAccount?.bankAccountID;
             } else if (bankAccountToDisplay?.accountData?.accountNumber) {
                 secondaryTextRaw = translate('paymentMethodList.bankAccountLastFour', bankAccountToDisplay?.accountData?.accountNumber?.slice(-4));
             }
@@ -682,6 +691,20 @@ function SettlementButton({
                     isLoading={isLoading}
                     defaultSelectedIndex={defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0}
                     onPress={(event, iouPaymentType) => handlePaymentSelection(event, iouPaymentType, triggerKYCFlow)}
+                    onPrimaryPress={
+                        isLabelledWithPolicyBankAccount
+                            ? () =>
+                                  runPaymentAction(CONST.IOU.PAYMENT_TYPE.VBBA, () =>
+                                      // No `methodID`: the workspace account is the backend's default source for a VBBA
+                                      // payment, and naming it explicitly is rejected. Omitting it is also what keeps
+                                      // the payment on the account the button advertises.
+                                      onPress({
+                                          paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                                          payAsBusiness: true,
+                                      }),
+                                  )
+                            : undefined
+                    }
                     variant={!hasOnlyHeldExpenses ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                     secondLineText={secondaryText}
                     pressOnEnter={pressOnEnter}

@@ -6,7 +6,7 @@ import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getValidConnectedIntegration} from '@libs/PolicyUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import type * as ReportUtils from '@libs/ReportUtils';
-import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
+import {hasOnlyNonReimbursableTransactions, isPayer} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -867,6 +867,92 @@ describe('getReportPreviewAction', () => {
                 ownerLogin: CURRENT_USER_EMAIL,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+    });
+
+    /**
+     * Builds a non-payer admin scenario: the current user is a workspace admin on a paid group policy, but someone else is the
+     * designated reimburser. The policy is written to Onyx (and referenced by `policyID`) because `isPayer` resolves the policy
+     * type through `ReportUtils.isPaidGroupPolicy`, which reads Onyx. Without it, `isPayer` falls back to a bare admin check and
+     * would report the user as the payer, hiding whatever `canAdminPayReport` decides.
+     */
+    async function setUpNonPayerAdminScenario(reimbursementChoice: Policy['reimbursementChoice']) {
+        const DESIGNATED_PAYER_EMAIL = 'designated-payer@mail.com';
+        const policy = createRandomPolicy(0);
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.reimbursementChoice = reimbursementChoice;
+        policy.achAccount = {
+            reimburser: DESIGNATED_PAYER_EMAIL,
+            bankAccountID: 1,
+            accountNumber: '1234567890',
+            routingNumber: '987654321',
+            addressName: 'Test Address',
+            bankName: 'Test Bank',
+        };
+
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: policy.id,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID + 1,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            total: -100,
+            isWaitingOnBankAccount: false,
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const transaction = {
+            ...createRandomTransaction(REPORT_ID),
+            reportID: `${REPORT_ID}`,
+        };
+
+        return {policy, report, transaction};
+    }
+
+    it('canPay should return PAY for non-payer admin when a bank account is connected (reimburseYes)', async () => {
+        const {policy, report, transaction} = await setUpNonPayerAdminScenario(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES);
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+
+        // The Pay option must come from canAdminPayReport, not from isPayer.
+        expect(isPayer(CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, report, {}, policy, false)).toBe(false);
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+                ownerLogin: CURRENT_USER_EMAIL,
+            }),
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+    });
+
+    it('canPay should not return PAY for non-payer admin when reimbursementChoice is not configured', async () => {
+        const {policy, report, transaction} = await setUpNonPayerAdminScenario(undefined);
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+                ownerLogin: CURRENT_USER_EMAIL,
+            }),
+        ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
     it('canPay should return false for Expense report with zero total amount', async () => {

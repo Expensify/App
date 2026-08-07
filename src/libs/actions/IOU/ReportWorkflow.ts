@@ -18,7 +18,7 @@ import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
 import {
     arePaymentsEnabled,
-    canMemberWrite,
+    canAdminPayReport,
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
     hasDynamicExternalWorkflow,
@@ -234,9 +234,7 @@ function canIOUBePaid(
     }
 
     const isReportPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, bankAccountList, policy, onlyShowPayElsewhere);
-    const canPay =
-        isReportPayer ||
-        (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
+    const canPay = isReportPayer || canAdminPayReport(policy, currentUserLogin);
 
     const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);
@@ -269,7 +267,7 @@ function canIOUBePaid(
         !isChatReportArchived &&
         !isAutoReimbursable &&
         !isPayAtEndExpenseReport &&
-        (!isExpenseReport(iouReport) || arePaymentsEnabled(policy as OnyxEntry<OnyxTypes.Policy>))
+        (!isExpenseReport(iouReport) || arePaymentsEnabled(policy))
     );
 }
 

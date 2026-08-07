@@ -7,6 +7,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import type {
+    BankAccountList,
     OnyxInputOrEntry,
     PersonalDetailsList,
     Policy,
@@ -714,6 +715,57 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     const canPayOnPolicy = isAdmin || (!!currentUserLogin && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
 
     return canPayOnPolicy && currentUserLogin === reimburserEmail;
+}
+
+/**
+ * Whether an admin/payments admin who isn't the designated workspace payer can still pay reports on the policy.
+ * Unlike `isPolicyPayer`/`isPayer`, this must not drive active prompting (badges, GBRs, next steps, pay to-dos) —
+ * those stay payer-only.
+ */
+function canAdminPayReport(policy: OnyxInputOrEntry<Policy>, currentUserLogin: string): boolean {
+    // Mirrors `isPolicyPayer`: reimbursement must be explicitly configured. Checking `arePaymentsEnabled` here would also
+    // match an unset `reimbursementChoice`, surfacing Pay on a policy whose payments aren't configured yet.
+    const isReimbursementConfigured =
+        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+
+    return isReimbursementConfigured && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+}
+
+/**
+ * Whether the user can actually pay from the workspace's connected bank account.
+ *
+ * Any workspace admin can pay reports, but only the designated payer/owner and the members the account is shared with
+ * may use the workspace bank account itself. This gates every place that would otherwise default a payment to
+ * `policy.achAccount` — paying with, or displaying, an account the user has no access to is always wrong.
+ */
+function canAccessPolicyBankAccount(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined, bankAccountList: OnyxEntry<BankAccountList>): boolean {
+    const policyBankAccountID = policy?.achAccount?.bankAccountID;
+
+    if (!policyBankAccountID) {
+        return false;
+    }
+
+    // The designated payer/owner pays from the workspace account even when it isn't enumerated in their own bank account list.
+    return isPolicyPayer(policy, currentUserLogin) || !!bankAccountList?.[policyBankAccountID];
+}
+
+/**
+ * Whether a payment made by `payerAccountID` can be assumed to have been funded by the workspace's connected bank
+ * account.
+ *
+ * Only the designated payer pays out of the workspace account; any other admin pays from an account of their own. Their
+ * payment must never be attributed to the workspace account, because that account is what every *other* viewer would
+ * otherwise fall back to — which is how the same payment ends up showing two different accounts to two people.
+ */
+function wasPaidWithPolicyBankAccount(policy: OnyxEntry<Policy>, payerAccountID: number | undefined): boolean {
+    const reimburserEmail = policy?.reimburser ?? policy?.achAccount?.reimburser;
+
+    // With no designated payer, every admin pays out of the workspace account, so any payer qualifies.
+    if (!reimburserEmail) {
+        return true;
+    }
+
+    return !!payerAccountID && getKnownAccountIDByLogin(reimburserEmail) === payerAccountID;
 }
 
 /** Check if the passed employee is an approver in the policy's employeeList */
@@ -1548,7 +1600,7 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
-function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
+function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
@@ -3089,6 +3141,9 @@ export {
     isPolicyOwner,
     isPolicyMember,
     isPolicyPayer,
+    canAdminPayReport,
+    canAccessPolicyBankAccount,
+    wasPaidWithPolicyBankAccount,
     getReimburserEmail,
     arePaymentsEnabled,
     isSubmitterAndApprover,
