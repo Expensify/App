@@ -102,6 +102,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     conciergeReportID: string | undefined;
+    /** The Concierge chat report, threaded so the onboarding data no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
+    conciergeChat: OnyxEntry<Report>;
     optimisticTransactionID: string;
     optimisticChatReportID: string | undefined;
     reportDraft: OnyxEntry<Report> | undefined;
@@ -204,6 +206,7 @@ function handleMoneyRequestStepDistanceNavigation({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     conciergeReportID,
+    conciergeChat,
     optimisticTransactionID,
     optimisticChatReportID,
     reportDraft,
@@ -333,8 +336,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             isASAPSubmitBetaEnabled,
                             currentUser: {accountID: currentUserAccountID, email: currentUserLogin ?? ''},
                             introSelected,
-                            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-                            conciergeChat: undefined,
+                            conciergeChat,
                             quickAction,
                             draftTransactionIDs,
                             recentWaypoints,

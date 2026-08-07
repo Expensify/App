@@ -3080,6 +3080,7 @@ describe('actions/IOU', () => {
             };
             return {
                 transactions: [transaction],
+                conciergeChat: undefined,
                 iouType,
                 report,
                 currentUserAccountID: CREATE_TRANSACTION_USER_ACCOUNT_ID,

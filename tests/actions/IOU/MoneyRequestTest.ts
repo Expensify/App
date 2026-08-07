@@ -122,6 +122,7 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            conciergeChat: undefined,
             transactions: [fakeTransaction],
             iouType: CONST.IOU.TYPE.REQUEST,
             report: fakeReport,
@@ -195,6 +196,24 @@ describe('MoneyRequest', () => {
             const lastTrackExpenseParams = jest.mocked(TrackExpense.trackExpense).mock.calls.at(-1)?.at(0);
             expect(lastTrackExpenseParams && 'shouldDeferForSearch' in lastTrackExpenseParams).toBeFalsy();
             expect(lastTrackExpenseParams && 'shouldHandleNavigation' in lastTrackExpenseParams).toBeFalsy();
+        });
+
+        it('threads the conciergeChat report through to trackExpense and requestMoney', () => {
+            const conciergeChat = {reportID: 'concierge-create-transaction-1'};
+
+            createTransaction({
+                ...baseParams,
+                conciergeChat,
+                iouType: CONST.IOU.TYPE.TRACK,
+            });
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
+
+            createTransaction({
+                ...baseParams,
+                conciergeChat,
+                iouType: CONST.IOU.TYPE.SEND,
+            });
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
         });
 
         it('should call requestMoney for non-TRACK (SEND) iouType', () => {
@@ -810,6 +829,7 @@ describe('MoneyRequest', () => {
             draftTransactionIDs: undefined,
             userBillingGracePeriodEnds: undefined,
             conciergeReportID: undefined,
+            conciergeChat: undefined,
             action: CONST.IOU.ACTION.CREATE,
             reportDraft: undefined,
             currentUserLocalCurrency: undefined,
@@ -887,6 +907,22 @@ describe('MoneyRequest', () => {
             });
 
             expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1);
+        });
+
+        it('threads the conciergeChat report through to trackExpense when skipping confirmation', () => {
+            const conciergeChat = {reportID: 'concierge-distance-1'};
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                conciergeChat,
+                manualDistance: 20,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+                draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
+                getCurrencySymbol,
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
         });
 
         it('call trackExpense for TRACK iouType when from manual distance step and skipping confirmation', async () => {

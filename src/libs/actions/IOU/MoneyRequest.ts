@@ -102,6 +102,8 @@ type CreateTransactionParams = {
     currentUserLocalCurrency: string | undefined;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
+    /** The Concierge chat report, threaded so the onboarding data no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
+    conciergeChat: OnyxEntry<Report>;
 };
 
 function createTransaction({
@@ -132,6 +134,7 @@ function createTransaction({
     currentUserLocalCurrency,
     isTrackIntentUser,
     delegateAccountID,
+    conciergeChat,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -183,8 +186,7 @@ function createTransaction({
                     email: currentUserEmail ?? '',
                 },
                 introSelected,
-                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-                conciergeChat: undefined,
+                conciergeChat,
                 quickAction,
                 recentWaypoints,
                 betas,
@@ -233,8 +235,7 @@ function createTransaction({
                 existingTransactionDraft,
                 existingTransaction: transaction,
                 isSelfTourViewed,
-                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-                conciergeChat: undefined,
+                conciergeChat,
                 personalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,

@@ -775,6 +775,8 @@ type DuplicateExpenseTransactionParams = {
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    /** The Concierge chat report, threaded so the onboarding data no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
 function duplicateExpenseTransaction({
@@ -804,6 +806,7 @@ function duplicateExpenseTransaction({
     delegateAccountID,
     policyTagList,
     formatPhoneNumber,
+    conciergeChat,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -848,8 +851,7 @@ function duplicateExpenseTransaction({
             transactionID: '1',
         },
         isSelfTourViewed,
-        // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-        conciergeChat: undefined,
+        conciergeChat,
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
@@ -889,8 +891,7 @@ function duplicateExpenseTransaction({
             isDraftPolicy: false,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
             introSelected,
-            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-            conciergeChat: undefined,
+            conciergeChat,
             quickAction,
             recentWaypoints,
             betas,
@@ -949,6 +950,8 @@ type DuplicateReportParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    /** The Concierge chat report, threaded so the onboarding data no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
 function duplicateReport({
@@ -975,6 +978,7 @@ function duplicateReport({
     isTrackIntentUser,
     delegateAccountID,
     formatPhoneNumber,
+    conciergeChat,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -1064,8 +1068,7 @@ function duplicateReport({
                 transactionID: '1',
             },
             isSelfTourViewed,
-            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-            conciergeChat: undefined,
+            conciergeChat,
             betas,
             personalDetails,
             shouldDeferAutoSubmit: !isLastExpense,
@@ -1122,6 +1125,8 @@ type BulkDuplicateExpensesParams = {
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    /** The Concierge chat report, threaded so the onboarding data no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
 function bulkDuplicateExpenses({
@@ -1147,6 +1152,7 @@ function bulkDuplicateExpenses({
     delegateAccountID,
     policyTagList,
     formatPhoneNumber,
+    conciergeChat,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1246,6 +1252,7 @@ function bulkDuplicateExpenses({
             delegateAccountID,
             policyTagList,
             formatPhoneNumber,
+            conciergeChat,
         });
 
         if (result?.iouReport) {
@@ -1284,6 +1291,8 @@ type BulkDuplicateReportsParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    /** The Concierge chat report, threaded so the onboarding data no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
 function bulkDuplicateReports({
@@ -1310,6 +1319,7 @@ function bulkDuplicateReports({
     isTrackIntentUser,
     delegateAccountID,
     formatPhoneNumber,
+    conciergeChat,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1387,6 +1397,7 @@ function bulkDuplicateReports({
             isTrackIntentUser,
             delegateAccountID,
             formatPhoneNumber,
+            conciergeChat,
         });
     }
 
