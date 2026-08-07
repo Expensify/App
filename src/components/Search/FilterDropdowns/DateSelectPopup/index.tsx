@@ -51,7 +51,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
@@ -59,11 +59,17 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
     const [rangeText, setRangeText] = useState(() =>
-        getDateRangeDisplayValueFromFormValue(value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
+        getDateRangeDisplayValueFromFormValue(value[CONST.SEARCH.DATE_MODIFIERS.RANGE], preferredLocale, value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
     );
     const syncedRangeText = useMemo(
-        () => getDateRangeDisplayValueFromFormValue(value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
-        [value],
+        () =>
+            getDateRangeDisplayValueFromFormValue(
+                value[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+                preferredLocale,
+                value[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+                value[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+            ),
+        [value, preferredLocale],
     );
     const displayedRangeText = selectedDateModifier ? rangeText : syncedRangeText;
     const selectedDateModifierTitle = getDateModifierTitle(selectedDateModifier, '', translate);

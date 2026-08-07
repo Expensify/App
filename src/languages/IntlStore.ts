@@ -198,6 +198,11 @@ class IntlStore {
         return IntlStore.dateUtilsCache.get(locale);
     }
 
+    /** True once `load(locale)` has populated the translations cache. Consumers use this to distinguish "not loaded yet" from a genuinely-missing translation. */
+    public static hasLocale(this: void, locale: Locale): boolean {
+        return IntlStore.cache.has(locale);
+    }
+
     /** Monotonic token used to discard stale `load()` resolutions when a newer call has superseded them. */
     private static loadToken = 0;
 

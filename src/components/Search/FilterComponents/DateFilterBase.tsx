@@ -88,7 +88,7 @@ function DateFilterBase({
     style,
 }: DateFilterBaseProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {isLoading, startWithLoading} = usePressLoading();
 
     const normalizedDefaultDateValues = useMemo(() => ({...getEmptyDateValues(), ...defaultDateValues}), [defaultDateValues]);
@@ -98,6 +98,7 @@ function DateFilterBase({
     const [rangeDisplayText, setRangeDisplayText] = useState(() =>
         getDateRangeDisplayValueFromFormValue(
             normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+            preferredLocale,
             normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
             normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
         ),
@@ -107,20 +108,26 @@ function DateFilterBase({
         setRangeDisplayText(
             getDateRangeDisplayValueFromFormValue(
                 normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+                preferredLocale,
                 normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
                 normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
             ),
         );
-    }, [normalizedDefaultDateValues]);
+    }, [normalizedDefaultDateValues, preferredLocale]);
 
     const handleDateValuesChange = useCallback(
         (values: SearchDateValues) => {
             setRangeDisplayText(
-                getDateRangeDisplayValueFromFormValue(values[CONST.SEARCH.DATE_MODIFIERS.RANGE], values[CONST.SEARCH.DATE_MODIFIERS.AFTER], values[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
+                getDateRangeDisplayValueFromFormValue(
+                    values[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+                    preferredLocale,
+                    values[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+                    values[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+                ),
             );
             onDateValuesChange?.(values);
         },
-        [onDateValuesChange],
+        [onDateValuesChange, preferredLocale],
     );
 
     const isDateModifierControlled = selectedDateModifierProp !== undefined;

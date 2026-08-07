@@ -117,13 +117,17 @@ const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
  * @param [parameters] Parameters to supply if the phrase is a template literal.
  */
 function translate<TPath extends TranslationPaths>(locale: Locale, path: TPath, ...parameters: TranslationParameters<TPath>): string {
+    // Locale not loaded yet — transient miss, don't memoize or alert.
+    if (!IntlStore.hasLocale(locale)) {
+        return Array.isArray(path) ? path.join('.') : path;
+    }
+
     const translatedPhrase = memoizedGetTranslatedPhrase(locale, path, ...parameters);
     if (translatedPhrase !== null && translatedPhrase !== undefined) {
         return translatedPhrase;
     }
 
-    // Phrase is not found in default language, on production and staging log an alert to server
-    // on development throw an error
+    // Locale is loaded but the key genuinely doesn't exist — alert in prod / staging, throw in dev.
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
         const phraseString = Array.isArray(path) ? path.join('.') : path;
         Log.alert(`${phraseString} was not found in the ${locale} locale`);
