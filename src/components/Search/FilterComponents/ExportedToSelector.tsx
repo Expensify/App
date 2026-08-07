@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getSearchValueForConnection} from '@libs/AccountingUtils';
+import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies} from '@libs/SearchQueryUtils';
 
@@ -74,25 +74,29 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
 
         const connectedIntegrationPickerItems = integrationConnectionNames
             .filter((connectionName) => connectedIntegrationNames.has(connectionName))
-            .map((connectionName) => {
+            .flatMap((connectionName) => {
+                const connectionPolicies = policiesToLoadTemplatesFrom.filter((policy) => !!policy?.connections?.[connectionName]);
+                const searchValues =
+                    connectionPolicies.length > 0
+                        ? [...new Set(connectionPolicies.map((policy) => getExportLabelForConnection(connectionName, policy)))]
+                        : [getExportLabelForConnection(connectionName)];
                 const icon = getIntegrationIcon(connectionName, expensifyIcons);
-                const leftElement = icon ? (
-                    <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <Icon
-                            src={icon}
-                            width={variables.iconSizeXLarge}
-                            height={variables.iconSizeXLarge}
-                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)]}
-                        />
-                    </View>
-                ) : (
-                    tableIconForExportOption(expensifyIcons.Table)
-                );
-                return {
-                    text: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
-                    value: getSearchValueForConnection(connectionName),
-                    leftElement,
-                };
+                return searchValues.map((searchValue) => ({
+                    text: searchValue,
+                    value: searchValue,
+                    leftElement: icon ? (
+                        <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <Icon
+                                src={icon}
+                                width={variables.iconSizeXLarge}
+                                height={variables.iconSizeXLarge}
+                                additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)]}
+                            />
+                        </View>
+                    ) : (
+                        tableIconForExportOption(expensifyIcons.Table)
+                    ),
+                }));
             });
 
         const usedPickerValueKeys = new Set(connectedIntegrationPickerItems.map((item) => item.value));

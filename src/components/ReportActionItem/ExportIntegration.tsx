@@ -6,12 +6,14 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getExportIntegrationDisplayName} from '@libs/AccountingUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getExportIntegrationActionFragments, getExportIntegrationMessageHTML, hasReasoning} from '@libs/ReportActionsUtils';
+import {getExportIntegrationActionFragments, getExportIntegrationMessageHTML, getOriginalMessage, hasReasoning} from '@libs/ReportActionsUtils';
 
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
 
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 
@@ -22,7 +24,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ExportIntegrationProps = {
-    action: OnyxEntry<ReportAction>;
+    action: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>>;
 
     /** Original report from which the given reportAction is first created */
     originalReport: OnyxEntry<Report>;
@@ -33,10 +35,12 @@ function ExportIntegration({action, originalReport}: ExportIntegrationProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action?.childReportID)}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(originalReport?.policyID)}`);
     const selectableStyle = !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone;
+    const integrationName = getExportIntegrationDisplayName(policy, getOriginalMessage(action)?.label, translate);
 
     if (hasReasoning(action)) {
-        const message = getExportIntegrationMessageHTML(translate, action);
+        const message = getExportIntegrationMessageHTML(translate, action, integrationName);
         return (
             <ReportActionItemMessageWithExplain
                 message={message}
@@ -47,7 +51,7 @@ function ExportIntegration({action, originalReport}: ExportIntegrationProps) {
         );
     }
 
-    const fragments = getExportIntegrationActionFragments(translate, action);
+    const fragments = getExportIntegrationActionFragments(translate, action, integrationName);
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.flexWrap]}>

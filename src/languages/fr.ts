@@ -4567,7 +4567,7 @@ ${amount} pour ${merchant} - ${date}`,
             subscription: 'Abonnement',
             markAsEntered: 'Marquer comme saisi manuellement',
             markAsExported: 'Marquer comme exporté',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `Exporter vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}) => `Exporter vers ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Vérifions une seconde fois que tout est correct.',
             lineItemLevel: 'Niveau poste de ligne',
             reportLevel: 'Niveau de la note de frais',
@@ -7227,10 +7227,11 @@ Si vous souhaitez prendre en charge la facturation de l’ensemble de son abonne
         },
         exportAgainModal: {
             title: 'Attention !',
-            description: (
-                reportName: string,
-                connectionName: ConnectionName,
-            ) => `Les notes de frais suivantes ont déjà été exportées vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Voulez-vous vraiment les exporter à nouveau ?
+            description: ({
+                reportName,
+                connectionName,
+                connectionNameFriendly,
+            }) => `Les notes de frais suivantes ont déjà été exportées vers ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Voulez-vous vraiment les exporter à nouveau ?
 
 ${reportName}`,
             confirmText: 'Oui, exporter à nouveau',

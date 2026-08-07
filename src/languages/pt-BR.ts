@@ -4527,7 +4527,7 @@ ${amount} para ${merchant} - ${date}`,
             subscription: 'Assinatura',
             markAsEntered: 'Marcar como inserido manualmente',
             markAsExported: 'Marcar como exportado',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `Exportar para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}) => `Exportar para ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Vamos conferir se está tudo certo.',
             lineItemLevel: 'Nível de item de linha',
             reportLevel: 'Nível do relatório',
@@ -7156,10 +7156,11 @@ Se você quiser assumir a cobrança de toda a assinatura deles, peça para que a
         },
         exportAgainModal: {
             title: 'Cuidado!',
-            description: (
-                reportName: string,
-                connectionName: ConnectionName,
-            ) => `Os seguintes relatórios já foram exportados para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Tem certeza de que quer exportá-los novamente?
+            description: ({
+                reportName,
+                connectionName,
+                connectionNameFriendly,
+            }) => `Os seguintes relatórios já foram exportados para ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Tem certeza de que quer exportá-los novamente?
 
 ${reportName}`,
             confirmText: 'Sim, exportar novamente',
