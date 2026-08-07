@@ -64,14 +64,14 @@ jobs:
       - name: Setup Claude review toolkit
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         id: toolkit
-        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@798cfb2277f46bff2bc86dd52c97f790fd25193a
+        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@096f415ac7bb77cae9189d1061350563def00a99
 
       - name: Check for an existing review of this commit
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         id: skip
         env:
           GH_TOKEN: ${{ github.token }}
-        run: shouldSkipReview.sh "$PR_NUMBER" "ai-review/claude"
+        run: shouldSkipReview.sh "$PR_NUMBER" "ai-review-completed/claude"
 
       - name: Filter paths
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true'
@@ -136,7 +136,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ steps.skip.outputs.head_sha }}
-        run: recordReviewComplete.sh "$HEAD_SHA" "ai-review/claude" "Reviewed at this commit - comment @claude review to re-run"
+        run: recordReviewComplete.sh "$HEAD_SHA" "ai-review-completed/claude" "Reviewed at this commit - comment @claude review to re-run"
 
       - name: Remove in-progress indicator
         if: always() && steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true'

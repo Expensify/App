@@ -63,7 +63,7 @@ jobs:
 
       - name: Setup Claude review toolkit
         if: steps.gate.outputs.IS_AUTHORIZED == 'true'
-        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@798cfb2277f46bff2bc86dd52c97f790fd25193a
+        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@096f415ac7bb77cae9189d1061350563def00a99
 
       - name: Check for an existing review of this commit
         if: steps.gate.outputs.IS_AUTHORIZED == 'true'
@@ -71,7 +71,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ env.PR_NUMBER }}
-        run: shouldSkipReview.sh "$PR_NUMBER" "ai-review/codex"
+        run: shouldSkipReview.sh "$PR_NUMBER" "ai-review-completed/codex"
 
       - name: Add review in progress reaction
         if: steps.gate.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true'
@@ -174,7 +174,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ steps.skip.outputs.head_sha }}
-        run: recordReviewComplete.sh "$HEAD_SHA" "ai-review/codex" "Reviewed at this commit - comment /codex-review to re-run"
+        run: recordReviewComplete.sh "$HEAD_SHA" "ai-review-completed/codex" "Reviewed at this commit - comment /codex-review to re-run"
 
       - name: Remove review in progress reaction
         if: always() && steps.gate.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true'
