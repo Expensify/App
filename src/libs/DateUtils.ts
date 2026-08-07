@@ -5,6 +5,7 @@ import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES
 import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 
+import type {Locale as DateFNSLocale} from 'date-fns';
 import type {ValueOf} from 'type-fest';
 
 import {
@@ -699,13 +700,16 @@ const getTimeValidationErrorKey = (translate: LocalizedTranslate, inputTime: Dat
  * Get a date and format this date using the UTC timezone.
  * param datetime
  * param dateFormat
+ * param locale - date-fns locale used for locale-sensitive tokens such as MMM. Components must pass the locale from
+ * `useLocalize()` so that React re-renders the date when the user switches language. Omitting it falls back to the
+ * date-fns global default, which React cannot track.
  * returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
  */
-function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING) {
+function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING, locale?: DateFNSLocale) {
     const date = toDate(datetime, {timeZone: 'UTC'});
 
     if (isValid(date)) {
-        return tzFormat(toZonedTime(date, 'UTC'), dateFormat);
+        return tzFormat(toZonedTime(date, 'UTC'), dateFormat, {locale});
     }
 
     return '';

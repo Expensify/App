@@ -214,6 +214,15 @@ class IntlStore {
         return this.currentLocale;
     }
 
+    /**
+     * Returns the date-fns locale for the given locale, or for the current locale when none is provided.
+     * Returns undefined until the locale's date-fns module has finished loading, in which case date-fns falls back to its built-in en-US locale.
+     */
+    public static getDateFNSLocale(locale?: Locale) {
+        const localeToUse = locale ?? this.currentLocale;
+        return localeToUse ? this.dateUtilsCache.get(localeToUse) : undefined;
+    }
+
     public static load(locale: Locale) {
         if (this.currentLocale === locale) {
             return Promise.resolve();
