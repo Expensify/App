@@ -12,6 +12,7 @@ import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 
@@ -27,7 +28,11 @@ function ReportRouteParamHandler() {
     const route = useRoute<ReportScreenRoute>();
     const navigation = useNavigation();
     const {isBetaEnabled} = usePermissions();
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    // Subscribing to the reports collection (instead of relying on the module-scoped copy inside ReportUtils)
+    // makes this handler re-run once the reports finish loading, so a route that was created without a reportID
+    // recovers instead of staying stuck on the loading skeleton.
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     useFocusEffect(() => {
         // Don't update if there is a reportID in the params already
@@ -40,11 +45,19 @@ function ReportRouteParamHandler() {
             return;
         }
 
+        // Archived status is stored in the name-value pairs, and a missing entry reads as "not archived".
+        // Resolving before they arrive could pin an archived report into the route, which is never revisited
+        // because the effect returns early once a reportID is set.
+        if (isLoadingOnyxValue(reportNameValuePairsMetadata)) {
+            return;
+        }
+
         const lastAccessedReportID = findLastAccessedReport(
             !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
             'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
             undefined,
             reportNameValuePairs,
+            reports,
         )?.reportID;
 
         // It's possible that reports aren't fully loaded yet
