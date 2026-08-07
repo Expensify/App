@@ -291,7 +291,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return null;
         }
 
-        // More is global like New rule, so it shows on every tab rather than only Expense defaults.
         const moreOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
             getImportMerchantRulesOption({
                 policyID,
@@ -299,10 +298,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 showReadOnlyModal,
                 translate,
                 icon: icons.Table,
-                // More is visible on General, the only tab Collect can open, so this needs the same upgrade gate as New
-                // rule. Return to the import page rather than the Rules list, so upgrading resumes what the user
-                // started. Safe even though the import page is Control-only: the upgrade page honours backTo only
-                // after a successful upgrade, and backing out without upgrading falls back to a plain goBack.
+                // Collect sees More on General, so gate it like New rule. backTo only applies after a successful upgrade.
                 tryNavigateToUpgrade: () => tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, ROUTES.RULES_MERCHANT_IMPORT.getRoute(policyID)),
             }),
         ];

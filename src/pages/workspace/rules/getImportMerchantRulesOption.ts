@@ -24,10 +24,7 @@ type ImportMerchantRulesOptionParams = {
     /** Icon shown next to the option */
     icon: IconAsset;
 
-    /**
-     * Sends plans that can't hold merchant rules to the upgrade flow. Returns true when it navigated, so the
-     * import page is skipped. Defaults to a no-op for callers that are already plan-gated.
-     */
+    /** Sends plans without merchant rules to the upgrade flow. Returns true when it navigated. */
     tryNavigateToUpgrade?: () => boolean;
 };
 

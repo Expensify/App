@@ -194,8 +194,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImportingRules(false);
-        // Imported merchant rules live on the Expense defaults tab, and the Rules page restores whichever tab was
-        // last active. Import can now be started from any tab, so point it at the tab holding the new rules.
+        // Import can start from any tab, so land on the one holding the imported rules.
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.EXPENSE_DEFAULTS);
         Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
     };
