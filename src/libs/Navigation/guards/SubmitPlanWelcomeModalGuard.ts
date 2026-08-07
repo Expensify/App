@@ -1,3 +1,4 @@
+import getUserSecurityGroup from '@libs/getUserSecurityGroup';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
@@ -12,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Beta, BetaConfiguration, IntroSelected, Policy, SecurityGroup, Session} from '@src/types/onyx';
+import type {Beta, BetaConfiguration, DomainSecurityGroupMembership, IntroSelected, Policy, SecurityGroup, Session} from '@src/types/onyx';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -33,8 +34,9 @@ let introSelected: OnyxEntry<IntroSelected>;
 let policies: OnyxCollection<Policy>;
 let hasCompletedGuidedSetupFlow: boolean | undefined;
 let hasShownSubmitMigrationModal: OnyxEntry<boolean>;
-let myDomainSecurityGroups: OnyxEntry<Record<string, string>>;
+let myDomainSecurityGroups: OnyxEntry<Record<string, DomainSecurityGroupMembership>>;
 let securityGroups: OnyxCollection<SecurityGroup>;
+let legacySecurityGroups: OnyxCollection<SecurityGroup>;
 let isSubmitMigrationModalShownLoaded = false;
 let hasLoadedApp = false;
 
@@ -102,12 +104,7 @@ function shouldShowSubmitPlanWelcomeModal(): boolean {
  * "Get the free plan" would dismiss it (marking it shown) without creating anything or navigating.
  */
 function isPolicyCreationRestricted(): boolean {
-    const userDomain = session?.email ? Str.extractEmailDomain(session.email) : undefined;
-    const securityGroupID = userDomain ? myDomainSecurityGroups?.[userDomain] : undefined;
-    if (!securityGroupID) {
-        return false;
-    }
-    return securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${securityGroupID}`]?.enableRestrictedPolicyCreation === true;
+    return getUserSecurityGroup(session?.email, myDomainSecurityGroups, securityGroups, legacySecurityGroups)?.enableRestrictedPolicyCreation === true;
 }
 
 /**
@@ -243,9 +240,16 @@ Onyx.connectWithoutView({
 });
 
 Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.SECURITY_GROUP,
+    key: ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP,
     callback: (value) => {
         securityGroups = value;
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.SECURITY_GROUP,
+    callback: (value) => {
+        legacySecurityGroups = value;
     },
 });
 
