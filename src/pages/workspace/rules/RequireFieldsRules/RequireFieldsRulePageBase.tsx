@@ -350,7 +350,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
         if (isEditing && !didChangeCategory && !hasRequireFieldsRuleChanges(selectedCategory ?? category, formToSave, touchedFields, clearedFields)) {
             clearDraftRequireFieldsRule();
-            Navigation.goBack();
+            Navigation.goBack(initialCategoryName ? (categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, initialCategoryName)) : undefined);
             return;
         }
 
@@ -364,7 +364,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
         clearDraftRequireFieldsRule();
 
-        if (!isEditing && isRulesRevampEnabled) {
+        // initialCategoryName is also set when the create screen is editing a category's existing rule, and in that
+        // case going back one step would land on the New rule hub instead of the category we came from.
+        if ((!isEditing || !!initialCategoryName) && isRulesRevampEnabled) {
             const savedCategoryName = savedCategory ?? initialCategoryName;
             if (initialCategoryName && savedCategoryName) {
                 Navigation.goBack(categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));

@@ -2,7 +2,7 @@
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 readonly SCRIPT_DIR
-source "$SCRIPT_DIR/shellUtils.sh"
+source "$SCRIPT_DIR/../shellUtils.sh"
 
 if [ $# -eq 0 ]; then
     error "Please provide at least one path as an argument"

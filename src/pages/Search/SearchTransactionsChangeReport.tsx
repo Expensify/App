@@ -44,7 +44,6 @@ function SearchTransactionsChangeReport() {
     const transactions = Object.values(selectedTransactions)
         .map((transactionItem) => transactionItem.transaction)
         .filter((transaction): transaction is Transaction => !!transaction);
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
@@ -160,7 +159,6 @@ function SearchTransactionsChangeReport() {
             shouldDismissEmptyReportsConfirmation,
             {managedCardTransactionID},
         );
-        const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         const policyTagList = policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : {};
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
@@ -170,7 +168,6 @@ function SearchTransactionsChangeReport() {
                 email: session?.email ?? '',
                 newReport: optimisticReport,
                 policy: policyForMovingExpenses,
-                reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
                 policyTagList,
                 transactions,
@@ -197,15 +194,13 @@ function SearchTransactionsChangeReport() {
             const firstTransactionID = selectedTransactionsKeys.at(0);
             if (firstTransactionID) {
                 Navigation.navigate(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.EDIT,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            transactionID: firstTransactionID,
-                            reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
-                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                        }),
-                    ),
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.EDIT,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: firstTransactionID,
+                        reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                    }),
                 );
             }
             return;
@@ -217,15 +212,13 @@ function SearchTransactionsChangeReport() {
         }
         if (shouldNavigateToUpgradePath) {
             Navigation.navigate(
-                createDynamicRoute(
-                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.CREATE,
-                        iouType: CONST.IOU.TYPE.CREATE,
-                        transactionID: generateReportID(),
-                        reportID: generateReportID(),
-                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                    }),
-                ),
+                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                    action: CONST.IOU.ACTION.CREATE,
+                    iouType: CONST.IOU.TYPE.CREATE,
+                    transactionID: generateReportID(),
+                    reportID: generateReportID(),
+                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                }),
             );
             return;
         }
@@ -245,7 +238,6 @@ function SearchTransactionsChangeReport() {
             return;
         }
 
-        const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
         changeTransactionsReport({
@@ -255,7 +247,6 @@ function SearchTransactionsChangeReport() {
             email: session?.email ?? '',
             newReport: destinationReport,
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
-            reportNextStep,
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
             policyTagList,
             transactions,
