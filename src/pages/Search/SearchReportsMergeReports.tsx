@@ -119,14 +119,23 @@ function SearchReportsMergeReports() {
             .filter((item) => !!item);
     }, [selectedReports, allReports, destinationReportID, personalDetails, currentSearchQueryJSON?.type]);
 
+    const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
+    const sourceReportIDs = destinationReport
+        ? selectedReports.reduce((acc, report) => {
+              const reportID = report.reportID;
+              if (!!reportID && reportID !== destinationReportID && !!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
+                  acc.push(reportID);
+              }
+              return acc;
+          }, [] as string[])
+        : [];
+
     const mergeSelectedReports = () => {
-        if (!destinationReportID || selectedReports.length < 2) {
+        if (!destinationReportID || !destinationReport || !sourceReportIDs.length) {
             return;
         }
 
-        const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
-        const policyID = destinationReport?.policyID;
-        const sourceReportIDs = selectedReports.map((r) => r.reportID).filter((id): id is string => !!id && id !== destinationReportID);
+        const policyID = destinationReport.policyID;
 
         mergeReports({
             destinationReportID,
@@ -184,7 +193,7 @@ function SearchReportsMergeReports() {
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.confirm')}
                         onSubmit={mergeSelectedReports}
-                        isDisabled={!destinationReportID || selectedReports.length < 2}
+                        isDisabled={!destinationReportID || !destinationReport || !sourceReportIDs.length}
                         enabledWhenOffline
                     />
                 }
