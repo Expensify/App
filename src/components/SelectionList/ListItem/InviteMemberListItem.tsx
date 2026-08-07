@@ -104,7 +104,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 numberOfLines={isMultilineSupported ? 2 : 1}
                                 style={[
                                     styles.optionDisplayName,
-                                    isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                    styles.sidebarLinkText,
                                     item.isBold !== false && styles.sidebarLinkTextBold,
                                     isMultilineSupported ? styles.preWrap : styles.pre,
                                     item.alternateText ? styles.mb1 : null,

@@ -43,7 +43,7 @@ import {createSidebarReportsCollection, createSidebarTestData} from '../utils/co
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {convertToDisplayString, localeCompare, translateLocal, formatPhoneNumber} from '../utils/TestHelper';
+import {convertToDisplayString, getCurrencyDecimalsLocal, localeCompare, translateLocal, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -3977,15 +3977,18 @@ describe('SidebarUtils', () => {
                     formatPhoneNumber,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage({
-                    reportOrID: iouReport,
-                    iouReportAction: iouAction,
-                    shouldConsiderScanningReceiptOrPendingRoute: true,
-                    isPreviewMessageForParentChatReport: true,
-                    policy: null,
-                    isForListPreview: true,
-                    originalReportAction: lastReportPreviewAction,
-                });
+                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                    {
+                        reportOrID: iouReport,
+                        iouReportAction: iouAction,
+                        shouldConsiderScanningReceiptOrPendingRoute: true,
+                        isPreviewMessageForParentChatReport: true,
+                        policy: null,
+                        isForListPreview: true,
+                        originalReportAction: lastReportPreviewAction,
+                    },
+                    getCurrencyDecimalsLocal,
+                );
                 expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID, translateLocal)}: ${reportPreviewMessage}`);
             });
 
@@ -4089,15 +4092,18 @@ describe('SidebarUtils', () => {
                     formatPhoneNumber,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage({
-                    reportOrID: iouReport,
-                    iouReportAction: iouAction,
-                    shouldConsiderScanningReceiptOrPendingRoute: true,
-                    isPreviewMessageForParentChatReport: true,
-                    policy: null,
-                    isForListPreview: true,
-                    originalReportAction: lastReportPreviewAction,
-                });
+                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                    {
+                        reportOrID: iouReport,
+                        iouReportAction: iouAction,
+                        shouldConsiderScanningReceiptOrPendingRoute: true,
+                        isPreviewMessageForParentChatReport: true,
+                        policy: null,
+                        isForListPreview: true,
+                        originalReportAction: lastReportPreviewAction,
+                    },
+                    getCurrencyDecimalsLocal,
+                );
                 expect(result?.alternateText).toBe(reportPreviewMessage);
             });
         });

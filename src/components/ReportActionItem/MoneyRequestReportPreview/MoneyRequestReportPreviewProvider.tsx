@@ -20,7 +20,6 @@ import {
 } from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {hasPendingUI, isPending} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -143,18 +142,6 @@ function MoneyRequestReportPreviewProvider({
     // Empty/access placeholders do not depend on measured carousel width, so we can show them immediately
     // once the report data is ready instead of keeping the taller loading state around and causing the preview to reflow.
     const shouldShowPreviewLoading = isTransitionPending || shouldShowLoading || shouldShowLoadingDeferred || (!currentWidth && !shouldShowPreviewPlaceholder);
-    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MoneyRequestReportPreviewContent',
-        hasOnceLoadedReportActions: chatReportLoadingState?.hasOnceLoadedReportActions,
-        isTransactionsEmpty: transactions.length === 0,
-        isOptimisticReport: isOptimisticChatReport,
-    };
-    const carouselReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MoneyRequestReportPreviewContent.Carousel',
-        hasCurrentWidth: !!currentWidth,
-        shouldShowLoading,
-        shouldShowLoadingDeferred,
-    };
     const previewCarouselMinWidth = shouldUseNarrowLayout ? CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_NARROW_WIDTH : CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH;
 
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation, startSubmittingAnimation} =
@@ -294,8 +281,6 @@ function MoneyRequestReportPreviewProvider({
         shouldShowCarouselArrows,
         isScanning,
         previewCarouselMinWidth,
-        skeletonReasonAttributes,
-        carouselReasonAttributes,
         previewMessageStyle,
         reportPreviewStyles,
         buttonMaxWidth,
