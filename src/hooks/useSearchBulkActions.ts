@@ -1831,8 +1831,43 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                   subMenuItems,
               };
 
+        const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
+        const downloadPDFOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.Download,
+            text: translate('common.downloadAsPDF'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_PDF,
+            shouldCloseModalOnSelect: true,
+            onSelected: async () => {
+                if (isOffline) {
+                    setIsOfflineModalVisible(true);
+                    return;
+                }
+                // In "Select all" mode the matching reports aren't enumerated on the client (results are paged),
+                // so send the search query to the backend and let it resolve the reports.
+                if (areAllMatchingItemsSelected) {
+                    const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
+                    const exportID = exportReportsToPDF([], serializedQuery);
+                    trackExport(exportID);
+                    return;
+                }
+                if (selectedReportIDs.length === 1) {
+                    const reportIDForPDF = selectedReportIDs.at(0);
+                    if (!reportIDForPDF) {
+                        return;
+                    }
+                    await exportReportToPDF({reportID: reportIDForPDF});
+                    setPdfReportID(reportIDForPDF);
+                    setIsPdfModalVisible(true);
+                    return;
+                }
+                const exportID = exportReportsToPDF(selectedReportIDs);
+                trackExport(exportID);
+            },
+        };
+
         if (areAllMatchingItemsSelected) {
-            return [exportButtonOption];
+            return isExpenseReportSearch ? [exportButtonOption, downloadPDFOption] : [exportButtonOption];
         }
 
         if (allSelectedAreDeleted) {
@@ -1870,7 +1905,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return deletedTransactionOptions;
         }
 
-        const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
         const selectedTransactionsList = Object.values(selectedTransactions)
             .map((transaction) => transaction.transaction)
             .filter((transaction): transaction is Transaction => !!transaction);
@@ -2085,30 +2119,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         options.push(exportButtonOption);
 
         if (isExpenseReportSearch && selectedReportIDs.length > 0) {
-            options.push({
-                icon: expensifyIcons.Download,
-                text: translate('common.downloadAsPDF'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_PDF,
-                shouldCloseModalOnSelect: true,
-                onSelected: async () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-                    if (selectedReportIDs.length === 1) {
-                        const reportIDForPDF = selectedReportIDs.at(0);
-                        if (!reportIDForPDF) {
-                            return;
-                        }
-                        await exportReportToPDF({reportID: reportIDForPDF});
-                        setPdfReportID(reportIDForPDF);
-                        setIsPdfModalVisible(true);
-                        return;
-                    }
-                    const exportID = exportReportsToPDF(selectedReportIDs);
-                    trackExport(exportID);
-                },
-            });
+            options.push(downloadPDFOption);
         }
 
         // A standalone bulk action (not nested under Export). "Select all matching" only loads the visible
@@ -2370,7 +2381,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactionsKeys,
         hash,
         selectedTransactions,
-        queryJSON?.type,
+        queryJSON,
         expensifyIcons,
         translate,
         areAllMatchingItemsSelected,
@@ -2449,7 +2460,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         trackExport,
         allReportsShouldMarkAsDone,
         noReportsShouldMarkAsDone,
-        queryJSON?.groupBy,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
