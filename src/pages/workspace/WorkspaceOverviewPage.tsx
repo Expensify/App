@@ -25,6 +25,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
@@ -77,6 +78,7 @@ import {View} from 'react-native';
 
 import type {WithPolicyProps} from './withPolicy';
 
+import ArchiveWorkspaceFlow from './archiveWorkspace/ArchiveWorkspaceFlow';
 import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -94,7 +96,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
     const illustrationIcons = useMemoizedLazyIllustrations(['Building']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'Inbox', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
+    const {isBetaEnabled} = usePermissions();
+    const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
 
     const backTo = route.params.backTo;
     const routePolicyID = route.params.policyID;
@@ -103,6 +107,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW);
     const {showConfirmModal} = useConfirmModal();
     const [isDeleteWorkspaceFlowVisible, setIsDeleteWorkspaceFlowVisible] = useState(false);
+    const [isArchiveWorkspaceFlowVisible, setIsArchiveWorkspaceFlowVisible] = useState(false);
 
     // Primitive-valued subscriptions configuring the Delete menu item (popover behavior and the loading spinner)
     // before a deletion starts. The deletion itself is handled by DeleteWorkspaceFlow, mounted on demand below.
@@ -380,22 +385,39 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.SHARE,
         });
         if (isOwner) {
-            secondaryActions.push({
-                value: 'delete',
-                text: translate('common.delete'),
-                icon: expensifyIcons.Trashcan,
-                onSelected: () => {
-                    if (isLoadingBill) {
-                        return;
-                    }
+            if (canArchivePolicies) {
+                secondaryActions.push({
+                    value: 'archive',
+                    text: translate('workspace.common.archive'),
+                    icon: expensifyIcons.Inbox,
+                    onSelected: () => {
+                        if (isLoadingBill) {
+                            return;
+                        }
 
-                    // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, which mounts when this is set.
-                    setIsDeleteWorkspaceFlowVisible(true);
-                },
-                disabled: isLoadingBill,
-                shouldShowLoadingSpinnerIcon: isLoadingBill,
-                shouldCloseModalOnSelect: !shouldCalculateBillNewDot || wouldBlockDeletion,
-            });
+                        setIsArchiveWorkspaceFlowVisible(true);
+                    },
+                    disabled: isLoadingBill,
+                    shouldShowLoadingSpinnerIcon: isLoadingBill,
+                    shouldCloseModalOnSelect: !shouldCalculateBillNewDot || wouldBlockDeletion,
+                });
+            } else {
+                secondaryActions.push({
+                    value: 'delete',
+                    text: translate('common.delete'),
+                    icon: expensifyIcons.Trashcan,
+                    onSelected: () => {
+                        if (isLoadingBill) {
+                            return;
+                        }
+
+                        setIsDeleteWorkspaceFlowVisible(true);
+                    },
+                    disabled: isLoadingBill,
+                    shouldShowLoadingSpinnerIcon: isLoadingBill,
+                    shouldCloseModalOnSelect: !shouldCalculateBillNewDot || wouldBlockDeletion,
+                });
+            }
         }
         const isCurrentUserAdmin = policy?.employeeList?.[currentUserPersonalDetails?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
         const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
@@ -458,6 +480,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     policyID={policyID}
                     onDismiss={() => setIsDeleteWorkspaceFlowVisible(false)}
                     onDeleteComplete={goBackFromInvalidPolicy}
+                />
+            )}
+            {isArchiveWorkspaceFlowVisible && !!policyID && (
+                <ArchiveWorkspaceFlow
+                    key={`archive-${policyID}`}
+                    policyID={policyID}
+                    onDismiss={() => setIsArchiveWorkspaceFlowVisible(false)}
+                    onArchiveComplete={goBackFromInvalidPolicy}
                 />
             )}
             {!!pendingRulesDocumentFile && (
