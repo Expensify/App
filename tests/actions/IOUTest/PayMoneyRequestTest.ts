@@ -34,8 +34,9 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getGlobalFetchMock, getOnyxData, translateLocal} from '../../utils/TestHelper';
+import {createGlobalFetchMock, getOnyxData, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -118,8 +119,8 @@ describe('actions/IOU/PayMoneyRequest', () => {
     let mockFetch: MockFetch;
     beforeEach(() => {
         jest.clearAllTimers();
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = createGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -1213,7 +1214,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
 
-            (Navigation.navigate as jest.Mock).mockClear();
+            jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
                 conciergeChat: undefined,
@@ -1282,7 +1283,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
 
-            (Navigation.navigate as jest.Mock).mockClear();
+            jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
                 conciergeChat: undefined,
@@ -1341,7 +1342,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
 
-            (Navigation.navigate as jest.Mock).mockClear();
+            jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
                 conciergeChat: undefined,
@@ -1535,7 +1536,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 .then(() => {
                     if (chatReport && expenseReport) {
                         // And when the payment is cancelled
-                        cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, false);
+                        cancelPayment(expenseReport, chatReport, createMock<Policy>({}), true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, false);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -1639,7 +1640,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             if (chatReport && expenseReport) {
                 mockFetch?.pause?.();
                 // And when the payment is cancelled
-                cancelPayment(expenseReport, chatReport, {} as Policy, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, false);
+                cancelPayment(expenseReport, chatReport, createMock<Policy>({}), true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, false);
             }
             await waitForBatchedUpdates();
 
