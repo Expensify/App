@@ -13,6 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import type {ImportedMerchantRule} from '@libs/actions/Policy/Rules';
 import {importMerchantRulesSpreadsheet} from '@libs/actions/Policy/Rules';
+import Tab from '@libs/actions/Tab';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -193,6 +194,9 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImportingRules(false);
+        // Imported merchant rules live on the Expense defaults tab, and the Rules page restores whichever tab was
+        // last active. Import can now be started from any tab, so point it at the tab holding the new rules.
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.EXPENSE_DEFAULTS);
         Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
     };
 

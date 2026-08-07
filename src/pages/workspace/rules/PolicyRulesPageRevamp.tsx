@@ -291,20 +291,16 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return null;
         }
 
-        if (activeTab !== RULES_TAB.EXPENSE_DEFAULTS) {
-            return (
-                <Button
-                    success
-                    onPress={handleNewRule}
-                    text={translate('workspace.rules.merchantRules.addRuleTitle')}
-                    icon={icons.Plus}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.w100]}
-                />
-            );
-        }
-
         const moreOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
-            getImportMerchantRulesOption({policyID, canWriteRules, showReadOnlyModal, translate, icon: icons.Table}),
+            getImportMerchantRulesOption({
+                policyID,
+                canWriteRules,
+                showReadOnlyModal,
+                translate,
+                icon: icons.Table,
+                // More is visible on General, the only tab Collect can open, so this needs the same upgrade gate as New rule.
+                tryNavigateToUpgrade: () => tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, rulesUpgradeBackTo),
+            }),
         ];
 
         return (
