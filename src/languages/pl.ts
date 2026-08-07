@@ -9133,6 +9133,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         genericUpdateReportFieldFailureMessage: 'Nieoczekiwany błąd podczas aktualizowania pola. Spróbuj ponownie później.',
         genericUpdateReportNameEditFailureMessage: 'Nieoczekiwany błąd podczas zmiany nazwy raportu. Spróbuj ponownie później.',
         noActivityYet: 'Brak aktywności',
+        collapsedSystemMessages: () => ({
+            one: '1 akcja',
+            other: (count: number) => `${count} ${count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? 'akcje' : 'akcji'}`,
+        }),
         connectionSettings: 'Ustawienia połączenia',
         actions: {
             type: {

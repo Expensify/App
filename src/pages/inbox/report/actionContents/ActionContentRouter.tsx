@@ -32,6 +32,7 @@ import {
     isActionableMentionWhisper,
     isActionableReportMentionWhisper,
     isActionOfType,
+    isApprovalFlowAction,
     isCardBrokenConnectionAction,
     isCardIssuedAction,
     isCreatedTaskReportAction,
@@ -41,6 +42,7 @@ import {
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
+    isSimpleMessageAction,
     isTaskAction,
     isTripPreview,
 } from '@libs/ReportActionsUtils';
@@ -57,7 +59,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
-import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
+import ApprovalFlowContent from './ApprovalFlowContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
@@ -77,7 +79,7 @@ import ReimbursementDeQueuedContent from './ReimbursementDeQueuedContent';
 import ReimbursementQueuedContent from './ReimbursementQueuedContent';
 import RemovedFromApprovalChainContent from './RemovedFromApprovalChainContent';
 import ReportMentionWhisperContent from './ReportMentionWhisperContent';
-import SimpleMessageContent, {isSimpleMessageAction} from './SimpleMessageContent';
+import SimpleMessageContent from './SimpleMessageContent';
 
 type ActionContentRouterProps = {
     /** All the data of the action item */
