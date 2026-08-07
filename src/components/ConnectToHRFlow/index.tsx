@@ -15,7 +15,7 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
 
     useEffect(() => {
         openLink(setupLink, environmentURL, false, session);
-    }, [environmentURL, setupLink, session]);
+    }, [environmentURL, setupLink]);
 
     return null;
 }
