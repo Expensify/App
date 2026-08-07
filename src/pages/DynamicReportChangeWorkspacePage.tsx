@@ -165,6 +165,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 reportActionsList: filteredReportActions,
                 reportPreviewAction,
                 isTrackIntentUser,
+                reportTransactions,
             });
             return;
         }
@@ -184,6 +185,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             isReportLastVisibleArchived,
             reportPreviewAction,
             isTrackIntentUser,
+            reportTransactions,
         });
     };
 

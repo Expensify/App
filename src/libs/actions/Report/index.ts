@@ -7932,9 +7932,9 @@ function buildOptimisticChangePolicyData({
     return {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction};
 }
 
-function shouldBlockChangeReportPolicyForCommuterExclusion(reportID: string | undefined, policy: Policy): boolean {
+function shouldBlockChangeReportPolicyForCommuterExclusion(reportTransactions: Transaction[], policy: Policy): boolean {
     const hasTargetPolicyCommuterExclusions = isCommuterExclusionEnabled(policy);
-    return getReportTransactions(reportID).some(
+    return reportTransactions.some(
         (transaction) => hasAppliedCommuterExclusion(transaction) || (hasTargetPolicyCommuterExclusions && (isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction))),
     );
 }
@@ -7957,6 +7957,7 @@ function changeReportPolicy({
     isReportLastVisibleArchived = false,
     reportPreviewAction,
     isTrackIntentUser,
+    reportTransactions,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7972,8 +7973,9 @@ function changeReportPolicy({
     isReportLastVisibleArchived?: boolean;
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
+    reportTransactions: Transaction[];
 }) {
-    if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForCommuterExclusion(report.reportID, policy)) {
+    if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForCommuterExclusion(reportTransactions, policy)) {
         return;
     }
 
@@ -8025,6 +8027,7 @@ function changeReportPolicyAndInviteSubmitter({
     reportActionsList,
     reportPreviewAction,
     isTrackIntentUser,
+    reportTransactions,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8041,6 +8044,7 @@ function changeReportPolicyAndInviteSubmitter({
     reportActionsList: OnyxCollection<ReportActions>;
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
+    reportTransactions: Transaction[];
 }) {
     if (
         !report.reportID ||
@@ -8049,7 +8053,7 @@ function changeReportPolicyAndInviteSubmitter({
         !isExpenseReport(report) ||
         !report.ownerAccountID ||
         !submitterLogin ||
-        shouldBlockChangeReportPolicyForCommuterExclusion(report.reportID, policy)
+        shouldBlockChangeReportPolicyForCommuterExclusion(reportTransactions, policy)
     ) {
         return;
     }
