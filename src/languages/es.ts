@@ -8527,6 +8527,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la configuración de facturas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la configuración de viaje de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitado' : 'desactivado'} el requisito de categorización de gastos`,
+        updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitado' : 'desactivado'} el requisito de etiquetado de gastos`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
