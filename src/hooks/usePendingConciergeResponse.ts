@@ -222,7 +222,7 @@ function usePendingConciergeResponse(reportID: string | undefined) {
             intervalID = setInterval(() => {
                 const elapsed = Date.now() - trickleStart;
                 const progress = clampProgress(elapsed);
-                // clampProgress keeps progress non-negative, and the shouldTrickle gate requires at least 100 reveal stages,
+                // clampProgress keeps progress non-negative, and the shouldTrickle gate requires at least 100 char-level tokens,
                 // so `progress * lastIndex` is always non-negative — only the upper bound needs clamping.
                 const stage = Math.min(lastIndex, Math.ceil(progress * lastIndex));
                 if (stage > lastStage) {

@@ -1,4 +1,4 @@
-/** Keep this duration for server-streamed reveals, which use getRevealDurationMS in usePusherDraftPacing. */
+/** Duration for server-streamed reveals, which use getRevealDurationMS in usePusherDraftPacing. Targets about 19 characters per second at the start and about 7 characters per second at the end, after the ease-out curve, for a typical multi-paragraph response. */
 const DEFAULT_STREAM_DURATION_MS = 15_000;
 /** Short replies still trickle, but they should not take a full multi-paragraph reveal duration. */
 const MIN_STREAM_DURATION_MS = 600;
