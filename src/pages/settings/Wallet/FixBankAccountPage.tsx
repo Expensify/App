@@ -4,12 +4,12 @@ import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -40,6 +40,7 @@ function FixBankAccountPage() {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.path);
     const {isOffline} = useNetwork();
     const [hasSubmitted, setHasSubmitted] = useState(false);
+    const illustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenBank', 'ScissorsCuttingMoney']);
 
     const bankAccountID = route.params?.bankAccountID ? Number(route.params?.bankAccountID) : undefined;
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -110,7 +111,7 @@ function FixBankAccountPage() {
             <FullPageNotFoundView shouldShow={!isValidationFailed && !didSend}>
                 {didSend && (
                     <ConfirmationPage
-                        illustration={LottieAnimations.Fireworks}
+                        illustration={illustrations.LaptopWithSecondScreenBank}
                         heading={translate('walletPage.fixBankAccount.successTitle')}
                         description={translate('walletPage.fixBankAccount.successBody')}
                         descriptionStyle={styles.textSupportingNormal}
@@ -123,7 +124,7 @@ function FixBankAccountPage() {
                 {!didSend && isInsufficientFunds && (
                     <>
                         <ConfirmationPage
-                            illustration={LottieAnimations.Fireworks}
+                            illustration={illustrations.ScissorsCuttingMoney}
                             heading={translate('common.actionRequired')}
                             description={translate('walletPage.fixBankAccount.insufficientFundsBody')}
                             descriptionStyle={styles.textSupportingNormal}
