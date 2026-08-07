@@ -1,4 +1,5 @@
 import {parsePendingNewTransactionFlagKey} from '@libs/PendingNewTransactionFlags';
+import {getPendingDeleteMemberAccountIDs} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
@@ -28,6 +29,8 @@ const isLoadingInitialReportActionsSelector = (loadingState: OnyxEntry<ReportLoa
 
 const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
     reportMetadata ? {pendingChatMembers: reportMetadata.pendingChatMembers} : undefined;
+
+const pendingDeleteMemberAccountIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers);
 
 type PendingNewTransactions = {
     /** Transaction ID mapped to the flag instance to sweep once highlighted, newest instance winning. */
@@ -90,5 +93,6 @@ export {
     isOptimisticReportSelector,
     pendingNewTransactionIDsSelector,
     pendingChatMembersSelector,
+    pendingDeleteMemberAccountIDsSelector,
 };
 export type {PendingNewTransactions};
