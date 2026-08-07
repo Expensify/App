@@ -5775,10 +5775,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     },
                 },
             },
-            exportCompanyCard: {
+            exportNonReimbursable: {
                 label: 'Εξαγωγή εξόδων εταιρικής κάρτας ως',
                 values: {
-                    [CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {
+                    [CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE]: {
                         label: 'Πιστωτικές κάρτες',
                     },
                 },

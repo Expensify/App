@@ -5591,7 +5591,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     },
                 },
             },
-            exportCompanyCard: {label: '会社カード経費のエクスポート形式', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'クレジットカード'}}},
+            exportNonReimbursable: {label: '会社カード経費のエクスポート形式', values: {[CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE]: {label: 'クレジットカード'}}},
             defaultCompanyCardVendor: {label: 'デフォルトの会社カードベンダー', description: '自動的に一致しない経費に使用する既定の Rillet ベンダーを選択してください。'},
             companyCardAccount: {label: '会社カード口座', description: '会社カード取引のエクスポート先を選択してください。'},
             noBankAccountsFound: '銀行口座が見つかりません',

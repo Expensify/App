@@ -5461,7 +5461,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     },
                 },
             },
-            exportCompanyCard: {label: '导出公司卡费用为', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: '信用卡'}}},
+            exportNonReimbursable: {label: '导出公司卡费用为', values: {[CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE]: {label: '信用卡'}}},
             defaultCompanyCardVendor: {label: '默认公司卡供应商', description: '为未自动匹配的报销选择一个默认的 Rillet 供应商。'},
             companyCardAccount: {label: '公司卡账户', description: '选择公司卡交易的导出位置。'},
             noBankAccountsFound: '未找到银行账户',
