@@ -215,6 +215,9 @@ const CONST = {
         '667479706d696631', // 'ftypmif1' - Multi-Image Format part of HEIF, broader usage
     ],
     RECENT_WAYPOINTS_NUMBER: 20,
+    // Validate-code action errorFields key the missing-personal-details ship-card flow writes its incorrect-magic-code
+    // error under, and the ValidateCodeForm reads it back from, so the action and the page stay in sync.
+    MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD: 'personalDetails',
     DEFAULT_DB_NAME: 'OnyxDB',
     DEFAULT_TABLE_NAME: 'keyvaluepairs',
     DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
@@ -1003,11 +1006,13 @@ const CONST = {
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
+        INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
+        NETSUITE_OAUTH: 'netSuiteOAuth',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -3226,12 +3231,15 @@ const CONST = {
         CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
         TOKEN_INPUT: {
             STEP_INDEX_LIST: ['1', '2', '3', '4'],
+            OAUTH_STEP_INDEX_LIST: ['1', '2', '3', '4'],
             PAGE_NAME: {
                 INSTALL: 'install',
                 AUTHENTICATION: 'authentication',
                 SOAP: 'soap',
                 ACCESS_TOKEN: 'access-token',
                 CREDENTIALS: 'credentials',
+                OAUTH: 'enable-oauth',
+                REST: 'enable-rest',
             },
             STEP_KEYS: {
                 install: 'installBundle',
@@ -3239,6 +3247,8 @@ const CONST = {
                 soap: 'enableSoapServices',
                 'access-token': 'createAccessToken',
                 credentials: 'enterCredentials',
+                'enable-oauth': 'enableOAuth',
+                'enable-rest': 'enableRestWebServices',
             },
         },
         IMPORT_CUSTOM_FIELDS: {
@@ -4284,6 +4294,9 @@ const CONST = {
             },
         },
         CONNECTIONS: {
+            ACCOUNTING_INTEGRATION_ALIASES: {
+                INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
+            },
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
@@ -7077,6 +7090,8 @@ const CONST = {
                     BANK_ACCOUNT: this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
                     WITHDRAWAL_ID: this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    AMOUNT_DEBITED: this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+                    AMOUNT_REIMBURSED: this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
                 CATEGORY: {
@@ -7155,6 +7170,8 @@ const CONST = {
                     this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
                     this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
                     this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+                    this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
                     this.TABLE_COLUMNS.GROUP_TOTAL,
                 ],
                 CATEGORY: [this.TABLE_COLUMNS.GROUP_CATEGORY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
@@ -7275,6 +7292,8 @@ const CONST = {
             GROUP_YEAR: 'groupyear',
             GROUP_QUARTER: 'groupquarter',
             GROUP_WITHDRAWAL_STATUS: 'groupWithdrawalStatus',
+            GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
+            GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7500,6 +7519,8 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_YEAR]: 'group-year',
                 [this.TABLE_COLUMNS.GROUP_QUARTER]: 'group-quarter',
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
+                [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
+                [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
             };
         },
         NOT_PREFIX: '-',

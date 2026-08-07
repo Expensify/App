@@ -64,7 +64,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	76
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	79
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/TIMEZONES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -103,12 +103,10 @@
 "../../src/components/AutoCompleteSuggestions/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/AutoSubmitModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Avatar.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/AvatarButtonWithIcon.tsx"	"react-hooks/static-components"	1
 "../../src/components/AvatarCropModal/AvatarCropModal.tsx"	"no-restricted-imports"	1
 "../../src/components/AvatarCropModal/ImageCropView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AvatarCropModal/Slider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AvatarSelector.tsx"	"no-restricted-syntax"	2
-"../../src/components/AvatarWithImagePicker.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AvatarWithImagePicker.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/BookTravelButton.tsx"	"no-restricted-imports"	1
 "../../src/components/Button/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -801,9 +799,8 @@
 "../../src/libs/actions/HybridApp/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/BulkEdit.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/BulkEdit.ts"	"no-restricted-syntax"	2
-"../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"@typescript-eslint/no-deprecated/Localize.translateLocal"	1
 "../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"no-restricted-syntax"	2
+"../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/Duplicate.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../src/libs/actions/IOU/Duplicate.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/Hold.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -979,7 +976,7 @@
 "../../src/pages/Debug/ConstantPicker.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/Debug/ConstantSelector.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/Debug/DateTimeSelector.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/Debug/DebugDetails.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	9
+"../../src/pages/Debug/DebugDetails.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../src/pages/Debug/DebugJSON.tsx"	"no-restricted-imports"	1
 "../../src/pages/Debug/Report/DebugReportActions.tsx"	"no-restricted-imports"	1
 "../../src/pages/Debug/Report/DebugReportPage.tsx"	"no-restricted-imports"	1
@@ -1151,7 +1148,7 @@
 "../../src/pages/inbox/report/ContextMenu/ContextMenuActions.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/inbox/report/ContextMenu/PopoverReportActionContextMenu.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/inbox/report/ContextMenu/PopoverReportActionContextMenu.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/inbox/report/ContextMenu/PopoverReportActionContextMenu.tsx"	"react-hooks/refs"	30
+"../../src/pages/inbox/report/ContextMenu/PopoverReportActionContextMenu.tsx"	"react-hooks/refs"	28
 "../../src/pages/inbox/report/EnableNotificationsBanner.tsx"	"no-restricted-imports"	1
 "../../src/pages/inbox/report/FloatingMessageCounter.tsx"	"no-restricted-imports"	1
 "../../src/pages/inbox/report/ListBoundaryLoader.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1251,6 +1248,8 @@
 "../../src/pages/iou/request/step/IOURequestStepScan/utils/getFileSource.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepSubrate.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepSubrate.tsx"	"react-hooks/set-state-in-effect"	1
+"../../src/pages/iou/request/step/IOURequestStepUpgrade.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
+"../../src/pages/iou/request/step/IOURequestStepUpgrade.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/step/IOURequestStepWaypoint.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/step/IOURequestStepWaypoint.tsx"	"no-restricted-imports"	1
 "../../src/pages/iou/request/step/StepScreenWrapper.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
