@@ -1667,6 +1667,7 @@ type GetFilterDisplayValueParams = {
     policies: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'];
     feedKeysWithCards?: FeedKeysWithAssignedCards;
     bankAccountList?: OnyxTypes.BankAccountList;
@@ -1685,6 +1686,7 @@ function getFilterDisplayValue({
     policies,
     currentUserAccountID,
     translate,
+    formatPhoneNumber,
     reportAttributes,
     feedKeysWithCards,
     bankAccountList,
@@ -1702,7 +1704,13 @@ function getFilterDisplayValue({
         }
         return filterValue === currentUserAccountID.toString()
             ? CONST.SEARCH.ME
-            : temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[filterValue], defaultValue: filterValue, shouldFallbackToHidden: false, translate});
+            : temporaryGetDisplayNameOrDefault({
+                  passedPersonalDetails: personalDetails?.[filterValue],
+                  defaultValue: filterValue,
+                  shouldFallbackToHidden: false,
+                  translate,
+                  formatPhoneNumber,
+              });
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
         const cardID = parseInt(filterValue, 10);
@@ -1760,6 +1768,7 @@ function getDisplayQueryFiltersForKey(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
     feedKeysWithCards?: FeedKeysWithAssignedCards,
     bankAccountList?: OnyxTypes.BankAccountList,
@@ -1827,6 +1836,7 @@ function getDisplayQueryFiltersForKey(
                 policies,
                 currentUserAccountID,
                 translate,
+                formatPhoneNumber,
                 reportAttributes,
                 feedKeysWithCards,
                 bankAccountList,
@@ -1846,6 +1856,7 @@ function getDisplayQueryFiltersForKey(
             policies,
             currentUserAccountID,
             translate,
+            formatPhoneNumber,
             reportAttributes,
             feedKeysWithCards,
             bankAccountList,
@@ -1926,6 +1937,7 @@ type BuildUserReadableQueryStringParams = {
     currentUserAccountID: number;
     autoCompleteWithSpace: boolean;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     feedKeysWithCards?: FeedKeysWithAssignedCards;
     reportAttributes: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
     bankAccountList?: OnyxTypes.BankAccountList;
@@ -1942,6 +1954,7 @@ function buildUserReadableQueryString({
     currentUserAccountID,
     autoCompleteWithSpace = false,
     translate,
+    formatPhoneNumber,
     feedKeysWithCards,
     reportAttributes,
     bankAccountList,
@@ -1988,6 +2001,7 @@ function buildUserReadableQueryString({
                 policies,
                 currentUserAccountID,
                 translate,
+                formatPhoneNumber,
                 reportAttributes,
                 feedKeysWithCards,
                 bankAccountList,
@@ -2037,6 +2051,7 @@ function buildUserReadableQueryString({
             policies,
             currentUserAccountID,
             translate,
+            formatPhoneNumber,
             reportAttributes,
             feedKeysWithCards,
             bankAccountList,

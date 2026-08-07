@@ -5267,9 +5267,8 @@ describe('SearchUIUtils', () => {
             expect(result).toHaveLength(1);
             expect(count).toBe(1);
             expect(result.at(0)?.reportName).toBe('Fix the login bug');
-            // formatPhoneNumber replaces regular spaces with non-breaking spaces (\u00A0)
-            expect(result.at(0)?.formattedAssignee).toBe('Task\u00A0Assignee');
-            expect(result.at(0)?.formattedCreatedBy).toBe('Task\u00A0Creator');
+            expect(result.at(0)?.formattedAssignee).toBe('Task Assignee');
+            expect(result.at(0)?.formattedCreatedBy).toBe('Task Creator');
             expect(result.at(0)?.keyForList).toBe(taskReportID);
         });
 

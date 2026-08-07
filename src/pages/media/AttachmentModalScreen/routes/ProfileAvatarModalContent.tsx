@@ -30,7 +30,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     const personalDetail = personalDetails?.[accountID];
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const avatarURL = personalDetail?.avatar ?? '';
-    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, translate});
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, translate, formatPhoneNumber});
 
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const isLoading = personalDetailsMetadata?.[accountID]?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length);
