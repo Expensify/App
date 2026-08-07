@@ -9,7 +9,7 @@ import {execFileSync} from 'child_process';
  * pod install or a gradle sync.
  */
 
-const SETUP_DOCS_URL = 'https://github.com/Expensify/App/blob/main/contributingGuides/SETUP_ANDROID.md#enabling-prebuilt-react-native-artifacts';
+const SETUP_DOCS_URL = 'https://github.com/Expensify/App/blob/main/contributingGuides/PREBUILT_REACT_NATIVE_ARTIFACTS.md';
 
 /** Thrown when the local gh CLI can't provide usable credentials. Always points at the setup instructions. */
 class GithubCLISetupError extends Error {
