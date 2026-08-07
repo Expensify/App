@@ -192,3 +192,12 @@
 - Upstream PR/issue: TBD
 - E/App issue: https://github.com/Expensify/App/issues/91425
 - PR introducing patch: https://github.com/Expensify/App/pull/91422
+
+### [@shopify+flash-list+2.3.0+016+ignore-stale-viewholder-render-layout.patch](@shopify+flash-list+2.3.0+016+ignore-stale-viewholder-render-layout.patch)
+
+- Reason: Prevents a web-only `index out of bounds, not enough layouts` crash thrown while `ViewHolderCollection` renders. This is the render-path sibling of patch `009`, which only guarded the `validateItemSize` measurement callback. On web, `ViewHolderCollection` incrementally reconciles `renderEntriesRef` and can retain a render entry whose stored `index` points past the end of the current `layouts` array after the list `data` shrinks between renders (e.g. deleting a report action, IOU actions being filtered once transactions load, or a Concierge draft being removed). The retained entry then calls the unguarded `getLayout(index)` wired at `RecyclerView` → `LayoutManager.getLayout`, which throws. The patch wires `ViewHolderCollection`'s `getLayout` prop to the bounds-safe `recyclerViewManager.tryGetLayout(index)` and skips (returns `null` for) any render entry whose layout is `undefined`, so a stale index is dropped for that render instead of crashing. Native rebuilds render entries from scratch each render and never hits this, matching the web-only Sentry reports.
+- Files changed: `src/recyclerview/RecyclerView.tsx`, `src/recyclerview/ViewHolderCollection.tsx`, and their `dist` counterparts (`dist/recyclerview/RecyclerView.js`, `dist/recyclerview/ViewHolderCollection.js`, `dist/recyclerview/ViewHolderCollection.d.ts`).
+- Upstream PR/issue: TBD
+- E/App issue: https://github.com/Expensify/App/issues/97472
+- Sentry: https://expensify.sentry.io/issues/APP-EEE
+- PR introducing patch: https://github.com/Expensify/App/pull/98015
