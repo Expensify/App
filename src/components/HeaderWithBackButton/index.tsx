@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
@@ -23,6 +24,7 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
 import variables from '@styles/variables';
 
@@ -117,8 +119,9 @@ function HeaderWithBackButton({
     );
 
     const middleContent = useMemo(() => {
+        const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
         if (progressBarPercentage) {
-            const progressBarLabel = stepCounter ? `${translate('common.progressBarLabel')}, ${translate('stepCounter', stepCounter)}` : undefined;
+            const progressBarLabel = stepCounter ? `${translate('common.progressBarLabel')}, ${stepCounterTranslation}` : undefined;
             return (
                 <>
                     {/* Reserves as much space for the middleContent as possible */}
@@ -156,7 +159,7 @@ function HeaderWithBackButton({
         return (
             <Header
                 title={title}
-                subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
+                subtitle={stepCounterTranslation ?? subtitle}
                 textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
                 subTitleLink={subTitleLink}
                 numberOfTitleLines={1}
@@ -287,15 +290,21 @@ function HeaderWithBackButton({
                         fill={iconFill}
                     />
                 )}
-                {!!policyAvatar && (
-                    <Avatar
-                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
-                        source={policyAvatar?.source}
-                        name={policyAvatar?.name}
-                        avatarID={policyAvatar?.id}
-                        type={policyAvatar?.type}
-                    />
-                )}
+                {!!policyAvatar &&
+                    (policyAvatar.type === CONST.ICON_TYPE_WORKSPACE ? (
+                        <WorkspaceAvatar
+                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                            source={policyAvatar.source}
+                            name={policyAvatar.name ?? ''}
+                            avatarID={policyAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                        />
+                    ) : (
+                        <UserAvatar
+                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                            source={policyAvatar.source}
+                            accountID={getAccountIDFromAvatarID(policyAvatar.id)}
+                        />
+                    ))}
                 {middleContent}
                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                     <View style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}>

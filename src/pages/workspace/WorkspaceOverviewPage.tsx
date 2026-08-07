@@ -1,5 +1,5 @@
 import AttachmentPicker from '@components/AttachmentPicker';
-import Avatar from '@components/Avatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -53,7 +53,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canEditWorkspaceSettings, getRulesDocumentSourceURL, getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyOwner} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
 import {getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
@@ -94,7 +93,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
     const illustrationIcons = useMemoizedLazyIllustrations(['Building']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
 
     const backTo = route.params.backTo;
     const routePolicyID = route.params.policyID;
@@ -259,21 +258,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }, [fetchPolicyData]),
     );
 
-    const DefaultAvatar = useCallback(
-        () => (
-            <Avatar
-                containerStyles={styles.avatarXLarge}
-                imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-                source={policy?.avatarURL || getDefaultWorkspaceAvatar(policyName)}
-                fallbackIcon={expensifyIcons.FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.X_LARGE}
-                name={policyName}
-                avatarID={policyID}
-                type={CONST.ICON_TYPE_WORKSPACE}
-            />
-        ),
-        [expensifyIcons.FallbackWorkspaceAvatar, policy?.avatarURL, policyID, policyName, styles.alignSelfCenter, styles.avatarXLarge],
+    const workspaceAvatar = (
+        <WorkspaceAvatar
+            source={policy?.avatarURL}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+            name={policyName}
+            avatarID={policyID ?? CONST.DEFAULT_NUMBER_ID}
+        />
     );
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
@@ -524,14 +515,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policyID));
                         }}
                         source={policy?.avatarURL ?? ''}
-                        avatarID={policyID}
-                        size={CONST.AVATAR_SIZE.X_LARGE}
-                        name={policyName}
-                        avatarStyle={styles.avatarXLarge}
+                        avatar={workspaceAvatar}
+                        avatarStyle={styles.alignSelfStart}
                         enablePreview
-                        DefaultAvatar={DefaultAvatar}
-                        type={CONST.ICON_TYPE_WORKSPACE}
-                        fallbackIcon={expensifyIcons.FallbackWorkspaceAvatar}
                         style={[(policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout) ? styles.mb1 : styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                         editIconStyle={styles.smallEditIconWorkspace}
                         isUsingDefaultAvatar={!policy?.avatarURL}

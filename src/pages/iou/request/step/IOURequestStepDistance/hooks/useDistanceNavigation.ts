@@ -1,5 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestParticipantsPolicyTags';
@@ -152,6 +153,7 @@ function useDistanceNavigation({
 
     const delegateAccountID = useDelegateAccountID();
     const {formatPhoneNumber} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
 
     const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
@@ -212,6 +214,7 @@ function useDistanceNavigation({
             delegateAccountID,
             policyTagList,
             formatPhoneNumber,
+            getCurrencySymbol,
             participants,
             participantsPolicyTags,
         });

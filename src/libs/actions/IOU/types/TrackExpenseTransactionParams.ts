@@ -14,6 +14,7 @@ type TrackExpenseTransactionParams = {
     merchant?: string;
     comment?: string;
     distance?: number;
+    modifiedDistance?: number;
     receipt?: Receipt;
     category?: string;
     tag?: string;

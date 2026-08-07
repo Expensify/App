@@ -1,5 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestParticipantsPolicyTags';
@@ -168,6 +169,7 @@ function useOdometerNavigation({
 
     const delegateAccountID = useDelegateAccountID();
     const {formatPhoneNumber} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyListActions();
 
     return ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
         const optimisticTransactionID = rand64();
@@ -218,6 +220,7 @@ function useOdometerNavigation({
             delegateAccountID,
             policyTagList,
             formatPhoneNumber,
+            getCurrencySymbol,
             participants,
             participantsPolicyTags,
         });
