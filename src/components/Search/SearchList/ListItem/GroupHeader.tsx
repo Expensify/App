@@ -21,8 +21,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import {getColumnsToShow} from '@libs/SearchUIUtils';
+import {getColumnsToShow, isCashBackWithdrawalGroup} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -176,6 +178,7 @@ function GroupHeader({
     const isEmpty = groupItem.transactions.length === 0 && !hasSnapshotTransactions && !groupItem.transactionsQueryJSON;
     const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isDisabledOrEmpty = isEmpty || isDisabled;
+    const isCashBackWithdrawal = isCashBackWithdrawalGroup(groupItem);
 
     const effectiveTransactions = useMemo((): TransactionListItemType[] => {
         if (isExpenseReportType || groupItem.transactions.length > 0) {
@@ -301,6 +304,7 @@ function GroupHeader({
                     <WithdrawalIDListItemHeader
                         withdrawalID={groupItem}
                         {...commonProps}
+                        onDownArrowClick={isCashBackWithdrawal ? undefined : commonProps.onDownArrowClick}
                     />
                 );
             case CONST.SEARCH.GROUP_BY.CATEGORY:
@@ -378,7 +382,7 @@ function GroupHeader({
         if (isExpenseReportType) {
             onSelectRow(withOriginalKey(item), transactionPreviewData, event);
         }
-        if (!isExpenseReportType) {
+        if (!isExpenseReportType && !isCashBackWithdrawal) {
             onToggle();
         }
     };
@@ -424,29 +428,34 @@ function GroupHeader({
                     <View style={styles.flex1}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth && styles.tableRowHeight]}>
                             <View style={styles.flex1}>{renderHeader(hovered)}</View>
-                            {isLargeScreenWidth && (
-                                <PressableWithFeedback
-                                    onPress={() => {
-                                        if (isEmpty && !shouldDisplayEmptyView) {
-                                            handlePress();
-                                            return;
-                                        }
-                                        onToggle();
-                                    }}
-                                    style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}
-                                    accessibilityRole={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
-                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
-                                >
-                                    {({hovered: arrowHovered}) => (
-                                        <Icon
-                                            src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
-                                            fill={theme.icon}
-                                            additionalStyles={!arrowHovered && styles.opacitySemiTransparent}
-                                        />
-                                    )}
-                                </PressableWithFeedback>
-                            )}
+                            {isLargeScreenWidth &&
+                                (isCashBackWithdrawal ? (
+                                    <View style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}>
+                                        <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal)} />
+                                    </View>
+                                ) : (
+                                    <PressableWithFeedback
+                                        onPress={() => {
+                                            if (isEmpty && !shouldDisplayEmptyView) {
+                                                handlePress();
+                                                return;
+                                            }
+                                            onToggle();
+                                        }}
+                                        style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}
+                                        accessibilityRole={CONST.ROLE.BUTTON}
+                                        accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
+                                    >
+                                        {({hovered: arrowHovered}) => (
+                                            <Icon
+                                                src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
+                                                fill={theme.icon}
+                                                additionalStyles={!arrowHovered && styles.opacitySemiTransparent}
+                                            />
+                                        )}
+                                    </PressableWithFeedback>
+                                ))}
                         </View>
                         {isLargeScreenWidth && subHeaderColumns.length > 0 && (
                             <Animated.View style={subHeaderAnimatedStyle}>

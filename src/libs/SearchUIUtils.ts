@@ -1306,6 +1306,21 @@ function isTransactionReportGroupListItemType(item: ListItem): item is Transacti
 }
 
 /**
+ * Type guard that checks if something is a TransactionWithdrawalIDGroupListItemType
+ */
+function isTransactionWithdrawalIDGroupListItemType(item: ListItem): item is TransactionWithdrawalIDGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
+}
+
+/**
+ * Checks if a row is a cash back credit rather than a card settlement withdrawal. Cash back rows have no underlying
+ * transactions, so they render without an expand affordance and contribute a credit to the selection footer.
+ */
+function isCashBackWithdrawalGroup(item: ListItem): boolean {
+    return isTransactionWithdrawalIDGroupListItemType(item) && !!item.isCashBack;
+}
+
+/**
  * Type guard that checks if something is a TransactionCategoryGroupListItemType
  */
 function isTransactionCategoryGroupListItemType(item: ListItem): item is TransactionCategoryGroupListItemType {
@@ -6400,11 +6415,21 @@ function getSettlementStatusBadgeProps(
     state: number | undefined,
     translate: LocaleContextProps['translate'],
     theme: ThemeColors,
+    isCashBack = false,
 ): {
     text: string;
     badgeStyles: ViewStyle;
     textStyles: TextStyle;
 } | null {
+    // Cash back is a credit rather than a settlement, so it replaces the state-derived badge instead of mapping to one.
+    if (isCashBack) {
+        return {
+            text: translate('settlement.status.cashBack'),
+            badgeStyles: {backgroundColor: theme.reportStatusBadge.paid.backgroundColor},
+            textStyles: {color: theme.reportStatusBadge.paid.textColor},
+        };
+    }
+
     const status = getSettlementStatus(state);
     if (!status) {
         return null;
@@ -6716,6 +6741,7 @@ export {
     isTransactionMatchWithGroupItem,
     isTransactionGroupListItemType,
     isTransactionReportGroupListItemType,
+    isCashBackWithdrawalGroup,
     isTransactionCategoryGroupListItemType,
     isTransactionMerchantGroupListItemType,
     isTransactionTagGroupListItemType,
