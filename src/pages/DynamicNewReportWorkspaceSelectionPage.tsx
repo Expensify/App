@@ -89,13 +89,12 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const transactionIDsForReports = Object.keys(selectedTransactions).length ? Object.keys(selectedTransactions) : selectedTransactionIDs;
-    const reports = useChangeTransactionsReportReports(transactionIDsForReports, allTransactions, undefined);
     const personalPolicy = usePersonalPolicy();
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions);
     const transactionIDs = selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs;
     const [transactions] = useTransactionsByID(transactionIDs);
+    const reports = useChangeTransactionsReportReports(transactions, undefined);
 
     const isAppLoadPending = useIsAppLoadPending();
     const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;

@@ -7,7 +7,7 @@ import {rand64} from '@libs/NumberUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {ReportAction, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -55,7 +55,7 @@ describe('useChangeTransactionsReportReports', () => {
     });
 
     it('always includes the self-DM report and the destination report, even with no transactions', async () => {
-        const {result} = renderHook(() => useChangeTransactionsReportReports([], {}, {reportID: DESTINATION_REPORT_ID} as Report));
+        const {result} = renderHook(() => useChangeTransactionsReportReports([], DESTINATION_REPORT_ID));
 
         await waitFor(() => {
             expect(result.current).toBeDefined();
@@ -81,8 +81,7 @@ describe('useChangeTransactionsReportReports', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}decoyThread1`, {reportID: 'decoyThread1'});
         await waitForBatchedUpdates();
 
-        const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction};
-        const {result} = renderHook(() => useChangeTransactionsReportReports([transaction.transactionID], allTransactions, {reportID: NEW_REPORT_ID} as Report));
+        const {result} = renderHook(() => useChangeTransactionsReportReports([transaction], NEW_REPORT_ID));
 
         await waitFor(() => {
             expect(result.current?.[`${ONYXKEYS.COLLECTION.REPORT}realThread1`]).toBeDefined();
@@ -100,8 +99,7 @@ describe('useChangeTransactionsReportReports', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}trackThread1`, {reportID: 'trackThread1'});
         await waitForBatchedUpdates();
 
-        const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction};
-        const {result} = renderHook(() => useChangeTransactionsReportReports([transaction.transactionID], allTransactions, undefined));
+        const {result} = renderHook(() => useChangeTransactionsReportReports([transaction], undefined));
 
         await waitFor(() => {
             expect(result.current?.[`${ONYXKEYS.COLLECTION.REPORT}trackThread1`]).toBeDefined();
@@ -117,8 +115,7 @@ describe('useChangeTransactionsReportReports', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}staleThread1`, {reportID: 'staleThread1'});
         await waitForBatchedUpdates();
 
-        const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction};
-        const {result} = renderHook(() => useChangeTransactionsReportReports([transaction.transactionID], allTransactions, undefined));
+        const {result} = renderHook(() => useChangeTransactionsReportReports([transaction], undefined));
 
         await waitFor(() => {
             expect(result.current).toBeDefined();
@@ -133,8 +130,7 @@ describe('useChangeTransactionsReportReports', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLD_REPORT_ID}`, {reportID: OLD_REPORT_ID});
         await waitForBatchedUpdates();
 
-        const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction};
-        const {result} = renderHook(() => useChangeTransactionsReportReports([transaction.transactionID], allTransactions, undefined));
+        const {result} = renderHook(() => useChangeTransactionsReportReports([transaction], undefined));
 
         await waitFor(() => {
             expect(result.current?.[`${ONYXKEYS.COLLECTION.REPORT}${OLD_REPORT_ID}`]).toBeDefined();

@@ -48,8 +48,6 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
-
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 
@@ -114,10 +112,7 @@ function IOURequestStepUpgrade({
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const transactionsCollection: OnyxCollection<Transaction> = Object.fromEntries(
-        transactions.map((transactionItem) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, transactionItem]),
-    );
-    const reports = useChangeTransactionsReportReports(selectedTransactionsKeys, transactionsCollection, undefined);
+    const reports = useChangeTransactionsReportReports(transactions, undefined);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const ownerAccountID = selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID;
 

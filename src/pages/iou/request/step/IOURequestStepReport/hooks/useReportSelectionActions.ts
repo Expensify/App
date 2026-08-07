@@ -115,10 +115,7 @@ function useReportSelectionActions({
     const {removeTransaction} = useSearchSelectionActions();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
-    const transactionsCollection: OnyxCollection<Transaction> = Object.fromEntries(
-        transactions.map((transactionItem) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, transactionItem]),
-    );
-    const reports = useChangeTransactionsReportReports(transaction?.transactionID ? [transaction.transactionID] : [], transactionsCollection, undefined);
+    const reports = useChangeTransactionsReportReports(transaction ? [transaction] : [], undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];

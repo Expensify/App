@@ -17,9 +17,9 @@ import {changeTransactionsReport} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, Report, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, Report} from '@src/types/onyx';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
@@ -66,10 +66,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const [transactions] = useTransactionsByID([...selectedIds]);
-    const transactionsCollection: OnyxCollection<Transaction> = Object.fromEntries(
-        transactions.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction]),
-    );
-    const reports = useChangeTransactionsReportReports([...selectedIds], transactionsCollection, reportToConfirm);
+    const reports = useChangeTransactionsReportReports(transactions, reportToConfirm?.reportID);
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {

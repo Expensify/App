@@ -6,22 +6,22 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
 
 /**
  * Resolve the REPORT subset that `changeTransactionsReport` looks up — keyed like the full collection so the action
  * can do `reports?.[\`${KEY}${id}\`]`. Includes:
+ * - the unreported-report sentinel, looked up for transactions moving out of personal space
  * - the self-DM report, if one exists
- * - the destination report (`newReport`)
+ * - the destination report (`newReportID`)
  * - each transaction's current report
  * - for non-deleted transactions, the old IOU action's transaction-thread report (`childReportID`)
  */
-function useChangeTransactionsReportReports(transactionIDs: string[], allTransactions: OnyxCollection<Transaction>, newReport: OnyxEntry<Report>): OnyxCollection<Report> {
-    const newReportID = newReport?.reportID;
-
+function useChangeTransactionsReportReports(transactions: Transaction[], newReportID: string | undefined): OnyxCollection<Report> {
     const ids = new Set<string>();
+    ids.add(CONST.REPORT.UNREPORTED_REPORT_ID);
     const selfDMReportID = findSelfDMReportID();
     if (selfDMReportID) {
         ids.add(selfDMReportID);
@@ -29,11 +29,7 @@ function useChangeTransactionsReportReports(transactionIDs: string[], allTransac
     if (newReportID) {
         ids.add(newReportID);
     }
-    for (const transactionID of transactionIDs) {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (!transaction) {
-            continue;
-        }
+    for (const transaction of transactions) {
         if (transaction.reportID) {
             ids.add(transaction.reportID);
         }

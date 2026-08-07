@@ -29,9 +29,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Report} from '@src/types/onyx';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useMemo} from 'react';
@@ -89,10 +89,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const transactionsCollection: OnyxCollection<Transaction> = Object.fromEntries(
-        transactions.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction]),
-    );
-    const reports = useChangeTransactionsReportReports(transactionIDs, transactionsCollection, selectedReport);
+    const reports = useChangeTransactionsReportReports(transactions, selectedReport?.reportID);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});

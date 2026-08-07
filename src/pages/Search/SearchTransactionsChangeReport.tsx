@@ -27,8 +27,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetails, Report, Transaction} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
-
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useMemo} from 'react';
 import Onyx from 'react-native-onyx';
@@ -63,10 +61,7 @@ function SearchTransactionsChangeReport() {
     const managedCardTransactionID = transactions.find((transaction) => isUnreportedManagedCardTransaction(transaction))?.transactionID;
     const hasUnreportedManagedCardTransactions = !!managedCardTransactionID;
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const transactionsCollection: OnyxCollection<Transaction> = Object.fromEntries(
-        transactions.map((transactionItem) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, transactionItem]),
-    );
-    const reports = useChangeTransactionsReportReports(selectedTransactionsKeys, transactionsCollection, undefined);
+    const reports = useChangeTransactionsReportReports(transactions, undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
