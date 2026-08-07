@@ -1,4 +1,5 @@
 import '@testing-library/react-native';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {KeyboardEventName} from 'react-native';
@@ -55,9 +56,12 @@ jest.mock(
         }) as Record<string, unknown>,
 );
 
-// Auto-initialize Onyx for tests.
-// Tests that already call Onyx.init() in their own beforeAll will safely re-configure Onyx —
-// the second init() just re-runs initStoreValues and re-resolves the already-resolved deferred task.
-beforeAll(() => {
+/**
+ * Test-time bootstrap for every suite:
+ * - Onyx.init: safe to re-init if a test does it again (second call re-runs initStoreValues + re-resolves the deferred task).
+ * - IntlStore.load('en'): seeds the translations cache so `translate()` returns real strings for tests that render before their own load resolves.
+ */
+beforeAll(async () => {
     Onyx.init({keys: ONYXKEYS});
+    await IntlStore.load('en');
 });
