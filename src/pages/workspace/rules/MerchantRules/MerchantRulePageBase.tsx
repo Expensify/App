@@ -17,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -132,6 +133,13 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
     const {showConfirmModal} = useConfirmModal();
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
     const didInitializeCreateDraftRef = useRef(false);
+
+    // The "Set vendor to" row gate below reads policy.connections (via hasVendorFeature and
+    // isMatchingVendorListLoaded), which is empty on a non-active workspace until a page requiring
+    // connections is opened. This editor only fetches categories/tags, so prefetch connections here,
+    // gated on the beta alone (not hasVendorFeature, which itself depends on the connection data — a
+    // chicken-and-egg) so the row appears and resolves the stored vendor once connections hydrate.
+    usePolicyConnectionsPrefetch(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
 
     // Get the existing rule from the policy (for edit mode)
     const existingRule = ruleID ? policy?.rules?.codingRules?.[ruleID] : undefined;

@@ -3,6 +3,7 @@ import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
@@ -46,6 +47,13 @@ function AddVendorPage({route}: AddVendorPageProps) {
     const policy = usePolicy(policyID);
     const {isBetaEnabled} = usePermissions();
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
+
+    // This picker can be deep-linked directly, and its gate below reads policy.connections (via
+    // hasVendorFeature and getMatchingVendorByID), which is empty on a non-active workspace until a page
+    // requiring connections is opened. Prefetch it here, gated on the beta alone (not hasVendorFeature,
+    // which itself depends on the connection data — a chicken-and-egg) so the picker becomes available and
+    // resolves the selected vendor once connections hydrate.
+    usePolicyConnectionsPrefetch(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
 
     const selectedVendorItem = getSelectedVendorItem(policy, form?.vendorID);
 
