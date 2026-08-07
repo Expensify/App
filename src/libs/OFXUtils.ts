@@ -34,17 +34,20 @@ function getPostedDate(postedDateTime: string): string {
 
 /**
  * The spec wants a period, but plenty of banks ship a comma decimal separator or thousands grouping.
- * Only the right-most separator can be the decimal point, and only when one or two digits follow it.
  */
 function normalizeSeparators(transactionAmount: string): string {
-    const decimalIndex = Math.max(transactionAmount.lastIndexOf(','), transactionAmount.lastIndexOf('.'));
-    if (decimalIndex < 0) {
+    const lastPeriod = transactionAmount.lastIndexOf('.');
+    const rightMost = Math.max(transactionAmount.lastIndexOf(','), lastPeriod);
+    if (rightMost < 0) {
         return transactionAmount;
     }
 
-    const tail = transactionAmount.slice(decimalIndex + 1);
-    const head = transactionAmount.slice(0, decimalIndex).replaceAll(/[,.]/g, '');
-    return /^\d{1,2}$/.test(tail) ? `${head}.${tail}` : `${head}${tail}`;
+    // A period is the separator the spec defines, so it always marks the decimal point, however many digits
+    // follow. A comma only marks it when it is right-most with one or two digits after it, otherwise it groups.
+    if (rightMost !== lastPeriod && !/,\d{1,2}$/.test(transactionAmount)) {
+        return transactionAmount.replaceAll(/[,.]/g, '');
+    }
+    return `${transactionAmount.slice(0, rightMost).replaceAll(/[,.]/g, '')}.${transactionAmount.slice(rightMost + 1)}`;
 }
 
 /**
