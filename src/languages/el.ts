@@ -9238,6 +9238,10 @@ ${reportName}`,
                 },
                 equalTo: (amount?: string) => `Ίσο με ${amount ?? ''}`,
             },
+            merchant: {
+                equalTo: 'Ίσο με',
+                contains: 'Περιέχει',
+            },
             card: {
                 expensify: 'Expensify',
                 travelInvoicing: 'Ενοποιημένη τιμολόγηση ταξιδιών',

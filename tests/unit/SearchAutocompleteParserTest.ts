@@ -335,6 +335,13 @@ const tests = [
             ],
         },
     },
+    {
+        query: 'type:expense -merchant*:Uber',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'type', value: 'expense', negated: false, start: 5, length: 7}],
+        },
+    },
 ];
 
 const limitAutocompleteTests = [

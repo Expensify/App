@@ -176,7 +176,8 @@ groupQuarter            = "group-quarter"i &wordBoundary            { return "gr
 
 
 operator "operator"
-  = (":" / "=") { return "eq"; }
+  = "*:" { return "contains"; }
+  / (":" / "=") { return "eq"; }
   / "!=" { return "neq"; }
   / ">=" { return "gte"; }
   / ">" { return "gt"; }
@@ -186,7 +187,7 @@ operator "operator"
 filterOperator
   = o:operator {
       if (nameOperator) {
-        expectingNestedQuote = (o === "eq"); // Use simple parser if no valid operator is found
+        expectingNestedQuote = (o === "eq" || o === "contains");
       }
       isColumnsContext = false;
       return o;
@@ -194,7 +195,7 @@ filterOperator
 
 alphanumeric "word" = chars:[^ ,\t\n\r\xA0]+ { return chars.join("").trim(); } //handle no-breaking space
 
-logicalAnd = _ { 
+logicalAnd = _ {
   isColumnsContext = false;
   return "and";
 }
