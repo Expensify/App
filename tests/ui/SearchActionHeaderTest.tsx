@@ -36,7 +36,14 @@ function renderSearchActionHeader(action: ReportAction, report: Report | undefin
             <SearchScopeProvider isOnSearch={isOnSearch}>
                 {/* shouldUseLiveData: true keeps useOnyx reading from real Onyx collections instead of a search snapshot, since this test doesn't set up snapshot data */}
                 <SearchResultsContext.Provider
-                    value={{currentSearchResults: undefined, shouldUseLiveData: true, sortedReportIDs: [], shouldShowFiltersBarLoading: false, lastSearchType: undefined}}
+                    value={{
+                        currentSearchResults: undefined,
+                        currentSearchViolations: CONST.EMPTY_OBJECT,
+                        shouldUseLiveData: true,
+                        sortedReportIDs: [],
+                        shouldShowFiltersBarLoading: false,
+                        lastSearchType: undefined,
+                    }}
                 >
                     <SearchActionHeader
                         action={action}
