@@ -442,7 +442,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           brickRoadIndicator: policy?.connections?.dualEntry?.config.errorFields?.subsidiaryID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                           onPress:
                               policyID && canWriteAccounting && dualEntryCompanyList && dualEntryCompanyList.length > 1
-                                  ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_COMPANY_SELECTOR.getRoute(policyID))
+                                  ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_SUBSIDIARY_SELECTOR.getRoute(policyID))
                                   : undefined,
                       };
 

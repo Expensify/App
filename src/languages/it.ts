@@ -5699,6 +5699,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             subsidiarySelectDescription: 'Scegli la consociata in DualEntry da cui vuoi importare i dati.',
             noCompaniesFound: 'Nessuna azienda trovata',
             noCompaniesFoundDescription: 'Aggiungi un’azienda in DualEntry e sincronizza di nuovo la connessione',
+            accountTypesDescription: 'I tuoi conti DualEntry verranno importati come categorie.',
+            enableNewAccountsTitle: 'Abilita i conti appena importati',
+            enableNewAccountsDescription: 'I nuovi conti DualEntry saranno disponibili come categorie.',
+            classificationsImport: 'Tutte le classificazioni DualEntry vengono importate come tag',
+            importDescription: 'Scegli quali configurazioni di codifica importare da DualEntry.',
         },
         type: {
             free: 'Gratis',

@@ -5512,6 +5512,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             subsidiarySelectDescription: '请选择要从中导入数据的 DualEntry 子公司。',
             noCompaniesFound: '未找到公司',
             noCompaniesFoundDescription: '请在 DualEntry 中添加一家公司，然后再次同步连接',
+            accountTypesDescription: '您的 DualEntry 账户将作为类别导入。',
+            enableNewAccountsTitle: '启用新导入的账户',
+            enableNewAccountsDescription: '新的 DualEntry 账户将作为类别提供。',
+            classificationsImport: '所有 DualEntry 分类都会作为标签导入',
+            importDescription: '选择要从 DualEntry 导入的编码配置。',
         },
         type: {
             free: '免费',

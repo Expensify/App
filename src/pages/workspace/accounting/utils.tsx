@@ -521,7 +521,7 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                onImportPagePress: () => null,
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_IMPORT.getRoute(policyID)),
                 subscribedImportSettings: [
                     CONST.DUALENTRY_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.DUALENTRY_CONFIG.SYNC_TAX_RATES,
