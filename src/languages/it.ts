@@ -545,6 +545,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: 'Errore allegato',
         errorWhileSelectingAttachment: 'Si è verificato un errore durante la selezione di un allegato. Riprova.',
         errorWhileSelectingCorruptedAttachment: 'Si è verificato un errore durante la selezione di un allegato danneggiato. Riprova con un altro file.',
+        errorWhileConvertingHeic: 'Non è stato possibile elaborare questa immagine. Riprova o carica la foto in un altro formato.',
         takePhoto: 'Scatta foto',
         chooseFromGallery: 'Scegli dalla galleria',
         chooseDocument: 'Scegli file',
