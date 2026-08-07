@@ -14,6 +14,7 @@ import hydrateEmojiHtml from '@libs/hydrateEmojiHtml';
 import Parser from '@libs/Parser';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
+import {endSendMessagePhases, markSendMessageRendered} from '@libs/telemetry/sendMessageSpans';
 
 import variables from '@styles/variables';
 
@@ -25,7 +26,8 @@ import type {StyleProp, TextStyle} from 'react-native';
 
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
-import React, {useEffect} from 'react';
+import {useEffect} from 'react';
+import {View} from 'react-native';
 
 import RenderCommentHTML from './RenderCommentHTML';
 import shouldRenderAsText from './shouldRenderAsText';
@@ -70,12 +72,29 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
 
     const processedTextArray = splitTextWithEmojis(message);
 
+    // Backstop for the send-message render phase, for sends the report-actions list can't mark itself
+    // (expense/invoice reports use a different list; in Concierge a draft or an optimistic reply can sit
+    // ahead of the sent message). No-op unless this exact action has a send in flight that is still in its
+    // pre-render phase.
+    markSendMessageRendered(reportActionID);
+
+    // Original effect anchor, kept while the visible variant below is validated against it in Sentry.
     useEffect(() => {
         if (!reportActionID) {
             return;
         }
         endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${reportActionID}`);
     }, [reportActionID]);
+
+    const endSendMessageVisibleSpanOnLayout = () => {
+        if (!reportActionID) {
+            return;
+        }
+        // Sentry drops child spans that are still running when their parent ends, so the phases have to
+        // close before the span they partition does.
+        endSendMessagePhases(reportActionID);
+        endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`);
+    };
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html
@@ -109,16 +128,19 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
         htmlWithTag = adjustExpensifyLinksForEnv(getHtmlWithAttachmentID(htmlWithTag, reportActionID));
 
         return (
-            <RenderCommentHTML
-                containsOnlyEmojis={containsOnlyEmojis}
-                source={source}
-                html={htmlWithTag}
-            />
+            <View onLayout={endSendMessageVisibleSpanOnLayout}>
+                <RenderCommentHTML
+                    containsOnlyEmojis={containsOnlyEmojis}
+                    source={source}
+                    html={htmlWithTag}
+                />
+            </View>
         );
     }
 
     return (
         <Text
+            onLayout={endSendMessageVisibleSpanOnLayout}
             style={[
                 containsOnlyEmojis && styles.onlyEmojisText,
                 styles.ltr,
