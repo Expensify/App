@@ -1,4 +1,4 @@
-import type {Coordinate} from './MapViewTypes';
+import type {AlternateDirection, Coordinate} from './MapViewTypes';
 
 /** A geographic point as a plain longitude/latitude pair. Mapbox's `LngLat` became a class in mapbox-gl 3.x, but these helpers only read `.lng`/`.lat`, so a literal shape is all that's needed. */
 type LngLatLiteral = {lng: number; lat: number};
@@ -139,6 +139,22 @@ function getBoundsCenter(bounds: {southWest: Coordinate; northEast: Coordinate})
     return {lng: latitudeCenter, lat: longitudeCenter};
 }
 
+/** Flattens a route made of several segments into a single list of coordinates, leaving a single segment route as is. */
+function convertSegmentedRouteToSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][]): Coordinate[];
+function convertSegmentedRouteToSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][] | undefined): Coordinate[] | undefined;
+function convertSegmentedRouteToSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][] | undefined) {
+    return !directionCoordinates || isSingleSegmentRoute(directionCoordinates) ? directionCoordinates : directionCoordinates.flat();
+}
+
+function getCoordinatesFromAllDirections(directionCoordinates: Coordinate[] | Coordinate[][] | undefined, alternateDirection: AlternateDirection | undefined) {
+    const directionCoordinatesFlattened = convertSegmentedRouteToSingleSegmentRoute(directionCoordinates);
+
+    const alternateDirectionCoordinates = alternateDirection?.coordinates;
+    const alternateDirectionCoordinatesFlattened = convertSegmentedRouteToSingleSegmentRoute(alternateDirectionCoordinates);
+
+    return [...(directionCoordinatesFlattened ?? []), ...(alternateDirectionCoordinatesFlattened ?? [])];
+}
+
 export default {
     getBounds,
     areSameCoordinate,
@@ -147,4 +163,6 @@ export default {
     getBoundsCenter,
     simpleInterpolateCoordinate,
     isSingleSegmentRoute,
+    convertSegmentedRouteToSingleSegmentRoute,
+    getCoordinatesFromAllDirections,
 };

@@ -46,6 +46,7 @@ import {
     getDistanceRequestType,
     getIsFromGlobalCreate,
     getRateID,
+    getSelectedRouteDistance,
     getTaxValue,
     getValidWaypoints,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -712,6 +713,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const modifiedItemDistance = isModifiedGPSDistanceRequest ? transactionDistance : undefined;
 
             const email = currentUserPersonalDetails.email ?? '';
+
             trackExpenseIOUActions({
                 report: trackReport,
                 isDraftPolicy,
@@ -757,6 +759,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     isFromGlobalCreate: getIsFromGlobalCreate(item),
                     gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
                     distanceRequestType,
+                    selectedRouteDistance: getSelectedRouteDistance(item),
                 },
                 accountantParams: {
                     accountant: item.accountant,
@@ -854,6 +857,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
                 distanceRequestType,
+                selectedRouteDistance: getSelectedRouteDistance(transaction),
             },
             isASAPSubmitBetaEnabled,
             transactionViolations: transactionViolationsRef.current,

@@ -80,6 +80,7 @@ import type {
     TransactionViolations,
 } from '@src/types/onyx';
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -141,7 +142,12 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
             },
             customUnit: {
                 quantity: null,
+                // Belongs to the routes computed for the old waypoints. Leaving it would make `getSelectedRouteKey`
+                // distance-match the refetched routes against it and pick a route the user never selected.
+                routeDistanceMeters: null,
             },
+            // The routes are cleared below, so the previously selected alternate route no longer exists
+            selectedRouteKey: null,
         },
         // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
@@ -151,16 +157,8 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
             route: null,
         },
 
-        // Clear the existing route so that we don't show an old route
-        routes: {
-            route0: {
-                // Clear the existing distance to recalculate next time
-                distance: null,
-                geometry: {
-                    coordinates: null,
-                },
-            },
-        },
+        // Clear all existing routes so that we don't show stale routes (backend may return multiple alternatives)
+        routes: null,
     });
 
     // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
@@ -233,6 +231,17 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     if (!isRemovedWaypointEmpty) {
         newTransaction = {
             ...newTransaction,
+            comment: {
+                ...newTransaction.comment,
+                customUnit: {
+                    ...newTransaction.comment?.customUnit,
+                    // Belongs to the route computed for the old waypoints. Leaving it would make `getSelectedRouteKey`
+                    // distance-match the refetched routes against it and pick a route the user never selected.
+                    routeDistanceMeters: null,
+                },
+                // The route is cleared below, so the previously selected alternate route no longer exists
+                selectedRouteKey: null,
+            },
             // Clear any errors that may be present, which apply to the old route
             errorFields: {
                 route: null,
@@ -452,7 +461,12 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, t
             waypoints: waypointsOnyxUpdate,
             customUnit: {
                 quantity: null,
+                // Belongs to the routes computed for the old waypoints. Leaving it would make `getSelectedRouteKey`
+                // distance-match the refetched routes against it and pick a route the user never selected.
+                routeDistanceMeters: null,
             },
+            // The routes are cleared below, so the previously selected alternate route no longer exists
+            selectedRouteKey: null,
         },
         // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
@@ -462,15 +476,49 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, t
             route: null,
         },
 
-        // Clear the existing route so that we don't show an old route
-        routes: {
-            route0: {
-                // Clear the existing distance to recalculate next time
-                distance: null,
-                geometry: {
-                    coordinates: null,
-                },
-            },
+        // Clear all existing routes so that we don't show stale routes (backend may return multiple alternatives)
+        routes: null,
+    });
+}
+
+function setSelectedRoute(
+    transactionID: string,
+    routeKey: string,
+    routeDistanceInMeters: number | undefined,
+    distanceUnit: Unit | undefined,
+    transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT,
+): Promise<void> {
+    let keyPrefix;
+    switch (transactionState) {
+        case CONST.TRANSACTION.STATE.DRAFT:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
+            break;
+        case CONST.TRANSACTION.STATE.SPLIT_DRAFT:
+            keyPrefix = ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT;
+            break;
+        case CONST.TRANSACTION.STATE.CURRENT:
+        default:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION;
+            break;
+    }
+
+    return Onyx.merge(`${keyPrefix}${transactionID}`, {
+        comment: {
+            selectedRouteKey: routeKey,
+            // `getDistanceInMeters` reads `customUnit.quantity` before it consults `selectedRouteKey`, so the quantity has to
+            // follow the pick or every distance/amount/merchant consumer keeps showing the previously selected route until the
+            // expense is saved. `routeDistanceMeters` is kept in sync because it is what `getSelectedRouteKey` distance-matches
+            // on when `selectedRouteKey` is absent, and what `hasManualDistanceOverride` compares against.
+            // This intentionally overwrites a manually typed distance: saving from the map tab drops that override anyway
+            // (see `shouldDropManualDistance` in IOURequestStepDistance), so writing it here keeps the pre-save state honest.
+            ...(routeDistanceInMeters && distanceUnit
+                ? {
+                      customUnit: {
+                          quantity: roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(routeDistanceInMeters, distanceUnit)),
+                          routeDistanceMeters: routeDistanceInMeters,
+                      },
+                  }
+                : {}),
         },
     });
 }
@@ -2029,4 +2077,5 @@ export {
     getDefaultP2PMileageRate,
     mergeTransactionIdsHighlightOnSearchRoute,
     getDuplicateTransactionDetails,
+    setSelectedRoute,
 };
