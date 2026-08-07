@@ -145,12 +145,12 @@ describe('PaymentUtils', () => {
             hasViolations: false,
             isASAPSubmitBetaEnabled: false,
             iouReport: {reportID: '1'} as Report,
-            iouReportNextStep: undefined,
             betas: [],
             userBillingGracePeriodEnds: undefined,
             amountOwed: 0,
             ownerBillingGracePeriodEnd: undefined,
             delegateEmail: undefined,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
             ownerLogin: undefined,
         };
@@ -247,14 +247,15 @@ describe('PaymentUtils', () => {
                 currentUserEmailParam: params.currentEmail,
                 hasViolations: params.hasViolations,
                 isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: params.iouReportNextStep,
                 betas: params.betas,
                 userBillingGracePeriodEnds: params.userBillingGracePeriodEnds,
                 amountOwed: 42,
                 ownerBillingGracePeriodEnd: 999,
                 full: true,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                ownerLogin: undefined,
             });
         });
 
@@ -275,14 +276,15 @@ describe('PaymentUtils', () => {
                 currentUserEmailParam: params.currentEmail,
                 hasViolations: params.hasViolations,
                 isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: params.iouReportNextStep,
                 betas: params.betas,
                 userBillingGracePeriodEnds: params.userBillingGracePeriodEnds,
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
                 full: true,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                ownerLogin: undefined,
             });
         });
 

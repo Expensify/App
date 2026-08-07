@@ -75,6 +75,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 accountingIcons,
                 cardFeeds,
                 cardLists,
+                newActiveIntegration.isIntuitEnterpriseSuite,
             );
 
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
@@ -154,6 +155,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             accountingIcons,
             cardFeeds,
             cardLists,
+            activeIntegration.isIntuitEnterpriseSuite,
         )?.setupConnectionFlow;
     };
 
@@ -173,7 +175,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                             removePolicyConnection(policy, activeIntegration?.integrationToDisconnect);
                             closeConfirmationModal();
                         }}
-                        integrationToConnect={activeIntegration?.name}
+                        integrationToConnect={activeIntegration.name}
+                        integrationDisplayName={activeIntegration.isIntuitEnterpriseSuite ? translate('workspace.accounting.intuitEnterpriseSuite') : undefined}
                         onCancel={() => {
                             setActiveIntegration(undefined);
                         }}
