@@ -1386,6 +1386,21 @@ function isDate(arg: unknown): arg is Date {
     return Object.prototype.toString.call(arg) === '[object Date]';
 }
 
+function getNextNthOfMonth(nth: number) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const day = now.getDate();
+
+    // If today is before the nth day, return the nth of this month.
+    if (day < nth) {
+        return new Date(year, month, nth);
+    }
+
+    // Otherwise, return the nth of next month.
+    return new Date(year, month + 1, nth);
+}
+
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -1475,6 +1490,7 @@ const DateUtils = {
     getYearDateRange,
     getQuarterDateRange,
     getFormattedQuarterForSearch,
+    getNextNthOfMonth,
 };
 
 export default DateUtils;
