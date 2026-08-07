@@ -38,6 +38,8 @@ type ListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[
     type?: SearchDataTypes;
     policyID: Filter | undefined;
     style?: StyleProp<ViewStyle>;
+    /** Whether this filter is the one the advanced filters popover currently shows (false for contents kept mounted in the background) */
+    isActive?: boolean;
     onNegationChange: (isNegated: boolean) => void;
 };
 
@@ -105,6 +107,7 @@ function ListFilterContent({
     selectionListStyle,
     autoFocus,
     ready,
+    isActive,
     footer,
     onChange,
     onNegationChange,
@@ -228,6 +231,7 @@ function ListFilterContent({
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}
                     ready={ready}
+                    isActive={isActive}
                     footer={footer}
                     onChange={onChange}
                 />
