@@ -29,7 +29,7 @@ type DateCellProps = {
 
 function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseLocalTimeZone = false, canEdit, onSave}: DateCellProps) {
     const styles = useThemeStyles();
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, getLocalDateFromDatetime} = useLocalize();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
@@ -37,7 +37,15 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
         onSave,
     });
 
-    const formattedDate = shouldUseLocalTimeZone ? DateUtils.formatTransactionListDateInLocalTimezone(date, preferredLocale) : DateUtils.formatTransactionListDate(date, preferredLocale);
+    let formattedDate: string;
+    if (shouldUseLocalTimeZone && date) {
+        // Zone via the user's selected timezone (not runtime-local) so the day matches report history for viewers who set an explicit timezone.
+        const localDate = getLocalDateFromDatetime(date);
+        const isPastYear = localDate.getFullYear() !== getLocalDateFromDatetime().getFullYear();
+        formattedDate = isPastYear ? DateUtils.formatToMediumDate(localDate, preferredLocale) : DateUtils.formatToShortMonthDay(localDate, preferredLocale);
+    } else {
+        formattedDate = DateUtils.formatTransactionListDate(date, preferredLocale);
+    }
     const displayText = suffixText ? `${formattedDate} • ${suffixText}` : formattedDate;
 
     const displayContent = (

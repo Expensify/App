@@ -213,6 +213,14 @@ describe('DateUtils', () => {
         expect(result).not.toMatch(/ago/);
     });
 
+    it('datetimeToRelative renders Greek wording end-to-end after IntlStore.load("el")', async () => {
+        await IntlStore.load(CONST.LOCALES.EL);
+        const anHourAgo = subHours(new Date(), 1).toString();
+        const result = DateUtils.datetimeToRelative(CONST.LOCALES.EL, anHourAgo, UTC);
+        expect(result).toMatch(/πριν/);
+        expect(result).not.toMatch(/ago/);
+    });
+
     it('subtractMillisecondsFromDateTime should subtract milliseconds from a given date and time', () => {
         const initialDateTime = '2023-07-18T10:30:00Z';
         const millisecondsToSubtract = 5000; // 5 seconds
@@ -583,6 +591,7 @@ describe('DateUtils', () => {
         it.each([
             ['en', 1, 0],
             ['es', 1, 0],
+            ['el', 1, 0],
             ['ja', 0, 6],
             ['pt-BR', 0, 6],
         ] as const)('locale %s starts on %i and ends on %i', (locale, start, end) => {
@@ -973,9 +982,50 @@ describe('DateUtils', () => {
             ['formatInUTCToShort', () => DateUtils.formatInUTCToShort('not-a-date', CONST.LOCALES.EN)],
             ['formatInUTCToLong', () => DateUtils.formatInUTCToLong('not-a-date', CONST.LOCALES.EN)],
             ['formatTransactionListDate', () => DateUtils.formatTransactionListDate('not-a-date', CONST.LOCALES.EN)],
+            ['formatToShortMonthDay', () => DateUtils.formatToShortMonthDay('not-a-date', CONST.LOCALES.EN)],
         ] as const)('%s returns "" instead of throwing', (_, run) => {
             expect(run).not.toThrow();
             expect(run()).toBe('');
+        });
+    });
+
+    describe('locale-aware helpers render localized output', () => {
+        it('formatToShortMonthDay renders es as "9 jul"', () => {
+            expect(DateUtils.formatToShortMonthDay('2025-07-09', 'es')).toBe('9 jul');
+        });
+
+        it('getFormattedQuarterForSearch renders es with localized month abbreviations', () => {
+            const result = DateUtils.getFormattedQuarterForSearch(2025, 3, 'es');
+            expect(result).toContain('Q3 2025');
+            expect(result).toContain('jul');
+            expect(result).toContain('sept');
+        });
+    });
+
+    // #97796 — with a non-English date-fns default active, main's helpers emitted / rejected localized meridiems (vorm./nachm.) and Per Diem save failed with the "one minute in the future" error.
+    describe('time picker helpers stay on English AM/PM under non-English locales (#97796)', () => {
+        beforeEach(async () => {
+            await IntlStore.load(CONST.LOCALES.DE);
+        });
+
+        it('extractTime12Hour emits English AM/PM regardless of active locale', () => {
+            expect(DateUtils.extractTime12Hour('2025-08-19 14:00:00')).toBe('02:00 PM');
+        });
+
+        it('get12HourTimeObjectFromDate returns English AM/PM period derived from the hour', () => {
+            expect(DateUtils.get12HourTimeObjectFromDate('02:00 PM').period).toBe('PM');
+            expect(DateUtils.get12HourTimeObjectFromDate('08:00 AM').period).toBe('AM');
+        });
+
+        it('combineDateAndTime parses the picker-emitted "hh:mm a" into the correct 24h time', () => {
+            expect(DateUtils.combineDateAndTime('02:00 PM', '2025-08-19')).toBe('2025-08-19 14:00:00');
+            expect(DateUtils.combineDateAndTime('08:00 AM', '2025-08-19')).toBe('2025-08-19 08:00:00');
+        });
+
+        it('isValidStartEndTimeRange accepts a picker-built 08:00 → 14:00 range that main rejected as invalid', () => {
+            const startTime = DateUtils.combineDateAndTime('08:00 AM', '2025-08-19');
+            const endTime = DateUtils.combineDateAndTime('02:00 PM', '2025-08-19');
+            expect(DateUtils.isValidStartEndTimeRange({startTime, endTime})).toBe(true);
         });
     });
 

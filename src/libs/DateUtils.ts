@@ -1162,12 +1162,9 @@ function formatTransactionListDate(date: string, locale: Locale): string {
     return doesDateBelongToAPastYear(date) ? formatInUTCToMedium(date, locale) : formatInUTCToShort(date, locale);
 }
 
-/** Local-timezone twin of `formatTransactionListDate` — use for real-instant timestamps (submitted / approved / exported) so the displayed day matches the user's report-history view. */
-function formatTransactionListDateInLocalTimezone(date: string, locale: Locale): string {
-    if (!date) {
-        return '';
-    }
-    return doesDateBelongToAPastYear(date) ? formatToMediumDate(date, locale) : formatIntl(locale, 'MONTH_DAY', toLocalDate(date));
+/** @returns Jul 9 (en) / 9 jul (es) — locale-aware month-day, no year. */
+function formatToShortMonthDay(date: Date | string, locale: Locale): string {
+    return formatIntl(locale, 'MONTH_DAY', toLocalDate(date));
 }
 
 /** Full ISO timestamp only. Date-only `'yyyy-MM-dd'` would silently day-shift on timezone application — use `formatToReadableString` or `formatInUTCToLong` instead. */
@@ -1416,7 +1413,7 @@ const DateUtils = {
     formatInUTCToShort,
     formatInUTCToLong,
     formatTransactionListDate,
-    formatTransactionListDateInLocalTimezone,
+    formatToShortMonthDay,
     formatInTimeZoneToLong,
     formatInTimeZoneToShortTime,
     formatInTimeZoneToWeekday,
