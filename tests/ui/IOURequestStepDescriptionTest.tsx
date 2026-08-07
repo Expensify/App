@@ -19,10 +19,9 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 // Capture the inner focus function so we can assert the exact args the component invokes it with.
 const mockFocusFn = jest.fn();
-const mockFocusComposerFactory = jest.fn(() => mockFocusFn);
 jest.mock('@libs/focusComposerWithDelay', () => ({
     __esModule: true,
-    default: (...factoryArgs: unknown[]) => mockFocusComposerFactory(...factoryArgs),
+    default: () => mockFocusFn,
 }));
 
 // Capture the `onCancel` the component wires into the discard-changes hook, without dragging in the real
