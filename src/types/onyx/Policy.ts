@@ -2167,7 +2167,7 @@ type DualEntryExport = {
 type DualEntryExportCardProgramAccountsOfflineFeedbackKey = `${typeof CONST.DUALENTRY_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${string}`;
 
 /**
- * Offline feedback keys for `DualEntryCoding`
+ * Offline feedback keys for `DualEntryExport`
  */
 type DualEntryExportOfflineFeedbackKeys = keyof Omit<DualEntryExport, 'cardProgramAccounts'> | DualEntryExportCardProgramAccountsOfflineFeedbackKey;
 
