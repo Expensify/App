@@ -714,8 +714,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const email = currentUserPersonalDetails.email ?? '';
             trackExpenseIOUActions({
                 report: trackReport,
+                parentChatReport: isSelfDMDestination ? selfDMReport : currentChatReport,
                 isDraftPolicy,
-                isDraftChatReport,
+                isDraftChatReport: !!isDraftChatReport,
                 action,
                 existingTransaction: item,
                 participantParams: {

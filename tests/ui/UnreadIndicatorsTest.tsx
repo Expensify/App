@@ -789,7 +789,9 @@ describe('Unread Indicators', () => {
         trackExpense({
             conciergeChat: undefined,
             report: selfDMReport,
+            parentChatReport: selfDMReport,
             isDraftPolicy: true,
+            isDraftChatReport: false,
             action: CONST.IOU.ACTION.CREATE,
             participantParams: {
                 payeeEmail: participant.login,

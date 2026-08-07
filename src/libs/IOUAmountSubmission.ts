@@ -340,6 +340,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         if (isTrackExpenseSubmit) {
             trackExpense({
                 report,
+                parentChatReport: report,
                 isDraftPolicy: false,
                 isDraftChatReport: !!isDraftChatReport,
                 participantParams: {

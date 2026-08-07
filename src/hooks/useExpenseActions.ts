@@ -54,6 +54,7 @@ import type {ValueOf} from 'type-fest';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
+import {isDraftReportSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 
@@ -171,6 +172,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     // Default expense policy / chat
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '');
+    const targetChatForDuplicate = isSourcePolicyValid ? chatReport : activePolicyExpenseChat;
+    const [isDraftChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${targetChatForDuplicate?.reportID}`, {selector: isDraftReportSelector});
 
     // Duplicate detection
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
@@ -276,6 +280,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 targetPolicyTags,
                 currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
                 currentUserLocalCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
+                isDraftChatReport: !!isDraftChatReport,
                 isTrackIntentUser,
                 delegateAccountID,
                 policyTagList,
@@ -413,7 +418,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     return;
                 }
 
-                const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '');
                 const targetPolicyForDuplicate = isSourcePolicyValid ? policy : defaultExpensePolicy;
 
                 if (targetPolicyForDuplicate && shouldRestrictUserBillableActions(targetPolicyForDuplicate, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
@@ -425,7 +429,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 temporarilyDisableDuplicateReportAction();
                 wasDuplicateReportTriggeredRef.current = true;
 
-                const targetChatForDuplicate = isSourcePolicyValid ? chatReport : activePolicyExpenseChat;
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
 
                 duplicateReportAction({

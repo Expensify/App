@@ -100,6 +100,7 @@ type CreateTransactionParams = {
     optimisticTransactionIDs: string[];
     optimisticChatReportID: string | undefined;
     currentUserLocalCurrency: string | undefined;
+    isDraftChatReport?: boolean;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
 };
@@ -130,6 +131,7 @@ function createTransaction({
     optimisticTransactionIDs,
     optimisticChatReportID,
     currentUserLocalCurrency,
+    isDraftChatReport,
     isTrackIntentUser,
     delegateAccountID,
 }: CreateTransactionParams) {
@@ -156,7 +158,9 @@ function createTransaction({
         if (iouType === CONST.IOU.TYPE.TRACK && report) {
             trackExpense({
                 report,
+                parentChatReport: report,
                 isDraftPolicy: false,
+                isDraftChatReport: !!isDraftChatReport,
                 existingTransaction: transaction,
                 participantParams: {
                     payeeEmail: currentUserEmail,

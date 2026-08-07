@@ -302,6 +302,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             optimisticTransactionIDs,
             optimisticChatReportID,
             currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            isDraftChatReport: !!reportDraft,
             isTrackIntentUser,
             delegateAccountID,
         };

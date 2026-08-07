@@ -1254,7 +1254,9 @@ describe('actions/IOU', () => {
             trackExpense({
                 conciergeChat: undefined,
                 report: selfDMReport,
+                parentChatReport: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1314,7 +1316,9 @@ describe('actions/IOU', () => {
             trackExpense({
                 conciergeChat: undefined,
                 report: policyExpenseChat,
+                parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.SHARE,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1882,7 +1886,9 @@ describe('actions/IOU', () => {
             trackExpense({
                 conciergeChat: undefined,
                 report: selfDMReport,
+                parentChatReport: selfDMReport,
                 isDraftPolicy: true,
+                isDraftChatReport: false,
                 action: CONST.IOU.ACTION.CREATE,
                 participantParams: {
                     payeeEmail: TEST_USER_LOGIN,
@@ -3015,7 +3021,9 @@ describe('actions/IOU', () => {
             trackExpense({
                 conciergeChat: undefined,
                 report: {reportID: '123', policyID: 'A'},
+                parentChatReport: {reportID: '123', policyID: 'A'},
                 isDraftPolicy: false,
+                isDraftChatReport: false,
                 action,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,

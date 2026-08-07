@@ -50,7 +50,6 @@ import {
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
     getReportTransactions,
-    isDraftReport,
     isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
@@ -900,7 +899,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
 
     // STEP 1: Get existing chat report
-    let chatReport = !isEmptyObject(parentChatReport) && parentChatReport?.reportID ? parentChatReport : null;
+    let chatReport = parentChatReport ?? null;
 
     // If no chat report is passed, defaults to the self-DM report
     if (!chatReport) {
@@ -991,8 +990,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         );
     }
 
-    // Check if the report is a draft
-    const isDraftReportLocal = isDraftChatReport ?? isDraftReport(chatReport?.reportID);
+    const isDraftReportLocal = isDraftChatReport;
 
     let createdWorkspaceParams: CreateWorkspaceParams | undefined;
 
@@ -2410,6 +2408,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 function trackExpense(params: CreateTrackExpenseParams) {
     const {
         report,
+        parentChatReport,
         action,
         isDraftPolicy,
         participantParams,
@@ -2471,7 +2470,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         distanceRequestType,
     } = transactionData;
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
 
@@ -2545,7 +2543,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         optimisticReportActionID,
         onyxData: trackExpenseInformationOnyxData,
     } = getTrackExpenseInformation({
-        parentChatReport: currentChatReport,
+        parentChatReport,
         moneyRequestReportID,
         existingTransaction,
         optimisticTransactionID,
