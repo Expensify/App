@@ -6,6 +6,7 @@ import BareUserListItem from '@components/SelectionList/ListItem/BareUserListIte
 import Text from '@components/Text';
 
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
+import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -32,10 +33,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingWorkspacesProps} from './types';
@@ -52,9 +54,10 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
+    const [joinablePolicies, joinablePoliciesMetadata] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
 
+    const isLoadingJoinablePolicies = isLoadingOnyxValue(joinablePoliciesMetadata);
     const joinablePoliciesLoading = getAccessiblePoliciesAction?.loading;
     const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
@@ -67,6 +70,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     const isValidated = isCurrentUserValidated(loginList, session?.email);
+    const defaultPolicy = useDefaultExpensePolicy();
 
     const {isBetaEnabled} = usePermissions();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -82,15 +86,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACES);
 
-    const handleJoinWorkspace = (policy: JoinablePolicy) => {
+    const finishOnboarding = (policy: JoinablePolicy) => {
         const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;
         const shouldUseSubmitFlow = canUseSubmit2026 && policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
-
-        if (policy.automaticJoiningEnabled) {
-            joinAccessiblePolicy(policy.policyID);
-        } else {
-            askToJoinPolicy(policy.policyID);
-        }
 
         completeOnboarding({
             engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
@@ -119,6 +117,15 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             undefined,
             false,
         );
+    };
+
+    const handleJoinWorkspace = (policy: JoinablePolicy) => {
+        if (policy.automaticJoiningEnabled) {
+            joinAccessiblePolicy(policy.policyID);
+        } else {
+            askToJoinPolicy(policy.policyID);
+        }
+        finishOnboarding(policy);
     };
 
     const allPolicyIDItems = Object.values(joinablePolicies ?? {})
@@ -158,12 +165,28 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 
     useFocusEffect(() => {
-        if (!isValidated || joinablePoliciesLength > 0 || joinablePoliciesLoading) {
+        if (!isValidated || isLoadingJoinablePolicies || joinablePoliciesLength > 0) {
             return;
         }
 
         getAccessiblePolicies();
     });
+
+    useEffect(() => {
+        if (isLoadingJoinablePolicies || joinablePoliciesLoading !== false || joinablePoliciesLength > 0 || !defaultPolicy?.id) {
+            return;
+        }
+
+        finishOnboarding({
+            policyID: defaultPolicy.id,
+            policyName: defaultPolicy.name,
+            policyOwner: defaultPolicy.owner,
+            employeeCount: 0,
+            hasPendingAccess: false,
+            automaticJoiningEnabled: false,
+            policyType: defaultPolicy.type,
+        });
+    }, [isLoadingJoinablePolicies, joinablePoliciesLoading, joinablePoliciesLength, defaultPolicy?.id, defaultPolicy?.name, defaultPolicy?.owner, defaultPolicy?.type, finishOnboarding]);
 
     const skipJoiningWorkspaces = () => {
         if (isEmployerWithSubmit) {
@@ -198,7 +221,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 onSelectRow={() => {}}
                 ListItem={BareUserListItem}
                 style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}}
-                shouldShowLoadingPlaceholder={joinablePoliciesLoading}
+                shouldShowLoadingPlaceholder={isLoadingJoinablePolicies || !!joinablePoliciesLoading || policyIDItems.length === 0}
                 shouldStopPropagation
                 showScrollIndicator
                 customListHeader={
