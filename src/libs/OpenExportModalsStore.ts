@@ -1,3 +1,7 @@
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 /**
  * In-memory registry of export IDs that currently have an in-session status modal open.
  *
@@ -51,4 +55,25 @@ function markExportModalClosed(exportID: string) {
     notifyListeners();
 }
 
-export {markExportModalOpen, markExportModalClosed, subscribeToOpenExportModals, getOpenExportModalIDs};
+/**
+ * Releases a dismissed export's ownership once its Onyx key is gone. This runs here, in the module-level store,
+ * rather than in the screen hook that dismissed it, so it still completes if that hook unmounts mid-clear (for
+ * example when clearing the selection unmounts the toolbar). Holding ownership until the delete lands avoids a
+ * duplicate during the async clear; if the clear rolls back and the value returns, ownership is already released
+ * so the reload handler re-surfaces the export.
+ */
+function releaseExportModalWhenCleared(exportID: string) {
+    const connectionID = Onyx.connectWithoutView({
+        key: `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`,
+        callback: (exportDownload) => {
+            // Still present (e.g. ready during the async clear window); keep ownership and wait.
+            if (exportDownload) {
+                return;
+            }
+            markExportModalClosed(exportID);
+            Onyx.disconnect(connectionID);
+        },
+    });
+}
+
+export {markExportModalOpen, markExportModalClosed, subscribeToOpenExportModals, getOpenExportModalIDs, releaseExportModalWhenCleared};

@@ -14,6 +14,12 @@ jest.mock('@libs/actions/Export', () => ({
     clearExportDownload: jest.fn(),
 }));
 
+jest.mock('@libs/OpenExportModalsStore', () => ({
+    markExportModalOpen: jest.fn(),
+    markExportModalClosed: jest.fn(),
+    releaseExportModalWhenCleared: jest.fn(),
+}));
+
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({translate: (key: string) => key}),
@@ -22,7 +28,7 @@ jest.mock('@hooks/useLocalize', () => ({
 let mockExportDownload: {state?: string; shouldSendFromConcierge?: boolean} | undefined;
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: () => [mockExportDownload, {status: 'loaded'}],
+    default: () => [mockExportDownload],
 }));
 
 type ExportDownloadStatusModalProps = {exportID: string; onClose: () => void};
