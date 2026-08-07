@@ -187,8 +187,13 @@ describe('DistanceRequestStartPage', () => {
         await expect(getDraftRequestType()).resolves.toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
     });
 
-    it('keeps manual distance available for a personal expense when every workspace has commuter exclusions', async () => {
+    it('keeps manual distance available for a self-DM expense with a personal policy when every workspace has commuter exclusions', async () => {
         await setUpOnyx({selectedTab: CONST.TAB_REQUEST.DISTANCE_MANUAL});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            reportID: REPORT_ID,
+            policyID: PERSONAL_POLICY_ID,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        });
         await Onyx.set(
             `${ONYXKEYS.COLLECTION.POLICY}workspacePolicy`,
             createMock<Policy>({

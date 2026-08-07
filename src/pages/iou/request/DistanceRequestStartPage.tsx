@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
 import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
-import {getPayeeName} from '@libs/ReportUtils';
+import {getPayeeName, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -68,7 +68,7 @@ function DistanceRequestStartPage({
     const targetParticipant = defaultParticipants.find((participant) => participant.isPolicyExpenseChat);
     const isOnlyWorkspaceTheTarget = onlyActivePolicy?.id === targetParticipant?.policyID;
     let targetPolicy = isOnlyWorkspaceTheTarget ? onlyActivePolicy : undefined;
-    if (report?.policyID) {
+    if (isPolicyExpenseChat(report)) {
         targetPolicy = policy;
     }
     const shouldHideManualAndOdometerTabs = isCommuterExclusionEnabled(targetPolicy);
