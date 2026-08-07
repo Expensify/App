@@ -215,6 +215,9 @@ const CONST = {
         '667479706d696631', // 'ftypmif1' - Multi-Image Format part of HEIF, broader usage
     ],
     RECENT_WAYPOINTS_NUMBER: 20,
+    // Validate-code action errorFields key the missing-personal-details ship-card flow writes its incorrect-magic-code
+    // error under, and the ValidateCodeForm reads it back from, so the action and the page stay in sync.
+    MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD: 'personalDetails',
     DEFAULT_DB_NAME: 'OnyxDB',
     DEFAULT_TABLE_NAME: 'keyvaluepairs',
     DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
@@ -6707,8 +6710,6 @@ const CONST = {
         RESULTS_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
-        // Null byte can't appear in a query, so it's safe to join query parts with it
-        QUERY_PARAMS_SEPARATOR: '\x00',
         DATA_TYPES: {
             EXPENSE: 'expense',
             EXPENSE_REPORT: 'expense-report',

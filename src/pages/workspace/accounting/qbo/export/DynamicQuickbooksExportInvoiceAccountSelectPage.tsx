@@ -74,7 +74,7 @@ function DynamicQuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyCon
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.qbo.noAccountsFound')}
-                subtitle={translate('workspace.qbo.noAccountsFoundDescription', {integrationName})}
+                subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
                 containerStyle={styles.pb10}
             />
         ),
@@ -88,7 +88,7 @@ function DynamicQuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyCon
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="DynamicQuickbooksExportInvoiceAccountSelectPage"
             data={data}
-            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription', {integrationName})}</Text>}
+            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription', integrationName)}</Text>}
             onBackButtonPress={goBack}
             onSelectRow={selectExportInvoice}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
