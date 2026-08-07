@@ -73,6 +73,29 @@ describe('useCommuterExclusionGuard', () => {
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 
+    it('does not fall back to the current workspace when selecting a policy-less participant', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_forced`, {
+            id: 'policy_forced',
+            name: 'Forced workspace',
+            commuterExclusions: {
+                method: 'fixedDistance',
+                fixedDistance: 1,
+                fixedDistanceUnit: 'mi',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() =>
+            useCommuterExclusionGuard({
+                policyID: 'policy_forced',
+                isManualDistanceRequest: true,
+            }),
+        );
+
+        expect(result.current(undefined)).toBe(false);
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+    });
+
     it('blocks selecting a workspace with commuter exclusions even when distance rates are disabled', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_disabled_rates`, {
             id: 'policy_disabled_rates',
