@@ -966,13 +966,11 @@ function getFormattedCancellationDate(isoDateString: string, locale: Locale): st
     if (Number.isNaN(instant.getTime())) {
         return '';
     }
-    // Manual venue-wall-clock shift + format-in-UTC — sidesteps `formatInTimeZone`'s raw-offset rejection AND guarantees the rendered time can't contradict `venueTimezoneLabel`.
+    // Pre-shifted venue instant + Intl in UTC — sidesteps raw-offset rejection, can't contradict `venueTimezoneLabel`, and lets locale drive order + clock.
     const venueInstant = new Date(instant.getTime() + offsetMinutes * 60_000);
     const nowInVenue = new Date(Date.now() + offsetMinutes * 60_000);
-    const pattern = venueInstant.getUTCFullYear() === nowInVenue.getUTCFullYear() ? 'EEEE, MMM d h:mm a' : 'EEEE, MMM d, yyyy h:mm a';
-    // Explicit `enUS` (never `undefined`) so a chunk-load race can't silently leak through to date-fns's global default.
-    const dateFnsLocale = IntlStore.getDateFnsLocale(locale) ?? enUS;
-    return `${formatInTimeZoneWithFallback(venueInstant, 'UTC', pattern, {locale: dateFnsLocale})}, ${venueTimezoneLabel}`;
+    const datePreset = venueInstant.getUTCFullYear() === nowInVenue.getUTCFullYear() ? 'WEEKDAY_MONTH_DAY' : 'WEEKDAY_MONTH_DAY_YEAR';
+    return `${formatIntl(locale, datePreset, venueInstant, 'UTC')} ${formatIntl(locale, 'SHORT_TIME', venueInstant, 'UTC')}, ${venueTimezoneLabel}`;
 }
 
 /**

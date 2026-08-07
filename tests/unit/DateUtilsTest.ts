@@ -933,6 +933,16 @@ describe('DateUtils', () => {
             const result = DateUtils.getFormattedCancellationDate('2026-04-19', CONST.LOCALES.EN);
             expect(result).toBe('Sunday, Apr 19, 2026 12:00 AM, UTC');
         });
+
+        it('renders non-English locales with locale-driven field order + clock (not just token translation)', () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+            const es = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', CONST.LOCALES.ES);
+            // Spanish convention is day-before-month + 24h clock — a date-fns pattern would keep the English order and 12h "3:00 PM".
+            expect(es).not.toMatch(/AM|PM/);
+            expect(es).toContain('15:00');
+            expect(es).toContain('GMT+7');
+        });
     });
 
     // CI's TZ=UTC hides "forgot the timeZone arg" regressions from output-based tests; isolate the module for a fresh memoize cache so the spy actually sees the constructor call.

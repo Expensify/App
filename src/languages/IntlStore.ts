@@ -295,7 +295,8 @@ class IntlStore {
                 Log.warn('[IntlStore] locale chunk failed to load', {locale, error});
             })
             .finally(() => {
-                if (IntlStore.loadToken === token) {
+                // Non-empty cache required — else a rejected first-load would open the splash to raw path strings.
+                if (IntlStore.loadToken === token && IntlStore.cache.size > 0) {
                     setAreTranslationsLoading(false);
                 }
                 if (!localeSpan) {
