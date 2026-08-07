@@ -307,7 +307,7 @@ function getZoneAbbreviation(datetime: string | Date, selectedTimezone: Selected
 
 /** @returns Sunday, July 9, 2023 (en) / domingo, 9 de julio de 2023 (es) */
 function formatToLongDateWithWeekday(datetime: string | Date, locale: Locale): string {
-    return formatIntl(locale, 'FULL_DATE', new Date(datetime));
+    return formatIntl(locale, 'FULL_DATE', toLocalDate(datetime));
 }
 
 /** @returns Sunday (en) / domingo (es) */
@@ -1006,8 +1006,9 @@ function formatCountdownTimer(translateParam: LocaleContextProps['translate'], h
 }
 
 function doesDateBelongToAPastYear(date: string): boolean {
-    const transactionYear = new Date(date).getFullYear();
-    return transactionYear !== new Date().getFullYear();
+    // UTC-year matches the UTC-anchored formatters. Local would drift around New Year.
+    const transactionYear = toUTCDate(date).getUTCFullYear();
+    return transactionYear !== new Date().getUTCFullYear();
 }
 
 /**

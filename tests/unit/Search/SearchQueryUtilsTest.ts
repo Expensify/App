@@ -4,7 +4,6 @@ import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
 import {
     applyContainsOperatorToTextFields,

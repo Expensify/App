@@ -27,7 +27,6 @@ import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCard
 
 import CONST from '@src/CONST';
 import type {Locale} from '@src/CONST/LOCALES';
-import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
