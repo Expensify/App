@@ -157,7 +157,6 @@ import type ReportLoadingState from './ReportLoadingState';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
-import type ReportNextStepDeprecated from './ReportNextStepDeprecated';
 import type ReportPaginationState from './ReportPaginationState';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type ReportViolationName from './ReportViolationName';
@@ -326,7 +325,6 @@ export type {
     ReportLastVisitTimes,
     ReportLoadingState,
     ReportMetadata,
-    ReportNextStepDeprecated,
     ReportPaginationState,
     ReportViolationName,
     ReportLayoutGroupBy,

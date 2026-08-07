@@ -6443,11 +6443,7 @@ describe('OptionsListUtils', () => {
                     currentUserLogin: '',
                 });
 
-                expect(lastMessage).toBe(
-                    translateLocal('reportArchiveReasons.policyDeleted', {
-                        policyName: policy.name,
-                    }),
-                );
+                expect(lastMessage).toBe(translateLocal('reportArchiveReasons.policyDeleted', {policyName: policy.name}));
             });
 
             it('should use the passed policy name for REMOVED_FROM_POLICY archive reason', async () => {
@@ -6488,12 +6484,7 @@ describe('OptionsListUtils', () => {
                     currentUserLogin: '',
                 });
 
-                expect(lastMessage).toBe(
-                    translateLocal('reportArchiveReasons.removedFromPolicy', {
-                        displayName: 'Hidden',
-                        policyName: policy.name,
-                    }),
-                );
+                expect(lastMessage).toBe(translateLocal('reportArchiveReasons.removedFromPolicy', {displayName: 'Hidden', policyName: policy.name}));
             });
 
             it('resolves the workspace-unavailable fallback through the provided translate function when the archived policy is unavailable', async () => {
@@ -7210,6 +7201,36 @@ describe('OptionsListUtils', () => {
             expect(option.text).toBe('Test Workspace');
             expect(option.alternateText).toBe(translateLocal('workspace.common.workspace'));
             expect(option.isSelected).toBe(undefined);
+        });
+
+        it('should title a self DM with "<display name> (you)" even when the derived report name is empty', async () => {
+            // The report-attributes derivation has not populated the self DM's name yet on a cold load, so the option
+            // has to resolve the title itself instead of rendering only the "Your space" subtitle. See #96559.
+            const reportID = '109';
+            const ownerAccountID = 7777;
+            const report: Report = {
+                reportID,
+                reportName: '',
+                ownerAccountID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                // A self DM's own participant entry is excluded from the display list (the backend sends an empty
+                // notificationPreference, which isHiddenForCurrentUser treats the same as HIDDEN), so createOption has
+                // no personal details to build a name from and has to fall back to the report name.
+                participants: {[ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+            };
+            const selfPersonalDetails = {
+                [ownerAccountID]: {accountID: ownerAccountID, displayName: 'Test', login: 'test@test.com'},
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: ownerAccountID, email: 'test@test.com'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const option = getReportOption({reportID}, undefined, undefined, selfPersonalDetails, undefined, undefined, undefined, ownerAccountID, translateLocal);
+
+            expect(option.text).toBe(`Test (${translateLocal('common.you').toLowerCase()})`);
+            expect(option.alternateText).toBe(translateLocal('reportActionsView.yourSpace'));
         });
 
         it('should show submits to info when policy has approval workflow', async () => {
