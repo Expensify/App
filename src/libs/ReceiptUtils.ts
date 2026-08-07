@@ -42,7 +42,8 @@ function constructReceiptSourceFromFilename(filename: string): string {
  * @param receiptFileName
  */
 function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPath: ReceiptSource | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
-    if (!hasReceipt(transaction) && !receiptPath && !receiptFileName) {
+    const hasReceiptFile = !!transaction?.receipt?.source || !!transaction?.receipt?.filename;
+    if (!hasReceipt(transaction) && !hasReceiptFile && !receiptPath && !receiptFileName) {
         return {isEmptyReceipt: true};
     }
     if (isFetchingWaypointsFromServer(transaction)) {
