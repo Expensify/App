@@ -5,6 +5,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 
+import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {BillingStatusResult} from '@src/pages/settings/Subscription/CardSection/utils';
 import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
@@ -102,6 +103,7 @@ describe('CardSectionUtils', () => {
         expect(
             CardSectionUtils.getBillingStatus({
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -123,6 +125,7 @@ describe('CardSectionUtils', () => {
         expect(
             CardSectionUtils.getBillingStatus({
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -161,6 +164,7 @@ describe('CardSectionUtils', () => {
         expect(
             CardSectionUtils.getBillingStatus({
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 purchase: mockPurchase,
@@ -189,6 +193,7 @@ describe('CardSectionUtils', () => {
         expect(
             CardSectionUtils.getBillingStatus({
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: undefined,
                 retryBillingSuccessful: false,
@@ -216,6 +221,7 @@ describe('CardSectionUtils', () => {
         expect(
             CardSectionUtils.getBillingStatus({
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -243,6 +249,7 @@ describe('CardSectionUtils', () => {
         expect(
             CardSectionUtils.getBillingStatus({
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -270,6 +277,7 @@ describe('CardSectionUtils', () => {
         expect(
             CardSectionUtils.getBillingStatus({
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -297,6 +305,7 @@ describe('CardSectionUtils', () => {
         expect(
             CardSectionUtils.getBillingStatus({
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -324,6 +333,7 @@ describe('CardSectionUtils', () => {
         expect(
             CardSectionUtils.getBillingStatus({
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -351,6 +361,7 @@ describe('CardSectionUtils', () => {
         expect(
             CardSectionUtils.getBillingStatus({
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: {...ACCOUNT_DATA, cardYear: 2023},
                 retryBillingSuccessful: false,
@@ -372,6 +383,7 @@ describe('CardSectionUtils', () => {
         expect(
             CardSectionUtils.getBillingStatus({
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -399,6 +411,7 @@ describe('CardSectionUtils', () => {
         expect(
             CardSectionUtils.getBillingStatus({
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -426,6 +439,7 @@ describe('CardSectionUtils', () => {
         expect(
             CardSectionUtils.getBillingStatus({
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -454,6 +468,7 @@ describe('CardSectionUtils', () => {
         expect(
             CardSectionUtils.getBillingStatus({
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,

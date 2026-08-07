@@ -7,6 +7,7 @@ import TypeCell from '@components/TransactionItemRow/DataCells/TypeCell';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -50,14 +51,12 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const {preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const formattedDate = DateUtils.formatWithUTCTimeZone(
-        expense.created,
-        DateUtils.doesDateBelongToAPastYear(expense.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-    );
+    const formattedDate = DateUtils.formatTransactionListDate(expense.created, preferredLocale);
 
     const formattedAmount = convertToDisplayString(expense.amount, expense.currency);
 

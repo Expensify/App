@@ -58,6 +58,7 @@ const basicProps = {
     currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
     reportViolations: undefined,
     convertToDisplayString,
+    preferredLocale: CONST.LOCALES.EN,
 };
 
 describe('TransactionPreviewUtils', () => {
