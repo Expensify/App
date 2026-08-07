@@ -7,11 +7,11 @@ import Log from '@libs/Log';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 
-import type {Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {ImageSourcePropType} from 'react-native';
 
@@ -110,13 +110,7 @@ export default {
      *
      * @param usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification(
-        report: Report,
-        reportAction: ReportAction,
-        onClick: LocalNotificationClickHandler,
-        usesIcon = false,
-        reportAttributes?: ReportAttributesDerivedValue['reports'],
-    ) {
+    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false, derivedReportName?: string) {
         let title;
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
@@ -135,7 +129,7 @@ export default {
         }
 
         if (isRoomOrGroupChat) {
-            const roomName = deprecatedGetReportName(report, reportAttributes);
+            const roomName = getReportName(report, derivedReportName);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
@@ -160,7 +154,7 @@ export default {
         policyTags,
         policy,
         currentUserLogin,
-        reportAttributes,
+        derivedReportName,
     }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const bodyWithHTML = getForReportAction({
@@ -173,7 +167,7 @@ export default {
             movedToReport,
             policyTags,
             currentUserLogin,
-            reportAttributes,
+            reportName: derivedReportName,
         });
         // Strip HTML tags for plain text notification body
         const body = getTextFromHtml(bodyWithHTML);

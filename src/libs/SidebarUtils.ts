@@ -155,7 +155,7 @@ import {
     isTagModificationAction,
     isTaskAction,
 } from './ReportActionsUtils';
-import {deprecatedGetReportName, getReportName} from './ReportNameUtils';
+import {getReportName} from './ReportNameUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
     excludeParticipantsForDisplay,
@@ -585,7 +585,7 @@ function categorizeReportsForLHN(
         }
 
         const reportID = report.reportID;
-        const displayName = deprecatedGetReportName(report, reportAttributes);
+        const displayName = getReportName(report, reportAttributes?.[report.reportID]?.reportName);
         const miniReport: MiniReport = {
             reportID,
             displayName,
@@ -1101,7 +1101,9 @@ function getOptionData({
                     : translate('workspace.invite.removed');
             const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            const roomName = deprecatedGetReportName(lastActionReport ?? undefined, reportAttributesDerived) || lastActionOriginalMessage?.roomName;
+            const roomName =
+                getReportName(lastActionReport ?? undefined, lastActionReport?.reportID ? reportAttributesDerived?.[lastActionReport.reportID]?.reportName : undefined) ||
+                lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -1449,7 +1451,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = deprecatedGetReportName(report, reportAttributesDerived);
+    const reportName = getReportName(report, report?.reportID ? reportAttributesDerived?.[report.reportID]?.reportName : undefined);
 
     if (reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
         loggedChatReportIDs.delete(report.reportID);

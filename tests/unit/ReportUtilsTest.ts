@@ -17843,7 +17843,7 @@ describe('ReportUtils', () => {
                 reportOrID: report,
                 iouReportAction: reportAction,
                 originalReportAction: reportAction,
-                reportAttributes,
+                derivedReportName: reportAttributes?.[report.reportID]?.reportName || undefined,
             });
             expect(result).toBe('Computed Report Name');
         });
@@ -21722,6 +21722,31 @@ describe('ReportUtils', () => {
             const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateLocal, undefined);
 
             expect(result).toBe('Invoice #42');
+        });
+
+        it('should pass derivedReportName to getReportName when falling through to default path', async () => {
+            const chatReport: Report = {
+                reportID: 'chat-report-999',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await waitForBatchedUpdates();
+
+            const action = {...createRandomReportAction(7)};
+            const derivedName = 'Derived Report Name';
+
+            const resultWithDerived = getChatListItemReportName(action, chatReport, undefined, undefined, [], translateLocal, undefined, derivedName);
+            const resultWithoutDerived = getChatListItemReportName(action, chatReport, undefined, undefined, [], translateLocal, undefined);
+
+            expect(resultWithDerived).toBe(derivedName);
+            expect(resultWithDerived).not.toBe(resultWithoutDerived);
+        });
+
+        it('should return empty string when report is undefined even with derivedReportName', () => {
+            const action = {...createRandomReportAction(8)};
+
+            const result = getChatListItemReportName(action, undefined, undefined, undefined, [], translateLocal, undefined, 'Derived Name');
+            expect(result).toBe('');
         });
 
         describe('NewDot invoice reports', () => {

@@ -4,7 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 import type {PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
@@ -33,7 +33,7 @@ import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils'
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
-import {buildReportNameFromParticipantNames, deprecatedGetReportName, getPolicyExpenseChatName} from './ReportNameUtils';
+import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getReportName} from './ReportNameUtils';
 import {getPolicyName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
@@ -189,14 +189,14 @@ function getMovedFromOrToReportMessage(
     movedToReport: OnyxEntry<Report> | undefined,
     currentUserLogin: string,
     policy: OnyxEntry<Policy>,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
+    movedFromReportName?: string,
 ): string | undefined {
     if (movedToReport) {
         return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserLogin, policy);
     }
 
     if (movedFromReport) {
-        const originReportName = deprecatedGetReportName(movedFromReport, reportAttributes);
+        const originReportName = getReportName(movedFromReport, movedFromReportName);
         return originReportName ? translate('iou.movedFromReport', originReportName) : translate('iou.movedFromReportNoName');
     }
 }
@@ -277,7 +277,7 @@ function getForReportAction({
     policyTags,
     policyCategories,
     currentUserLogin,
-    reportAttributes,
+    reportName,
 }: {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -291,13 +291,13 @@ function getForReportAction({
     policyTags?: OnyxEntry<PolicyTagLists>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     currentUserLogin: string;
-    reportAttributes?: ReportAttributesDerivedValue['reports'];
+    reportName?: string;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin, policy, reportAttributes);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin, policy, reportName);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }

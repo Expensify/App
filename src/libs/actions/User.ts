@@ -691,7 +691,7 @@ function triggerNotifications<TKey extends OnyxKey>(
         for (const action of reportActions) {
             if (action) {
                 // They aren't connected to a UI anywhere, it's OK to use currentUserEmail
-                showReportActionNotification(reportID, action, topmostOneTransactionThreadReportID, currentUserAccountID, currentUserEmail, reportAttributes);
+                showReportActionNotification(reportID, action, topmostOneTransactionThreadReportID, currentUserAccountID, currentUserEmail, reportAttributes?.[reportID]?.reportName);
             }
         }
     }

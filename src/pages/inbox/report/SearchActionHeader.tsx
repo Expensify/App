@@ -5,6 +5,7 @@ import TextLink from '@components/TextLink';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -50,7 +51,8 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     const reportTransactionsCollection = useReportTransactionsCollection(reportForHeaderReportID);
     const linkedTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 
-    const reportName = getChatListItemReportName(action, report, parentReport, conciergeReportID, linkedTransactions, translate, personalDetailsList);
+    const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
+    const reportName = getChatListItemReportName(action, report, parentReport, conciergeReportID, linkedTransactions, translate, personalDetailsList, derivedReportName);
 
     return (
         <View style={[styles.p4]}>

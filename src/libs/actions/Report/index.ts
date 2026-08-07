@@ -243,7 +243,6 @@ import type {
     RecentlyUsedReportFields,
     Report,
     ReportAction,
-    ReportAttributesDerivedValue,
     ReportUserIsTyping,
     SidePanelContext,
     Transaction,
@@ -5030,7 +5029,7 @@ function showReportActionNotification(
     topmostOneTransactionThreadReportID: string | undefined,
     currentUserAccountID: number,
     currentUserLogin: string,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
+    derivedReportName?: string,
 ) {
     if (!shouldShowReportActionNotification(reportID, topmostOneTransactionThreadReportID, currentUserAccountID, reportAction)) {
         return;
@@ -5050,9 +5049,17 @@ function showReportActionNotification(
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport, currentUserLogin, reportAttributes});
+        LocalNotification.showModifiedExpenseNotification({
+            report,
+            reportAction,
+            onClick,
+            movedFromReport,
+            movedToReport,
+            currentUserLogin,
+            derivedReportName,
+        });
     } else {
-        LocalNotification.showCommentNotification(report, reportAction, onClick, reportAttributes);
+        LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName);
     }
 
     notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID);

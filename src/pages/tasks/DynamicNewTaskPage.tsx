@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePressLoading from '@hooks/usePressLoading';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -43,7 +43,7 @@ function DynamicNewTaskPage() {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const reportAttributes = useReportAttributes();
+    const derivedSharedDestinationReportName = useDerivedReportNameByReportID(parentReport?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -60,7 +60,17 @@ function DynamicNewTaskPage() {
         translate,
     );
     const shareDestination = task?.shareDestination
-        ? getShareDestination(parentReport, personalDetails, localeCompare, formatPhoneNumber, policy, conciergeReportID, translate, reportAttributes, pendingDeleteMemberAccountIDs)
+        ? getShareDestination(
+              parentReport,
+              personalDetails,
+              localeCompare,
+              formatPhoneNumber,
+              policy,
+              conciergeReportID,
+              translate,
+              derivedSharedDestinationReportName,
+              pendingDeleteMemberAccountIDs,
+          )
         : undefined;
     const ancestors = useAncestors(parentReport);
     const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;

@@ -238,7 +238,7 @@ import {
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
-import {deprecatedGetReportName, getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
+import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
 import {getAllPersonalDetailLogins} from './ShortMentionLogins';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {isTaskCompleted} from './TaskUtils';
@@ -5880,13 +5880,13 @@ type GetReportPreviewMessageBaseParams = {
  * `translateLocal`.
  */
 function getReportPreviewMessageForCopy(
-    params: Pick<GetReportPreviewMessageBaseParams, 'reportOrID' | 'iouReportAction' | 'originalReportAction'> & {reportAttributes?: ReportAttributesDerivedValue['reports']},
+    params: Pick<GetReportPreviewMessageBaseParams, 'reportOrID' | 'iouReportAction' | 'originalReportAction'> & {derivedReportName?: string | undefined},
 ): string {
-    const {reportOrID, iouReportAction = null, reportAttributes} = params;
+    const {reportOrID, iouReportAction = null, derivedReportName} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     if (report) {
-        return deprecatedGetReportName(report, reportAttributes ?? reportAttributesDerivedValue) || (originalReportAction?.childReportName ?? '');
+        return getReportName(report, derivedReportName) || (originalReportAction?.childReportName ?? '');
     }
     return originalReportAction?.childReportName ?? '';
 }
@@ -13626,6 +13626,7 @@ function getChatListItemReportName(
     linkedTransactions: Transaction[],
     translate: LocalizedTranslate,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    derivedReportName?: string,
 ): string {
     const reportForHeader = getReportForHeader(report, parentReport);
     if (reportForHeader && isInvoiceReport(reportForHeader)) {
@@ -13644,10 +13645,10 @@ function getChatListItemReportName(
     }
 
     if (report?.reportID) {
-        return deprecatedGetReportName(getReport(report?.reportID, deprecatedAllReports), reportAttributesDerivedValue);
+        return getReportName(getReport(report.reportID, deprecatedAllReports), derivedReportName);
     }
 
-    return deprecatedGetReportName(report, reportAttributesDerivedValue);
+    return getReportName(report, derivedReportName);
 }
 
 /**

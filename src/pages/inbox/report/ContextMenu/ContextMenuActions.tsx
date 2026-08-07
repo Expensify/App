@@ -1010,7 +1010,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getReportPreviewMessageForCopy({
                         reportOrID: iouReportID,
                         iouReportAction: reportAction,
-                        reportAttributes,
+                        derivedReportName: iouReportID ? reportAttributes?.[iouReportID]?.reportName : undefined,
                     });
                     Clipboard.setString(displayMessage);
                 } else if (isTaskActionReportActionsUtils(reportAction)) {
