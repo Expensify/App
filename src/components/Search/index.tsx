@@ -23,6 +23,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -41,6 +42,7 @@ import {
     isGroupedItemArray,
     isReportActionListItemType,
     isSearchDataLoaded,
+    isSearchPending,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTaskListItemType,
     isTransactionGroupListItemType,
@@ -60,7 +62,7 @@ import {
 } from '@libs/telemetry/navigateToReportsSpans';
 import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
+import {isDeletedTransaction, isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
 
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -340,7 +342,7 @@ function Search({
     // Show a skeleton whenever heavy work is deferred, even for live-data (to-do) searches,
     // so we never fall through to the empty-state check with stale zero-length data.
     const isDeferringHeavyWork = !isOffline && shouldDeferHeavySearchWork;
-    const isSearchLoadingWithNoResults = !!searchResults?.search?.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0;
+    const isSearchLoadingWithNoResults = isSearchPending(searchResults) && Array.isArray(searchResults?.data) && searchResults.data.length === 0;
     const hasUnresolvedErrors = hasErrors && searchRequestResponseStatusCode === null;
     const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors || isCardFeedsLoading);
     const shouldShowLoadingState = isDeferringHeavyWork || isWaitingForInitialData;
@@ -516,6 +518,23 @@ function Search({
 
             const isTransactionItem = isTransactionListItemType(item);
             const backTo = Navigation.getActiveRoute();
+
+            // When opening an expense from the Spend page (flat transaction list), populate the carousel
+            // with all sibling transactions so prev/next navigation works in the RHP transaction view.
+            if (isTransactionItem) {
+                const siblingTransactionIDs = (filteredData as SearchListItem[])
+                    .filter(
+                        (t): t is TransactionListItemType =>
+                            !!t && isTransactionListItemType(t) && t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedTransaction(t),
+                    )
+                    .map((t) => t.transactionID);
+                if (siblingTransactionIDs.length > 1) {
+                    setActiveTransactionIDs(siblingTransactionIDs, hash);
+                } else {
+                    clearActiveTransactionIDs();
+                }
+            }
+
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && !item?.reportAction?.childReportID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
@@ -671,9 +690,11 @@ function Search({
             email,
             accountID,
             queryJSON,
+            hash,
             offset,
             searchResults?.search?.hasMoreResults,
             currentSearchKey,
+            filteredData,
         ],
     );
 

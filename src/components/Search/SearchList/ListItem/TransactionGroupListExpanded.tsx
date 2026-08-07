@@ -249,12 +249,12 @@ function TransactionGroupListExpandedImpl({
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
         if (isModifiedMousePress(event)) {
-            setActiveTransactionIDs(siblingTransactionIDs);
+            setActiveTransactionIDs(siblingTransactionIDs, transactionsQueryJSON?.hash);
             navigateToTransactionThread();
             return;
         }
 
-        setActiveTransactionIDs(siblingTransactionIDs).then(navigateToTransactionThread);
+        setActiveTransactionIDs(siblingTransactionIDs, transactionsQueryJSON?.hash).then(navigateToTransactionThread);
     };
 
     const onShowMoreButtonPress = () => {
