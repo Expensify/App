@@ -88,6 +88,7 @@ function SubmitDetailsPage({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
+    const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transactionReport?.reportID)}`);
     const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
     // Self-DM's FAKE policyID can't load real policy data — usePolicyForTransaction resolves the active workspace instead.
     const {policy} = usePolicyForTransaction({
@@ -261,7 +262,7 @@ function SubmitDetailsPage({
     const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
     const listOfParticipants = participants.filter((participant) => participant.selected);
     const participant = listOfParticipants.at(0) ?? selectedParticipants.at(0);
-    const reportToSubmit = resolveReportForMoneyRequest({transaction, transactionReport, routeReport: report, policy});
+    const reportToSubmit = resolveReportForMoneyRequest({transaction, transactionReport, routeReport: report, policy, reportNameValuePair});
     const isIouReport = isMoneyRequestReport(reportToSubmit);
     const policyTagsForRequestMoney = useMoneyRequestPolicyTags({
         moneyRequestReportID: isIouReport ? reportToSubmit?.reportID : undefined,

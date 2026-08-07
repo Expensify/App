@@ -5328,7 +5328,8 @@ function canEditFieldOfMoneyRequest({
             return canUnreportedBeMoved(transaction, allPolicies);
         }
 
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, reportNameValuePairs)) {
+        const moneyRequestReportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport.reportID}`];
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, moneyRequestReportNameValuePair)) {
             return false;
         }
 
@@ -5357,7 +5358,7 @@ function canEditFieldOfMoneyRequest({
         }
 
         // Check the cheaper condition first
-        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, reportNameValuePairs)) {
+        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, moneyRequestReportNameValuePair)) {
             return true;
         }
 
@@ -12016,7 +12017,7 @@ function isReportOutstanding(
     iouReport: OnyxInputOrEntry<Report>,
     policyID: string | undefined,
     // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportNameValuePair?: OnyxInputOrEntry<ReportNameValuePairs>,
     allowSubmitted = true,
 ): boolean {
     if (
@@ -12030,8 +12031,8 @@ function isReportOutstanding(
     ) {
         return false;
     }
-    const reportNameValuePair = (reportNameValuePairs ?? allReportNameValuePair)?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
-    if (isArchivedReport(reportNameValuePair)) {
+    const resolvedReportNameValuePair = reportNameValuePair ?? allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
+    if (isArchivedReport(resolvedReportNameValuePair)) {
         return false;
     }
     const currentRoute = navigationRef.getCurrentRoute();
@@ -12064,7 +12065,7 @@ function getOutstandingReportsForUser(
     return Object.values(reports).filter(
         (report) =>
             report?.pendingFields?.preview !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            isReportOutstanding(report, policyID, reportNameValuePairs, allowSubmitted) &&
+            isReportOutstanding(report, policyID, reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`], allowSubmitted) &&
             report?.ownerAccountID === reportOwnerAccountID,
     );
 }
