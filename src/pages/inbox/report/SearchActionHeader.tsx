@@ -43,7 +43,12 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     // deprecated global report cache, which isn't guaranteed to be populated or trigger a re-render.
     const parentReportID = isChatThread(report) ? report.parentReportID : undefined;
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
-    const reportForHeaderReportID = isInvoiceReport(parentReport) ? parentReport?.reportID : isInvoiceReport(report) ? report?.reportID : undefined;
+    let reportForHeaderReportID: string | undefined;
+    if (isInvoiceReport(parentReport)) {
+        reportForHeaderReportID = parentReport?.reportID;
+    } else if (isInvoiceReport(report)) {
+        reportForHeaderReportID = report?.reportID;
+    }
     const reportTransactionsCollection = useReportTransactionsCollection(reportForHeaderReportID);
     const linkedTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 
