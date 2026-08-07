@@ -58,7 +58,6 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     getRequestType,
     hasReceipt,
@@ -764,11 +763,7 @@ function IOURequestStepConfirmation({
     };
 
     if (isLoadingTransaction) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'IOURequestStepConfirmation',
-            isLoadingTransaction,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     const showNextTransaction = () => {
@@ -896,15 +891,7 @@ function IOURequestStepConfirmation({
                             ) : null}
                         </HeaderWithBackButton>
                     )}
-                    {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && (
-                        <FullScreenLoadingIndicator
-                            reasonAttributes={{
-                                context: 'IOURequestStepConfirmation',
-                                isLoading,
-                                isScanRequestWithNoReceipts: isScanRequest(transaction) && !Object.values(receiptFiles).length,
-                            }}
-                        />
-                    )}
+                    {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <FullScreenLoadingIndicator />}
                     {PDFValidationComponent}
                     <DragAndDropConsumer onDrop={handleDroppingReceipt}>
                         <DropZoneUI

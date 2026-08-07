@@ -27,7 +27,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import type {TransactionPreviewData} from '@userActions/Search';
@@ -265,11 +264,6 @@ function TransactionGroupListExpandedImpl({
         }
     };
 
-    const transactionGroupLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'TransactionGroupListExpanded',
-        isOffline: !!isOffline,
-    };
-
     if (shouldDisplayEmptyView) {
         return (
             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
@@ -408,7 +402,6 @@ function TransactionGroupListExpandedImpl({
                         color={theme.spinner}
                         size={25}
                         style={[styles.pl3, !isEmpty && styles.alignItemsStart]}
-                        reasonAttributes={transactionGroupLoadingReasonAttributes}
                     />
                 </View>
             )}

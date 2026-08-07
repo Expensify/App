@@ -37,7 +37,6 @@ import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteA
 import Navigation from '@libs/Navigation/Navigation';
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {expensifyLoginsSelector, getProfilePageBrickRoadIndicator, hasDeviceManagementError} from '@libs/UserUtils';
 
@@ -484,18 +483,11 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const generalMenuItems = getMenuItemsSection(generalMenuItemsData);
 
     const isPersonalDetailsEmpty = isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined;
-    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'InitialSettingsPage',
-        isPersonalDetailsEmpty,
-    };
 
     const headerContent = (
         <View style={[styles.ph5, styles.pv4]}>
             {isPersonalDetailsEmpty ? (
-                <AccountSwitcherSkeletonView
-                    avatarSize={CONST.AVATAR_SIZE.DEFAULT}
-                    reasonAttributes={skeletonReasonAttributes}
-                />
+                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.DEFAULT} />
             ) : (
                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
                     <AccountSwitcher isScreenFocused={isScreenFocused} />

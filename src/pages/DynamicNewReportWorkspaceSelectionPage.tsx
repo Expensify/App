@@ -276,10 +276,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     />
                     {shouldShowLoadingIndicator ? (
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
-                            <ActivityIndicator
-                                size="large"
-                                reasonAttributes={{context: 'DynamicNewReportWorkspaceSelectionPage', isLoadingApp: isAppLoadPending}}
-                            />
+                            <ActivityIndicator size="large" />
                         </View>
                     ) : (
                         <>

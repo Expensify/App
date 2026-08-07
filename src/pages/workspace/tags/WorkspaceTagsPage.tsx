@@ -62,7 +62,6 @@ import {
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
@@ -461,7 +460,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const isLoading = !isOffline && policyTags === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceTagsPage', isOffline, isPolicyTagsUndefined: policyTags === undefined};
     const hasVisibleTags = tagRows.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const navigateToImportSpreadsheet = useCallback(() => {
@@ -871,7 +869,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
-                            reasonAttributes={reasonAttributes}
                         />
                     )}
                     {!isLoading && (
