@@ -3,6 +3,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultParticipants from '@hooks/useDefaultParticipants';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -14,6 +16,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
+import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 
@@ -55,9 +58,20 @@ function DistanceRequestStartPage({
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const defaultParticipants = useDefaultParticipants({sourceReport: report, transaction, iouType});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
-    const shouldHideManualAndOdometerTabs = !!report?.policyID && isCommuterExclusionEnabled(policy);
+    const activeGroupPolicies = getActivePolicies(policies ?? null, currentUserPersonalDetails.login).filter(isGroupPolicy);
+    const onlyActivePolicy = activeGroupPolicies.length === 1 ? activeGroupPolicies.at(0) : undefined;
+    const targetParticipant = defaultParticipants.find((participant) => participant.isPolicyExpenseChat);
+    const isOnlyWorkspaceTheTarget = onlyActivePolicy?.id === targetParticipant?.policyID;
+    let targetPolicy = isOnlyWorkspaceTheTarget ? onlyActivePolicy : undefined;
+    if (report?.policyID) {
+        targetPolicy = policy;
+    }
+    const shouldHideManualAndOdometerTabs = isCommuterExclusionEnabled(targetPolicy);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
