@@ -11,21 +11,23 @@ import HapticFeedback from '@libs/HapticFeedback';
 
 import CONST from '@src/CONST';
 
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo, useState} from 'react';
+import {NavigationContext} from '@react-navigation/core';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
-import type {ButtonProps} from './types';
+import type {ButtonProps, PressLoadingController} from './types';
 
-import {ButtonContext} from './context';
+import {ButtonActionsContext, ButtonStateContext} from './context';
 
 function Button({
     children,
     contentContainerStyle = [],
     size = CONST.BUTTON_SIZE.MEDIUM,
-    isLoading = false,
+    isLoading: isOnyxLoading = false,
+    shouldShowLoadingImmediatelyOnPress = false,
     isDisabled = false,
     onLayout = () => {},
     onPress = () => {},
@@ -58,17 +60,77 @@ function Button({
     const StyleUtils = useStyleUtils();
     const [isHovered, setIsHovered] = useState(false);
 
-    const contextValue = useMemo(
-        () => ({
-            isHovered,
-            variant,
-            size,
-            onPress,
-            isDisabled,
-            isLoading,
-        }),
-        [isHovered, variant, size, onPress, isDisabled, isLoading],
-    );
+    // Local flag set the instant the button is pressed, used only when the immediate-loading mechanism is engaged.
+    const [isPressed, setIsPressed] = useState(false);
+    const navigationContext = useContext(NavigationContext);
+
+    // Hand the loading state over from the local press flag to the external isOnyxLoading once it turns true, so the spinner doesn't flip off and back on.
+    if (isPressed && isOnyxLoading) {
+        setIsPressed(false);
+    }
+
+    // Combined loading used for rendering, the press guard and the disabled state.
+    const isLoading = isPressed || isOnyxLoading;
+
+    // Reset the pressed state when the screen regains focus, covering flows that navigate away and return without an external
+    // isOnyxLoading to hand off to. Subscribed lazily: only while a press is pending, so buttons that never use the mechanism add no listener.
+    // Note: this Button is not wrapped in withNavigationFallback, so outside a navigator navigationContext is undefined and reset is simply skipped.
+    useEffect(() => {
+        if (!isPressed || !navigationContext) {
+            return;
+        }
+        return navigationContext.addListener('focus', () => setIsPressed(false));
+    }, [isPressed, navigationContext]);
+
+    // Show the spinner immediately, let React paint it, then run the real work one macrotask later so a JS-blocking onPress doesn't delay the feedback.
+    const startWithLoading = async (runAfterPaint: () => void | Promise<void>) => {
+        setIsPressed(true);
+        await new Promise((resolve) => {
+            setTimeout(resolve, 0);
+        });
+        try {
+            await runAfterPaint();
+        } catch (error) {
+            setIsPressed(false);
+            throw error;
+        }
+    };
+
+    // Passed to onPress so a handler can enter the loading state itself, after its own validation/branching.
+    const loadingController: PressLoadingController = {run: startWithLoading};
+
+    const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
+        if (event?.type === 'click') {
+            const currentTarget = event?.currentTarget as HTMLElement;
+            currentTarget?.blur();
+        }
+
+        if (enableHapticFeedback) {
+            HapticFeedback.press();
+        }
+
+        if (isDisabled || isLoading) {
+            return;
+        }
+        // Simple tier: wrap the whole handler. Otherwise hand the controller to onPress so it can opt in per branch.
+        if (shouldShowLoadingImmediatelyOnPress) {
+            return startWithLoading(() => onPress(event, loadingController));
+        }
+        return onPress(event, loadingController);
+    };
+
+    // Route the Enter shortcut (fired by ButtonKeyboardShortcut via the actions context) through the same paths as a pointer
+    // press, minus the mouse-only blur/haptic handling — so the immediate spinner works on Enter too. Living in the actions
+    // context (functions only) keeps it clear of rulesdir/context-provider-split-values.
+    const handleEnterPress = () => {
+        if (isDisabled || isLoading) {
+            return;
+        }
+        if (shouldShowLoadingImmediatelyOnPress) {
+            return startWithLoading(() => onPress(undefined, loadingController));
+        }
+        return onPress(undefined, loadingController);
+    };
 
     const buttonVariantStyles = useMemo(() => {
         const shouldUseDisabledStyles = isDisabled && !stayNormalOnDisable;
@@ -172,21 +234,7 @@ function Button({
             onBlur={onBlur}
             onHoverIn={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(true) : undefined}
             onHoverOut={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(false) : undefined}
-            onPress={(event) => {
-                if (event?.type === 'click') {
-                    const currentTarget = event?.currentTarget as HTMLElement;
-                    currentTarget?.blur();
-                }
-
-                if (enableHapticFeedback) {
-                    HapticFeedback.press();
-                }
-
-                if (isDisabled || isLoading) {
-                    return;
-                }
-                return onPress(event);
-            }}
+            onPress={handlePress}
             onLongPress={(event) => {
                 if (isLongPressDisabled) {
                     return;
@@ -198,21 +246,23 @@ function Button({
             }}
         >
             {blendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
-            <ButtonContext.Provider value={contextValue}>
-                <View
-                    style={[
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                        contentContainerStyle,
-                        styles.mw100,
-                        size !== CONST.BUTTON_SIZE.SMALL && styles.gap1,
-                        isLoading && styles.opacity0,
-                    ]}
-                >
-                    {children}
-                </View>
-            </ButtonContext.Provider>
+            <ButtonStateContext.Provider value={{isHovered, variant, size, isDisabled, isLoading}}>
+                <ButtonActionsContext.Provider value={{onPress: handleEnterPress}}>
+                    <View
+                        style={[
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            styles.justifyContentCenter,
+                            contentContainerStyle,
+                            styles.mw100,
+                            size !== CONST.BUTTON_SIZE.SMALL && styles.gap1,
+                            isLoading && styles.opacity0,
+                        ]}
+                    >
+                        {children}
+                    </View>
+                </ButtonActionsContext.Provider>
+            </ButtonStateContext.Provider>
             {isLoading && (
                 <ActivityIndicator
                     color={loadingIndicatorColor}
