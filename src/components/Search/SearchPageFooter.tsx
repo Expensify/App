@@ -69,11 +69,13 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
             return;
         }
 
+        // Reset (no item) selects the default explicitly, so resetting after the default moved (e.g. a Preferences >
+        // Payment currency change) converts the figures to it instead of leaving them in the loaded denomination.
         const nextCurrency = item?.value ?? defaultCurrency;
         if (!nextCurrency) {
             return;
         }
-        onCurrencyChange(nextCurrency === defaultCurrency ? undefined : nextCurrency);
+        onCurrencyChange(nextCurrency);
     };
 
     const renderCurrencyPopup: FilterPopupButtonProps['PopoverComponent'] = ({closeOverlay, isExpanded}) => (
