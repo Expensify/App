@@ -18,7 +18,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type AddVendorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_VENDOR>;
 
@@ -49,11 +49,11 @@ function AddVendorPage({route}: AddVendorPageProps) {
 
     const selectedVendorItem = getSelectedVendorItem(policy, form?.vendorID);
 
-    const vendorItems = useMemo(() => getVendorSelectionItems(policy), [policy]);
+    const vendorItems = getVendorSelectionItems(policy);
 
     const backToRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
 
-    const onSave = (value?: string) => {
+    const saveVendor = (value?: string) => {
         updateDraftMerchantRule({vendorID: value});
     };
 
@@ -72,7 +72,7 @@ function AddVendorPage({route}: AddVendorPageProps) {
             <RuleSelectionBase.Picker
                 selectedItem={selectedVendorItem}
                 items={vendorItems}
-                onSave={onSave}
+                onSave={saveVendor}
                 backToRoute={backToRoute}
             />
         </RuleSelectionBase>
