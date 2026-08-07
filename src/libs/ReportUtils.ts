@@ -1713,6 +1713,14 @@ function getInvoiceReceiverPolicyID(report: OnyxEntry<Report>): string | undefin
     return report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? report.invoiceReceiver.policyID : undefined;
 }
 
+/**
+ * Returns the personal details of the invoice receiver when the receiver is an individual, otherwise undefined.
+ */
+function getInvoiceReceiverPersonalDetail(report: OnyxEntry<Report>, personalDetailsList: OnyxEntry<PersonalDetailsList>): OnyxEntry<PersonalDetails> | null {
+    const invoiceReceiver = report?.invoiceReceiver;
+    return invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? personalDetailsList?.[invoiceReceiver.accountID] : undefined;
+}
+
 // TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
 function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
@@ -6412,7 +6420,8 @@ function getParentNavigationSubtitle(
         const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(parentReport);
         const invoiceReceiverPolicy = invoiceReceiverPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
         const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport);
-        const invoicePayerName = getInvoicePayerName(parentReport, translate, invoiceReceiverPolicy);
+        const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(parentReport, allPersonalDetails);
+        const invoicePayerName = getInvoicePayerName(parentReport, translate, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
 
         let reportName = senderWorkspaceName;
         if (!isCurrentUserReceiver && invoicePayerName) {
@@ -12921,7 +12930,9 @@ function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): str
 
 function getIntegrationIcon(
     connectionName?: ConnectionName,
-    expensifyIcons?: Record<'XeroSquare' | 'QBOSquare' | 'NetSuiteSquare' | 'IntacctSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'GustoSquare', IconAsset> | undefined,
+    expensifyIcons?:
+        | Record<'XeroSquare' | 'QBOSquare' | 'NetSuiteSquare' | 'IntacctSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare' | 'GustoSquare', IconAsset>
+        | undefined,
 ) {
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
         return expensifyIcons?.XeroSquare;
@@ -12943,6 +12954,9 @@ function getIntegrationIcon(
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.RILLET) {
         return expensifyIcons?.RilletSquare;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY) {
+        return expensifyIcons?.DualEntrySquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
         return expensifyIcons?.GustoSquare;
@@ -13191,13 +13205,14 @@ function getChatListItemReportName(
     conciergeReportID: string | undefined,
     linkedTransactions: Transaction[],
     translate: LocalizedTranslate,
+    personalDetailsList: OnyxEntry<PersonalDetailsList>,
 ): string {
     const reportForHeader = getReportForHeader(report);
     if (reportForHeader && isInvoiceReport(reportForHeader)) {
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
         // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
         const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
-        return getInvoiceReportName(invoiceReport, linkedTransactions, translate);
+        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, personalDetailsList);
     }
 
     if (action?.reportName) {
@@ -13997,6 +14012,7 @@ export {
     getAvailableReportFields,
     getBankAccountRoute,
     getInvoiceReceiverPolicyID,
+    getInvoiceReceiverPersonalDetail,
     getChatByParticipants,
     getChatRoomSubtitle,
     getChildReportNotificationPreference,

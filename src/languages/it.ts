@@ -488,6 +488,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} di ${total}`,
         editor: 'Editor',
         restrictions: 'Restrizioni',
         tryAgain: 'Riprova',
@@ -5688,6 +5689,16 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 },
             },
         },
+        dualEntry: {
+            dualEntrySetup: 'Configurazione DualEntry',
+            enterCredentials: 'Inserisci la tua chiave API DualEntry',
+            howToFindAPIKey:
+                '<strong>Trova la tua chiave API.</strong><ol><li>Accedi a DualEntry</li><li>Vai a [organization name] -> Impostazioni -> Accesso sviluppatore -> Chiavi API</li><li>Crea una chiave API</li><li>Incolla la chiave API qui sotto</li></ol>',
+            subsidiary: 'Consociata',
+            subsidiarySelectDescription: 'Scegli la consociata in DualEntry da cui vuoi importare i dati.',
+            noCompaniesFound: 'Nessuna azienda trovata',
+            noCompaniesFoundDescription: 'Aggiungi un’azienda in DualEntry e sincronizza di nuovo la connessione',
+        },
         type: {
             free: 'Gratis',
             control: 'Controllo',
@@ -6708,6 +6719,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
+            dualEntry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6727,6 +6739,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DualEntry';
                     default: {
                         return '';
                     }
@@ -6936,6 +6950,12 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                             return 'Inizializzazione della connessione a Rillet';
                         case 'rilletSyncImportData':
                             return 'Caricamento dati';
+                        case 'dualEntrySyncTitle':
+                            return 'Sincronizzazione dei dati DualEntry';
+                        case 'dualEntrySyncConnection':
+                            return 'Inizializzazione della connessione a DualEntry';
+                        case 'dualEntrySyncImportData':
+                            return 'Caricamento dei dati';
                         default: {
                             return `Traduzione mancante per lo stato: ${stage}`;
                         }
@@ -7215,6 +7235,12 @@ ${reportName}`,
                 description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + Rillet. Allinea dimensioni di codifica delle spese e sincronizzazione fiscale alla tua configurazione Rillet per una maggiore visibilità finanziaria.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La nostra integrazione con Rillet è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                title: 'DualEntry',
+                description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + DualEntry. Allinea dimensioni di codifica delle spese e sincronizzazione fiscale alla tua configurazione DualEntry per una maggiore visibilità finanziaria.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>La nostra integrazione con DualEntry è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Approvazioni avanzate',

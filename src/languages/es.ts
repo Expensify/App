@@ -473,6 +473,7 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         apiKey: 'Clave API',
         editor: 'Editor',
         restrictions: 'Restricciones',
@@ -5601,6 +5602,16 @@ ${amount} para ${merchant} - ${date}`,
                 },
             },
         },
+        dualEntry: {
+            dualEntrySetup: 'Configuración de DualEntry',
+            enterCredentials: 'Introduce tu clave de API de DualEntry',
+            howToFindAPIKey:
+                '<strong>Encontrar tu clave de API.</strong><ol><li>Inicia sesión en DualEntry</li><li>Ve a [organization name] -> Settings -> Developer access -> API keys</li><li>Crea una clave de API</li><li>Pega la clave de API abajo</li></ol>',
+            subsidiary: 'Filial',
+            subsidiarySelectDescription: 'Elige la filial en DualEntry de la que te gustaría importar datos.',
+            noCompaniesFound: 'No se han encontrado empresas',
+            noCompaniesFoundDescription: 'Por favor, añade una empresa en DualEntry y sincroniza la conexión de nuevo',
+        },
         type: {
             free: 'Gratis',
             control: 'Controlar',
@@ -6549,6 +6560,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
+            dualEntry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6568,6 +6580,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DualEntry';
                     default: {
                         return '';
                     }
@@ -6777,6 +6791,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'rilletSyncConnection':
                             return 'Iniciando conexión con Rillet';
                         case 'rilletSyncImportData':
+                            return 'Cargando datos';
+                        case 'dualEntrySyncTitle':
+                            return 'Sincronizando datos de DualEntry';
+                        case 'dualEntrySyncConnection':
+                            return 'Iniciando conexión con DualEntry';
+                        case 'dualEntrySyncImportData':
                             return 'Cargando datos';
                         default: {
                             return `Translation missing for stage: ${stage}`;
@@ -7220,6 +7240,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Rillet. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Rillet para una visibilidad financiera más clara.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Nuestra integración con Rillet solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                title: 'DualEntry',
+                description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + DualEntry. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de DualEntry para una visibilidad financiera más clara.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Nuestra integración con DualEntry solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprobaciones anticipadas',

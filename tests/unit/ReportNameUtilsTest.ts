@@ -1238,12 +1238,12 @@ describe('ReportNameUtils', () => {
             expect(normalizedName).toBe('Ragnar Lothbrok');
         });
 
-        test('Invoice payer name falls back to provided personal details', () => {
+        test('Invoice payer name resolves the receiver from the passed personal detail', () => {
             const report: Report = {
                 reportID: 'invoice-chat-3',
                 invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
             };
-            const name = getInvoicePayerName(report, translateLocal, undefined, null);
+            const name = getInvoicePayerName(report, translateLocal, participantsPersonalDetails['1']);
 
             const normalizedName = name?.replaceAll('\u00A0', ' ');
             expect(normalizedName).toBe('Ragnar Lothbrok');
@@ -1275,7 +1275,7 @@ describe('ReportNameUtils', () => {
                 invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 424242},
             };
 
-            const name = getInvoicePayerName(report, translateWithHiddenMarker, undefined, null);
+            const name = getInvoicePayerName(report, translateWithHiddenMarker, null);
 
             expect(name).toBe('HiddenMarker');
         });
@@ -1331,7 +1331,7 @@ describe('ReportNameUtils', () => {
                 invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID: 'missing-policy'},
             };
 
-            const name = getInvoicePayerName(report, translateWithUnavailableMarker, undefined, null);
+            const name = getInvoicePayerName(report, translateWithUnavailableMarker, null);
 
             expect(name).toBe('UnavailableMarker');
         });
@@ -1553,9 +1553,33 @@ describe('ReportNameUtils', () => {
             const reportName = getMoneyRequestReportName({
                 report: iouReport,
                 translate: translateWithHiddenMarker,
+                personalDetailsList: undefined,
                 linkedTransactions: [],
             });
             expect(reportName).toContain('HiddenMarker');
+        });
+
+        it('resolves the invoice payer name from the provided personal details list', async () => {
+            const chatReportID = '990001';
+            // The chat report's invoice receiver is an individual (accountID 1 = "Ragnar Lothbrok" in the list).
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                reportID: chatReportID,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
+            });
+            await waitForBatchedUpdates();
+
+            const invoiceReport: Report = {
+                reportID: '990002',
+                type: CONST.REPORT.TYPE.INVOICE,
+                chatReportID,
+                ownerAccountID: currentUserAccountID,
+                total: 100,
+                currency: 'USD',
+            };
+
+            const reportName = getMoneyRequestReportName({report: invoiceReport, personalDetailsList: participantsPersonalDetails, linkedTransactions: [], translate: translateLocal});
+            expect(reportName?.replaceAll(/\s+/g, ' ')).toContain('Ragnar Lothbrok');
         });
 
         it('should return "New Report" when reportName is empty string, report is expense report, and policy has empty fieldList', () => {
@@ -1581,6 +1605,7 @@ describe('ReportNameUtils', () => {
             const reportName = getMoneyRequestReportName({
                 report: expenseReport,
                 policy: policyWithEmptyFieldList,
+                personalDetailsList: undefined,
                 linkedTransactions: [],
                 translate: translateLocal,
             });
@@ -1628,6 +1653,7 @@ describe('ReportNameUtils', () => {
             const reportName = getMoneyRequestReportName({
                 report: expenseReport,
                 policy: policyWithFieldList,
+                personalDetailsList: undefined,
                 linkedTransactions: [],
                 translate: translateLocal,
             });
@@ -1689,6 +1715,7 @@ describe('ReportNameUtils', () => {
             const reportName = getMoneyRequestReportName({
                 report: expenseReport,
                 policy: policyWithFieldList,
+                personalDetailsList: undefined,
                 linkedTransactions: [nonReimbursableTransaction],
                 translate: translateLocal,
             });
@@ -1741,7 +1768,13 @@ describe('ReportNameUtils', () => {
             const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
                 path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
 
-            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithoutName, linkedTransactions: [], translate: translateWithUnavailableMarker});
+            const reportName = getMoneyRequestReportName({
+                report: expenseReport,
+                policy: policyWithoutName,
+                personalDetailsList: undefined,
+                linkedTransactions: [],
+                translate: translateWithUnavailableMarker,
+            });
 
             expect(reportName).toContain('UnavailableWorkspaceMarker');
         });

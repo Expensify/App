@@ -1,3 +1,4 @@
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -37,6 +38,7 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const personalDetailsList = usePersonalDetails();
     const parentReportID = isChatThread(report) ? report.parentReportID : undefined;
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
     let reportForHeaderReportID: string | undefined;
@@ -48,7 +50,7 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     const reportTransactionsCollection = useReportTransactionsCollection(reportForHeaderReportID);
     const linkedTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 
-    const reportName = getChatListItemReportName(action, report, conciergeReportID, linkedTransactions, translate);
+    const reportName = getChatListItemReportName(action, report, conciergeReportID, linkedTransactions, translate, personalDetailsList);
 
     return (
         <View style={[styles.p4]}>

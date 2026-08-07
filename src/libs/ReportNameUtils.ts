@@ -23,7 +23,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
  * This file contains utility functions for managing and computing report names
  */
 import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -133,6 +132,7 @@ import {
 import {
     formatReportLastMessageText,
     getDisplayNameForParticipant,
+    getInvoiceReceiverPersonalDetail,
     getMoneyRequestSpendBreakdown,
     getMovedActionMessage,
     getMovedTransactionMessage,
@@ -195,16 +195,6 @@ type ComputeReportName = {
     isTrackIntentUser: boolean | undefined;
     pendingDeleteMemberAccountIDs?: string[];
 };
-
-let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-
-// eslint-disable-next-line rulesdir/no-onyx-connect -- allPersonalDetails is used by the deprecated getReportName function; will be removed as part of the Onyx.connect migration
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        allPersonalDetails = value;
-    },
-});
 
 function generateArchivedReportName(reportName: string): string {
     return `${reportName} (${translateLocal('common.archived')}) `;
@@ -347,7 +337,7 @@ function getInvoicesChatName({
 }: {
     report: OnyxEntry<Report>;
     receiverPolicy: OnyxEntry<Policy>;
-    personalDetails?: Partial<PersonalDetailsList>;
+    personalDetails: Partial<PersonalDetailsList> | undefined;
     policy: OnyxEntry<Policy>;
     currentUserAccountID?: number;
     translate: LocalizedTranslate;
@@ -362,7 +352,7 @@ function getInvoicesChatName({
     }
 
     if (isIndividual) {
-        return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: (personalDetails ?? allPersonalDetails)?.[invoiceReceiverAccountID], translate}));
+        return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[invoiceReceiverAccountID], translate}));
     }
 
     return getPolicyName({report, policy: receiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
@@ -372,6 +362,7 @@ function getInvoiceReportName(
     report: OnyxEntry<Report>,
     linkedTransactions: Transaction[],
     translate: LocalizedTranslate,
+    personalDetailsList: OnyxEntry<PersonalDetailsList>,
     policy?: OnyxEntry<Policy>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
@@ -380,6 +371,7 @@ function getInvoiceReportName(
         policy,
         invoiceReceiverPolicy,
         linkedTransactions,
+        personalDetailsList,
         translate,
     });
     const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
@@ -394,15 +386,14 @@ function getInvoiceReportName(
 function getInvoicePayerName(
     report: OnyxEntry<Report>,
     translate: LocalizedTranslate,
+    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
-    invoiceReceiverPersonalDetail?: PersonalDetails | null,
 ): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
     if (isIndividual) {
-        const personalDetail = invoiceReceiverPersonalDetail ?? allPersonalDetails?.[invoiceReceiver.accountID];
-        return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail ?? undefined, translate}));
+        return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: invoiceReceiverPersonalDetail ?? undefined, translate}));
     }
 
     return getPolicyName({report, policy: invoiceReceiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
@@ -416,12 +407,14 @@ function getMoneyRequestReportName({
     policy,
     invoiceReceiverPolicy,
     linkedTransactions,
+    personalDetailsList,
     translate,
 }: {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
     linkedTransactions: Transaction[];
+    personalDetailsList: OnyxEntry<PersonalDetailsList>;
     translate: LocalizedTranslate;
 }): string {
     // For expense reports with empty fieldList and empty reportName, return "New Report" (matches OldDot behavior)
@@ -444,7 +437,8 @@ function getMoneyRequestReportName({
         payerOrApproverName = getPolicyName({report: parentReport ?? report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
     } else if (isInvoiceReport(report)) {
         const chatReport = getReportOrDraftReport(report?.chatReportID);
-        payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPolicy);
+        const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(chatReport, personalDetailsList);
+        payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
     } else {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
     }
@@ -1108,6 +1102,7 @@ function computeReportName({
             report,
             policy,
             linkedTransactions: reportTransactions[report.reportID] ?? [],
+            personalDetailsList,
             translate,
         });
     }
@@ -1120,7 +1115,7 @@ function computeReportName({
             chatReceiverPolicyID = (chatReceiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = chatReceiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReceiverPolicyID}`] : undefined;
-        formattedName = getInvoiceReportName(report, reportTransactions[report.reportID] ?? [], translate, policy, invoiceReceiverPolicy);
+        formattedName = getInvoiceReportName(report, reportTransactions[report.reportID] ?? [], translate, personalDetailsList, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {
