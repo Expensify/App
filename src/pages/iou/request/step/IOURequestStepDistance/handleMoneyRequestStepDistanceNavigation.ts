@@ -217,7 +217,7 @@ function handleMoneyRequestStepDistanceNavigation({
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
-    const distanceRequestType = getDistanceRequestType(transaction);
+    const distanceRequestType = isManualDistance ? CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL : getDistanceRequestType(transaction);
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
