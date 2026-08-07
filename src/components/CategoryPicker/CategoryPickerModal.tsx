@@ -75,12 +75,14 @@ function CategoryPickerModal({
             shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
             shouldSkipRemeasurement
             shouldDisplayBelowModals
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}>
                 <CategoryPicker
                     selectedCategory={selectedCategory}
                     policyID={policyID}
                     onSubmit={handleCategorySelect}
+                    addBottomSafeAreaPadding
                 />
             </View>
         </PopoverWithMeasuredContent>

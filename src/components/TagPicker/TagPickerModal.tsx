@@ -91,6 +91,7 @@ function TagPickerModal({
             shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
             shouldSkipRemeasurement
             shouldDisplayBelowModals
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}>
                 <TagPicker
@@ -101,6 +102,7 @@ function TagPickerModal({
                     transactionTag={transactionTag}
                     hasDependentTags={hasDependentTags}
                     onSubmit={handleTagSelected}
+                    addBottomSafeAreaPadding
                 />
             </View>
         </PopoverWithMeasuredContent>
