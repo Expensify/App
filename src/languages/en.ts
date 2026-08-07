@@ -345,6 +345,8 @@ const translations = {
         automatic: 'Automatic',
         showing: 'Showing',
         of: 'of',
+        // @context Carousel pagination counter showing the current item's position out of the total (e.g. "3 of 50").
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} of ${total}`,
         default: 'Default',
         update: 'Update',
         member: 'Member',
@@ -5816,6 +5818,16 @@ const translations = {
                 description: "Choose your settlement account and we'll create the payment in Rillet.",
             },
         },
+        dualEntry: {
+            dualEntrySetup: 'DualEntry setup',
+            enterCredentials: 'Enter your DualEntry API key',
+            howToFindAPIKey:
+                '<strong>Finding your API key.</strong><ol><li>Log in to DualEntry</li><li>Navigate to [organization name] -> Settings -> Developer access -> API keys</li><li>Create API key</li><li>Paste the API key below</li></ol>',
+            subsidiary: 'Subsidiary',
+            subsidiarySelectDescription: "Choose the subsidiary in DualEntry that you'd like to import data from.",
+            noCompaniesFound: 'No companies found',
+            noCompaniesFoundDescription: 'Please add a company in DualEntry and sync the connection again',
+        },
         type: {
             free: 'Free',
             control: 'Control',
@@ -6834,6 +6846,7 @@ const translations = {
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
+            dualEntry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6853,6 +6866,8 @@ const translations = {
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DualEntry';
                     default: {
                         return '';
                     }
@@ -7062,6 +7077,12 @@ const translations = {
                         case 'rilletSyncConnection':
                             return 'Initializing connection to Rillet';
                         case 'rilletSyncImportData':
+                            return 'Loading data';
+                        case 'dualEntrySyncTitle':
+                            return 'Syncing DualEntry data';
+                        case 'dualEntrySyncConnection':
+                            return 'Initializing connection to DualEntry';
+                        case 'dualEntrySyncImportData':
                             return 'Loading data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
@@ -7429,6 +7450,12 @@ const translations = {
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + Rillet integration. Align expense coding dimensions and tax sync with your Rillet setup for clearer financial visibility.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our Rillet integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                title: 'DualEntry',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + DualEntry integration. Align expense coding dimensions and tax sync with your DualEntry setup for clearer financial visibility.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our DualEntry integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Advanced Approvals',
