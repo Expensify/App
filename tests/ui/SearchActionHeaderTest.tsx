@@ -134,4 +134,41 @@ describe('SearchActionHeader', () => {
             expect(screen.getByText('Jane Doe spent $25.00')).toBeOnTheScreen();
         });
     });
+
+    describe('chat threads under invoice reports', () => {
+        it('resolves transactions from the parent invoice report, not the thread, so non-reimbursable invoices still use "spent" wording', async () => {
+            const invoiceReportID = '600';
+            const ownerAccountID = 8;
+            const invoiceReport: Report = {
+                reportID: invoiceReportID,
+                type: CONST.REPORT.TYPE.INVOICE,
+                ownerAccountID,
+                total: -2500,
+                currency: CONST.CURRENCY.USD,
+            };
+            // getReportForHeader/getParentReport read the parent invoice report from the global Onyx-connected
+            // cache (not from props), so it must be written to the REPORT collection directly.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, invoiceReport);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [ownerAccountID]: {accountID: ownerAccountID, displayName: 'Jane Doe', login: 'jane@example.com'},
+            });
+            const transaction: Transaction = {...createRandomTransaction(5), reportID: invoiceReportID, reimbursable: false};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdatesWithAct();
+
+            // A chat thread whose parent is the invoice report above.
+            const threadReport: Report = {
+                reportID: '601',
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: invoiceReportID,
+                parentReportActionID: 'parent-action-600',
+            };
+            const action = createRandomReportAction(5);
+
+            renderSearchActionHeader(action, threadReport, true);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Jane Doe spent $25.00')).toBeOnTheScreen();
+        });
+    });
 });

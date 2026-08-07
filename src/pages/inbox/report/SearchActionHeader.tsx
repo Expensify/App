@@ -7,7 +7,8 @@ import useOnyx from '@hooks/useOnyx';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getChatListItemReportName, isInvoiceReport} from '@libs/ReportUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getChatListItemReportName, isChatThread, isInvoiceReport} from '@libs/ReportUtils';
 
 import variables from '@styles/variables';
 
@@ -36,7 +37,14 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const reportTransactionsCollection = useReportTransactionsCollection(isInvoiceReport(report) ? report?.reportID : undefined);
+    // A chat thread whose parent is an invoice report gets its name resolved from the parent invoice
+    // (see getChatListItemReportName -> getReportForHeader), so we need that same parent to decide which
+    // report to fetch transactions for. Read it reactively here rather than via getReportForHeader's
+    // deprecated global report cache, which isn't guaranteed to be populated or trigger a re-render.
+    const parentReportID = isChatThread(report) ? report.parentReportID : undefined;
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
+    const reportForHeaderReportID = isInvoiceReport(parentReport) ? parentReport?.reportID : isInvoiceReport(report) ? report?.reportID : undefined;
+    const reportTransactionsCollection = useReportTransactionsCollection(reportForHeaderReportID);
     const linkedTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 
     const reportName = getChatListItemReportName(action, report, conciergeReportID, linkedTransactions, translate);
