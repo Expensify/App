@@ -19,6 +19,7 @@ import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/V
 import {VolumeContextProvider} from '@components/VideoPlayerContexts/VolumeContext';
 import WideRHPContextProvider from '@components/WideRHPContextProvider';
 
+import {AccountIDToNameMapContextProvider} from '@hooks/useAccountIDToNameMap';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
@@ -181,6 +182,7 @@ function AuthScreens() {
                         WideRHPContextProvider,
                         KeyboardDismissibleFlatListContextProvider,
                         SidebarOrderedReportsContextProvider,
+                        AccountIDToNameMapContextProvider,
                         SearchContextProvider,
                         LockedAccountModalProvider,
                         DelegateNoAccessModalProvider,
