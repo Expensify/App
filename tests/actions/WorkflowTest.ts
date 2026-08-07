@@ -15,8 +15,9 @@ import Onyx from 'react-native-onyx';
 import type {MockFetch} from '../utils/TestHelper';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
-import {getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
+import {createGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/WorkflowUtils', () => {
@@ -33,8 +34,8 @@ jest.mock('@src/libs/actions/Task', () => ({
     completeTask: jest.fn(),
 }));
 
-const calculateApproversMock = calculateApprovers as jest.Mock;
-const completeTaskMock = Task.completeTask as jest.Mock;
+const calculateApproversMock = jest.mocked(calculateApprovers);
+const completeTaskMock = jest.mocked(Task.completeTask);
 
 OnyxUpdateManager();
 
@@ -67,8 +68,8 @@ describe('actions/Workflow', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = createGlobalFetchMock();
+        global.fetch = mockFetch;
         calculateApproversMock.mockClear();
         calculateApproversMock.mockImplementation(() => []);
         completeTaskMock.mockClear();
@@ -156,7 +157,7 @@ describe('actions/Workflow', () => {
         it('should clear pendingFields when the API is success', async () => {
             mockFetch.pause();
 
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '123456789',
                 name: "Mkzie2+bnmsn@gmail.com's Workspace",
                 role: 'admin',
@@ -188,7 +189,7 @@ describe('actions/Workflow', () => {
                         forwardsTo: '',
                     },
                 },
-            } as unknown as Policy;
+            });
 
             const approvalWorkflow = {
                 members: [
@@ -241,8 +242,9 @@ describe('actions/Workflow', () => {
             await mockFetch.resume();
 
             let updatedPolicy: Policy | undefined;
+            const policyKey: `${typeof ONYXKEYS.COLLECTION.POLICY}${string}` = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`;
             await getOnyxData({
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                key: policyKey,
                 callback: (val) => (updatedPolicy = val),
             });
 
@@ -253,7 +255,7 @@ describe('actions/Workflow', () => {
         it('should auto-complete the addExpenseApprovals task when creating an approval workflow', async () => {
             mockFetch.pause();
 
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '123456789',
                 name: 'Test Workspace',
                 role: 'admin',
@@ -273,7 +275,7 @@ describe('actions/Workflow', () => {
                         submitsTo: ownerEmail,
                     },
                 },
-            } as unknown as Policy;
+            });
 
             const addExpenseApprovalsTaskReport: Report = {
                 reportID: '999',
@@ -317,7 +319,7 @@ describe('actions/Workflow', () => {
         it('should not auto-complete the task if it is already approved', async () => {
             mockFetch.pause();
 
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '123456789',
                 name: 'Test Workspace',
                 role: 'admin',
@@ -337,7 +339,7 @@ describe('actions/Workflow', () => {
                         submitsTo: ownerEmail,
                     },
                 },
-            } as unknown as Policy;
+            });
 
             const addExpenseApprovalsTaskReport: Report = {
                 reportID: '999',
@@ -381,7 +383,7 @@ describe('actions/Workflow', () => {
         it('should not auto-complete the task if addExpenseApprovalsTaskReport is undefined', async () => {
             mockFetch.pause();
 
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '123456789',
                 name: 'Test Workspace',
                 role: 'admin',
@@ -401,7 +403,7 @@ describe('actions/Workflow', () => {
                         submitsTo: ownerEmail,
                     },
                 },
-            } as unknown as Policy;
+            });
 
             const approvalWorkflow = {
                 members: [
@@ -443,7 +445,7 @@ describe('actions/Workflow', () => {
             // Given a policy with two workflows:
             // - Default workflow: employee1 submits to owner, owner forwards to employee2 (multi-level)
             // - Second workflow: employee3 submits to employee1
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '123456789',
                 name: 'Test Workspace',
                 role: 'admin',
@@ -477,7 +479,7 @@ describe('actions/Workflow', () => {
                         submitsTo: employee1Email,
                     },
                 },
-            } as unknown as Policy;
+            });
 
             // The second workflow to remove: employee3 submits to employee1
             const approvalWorkflow = {
@@ -512,7 +514,7 @@ describe('actions/Workflow', () => {
             // Given a policy with two workflows:
             // - Default workflow: employee1 submits to owner (single-level, no forwardsTo but has overLimitForwardsTo)
             // - Second workflow: employee3 submits to employee2
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '123456789',
                 name: 'Test Workspace',
                 role: 'admin',
@@ -548,7 +550,7 @@ describe('actions/Workflow', () => {
                         submitsTo: employee2Email,
                     },
                 },
-            } as unknown as Policy;
+            });
 
             const approvalWorkflow = {
                 members: [{email: employee3Email, displayName: employee3Email}],
@@ -581,7 +583,7 @@ describe('actions/Workflow', () => {
             // Given a policy with two workflows:
             // - Default workflow: employee1 submits to owner (single-level, no forwardsTo)
             // - Second workflow: employee3 submits to employee2
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '123456789',
                 name: 'Test Workspace',
                 role: 'admin',
@@ -615,7 +617,7 @@ describe('actions/Workflow', () => {
                         submitsTo: employee2Email,
                     },
                 },
-            } as unknown as Policy;
+            });
 
             // The second workflow to remove: employee3 submits to employee2
             const approvalWorkflow = {
@@ -651,7 +653,7 @@ describe('actions/Workflow', () => {
 
             // Given a policy with a default workflow that has two approvers:
             // owner forwards to employee2 (multi-level)
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '123456789',
                 name: 'Test Workspace',
                 role: 'admin',
@@ -679,7 +681,7 @@ describe('actions/Workflow', () => {
                         submitsTo: ownerEmail,
                     },
                 },
-            } as unknown as Policy;
+            });
 
             // The updated workflow: only one approver (owner), second approver removed
             const approvalWorkflow = {
@@ -715,7 +717,7 @@ describe('actions/Workflow', () => {
             mockFetch.pause();
 
             // Given a policy where default approver has both forwardsTo and overLimitForwardsTo
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '123456789',
                 name: 'Test Workspace',
                 role: 'admin',
@@ -745,7 +747,7 @@ describe('actions/Workflow', () => {
                         submitsTo: ownerEmail,
                     },
                 },
-            } as unknown as Policy;
+            });
 
             // Remove employee2 as second approver (forwardsTo will be cleared)
             // but overLimitForwardsTo to employee1 remains
@@ -781,7 +783,7 @@ describe('actions/Workflow', () => {
             mockFetch.pause();
 
             // Given a policy with a default workflow that has two approvers
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '123456789',
                 name: 'Test Workspace',
                 role: 'admin',
@@ -809,7 +811,7 @@ describe('actions/Workflow', () => {
                         submitsTo: ownerEmail,
                     },
                 },
-            } as unknown as Policy;
+            });
 
             // The updated workflow: change second approver from employee2 to employee1
             const approvalWorkflow = {
