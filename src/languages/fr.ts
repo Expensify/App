@@ -5770,6 +5770,16 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 },
             },
         },
+        dualEntry: {
+            dualEntrySetup: 'Configuration DualEntry',
+            enterCredentials: 'Saisissez votre clé API DualEntry',
+            howToFindAPIKey:
+                '<strong>Recherche de votre clé API.</strong><ol><li>Connectez-vous à DualEntry</li><li>Accédez à [organization name] -> Paramètres -> Accès développeur -> Clés API</li><li>Créez une clé API</li><li>Collez la clé API ci-dessous</li></ol>',
+            subsidiary: 'Filiale',
+            subsidiarySelectDescription: 'Choisissez la filiale dans DualEntry à partir de laquelle vous souhaitez importer des données.',
+            noCompaniesFound: 'Aucune entreprise trouvée',
+            noCompaniesFoundDescription: 'Veuillez ajouter une entreprise dans DualEntry et synchroniser à nouveau la connexion',
+        },
         type: {
             free: 'Gratuit',
             control: 'Contrôle',
@@ -6800,6 +6810,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
+            dualEntry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6819,6 +6830,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DualEntry';
                     default: {
                         return '';
                     }
@@ -7029,6 +7042,12 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'rilletSyncConnection':
                             return 'Initialisation de la connexion à Rillet';
                         case 'rilletSyncImportData':
+                            return 'Chargement des données';
+                        case 'dualEntrySyncTitle':
+                            return 'Synchronisation des données DualEntry';
+                        case 'dualEntrySyncConnection':
+                            return 'Initialisation de la connexion à DualEntry';
+                        case 'dualEntrySyncImportData':
                             return 'Chargement des données';
                         default: {
                             return `Traduction manquante pour l’étape : ${stage}`;
@@ -7314,6 +7333,12 @@ ${reportName}`,
                 description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Rillet. Alignez les dimensions de codage des dépenses et la synchronisation fiscale sur votre configuration Rillet pour une meilleure visibilité financière.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Notre intégration Rillet est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                title: 'DualEntry',
+                description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + DualEntry. Alignez les dimensions de codage des dépenses et la synchronisation fiscale sur votre configuration DualEntry pour une meilleure visibilité financière.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Notre intégration DualEntry est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Approbations avancées',
