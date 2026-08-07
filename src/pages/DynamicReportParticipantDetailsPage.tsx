@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -59,7 +59,6 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
-    const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate}));
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
@@ -89,13 +88,11 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
             />
             <ScrollView contentContainerStyle={[!isInLandscapeMode && [styles.containerWithSpaceBetween, styles.justifyContentStart], styles.pointerEventsBoxNone]}>
                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                    <Avatar
-                        containerStyles={[styles.mv5, styles.noOutline]}
-                        source={details.avatar}
-                        avatarID={accountID}
-                        type={CONST.ICON_TYPE_AVATAR}
+                    <AccountAvatar
+                        containerStyle={[styles.mv5, styles.noOutline]}
+                        accountID={accountID}
                         size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                        fallbackIcon={fallbackIcon}
+                        shouldShowTooltip={false}
                     />
                     {!!(displayName ?? '') && (
                         <Text

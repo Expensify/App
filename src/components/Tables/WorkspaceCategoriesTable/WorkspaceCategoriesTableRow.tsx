@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
@@ -100,10 +100,9 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         >
                             {!!item.approverDisplayName && !!item.approverAccountID && (
                                 <>
-                                    <Avatar
-                                        name={item.approverDisplayName}
+                                    <UserAvatar
                                         source={item.approverAvatar}
-                                        type={CONST.ICON_TYPE_AVATAR}
+                                        accountID={item.approverAccountID}
                                         size={CONST.AVATAR_SIZE.XXX_SMALL}
                                     />
                                     <TextWithTooltip

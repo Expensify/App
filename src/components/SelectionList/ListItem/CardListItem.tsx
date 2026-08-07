@@ -1,10 +1,8 @@
-import Avatar from '@components/Avatar';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import TextWithTooltip from '@components/TextWithTooltip';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -53,19 +51,10 @@ function CardListItem<TItem extends ListItem>({
     onFocus,
     shouldSyncFocus,
 }: CardListItemProps<TItem>) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
-
-    const ownersAvatar = {
-        source: item.cardOwnerPersonalDetails?.avatar ?? icons.FallbackAvatar,
-        id: item.cardOwnerPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-        type: CONST.ICON_TYPE_AVATAR,
-        name: item.cardOwnerPersonalDetails?.displayName ?? '',
-        fallbackIcon: item.cardOwnerPersonalDetails?.fallbackIcon,
-    };
 
     const subtitleText =
         `${item.lastFourPAN ? `${item.lastFourPAN}` : ''}` +
@@ -96,24 +85,11 @@ function CardListItem<TItem extends ListItem>({
                     <View style={[styles.mr3]}>
                         {item.shouldShowOwnersAvatar ? (
                             <View>
-                                <UserDetailsTooltip
-                                    shouldRender={showTooltip}
-                                    accountID={Number(item.cardOwnerPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID)}
-                                    icon={ownersAvatar}
-                                    fallbackUserDetails={{
-                                        displayName: item.cardOwnerPersonalDetails?.displayName,
-                                    }}
-                                >
-                                    <View>
-                                        <Avatar
-                                            source={ownersAvatar.source}
-                                            name={ownersAvatar.name}
-                                            avatarID={ownersAvatar.id}
-                                            type={CONST.ICON_TYPE_AVATAR}
-                                            fallbackIcon={ownersAvatar.fallbackIcon}
-                                        />
-                                    </View>
-                                </UserDetailsTooltip>
+                                <AccountAvatar
+                                    accountID={item.cardOwnerPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                                    shouldShowTooltip={showTooltip}
+                                    fallbackDisplayName={item.cardOwnerPersonalDetails?.displayName}
+                                />
                                 <View style={[styles.cardItemSecondaryIconStyle, StyleUtils.getBorderColorStyle(theme.componentBG)]}>
                                     {!!item?.plaidUrl && (
                                         <PlaidCardFeedIcon

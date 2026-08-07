@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -130,7 +130,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const member = policy?.employeeList?.[memberLogin];
     const prevMember = usePrevious(member);
     const details = memberPersonalDetails ?? ({} as PersonalDetails);
-    const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate}));
     const isSelectedMemberOwner = policy?.owner === details.login;
     const isSelectedMemberCurrentUser = accountID === currentUserAccountID;
@@ -332,13 +331,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
-                                <Avatar
-                                    containerStyles={[styles.mb4, styles.noOutline]}
-                                    source={details.avatar}
-                                    avatarID={accountID}
-                                    type={CONST.ICON_TYPE_AVATAR}
+                                <AccountAvatar
+                                    containerStyle={[styles.mb4, styles.noOutline]}
+                                    accountID={accountID}
                                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                                    fallbackIcon={fallbackIcon}
+                                    shouldShowTooltip={false}
                                 />
                             </OfflineWithFeedback>
                             {!!(details.displayName ?? '') && (

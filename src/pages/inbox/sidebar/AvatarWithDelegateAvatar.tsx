@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
@@ -47,11 +47,11 @@ function AvatarWithDelegateAvatar({delegateEmail, isHovered = false, isSelected 
             <ProfileAvatarWithIndicator isSelected={isSelected} />
             <View style={[styles.sidebarStatusAvatar, isHovered && styles.sidebarStatusAvatarHovered]}>
                 <View style={styles.emojiStatusLHN}>
-                    <Avatar
+                    <UserAvatar
                         size={isSmallScreenWidth ? CONST.AVATAR_SIZE.XXX_SMALL : CONST.AVATAR_SIZE.SMALL}
                         source={getSmallSizeAvatar({avatarSource: delegatePersonalDetail?.avatar, accountID: delegatePersonalDetail?.accountID, defaultAvatars})}
                         fallbackIcon={delegatePersonalDetail?.fallbackIcon}
-                        type={CONST.ICON_TYPE_AVATAR}
+                        accountID={delegatePersonalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                     />
                 </View>
             </View>
