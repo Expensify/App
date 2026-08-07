@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 
@@ -59,13 +59,14 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
             <>
                 {missingPaymentMethod === 'bankAccount' && (
                     <Button
-                        success
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         style={[styles.w100, styles.requestPreviewBox]}
-                        text={translate('bankAccount.addBankAccount')}
                         onPress={() => openPersonalBankAccountSetupView({exitReportID: Navigation.getTopmostReportId() ?? targetReport?.reportID, isUserValidated})}
-                        pressOnEnter
-                        large
-                    />
+                        size={CONST.BUTTON_SIZE.LARGE}
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('bankAccount.addBankAccount')}</Button.Text>
+                    </Button>
                 )}
                 {missingPaymentMethod === 'wallet' && (
                     <KYCWall
@@ -80,14 +81,15 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
                         {(triggerKYCFlow, buttonRef) => (
                             <Button
                                 ref={buttonRef}
-                                success
-                                large
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 style={[styles.w100, styles.requestPreviewBox]}
-                                text={translate('iou.enableWallet')}
                                 onPress={(event) => {
                                     triggerKYCFlow({event});
                                 }}
-                            />
+                            >
+                                <Button.Text>{translate('iou.enableWallet')}</Button.Text>
+                            </Button>
                         )}
                     </KYCWall>
                 )}

@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -412,26 +412,27 @@ function BaseValidateCodeForm({
             >
                 {shouldShowSkipButton && (
                     <Button
-                        text={translate('common.skip')}
                         onPress={handleSkipButtonPress}
                         style={[styles.mt4]}
-                        success={false}
-                        large
+                        size={CONST.BUTTON_SIZE.LARGE}
                         sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.SKIP}
-                    />
+                    >
+                        <Button.Text>{translate('common.skip')}</Button.Text>
+                    </Button>
                 )}
                 {!hideSubmitButton && (
                     <Button
                         isDisabled={isOffline}
-                        text={submitButtonText ?? translate('common.verify')}
                         onPress={validateAndSubmitForm}
                         style={[shouldShowSkipButton ? styles.mt3 : styles.mt4]}
-                        success
-                        large
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isLoading={account?.isLoading || isLoading}
                         sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.VERIFY}
-                    />
+                    >
+                        <Button.Text>{submitButtonText ?? translate('common.verify')}</Button.Text>
+                    </Button>
                 )}
             </OfflineWithFeedback>
         </>
