@@ -1,6 +1,6 @@
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
 
-import {write as apiWrite} from '@libs/API';
+import {createTransitionBarrier, write as apiWrite, writeWhenReady} from '@libs/API';
 import type {RevertSplitTransactionParams, SplitTransactionParams, SplitTransactionSplitsParam} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -1949,6 +1949,13 @@ function updateSplitTransactions({
         }
     }
 
+    // API.write() applies optimisticData synchronously, so the destination screen re-renders from the
+    // transaction, report and report-action collections this write touches while the press is still
+    // trying to paint. Inside the split-expenses flow there is always a navigation to hide behind, so
+    // defer the write until that screen transition has finished. Outside it there is no transition to
+    // wait on, and a default barrier would stall the write for ~2s, so write immediately instead.
+    const navigationBarrier = createTransitionBarrier('navigation');
+
     if (isReverseSplitOperation) {
         const parameters = {
             ...splits.at(0),
@@ -1956,7 +1963,11 @@ function updateSplitTransactions({
             waypoints: splits.at(0)?.waypoints ? JSON.stringify(splits.at(0)?.waypoints) : undefined,
             copiedComments: splits.at(0)?.copiedComments ? JSON.stringify(splits.at(0)?.copiedComments) : undefined,
         } as RevertSplitTransactionParams;
-        apiWrite(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters, onyxData);
+        if (isFromSplitExpensesFlow) {
+            writeWhenReady(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters, onyxData, navigationBarrier);
+        } else {
+            apiWrite(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters, onyxData);
+        }
     } else {
         // Prepare splitApiParams for the Transaction_Split API call which requires a specific format for the splits
         // The format is: splits[0][amount], splits[0][category], splits[0][tag] etc.
@@ -1972,10 +1983,11 @@ function updateSplitTransactions({
             transactionID: originalTransactionID,
         };
 
-        if (isCreationOfSplits) {
-            apiWrite(WRITE_COMMANDS.SPLIT_TRANSACTION, splitParameters, onyxData);
+        const command = isCreationOfSplits ? WRITE_COMMANDS.SPLIT_TRANSACTION : WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION;
+        if (isFromSplitExpensesFlow) {
+            writeWhenReady(command, splitParameters, onyxData, navigationBarrier);
         } else {
-            apiWrite(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, splitParameters, onyxData);
+            apiWrite(command, splitParameters, onyxData);
         }
     }
     TransitionTracker.runAfterTransitions({callback: () => removeDraftSplitTransaction(originalTransactionID), waitForUpcomingTransition: true});
@@ -2008,7 +2020,12 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // splits belonging to the current expense report, or the only remaining split moved to selfDM.
     // In any of these cases we must navigate away from the soon-to-be-empty report so the user
     // isn't stranded on a "Not Found" page.
-    const expenseReportTransactions = expenseReportID ? Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID) : [];
+    // Scanned once and reused below. The two consumers differ in how they treat a missing
+    // expenseReportID: areAllExpenseReportTransactionsSplitChildren must see an empty list, while the
+    // last-transaction check historically matched transactions whose reportID is also undefined, so
+    // the guard stays on the derived value rather than on the scan itself.
+    const transactionsMatchingExpenseReportID = Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID);
+    const expenseReportTransactions = expenseReportID ? transactionsMatchingExpenseReportID : [];
     const areAllExpenseReportTransactionsSplitChildren =
         expenseReportTransactions.length > 0 && expenseReportTransactions.every((itemTransaction) => itemTransaction?.comment?.originalTransactionID === originalTransactionID);
     const anyRemainingSplitStaysInExpenseReport = splitExpenses.some((expense) => expense.reportID === expenseReportID);
@@ -2016,10 +2033,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const willExpenseReportBecomeEmpty =
         !!expenseReportID && areAllExpenseReportTransactionsSplitChildren && !anyRemainingSplitStaysInExpenseReport && !reverseSplitKeepsOriginalInExpenseReport;
     const isLastTransactionInReport =
-        willExpenseReportBecomeEmpty ||
-        (isReverseSplitOperation &&
-            !reverseSplitKeepsOriginalInExpenseReport &&
-            Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1);
+        willExpenseReportBecomeEmpty || (isReverseSplitOperation && !reverseSplitKeepsOriginalInExpenseReport && transactionsMatchingExpenseReportID.length === 1);
     const fallbackReportID = params.expenseReport?.chatReportID ?? params.expenseReport?.parentReportID;
 
     if (isLastTransactionInReport && fallbackReportID) {

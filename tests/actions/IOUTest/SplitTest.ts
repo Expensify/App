@@ -10,7 +10,9 @@ import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs
 import {addComment, notifyNewAction} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {writeWhenReady} from '@libs/API/writeWhenReady';
 import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isAddCommentAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getAncestors, getReportOrDraftReport} from '@libs/ReportUtils';
@@ -99,13 +101,22 @@ jest.mock('@src/libs/actions/Report', () => {
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
+jest.mock('@libs/API/writeWhenReady', () => ({
+    // Run the deferred write inline: no screen transition happens in a test, so the barrier would
+    // otherwise hold the write until its safety timeout and every optimistic-data assertion would fail.
+    writeWhenReady: jest.fn((command: string, params: unknown, onyxData: unknown) => {
+        const baseWrite = jest.requireActual<{default: (c: string, p: unknown, o: unknown) => Promise<unknown>}>('@libs/API/write').default;
+        return baseWrite(command, params, onyxData);
+    }),
+    createTransitionBarrier: jest.fn(() => () => new Promise(() => {})),
+}));
 jest.mock('@libs/deferredLayoutWrite', () => ({
     registerDeferredWrite: (_key: string, callback: () => void) => callback(),
     flushDeferredWrite: jest.fn(),
     cancelDeferredWrite: jest.fn(),
     hasDeferredWrite: () => false,
     getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
+    deferOrExecuteWrite: jest.fn((apiWrite: () => void) => apiWrite()),
     reserveDeferredWriteChannel: jest.fn(),
 }));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
@@ -9488,5 +9499,141 @@ describe('startSplitBill delegateAccountID forwarding', () => {
 
         expect(splitTransactionID).toBeTruthy();
         expect(splitIOUAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+    });
+});
+
+/**
+ * Minimal fixture for the split-expenses save flow: one expense report holding one transaction,
+ * with a draft that splits it in two.
+ */
+const buildSplitFlowParams = async () => {
+    const expenseReport: Report = {
+        ...createRandomReport(9001, undefined),
+        type: CONST.REPORT.TYPE.EXPENSE,
+    };
+    const transaction: Transaction = {
+        amount: 100,
+        currency: 'USD',
+        transactionID: '9001',
+        reportID: expenseReport.reportID,
+        created: DateUtils.getDBTime(),
+        merchant: 'test',
+    };
+    const transactionThread: Report = {...createRandomReport(9002, undefined)};
+    const iouAction: ReportAction = {
+        ...buildOptimisticIOUReportAction({
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount: transaction.amount,
+            currency: transaction.currency,
+            comment: '',
+            participants: [],
+            transactionID: transaction.transactionID,
+            iouReportID: expenseReport.reportID,
+        }),
+        childReportID: transactionThread.reportID,
+    };
+
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {[iouAction.reportActionID]: iouAction});
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+    await waitForBatchedUpdates();
+
+    let allTransactions: OnyxCollection<Transaction>;
+    let allReports: OnyxCollection<Report>;
+    await getOnyxData({
+        key: ONYXKEYS.COLLECTION.TRANSACTION,
+        callback: (value) => {
+            allTransactions = value;
+        },
+    });
+    await getOnyxData({
+        key: ONYXKEYS.COLLECTION.REPORT,
+        callback: (value) => {
+            allReports = value;
+        },
+    });
+
+    const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+    const params = {
+        allTransactionsList: allTransactions,
+        allReportsList: allReports,
+        allReportActionsList: undefined,
+        allReportNameValuePairsList: undefined,
+        transactionData: {
+            reportID: expenseReport.reportID,
+            originalTransactionID: transaction.transactionID,
+            splitExpenses: [
+                {transactionID: '9003', amount: 50, currency: 'USD', description: '', category: '', tags: [''], created: transaction.created, reportID: expenseReport.reportID},
+                {transactionID: '9004', amount: 50, currency: 'USD', description: '', category: '', tags: [''], created: transaction.created, reportID: expenseReport.reportID},
+            ],
+            splitExpensesTotal: 100,
+        },
+        searchContext: {currentSearchHash: -2},
+        policyCategories: undefined,
+        policy: undefined,
+        policyRecentlyUsedCategories: [],
+        iouReport: expenseReport,
+        firstIOU: iouAction,
+        isASAPSubmitBetaEnabled: false,
+        currentUserPersonalDetails,
+        transactionViolations: {},
+        policyRecentlyUsedCurrencies: [],
+        quickAction: undefined,
+        betas: [CONST.BETAS.ALL],
+        allPolicyTags: undefined,
+        personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+        transactionReport: reports.transactionReport,
+        expenseReport: reports.expenseReport,
+        isOffline: false,
+        delegateAccountID: undefined,
+        isTrackIntentUser: false,
+    };
+
+    return {expenseReport, iouAction, params};
+};
+
+describe('split save deferred write', () => {
+    beforeEach(() => {
+        jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(false);
+    });
+
+    it('defers the write behind a navigation barrier when saving from the split-expenses flow', async () => {
+        // Given a split saved through the split-expenses flow
+        const {params} = await buildSplitFlowParams();
+
+        // When the split is saved
+        updateSplitTransactionsFromSplitExpensesFlow(params);
+        await waitForBatchedUpdates();
+
+        // Then the write goes through writeWhenReady with a barrier, so its optimistic data does not
+        // land while the press is still trying to paint
+        expect(writeWhenReady).toHaveBeenCalledWith(expect.any(String), expect.anything(), expect.anything(), expect.any(Function));
+    });
+
+    it('defers the write the same way when saving from the Search page', async () => {
+        // Given the Search page is the topmost full screen route
+        jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+        const {params} = await buildSplitFlowParams();
+
+        // When the split is saved
+        updateSplitTransactionsFromSplitExpensesFlow(params);
+        await waitForBatchedUpdates();
+
+        // Then the same barrier-gated path is used - writeWhenReady is route agnostic, so the Search
+        // branch needs no special casing
+        expect(writeWhenReady).toHaveBeenCalledWith(expect.any(String), expect.anything(), expect.anything(), expect.any(Function));
+    });
+
+    it('writes immediately when the caller is not the split-expenses flow', async () => {
+        // Given a direct updateSplitTransactions call, as useDeleteTransactions makes
+        const {params} = await buildSplitFlowParams();
+
+        // When it runs outside the split-expenses flow
+        updateSplitTransactions({...params, isFromSplitExpensesFlow: false});
+        await waitForBatchedUpdates();
+
+        // Then there is no navigation to wait on, so the write is not deferred
+        expect(writeWhenReady).not.toHaveBeenCalled();
     });
 });
