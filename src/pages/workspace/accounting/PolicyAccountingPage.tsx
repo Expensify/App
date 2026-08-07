@@ -78,7 +78,7 @@ import {View} from 'react-native';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
-import {isCertiniaSRPConnection} from './certinia/utils';
+import {getCertiniaSelectedCompanyID, isCertiniaFFAConnection} from './certinia/utils';
 import {getAccountingIntegrationData, getAccountingIntegrationDisplayName, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from './utils';
 
 type RouteParams = {
@@ -231,8 +231,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 text: translate('workspace.accounting.disconnect'),
                 onSelected: () => {
                     showConfirmModal({
-                        title: translate('workspace.accounting.disconnectTitle', {connectionName: connectedIntegrationDisplayName}),
-                        prompt: translate('workspace.accounting.disconnectPrompt', {connectionName: connectedIntegrationDisplayName}),
+                        title: translate('workspace.accounting.disconnectTitle', connectedIntegrationDisplayName),
+                        prompt: translate('workspace.accounting.disconnectPrompt', connectedIntegrationDisplayName),
                         confirmText: translate('workspace.accounting.disconnect'),
                         cancelText: translate('common.cancel'),
                         danger: true,
@@ -310,7 +310,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const rilletSubsidiaryList = policy?.connections?.rillet?.data?.subsidiaries;
         const certiniaConfig = policy?.connections?.financialforce?.config;
         const certiniaCompanies = policy?.connections?.financialforce?.data?.companies ?? [];
-        const certiniaCompanyID = certiniaConfig?.credentials?.companyID;
+        const certiniaCompanyID = getCertiniaSelectedCompanyID(certiniaConfig);
+        const certiniaCompanyField = certiniaConfig?.hasPSA ? CONST.CERTINIA_CONFIG.COMPANY_ID : CONST.CERTINIA_CONFIG.COMPANY;
         const selectedCertiniaCompany = certiniaCompanies.find((company) => company.id === certiniaCompanyID);
         switch (connectedIntegration) {
             case CONST.POLICY.CONNECTIONS.NAME.XERO:
@@ -385,7 +386,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           interactive: false,
                       };
             case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
-                return !isCertiniaSRPConnection(certiniaConfig)
+                return !isCertiniaFFAConnection(certiniaConfig)
                     ? {}
                     : {
                           description: translate('workspace.certinia.company'),
@@ -396,8 +397,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           shouldShowRightIcon: canWriteAccounting,
                           shouldShowDescriptionOnTop: true,
                           interactive: canWriteAccounting,
-                          pendingAction: settingsPendingAction([CONST.CERTINIA_CONFIG.COMPANY_ID], certiniaConfig?.pendingFields),
-                          brickRoadIndicator: areSettingsInErrorFields([CONST.CERTINIA_CONFIG.COMPANY_ID], certiniaConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          pendingAction: settingsPendingAction([certiniaCompanyField], certiniaConfig?.pendingFields),
+                          brickRoadIndicator: areSettingsInErrorFields([certiniaCompanyField], certiniaConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                           onPress: canWriteAccounting ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_COMPANY_SELECTOR.getRoute(policyID)) : undefined,
                       };
             case CONST.POLICY.CONNECTIONS.NAME.RILLET:
@@ -550,10 +551,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
         let connectionMessage;
         if (isSyncInProgress && connectionSyncStage) {
-            connectionMessage = translate('workspace.accounting.connections.syncStageName', {
-                stage: connectionSyncStage,
-                integrationName: integrationData?.title,
-            });
+            connectionMessage = translate('workspace.accounting.connections.syncStageName', connectionSyncStage, integrationData?.title);
         } else if (!isConnectionVerified) {
             connectionMessage = translate('workspace.accounting.notSync');
         } else {
