@@ -79,15 +79,17 @@ function BaseSelectListItem<TItem extends ListItem>({
                             styles.sidebarLinkText,
                             styles.sidebarLinkTextBold,
                             isMultilineSupported ? styles.preWrap : styles.pre,
-                            item.alternateText ? styles.mb1 : null,
+                            item.alternateText || item.alternateTextComponent ? styles.mb1 : null,
                             isDisabled && styles.colorMuted,
                             isMultilineSupported ? {paddingLeft} : null,
                             titleStyles,
+                            item.titleStyles,
                         ]}
                         numberOfLines={isMultilineSupported ? titleNumberOfLines : 1}
                     />
 
-                    {!!item.alternateText && (
+                    {!!item.alternateTextComponent && item.alternateTextComponent}
+                    {!item.alternateTextComponent && !!item.alternateText && (
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={item.alternateText}
