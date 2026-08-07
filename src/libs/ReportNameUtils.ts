@@ -11,7 +11,6 @@ import type {
     ReportAction,
     ReportActions,
     ReportAttributesDerivedValue,
-    ReportMetadata,
     ReportNameValuePairs,
     Transaction,
 } from '@src/types/onyx';
@@ -143,6 +142,7 @@ import {
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
+    getPendingDeleteMemberAccountIDs,
     getReportMetadata,
     getReportOrDraftReport,
     getTransactionReportName,
@@ -193,6 +193,7 @@ type ComputeReportName = {
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     reportTransactions: Record<string, Transaction[]>;
     isTrackIntentUser: boolean | undefined;
+    pendingDeleteMemberAccountIDs?: string[];
 };
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -270,18 +271,17 @@ function getGroupChatName(
     participants?: SelectedParticipant[],
     shouldApplyLimit = false,
     report?: OnyxEntry<Report>,
-    reportMetadataParam?: OnyxEntry<ReportMetadata>,
+    pendingDeleteMemberAccountIDs?: string[],
 ): string | undefined {
     // If we have a report always try to get the name from the report.
     if (report?.reportName) {
         return report.reportName;
     }
 
-    const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
+    // TODO: Remove the getReportMetadata fallback once https://github.com/Expensify/App/issues/66421 is done
+    const resolvedPendingDeleteMemberAccountIDs = pendingDeleteMemberAccountIDs ?? getPendingDeleteMemberAccountIDs(getReportMetadata(report?.reportID)?.pendingChatMembers);
 
-    const pendingMemberAccountIDs = new Set(
-        reportMetadata?.pendingChatMembers?.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID),
-    );
+    const pendingMemberAccountIDs = new Set(resolvedPendingDeleteMemberAccountIDs);
     let participantAccountIDs =
         participants?.map((participant) => participant.accountID) ??
         Object.keys(report?.participants ?? {})
@@ -758,7 +758,8 @@ function computeReportNameBasedOnReportAction(
                 return getElsewherePaymentReportActionMessage(translate, originalMessage);
             }
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-                const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits);
+                // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+                const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
                 if (crossBorderMessage) {
                     return crossBorderMessage;
                 }
@@ -1005,6 +1006,7 @@ function computeReportName({
     reportAttributes,
     reportTransactions,
     isTrackIntentUser,
+    pendingDeleteMemberAccountIDs,
 }: ComputeReportName): string {
     if (!report?.reportID) {
         return '';
@@ -1052,6 +1054,8 @@ function computeReportName({
             reportAttributes,
             reportTransactions,
             isTrackIntentUser,
+            // TODO: pass the true data in the next PR, issue https://github.com/Expensify/App/issues/66421
+            pendingDeleteMemberAccountIDs: undefined,
         });
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translate);
     }
@@ -1085,7 +1089,7 @@ function computeReportName({
     }
 
     if (isGroupChat(report)) {
-        return getGroupChatName(formatPhoneNumberPhoneUtils, translate, undefined, true, report) ?? '';
+        return getGroupChatName(formatPhoneNumberPhoneUtils, translate, undefined, true, report, pendingDeleteMemberAccountIDs) ?? '';
     }
 
     let formattedName: string | undefined;

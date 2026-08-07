@@ -21,7 +21,7 @@ function MoneyReportHeaderNextStep({reportID}: MoneyReportHeaderNextStepProps) {
     const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
     const optimisticNextStep = useOptimisticNextStep(reportID);
 
-    const showNextStepBar = !!optimisticNextStep && (('message' in optimisticNextStep && !!optimisticNextStep.message?.length) || 'messageKey' in optimisticNextStep);
+    const showNextStepBar = !!optimisticNextStep && 'messageKey' in optimisticNextStep;
     const showNextStepSkeleton = !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
 
     if (showNextStepBar) {
