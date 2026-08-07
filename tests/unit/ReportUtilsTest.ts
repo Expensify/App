@@ -1179,6 +1179,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                 isSelfTourViewed: undefined,
+                onboarding: {selfTourViewed: true, hasCompletedGuidedSetupFlow: false},
             });
 
             const viewTourTask = result?.guidedSetupData.find(

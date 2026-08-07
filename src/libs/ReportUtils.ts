@@ -1197,11 +1197,6 @@ Onyx.connect({
     },
 });
 
-let onboarding: OnyxEntry<Onboarding>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ONBOARDING,
-    callback: (value) => (onboarding = value),
-});
 
 let delegateEmail = '';
 Onyx.connect({
@@ -12136,6 +12131,7 @@ type PrepareOnboardingOnyxDataParams = {
     onboardingPurposeSelected?: OnboardingPurpose;
     // TODO: isSelfTourViewed will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
+    onboarding?: OnyxEntry<Onboarding>;
     // TODO: should be required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     currentUserEmail?: string;
     /** The concierge chat report, looked up by conciergeReportID. Falls back to getChatByParticipants using the deprecated module-level Onyx data while the refactor is in progress. */
@@ -12160,6 +12156,7 @@ function prepareOnboardingOnyxData({
     isInvitedAccountant,
     onboardingPurposeSelected,
     isSelfTourViewed,
+    onboarding: onboardingParam,
     currentUserEmail,
     conciergeChat: conciergeChatParam,
     adminsChatReport: adminsChatReportParam,
@@ -12301,7 +12298,7 @@ function prepareOnboardingOnyxData({
 
             let isTaskAutoCompleted: boolean = task.autoCompleted;
 
-            const onboardingSelfTourViewed = isSelfTourViewed ?? onboarding?.selfTourViewed;
+            const onboardingSelfTourViewed = isSelfTourViewed ?? onboardingParam?.selfTourViewed;
             if (task.type === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR && onboardingSelfTourViewed) {
                 // If the user has already viewed the self tour, we mark the task as auto completed
                 isTaskAutoCompleted = true;
