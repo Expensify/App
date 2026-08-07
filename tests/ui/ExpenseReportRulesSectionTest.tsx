@@ -100,7 +100,7 @@ describe('ExpenseReportRulesSection', () => {
 
         renderSection();
 
-        const autoApproveProps = mockedToggleSettingOptionRow.mock.calls[AUTO_APPROVE_TOGGLE_INDEX]?.[0];
+        const autoApproveProps = mockedToggleSettingOptionRow.mock.calls.at(AUTO_APPROVE_TOGGLE_INDEX)?.[0];
         expect(autoApproveProps).toBeDefined();
         expect(autoApproveProps?.isActive).toBe(true);
     });
