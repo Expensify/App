@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -21,7 +22,7 @@ import type {AnchorPosition} from '@src/styles';
 
 import {canSupportLoginSelector} from '@selectors/Account';
 import {isSupportalSessionSelector} from '@selectors/Session';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 const ANCHOR_ALIGNMENT = {
@@ -36,6 +37,7 @@ type SupportalSwitcherButtonProps = {
 
 function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['UserSearch']);
@@ -52,14 +54,14 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
     // During supportal the account is the customer, so canSupportLogin goes false while switching.
     const isSupportAgent = (canSupportLogin ?? false) || !!isSupportalSession;
 
-    const openSwitcher = useCallback(() => {
+    const openSwitcher = () => {
         calculatePopoverPosition(anchorRef, ANCHOR_ALIGNMENT).then((position) => {
             setAnchorPosition(position);
             setIsPopoverVisible(true);
         });
-    }, [calculatePopoverPosition]);
+    };
 
-    const switchToAccount = useCallback(() => {
+    const switchToAccount = () => {
         const target = email.trim();
         if (!target) {
             return;
@@ -69,7 +71,7 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
 
         // OldDot mints the support token behind Cloudflare and redirects back to /transition.
         openOldDotLink(CONST.OLDDOT_URLS.SUPPORTAL_LOGIN_NEWDOT(target), true);
-    }, [email]);
+    };
 
     if (!isSupportAgent) {
         return null;
@@ -89,7 +91,13 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
                         sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.SUPPORTAL_SWITCHER_BUTTON}
                     >
                         {({hovered}) => (
-                            <View style={[styles.floatingActionButton, styles.floatingActionButtonSmall, {backgroundColor: hovered ? theme.buttonHoveredBG : theme.buttonDefaultBG}]}>
+                            <View
+                                style={[
+                                    styles.floatingActionButton,
+                                    styles.floatingActionButtonSmall,
+                                    StyleUtils.getBackgroundColorStyle(hovered ? theme.buttonHoveredBG : theme.buttonDefaultBG),
+                                ]}
+                            >
                                 <Icon
                                     src={icons.UserSearch}
                                     fill={theme.icon}
