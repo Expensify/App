@@ -650,6 +650,8 @@ function getDeleteTrackExpenseInformation(
     actionableWhisperReportActionID = '',
     resolution = '',
     shouldRemoveIOUTransaction = true,
+    transactionThread?: OnyxEntry<OnyxTypes.Report>,
+    iouReport?: OnyxEntry<OnyxTypes.Report>,
 ) {
     // STEP 1: Get all collections we're updating
     const transaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -725,6 +727,8 @@ function getDeleteTrackExpenseInformation(
         transactionThreadID,
         shouldDeleteTransactionThread,
         chatReport,
+        transactionThread,
+        iouReport,
         currentUserAccountID,
     });
     optimisticData.push(...cleanUpTransactionThreadReportOnyxData.optimisticData);
