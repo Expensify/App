@@ -1,9 +1,10 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
@@ -193,6 +194,7 @@ type RequestMoneyInformation = {
     shouldDeferAutoSubmit?: boolean;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type MoneyRequestInformationParams = {
@@ -228,6 +230,7 @@ type MoneyRequestInformationParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type MoneyRequestOptimisticParams = {
@@ -1275,6 +1278,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         betas,
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;

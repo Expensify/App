@@ -228,6 +228,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             personalDetails: {},
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
+                            formatPhoneNumber,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -377,6 +378,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             personalDetails: {},
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
+                            formatPhoneNumber,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -460,6 +462,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 personalDetails: {},
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
+                                formatPhoneNumber,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -509,6 +512,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 personalDetails: {},
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
+                                formatPhoneNumber,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -734,6 +738,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 personalDetails: {},
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
+                                formatPhoneNumber,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -783,6 +788,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 personalDetails: {},
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
+                                formatPhoneNumber,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -977,6 +983,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             personalDetails: {},
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
+                            formatPhoneNumber,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1184,6 +1191,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
             }
             await waitForBatchedUpdates();

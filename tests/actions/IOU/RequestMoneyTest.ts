@@ -224,6 +224,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -485,6 +486,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -717,6 +719,7 @@ describe('actions/IOU', () => {
                             personalDetails: {},
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
+                            formatPhoneNumber,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -884,6 +887,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             return (
                 waitForBatchedUpdates()
@@ -1403,6 +1407,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -1438,6 +1443,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
@@ -1473,6 +1479,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             // Verify that the iouReport is created successfully when isSelfTourViewed is true
             expect(iouReport).toBeDefined();
@@ -1527,6 +1534,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1574,6 +1582,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1648,6 +1657,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             waitForBatchedUpdates();
 
@@ -1719,6 +1729,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             expect(iouReport).toBeDefined();
@@ -1795,6 +1806,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             expect(iouReport).toBeDefined();
@@ -1842,6 +1854,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             // Should still create the expense even with empty personalDetails
@@ -2004,6 +2017,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2081,6 +2095,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2170,6 +2185,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2250,6 +2266,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2325,6 +2342,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2401,6 +2419,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2474,6 +2493,7 @@ describe('actions/IOU', () => {
                     personalDetails: {},
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
@@ -2537,6 +2557,7 @@ describe('actions/IOU', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
@@ -2608,6 +2629,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2668,6 +2690,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2900,6 +2923,7 @@ describe('actions/IOU', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
@@ -2971,6 +2995,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -3098,6 +3123,7 @@ describe('actions/IOU', () => {
                 optimisticChatReportID: undefined,
                 currentUserLocalCurrency: 'USD',
                 isTrackIntentUser: false,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             };
         };

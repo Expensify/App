@@ -36,7 +36,7 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
-import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
@@ -631,6 +631,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -737,6 +738,7 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
@@ -809,6 +811,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -915,6 +918,7 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
@@ -992,6 +996,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
@@ -1107,6 +1112,7 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
@@ -1185,6 +1191,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
@@ -1321,6 +1328,7 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
 
                 await waitForBatchedUpdates();
