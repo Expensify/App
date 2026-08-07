@@ -6,15 +6,17 @@ import parseAttribute from './parseAttribute';
 
 /**
  * Translate VictoryChart's `cornerRadius` attribute into victory-native's `roundedCorners` shape.
+ * `pixelScale` multiplies every radius, so expanded charts rendered at a larger native size keep
+ * their corners proportional to the inline chart.
  */
-function parseCornerRadius(attribute: string): RoundedCorners | undefined {
+function parseCornerRadius(attribute: string, pixelScale = 1): RoundedCorners | undefined {
     const cornerRadius = parseAttribute(attribute);
     if (typeof cornerRadius === 'number') {
         return {
-            topLeft: cornerRadius,
-            topRight: cornerRadius,
-            bottomLeft: cornerRadius,
-            bottomRight: cornerRadius,
+            topLeft: cornerRadius * pixelScale,
+            topRight: cornerRadius * pixelScale,
+            bottomLeft: cornerRadius * pixelScale,
+            bottomRight: cornerRadius * pixelScale,
         };
     }
     if (lodashIsObject(cornerRadius)) {
@@ -42,7 +44,12 @@ function parseCornerRadius(attribute: string): RoundedCorners | undefined {
         } else if ('bottom' in cornerRadius) {
             bottomRight = Number(cornerRadius.bottom);
         }
-        return {topLeft, topRight, bottomLeft, bottomRight};
+        return {
+            topLeft: topLeft === undefined ? undefined : topLeft * pixelScale,
+            topRight: topRight === undefined ? undefined : topRight * pixelScale,
+            bottomLeft: bottomLeft === undefined ? undefined : bottomLeft * pixelScale,
+            bottomRight: bottomRight === undefined ? undefined : bottomRight * pixelScale,
+        };
     }
     return undefined;
 }

@@ -1,5 +1,6 @@
 import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
 import VictoryTheme from '@components/Charts/VictoryTheme';
+import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {useVictoryChartRenderArgs} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
@@ -19,6 +20,7 @@ type VictoryChartBarGroupProps = {
 
 function VictoryChartBarGroup({tnode, isHorizontal}: VictoryChartBarGroupProps) {
     const {points, chartBounds} = useVictoryChartRenderArgs();
+    const {pixelScale} = useVictoryChartContext();
     const barChildren = tnode.children.filter((child) => child.tagName === 'victorybar');
     const firstBarChild = barChildren.at(0);
 
@@ -26,10 +28,11 @@ function VictoryChartBarGroup({tnode, isHorizontal}: VictoryChartBarGroupProps) 
         return null;
     }
 
-    const roundedCorners = parseCornerRadius(firstBarChild?.attributes?.cornerradius ?? '');
-    const barWidth = parseAttributeAsNumber(firstBarChild.attributes.barwidth);
+    const roundedCorners = parseCornerRadius(firstBarChild?.attributes?.cornerradius ?? '', pixelScale);
+    const rawBarWidth = parseAttributeAsNumber(firstBarChild.attributes.barwidth);
+    const barWidth = rawBarWidth === undefined ? undefined : rawBarWidth * pixelScale;
     const betweenGroupPadding = barWidth
-        ? parseOffset(tnode.attributes.offset, chartBounds, barChildren.length, barWidth, points[getYKey(firstBarChild)].length, isHorizontal ?? false)
+        ? parseOffset(tnode.attributes.offset, chartBounds, barChildren.length, barWidth, points[getYKey(firstBarChild)].length, isHorizontal ?? false, pixelScale)
         : undefined;
 
     return (
