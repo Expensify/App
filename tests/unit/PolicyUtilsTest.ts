@@ -3451,7 +3451,7 @@ describe('PolicyUtils', () => {
                 }),
             });
 
-        // Sentinel for "Xero connected but Integration-Server has not yet synced suppliers"
+        // Placeholder for "Xero connected but Integration-Server has not yet synced suppliers"
         // (i.e. `data.contacts` is undefined on the connection). Distinct from the populated
         // default so callers can opt into the unsynced state without colliding with the
         // default-parameter mechanic, which would otherwise replace an explicit `undefined`
