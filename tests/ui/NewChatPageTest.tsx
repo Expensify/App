@@ -337,6 +337,53 @@ describe('NewChatPage', () => {
         navigateSpy.mockRestore();
     });
 
+    it('should add a row-pressed user to the group instead of opening a 1:1 chat when the row is pressed before the deferred selection commits', async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, email: 'email1@test.com'});
+        });
+        render(<NewChatPage />, {wrapper});
+        await waitForBatchedUpdatesWithAct();
+        act(() => {
+            triggerTransitionEnd();
+        });
+
+        // Wait until more than one selectable user is rendered so we have a first user to add and a second row to press.
+        await waitFor(() => {
+            expect(screen.getAllByText(translateLocal('newChatPage.addToGroup')).length).toBeGreaterThan(1);
+        });
+
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        const dismissModalSpy = jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+
+        // The "Add to group" button belongs to the first user; the rows (onSelectRow -> selectOption) belong to the individual users in order.
+        const addButton = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
+        const secondRow = screen.getAllByTestId(new RegExp(`^${CONST.BASE_LIST_ITEM_TEST_ID}`)).at(1);
+        expect(addButton).toBeTruthy();
+        expect(secondRow).toBeTruthy();
+        if (!addButton || !secondRow) {
+            return;
+        }
+
+        // Both presses run in one act() batch: nothing commits between them, so the second user's row is pressed
+        // while selectedOptions is still empty and only the ref holds the first member. selectOption must gate on
+        // that ref and add the second user to the group, not fall through to the 1:1 chat path.
+        // eslint-disable-next-line testing-library/no-unnecessary-act -- the shared act batch is the point: it keeps the deferred update from committing between the two presses
+        act(() => {
+            fireEvent.press(addButton);
+            fireEvent.press(secondRow);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Both users are selected (two checkboxes) and no 1:1 chat navigation happened.
+        expect(screen.getByText(translateLocal('common.next'))).toBeVisible();
+        expect(screen.getAllByTestId(new RegExp(`^${CONST.SELECTION_BUTTON_TEST_ID}`))).toHaveLength(2);
+        expect(navigateSpy).not.toHaveBeenCalled();
+        expect(dismissModalSpy).not.toHaveBeenCalled();
+        navigateSpy.mockRestore();
+        dismissModalSpy.mockRestore();
+    });
+
     describe('should not display "Add to group" button on expensify emails', () => {
         const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE && value !== CONST.EMAIL.NOTIFICATIONS).map((email) => [email]);
 

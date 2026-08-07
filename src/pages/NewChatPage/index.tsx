@@ -406,7 +406,12 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
 
-        if (selectedOptions.length && option) {
+        // Gate on the latest-selection ref (not the render snapshot): a row press can land during the deferred
+        // selection transition, when selectedOptions is still empty but a member is already pending in the ref.
+        // Reading the ref keeps that press an "add to group" instead of falling through to the 1:1 chat path.
+        const latestSelectedOptions = latestSelectedOptionsRef.current;
+
+        if (latestSelectedOptions.length && option) {
             // Prevent excluded emails from being added to groups
             if (option?.login && excludedGroupEmails.has(option.login)) {
                 return;
@@ -428,8 +433,8 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         if (option?.login) {
             login = option.login;
-        } else if (selectedOptions.length === 1) {
-            login = selectedOptions.at(0)?.login ?? '';
+        } else if (latestSelectedOptions.length === 1) {
+            login = latestSelectedOptions.at(0)?.login ?? '';
         }
         if (!login) {
             Log.warn('Tried to create chat with empty login');
