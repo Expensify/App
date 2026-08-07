@@ -1,4 +1,4 @@
-import AccountManagerBookCallButton from '@components/AccountManagerBookCallButton';
+import BookCallButton from '@components/BookCallButton';
 import Button from '@components/ButtonComposed';
 import CaretWrapper from '@components/CaretWrapper';
 import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
@@ -36,6 +36,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
 import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
@@ -124,10 +125,12 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [accountGuideDetails] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountGuideDetailsSelector});
-    const [accountManagerBookingDetails] = useOnyx(ONYXKEYS.ACCOUNT, {
+    const [bookCallDetails] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (account) => ({
             accountManagerAccountID: account?.accountManagerAccountID,
             accountManagerCalendarLink: account?.accountManagerCalendarLink,
+            partnerManagerAccountID: account?.partnerManagerAccountID,
+            partnerManagerCalendarLink: account?.partnerManagerCalendarLink,
         }),
     });
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
@@ -219,26 +222,66 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
-    const accountManagerAccountID = accountManagerBookingDetails?.accountManagerAccountID;
+    const accountManagerAccountID = bookCallDetails?.accountManagerAccountID;
+    const partnerManagerAccountID = bookCallDetails?.partnerManagerAccountID;
+    // The guide book-call button is only shown before an account manager has been assigned, mirroring the #admins onboarding flow's guide-then-AM handoff
+    const guideAccountID = accountGuideDetails?.email ? getPersonalDetailByEmail(accountGuideDetails.email)?.accountID : undefined;
+    const isGuideEligibleForBooking =
+        !accountManagerAccountID &&
+        !!accountGuideDetails?.calendarLink &&
+        accountGuideDetails?.email !== CONST.EMAIL.CONCIERGE &&
+        introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
+        introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
-    // Show the "Book a call" button in the 1:1 DM with the assigned account manager
-    const shouldShowAccountManagerBookCallInDM =
-        !!accountManagerAccountID &&
-        !!accountManagerBookingDetails?.accountManagerCalendarLink &&
-        isOneOnOneChat(report) &&
-        !!report?.participants?.[Number(accountManagerAccountID)] &&
-        !!canUserPerformWriteAction(report, isReportArchived) &&
-        !isChatThread;
-    const shouldShowAccountManagerBookCallInConcierge = isConciergeChat && !!accountManagerAccountID && !!accountManagerBookingDetails?.accountManagerCalendarLink;
+    // Show the "Book a call" button in the 1:1 DM with the assigned support person, or in the Concierge chat
+    const getBookCallVisibility = (supportAccountID: string | number | undefined, calendarLink: string | undefined) => {
+        const canBookCall = !!supportAccountID && !!calendarLink;
+        return {
+            inDM: canBookCall && isOneOnOneChat(report) && !!report?.participants?.[Number(supportAccountID)] && !!canUserPerformWriteAction(report, isReportArchived) && !isChatThread,
+            inConcierge: canBookCall && isConciergeChat,
+        };
+    };
+
+    const {inDM: shouldShowAccountManagerBookCallInDM, inConcierge: shouldShowAccountManagerBookCallInConcierge} = getBookCallVisibility(
+        accountManagerAccountID,
+        bookCallDetails?.accountManagerCalendarLink,
+    );
     const shouldShowAccountManagerBookCall = shouldShowAccountManagerBookCallInDM || shouldShowAccountManagerBookCallInConcierge;
 
-    // Render the button full width below the header whenever the available space is narrow, which includes the side panel (e.g. Concierge third-panel)
-    const shouldStackAccountManagerBookCall = shouldUseNarrowLayout || isInSidePanel;
+    const {inDM: shouldShowPartnerManagerBookCallInDM, inConcierge: shouldShowPartnerManagerBookCallInConcierge} = getBookCallVisibility(
+        partnerManagerAccountID,
+        bookCallDetails?.partnerManagerCalendarLink,
+    );
+    const shouldShowPartnerManagerBookCall = shouldShowPartnerManagerBookCallInDM || shouldShowPartnerManagerBookCallInConcierge;
 
-    const accountManagerBookCallButton = (
-        <AccountManagerBookCallButton
-            calendarLink={accountManagerBookingDetails?.accountManagerCalendarLink ?? ''}
-            accountManagerAccountID={shouldShowAccountManagerBookCallInConcierge ? accountManagerBookingDetails?.accountManagerAccountID : undefined}
+    const {inDM: shouldShowGuideBookCallInDM, inConcierge: shouldShowGuideBookCallInConcierge} = getBookCallVisibility(
+        isGuideEligibleForBooking ? guideAccountID : undefined,
+        accountGuideDetails?.calendarLink,
+    );
+    const shouldShowGuideBookCall = shouldShowGuideBookCallInDM || shouldShowGuideBookCallInConcierge;
+
+    const shouldShowBookCall = shouldShowAccountManagerBookCall || shouldShowPartnerManagerBookCall || shouldShowGuideBookCall;
+
+    // Render the button full width below the header whenever the available space is narrow, which includes the side panel (e.g. Concierge third-panel)
+    const shouldStackBookCall = shouldUseNarrowLayout || isInSidePanel;
+
+    // A single 1:1 chat can only match one of these roles, and in Concierge only one button is shown at a time, so precedence (account manager, then partner manager, then guide) resolves any overlap
+    let bookCallCalendarLink = accountGuideDetails?.calendarLink;
+    let bookCallAvatarAccountID: string | undefined;
+    if (shouldShowAccountManagerBookCall) {
+        bookCallCalendarLink = bookCallDetails?.accountManagerCalendarLink;
+        bookCallAvatarAccountID = shouldShowAccountManagerBookCallInConcierge ? accountManagerAccountID : undefined;
+    } else if (shouldShowPartnerManagerBookCall) {
+        bookCallCalendarLink = bookCallDetails?.partnerManagerCalendarLink;
+        bookCallAvatarAccountID = shouldShowPartnerManagerBookCallInConcierge ? String(partnerManagerAccountID) : undefined;
+    } else if (shouldShowGuideBookCallInConcierge) {
+        bookCallAvatarAccountID = String(guideAccountID);
+    }
+
+    const bookCallButton = (
+        <BookCallButton
+            calendarLink={bookCallCalendarLink ?? ''}
+            avatarAccountID={bookCallAvatarAccountID}
         />
     );
 
@@ -444,7 +487,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {shouldShowAccountManagerBookCall && !shouldStackAccountManagerBookCall && accountManagerBookCallButton}
+                                    {shouldShowBookCall && !shouldStackBookCall && bookCallButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
@@ -479,7 +522,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                     )}
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
-                {shouldShowAccountManagerBookCall && shouldStackAccountManagerBookCall && <View style={[styles.ph5, styles.pb3]}>{accountManagerBookCallButton}</View>}
+                {shouldShowBookCall && shouldStackBookCall && <View style={[styles.ph5, styles.pb3]}>{bookCallButton}</View>}
                 <View style={shouldShowOnBoardingHelpDropdownButton && [styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph5]}>
                     {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && (
                         <View style={[styles.flex1, styles.pb3]}>{onboardingHelpDropdownButton}</View>

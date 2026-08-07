@@ -124,6 +124,9 @@ type Account = {
     /** The email of the partner manager */
     partnerManagerEmail?: string;
 
+    /** The calendar link of the partner manager */
+    partnerManagerCalendarLink?: string;
+
     /** The message to be displayed when code requested */
     message?: string;
 
