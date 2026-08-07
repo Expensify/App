@@ -2,6 +2,7 @@ import ModalContext from '@components/Modal/ModalContext';
 
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import {isMobile} from '@libs/Browser';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 
 import variables from '@styles/variables';
@@ -33,7 +34,7 @@ import type ResponsiveLayoutResult from './types';
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {windowWidth, windowHeight} = useWindowDimensions();
 
-    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
+    const isInLandscapeMode = isInLandscapeModeUtil();
 
     // When the soft keyboard opens on mWeb, the window height changes. Use static screen height instead to get real screenHeight.
     const screenHeight = Dimensions.get('screen').height;

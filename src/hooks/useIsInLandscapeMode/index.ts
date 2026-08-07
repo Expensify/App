@@ -1,15 +1,9 @@
-import useWindowDimensions from '@hooks/useWindowDimensions';
-
 import isInLandscapeMode from '@libs/isInLandscapeMode';
 /**
- * Returns whether mWeb is currently in landscape orientation.
- * If component already uses useResponsiveLayout, it will return the value from that hook.
- * If component already uses useWindowDimensions, use @libs/isInLandscapeMode instead.
+ * Returns whether device that uses mWeb is currently in landscape orientation.
  */
 function useIsInLandscapeMode(): boolean {
-    const {windowWidth, windowHeight} = useWindowDimensions();
-
-    return isInLandscapeMode(windowWidth, windowHeight);
+    return isInLandscapeMode();
 }
 
 export default useIsInLandscapeMode;
