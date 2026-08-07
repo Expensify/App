@@ -2064,7 +2064,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
         const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
 
-        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
+        // Keep Pay visible while offline: selecting it is handled by onBulkPaySelected, which shows the offline modal
+        // rather than attempting a payment. Gating on !isOffline here would hide Pay entirely offline, which is wrong.
+        const shouldShowPayOption = !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
 
         if (shouldShowPayOption) {
             const shouldShowPaySubmenu = !!bulkPayButtonOptions?.length;
