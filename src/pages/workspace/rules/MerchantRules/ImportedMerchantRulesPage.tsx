@@ -339,6 +339,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
                     columnRoles={columnRoles}
                     isButtonLoading={isImportingRules}
                     customHeaderText={translate('workspace.rules.merchantRules.importRulesSupportingText')}
+                    shouldDisableButtonWhenOffline={false}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
