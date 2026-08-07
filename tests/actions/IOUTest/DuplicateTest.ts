@@ -483,6 +483,7 @@ describe('actions/Duplicate', () => {
                 betas: undefined,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction1?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             openReport({
                 hasReportActions: true,
@@ -493,6 +494,7 @@ describe('actions/Duplicate', () => {
                 betas: undefined,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction2?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 

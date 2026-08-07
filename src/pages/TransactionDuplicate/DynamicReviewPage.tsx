@@ -118,8 +118,8 @@ function DynamicReviewPage() {
         if (!route.params.reportID || report?.reportID) {
             return;
         }
-        openReport({reportID: route.params.reportID, introSelected, betas, hasReportActions});
-    }, [report?.reportID, route.params.reportID, introSelected, betas, hasReportActions]);
+        openReport({reportID: route.params.reportID, introSelected, betas, hasReportActions, currentUserAccountID: currentPersonalDetails.accountID});
+    }, [report?.reportID, route.params.reportID, introSelected, betas, hasReportActions, currentPersonalDetails.accountID]);
 
     useEffect(() => {
         if (!transactionID) {

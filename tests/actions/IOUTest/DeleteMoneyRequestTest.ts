@@ -543,6 +543,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -650,6 +651,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -783,6 +785,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -929,6 +932,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();
@@ -1252,6 +1256,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -1436,6 +1441,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 

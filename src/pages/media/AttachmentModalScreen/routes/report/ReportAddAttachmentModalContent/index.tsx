@@ -1,3 +1,4 @@
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -48,6 +49,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -65,8 +67,8 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     }, [reportActions, reportActionID]);
 
     const fetchReport = useCallback(() => {
-        openReport({reportID, introSelected, reportActionID, betas, hasReportActions});
-    }, [reportID, introSelected, reportActionID, betas, hasReportActions]);
+        openReport({reportID, introSelected, reportActionID, betas, hasReportActions, currentUserAccountID});
+    }, [reportID, introSelected, reportActionID, betas, hasReportActions, currentUserAccountID]);
 
     // Close the modal if user loses write access (e.g., admin switches "Who can post" to Admins only)
     useEffect(() => {
