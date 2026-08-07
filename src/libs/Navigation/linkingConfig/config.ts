@@ -1369,6 +1369,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_MERCHANT_TAX]: {
                             path: ROUTES.RULES_MERCHANT_TAX.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_VENDOR]: {
+                            path: ROUTES.RULES_MERCHANT_VENDOR.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_DESCRIPTION]: {
                             path: ROUTES.RULES_MERCHANT_DESCRIPTION.route,
                         },
