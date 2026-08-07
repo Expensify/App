@@ -125,11 +125,9 @@ describe('useInboxTabSpanLifecycle', () => {
         expect(mockCancelSpan).not.toHaveBeenCalled();
     });
 
-    it('reports a repeat layout as warm (on web onLayout fires again when the tab is re-visited)', () => {
+    it('reports a repeat layout as warm', () => {
         const {result} = renderHook(() => useInboxTabSpanLifecycle());
 
-        // First layout is the cold one and is asserted above. A second layout on the same instance means the
-        // screen was never unmounted, so it is a warm re-visit rather than a fresh mount.
         act(() => {
             result.current();
         });
@@ -143,7 +141,7 @@ describe('useInboxTabSpanLifecycle', () => {
         expect(mockEndSpanWithAttributes).toHaveBeenCalledWith(SPAN, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
     });
 
-    it('reports the same value from either end path, so the result does not depend on which one fires first', () => {
+    it('reports the same value from either end path', () => {
         const {result} = renderHook(() => useInboxTabSpanLifecycle());
 
         act(() => {
