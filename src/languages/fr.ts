@@ -2632,13 +2632,13 @@ const translations: TranslationDeepObject<typeof en> = {
             unlock: 'Déverrouiller',
             debitBlocked: 'Votre banque a bloqué les transactions de test vers ce compte',
             insufficientFunds: 'Les transactions de test ont échoué en raison de fonds insuffisants',
+            validationFailedFallback: 'Votre banque a bloqué les transactions de test vers ce compte. <concierge-link>Contacter Concierge</concierge-link>',
         },
         fixBankAccount: {
             title: 'Corriger le compte bancaire',
             debitBlockedBody:
                 'Votre banque a bloqué les transactions de test vers ce compte.<br/><br/>Veuillez leur demander d’ajouter les identifiants ACH d’Expensify à leur liste blanche :<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Puis, renvoyez les transactions de test ci-dessous.',
-            insufficientFundsBody:
-                '<muted-text>Les transactions de test ont échoué en raison de fonds insuffisants.<br/>Une fois les fonds disponibles, utilisez le bouton ci-dessous.</muted-text>',
+            insufficientFundsBody: 'Les transactions de test ont échoué en raison de fonds insuffisants.<br/>Une fois les fonds disponibles, utilisez le bouton ci-dessous.',
             resendButton: 'Renvoyer les transactions',
             successTitle: 'Transactions envoyées !',
             successBody: 'Vérifiez votre compte bancaire dans un délai de 1 à 2 jours ouvrables.',
