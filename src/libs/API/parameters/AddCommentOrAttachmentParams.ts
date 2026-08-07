@@ -17,6 +17,7 @@ type AddCommentOrAttachmentParams = {
     pregeneratedResponse?: string;
     sidePanelContext?: string;
     conciergeThreadReportID?: string;
+    conciergeThreadCreatedReportActionID?: string;
 };
 
 export default AddCommentOrAttachmentParams;
