@@ -34,7 +34,6 @@ import type {OptionData} from './ReportUtils';
 
 import {isAnonymousUser} from './actions/Session';
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
-import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {formatList} from './Localize';
 import {
     getLastActorDisplayName,
@@ -232,6 +231,7 @@ type WelcomeMessageParams = {
     additionalText?: string;
     isTrackIntentUser?: boolean;
     currentUserAccountID?: number;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
@@ -834,6 +834,7 @@ function getOptionData({
     policyTags,
     currentUserLogin,
     isTrackIntentUser,
+    formatPhoneNumber,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -860,6 +861,7 @@ function getOptionData({
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
     isTrackIntentUser?: boolean;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -981,7 +983,7 @@ function getOptionData({
         (participantPersonalDetailList || []).slice(0, 10),
         hasMultipleParticipants,
         localeCompare,
-        formatPhoneNumberPhoneUtils,
+        formatPhoneNumber,
         translate,
         undefined,
         isSelfDM(report),
@@ -1342,6 +1344,7 @@ function getOptionData({
                         isReportArchived,
                         isTrackIntentUser,
                         currentUserAccountID,
+                        formatPhoneNumber,
                     }).messageText ?? translate('report.noActivityYet'),
                 );
             }
@@ -1360,6 +1363,7 @@ function getOptionData({
                     conciergeReportID,
                     derivedReportName: reportAttributesDerived?.[report.reportID]?.reportName,
                     isReportArchived,
+                    formatPhoneNumber,
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 }).messageText || translate('report.noActivityYet'),
             );
@@ -1404,7 +1408,7 @@ function getOptionData({
 
     const reportIcons = getIcons(
         report,
-        formatPhoneNumberPhoneUtils,
+        formatPhoneNumber,
         translate,
         personalDetails,
         personalDetail?.avatar,
@@ -1451,6 +1455,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
         additionalText = '',
         isTrackIntentUser = false,
         currentUserAccountID,
+        formatPhoneNumber,
     } = params;
 
     const welcomeMessage: WelcomeMessage = {};
@@ -1459,7 +1464,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
     }
 
     if (isChatRoom(report)) {
-        return getRoomWelcomeMessage(translate, report, invoiceReceiverPolicy, derivedReportName, isReportArchived, reportDetailsLink);
+        return getRoomWelcomeMessage({translate, report, invoiceReceiverPolicy, derivedReportName, isReportArchived, reportDetailsLink, formatPhoneNumber});
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -1473,7 +1478,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
             welcomeMessage.messageHtml = translate(
                 'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
                 getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
-                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}),
+                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber, translate}),
             );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         }
@@ -1490,7 +1495,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
         return welcomeMessage;
     }
     const isMultipleParticipant = participantPersonalDetailList.length > 1;
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare, formatPhoneNumberPhoneUtils, translate);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare, formatPhoneNumber, translate);
 
     if (!displayNamesWithTooltips.length) {
         return welcomeMessage;
@@ -1517,14 +1522,25 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
 /**
  * Get welcome message based on room type
  */
-function getRoomWelcomeMessage(
-    translate: LocalizedTranslate,
-    report: OnyxEntry<Report>,
-    invoiceReceiverPolicy: OnyxEntry<Policy>,
-    derivedReportName: string | undefined,
+type GetRoomWelcomeMessageParams = {
+    translate: LocalizedTranslate;
+    report: OnyxEntry<Report>;
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
+    derivedReportName: string | undefined;
+    isReportArchived?: boolean;
+    reportDetailsLink?: string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+};
+
+function getRoomWelcomeMessage({
+    translate,
+    report,
+    invoiceReceiverPolicy,
+    derivedReportName,
     isReportArchived = false,
     reportDetailsLink = '',
-): WelcomeMessage {
+    formatPhoneNumber,
+}: GetRoomWelcomeMessageParams): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
     const reportName = getReportName(report ?? undefined, derivedReportName);
@@ -1546,7 +1562,7 @@ function getRoomWelcomeMessage(
     } else if (isInvoiceRoom(report)) {
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate})
+                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber, translate})
                 : invoiceReceiverPolicy?.name;
         const receiver = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);
