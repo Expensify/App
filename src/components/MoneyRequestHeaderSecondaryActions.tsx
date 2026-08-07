@@ -571,15 +571,13 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 const iouType = isExpenseReport(parentReport) ? CONST.IOU.TYPE.SUBMIT : CONST.IOU.TYPE.TRACK;
                 if (shouldNavigateToUpgradePath && reportID) {
                     Navigation.navigate(
-                        createDynamicRoute(
-                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                action: CONST.IOU.ACTION.EDIT,
-                                iouType,
-                                transactionID: transaction.transactionID,
-                                reportID,
-                                upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                            }),
-                        ),
+                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.EDIT,
+                            iouType,
+                            transactionID: transaction.transactionID,
+                            reportID,
+                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                        }),
                     );
                     return;
                 }

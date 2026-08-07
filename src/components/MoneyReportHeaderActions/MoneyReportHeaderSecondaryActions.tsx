@@ -387,6 +387,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
               outstandingReportsByPolicyID,
               isChatReportArchived,
               isProduction,
+              isOffline,
           })
         : [];
 
