@@ -38,7 +38,7 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import {conciergePersonalDetailSelector, hasExpensifyGuidesEmailsSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
@@ -79,13 +79,19 @@ function DebugReportPage({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID, login: currentUserLogin} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
+    const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
+    const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: hasExpensifyGuidesEmailsSelector(participantAccountIDs),
+    });
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
@@ -123,6 +129,7 @@ function DebugReportPage({
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
             conciergeReportID,
+            hasGuidesEmails: hasGuidesEmails ?? false,
         });
 
         return [
@@ -184,6 +191,7 @@ function DebugReportPage({
         draftComment,
         translate,
         conciergeReportID,
+        hasGuidesEmails,
     ]);
 
     const icons = useMemoizedLazyExpensifyIcons(['Eye']);

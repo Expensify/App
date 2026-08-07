@@ -24,6 +24,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {hasExpensifyGuidesEmailsSelector} from '@selectors/PersonalDetails';
 import React, {useEffect} from 'react';
 
 type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
@@ -57,6 +58,10 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
+    const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: hasExpensifyGuidesEmailsSelector(participantAccountIDs),
+    });
 
     const parentReportAction = useParentReportAction(report);
     let linkedReportAction: OnyxEntry<OnyxTypes.ReportAction> = reportActions?.[`${props.route.params.reportActionID}`];
@@ -83,7 +88,7 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
     const isLoadingReport = isLoadingReportData && !report?.reportID;
     const isLoadingReportAction = isEmptyObject(reportActions) || (reportLoadingState?.isLoadingInitialReportActions && isEmptyObject(linkedReportAction));
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, isReportArchived));
+    const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, hasGuidesEmails ?? false, isReportArchived));
 
     if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {

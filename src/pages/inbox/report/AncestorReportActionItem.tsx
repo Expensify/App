@@ -19,7 +19,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
+import {hasExpensifyGuidesEmailsSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 import ReportActionItem from './ReportActionItem';
@@ -95,12 +95,18 @@ function AncestorReportActionItem({
 }: AncestorReportActionItemProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsSelector(report?.ownerAccountID),
+    });
+    const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
+    const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: hasExpensifyGuidesEmailsSelector(participantAccountIDs),
+    });
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {selector: getStableReportSelector});
 
     const shouldDisplayThreadDivider = !isTripPreview(reportAction);
     const isAncestorReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
-    const canOpenAncestorReport = canCurrentUserOpenReport(report, allBetas, isAncestorReportArchived);
+    const canOpenAncestorReport = canCurrentUserOpenReport(report, allBetas, hasGuidesEmails ?? false, isAncestorReportArchived);
 
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();

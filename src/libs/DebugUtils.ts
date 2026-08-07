@@ -1465,6 +1465,7 @@ function getReasonForShowingRowInLHN({
     currentUserLogin,
     currentUserAccountID,
     conciergeReportID,
+    hasGuidesEmails,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1476,6 +1477,7 @@ function getReasonForShowingRowInLHN({
     draftComment: string | undefined;
     currentUserLogin?: string;
     currentUserAccountID?: number;
+    hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
 }): TranslationPaths | null {
     if (!report) {
@@ -1497,6 +1499,7 @@ function getReasonForShowingRowInLHN({
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
+        hasGuidesEmails,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {

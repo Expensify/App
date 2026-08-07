@@ -4846,7 +4846,8 @@ function navigateToMostRecentReport(
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
 ) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
+    // TODO: Pass guidesEmailsByReport map once callers are fully migrated — PR 30 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
+    const lastAccessedReportID = findLastAccessedReport(false, undefined, false, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
         // Check if route exists for super wide RHP vs regular full screen report
@@ -4886,7 +4887,8 @@ function getSearchThreadLeaveRoute(report: Report, activeRoute: string): Route |
 }
 
 function getMostRecentReportID(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
+    // TODO: Pass guidesEmailsByReport map once callers are fully migrated — PR 30 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
+    const lastAccessedReportID = findLastAccessedReport(false, undefined, false, currentReport?.reportID)?.reportID;
     return lastAccessedReportID ?? conciergeReportID;
 }
 
