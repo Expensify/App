@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
-import type {MenuData, MenuSection} from '@pages/settings/useInitialSettingsPageMenuData';
+import type {MenuData, MenuSection} from '@pages/settings/useSettingsNavigationMenuData';
 
 import variables from '@styles/variables';
 
@@ -34,9 +34,8 @@ type MockSearchTypeMenuSectionsResult = {
 
 const mockUseSearchTypeMenuSections = jest.fn<MockSearchTypeMenuSectionsResult, [queryParams: unknown, isScreenFocused: boolean]>();
 const mockUseMemoizedLazyExpensifyIcons = jest.fn<Record<string, IconAsset>, []>();
-const mockUseInitialSettingsPageMenuData = jest.fn<{accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection}, [currentUserPersonalDetails: unknown]>();
+const mockUseSettingsNavigationMenuData = jest.fn<{accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection}, []>();
 const mockClearSelectedTransactions = jest.fn();
-const mockCurrentUserPersonalDetails = {accountID: 1};
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
@@ -44,11 +43,6 @@ jest.mock('@components/Search/SearchContext', () => ({
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => mockUseMemoizedLazyExpensifyIcons(),
-}));
-
-jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    __esModule: true,
-    default: () => mockCurrentUserPersonalDetails,
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
@@ -87,9 +81,9 @@ jest.mock('@hooks/useSearchTypeMenuSections', () => ({
     default: (queryParams: unknown, isScreenFocused: boolean) => mockUseSearchTypeMenuSections(queryParams, isScreenFocused),
 }));
 
-jest.mock('@pages/settings/useInitialSettingsPageMenuData', () => ({
+jest.mock('@pages/settings/useSettingsNavigationMenuData', () => ({
     __esModule: true,
-    default: (currentUserPersonalDetails: unknown) => mockUseInitialSettingsPageMenuData(currentUserPersonalDetails),
+    default: () => mockUseSettingsNavigationMenuData(),
 }));
 
 jest.mock('@libs/actions/Search', () => ({
@@ -152,7 +146,7 @@ function createSettingsMenuItem(translationKey: MenuData['translationKey'], scre
 }
 
 beforeEach(() => {
-    mockUseInitialSettingsPageMenuData.mockReturnValue({
+    mockUseSettingsNavigationMenuData.mockReturnValue({
         accountMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.account', items: []},
         generalMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.general', items: []},
     });
@@ -544,7 +538,7 @@ describe('Account Search Router navigation source', () => {
             Gear: accountContextIcon,
         });
         mockUseSearchTypeMenuSections.mockReturnValue({typeMenuSections: [], activeItemIndex: -1, activeKey: undefined});
-        mockUseInitialSettingsPageMenuData.mockReturnValue({
+        mockUseSettingsNavigationMenuData.mockReturnValue({
             accountMenuItemsData: {
                 sectionTranslationKey: 'initialSettingsPage.account',
                 items: [{...createSettingsMenuItem('initialSettingsPage.security', SCREENS.SETTINGS.SECURITY, securityAction), icon: securityIcon}],
@@ -554,7 +548,7 @@ describe('Account Search Router navigation source', () => {
 
         const {result} = renderHook(() => useNavigationSuggestions('password'));
 
-        expect(mockUseInitialSettingsPageMenuData).toHaveBeenCalledWith(mockCurrentUserPersonalDetails);
+        expect(mockUseSettingsNavigationMenuData).toHaveBeenCalledTimes(1);
         expect(result.current).toHaveLength(1);
         expect(result.current.at(0)).toMatchObject({
             text: 'Go to Security',
