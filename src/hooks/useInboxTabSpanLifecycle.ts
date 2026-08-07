@@ -9,8 +9,10 @@ import {useEffect, useRef} from 'react';
  * Manages the ManualNavigateToInboxTab span lifecycle for the inbox sidebar.
  *
  * Three signals are handled:
- * - onLayout fires on first mount: ends the span (normal path).
- * - useFocusEffect fires on re-focus when react-freeze has cached the layout: ends the span (warm path).
+ * - onLayout ends the span, reporting cold on the first layout and warm on any later one. It fires again on
+ *   web when the tab is re-visited, so it cannot assume it is running on a fresh mount.
+ * - useFocusEffect ends the span as warm on re-focus, which is the only signal available on native because
+ *   react-freeze keeps the cached layout and onLayout does not fire again there.
  *   The blur cleanup cancels any orphaned span when the user navigates away before layout completes.
  * - useEffect unmount cleanup cancels the span only if layout never completed AND the active span
  *   is the same one that was present when this instance mounted (avoids canceling a span started
@@ -22,9 +24,15 @@ function useInboxTabSpanLifecycle(): () => void {
     const hasHadFirstLayout = useRef(false);
     const spanOnMount = useRef(getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB));
 
+    // Both end paths derive `is_warm` from this ref rather than hardcoding a value, so the reported result does
+    // not depend on which of them happens to fire first. That ordering is platform specific: on web the blurred
+    // tab pane is given `display: none`, and because onLayout is driven by ResizeObserver, returning to the tab
+    // re-fires it on a screen that was never unmounted, while on native react-freeze keeps the layout so only
+    // the focus path runs. The ref survives both, which is why it is the only trustworthy signal here.
     const onLayout = () => {
+        const isRepeatLayout = hasHadFirstLayout.current;
         hasHadFirstLayout.current = true;
-        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: isRepeatLayout});
         spanOnMount.current = undefined;
     };
 

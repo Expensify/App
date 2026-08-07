@@ -125,6 +125,44 @@ describe('useInboxTabSpanLifecycle', () => {
         expect(mockCancelSpan).not.toHaveBeenCalled();
     });
 
+    it('reports a repeat layout as warm (on web onLayout fires again when the tab is re-visited)', () => {
+        const {result} = renderHook(() => useInboxTabSpanLifecycle());
+
+        // First layout is the cold one and is asserted above. A second layout on the same instance means the
+        // screen was never unmounted, so it is a warm re-visit rather than a fresh mount.
+        act(() => {
+            result.current();
+        });
+        mockEndSpanWithAttributes.mockClear();
+
+        act(() => {
+            result.current();
+        });
+
+        expect(mockEndSpanWithAttributes).toHaveBeenCalledTimes(1);
+        expect(mockEndSpanWithAttributes).toHaveBeenCalledWith(SPAN, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+    });
+
+    it('reports the same value from either end path, so the result does not depend on which one fires first', () => {
+        const {result} = renderHook(() => useInboxTabSpanLifecycle());
+
+        act(() => {
+            result.current();
+        });
+        mockEndSpanWithAttributes.mockClear();
+
+        act(() => {
+            result.current();
+        });
+        act(() => {
+            getFocusCallback()();
+        });
+
+        expect(mockEndSpanWithAttributes).toHaveBeenCalledTimes(2);
+        expect(mockEndSpanWithAttributes).toHaveBeenNthCalledWith(1, SPAN, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+        expect(mockEndSpanWithAttributes).toHaveBeenNthCalledWith(2, SPAN, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+    });
+
     it('does not cancel on unmount after layout has completed', () => {
         const {result, unmount} = renderHook(() => useInboxTabSpanLifecycle());
 
