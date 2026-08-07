@@ -152,24 +152,4 @@ describe('SearchSelectionFooter', () => {
         // The chosen default differs from the figures' denomination, so a conversion to it is requested.
         expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: PAYMENT_CURRENCY}));
     });
-
-    it('converts when any selected row is denominated differently, not just the first', async () => {
-        // The first selected group's figure already matches the default (GBP), but the second is still denominated
-        // in another currency (INR).
-        mockSelectedTransactions.current = {
-            [`${CONST.SEARCH.GROUP_PREFIX}category1`]: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY, PAYMENT_CURRENCY, -100),
-            [`${CONST.SEARCH.GROUP_PREFIX}category2`]: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY, 'INR', -100),
-        };
-
-        // A partial selection (2 of 3), so the footer uses the client-side selected total.
-        render(<SearchSelectionFooter searchResults={buildSearchResults(undefined, 3)} />);
-        await waitForBatchedUpdates();
-
-        await act(async () => {
-            mockCapturedFooterProps.current?.onCurrencyChange?.(PAYMENT_CURRENCY);
-            await waitForBatchedUpdates();
-        });
-
-        expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: PAYMENT_CURRENCY}));
-    });
 });

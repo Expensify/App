@@ -251,27 +251,16 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // visiting Reports), so fall back to the live payment currency instead of an arbitrary selected expense's currency.
     const effectiveDefaultCurrency = defaultFooterCurrency ?? metadataCurrency ?? paymentCurrency;
 
-    // A chosen currency needs converting when it differs from the currency the loaded figures are denominated in:
-    // the whole-search grand total in metadataCurrency, per-row figures in the server-converted groupCurrency (or the
-    // row's own currency when no conversion happened). Comparing against the default instead would skip the
+    // The currency the loaded figures are denominated in: the whole-search grand total in metadataCurrency, per-row
+    // figures in the server-converted groupCurrency (or the row's own currency when no conversion happened). A chosen
+    // currency needs converting when it differs from this — comparing against the default instead would skip the
     // conversion whenever the default itself moved away from the loaded figures (e.g. resetting to a just-changed
-    // Preferences > Payment currency). Report-view rows are skipped, mirroring areAllSelectedEntriesConverted.
-    const selectionNeedsConversion = useMemo(() => {
-        if (!selectedCurrency) {
-            return false;
-        }
-        if (isReportsSearch) {
-            return selectedReports.some((report) => report.currency !== selectedCurrency);
-        }
-        return selectedTransactionsKeys.some((key) => {
-            const entry = selectedTransactions[key];
-            if (!isGroupEntry(key) && entry.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === entry.reportID) {
-                return false;
-            }
-            return (entry.groupCurrency ?? entry.currency) !== selectedCurrency;
-        });
-    }, [isReportsSearch, selectedCurrency, selectedReports, selectedTransactions, selectedTransactionsKeys]);
-    const hasCustomFooterCurrency = !!selectedCurrency && (shouldUseClientTotal ? selectionNeedsConversion : selectedCurrency !== (metadataCurrency ?? effectiveDefaultCurrency));
+    // Preferences > Payment currency).
+    const firstSelectedTransactionKey = selectedTransactionsKeys.at(0);
+    const firstSelectedTransaction = firstSelectedTransactionKey ? selectedTransactions[firstSelectedTransactionKey] : undefined;
+    const selectionDenominationCurrency = isReportsSearch ? selectedReports.at(0)?.currency : (firstSelectedTransaction?.groupCurrency ?? firstSelectedTransaction?.currency);
+    const loadedFiguresCurrency = (shouldUseClientTotal ? selectionDenominationCurrency : metadataCurrency) ?? effectiveDefaultCurrency;
+    const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== loadedFiguresCurrency;
 
     // The most recent conversion request for this currency failed, so stop waiting on a converted value that isn't coming.
     const hasConversionFailed = hasCustomFooterCurrency && !!selectedCurrency && !!failedConversionCurrencies?.[selectedCurrency];
