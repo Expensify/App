@@ -6,20 +6,23 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {buildMergedTransactionData, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
+import {buildMergedTransactionData, getTransactionThreadReportID, willReportBecomeOneTransactionReportAfterMerge} from '@libs/MergeTransactionUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -46,6 +49,7 @@ type DynamicConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNav
 function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
     const {transactionID, isOnSearch} = route.params;
@@ -64,6 +68,10 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
+    // Expenses already in the target report, used to tell if only one will be left after merging.
+    const targetReportTransactionsCollection = useReportTransactionsCollection(targetTransaction?.reportID);
+    // Reports opened from Search may not be in Onyx yet, so we also read the expenses from the Search snapshot.
+    const {currentSearchResults} = useSearchResultsContext();
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`);
     const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -114,8 +122,43 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
 
         const searchReportIDToOpen = targetTransactionThreadReportID ?? reportIDToDismiss;
 
-        // If we're in search (or the topmost route is search), dismiss the modal and open the expense in the RHP
+        // In search, dismiss the merge modal and reopen the expense in the RHP.
         if ((isOnSearch || isSearchTopmostFullScreenRoute()) && searchReportIDToOpen) {
+            if (targetTransaction.reportID === mergeTransaction.reportID) {
+                // Only keep the RHP underneath if it belongs to the target. A swapped merge (e.g. cash into a
+                // card/split expense) leaves the source's report underneath, so fall through to the full dismiss.
+                const topmostSearchReportID = Navigation.getTopmostSearchReportID();
+                const isTargetThreadTopmost = !!targetTransactionThreadReportID && topmostSearchReportID === targetTransactionThreadReportID;
+                const isTargetReportUnderneath = Navigation.getTopmostSuperWideRHPReportID() === targetTransaction.reportID;
+
+                if (isTargetThreadTopmost || isTargetReportUnderneath) {
+                    // A report left with a single expense becomes a one-transaction thread, so fall through to the full dismiss.
+                    const willTargetReportBeOneTransactionReport = willReportBecomeOneTransactionReportAfterMerge(
+                        targetTransaction.reportID,
+                        sourceTransaction.transactionID,
+                        targetReportTransactionsCollection,
+                        currentSearchResults?.data,
+                        isOffline,
+                    );
+
+                    if (!willTargetReportBeOneTransactionReport) {
+                        if (isTargetThreadTopmost) {
+                            // The target's own thread is already the RHP underneath, so just close the merge modal to reveal it.
+                            Navigation.dismissToPreviousRHP();
+                            return;
+                        }
+
+                        // The target's report is underneath but another thread may sit on top, so dismiss to that shared
+                        // report to clear the stale thread, then open the merged expense's thread over it.
+                        Navigation.dismissToSuperWideRHP();
+                        Navigation.setNavigationActionToMicrotaskQueue(() => {
+                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen}));
+                        });
+                        return;
+                    }
+                }
+            }
+
             Navigation.dismissModal();
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen}));

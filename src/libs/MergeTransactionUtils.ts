@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 
 import {SafeString} from 'expensify-common';
@@ -30,6 +30,7 @@ import {
     getAttendeesListDisplayString,
     getCurrency,
     getReimbursable,
+    getSupersededPendingCardTransactionIDs,
     getTaxName,
     getWaypoints,
     hasValidModifiedAmount,
@@ -353,6 +354,59 @@ function getTransactionThreadReportID(transaction: OnyxEntry<Transaction>) {
     }
     const iouActionOfTargetTransaction = getIOUActionForReportID(getReportIDForExpense(transaction), transaction?.transactionID);
     return iouActionOfTargetTransaction?.childReportID;
+}
+
+/**
+ * Whether merging the source away leaves the target's report with a single expense (a one-transaction thread report).
+ */
+function willReportBecomeOneTransactionReportAfterMerge(
+    reportID: string | undefined,
+    sourceTransactionID: string | undefined,
+    reportTransactionsCollection: OnyxCollection<Transaction>,
+    searchResultsData: SearchResults['data'] | undefined,
+    isOffline: boolean,
+): boolean {
+    if (!reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID || reportID === CONST.REPORT.SPLIT_REPORT_ID) {
+        return false;
+    }
+
+    // In the Search snapshot only transactions carry a string transactionID, so this narrows without a cast.
+    const isSearchResultTransaction = (value: unknown): value is Transaction =>
+        typeof value === 'object' && value !== null && 'transactionID' in value && typeof value.transactionID === 'string';
+
+    // Merge both sources by transactionID; Onyx overrides the snapshot so the optimistic values win over stale rows.
+    const transactionsByID = new Map<string, Transaction>();
+    for (const value of Object.values(searchResultsData ?? {})) {
+        if (!isSearchResultTransaction(value)) {
+            continue;
+        }
+        transactionsByID.set(value.transactionID, value);
+    }
+    for (const transaction of Object.values(reportTransactionsCollection ?? {})) {
+        if (!transaction) {
+            continue;
+        }
+        transactionsByID.set(transaction.transactionID, transaction);
+    }
+
+    // A stale pending card auth is hidden once its posted counterpart exists, so it must not keep the report open.
+    const reportTransactions = [...transactionsByID.values()].filter((transaction) => transaction.reportID === reportID);
+    const supersededPendingCardTransactionIDs = getSupersededPendingCardTransactionIDs(reportTransactions);
+
+    let remainingTransactions = 0;
+    for (const transaction of reportTransactions) {
+        // Skip the source, superseded card auths, and (online only) siblings being deleted, matching the Search report.
+        if (
+            transaction.transactionID === sourceTransactionID ||
+            supersededPendingCardTransactionIDs.has(transaction.transactionID) ||
+            (!isOffline && isTransactionPendingDelete(transaction))
+        ) {
+            continue;
+        }
+        remainingTransactions += 1;
+    }
+
+    return remainingTransactions <= 1;
 }
 
 /**
@@ -725,6 +779,7 @@ export {
     isEmptyMergeValue,
     fillMissingReceiptSource,
     getTransactionThreadReportID,
+    willReportBecomeOneTransactionReportAfterMerge,
     getDisplayValue,
     buildMergeFieldsData,
     getReportIDForExpense,
