@@ -7,9 +7,11 @@ import useInitial from '@hooks/useInitial';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard} from '@libs/actions/Card';
 import {requestValidateCodeAction} from '@libs/actions/User';
+import {getIssuedCardFeedCountry} from '@libs/CardUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -41,6 +43,7 @@ function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidat
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
     const defaultFundID = useDefaultFundID(policyID);
+    const selectedProgramKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
     const {isBetaEnabled} = usePermissions();
     const firstAssigneeEmail = useInitial(issueNewCard?.data?.assigneeEmail);
     const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === issueNewCard?.data?.assigneeEmail;
@@ -65,10 +68,10 @@ function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidat
 
     const handleSubmit = useCallback(
         (validateCode: string) => {
-            // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
-            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, assigneeTimeZone, data);
+            const feedCountry = getIssuedCardFeedCountry(isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK), selectedProgramKey);
+            issueExpensifyCard(defaultFundID, policyID, feedCountry, validateCode, assigneeTimeZone, data);
         },
-        [isBetaEnabled, data, defaultFundID, policyID, assigneeTimeZone],
+        [isBetaEnabled, selectedProgramKey, data, defaultFundID, policyID, assigneeTimeZone],
     );
 
     const handleClose = useCallback(() => {

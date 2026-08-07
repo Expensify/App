@@ -13,6 +13,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -76,10 +77,11 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const anchorRef = useRef(null);
 
     const defaultFundID = useDefaultFundID(policyID);
+    const selectedProgramKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
 
-    const settlementCurrency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
+    const settlementCurrency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID, programKey: selectedProgramKey});
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const settings = getCardSettings(cardSettings);
+    const settings = getCardSettings(cardSettings, selectedProgramKey);
     const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${defaultFundID}`);
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
     const paymentBankAccountID = settings?.paymentBankAccountID;

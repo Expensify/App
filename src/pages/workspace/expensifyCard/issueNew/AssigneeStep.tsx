@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {searchUserInServer} from '@libs/actions/Report';
@@ -86,7 +87,8 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
     });
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const defaultFundID = useDefaultFundID(policyID);
-    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
+    const selectedProgramKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
+    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID, programKey: selectedProgramKey});
     const isEditing = issueNewCard?.isEditing;
 
     const submit = (assignee: ListItem) => {

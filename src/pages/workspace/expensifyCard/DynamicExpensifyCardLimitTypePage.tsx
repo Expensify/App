@@ -22,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateExpensifyCardLimitType} from '@libs/actions/Card';
 import {openPolicyEditCardLimitTypePage} from '@libs/actions/Policy/Policy';
-import {filterInactiveCardsForWorkspace, getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
+import {filterInactiveCardsForWorkspace, getDefaultExpensifyCardLimitType, getProgramKeyForCard} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getApprovalWorkflow} from '@libs/PolicyUtils';
@@ -74,7 +74,8 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
 
     const [typeSelected, setTypeSelected] = useState(initialLimitType);
     const [expirationToggle, setExpirationToggle] = useState(!!card?.nameValuePairs?.validFrom);
-    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
+    // Resolve currency from the card's own program (feedCountry) so a GB card shows GBP/EUR even when the feed also has a US program.
+    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID, programKey: getProgramKeyForCard(card)});
     const personalDetails = usePersonalDetails();
     const assigneePersonalDetails = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
