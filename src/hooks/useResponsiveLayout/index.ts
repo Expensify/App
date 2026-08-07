@@ -2,7 +2,6 @@ import ModalContext from '@components/Modal/ModalContext';
 
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {isMobile} from '@libs/Browser';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 
 import variables from '@styles/variables';
