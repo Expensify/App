@@ -1,10 +1,10 @@
-import HRSyncResultsModal from '@components/HRSyncResultsModal';
-import {useModal} from '@components/Modal/Global/ModalContext';
-
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -16,26 +16,23 @@ import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 
 /**
- * Watches an HR provider's sync progress and automatically opens the `HRSyncResultsModal`
+ * Watches an HR provider's sync progress and automatically opens the HR sync results screen
  * when the sync transitions to the `JOB_DONE` stage with a result payload.
  */
-function useHRSyncResultsModal(policyID: string, connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>, isFocused: boolean) {
-    const modal = useModal();
+function useHRSyncResultsPage(connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>, isFocused: boolean) {
     const previousSyncProgress = usePrevious(connectionSyncProgress);
     const pendingSyncResultRef = useRef<Pick<PolicyConnectionSyncProgress, 'connectionName' | 'result'> | null>(null);
     const [isAnyModalActive] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
 
     const connectionName = connectionSyncProgress?.connectionName;
-    const showSyncResultsModal = useEffectEvent((syncResult: PolicyConnectionSyncProgress['result'], syncConnectionName: PolicyConnectionSyncProgress['connectionName']) => {
+    const openSyncResultsScreen = useEffectEvent((syncResult: PolicyConnectionSyncProgress['result'], syncConnectionName: PolicyConnectionSyncProgress['connectionName']) => {
         if (!syncResult || !syncConnectionName) {
             return;
         }
 
-        modal.showModal({
-            component: HRSyncResultsModal,
-            props: {result: syncResult, policyID},
-            id: `${syncConnectionName}-sync-results-${policyID}`,
-        });
+        // The result payload stays in Onyx; the screen re-reads it from the `policyID` it inherits
+        // from the workspace route, so nothing rich has to be serialized into navigation params.
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path));
     });
 
     useEffect(() => {
@@ -56,7 +53,7 @@ function useHRSyncResultsModal(policyID: string, connectionSyncProgress: OnyxEnt
 
         const handle = TransitionTracker.runAfterTransitions({
             callback: () => {
-                showSyncResultsModal(pendingSyncResult.result, pendingSyncResult.connectionName);
+                openSyncResultsScreen(pendingSyncResult.result, pendingSyncResult.connectionName);
                 pendingSyncResultRef.current = null;
             },
             waitForUpcomingTransition: true,
@@ -74,4 +71,4 @@ function useHRSyncResultsModal(policyID: string, connectionSyncProgress: OnyxEnt
     ]);
 }
 
-export default useHRSyncResultsModal;
+export default useHRSyncResultsPage;
